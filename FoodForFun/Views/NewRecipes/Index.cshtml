@@ -1,0 +1,165 @@
+﻿@model FullRecipes
+@{
+    ViewData["Title"] = "Neues Rezept";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+<div class="row">
+    <div class=" col w20">
+    </div>
+
+    <div class="col w80 jcenter">
+        <form asp-controller="NewRecipes" asp-action="AddNewRecipes">
+            <div class="m-2 w-100">
+                <input class="w-100"  name="Name" placeholder="Name des Rezeptes" />
+            </div>
+
+            <div class="m-2 w-100" style="outline:solid 1px;padding:2px">
+                <div class="flex" style="align-items:center">
+                    <div class="flex m-1" style="width:50%">
+                        <h5 style="align-self:flex-start">Zutat Hinzufügen</h5>
+                    </div>
+                    <div class="flex" style="width:50%;justify-content:flex-end">
+                        <div class="m-1">
+
+                            <a class="btn" typeof="button" asp-controller="NewRecipes" asp-action="BlankSentence" type="button" id="addItem">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                </svg>
+                            </a>
+                            <a class="btn" typeof="button" type="button" href="#" onclick="removeItem()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
+                                    <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" />
+                                </svg>
+                            </a>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <hr class="m-0" />
+                <div id="container">
+
+                    <div id="editorRows">
+
+
+                        @foreach (var item in Model.Ingredient)
+                        {
+                            <partial name="_IngredientPartialView" model="item" />
+                        }
+                    </div>
+
+
+                </div>
+
+                <hr class="m-0" />
+                <div class="flex" style="align-items:center">
+                    <textarea class="m-1 " style="width:100%" name="Preparation" placeholder="Zubereitung"></textarea> 
+
+               
+                </div>
+
+
+            </div>
+
+            <button id="submit" typeof="button">Speichern</button>
+        </form>
+       
+
+    </div>
+
+    <div class=" col w20">
+        
+
+    </div>
+</div>
+
+
+
+
+
+
+@section scripts {
+    <script>
+        $("#submit").click(function (e) {
+            e.preventDefault();
+            var formData = new FormData();
+            
+            $("input[name='Name']").each(function () {
+                var Name = $(this).val();
+
+                formData.set("Recipes.Name", Name);
+
+            });
+
+            $("textarea[name='Preparation']").each(function () {
+                var Preparation = $(this).val();
+               
+                formData.set("Recipes.Preparation", Preparation);
+
+            });
+
+
+            $("input[name='Quantity']").each(function (i) {
+                var Quantity = $(this).val();
+                formData.append("Ingredient[" + i + "].Quantity.Quantitys", Quantity);
+
+            });
+
+            $("input[name='Ingredient']").each(function (i) {
+                var Ingredient = $(this).val();
+
+                formData.append("Ingredient[" + i + "].Name", Ingredient);
+
+            });
+
+
+
+
+            
+            $.ajax({
+                method: 'post',
+                url: "NewRecipes/AddNewRecipes",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+                    debugger;
+                    load("Home/Index");
+                    alert("Geschaft");
+                }
+            });
+
+            
+
+        });
+
+       
+
+       
+
+        $("#addItem").click(function () {
+            $.ajax({
+                url: this.href,
+                cache: false,
+                success: function (html) { $("#editorRows").append(html); }
+            });
+            return false;
+        });
+
+
+        function removeItem() {
+
+            document.querySelector('#editorRows').lastElementChild.remove();
+
+        }
+
+
+    </script>
+}
+
+
+

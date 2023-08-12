@@ -1,0 +1,64 @@
+﻿@model Story
+<form asp-action="AddSentence" method="post">
+    <div id="editorRows">
+        <input type="hidden" name="" value="@Model.StoryId" />
+        @foreach (var item in Model.Sentences)
+        {
+            <partial name="_SentenceEditor" model="item" />
+        }
+    </div>
+    <a id="addItem" asp-action="BlankSentence" asp-controller="Home">Add Sentence...</a>
+    <br />
+    <input type="submit" id="submit" value="Finished" />
+</form>
+
+@section scripts {
+    <script>
+        $("#submit").click(function (e) {
+            e.preventDefault();
+            var formData = new FormData();
+
+            $("input[name='Audio.AudioSelected']").each(function (i) {
+                var AudioSelected = $(this).val();
+                formData.append("Sentences[" + i + "].Audio.AudioSelected", AudioSelected);
+
+            });
+            $("input[name='Image.ImageSelected']").each(function (i) {
+                var ImageSelected = $(this).val();
+                formData.append("Sentences[" + i + "].Image.ImageSelected", ImageSelected);
+
+            });
+            $("input[name='SentenceText']").each(function (i) {
+                var SentenceText = $(this).val();
+                formData.append("Sentences[" + i + "].SentenceText", SentenceText);
+
+            });
+
+            $.ajax({
+                method: 'post',
+                url: "StoryTest/AddSentence",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+
+                }
+            });
+
+        });
+
+        $("#addItem").click(function () {
+            $.ajax({
+                url: this.href,
+                cache: false,
+                success: function (html) { $("#editorRows").append(html); }
+            });
+            return false;
+        });
+
+        $("a.deleteRow").on("click", function () {
+            $(this).parents("div.editorRow:first").remove();
+            return false;
+        });
+    </script>
+}
