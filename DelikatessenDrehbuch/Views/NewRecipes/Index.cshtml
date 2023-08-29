@@ -12,7 +12,8 @@
     <div class="col w80 jcenter" >
         <form asp-controller="NewRecipes" asp-action="AddNewRecipes">
             <div class="m-2 w-100">
-                <input class="w-100"  name="Name" placeholder="Name des Rezeptes" />
+                <input asp-for="Recipes.Id" name="Id" hidden />
+                <input asp-for="Recipes.Name" class="w-100"  name="Name" placeholder="Name des Rezeptes" />
             </div>
 
             <div class="m-2 w-100" style="outline:solid 1px;padding:9px">
@@ -57,7 +58,7 @@
                 <hr class="m-0" />
 
                 <div class="flex" style="align-items:center" >
-                    <textarea class="mt-1 " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
+                    <textarea asp-for="Recipes.Preparation" class="mt-1 " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
                 </div>
 
 
@@ -82,10 +83,16 @@
 
 @section scripts {
     <script>
+        
         $("#submit").click(function (e) {
             e.preventDefault();
             var formData = new FormData();
-            
+
+
+            $("input[name='Id']").each(function () {
+                var Id = $(this).val();
+                formData.set("Recipes.Id", Id);
+            });
             $("input[name='Name']").each(function () {
                 var Name = $(this).val();
                 formData.set("Recipes.Name", Name);
@@ -114,15 +121,16 @@
 
 
             
+            
             $.ajax({
                 method: 'post',
-                url: "NewRecipes/AddNewRecipes",
-                data: formData,
+                url: "/NewRecipes/AddOrEditRecipes",
+                data: formData,               
                 processData: false,
                 contentType: false,
-                success: function () {
-                    window.location.href="Home/Index";
-                   
+                success: function () { 
+                    
+                    window.location.href="/Home/Index";                 
                 }
             });
 

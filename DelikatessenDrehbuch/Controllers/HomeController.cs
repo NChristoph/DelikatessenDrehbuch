@@ -23,6 +23,13 @@ namespace DelikatessenDrehbuch.Controllers
             return View();
         }
 
+        public IActionResult SearchRecipes(string keyWord)
+        {
+            //TODO:Hier die Suche machen und partial view zurück geben
+            //Partial View muss noch erstellt werden
+            return Ok("Treffer");
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

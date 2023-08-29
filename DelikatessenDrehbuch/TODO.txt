@@ -1,4 +1,8 @@
 Image Server erstellen und verbinden
 Image Hochladen ermöglichen
 
-Modal für my recipes noch machen 
+Rezept Löschen noch implementieren
+
+Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
+
+Code Übersichtlicher machen 

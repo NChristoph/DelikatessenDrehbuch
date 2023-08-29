@@ -11,7 +11,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<Quantity> Quantities { get; set; }
         public DbSet<Measure> Metrics { get; set; }
         public DbSet<RecipesHandler> RecipesHandlers { get; set; }
-        public DbSet<IngredientHandler> IngredientHandlers { get; set; }
+        public DbSet<IngredientHandlerModel> IngredientHandlers { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

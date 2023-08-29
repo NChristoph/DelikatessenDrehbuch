@@ -1,8 +1,39 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Rezepte";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+<div class=" flex row jcenter">
+    <a class="btn nav-link text-dark" typeof="button" href="#" style="max-width: min-content;">Vegan</a>
+    <a class="btn nav-link text-dark" typeof="button" href="#" style="max-width: min-content;">Cocktails</a>
 </div>
+<div class=" flex jcenter row">
+    <hr style="width:80%" />
+</div>
+
+
+<div class="card w100">
+    <div class="card-header">
+        <div class="flex flexRow jcenter">
+            <input id="keyWord" class="w-50 " placeholder="Nach Rezept suchen" style="border-radius:5px;margin-right:5px;" />
+            <button onclick="SearchRecipe()" class="btn w10 btn-success" title="SearchButton" typeof="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div id="RecipesPartial" class="card-body">
+    </div>
+    <div class="card-footer">
+    </div>
+</div>
+
+<script>
+    function SearchRecipe()
+    {
+        debugger;
+        var keyWord = $('#keyWord').val();
+        $('#RecipesPartial').load('Home/SearchRecipes?keyWord='+keyWord)
+    }
+</script>

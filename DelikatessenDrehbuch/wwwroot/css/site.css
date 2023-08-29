@@ -18,16 +18,26 @@
     justify-content:center;
 }
 
+.jend{
+    justify-content:end;
+}
+
 .acenter {
     align-items: center;
 }
 
-
+.w100 {
+    max-width: 100%;
+}
 .w80 {
     max-width: 80%;
 }
 .w20 {
    max-width: 20%;
+}
+
+.w10 {
+    max-width: 10%;
 }
 
 
@@ -40,9 +50,7 @@ html {
     font-size: 16px;
   }
 
-  .flexRow{
-      flex-direction:column;
-  }
+ 
 }
 
 html {

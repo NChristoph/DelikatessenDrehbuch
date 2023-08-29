@@ -1,6 +1,9 @@
 ﻿using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -16,9 +19,16 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index()
         {
-            var myrecipes = _dbcontext.Recipes.Where(x => x.OwnerEmail == User.Identity.Name);
+            var myRecipesFromDb=_dbcontext.Recipes.Where(x=>x.OwnerEmail==User.Identity.Name).ToList();
 
-            return View();
+            return View(myRecipesFromDb);
+        }
+
+        public IActionResult DeleteRecipes(int id)
+        {
+            //TODO:Loeschen eines Rezeptes
+          
+            return  RedirectToAction("Index");
         }
     }
 }

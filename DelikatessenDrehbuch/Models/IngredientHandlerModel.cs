@@ -1,6 +1,6 @@
 ﻿namespace DelikatessenDrehbuch.Models
 {
-    public class IngredientHandler
+    public class IngredientHandlerModel
     {
         public int Id { get; set; }
         public Ingredient Ingredient { get; set; }

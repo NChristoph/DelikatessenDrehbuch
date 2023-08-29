@@ -1,8 +1,34 @@
-﻿@model List<FullRecipes>
+﻿@model List<Recipes>
 
 @{
-   
+
     ViewData["Title"] = "Meine Rezeppte";
 }
+<div class="w100 flex jcenter">
+    <table class="table" style="max-width:75%">
+        <thead class="table-dark ">
+            <tr>
+                <th>Rezept Name</th>
+                <th></th>
+            </tr>
+
+        </thead>
+        <tbody>
+            @{
+                foreach (var myRecipes in Model)
+                {
+                    <tr>
+                        <td>@myRecipes.Name</td>
+                        <td class=" flex jend">
+                            <a asp-route-id="@myRecipes.Id" asp-controller="MyRecipes" asp-action="DeleteRecipes" class="btn btn-danger m-1">Löschen</a>
+                            <a asp-route-id="@myRecipes.Id" asp-controller="NewRecipes" asp-action="Index" class=" btn btn-primary m-1">Bearbeiten</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
 
 
