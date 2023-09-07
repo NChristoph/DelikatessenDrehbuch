@@ -1,4 +1,5 @@
-﻿using DelikatessenDrehbuch.Models;
+﻿using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -7,10 +8,11 @@ namespace DelikatessenDrehbuch.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        private readonly ApplicationDbContext _dbContext;
+        public HomeController(ILogger<HomeController> logger,ApplicationDbContext dbContext)
         {
             _logger = logger;
+            _dbContext = dbContext;
         }
 
         public IActionResult Index()
@@ -25,9 +27,9 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult SearchRecipes(string keyWord)
         {
-            //TODO:Hier die Suche machen und partial view zurück geben
-            //Partial View muss noch erstellt werden
-            return Ok("Treffer");
+            var recipesFromDb=_dbContext.Recipes.Where(x=>x.Name.ToLower() == keyWord.ToLower()).ToList();  
+            
+            return PartialView("_FindRecipesPartialView",recipesFromDb);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

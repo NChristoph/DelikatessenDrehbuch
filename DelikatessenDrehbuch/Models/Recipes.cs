@@ -10,6 +10,8 @@ namespace DelikatessenDrehbuch.Models
         public string Name { get; set; }
         public string Preparation { get; set; }
         public string? ImagePath { get; set; }
+        public int? LikeCount { get; set; }
+
 
 
     }

@@ -1,0 +1,41 @@
+﻿@model List<Recipes>
+
+
+
+
+<div class="flex flexColumn w100 flex-wrap jspaceBetween mt-3">
+    @{
+        
+        <h1 id="count" style="align-self:center">Es wurden @Model.Count Rezepte gefunden</h1>
+        foreach (var recipe in Model)
+        {
+           
+                <div type="button" typeof="button" class="w50 flex flexRow m-2" style="align-self:center">
+                    <div class="col iw25">
+                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                        {
+                            <img class="w100 recipeImage" src="@recipe.ImagePath" loading="lazy" />
+                        }
+                        else
+                        {
+                            <img class="w100 recipeImage" src="not-found.png" loading="lazy" />
+
+                        }
+
+                    </div>
+
+                    <div class="col m-1">
+                        <h4 class="recipeName ">@recipe.Name</h4>
+                        <p class="recipeDescriptions" style="overflow:hidden;max-height:20px">@recipe.Preparation</p>
+                        <p>Dieses Rezept gefällt @recipe.LikeCount Personen</p>
+                    </div>
+
+
+                </div>
+           
+
+        }
+    }
+</div>
+
+

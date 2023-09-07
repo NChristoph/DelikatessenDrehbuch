@@ -1,12 +1,19 @@
-*{
-    box-sizing:border-box;
+* {
+    box-sizing: border-box;
 }
 
-.flex{display:flex;}
 
-.flexRow{
-    display:flex;
-    flex-direction:row;
+.nopadding {
+    padding: 0;
+}
+
+.flex {
+    display: flex;
+}
+
+.flexRow {
+    display: flex;
+    flex-direction: row;
 }
 
 .flexColumn {
@@ -14,50 +21,132 @@
     flex-direction: column;
 }
 
-.jcenter{
-    justify-content:center;
+.flexWrap {
+    flex-wrap: wrap;
 }
 
-.jend{
-    justify-content:end;
+.jcenter {
+    justify-content: center;
+}
+
+.jend {
+    justify-content: end;
+}
+
+.jspaceBetween {
+    justify-content: space-between;
 }
 
 .acenter {
     align-items: center;
 }
 
+.recipeImage {
+    grid-area: img;
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.recipeName {
+    grid-area: header;
+}
+
+.recipeDescriptions {
+    grid-area: descriptions;
+}
+
+.recipeRating {
+    grid-area: rating;
+}
+
+.gridRecipes {
+    display: grid;
+    min-width: 50%;
+    max-width: 50%;
+    grid-template-areas:
+        'img header header header header header'
+        'img descriptions descriptions descriptions descriptions descriptions'
+        'img descriptions descriptions descriptions descriptions descriptions'
+        'img rating rating rating rating rating';
+}
+
+
 .w100 {
     max-width: 100%;
 }
+
+.w90 {
+    max-width: 90%;
+}
+
 .w80 {
     max-width: 80%;
 }
+
+.w50 {
+    max-width: 50%;
+    min-width: 50%;
+}
+
+.w30 {
+    max-width: 30%;
+    min-width: 30%;
+}
+
+.w25 {
+    max-width: 25%;
+}
+
 .w20 {
-   max-width: 20%;
+    max-width: 20%;
 }
 
 .w10 {
     max-width: 10%;
 }
 
-
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-
- 
+.iw25 {
+    max-width: 25%;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+
+    .w50 {
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 358px) {
+    .flexRow {
+        flex-direction: column;
+    }
+
+    .iw25 {
+        max-width: 100%;
+    }
+
+    .w30 {
+        min-width: 90%;
+        max-width: 90%;
+    }
+}
+
+
+
+html {
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
