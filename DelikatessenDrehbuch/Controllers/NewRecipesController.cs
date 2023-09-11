@@ -1,6 +1,7 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Data.Migrations;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,20 +25,8 @@ namespace DelikatessenDrehbuch.Controllers
             if (id == 0)
                 return View(new FullRecipes());
             else
-            {
-
-                var recipeToEdit = _dbContext.Recipes.SingleOrDefault(x => x.Id == id);
-
-                var fullRecipe = new FullRecipes()
-                {
-                    Recipes = recipeToEdit,
-                    IngredientHandler = GetIngredientHandlers(recipeToEdit)
-                };
-
-                return View(fullRecipe);
-            }
-
-
+                return View(HelpfulMethods.GetFullRecipeById(_dbContext, id));
+            
         }
 
         public List<IngredientHandlerModel> GetIngredientHandlers(Recipes recipeToEdit)
@@ -93,7 +82,8 @@ namespace DelikatessenDrehbuch.Controllers
             else
             {
                 recipeFromDb.Name = newRecipes.Recipes.Name;
-                recipeFromDb.ImagePath = newRecipes.Recipes.ImagePath;
+                //TODO: ImagePath noch bearbeitbar machen Wen Image Server bereit
+              //  recipeFromDb.ImagePath = newRecipes.Recipes.ImagePath;
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
 
                 _dbContext.SaveChanges();

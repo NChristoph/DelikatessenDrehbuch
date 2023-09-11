@@ -29,8 +29,10 @@
 <script>
     function SearchRecipe()
     {
-       
+      
         var keyWord = $('#keyWord').val();
-        $('#RecipesPartial').load('Home/SearchRecipes?keyWord='+keyWord)
+        var encodeKeyWord=encodeURIComponent(keyWord);
+        debugger;
+        $('#RecipesPartial').load('Home/SearchRecipes?keyWord='+encodeKeyWord)
     }
 </script>

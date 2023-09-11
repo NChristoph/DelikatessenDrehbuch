@@ -7,6 +7,8 @@ namespace DelikatessenDrehbuch.Data
     public class ApplicationDbContext : IdentityDbContext
     {
         public DbSet<Recipes> Recipes { get; set; }
+        public DbSet<Recession> Recessions { get; set; }
+        public DbSet<Like> Likes { get; set; }
         public DbSet<Ingredient> Ingredients { get; set; }
         public DbSet<Quantity> Quantities { get; set; }
         public DbSet<Measure> Metrics { get; set; }

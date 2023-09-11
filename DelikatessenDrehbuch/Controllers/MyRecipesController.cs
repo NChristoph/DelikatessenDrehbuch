@@ -26,9 +26,19 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult DeleteRecipes(int id)
         {
-            //TODO:Loeschen eines Rezeptes
+            
+            var recipesFromDb=_dbcontext.Recipes.SingleOrDefault(x=>x.Id==id);
+
+            if (recipesFromDb != null)
+            {
+                _dbcontext.Remove(recipesFromDb);
+                _dbcontext.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+            else
+                return BadRequest();
           
-            return  RedirectToAction("Index");
         }
     }
 }
