@@ -1,4 +1,25 @@
 ﻿@model FullRecipes
 
 
-<h1>@Model.Recipes.Name</h1>
+<div class="w100 flex acenter flexColumn ">
+    <div class="w50 flex flexColumn jcenter acenter bg-light">
+        <h1>@Model.Recipes.Name</h1>
+
+        <div class="w100 acenter" style="min-width:100%">
+            <table class="w100" style="min-width:100%">
+                
+                @{
+                    foreach (var ingredient in Model.IngredientHandler)
+                    {
+                        <tr class="w100">
+                            <td class="w25">@ingredient.Quantity.Quantitys</td>
+                            <td class="w25">@ingredient.Measure.UnitOfMeasurement</td>
+                            <td class="w50">@ingredient.Ingredient.Name</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</div>
+
