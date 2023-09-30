@@ -26,7 +26,7 @@ namespace DelikatessenDrehbuch.Controllers
                 return View(new FullRecipes());
             else
                 return View(HelpfulMethods.GetFullRecipeById(_dbContext, id));
-            
+
         }
 
         public List<IngredientHandlerModel> GetIngredientHandlers(Recipes recipeToEdit)
@@ -69,7 +69,7 @@ namespace DelikatessenDrehbuch.Controllers
                     OwnerEmail = User.Identity.Name,
                     Name = newRecipes.Recipes.Name,
                     Preparation = newRecipes.Recipes.Preparation,
-
+                    LikeCount = 0
                 };
 
 
@@ -83,7 +83,7 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 recipeFromDb.Name = newRecipes.Recipes.Name;
                 //TODO: ImagePath noch bearbeitbar machen Wen Image Server bereit
-              //  recipeFromDb.ImagePath = newRecipes.Recipes.ImagePath;
+                //  recipeFromDb.ImagePath = newRecipes.Recipes.ImagePath;
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
 
                 _dbContext.SaveChanges();
@@ -152,7 +152,7 @@ namespace DelikatessenDrehbuch.Controllers
                             _dbContext.SaveChanges();
                         }
                     }
-                   
+
                 }
 
             }

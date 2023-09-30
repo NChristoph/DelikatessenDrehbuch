@@ -1,14 +1,13 @@
 Image Server erstellen und verbinden
 Image Hochladen ermöglichen
 
-selected recipe seite desingnen
+dropdown Für zutaten hinzufügen maßeinheit erstellen
 
 Rezept moddal  slogan kategorie  
 bewertung in eigenes model packen und model für bereits gelikte rezepte einfügen bzw datatable
 
-LikeButton noch erstellen und einbinden Likes und bewertung erstellen eigene View wen das rezept öffnet zum anzeigen
-
-
 Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
 
 Code Übersichtlicher machen 
+//
+AQAAAAEAACcQAAAAEE9SEX1nmdEgjN8i+jo3vcUc7uCV/juEnU3yYYuKIkWWO7G784QyL/7zvIrIMp24Tw==

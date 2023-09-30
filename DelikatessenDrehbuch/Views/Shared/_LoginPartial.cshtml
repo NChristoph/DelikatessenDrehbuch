@@ -6,7 +6,7 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="" asp-controller="NewRecipes" asp-action="Index">Rezept Hochladen</a>
+            <a class="nav-link text-dark" asp-route-id="0" asp-controller="NewRecipes" asp-action="Index">Rezept Hochladen</a>
         </li> 
         <li class="nav-item">
             <a class="nav-link text-dark" asp-area="" asp-controller="MyRecipes" asp-action="Index">Meine Rezepte</a>

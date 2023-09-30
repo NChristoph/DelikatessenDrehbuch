@@ -32,7 +32,6 @@
       
         var keyWord = $('#keyWord').val();
         var encodeKeyWord=encodeURIComponent(keyWord);
-        debugger;
-        $('#RecipesPartial').load('Home/SearchRecipes?keyWord='+encodeKeyWord)
+        $('#RecipesPartial').load('SearchRecipes?keyWord='+encodeKeyWord)
     }
 </script>

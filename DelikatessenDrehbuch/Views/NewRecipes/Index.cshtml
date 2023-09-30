@@ -5,18 +5,17 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
-<div class="row">
-    <div class=" col w20">
-    </div>
+<div class="flex jcenter w100">
+   
 
-    <div class="col w80 jcenter" >
+    <div class="flex flexColumn w50 jcenter" >
         <form asp-controller="NewRecipes" asp-action="AddNewRecipes">
-            <div class="m-2 w-100">
+            <div class="w100 mb-2">
                 <input asp-for="Recipes.Id" name="Id" hidden />
                 <input asp-for="Recipes.Name" class="w-100"  name="Name" placeholder="Name des Rezeptes" />
             </div>
 
-            <div class="m-2 w-100" style="outline:solid 1px;padding:9px">
+            <div class="w100 mb-2" style="outline:solid 1px;padding:9px">
                 <div class="flex" style="align-items:center">
                     <div class="flex m-1" style="width:50%">
                         <h5 style="align-self:flex-start">Zutat Hinzufügen</h5>
@@ -63,17 +62,15 @@
 
 
             </div>
-
-            <button id="submit" typeof="button" >Speichern</button>
+            <div class="w100 flex jend">
+                <button id="submit" typeof="button"  >Speichern</button>
+            </div>
         </form>
        
 
     </div>
 
-    <div class=" col w20">
-        
-
-    </div>
+    
 </div>
 
 

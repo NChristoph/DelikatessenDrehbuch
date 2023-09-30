@@ -2,18 +2,31 @@
 
 
 
-<div class="row">
+<div class="flex flexRow m-1 wrap">
   
-    <div class="col" style="max-width:65%">
-        <input asp-for="Ingredient.Name" name="Ingredient" class="mt-1" id="Ingredient" placeholder="Zutat" style="width:100%" />
+    <div class="col w50 m-1" >
+        <input asp-for="Ingredient.Name" name="Ingredient" id="Ingredient" placeholder="Zutat" style="width:100%" />
     </div>
-    <div class="col" style="max-width:15%">
-        <input asp-for="Quantity.Quantitys" name="Quantity" class="m-1" style="width:100%" placeholder="Mänge" />
+    <div class="col w20 m-1" >
+        <input asp-for="Quantity.Quantitys" name="Quantity" style="width:100%" placeholder="Mänge" />
     </div>
-    <div class="col" style="max-width:15%">
-        <input asp-for="Measure.UnitOfMeasurement" name="Measure" class="m-1" style="width:100%" placeholder="Maßeinheit" />
+    <div class="col w20 m-1" >
+        <input asp-for="Measure.UnitOfMeasurement" name="Measure" style="width:100%" placeholder="Maßeinheit" />
     </div>
 
 </div>
 
+@*
 
+das überarbeiten
+<div class="dropdown">
+    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Dropdown link
+    </a>
+
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" asp-for="Quantity.Quantitys" name="Quantity">Action</a></li>
+        <li><a class="dropdown-item" href="#">Another action</a></li>
+        <li><a class="dropdown-item" href="#">Something else here</a></li>
+    </ul>
+</div>*@
