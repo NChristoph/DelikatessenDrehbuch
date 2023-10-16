@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.WebEncoders.Testing;
+using NuGet.Packaging;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
@@ -44,17 +45,27 @@ namespace DelikatessenDrehbuch.Controllers
             return handlers;
         }
 
-        public IActionResult IngredientPartialView()
-        {
-            return PartialView("_IngredientPartialView");
-        }
+        //public IActionResult IngredientPartialView()
+        //{
+        //    return PartialView("_IngredientPartialView");
+        //}
 
 
         public IActionResult BlankSentence()
         {
-            return PartialView("_IngredientPartialView", new IngredientHandlerModel());
+            var measureFromDb = _dbContext.Metrics;
+            DropdownModel dropdown = new DropdownModel();
+            dropdown.MeasureNames=measureFromDb.Select(x=>x.UnitOfMeasurement).ToList();
+            return PartialView("_IngredientPartialView", dropdown);
         }
 
+        public IActionResult DropdownPartial()
+        {
+            List<string> measure = new();
+            var metricsFromDb = _dbContext.Metrics.Where(x => x.Id < 10000).ToList();
+            measure = metricsFromDb.Select(x => x.UnitOfMeasurement).ToList();
+            return PartialView("_dropDownPartialView",measure);
+        }
 
         [HttpPost]
         public IActionResult AddOrEditRecipes(FullRecipes newRecipes)

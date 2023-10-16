@@ -6,13 +6,13 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
 <div class="flex jcenter w100">
-   
 
-    <div class="flex flexColumn w50 jcenter" >
+
+    <div class="flex flexColumn w50 jcenter">
         <form asp-controller="NewRecipes" asp-action="AddNewRecipes">
             <div class="w100 mb-2">
                 <input asp-for="Recipes.Id" name="Id" hidden />
-                <input asp-for="Recipes.Name" class="w-100"  name="Name" placeholder="Name des Rezeptes" />
+                <input asp-for="Recipes.Name" class="w-100" name="Name" placeholder="Name des Rezeptes" />
             </div>
 
             <div class="w100 mb-2" style="outline:solid 1px;padding:9px">
@@ -48,6 +48,8 @@
                         @foreach (var item in Model.IngredientHandler)
                         {
                             <partial name="_IngredientPartialView" model="item" />
+
+
                         }
                     </div>
 
@@ -56,21 +58,21 @@
 
                 <hr class="m-0" />
 
-                <div class="flex" style="align-items:center" >
+                <div class="flex" style="align-items:center">
                     <textarea asp-for="Recipes.Preparation" class="mt-1 " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
                 </div>
 
 
             </div>
             <div class="w100 flex jend">
-                <button id="submit" typeof="button"  >Speichern</button>
+                <button id="submit" typeof="button">Speichern</button>
             </div>
         </form>
-       
+
 
     </div>
 
-    
+
 </div>
 
 
@@ -80,7 +82,7 @@
 
 @section scripts {
     <script>
-        
+
         $("#submit").click(function (e) {
             e.preventDefault();
             var formData = new FormData();
@@ -117,28 +119,32 @@
             });
 
 
-            
-            
+
+
             $.ajax({
                 method: 'post',
                 url: "/NewRecipes/AddOrEditRecipes",
-                data: formData,               
+                data: formData,
                 processData: false,
                 contentType: false,
-                success: function () { 
-                    
-                    window.location.href="/Home/Index";                 
+                success: function () {
+                    window.location.href = "/Home/Index";
                 }
             });
 
         });
 
-       
+
         $("#addItem").click(function () {
+
             $.ajax({
                 url: this.href,
                 cache: false,
-                success: function (html) { $("#editorRows").append(html); }
+                success: function (html) {
+                    $("#editorRows").append(html);
+
+                }
+
             });
             return false;
         });
@@ -150,8 +156,23 @@
 
         }
 
+        var test;
+        function Test(element) {
+            test = element;
+        }
+
+        function GetText(text) {
+
+            test.textContent = text;
+            document.getElementById("Input").value = text;
+
+
+
+        }
 
     </script>
+
+
 }
 
 

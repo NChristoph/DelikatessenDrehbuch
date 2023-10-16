@@ -1,0 +1,23 @@
+﻿@model List<string>
+
+<div class="dropdown">
+    <div  onclick="Test(this)" class="btn btn-secondary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Maßeinheit
+    </div>
+    <ul class="dropdown-menu">
+        @{
+            
+            foreach (var measure in Model)
+            {
+                
+                <li><a class="dropdown-item" onclick="GetText(this.text)">@measure</a></li>
+            }
+        }
+
+
+    </ul>
+
+
+</div>
+
+

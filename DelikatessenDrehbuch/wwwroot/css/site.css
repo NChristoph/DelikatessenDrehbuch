@@ -37,6 +37,11 @@ table tr:nth-of-type(odd) td {
     flex-wrap: wrap;
 }
 
+
+.flexNoWrap {
+    flex-wrap: nowrap;
+}
+
 .jcenter {
     justify-content: center;
 }
@@ -113,6 +118,11 @@ table tr:nth-of-type(odd) td {
 .w50 {
     max-width: 50%;
     min-width: 50%;
+}
+
+.w40 {
+    max-width: 40%;
+    min-width: 40%;
 }
 
 .w30 {

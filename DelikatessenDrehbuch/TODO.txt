@@ -1,7 +1,7 @@
 Image Server erstellen und verbinden
 Image Hochladen ermöglichen
 
-dropdown Für zutaten hinzufügen maßeinheit erstellen
+dropdown werte übergeben noch
 
 Rezept moddal  slogan kategorie  
 bewertung in eigenes model packen und model für bereits gelikte rezepte einfügen bzw datatable
