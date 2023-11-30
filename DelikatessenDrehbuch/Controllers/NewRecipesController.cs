@@ -26,45 +26,31 @@ namespace DelikatessenDrehbuch.Controllers
             if (id == 0)
                 return View(new FullRecipes());
             else
-                return View(HelpfulMethods.GetFullRecipeById(_dbContext, id));
+            {
+                var fullRecipes = HelpfulMethods.GetFullRecipeById(_dbContext, id);
+                return View(fullRecipes);
+            }
 
         }
 
-        public List<IngredientHandlerModel> GetIngredientHandlers(Recipes recipeToEdit)
+        public IActionResult EditRecipesPartialView(int id)
         {
-            List<IngredientHandlerModel> handlers = new List<IngredientHandlerModel>();
-            var recipeHandlerFromDb = _dbContext.RecipesHandlers.Where(x => x.Recipe.Id == recipeToEdit.Id)
-                                                                .Include(x => x.IngredientHandler)
-                                                                .Include(x => x.IngredientHandler.Measure)
-                                                                .Include(x => x.IngredientHandler.Quantity)
-                                                                .Include(x => x.IngredientHandler.Ingredient).ToList();
 
-            foreach (var handler in recipeHandlerFromDb)
-                handlers.Add(handler.IngredientHandler);
+            var metrics = _dbContext.Metrics.ToList();
+            var test = _dbContext.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefault(x => x.Id == id);
 
-            return handlers;
+            var dropDownModel = new DropdownModel();
+            dropDownModel.IngredientHandler = test;
+            dropDownModel.Measure = metrics;
+            return PartialView("_IngredientPartialView", dropDownModel);
         }
-
-        //public IActionResult IngredientPartialView()
-        //{
-        //    return PartialView("_IngredientPartialView");
-        //}
-
 
         public IActionResult BlankSentence()
         {
-            var measureFromDb = _dbContext.Metrics;
+            var measureFromDb = _dbContext.Metrics.ToList();
             DropdownModel dropdown = new DropdownModel();
-            dropdown.MeasureNames=measureFromDb.Select(x=>x.UnitOfMeasurement).ToList();
+            dropdown.Measure = measureFromDb;
             return PartialView("_IngredientPartialView", dropdown);
-        }
-
-        public IActionResult DropdownPartial()
-        {
-            List<string> measure = new();
-            var metricsFromDb = _dbContext.Metrics.Where(x => x.Id < 10000).ToList();
-            measure = metricsFromDb.Select(x => x.UnitOfMeasurement).ToList();
-            return PartialView("_dropDownPartialView",measure);
         }
 
         [HttpPost]
@@ -80,6 +66,7 @@ namespace DelikatessenDrehbuch.Controllers
                     OwnerEmail = User.Identity.Name,
                     Name = newRecipes.Recipes.Name,
                     Preparation = newRecipes.Recipes.Preparation,
+                    Category= newRecipes.Recipes.Category,  
                     LikeCount = 0
                 };
 
@@ -87,115 +74,87 @@ namespace DelikatessenDrehbuch.Controllers
 
                 _dbContext.Add(recipes);
                 _dbContext.SaveChanges();
-                CreateRecipesHandler(newRecipes.Recipes, newRecipes.IngredientHandler);
+                CreateRecipesHandler(newRecipes);
 
             }
             else
             {
                 recipeFromDb.Name = newRecipes.Recipes.Name;
+                recipeFromDb.Category= newRecipes.Recipes.Category;
                 //TODO: ImagePath noch bearbeitbar machen Wen Image Server bereit
                 //  recipeFromDb.ImagePath = newRecipes.Recipes.ImagePath;
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
 
                 _dbContext.SaveChanges();
-                EditeRecipe(newRecipes, recipeFromDb);
+                EditRecipes(newRecipes, recipeFromDb);
             }
 
             return Ok();
         }
 
-        private void DeleteIngredient(Recipes recipesFromDb, List<IngredientHandlerModel> modal)
-        {
-            var recipeHandlerFromDb = _dbContext.RecipesHandlers.Where(x => x.Recipe.Id == recipesFromDb.Id)
-                                                                .Include(x => x.IngredientHandler)
-                                                                .Include(x => x.IngredientHandler.Ingredient).ToList();
-            List<string> namesOfIngredients = new();
 
-            foreach (var ingredient in modal)
-                namesOfIngredients.Add(ingredient.Ingredient.Name);
+        private void EditRecipes(FullRecipes newRecipes, Recipes recipesFromDb)
+        {
+
+            var editIngredients = newRecipes.IngredientHandler;
+            var recipeHandlerFromDb = _dbContext.RecipesHandlers.Where(x => x.Recipe == recipesFromDb)
+                                                                .Include(x => x.IngredientHandler)
+                                                                .Include(x => x.IngredientHandler.Measure)
+                                                                .Include(x => x.IngredientHandler.Quantity)
+                                                                .Include(x => x.IngredientHandler.Ingredient).ToList();
 
 
             foreach (var handler in recipeHandlerFromDb)
-                if (!namesOfIngredients.Contains(handler.IngredientHandler.Ingredient.Name))
-                    _dbContext.RecipesHandlers.Remove(handler);
-
-            _dbContext.SaveChanges();
-
-        }
-
-        private void EditeRecipe(FullRecipes fullRecipes, Recipes recipesFromDb)
-        {
-            DeleteIngredient(recipesFromDb, fullRecipes.IngredientHandler);
-
-            var ingredient = GetIngredientHandlers(recipesFromDb);
-            var newIngredient = fullRecipes.IngredientHandler;
-
-            if (ingredient == null)
-                CreateRecipesHandler(recipesFromDb, fullRecipes.IngredientHandler);
-
-
-            foreach (var ingredientFromDb in ingredient)
             {
-                foreach (var ingredientHandler in fullRecipes.IngredientHandler)
-                {
-                    if (!string.IsNullOrEmpty(ingredientHandler.Ingredient.Name))
-                    {
-                        var recipeHandlerFromDb = _dbContext.RecipesHandlers.SingleOrDefault(x => x.Recipe.Id == recipesFromDb.Id
-                                                                                             && x.IngredientHandler.Ingredient.Name.ToLower() == ingredientHandler.Ingredient.Name.ToLower());
-                        if (recipeHandlerFromDb != null)
-                        {
-                            recipeHandlerFromDb.IngredientHandler.Measure = GetOrCreateMeasure(ingredientHandler.Measure);
-                            recipeHandlerFromDb.IngredientHandler.Quantity = GetOrCreateQuantity(ingredientHandler.Quantity);
-
-                            _dbContext.SaveChanges();
-                        }
-                        else
-                        {
-                            var recipesHandler = new RecipesHandler()
-                            {
-                                Id = 0,
-                                Recipe = recipesFromDb,
-                                IngredientHandler = GetOrCreateIngredientHandler(ingredientHandler),
-
-                            };
-
-                            _dbContext.RecipesHandlers.Add(recipesHandler);
-                            _dbContext.SaveChanges();
-                        }
-                    }
-
-                }
-
-            }
-        }
-
-        private void CreateRecipesHandler(Recipes recipes, List<IngredientHandlerModel> ingredientHandlers)
-        {
-            var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Preparation == recipes.Preparation
-                                                                    && x.Name == recipes.Name);
-            foreach (var ingredientHandler in ingredientHandlers)
-            {
-                var recipesHandler = new RecipesHandler()
-                {
-                    Id = 0,
-                    Recipe = recipeFromDb,
-                    IngredientHandler = GetOrCreateIngredientHandler(ingredientHandler),
-
-                };
-
-                _dbContext.RecipesHandlers.Add(recipesHandler);
+                _dbContext.Remove(handler);
                 _dbContext.SaveChanges();
             }
 
+            CreateRecipesHandler(newRecipes, recipesFromDb);
+
         }
 
+        private void CreateRecipesHandler(FullRecipes newRecipes,Recipes recipesFromDb=null)
+        {
+            //Entferne die Doppelten
+            newRecipes.IngredientHandler = newRecipes.IngredientHandler.DistinctBy(x=>x.Ingredient.Name.ToLower()).ToList();
+
+            Recipes? myRecipes=new();
+  
+            if(recipesFromDb!=null)
+                myRecipes=recipesFromDb;
+            else
+                myRecipes=_dbContext.Recipes.FirstOrDefault(x=>x.Name==newRecipes.Recipes.Name
+                                                           &&x.Preparation==newRecipes.Recipes.Preparation
+                                                           &&x.OwnerEmail==newRecipes.Recipes.OwnerEmail
+                                                           );
+            
+            
+                foreach (var ingredientHandler in newRecipes.IngredientHandler)
+                {
+                    var recipesHandler = new RecipesHandler()
+                    {
+                        Id = 0,
+                        Recipe = myRecipes,
+                        IngredientHandler = GetOrCreateIngredientHandler(ingredientHandler),
+
+                    };
+
+                    _dbContext.RecipesHandlers.Add(recipesHandler);
+                    _dbContext.SaveChanges();
+                }
+            
+           
+
+        }
 
         private IngredientHandlerModel GetOrCreateIngredientHandler(IngredientHandlerModel handler)
         {
             var ingredientHandlerFromDb = _dbContext.IngredientHandlers.SingleOrDefault(x => x.Ingredient.Name.ToLower() == handler.Ingredient.Name.ToLower()
-                                                                                        && x.Measure.UnitOfMeasurement.ToLower() == handler.Measure.UnitOfMeasurement.ToLower()
+                                                                                        && x.Measure.UnitOfMeasurement.ToLower().Trim() == handler.Measure.UnitOfMeasurement.ToLower().Trim()
                                                                                         && x.Quantity.Quantitys == handler.Quantity.Quantitys
                                                                                         );
+
 
             if (ingredientHandlerFromDb != null)
                 return ingredientHandlerFromDb;
@@ -206,13 +165,17 @@ namespace DelikatessenDrehbuch.Controllers
                     Id = 0,
                     Ingredient = GetOrCreateIngredient(handler.Ingredient),
                     Quantity = GetOrCreateQuantity(handler.Quantity),
-                    Measure = GetOrCreateMeasure(handler.Measure),
+                    Measure = GetMeasure(handler.Measure),
                 };
 
                 return ingredientHandlerFromDb;
             }
 
         }
+        
+
+        
+
 
         #region IngredientHandlerContent
         private Ingredient GetOrCreateIngredient(Ingredient ingredient)
@@ -249,19 +212,13 @@ namespace DelikatessenDrehbuch.Controllers
                 return quantity;
             }
         }
-        private Measure GetOrCreateMeasure(Measure measure)
-        {
-            var mesureFromDb = _dbContext.Metrics.FirstOrDefault(X => X.UnitOfMeasurement.ToLower() == measure.UnitOfMeasurement.ToLower());
 
-            if (mesureFromDb != null)
-                return mesureFromDb;
-            else
-            {
-                _dbContext.Metrics.Add(measure);
-                _dbContext.SaveChanges();
-                return measure;
-            }
+        private Measure GetMeasure(Measure measure)
+        {
+            var measureFromDb=_dbContext.Metrics.FirstOrDefault(x=>x.UnitOfMeasurement.ToLower() == measure.UnitOfMeasurement.ToLower().Trim());
+            return measureFromDb;
         }
+       
         #endregion
     }
 }

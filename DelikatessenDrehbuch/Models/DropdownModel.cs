@@ -3,6 +3,11 @@
     public class DropdownModel
     {
         public IngredientHandlerModel IngredientHandler { get; set; } = new IngredientHandlerModel();
-        public List<string> MeasureNames { get; set;}
+        public List<Measure> Measure { get; set;}
+
+        public DropdownModel()
+        {
+            Measure = new List<Measure>();
+        }
     }
 }

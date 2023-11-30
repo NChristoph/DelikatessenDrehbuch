@@ -6,9 +6,8 @@
 
     <input class="w30" asp-for="IngredientHandler.Ingredient.Name" name="Ingredient" id="Ingredient" placeholder="Zutat" />
     <input class="w30" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
-    <input  asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" placeholder="Maßeinheit" hidden />
-    <partial name="_dropDownPartialView" model="Model.MeasureNames" />
-    
+    <partial name="_dropDownPartialView" model="Model" />
+
 </div>
 
 

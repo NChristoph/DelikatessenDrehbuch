@@ -15,6 +15,13 @@ table tr:nth-of-type(odd) td {
     background-color: #daf0ff;
 }
 
+.raster {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-rows: repeat(3,minmax(0,1fr));
+    grid-template-columns: repeat(3,minmax(0,1fr));
+}
+
 .nopadding {
     padding: 0;
 }
@@ -41,7 +48,9 @@ table tr:nth-of-type(odd) td {
 .flexNoWrap {
     flex-wrap: nowrap;
 }
-
+.jstrech{
+    justify-content:stretch;
+}
 .jcenter {
     justify-content: center;
 }
@@ -63,33 +72,10 @@ table tr:nth-of-type(odd) td {
 }
 
 .recipeImage {
-    grid-area: img;
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-}
-
-.recipeName {
-    grid-area: header;
-}
-
-.recipeDescriptions {
-    grid-area: descriptions;
-}
-
-.recipeRating {
-    grid-area: rating;
-}
-
-.gridRecipes {
-    display: grid;
-    min-width: 50%;
-    max-width: 50%;
-    grid-template-areas:
-        'img header header header header header'
-        'img descriptions descriptions descriptions descriptions descriptions'
-        'img descriptions descriptions descriptions descriptions descriptions'
-        'img rating rating rating rating rating';
+   
+    min-height:100%;
+    max-height:100%;
+    border-radius:2.5rem;
 }
 
 .wrap {
@@ -109,6 +95,12 @@ table tr:nth-of-type(odd) td {
     max-width: 80%;
     min-width: 80%;
 }
+
+.w70 {
+    max-width: 70%;
+    min-width: 70%;
+}
+
 
 .w60 {
     max-width: 60%;
@@ -142,18 +134,20 @@ table tr:nth-of-type(odd) td {
     max-width: 10%;
 }
 
-.iw25 {
-    max-width: 25%;
+
+@media(max-width:920px)
+{
+    .w70 {
+        min-width: 100%;
+    }
 }
 
-html {
-    font-size: 14px;
-}
 
 @media (max-width: 768px) {
     html {
         font-size: 16px;
     }
+    
 
     .w50 {
         min-width: 100%;
@@ -166,13 +160,41 @@ html {
     }
 }
 
-@media (max-width: 358px) {
-
-
-
-    .flexRow {
-        flex-direction: column;
+@media(max-width:725px)
+{
+    .raster {
+        display: grid;
+        grid-gap: 10px;
+        grid-template-rows: repeat(2,minmax(0,1fr));
+        grid-template-columns: repeat(2,minmax(0,1fr));
     }
+}
+
+@media (max-width: 458px) {
+
+    .handyNull{
+        width:0px;
+    }
+    .handyCenter {
+        align-items: center;
+        flex-direction: column;
+        font-size: small;
+    }
+
+    .handyWidth100 {
+        max-width: 100%;
+        min-width:100%;
+    }
+
+    /*.raster {
+        display: grid;
+        grid-gap: 10px;
+        grid-template-rows: repeat(1,minmax(0,1fr));
+        grid-template-columns: repeat(1,minmax(0,1fr));
+    }*/
+    /*.flexRow {
+        flex-direction: column;
+    }*/
 
     .w50 {
         max-width: 100%;
@@ -195,10 +217,19 @@ html {
 }
 
 
+@media(max-width:280px) {
+    .raster {
+        display: grid;
+        grid-gap: 2.5rem;
+        grid-template-rows: repeat(1,minmax(0,1fr));
+        grid-template-columns: repeat(1,minmax(0,1fr));
+    }
+}
 
 html {
     position: relative;
     min-height: 100%;
+    font-size: 14px;
 }
 
 body {

@@ -32,6 +32,13 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("_FindRecipesPartialView",recipesFromDb);
         }
 
+        public IActionResult CaruselParial()
+        {
+            var randomRecipesFromDb=_dbContext.Recipes.ToList();
+
+            return PartialView("_CaruselPartialView",randomRecipesFromDb);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

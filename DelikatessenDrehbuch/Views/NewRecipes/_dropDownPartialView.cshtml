@@ -1,15 +1,30 @@
-﻿@model List<string>
+﻿@model DropdownModel
 
-<div class="dropdown">
-    <div  onclick="Test(this)" class="btn btn-secondary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Maßeinheit
-    </div>
-    <ul class="dropdown-menu">
-        @{
-            
-            foreach (var measure in Model)
+<div class="dropdown w30">
+    @{
+        var test = Model;
+        if (Model.IngredientHandler.Measure!=null)
+        {
+            <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown">
+                @Model.IngredientHandler.Measure.UnitOfMeasurement.ToString()
+            </div>
+        }
+        else
+        {
+            <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown">
+            Maßeinheit
+            </div>
+        }
+       
+        }
+
+        <ul class="dropdown-menu">
+            @{
+                var MeasureNames = Model.Measure.Select(x => x.UnitOfMeasurement).ToList();
+
+            foreach (var measure in MeasureNames)
             {
-                
+
                 <li><a class="dropdown-item" onclick="GetText(this.text)">@measure</a></li>
             }
         }

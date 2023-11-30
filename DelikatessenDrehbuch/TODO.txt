@@ -1,9 +1,16 @@
 Image Server erstellen und verbinden
 Image Hochladen ermöglichen
 
-dropdown werte übergeben noch
+Mach eine Dokumentation und Kommentier alles gut aus
 
-Rezept moddal  slogan kategorie  
+arbeiten mit api noch lernen
+Nach dem Speichern eines Rezeptes Funktioniert die suche nicht mehr
+
+slideschow noch Desingnen random rezepte noch machen im Home Controller
+
+Layout rezepte hochladen noch auf mobiel geräte width einstellen meta tag
+Home seite noch eine sleidbar einstellen
+
 bewertung in eigenes model packen und model für bereits gelikte rezepte einfügen bzw datatable
 
 Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
