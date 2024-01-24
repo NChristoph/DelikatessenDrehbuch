@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
 
 namespace DelikatessenDrehbuch.Models
@@ -12,7 +13,8 @@ namespace DelikatessenDrehbuch.Models
         public string Preparation { get; set; }
         public string? ImagePath { get; set; }
         public int? LikeCount { get; set; }
-
+        [NotMapped]
+        public IFormFile? FormFile { get; set; }
 
 
     }

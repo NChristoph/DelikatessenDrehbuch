@@ -4,6 +4,7 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DelikatessenDrehbuch.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240123205345_AddRatings")]
+    partial class AddRatings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.26")
+                .HasAnnotation("ProductVersion", "6.0.21")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -122,6 +124,32 @@ namespace DelikatessenDrehbuch.Data.Migrations
                     b.ToTable("Quantities");
                 });
 
+            modelBuilder.Entity("DelikatessenDrehbuch.Models.Ratings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Rating")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("Rating");
+                });
+
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Recession", b =>
                 {
                     b.Property<int>("Id")
@@ -134,7 +162,7 @@ namespace DelikatessenDrehbuch.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RecipesId")
+                    b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserEmail")
@@ -143,7 +171,7 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipesId");
+                    b.HasIndex("RecipeId");
 
                     b.ToTable("Recessions");
                 });
@@ -444,15 +472,26 @@ namespace DelikatessenDrehbuch.Data.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("DelikatessenDrehbuch.Models.Recession", b =>
+            modelBuilder.Entity("DelikatessenDrehbuch.Models.Ratings", b =>
                 {
-                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "Recipes")
+                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "Recipe")
                         .WithMany()
-                        .HasForeignKey("RecipesId")
+                        .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Recipes");
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("DelikatessenDrehbuch.Models.Recession", b =>
+                {
+                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipesHandler", b =>

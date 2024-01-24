@@ -4,6 +4,7 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DelikatessenDrehbuch.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240124213214_removeReting")]
+    partial class removeReting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,7 +136,7 @@ namespace DelikatessenDrehbuch.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RecipesId")
+                    b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserEmail")
@@ -143,7 +145,7 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipesId");
+                    b.HasIndex("RecipeId");
 
                     b.ToTable("Recessions");
                 });
@@ -446,13 +448,13 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Recession", b =>
                 {
-                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "Recipes")
+                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "Recipe")
                         .WithMany()
-                        .HasForeignKey("RecipesId")
+                        .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Recipes");
+                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipesHandler", b =>

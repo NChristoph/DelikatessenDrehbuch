@@ -1,4 +1,7 @@
-﻿using DelikatessenDrehbuch.Data;
+﻿using Azure.Core.Pipeline;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
+using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Data.Migrations;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
@@ -8,14 +11,24 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.WebEncoders.Testing;
 using NuGet.Packaging;
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
 namespace DelikatessenDrehbuch.Controllers
 {
+
+
     public class NewRecipesController : Controller
     {
+        //Azure storage Adresse und Container Name
+        private readonly string _connectionString = "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/";
+        private readonly string _containerName = "picdelikatessendrehbuch";
+        private readonly string _azureAcoutName = "blobdelikatessendrehbuch";
+
+
+
         private readonly ApplicationDbContext _dbContext;
         public NewRecipesController(ApplicationDbContext context)
         {
@@ -53,9 +66,56 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("_IngredientPartialView", dropdown);
         }
 
+
+        public void UploadMsToAzureBlop(IFormFile file)
+        {
+
+            string blobName = $"{file.FileName}";
+
+
+            // Get a reference to a container named "sample-container" and then create it
+            BlobContainerClient container = new BlobContainerClient(_connectionString, _containerName);
+            //container.Create();
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blob = container.GetBlobClient(blobName);
+
+            bool blobExist =  blob.Exists();
+
+            if (blobExist)
+                return;
+
+            if (file != null)
+            {
+                
+
+                using (var ms = new MemoryStream())
+                {
+                    file.CopyTo(ms);
+                    var byteArry = ms.ToArray();
+                    // Upload local file
+
+                    blob.Upload(new BinaryData(byteArry));
+                }
+            }
+           
+        }
+
+        private string GetImagePathFromAzure(IFormFile formFile)
+        {
+            string blobName = $"{formFile.FileName}";
+
+            return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
+        }
+
         [HttpPost]
         public IActionResult AddOrEditRecipes(FullRecipes newRecipes)
         {
+            if (newRecipes.Recipes.FormFile != null)
+                UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
+
+            newRecipes.Recipes.OwnerEmail = User.Identity.Name;
+
             var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
             if (recipeFromDb == null)
@@ -66,8 +126,10 @@ namespace DelikatessenDrehbuch.Controllers
                     OwnerEmail = User.Identity.Name,
                     Name = newRecipes.Recipes.Name,
                     Preparation = newRecipes.Recipes.Preparation,
-                    Category= newRecipes.Recipes.Category,  
-                    LikeCount = 0
+                    Category = newRecipes.Recipes.Category,
+                    LikeCount = 0,
+                    ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : ""
+
                 };
 
 
@@ -80,16 +142,15 @@ namespace DelikatessenDrehbuch.Controllers
             else
             {
                 recipeFromDb.Name = newRecipes.Recipes.Name;
-                recipeFromDb.Category= newRecipes.Recipes.Category;
-                //TODO: ImagePath noch bearbeitbar machen Wen Image Server bereit
-                //  recipeFromDb.ImagePath = newRecipes.Recipes.ImagePath;
+                recipeFromDb.Category = newRecipes.Recipes.Category;
+                recipeFromDb.ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "";
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
 
                 _dbContext.SaveChanges();
                 EditRecipes(newRecipes, recipeFromDb);
             }
 
-            return Ok();
+            return Json(new { redirect = Url.Action("Index", "Home") });
         }
 
 
@@ -114,37 +175,37 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
-        private void CreateRecipesHandler(FullRecipes newRecipes,Recipes recipesFromDb=null)
+        private void CreateRecipesHandler(FullRecipes newRecipes, Recipes recipesFromDb = null)
         {
             //Entferne die Doppelten
-            newRecipes.IngredientHandler = newRecipes.IngredientHandler.DistinctBy(x=>x.Ingredient.Name.ToLower()).ToList();
+            newRecipes.IngredientHandler = newRecipes.IngredientHandler.DistinctBy(x => x.Ingredient.Name.ToLower()).ToList();
 
-            Recipes? myRecipes=new();
-  
-            if(recipesFromDb!=null)
-                myRecipes=recipesFromDb;
+            Recipes? myRecipes = new();
+
+            if (recipesFromDb != null)
+                myRecipes = recipesFromDb;
             else
-                myRecipes=_dbContext.Recipes.FirstOrDefault(x=>x.Name==newRecipes.Recipes.Name
-                                                           &&x.Preparation==newRecipes.Recipes.Preparation
-                                                           &&x.OwnerEmail==newRecipes.Recipes.OwnerEmail
+                myRecipes = _dbContext.Recipes.FirstOrDefault(x => x.Name == newRecipes.Recipes.Name
+                                                           && x.Preparation == newRecipes.Recipes.Preparation
+                                                           && x.OwnerEmail == newRecipes.Recipes.OwnerEmail
                                                            );
-            
-            
-                foreach (var ingredientHandler in newRecipes.IngredientHandler)
+
+
+            foreach (var ingredientHandler in newRecipes.IngredientHandler)
+            {
+                var recipesHandler = new RecipesHandler()
                 {
-                    var recipesHandler = new RecipesHandler()
-                    {
-                        Id = 0,
-                        Recipe = myRecipes,
-                        IngredientHandler = GetOrCreateIngredientHandler(ingredientHandler),
+                    Id = 0,
+                    Recipe = myRecipes,
+                    IngredientHandler = GetOrCreateIngredientHandler(ingredientHandler),
 
-                    };
+                };
 
-                    _dbContext.RecipesHandlers.Add(recipesHandler);
-                    _dbContext.SaveChanges();
-                }
-            
-           
+                _dbContext.RecipesHandlers.Add(recipesHandler);
+                _dbContext.SaveChanges();
+            }
+
+
 
         }
 
@@ -172,9 +233,9 @@ namespace DelikatessenDrehbuch.Controllers
             }
 
         }
-        
 
-        
+
+
 
 
         #region IngredientHandlerContent
@@ -215,10 +276,10 @@ namespace DelikatessenDrehbuch.Controllers
 
         private Measure GetMeasure(Measure measure)
         {
-            var measureFromDb=_dbContext.Metrics.FirstOrDefault(x=>x.UnitOfMeasurement.ToLower() == measure.UnitOfMeasurement.ToLower().Trim());
+            var measureFromDb = _dbContext.Metrics.FirstOrDefault(x => x.UnitOfMeasurement.ToLower() == measure.UnitOfMeasurement.ToLower().Trim());
             return measureFromDb;
         }
-       
+
         #endregion
     }
 }

@@ -19,15 +19,15 @@
 
                         if (Model.Recipes.Id != 0)
                         {
-                            <button id="CategoryDropdown" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                @Model.Recipes.Category
-                            </button>
+                                        <button id="CategoryDropdown" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            @Model.Recipes.Category
+                                        </button>
                         }
                         else
                         {
-                            <button name="test" id="CategoryDropdown" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Kategorie
-                            </button>
+                                        <button name="test" id="CategoryDropdown" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Kategorie
+                                        </button>
                         }
                     }
 
@@ -74,7 +74,7 @@
                             foreach (var item in Model.IngredientHandler)
                             {
 
-                                <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
+                                        <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
 
 
                             }
@@ -93,6 +93,10 @@
                     <textarea asp-for="Recipes.Preparation" class="mt-1 " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Foto Hochladem</label>
+                    <input asp-for="Recipes.FormFile" id="form" name="Recipes.FormFile" class="form-control-file" type="file">
+                </div>
 
             </div>
             <div class="w100 flex jend">
@@ -156,6 +160,12 @@
                 formData.append("IngredientHandler[" + i + "].Ingredient.Name", Ingredient);
             });
 
+            $("input[name='Recipes.FormFile']").each(function (i) {
+                
+                var fileData = $('#form')[0];
+                formData.append("Recipes.FormFile", fileData.files[0]);
+            });
+
             $.ajax({
 
                 method: 'post',
@@ -163,9 +173,11 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function () {
+                success: function (data) {
+                    debugger;
                    
-                    window.location.href = "/Home/Index";
+                        window.location.href = data.redirect;
+                   
                 }
             });
 

@@ -7,6 +7,7 @@
         public virtual List<Like>? Likes { get; set; }
         public virtual List<Recession>? Recession { get; set; }
         public virtual List<Measure> Measure { get; set; }
+
      
         //public virtual List<string> MeasureNames { get; set; }  
 

@@ -1,15 +1,16 @@
-Image Server erstellen und verbinden
-Image Hochladen ermöglichen
+rezepte runterladen
+
+Bildvorschau einfügen
+
+View für Bewertung noch Designen, in DB hochladen noch inplementieren und im Selectet Recipe noch anzeigen
+
 
 Mach eine Dokumentation und Kommentier alles gut aus
 
 arbeiten mit api noch lernen
-Nach dem Speichern eines Rezeptes Funktioniert die suche nicht mehr
 
-slideschow noch Desingnen random rezepte noch machen im Home Controller
 
 Layout rezepte hochladen noch auf mobiel geräte width einstellen meta tag
-Home seite noch eine sleidbar einstellen
 
 bewertung in eigenes model packen und model für bereits gelikte rezepte einfügen bzw datatable
 
@@ -18,3 +19,4 @@ Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
 Code Übersichtlicher machen 
 //
 AQAAAAEAACcQAAAAEE9SEX1nmdEgjN8i+jo3vcUc7uCV/juEnU3yYYuKIkWWO7G784QyL/7zvIrIMp24Tw==
+

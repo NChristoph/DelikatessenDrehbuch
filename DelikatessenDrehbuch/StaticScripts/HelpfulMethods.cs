@@ -19,7 +19,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             fullRecipes.Recipes = recipeFromDb;
             fullRecipes.IngredientHandler=recipHandlerFromDb.Select(x=>x.IngredientHandler).ToList();
             fullRecipes.Likes=dbContext.Likes.Where(x=>x.Recipe== recipeFromDb).ToList();
-            fullRecipes.Recession=dbContext.Recessions.Where(x=>x.Recipe==recipeFromDb).ToList();
+            fullRecipes.Recession=dbContext.Recessions.Where(x=>x.Recipes==recipeFromDb).ToList();
             fullRecipes.Measure = dbContext.Metrics.ToList();
             //fullRecipes.MeasureNames = GetMeasureNames(dbContext,fullRecipes.Measure);
             return fullRecipes;
