@@ -21,7 +21,7 @@ namespace DelikatessenDrehbuch.Controllers
                 return BadRequest();
 
             Recession recession = new Recession();
-            recession.Id = 0;
+          
             recession.Recipes = recipeFromDb;
             recession.UserEmail = User.Identity.Name;
             recession.Assessment = "";

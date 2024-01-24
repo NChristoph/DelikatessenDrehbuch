@@ -3,7 +3,7 @@ rezepte runterladen
 Bildvorschau einfügen
 
 View für Bewertung noch Designen, in DB hochladen noch inplementieren und im Selectet Recipe noch anzeigen
-
+Funktieoniert nichtb richtig
 
 Mach eine Dokumentation und Kommentier alles gut aus
 
