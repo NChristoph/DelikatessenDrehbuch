@@ -20,18 +20,26 @@ namespace DelikatessenDrehbuch.Controllers
             if (recipeFromDb == null)
                 return BadRequest();
 
-            Recession recession = new Recession();
-          
+            Recession recession = new Recession();         
             recession.Recipes = recipeFromDb;
-            recession.UserEmail = User.Identity.Name;
-            recession.Assessment = "";
-           
+          
             return View(recession);
         }
 
         public IActionResult SaveRecessionInDB(Recession recession)
         {
-            recession.UserEmail = User.Identity.Name;
+            
+            if(recession==null)
+                return BadRequest();
+
+            Recession newRecession = new();
+            newRecession.Id = 0;
+            newRecession.UserEmail = User.Identity.Name;
+            newRecession.Assessment =recession.Assessment;
+            newRecession.Recipes = _context.Recipes.SingleOrDefault(_ => _.Id == recession.Recipes.Id);
+
+            _context.Recessions.Add(newRecession);
+            _context.SaveChanges();
             return Ok();
         }
     }

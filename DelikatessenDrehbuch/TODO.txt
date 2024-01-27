@@ -1,9 +1,14 @@
-rezepte runterladen
+Rezepte runterladen
 
-Bildvorschau einfügen
+Bildvorschau einfügen bei deinen Rezepten und beim bearbeiten von Rezepten
+Das Design von deinen Rezepten noch ändern
 
-View für Bewertung noch Designen, in DB hochladen noch inplementieren und im Selectet Recipe noch anzeigen
-Funktieoniert nichtb richtig
+View für Bewertung noch Designen, 
+PartialView Für Bewertungsanzeige noch Designen grnerell die Card die, die Bewertung Umschließt
+noch stylen und die zu anzeigenden Daten noch bearbeiten Email unleserlich machen
+Nach dem die Bewertung abgegeben wurde Wieder zum Ausgewählten Rezept Zurück
+
+
 
 Mach eine Dokumentation und Kommentier alles gut aus
 
