@@ -8,16 +8,23 @@ namespace DelikatessenDrehbuch.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ApplicationDbContext _dbContext;
+        private readonly ApplicationDbContext _context;
         public HomeController(ILogger<HomeController> logger,ApplicationDbContext dbContext)
         {
             _logger = logger;
-            _dbContext = dbContext;
+            _context = dbContext;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string recipeName)
         {
-            return View();
+            if(!string.IsNullOrEmpty(recipeName))
+            {
+                var recipesFromDb = _context.Recipes.Where(x => x.Name.ToLower() == recipeName.ToLower()).ToList();
+                return View(recipesFromDb);
+            }
+
+            return View(new List<Recipes>());
+          
         }
 
         public IActionResult Privacy()
@@ -25,19 +32,19 @@ namespace DelikatessenDrehbuch.Controllers
             return View();
         }
 
-        public IActionResult SearchRecipes(string keyWord)
-        {
-            var recipesFromDb=_dbContext.Recipes.Where(x=>x.Name.ToLower() == keyWord.ToLower()).ToList();  
+        //public IActionResult SearchRecipes(string keyWord)
+        //{
+        //    var recipesFromDb=_ontext.Recipes.Where(x=>x.Name.ToLower() == keyWord.ToLower()).ToList();  
             
-            return PartialView("_FindRecipesPartialView",recipesFromDb);
-        }
+        //    return PartialView("_FindRecipesPartialView",recipesFromDb);
+        //}
 
-        public IActionResult CaruselParial()
-        {
-            var randomRecipesFromDb=_dbContext.Recipes.ToList();
+        //public IActionResult CaruselParial()
+        //{
+        //    var randomRecipesFromDb=_dbContext.Recipes.ToList();
 
-            return PartialView("_CaruselPartialView",randomRecipesFromDb);
-        }
+        //    return PartialView("_CaruselPartialView",randomRecipesFromDb);
+        //}
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

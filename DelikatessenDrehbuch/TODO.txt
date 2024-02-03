@@ -1,5 +1,10 @@
-Rezepte runterladen
+Hab die Rezeptesuche in die Layout.cshtml geschrieben gefunde Rezepte noch anzeigen Grid verwenden
 
+Aus meine Rezepte mein Bereich machen wo ich meine Rezpte anzeigen kann oder die von mir gefält mir 
+Rezepte sehe und mein eigenes digitales Rezeptbuch machen kann
+
+Rezepte runterladen
+Desing von der Selectet Recipe Index View noch Mobile Freundlich machen die Zutaten passen noch nicht
 Bildvorschau einfügen bei deinen Rezepten und beim bearbeiten von Rezepten
 Das Design von deinen Rezepten noch ändern
 
