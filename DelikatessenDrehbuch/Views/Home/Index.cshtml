@@ -2,7 +2,34 @@
 @{
     ViewData["Title"] = "Rezepte";
 }
+<div class="minWidth100 flex flexJustifyContendCenter">
+    <div class="grid-Container maxWidth80 " style="">
 
+        @{
+            foreach (var recipe in Model)
+            {
+                <a class="grid-Recipes grid-Item text-black" asp-route-id="@recipe.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
+
+                    @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                    {
+                        <img class="grid-Image " title="@recipe.Name" src="@recipe.ImagePath" loading="lazy" style="max-width:100%" />
+                    }
+                    else
+                    {
+                        <img class="grid-Image" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" loading="lazy" />
+
+                    }
+                    <hr class="grid-hr" style="margin:1px;" />
+                    <div class="grid-LikeCount"> Gefält @recipe.LikeCount Benutzer</div>
+                    <div class="grid-Category">@recipe.Category</div>
+                    <h3 class="grid-Title">@recipe.Name</h3>
+
+                </a>
+            }
+        }
+
+    </div>
+</div>
 
 
 

@@ -1,4 +1,7 @@
-Hab die Rezeptesuche in die Layout.cshtml geschrieben gefunde Rezepte noch anzeigen Grid verwenden
+Hab die Rezeptesuche in die Layout.cshtml geschrieben.
+Bei den angezeigten Rezepten noch ein auf die Merkliste Button erstellen und Logik Implementieren.
+
+Desingn kommplet neu machen Home index ist schon erledigt.
 
 Aus meine Rezepte mein Bereich machen wo ich meine Rezpte anzeigen kann oder die von mir gefält mir 
 Rezepte sehe und mein eigenes digitales Rezeptbuch machen kann

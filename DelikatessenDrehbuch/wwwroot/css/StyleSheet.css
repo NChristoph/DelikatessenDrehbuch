@@ -1,8 +1,12 @@
 ﻿body {
-   
 }
-html{
-    font-size:18px;
+
+footer {
+    position: relative !important;
+}
+
+html {
+    font-size: 18px;
 }
 
 * {
@@ -26,13 +30,13 @@ tr:nth-child(odd) {
 }
 
 
-/*#region FlexBox Styling*/
-.flex{
-    display:flex;
+/*#region FlexBox */
+.flex {
+    display: flex;
 }
 
-.flexAuto{
-    flex:auto;
+.flexAuto {
+    flex: auto;
 }
 
 .flexColumn {
@@ -58,29 +62,34 @@ tr:nth-child(odd) {
     flex-wrap: nowrap;
 }
 
-.flexJustifyContendCenter{
-    justify-content:center;
+.flexJustifyContendCenter {
+    justify-content: center;
 }
+
 .flexJustifyContendEnd {
     justify-content: end;
 }
+
 .flexJustifyContendStart {
     justify-content: start;
 }
+
 .flexJustifyContendSpaceAround {
     justify-content: space-around;
 }
+
 .flexJustifyContendSpaceBetween {
     justify-content: space-between;
 }
 
-.flexAlginContentCenter{
-    align-content:center;
+.flexAlginContentCenter {
+    align-content: center;
 }
 
 .flexAlginContentStart {
     align-content: start;
 }
+
 .flexAlginContentEnd {
     align-content: end;
 }
@@ -97,52 +106,61 @@ tr:nth-child(odd) {
     align-self: end;
 }
 
-.flexAlginItemCenter{
-    align-items:center;
+.flexAlginItemCenter {
+    align-items: center;
 }
 
 .flexAlginItemStart {
-    align-items:start;
+    align-items: start;
 }
 
 .flexAlginItemEnd {
-    align-items:end;
+    align-items: end;
 }
 
-/*#endregion */
+/*#endregion FlexBox */
 
 /*#region Margin Padding*/
 
-/*#endregion*/
+/*#endregion Margin Padding*/
 
 /*#region Width*/
-.minWidth100vh{
-    min-width:100vh;
+.minWidth100vh {
+    min-width: 100vh;
 }
+
 .minWidth90vh {
     min-width: 90vh;
 }
+
 .minWidth80vh {
     min-width: 80vh;
 }
+
 .minWidth70vh {
     min-width: 70vh;
 }
+
 .minWidth60vh {
     min-width: 60vh;
 }
+
 .minWidth50vh {
     min-width: 50vh;
 }
+
 .minWidth40vh {
     min-width: 40vh;
 }
+
 .minWidth30vh {
     min-width: 30vh;
 }
+
 .minWidth20vh {
     min-width: 20vh;
 }
+
 .minWidth10vh {
     min-width: 10vh;
 }
@@ -266,11 +284,73 @@ tr:nth-child(odd) {
 .maxWidth10 {
     max-width: 10%;
 }
-/*#endregion */
+/*#endregion Width*/
+
+/*#region Grid*/
+/* Grid für die Rezeptesuche*/
+.grid-Container {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(3,minmax(200px,1fr));
+}
+
+.grid-Recipes {
+    display: grid;
+    grid-template-areas:
+        'gridImage gridImage'
+        'gridImage gridImage'
+        'gridImage gridImage'
+        'Titel Title'
+        'grid-hr grid-hr'
+        'likeCount category'
+}
+
+
+
+    .grid-Recipes img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+
+.grid-Image {
+    grid-area: gridImage;
+}
+
+.grid-Title {
+    grid-area: Titel;
+}
+
+.grid-hr {
+    grid-area: grid-hr;
+}
+
+.grid-LikeCount {
+    grid-area: likeCount;
+}
+
+.grid-Category {
+    grid-area: category;
+}
+/*Grid für das Ausgewählte Rezept*/
+.grid-Selected-Recipe {
+    display: grid;
+    grid-gap: 2px;
+    grid-template-areas:
+        'Title Title'
+        'hr hr'
+        'Image Image'
+        'Image Image'
+        /*TODO: Die Anzeige des Rezeptes noch fertig machen*/
+
+}
+
+.grid-Item {
+}
+/*#endregion Grid*/
 
 /*#region @Media*/
 @media(max-width:920px) {
-    
 }
 
 
@@ -279,16 +359,29 @@ tr:nth-child(odd) {
     body {
         overflow-x: hidden;
     }
+
+    .grid-Container {
+        display: grid;
+        grid-gap: 10px;
+        flex: 1;
+        grid-template-columns: repeat(2,minmax(200px,1fr));
+    }
 }
 
 
 
 @media (max-width: 458px) {
 
-    html{
-        font-size:16px;
+    html {
+        font-size: 16px;
     }
 
+    .grid-Container {
+        display: grid;
+        grid-gap: 10px;
+        flex: 1;
+        grid-template-columns: repeat(1,minmax(200px,1fr));
+    }
 
     .mobieleWidth100 {
         min-width: 100% !important;
@@ -301,6 +394,7 @@ tr:nth-child(odd) {
     .mobieleWidth80 {
         min-width: 80% !important;
     }
+
     .mobieleWidth20 {
         min-width: 20% !important;
     }
@@ -308,9 +402,8 @@ tr:nth-child(odd) {
     .mobileCenter {
         align-self: center !important;
     }
-   
 }
+
 @media(max-width:280px) {
-    
 }
 /*#endregion*/
