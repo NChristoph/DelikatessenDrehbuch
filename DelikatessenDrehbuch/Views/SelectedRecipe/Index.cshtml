@@ -4,53 +4,54 @@
 @model FullRecipes
 
 <body>
-    <div class="w100 flex acenter flexColumn">
-        <div class="w50 flex flexColumn jcenter acenter bgblue">
-            <h1 class="mt-3">@Model.Recipes.Name</h1>
-            <hr class="w80" style="min-width:80%" />
-            <img class="mb-3" src="@Model.Recipes.ImagePath" style="max-height:40vh" />
-            <div class="w100 flex flexColumn acenter" style="min-width:100%">
-                <div class="w80 flexRow jspaceBetween mb-5" style="min-width:80%">
-                    <p class="flex acenter m-0">Dieses Rezept gefällt @Model.Recipes.LikeCount Personen.</p>
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <a asp-controller="SelectedRecipe" asp-action="AddOrRemoveLike" asp-route-id="@Model.Recipes.Id" class="btn btn-primary" typeof="Button" title="Like Button" style="align-self:end">
-                            @{
-                                Like like = Model.Likes.SingleOrDefault(x => x.UserMail == User.Identity.Name && x.Recipe == Model.Recipes);
-                                if (like != null)
-                                {
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
-                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
-                                    </svg>
-                                }
-                                else
-                                {
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
-                                        <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z" />
-                                    </svg>
-                                }
+    <div class="minWidth100 flex flexJustifyContendCenter">
+        <div class="maxWidth80 minWidth80 mobieleWidth100 mobileCenter ">
+            <div class="grid-Selected-Recipe minWidth100">
+                <h1 class="grid-Title" style="margin-bottom:0;text-align:center;">@Model.Recipes.Name</h1>
+                <hr class="grid-hr" />
+                <img class="grid-Image" src="@Model.Recipes.ImagePath" loading="lazy" style="max-width:100%" />
+
+                <p class="grid-LikeCount">Dieses Rezept gefällt @Model.Recipes.LikeCount Benutzern.</p>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a asp-controller="SelectedRecipe" asp-action="AddOrRemoveLike" asp-route-id="@Model.Recipes.Id" class="btn btn-primary grid-Likebutton " typeof="Button" title="Like Button" style="width:100px;height:max-content;padding:0.35rem;margin-left:auto;">
+                        @{
+                            Like like = Model.Likes.SingleOrDefault(x => x.UserMail == User.Identity.Name && x.Recipe == Model.Recipes);
+                            if (like != null)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                                    <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                                </svg>
                             }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                                    <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z" />
+                                </svg>
+                            }
+                        }
 
-                        </a>
-                    }
+                    </a>
+                }
 
-                </div>
-                <table class="w80 mb-5 flex flexColumn acenter " style="min-width:80%;flex:auto">
-                    <tbody class="w100 flexColumn">
+                <table class="grid-ingredient  ">
+                    <tbody class=" flexColumn flexAlginItemCenter">
                         @{
                             foreach (var ingredient in Model.IngredientHandler)
                             {
-                                <tr class="w100 flexRow flexWrap">
-                                    <td class="flex minWidth20">
-                                        <p class="mb-0" style="margin-right:2px;">
-                                            @ingredient.Quantity.Quantitys
-                                        </p>
-                                        <p class="mb-0" style="margin-right:2px;">
+                                <tr class="minWidth80 maxWidth80  mobieleWidth100 flexRow mb-2">
+                                    <td class="minWidth40 " style="text-align:end">
+                                        <span style="margin-right:3px">
+                                            @ingredient.Quantity.Quantitys 
+                                        </span>
+                                        <span>
                                             @ingredient.Measure.UnitOfMeasurement
-                                        </p>
+                                        </span>
                                     </td>
-
-                                    <td class="flex w60">@ingredient.Ingredient.Name</td>
+                                   
+                                    <td class="minWidth50" style="text-align:start;word-break:break-word;margin-left:3px">
+                                        @ingredient.Ingredient.Name
+                                    </td>
                                 </tr>
                             }
                         }
@@ -58,54 +59,61 @@
                     </tbody>
 
                 </table>
-                <p class="w80">@Model.Recipes.Preparation</p>
-            </div>
-            <div class="w100 flex jend">
+
+                <p class="grid-Preparation">@Model.Recipes.Preparation</p>
+
 
                 @{
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <a asp-route-id="@Model.Recipes.Id" asp-controller="Recession" asp-action="Index" typeof="Button" title="Rating Button" class="btn btn-primary m-4">Bewerten</a>
+                        <a asp-route-id="@Model.Recipes.Id" asp-controller="Recession" asp-action="Index" typeof="Button" title="Rating Button" class="btn btn-primary mb-2  grid-Button" style="width:max-content;margin-left:auto;">Bewerten</a>
                     }
                     else
                     {
-                        <Button type="Button" href="#" title="Rating Button" class="btn btn-primary m-4" disabled>Zum Bewerten Einloggen</Button>
+                        <Button type="Button" href="#" title="Rating Button" class="btn btn-primary m-4 grid-Button" style="width:max-content" disabled>Zum Bewerten Einloggen</Button>
 
                     }
 
                 }
+
             </div>
-        </div>
-        <div class="w50">
-            <hr />
-            @{
 
-                foreach (var recessionFromDb in Model.Recession)
-                {
-
-                    string email = recessionFromDb.UserEmail.Substring(0, 5) + "*******";
-                    var createTime = DateOnly.FromDateTime(recessionFromDb.CreationDate);
-                    <div class="card w100 m-1 ">
-                        <div class="card-header flex flexRow jspaceBetween">
-                            <div class="">
-                                @email
-                            </div>
-                            <div class="">
-                                @createTime
-                            </div>
-
-                        </div>
-                        <div class="card-body">
-                            @recessionFromDb.Assessment
-                        </div>
-                    </div>
-
-
-                }
-            }
 
         </div>
+
+
     </div>
+
+
+
+    @{
+
+        foreach (var recessionFromDb in Model.Recession)
+        {
+
+            string email = recessionFromDb.UserEmail.Substring(0, 5) + "*******";
+            var createTime = DateOnly.FromDateTime(recessionFromDb.CreationDate);
+            <div class="minWidth100 flex flexJustifyContendCenter">
+                <div class="card maxWidth80 minWidth80 mobieleWidth100 mb-1 ">
+                    <div class="card-header flex flexRowToColumn jspaceBetween flexWrap">
+                        <div class="minWidth40">
+                            @email
+                        </div>
+                        <div class="minWidth40">
+                            @createTime
+                        </div>
+
+                    </div>
+                    <div class="card-body">
+                        @recessionFromDb.Assessment
+                    </div>
+                </div>
+            </div>
+           
+
+
+        }
+    }
 </body>
 
 

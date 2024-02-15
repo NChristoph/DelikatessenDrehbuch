@@ -5,107 +5,95 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
-<div class="flex jcenter w100">
+<div class="flexColumn minWidth100 flexAlginContentCenter">
 
 
-    <div class="flex flexColumn w50 jcenter">
-        <form asp-controller="NewRecipes" asp-action="AddNewRecipes">
-            <div class="w100 mb-2 flex flexRow jspaceBetween">
-                <input asp-for="Recipes.Id" name="Id" hidden />
-                <input id="Catergory" asp-for="Recipes.Category" name="Category" hidden />
-                <input asp-for="Recipes.Name" class="w40" name="Name" placeholder="Name des Rezeptes" />
-                <div class="dropdown w40">
-                    @{
 
-                        if (Model.Recipes.Id != 0)
-                        {
-                                        <button id="CategoryDropdown" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            @Model.Recipes.Category
-                                        </button>
-                        }
-                        else
-                        {
-                                        <button name="test" id="CategoryDropdown" class="btn btn-primary dropdown-toggle w100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Kategorie
-                                        </button>
-                        }
+    <form class="grid-UploadNewRecipe minWidth80 maxWidth80 mobieleWidth100" asp-controller="NewRecipes" asp-action="AddNewRecipes">
+        <input asp-for="Recipes.Id" name="Id" hidden />
+        <input id="Catergory" asp-for="Recipes.Category" name="Category" hidden />
+        <input asp-for="Recipes.Name" class="grid-Title" name="Name" placeholder="Name des Rezeptes" />
+        <div class="grid-Category" style="margin-left:auto;">
+            @{
+
+                if (Model.Recipes.Id != 0)
+                {
+                    <button id="CategoryDropdown" class="btn btn-primary dropdown-toggle max-Widthcontent" type="button" data-bs-toggle="dropdown" aria-expanded="false" >
+                        @Model.Recipes.Category
+                    </button>
+                }
+                else
+                {
+                    <button name="test" id="CategoryDropdown" class="btn btn-primary dropdown-toggle max-Widthcontent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Kategorie
+                    </button>
+                }
+            }
+
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Vorspeise</a></li>
+                <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Hauptspeise</a></li>
+                <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Dessert</a></li>
+                <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Snack</a></li>
+            </ul>
+        </div>
+
+        <h5 class="grid-h1" style="vertical-align:middle;">Zutat Hinzufügen</h5>
+
+        <div class="grid-AdRemoveButton max-Widthcontent" style="margin-left:auto;">
+
+            <a class="btn" typeof="button" asp-controller="NewRecipes" asp-action="BlankSentence" type="button" id="addItem">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                </svg>
+            </a>
+            <a class="btn" typeof="button" type="button" href="#" onclick="removeItem()" >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
+                    <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" />
+                </svg>
+            </a>
+
+
+        </div>
+
+
+
+       
+        <div id="container">
+
+            <div class="grid-ingredient" id="editorRows">
+
+                @{
+                    foreach (var item in Model.IngredientHandler)
+                    {
+
+                        <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
+
                     }
 
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Vorspeise</a></li>
-                        <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Hauptspeise</a></li>
-                        <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Dessert</a></li>
-                        <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Snack</a></li>
-                    </ul>
-                </div>
-            </div>
 
-            <div class="w100 mb-2" style="outline:solid 1px;padding:9px">
-                <div class="flex" style="align-items:center">
-                    <div class="flex m-1" style="width:50%">
-                        <h5 style="align-self:flex-start">Zutat Hinzufügen</h5>
-                    </div>
-                    <div class="flex" style="width:50%;justify-content:flex-end">
-                        <div class="m-1">
-
-                            <a class="btn" typeof="button" asp-controller="NewRecipes" asp-action="BlankSentence" type="button" id="addItem">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-                                </svg>
-                            </a>
-                            <a class="btn" typeof="button" type="button" href="#" onclick="removeItem()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
-                                    <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" />
-                                </svg>
-                            </a>
-
-
-                        </div>
-                    </div>
-                </div>
-
-
-                <hr class="m-0" />
-                <div id="container">
-
-                    <div id="editorRows">
-
-                        @{
-                            foreach (var item in Model.IngredientHandler)
-                            {
-
-                                        <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
-
-
-                            }
-
-
-                        }
-
-                    </div>
-
-
-                </div>
-
-                <hr class="m-0" />
-
-                <div class="flex" style="align-items:center">
-                    <textarea asp-for="Recipes.Preparation" class="mt-1 " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Foto Hochladem</label>
-                    <input asp-for="Recipes.FormFile" id="form" name="Recipes.FormFile" class="form-control-file" type="file">
-                </div>
+                }
 
             </div>
-            <div class="w100 flex jend">
-                <button id="submit" class="btn btn-primary" typeof="button">Speichern</button>
-            </div>
-        </form>
 
 
-    </div>
+        </div>
+
+
+        <textarea asp-for="Recipes.Preparation" class="mt-1 grid-Preparation " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
+
+        
+
+        <div class="grid-Image">
+            <label class="form-label">Foto Hochladem</label>
+            <input asp-for="Recipes.FormFile" id="form" name="Recipes.FormFile" class="form-control-file" type="file">
+        </div>
+
+        <button id="submit" class="btn btn-primary grid-Button max-Widthcontent" typeof="button" style="margin-left:auto;">Speichern</button>
+        
+    </form>
+
+
 
 
 </div>
@@ -150,7 +138,7 @@
             });
 
             $("div[name='Measure']").each(function (i) {
-               
+
                 var Measure = (this).textContent;
                 formData.append("IngredientHandler[" + i + "].Measure.UnitOfMeasurement", Measure);
             });
@@ -161,7 +149,7 @@
             });
 
             $("input[name='Recipes.FormFile']").each(function (i) {
-                
+
                 var fileData = $('#form')[0];
                 formData.append("Recipes.FormFile", fileData.files[0]);
             });
@@ -175,9 +163,9 @@
                 contentType: false,
                 success: function (data) {
                     debugger;
-                   
-                        window.location.href = data.redirect;
-                   
+
+                    window.location.href = data.redirect;
+
                 }
             });
 
@@ -186,7 +174,7 @@
         function GetThisTextToCategoryInput(text) {
             var text = text.textContent;
             var dropdown = document.getElementById('CategoryDropdown');
-            dropdown.textContent=text;
+            dropdown.textContent = text;
             $('#Catergory').val(text);
 
         }
