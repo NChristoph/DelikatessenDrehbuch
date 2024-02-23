@@ -11,46 +11,65 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-primary border-bottom box-shadow mb-3" style="justify-content:center">
-            <div class="row" style="justify-content:center">
-                <div class="container-fluid">
+        <nav class="  navbar-expand-sm navbar-toggleable-sm navbar-light flexJustifyContendCenter flex bgRedGardien border-bottom box-shadow mb-3" >
+            
+               
+                <div class="container-fluid flexRow flexJustifyContendCenter">
 
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                        <ul class="navbar-nav flex-grow-1" style="justify-content:center">
+                    <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
+                        <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Rezepte</a>
+                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
                             </li>
-                            @* <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                            </li> *@
-                           
+                            <li class="nav-item">
+                                <partial class="grid-Partial" name="_LoginPartial" />
+                            </li>
+
                         </ul>
-                        <partial name="_LoginPartial" />
+                        
                     </div>
 
                 </div>
-            </div>
+           
+            
+                
+               
+            
         </nav>
+
+       
+       
     </header>
-    <div class="maxWidth100 flexColumn">
-        <div class="flex maxWidth50 minWidth50 mobieleWidth100 flexAlginSelfCenter">
-            <form class="minWidth100 flexRow flexAuto flexNoWrap mobieleWidth100" asp-controller="Home" asp-action="Index" style="align-self:center;">
+    <div class="flexRowToColumn flexWrap">
+        <div class="col maxWidth30 mobieleWidth90">
+            <div class="grid-Navbar">
+                <img class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
+                <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
+                <div class="grid-Slogan" style="color:#D4AF37;font-size:11px">Kulinarische Genüsse,<br /> von Herzen geschrieben.</div>
+
+            </div>
+        </div>
+        <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
+            <form class="minWidth50 maxWidth60 flexRow flexAuto flexNoWrap mobieleWidth90" asp-controller="Home" asp-action="Index">
                 <input name="recipeName" class="minWidth70 flexAuto" placeholder="Nach Rezept suchen" style="border-radius:5px;flex-shrink:2" />
-                <button  class="btn btn-primary  " title="SearchButton" type="submit" typeof="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                <button class="btn bgRed  " title="SearchButton" type="submit" typeof="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
                         <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
                     </svg>
                 </button>
             </form>
-            
         </div>
 
-
     </div>
+
+  
+
+
+    
 
     <div class=" flexRow flexJustifyContendCenter">
         <hr style="width:90%" />
@@ -63,11 +82,11 @@
 
    
 
-    <footer class="border-top footer text-muted">
+    @* <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2023 - DelikatessenDrehbuch - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
-    </footer>
+    </footer> *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

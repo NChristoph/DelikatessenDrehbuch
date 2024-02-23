@@ -1,4 +1,7 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
+Die Navbar noch Designen ganz wichtig mach das als erster. Grid verwenden Logo einbauen . !IMPORTENT
+Bei Mobile width die Nav bar mit einen Menü aufrufbar machen Canvas nicht Colaps
+Neues Layout umsetzetn.
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
 Neues Rezept hinzufügen noch fertig Desingen. !IMPORTAND
 Bei den angezeigten Rezepten noch ein auf die Merkliste Button erstellen und Logik Implementieren.

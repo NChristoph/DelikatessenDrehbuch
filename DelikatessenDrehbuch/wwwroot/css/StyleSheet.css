@@ -2,7 +2,7 @@
 }
 
 footer {
-    position: relative !important;
+    position: fixed !important;
 }
 
 html {
@@ -25,10 +25,17 @@ tr:nth-child(odd) {
     border-radius: 0.5rem;
 }
 
-.bgblue {
-    background-color: #daf0ff;
+.bgRed {
+    background-color: #770f05;
 }
 
+.bgRedGardien {
+    background-image: linear-gradient(to right,#770f05 60%,#620b0b );
+}
+
+.color-Gold {
+    color: #D4AF37;
+}
 
 /*#region FlexBox */
 .flex {
@@ -126,8 +133,8 @@ tr:nth-child(odd) {
 
 /*#region Width*/
 
-.max-Widthcontent{
-    width:max-content;
+.max-Widthcontent {
+    width: max-content;
 }
 
 .minWidth100vh {
@@ -390,15 +397,41 @@ tr:nth-child(odd) {
         'Button Button'
 }
 
-.grid-h1{
-    grid-area:grid-h1;
+.grid-h1 {
+    grid-area: grid-h1;
 }
 
 .grid-AdRemoveButton {
     grid-area: AdRemoveButtons;
 }
 
+/*Grid Navbar*/
 
+.grid-Navbar {
+    display: grid;
+    grid-gap: 2px;
+    grid-template-areas:
+        'Logo  grid grid grid grid'
+        'Logo  Name Name Name Name'
+        'Logo  Slogen Slogen Slogen Slogen '
+        'Logo  PartialView PartialView PartialView PartialView ';
+}
+
+.grid-Name {
+    grid-area: Name;
+}
+
+.grid-Slogan {
+    grid-area: Slogen;
+}
+
+.grid-Partial {
+    grid-area: PartialView;
+}
+
+.grid-Logo {
+    grid-area: Logo;
+}
 
 .grid-Item {
 }
