@@ -2,11 +2,46 @@
 
 
 
-<div class="flex flexRow mt-1 wrap jspaceBetween">
+<div class="flexRow flexWrap flexJustifyContendCenter mobieleWidth100  ">
+   
 
-    <input class="w30" asp-for="IngredientHandler.Ingredient.Name" name="Ingredient" id="Ingredient" placeholder="Zutat" />
-    <input class="w30" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
-    <partial name="_dropDownPartialView" model="Model" />
+    <input class="maxWidth50 mobieleWidth90 flex col mt-1" asp-for="IngredientHandler.Ingredient.Name" name="Ingredient" id="Ingredient" placeholder="Zutat" />
+    <div class="row flexJustifyContendSpaceBetween mobieleWidth90" >
+        <input class=" mt-1 flex" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" style="max-width:100px" />
+        <div class="dropdown maxWidth40 mt-1 flex" style="padding:0;">
+            @{
+
+                if (Model.IngredientHandler.Measure != null)
+                {
+                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle mobieleWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0">
+                        @Model.IngredientHandler.Measure.UnitOfMeasurement.ToString()
+                    </div>
+                }
+                else
+                {
+                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle mobieleWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0">Stk.</div>
+                }
+
+            }
+
+            <ul class="dropdown-menu">
+                @{
+                    var MeasureNames = Model.Measure.Select(x => x.UnitOfMeasurement).ToList();
+
+                    foreach (var measure in MeasureNames)
+                    {
+
+                        <li><a class="dropdown-item" onclick="GetText(this.text)">@measure</a></li>
+                    }
+                }
+
+
+            </ul>
+
+
+        </div>
+    </div>
+    
 
 </div>
 

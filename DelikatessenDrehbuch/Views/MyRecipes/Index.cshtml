@@ -1,9 +1,25 @@
-﻿@model List<Recipes>
+﻿
 
 @{
 
-    ViewData["Title"] = "Meine Rezepte";
+    ViewData["Title"] = "Mein Bereich";
 }
+
+<div class="flexRow maxWidth100 mobieleWidth90 flexJustifyContendCenter">
+   <div class="flexColumn">
+       <a class="btn" typeof="button" onclick="loadMyRecipes()">
+           Meine Rezepte
+       </a>
+   </div>
+   <div class="flexColumn">
+        <a typeof="button" class="btn" onclick="loadRecipesILike()">
+            Meine Rezeptbuch
+        </a>
+   </div>
+</div>
+
+<div id="PartailaView"></div>
+@* 
 <div class="w100 flex jcenter">
     <table class="table" style="max-width:75%">
         <thead class="table-dark ">
@@ -28,7 +44,21 @@
             }
         </tbody>
     </table>
-</div>
+</div> *@
 
+
+@section Scripts {
+    <script>
+        function loadMyRecipes() {
+            
+            $('#PartailaView').load("MyRecipes/LoadMyRecipes")
+        }
+
+        function loadRecipesILike() {
+
+            $('#PartailaView').load("MyRecipes/LoadRecipesILike")
+        }
+    </script>
+}
 
 

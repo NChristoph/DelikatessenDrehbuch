@@ -1,25 +1,26 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
-Die Navbar noch Designen ganz wichtig mach das als erster. Grid verwenden Logo einbauen . !IMPORTENT
-Bei Mobile width die Nav bar mit einen Menü aufrufbar machen Canvas nicht Colaps
-Neues Layout umsetzetn.
+Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
+
+Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.
+Login und Registrier seite noch Stylen.
+Benutzer noch seeden Viedeo ansehen.
+
+
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
-Neues Rezept hinzufügen noch fertig Desingen. !IMPORTAND
+
 Bei den angezeigten Rezepten noch ein auf die Merkliste Button erstellen und Logik Implementieren.
 Rezepte Bewertung in Moddel machen.
-Desingn kommplet neu machen Home/index,SelectedRecipe/Index ist schon erledigt.
+Desingn kommplet neu machen Home/index,SelectedRecipe/Index,newRecipe/Index  ist schon erledigt.
 
-Aus meine Rezepte mein Bereich machen wo ich meine Rezpte anzeigen kann oder die von mir gefält mir 
-Rezepte sehe und mein eigenes digitales Rezeptbuch machen kann
+
 
 Rezepte runterladen
 
 Bildvorschau einfügen bei deinen Rezepten und beim bearbeiten von Rezepten
 Das Design von deinen Rezepten noch ändern
 
-View für Bewertung noch Designen, 
-PartialView Für Bewertungsanzeige noch Designen grnerell die Card die, die Bewertung Umschließt
-noch stylen und die zu anzeigenden Daten noch bearbeiten Email unleserlich machen
-Nach dem die Bewertung abgegeben wurde Wieder zum Ausgewählten Rezept Zurück
+
+
 
 
 
@@ -38,3 +39,10 @@ Code Übersichtlicher machen
 //
 AQAAAAEAACcQAAAAEE9SEX1nmdEgjN8i+jo3vcUc7uCV/juEnU3yYYuKIkWWO7G784QyL/7zvIrIMp24Tw==
 
+Data Source=tcp:delikatessen-drehbuch-server.database.windows.net,1433;Initial Catalog=DelikatessenDrehbuchDb;User Id=DelikatessenDrehbuch@delikatessen-drehbuch-server;Password=Ni049753!
+
+kay 1
+IR@c45a96d9-72f5-44d0-8029-3067291a477b@DelikatessenDrehbuch@nore@a16jvZusTPa+tmZaX7UFwSWH/36T7RegjgYoYqOchwk=
+
+kay 2
+IR@c45a96d9-72f5-44d0-8029-3067291a477b@DelikatessenDrehbuch@nore@aHUxG+EHjyKb75ZO5zmHp1A5Sbd9SDjkehXN9FrUPN4=

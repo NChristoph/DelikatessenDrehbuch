@@ -1,9 +1,11 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DelikatessenDrehbuch.Controllers
 {
+    [Authorize]
     public class RecessionController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -34,6 +36,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             Recession newRecession = new();
             newRecession.Id = 0;
+            newRecession.CreationDate = DateTime.Now;
             newRecession.UserEmail = User.Identity.Name;
             newRecession.Assessment =recession.Assessment;
             newRecession.Recipes = _context.Recipes.SingleOrDefault(_ => _.Id == recession.Recipes.Id);

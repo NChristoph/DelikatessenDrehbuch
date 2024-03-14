@@ -19,9 +19,9 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index()
         {
-            var myRecipesFromDb=_dbcontext.Recipes.Where(x=>x.OwnerEmail==User.Identity.Name).ToList();
+          
 
-            return View(myRecipesFromDb);
+            return View();
         }
 
         public IActionResult DeleteRecipes(int id)
@@ -39,6 +39,19 @@ namespace DelikatessenDrehbuch.Controllers
             else
                 return BadRequest();
           
+        }
+
+        public IActionResult LoadMyRecipes()
+        {
+            var myRecipesFromDb = _dbcontext.Recipes.Where(x => x.OwnerEmail == User.Identity.Name).ToList();
+            return PartialView("_MyRecipesPartialView", myRecipesFromDb);
+        }
+
+        public IActionResult LoadRecipesILike()
+        {
+            var likesFromDb = _dbcontext.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x=>x.Recipe).ToList();
+            var recipesFromLikes=likesFromDb.Select(x=>x.Recipe).ToList();
+            return PartialView("_RecipesILikePartialView", recipesFromLikes);
         }
     }
 }

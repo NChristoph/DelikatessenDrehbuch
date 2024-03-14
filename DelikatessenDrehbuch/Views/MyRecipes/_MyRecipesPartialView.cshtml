@@ -1,14 +1,13 @@
 ﻿@model List<Recipes>
-@{
-    ViewData["Title"] = "Rezepte";
-}
+
 <div class="minWidth100 flex flexJustifyContendCenter">
-    <div class="grid-Container maxWidth80 mobieleWidth100 " >
+    <div class="grid-Container maxWidth80 mobieleWidth100 ">
 
         @{
             foreach (var recipe in Model)
             {
-                <a class="grid-Recipes grid-Item text-black" asp-route-id="@recipe.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
+
+                <a class="grid-Recipes grid-Item text-black" asp-route-id="@recipe.Id" asp-controller="NewRecipes" asp-action="Index" style="text-decoration:none;">
 
                     @if (!string.IsNullOrEmpty(recipe.ImagePath))
                     {
@@ -30,14 +29,4 @@
 
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
 

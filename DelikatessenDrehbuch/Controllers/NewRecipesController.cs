@@ -5,6 +5,7 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Data.Migrations;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ using System.Xml.Linq;
 
 namespace DelikatessenDrehbuch.Controllers
 {
+    [Authorize]
 
 
     public class NewRecipesController : Controller

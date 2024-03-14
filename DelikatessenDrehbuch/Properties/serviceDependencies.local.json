@@ -3,6 +3,14 @@
     "mssql1": {
       "type": "mssql.local",
       "connectionId": "ConnectionStrings:DefaultConnection"
+    },
+    "mssql2": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ServiceLinker/locations/swedencentral/connectors/DelikatessenDrehbuchConection_E78ACDAF5A",
+      "secretStore": "LocalSecretsFile",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/delikatessen-drehbuch-server/databases/DelikatessenDrehbuchDb",
+      "type": "mssql.azure",
+      "connectionId": "DelikatessenDrehbuch-Conection",
+      "dynamicId": null
     }
   }
 }
