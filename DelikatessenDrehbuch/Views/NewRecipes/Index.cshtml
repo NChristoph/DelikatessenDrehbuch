@@ -13,7 +13,7 @@
         <input asp-for="Recipes.Id" name="Id" hidden />
         <input id="Catergory" asp-for="Recipes.Category" name="Category" hidden />
         <div class="flexRowToColumn flexAuto flexNoWrap mobieleWidth90 ">
-            
+
             <input asp-for="Recipes.Name" class="grid-Title mobileMarginBottom" name="Name" placeholder="Name des Rezeptes" style="min-height:37px" />
 
             @{
@@ -26,7 +26,7 @@
                 }
                 else
                 {
-                    <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto" >
+                    <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto">
                         Kategorie
                     </button>
                 }
@@ -39,9 +39,9 @@
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Snack</a></li>
             </ul>
         </div>
-      
+
         <div class="flexRow">
-            <span class="flex flexAlginItemCenter" >Zutat Hinzufügen</span>
+            <span class="flex flexAlginItemCenter">Zutat Hinzufügen</span>
 
             <div class="flex max-Widthcontent" style="margin-left:auto;">
 
@@ -50,25 +50,20 @@
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
                     </svg>
                 </a>
-                <a class="btn" typeof="button" type="button" href="#" onclick="removeItem()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
-                        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" />
-                    </svg>
-                </a>
 
 
             </div>
 
         </div>
-       
-
-       
 
 
-       
+
+
+
+
         <div id="container">
 
-            <div class="" id="editorRows">
+            <div class="flexColumn" id="editorRows">
 
                 @{
                     foreach (var item in Model.IngredientHandler)
@@ -89,7 +84,7 @@
 
         <textarea asp-for="Recipes.Preparation" class="mt-1 grid-Preparation " name="Preparation" placeholder="Zubereitung" style="width:100%;height:250px"></textarea>
 
-        
+
 
         <div class="grid-Image">
             <label class="form-label">Foto Hochladen</label>
@@ -97,7 +92,7 @@
         </div>
 
         <button id="submit" class="btn bgRed grid-Button max-Widthcontent" typeof="button" style="margin-left:auto; color:#FFFDD0">Speichern</button>
-        
+
     </form>
 
 
@@ -112,6 +107,7 @@
 
 @section Scripts {
     <script>
+
 
         $("#submit").click(function (e) {
             e.preventDefault();
@@ -169,7 +165,6 @@
                 processData: false,
                 contentType: false,
                 success: function (data) {
-                    debugger;
 
                     window.location.href = data.redirect;
 
@@ -206,11 +201,6 @@
         });
 
 
-        function removeItem() {
-
-            document.querySelector('#editorRows').lastElementChild.remove();
-
-        }
 
         var div;
         function GetElement(element) {
@@ -224,6 +214,14 @@
 
         }
 
+
+        function DeleteRow(html) {
+            
+            var first = html.parentNode;
+            var second = first.parentNode.remove();
+           
+          
+        }
 
 
 

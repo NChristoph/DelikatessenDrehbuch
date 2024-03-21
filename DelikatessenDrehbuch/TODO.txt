@@ -5,19 +5,14 @@ Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Mon
 Login und Registrier seite noch Stylen.
 Benutzer noch seeden Viedeo ansehen.
 
-
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
 
-Bei den angezeigten Rezepten noch ein auf die Merkliste Button erstellen und Logik Implementieren.
 Rezepte Bewertung in Moddel machen.
-Desingn kommplet neu machen Home/index,SelectedRecipe/Index,newRecipe/Index  ist schon erledigt.
-
-
 
 Rezepte runterladen
 
 Bildvorschau einfügen bei deinen Rezepten und beim bearbeiten von Rezepten
-Das Design von deinen Rezepten noch ändern
+
 
 
 

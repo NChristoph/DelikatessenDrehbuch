@@ -520,8 +520,15 @@ tr:nth-child(odd) {
         min-width: 80% !important;
     }
 
+    .mobieleWidth45 {
+        max-width: 45% !important;
+    }
+    .mobieleWidth10 {
+        max-width: 10% !important;
+    }
+
     .mobieleWidth20 {
-        min-width: 20% !important;
+        max-width: 20% !important;
     }
 
     .mobileCenter {
