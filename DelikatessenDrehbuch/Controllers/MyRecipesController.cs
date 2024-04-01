@@ -43,6 +43,14 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult LoadMyRecipes()
         {
+
+            
+            if(User.IsInRole("Admin"))
+            {
+                var recipesFromDb = _dbcontext.Recipes.ToList();
+                return PartialView("_MyRecipesPartialView", recipesFromDb);
+            }
+
             var myRecipesFromDb = _dbcontext.Recipes.Where(x => x.OwnerEmail == User.Identity.Name).ToList();
             return PartialView("_MyRecipesPartialView", myRecipesFromDb);
         }

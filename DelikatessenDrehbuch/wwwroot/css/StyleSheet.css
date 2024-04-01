@@ -327,12 +327,13 @@ tr:nth-child(odd) {
 .grid-Recipes {
     display: grid;
     grid-template-areas:
-        'gridImage gridImage'
-        'gridImage gridImage'
-        'gridImage gridImage'
+        'grid-atag grid-atag'
+        'grid-atag grid-atag'
+        'grid-atag grid-atag'
         'Titel Title'
         'grid-hr grid-hr'
         'likeCount category'
+        'likeCount deleteButton'
 }
 
 
@@ -343,8 +344,16 @@ tr:nth-child(odd) {
         object-fit: cover;
     }
 
+.grid-atag {
+    grid-area: grid-atag;
+}
+
 .grid-Image {
     grid-area: gridImage;
+}
+
+.grid-DeleteButton {
+    grid-area: deleteButton;
 }
 
 .grid-Title {

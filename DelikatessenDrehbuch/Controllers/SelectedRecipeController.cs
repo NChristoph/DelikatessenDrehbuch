@@ -61,5 +61,23 @@ namespace DelikatessenDrehbuch.Controllers
             _context.Likes.Remove(like);
             _context.SaveChanges();
         }
+
+        public IActionResult SaveRecessionInDB(int id, string assessment)
+        {
+
+            if (id == null)
+                return BadRequest();
+
+            Recession newRecession = new();
+            newRecession.Id = 0;
+            newRecession.CreationDate = DateTime.Now;
+            newRecession.UserEmail = User.Identity.Name;
+            newRecession.Assessment = assessment;
+            newRecession.Recipes = _context.Recipes.SingleOrDefault(_ => _.Id == id);
+
+            _context.Recessions.Add(newRecession);
+            _context.SaveChanges();
+            return RedirectToAction("Index",new { id = id });
+        }
     }
 }

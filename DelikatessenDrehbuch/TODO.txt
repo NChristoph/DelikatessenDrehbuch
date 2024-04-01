@@ -1,13 +1,15 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
+Ticketsystem erstellen das man den admins schreiben kann oder passwort reset usw übert einen token
+email registrierung usw 
+
 Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.
-Login und Registrier seite noch Stylen.
+
 Benutzer noch seeden Viedeo ansehen.
 
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
 
-Rezepte Bewertung in Moddel machen.
 
 Rezepte runterladen
 
