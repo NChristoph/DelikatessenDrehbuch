@@ -1,4 +1,7 @@
-﻿@model List<Recipes>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@model List<Recipes>
 @{
     ViewData["Title"] = "Rezepte";
 }
@@ -28,7 +31,18 @@
                     <div class="grid-LikeCount"> Gefält @recipe.LikeCount <br /> Benutzer</div>
                     <div class="grid-Category">@recipe.Category</div>
                     <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Name</h3>
+
+                    @{
+                        if(SignInManager.IsSignedIn(User))
+                        {
+                            <a href="#" onclick="MessageModalShow('@recipe.GetType().Name',@recipe.Id,'@User.Identity.Name')">Melden</a>
+
+                        }
+                    }
+                   
                 </div>
+
+               
                
             }
         }

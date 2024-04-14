@@ -25,9 +25,9 @@ namespace DelikatessenDrehbuch.StaticScripts
             return fullRecipes;
         }
 
-        //private static List<string> GetMeasureNames(ApplicationDbContext dbContext,List<Measure> metrics)
-        //{
-        //    return metrics.Select(x=>x.UnitOfMeasurement).ToList();
-        //}
+       
     }
+
+
+    
 }

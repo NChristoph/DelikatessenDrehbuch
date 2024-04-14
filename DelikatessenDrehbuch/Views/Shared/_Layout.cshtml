@@ -5,48 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-  @*   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> *@
+    @*   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> *@
     <link rel="stylesheet" href="~/css/StyleSheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="  navbar-expand-sm navbar-toggleable-sm navbar-light flexJustifyContendCenter flex bgRedGardien border-bottom box-shadow mb-3" >
-            
-               
-                <div class="container-fluid flexRow flexJustifyContendCenter justifyMobileEnd">
+        <nav class="  navbar-expand-sm navbar-toggleable-sm navbar-light flexJustifyContendCenter flex bgRedGardien border-bottom box-shadow mb-3">
+
+
+            <div class="container-fluid flexRow flexJustifyContendCenter justifyMobileEnd">
 
                 <button class="navbar-toggler " type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                        <span >
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16" style="color:#FFFDD0">
                             <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5" />
                         </svg>
-                        </span>
-                    </button>
-                    <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
-                        <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
-                            <li class="nav-item">
-                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
-                            </li>
-                            <li class="nav-item">
-                                <partial class="grid-Partial" name="_LoginPartial" />
-                            </li>
+                    </span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
+                    <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
+                        <li class="nav-item">
+                            <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
+                        </li>
+                        <li class="nav-item">
+                            <partial class="grid-Partial" name="_LoginPartial" />
+                        </li>
 
-                        </ul>
-                        
-                    </div>
+                    </ul>
 
                 </div>
-           
-            
-                
-               
-            
+
+            </div>
+
+
+
+
+
         </nav>
 
-       
-       
+
+
     </header>
     <div class="flexRowToColumn flexWrap">
         <div class="col maxWidth30 mobieleWidth90">
@@ -94,7 +94,27 @@
         </div>
     </div>
 
-    
+    <!-- Modal -->
+    <div class="modal fade mobieleWidth100" id="MessageModal" tabindex="-1" aria-labelledby="MessageModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="MessageModal">Support Nachricht</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body minWidth100">
+                    <textarea id="SupportMessage" name="message" rows="7" class="minWidth100" onclick="MoveCursor()">
+
+                   </textarea>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-primary" onclick="SendSupportMessage()">Senden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class=" flexRow flexJustifyContendCenter">
         <hr style="width:87%;margin-bottom:0 !important;" />
@@ -105,19 +125,65 @@
         </main>
     </div>
 
-   
 
-    @* <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2023 - DelikatessenDrehbuch - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer> *@
+
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+
+<script>
+    var modalData = {};
+    function MessageModalShow(typeName, id, email) {
+        debugger;
+        modalData.id = id;
+        modalData.typeName = typeName;
+        modalData.email = email;
+        
+        $('#MessageModal').modal('show');
+    }
+
+    function SendSupportMessage() {
+        var message = document.getElementById("SupportMessage").value;
+        debugger;
+        var postData = {
+            Id:0,
+            Type: modalData.typeName,
+            TypeId: modalData.id,
+            SenderEmail:modalData.email,
+            Message: message
+
+        };
+        debugger;
+        $.ajax({
+            method: 'post',
+            url: "/Support/CreatSupportMessage",
+            contentType:"application/json",
+            data: JSON.stringify(postData),
+            success: function () {
+
+                $('#MessageModal').modal('close');
+                
+            }
+        });
+
+
+    }
+
+    function MoveCursor() {
+        var textArea = document.getElementById("SupportMessage");
+        textArea.focus();
+        textArea.setSelectionRange(0, 0);
+    }
+</script>
+
+
+
+
 
 @* <script>
 

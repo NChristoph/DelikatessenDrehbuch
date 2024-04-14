@@ -2,10 +2,12 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
 using System.Drawing.Text;
+using DelikatessenDrehbuch.Email;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var configuration = builder.Configuration;
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -16,7 +18,8 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-
+builder.Services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<EmailSender>();
 var app = builder.Build();
 
 

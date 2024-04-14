@@ -1,7 +1,13 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
-Ticketsystem erstellen das man den admins schreiben kann oder passwort reset usw übert einen token
+Supporttickets noch in Liste Anzeigen lassen und beim draufklicken das gemeldete Objekt anzeigen lassen,
+gegebenenfals zwei patrial views erstellen.
+Viedeo nochmal anschauen mit der java Column zu, anzeigen.
+
+Passwort zurücksetzen noch auf Funktionalität überprüfen.
+
+Ticketsystem erstellen das man den Admins schreiben kann oder Passwort reset usw übert einen token
 email registrierung usw 
 
 Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.

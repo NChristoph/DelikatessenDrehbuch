@@ -7,24 +7,28 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using DelikatessenDrehbuch.Email;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 
 namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
 {
     public class ForgotPasswordModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IEmailSender _emailSender;
+        private readonly EmailSender _emailSender;
+        private readonly EmailSettings _emailSettings;
 
-        public ForgotPasswordModel(UserManager<IdentityUser> userManager, IEmailSender emailSender)
+        public ForgotPasswordModel(UserManager<IdentityUser> userManager, EmailSender emailSender,IOptions<EmailSettings> emailSetings)
         {
             _userManager = userManager;
             _emailSender = emailSender;
+            _emailSettings = emailSetings.Value;
         }
 
         /// <summary>
@@ -49,6 +53,8 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
             public string Email { get; set; }
         }
 
+        [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> OnPostAsync()
         {
             if (ModelState.IsValid)
@@ -57,28 +63,22 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
                 if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return RedirectToPage("./ForgotPasswordConfirmation");
+                    return RedirectToAction("ForgotPasswordConfirmation");
                 }
 
-                // For more information on how to enable account confirmation and password reset please
-                // visit https://go.microsoft.com/fwlink/?LinkID=532713
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                var callbackUrl = Url.Page(
-                    "/Account/ResetPassword",
-                    pageHandler: null,
-                    values: new { area = "Identity", code },
-                    protocol: Request.Scheme);
-
-                await _emailSender.SendEmailAsync(
-                    Input.Email,
-                    "Reset Password",
-                    $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, token = token }, protocol: HttpContext.Request.Scheme);
+                // Send email with link to reset password
+                await _emailSender.SendEmailAsync(Input.Email, "Reset Password",
+                    $"Please reset your password by <a href='{callbackUrl}'>clicking here</a>.");
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
 
+            // If we got this far, something failed, redisplay form
             return Page();
         }
+
+
+       
     }
 }

@@ -1,0 +1,10 @@
+﻿@model List<SupportMessage>
+
+
+
+@{
+    foreach(var supportMessage in Model)
+    {
+        <div>@supportMessage.SenderEmail</div>
+    }
+}

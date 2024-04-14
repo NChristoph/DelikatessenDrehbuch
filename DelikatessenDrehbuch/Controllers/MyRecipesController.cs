@@ -20,7 +20,6 @@ namespace DelikatessenDrehbuch.Controllers
         public IActionResult Index()
         {
           
-
             return View();
         }
 
@@ -59,7 +58,13 @@ namespace DelikatessenDrehbuch.Controllers
         {
             var likesFromDb = _dbcontext.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x=>x.Recipe).ToList();
             var recipesFromLikes=likesFromDb.Select(x=>x.Recipe).ToList();
-            return PartialView("_RecipesILikePartialView", recipesFromLikes);
+            return PartialView("_MyRecipesPartialView", recipesFromLikes);
+        }
+
+        public IActionResult LoadSupportTicketsPartialView()
+        {
+            var supportMessagesFromDb=_dbcontext.SupportMessage.ToList();
+            return PartialView("_AdminSupportMessage", supportMessagesFromDb);
         }
     }
 }
