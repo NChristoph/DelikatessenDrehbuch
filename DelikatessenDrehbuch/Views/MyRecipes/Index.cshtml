@@ -7,7 +7,7 @@
     ViewData["Title"] = "Mein Bereich";
 }
 
-<div class="flexRow maxWidth100 mobieleWidth90 flexJustifyContendCenter">
+<div class="flexRowToColumn maxWidth100 mobieleWidth90 flexJustifyContendCenter">
    <div class="flexColumn">
        <a class="btn" typeof="button" onclick="loadMyRecipes()">
            Meine Rezepte
@@ -48,6 +48,21 @@
         function loadSupportTicketsPartialView()
         {
             $('#PartailaView').load("MyRecipes/LoadSupportTicketsPartialView")
+        }
+
+        function deleteSupportMessage(id) {
+            
+            $.ajax({
+                type: "POST",
+                url: "/Support/DeleteSupportTicket",
+                data: { id: id },
+                success: function (response) {
+                   
+                    $('#PartailaView').html(response);
+                }
+
+            })
+
         }
     </script>
 }

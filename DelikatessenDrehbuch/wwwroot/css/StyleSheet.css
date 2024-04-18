@@ -55,6 +55,8 @@ tr:nth-child(odd) {
     color: #D4AF37;
 }
 
+
+
 /*#region FlexBox */
 .flex {
     display: flex;
@@ -481,6 +483,8 @@ tr:nth-child(odd) {
         flex: 1;
         grid-template-columns: repeat(2,minmax(200px,1fr));
     }
+
+   
 }
 
 

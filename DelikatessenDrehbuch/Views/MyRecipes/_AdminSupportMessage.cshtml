@@ -2,9 +2,94 @@
 
 
 
-@{
-    foreach(var supportMessage in Model)
-    {
-        <div>@supportMessage.SenderEmail</div>
+
+
+<table id="Datatable">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Email</th>
+            <th>Message</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    @{
+        foreach (var supportMessage in Model)
+        {
+            <tbody>
+                <tr>
+                    <td>@supportMessage.Type</td>
+                    <td>@supportMessage.SenderEmail</td>
+                    <td>
+                        <a class="btn btn-primary" typeof="Button" title="ReadButton" onclick="MessageModalShow('@supportMessage.Message.ToString().Trim()')">Nachricht Anzeigen</a>
+                    </td>
+                    <td>
+                        <a onclick="deleteSupportMessage(@supportMessage.Id)" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1"> Löschen</a>
+                    </td>
+                </tr>
+
+            </tbody>
+        }
     }
-}
+
+
+</table>
+
+
+<div class="flexColumn mobieleWidth100" id="mobileTable">
+    @{
+        foreach (var supportMessage in Model)
+        {
+            <div class="card mobieleWidth100">
+
+                <div class="card-header">
+                    @supportMessage.SenderEmail
+                </div>
+                <div class="card-body">
+                    @supportMessage.Type
+                    <hr />
+                    @supportMessage.Message
+                </div>
+                <div class="card-footer flex flexJustifyContendEnd">
+                    <a onclick="deleteSupportMessage(@supportMessage.Id)" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1;"> Löschen</a>
+                </div>
+
+            </div>
+        }
+
+       
+    }
+
+</div>
+
+<script>
+
+
+
+    $(document).ready(function () {
+        getScreenWidth();
+    })
+    function getScreenWidth() {
+        var sreenWidth = window.innerWidth;
+
+        if (sreenWidth < 728) {
+            var mobile = document.getElementById('Datatable_wrapper');
+            mobile.remove();
+        }
+        else {
+            var desktop = document.getElementById('mobileTable');
+            desktop.remove();
+        }
+    }
+
+    if (typeof table === 'undefined') {
+        let table = new DataTable('#Datatable');
+    }
+
+
+    function MessageModalShow(message) {
+        $('#ShowMessage').modal('show');
+        var messages = document.getElementById("AdminSupportMessage");
+        messages.textContent = message;
+    }
+</script>

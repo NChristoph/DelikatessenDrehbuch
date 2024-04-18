@@ -1,10 +1,11 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="de-at">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.4/css/dataTables.dataTables.min.css" />
     @*   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> *@
     <link rel="stylesheet" href="~/css/StyleSheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
@@ -116,6 +117,24 @@
     </div>
 
 
+    <div class="modal fade mobieleWidth100" id="ShowMessage" tabindex="-1" aria-labelledby="MessageModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="MessageModal">Support Nachricht</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body minWidth100">
+                    <textarea id="AdminSupportMessage" name="message" rows="7" class="minWidth100" onclick="MoveCursor()">
+
+                   </textarea>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+
     <div class=" flexRow flexJustifyContendCenter">
         <hr style="width:87%;margin-bottom:0 !important;" />
     </div>
@@ -131,6 +150,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.datatables.net/2.0.4/js/dataTables.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
@@ -139,7 +159,7 @@
 <script>
     var modalData = {};
     function MessageModalShow(typeName, id, email) {
-        debugger;
+        
         modalData.id = id;
         modalData.typeName = typeName;
         modalData.email = email;
@@ -149,7 +169,7 @@
 
     function SendSupportMessage() {
         var message = document.getElementById("SupportMessage").value;
-        debugger;
+        
         var postData = {
             Id:0,
             Type: modalData.typeName,
@@ -158,15 +178,16 @@
             Message: message
 
         };
-        debugger;
+        
         $.ajax({
             method: 'post',
             url: "/Support/CreatSupportMessage",
             contentType:"application/json",
             data: JSON.stringify(postData),
             success: function () {
-
-                $('#MessageModal').modal('close');
+                var message = document.getElementById("SupportMessage");
+                message.value = "";
+                $('#MessageModal').modal('hide');
                 
             }
         });
