@@ -1,6 +1,8 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
+Fillter bei der Rezeptsuche verbessern Mehrere Parameter auswelbar machen vl ein enum als
+filter um zusehen ob das rezep eine wahren parameter aus dem enum hat
 
 Passwort zurücksetzen noch auf Funktionalität überprüfen.
 

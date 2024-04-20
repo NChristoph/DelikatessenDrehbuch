@@ -16,6 +16,11 @@ namespace DelikatessenDrehbuch.Models
         [NotMapped]
         public IFormFile? FormFile { get; set; }
 
+        public bool Vegan { get; set; }
+        public bool Vegetarian { get; set; }
+        public bool LowCap { get; set; }
+        public bool Bake { get; set; }
+        public bool BBQ { get; set; }
 
     }
 }

@@ -15,12 +15,18 @@ namespace DelikatessenDrehbuch.Controllers
             _context = dbContext;
         }
 
-        public IActionResult Index(string recipeName)
+      
+        public IActionResult Index(string recipeName,bool vegan, bool vegetarian,bool lowCap,bool bake, bool BBQ)
         {
+            var recipesFromDb= _context.Recipes.Where(x=>x.Vegan==vegan&&
+                                                      x.Vegetarian==vegetarian&&
+                                                      x.LowCap==lowCap&&
+                                                      x.Bake==bake&&
+                                                      x.BBQ==BBQ).ToList();    
             if(!string.IsNullOrEmpty(recipeName))
             {
-                var recipesFromDb = _context.Recipes.Where(x => x.Name.ToLower() == recipeName.ToLower()).ToList();
-                return View(recipesFromDb);
+                var query = recipesFromDb.Where(x => x.Name.ToLower().Contains(recipeName.ToLower())).ToList();
+                return View(query);
             }
 
             return View(new List<Recipes>());

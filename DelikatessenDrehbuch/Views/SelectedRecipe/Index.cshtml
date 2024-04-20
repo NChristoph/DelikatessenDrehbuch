@@ -67,6 +67,8 @@
                 @{
                     @if (SignInManager.IsSignedIn(User))
                     {
+                        <a class="btn bgRed mb-2 grid-Button" href="#" onclick="MessageModalShow('@Model.Recipes.GetType().Name',@Model.Recipes.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-right:auto">Rezept melden</a>
+
                         <!-- Button trigger modal -->
                         <button type="button"  data-bs-toggle="modal" data-bs-target="#exampleModal" typeof="Button" title="Rating Button" class="btn bgRed mb-2 grid-Button" style="width:max-content;margin-left:auto;color:#FFFDD0;">
                             Bewerten
@@ -138,6 +140,16 @@
                     <div class="card-body  Bg-Cream">
                         @recessionFromDb.Assessment
                     </div>
+                    @{
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <div class=" card-footer Bg-Cream minWidth100 flex ">
+                                <a class="btn bgRed mb-2 " href="#" onclick="MessageModalShow('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
+
+                            </div>
+                        }
+                    }
+                   
                 </div>
             </div>
            
