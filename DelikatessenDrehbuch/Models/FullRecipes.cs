@@ -3,11 +3,12 @@
     public class FullRecipes
     {
         public Recipes Recipes { get; set; }
+        public RecipeType RecipeType { get; set; }
         public virtual List<IngredientHandlerModel> IngredientHandler { get; set; }
         public virtual List<Like>? Likes { get; set; }
         public virtual List<Recession>? Recession { get; set; }
         public virtual List<Measure> Measure { get; set; }
-
+        
         public FullRecipes()
         {
             Recipes = new Recipes();

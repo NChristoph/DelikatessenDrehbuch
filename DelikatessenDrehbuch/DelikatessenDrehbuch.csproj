@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EmailSetting\**" />
+    <Content Remove="EmailSetting\**" />
+    <EmbeddedResource Remove="EmailSetting\**" />
+    <None Remove="EmailSetting\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\css\Logo\DelikatessenDrehbuch_Logo.png" />
   </ItemGroup>
 
@@ -24,10 +31,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
     <PackageReference Include="System.Memory.Data" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="EmailSetting\" />
   </ItemGroup>
 
 </Project>

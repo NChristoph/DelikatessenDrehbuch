@@ -16,18 +16,9 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
       
-        public IActionResult Index(string recipeName,bool vegan, bool vegetarian,bool lowCap,bool bake, bool BBQ)
+        public IActionResult Index()
         {
-            var recipesFromDb= _context.Recipes.Where(x=>x.Vegan==vegan&&
-                                                      x.Vegetarian==vegetarian&&
-                                                      x.LowCap==lowCap&&
-                                                      x.Bake==bake&&
-                                                      x.BBQ==BBQ).ToList();    
-            if(!string.IsNullOrEmpty(recipeName))
-            {
-                var query = recipesFromDb.Where(x => x.Name.ToLower().Contains(recipeName.ToLower())).ToList();
-                return View(query);
-            }
+           
 
             return View(new List<Recipes>());
           

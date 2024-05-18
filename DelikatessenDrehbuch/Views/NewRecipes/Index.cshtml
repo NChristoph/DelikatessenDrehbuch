@@ -17,57 +17,26 @@
             <input asp-for="Recipes.Name" class="grid-Title mobileMarginBottom" name="Name" placeholder="Name des Rezeptes" style="min-height:37px" />
 
 
-            <div class="form-check" style="margin-left:7px;">
-                <input class="form-check-input" type="checkbox" name="Vegan" value="" id="flexCheckVegan">
-                <label class="form-check-label" for="flexCheckVegan">
-                    Vegan
-                </label>
-            </div>
 
-            <div class="form-check" style="margin-left:7px;">
-                <input class="form-check-input" type="checkbox" name="Vegetarian" value="" id="flexCheckVegetarisch">
-                <label class="form-check-label" for="flexCheckVegetarisch">
-                    Vegetarisch
-                </label>
-            </div>
-
-            <div class="form-check" style="margin-left:7px;">
-                <input class="form-check-input" type="checkbox" name="LowCap" value="" id="flexCheckLowCap">
-                <label class="form-check-label" for="flexCheckLowCap">
-                    Low-Cap
-                </label>
-            </div>
-
-            <div class="form-check" style="margin-left:7px;">
-                <input class="form-check-input" type="checkbox" name="Bake" value="" id="flexCheckBackware">
-                <label class="form-check-label" for="flexCheckBackware">
-                    Backware
-                </label>
-            </div>
-
-            <div class="form-check" style="margin-left:7px;">
-                <input class="form-check-input" type="checkbox" name="BBQ" value="" id="flexCheckBBQ">
-                <label class="form-check-label" for="flexCheckBackware">
-                    BBQ
-                </label>
-            </div>
 
 
             @{
 
                 if (Model.Recipes.Id != 0)
                 {
-                    <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto;">
-                        @Model.Recipes.Category
-                    </button>
+                                <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto;">
+                                    @Model.Recipes.Category
+                                </button>
                 }
                 else
                 {
-                    <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto">
-                        Kategorie
-                    </button>
+                                <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto">
+                                    Kategorie
+                                </button>
                 }
             }
+
+            
 
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Vorspeise</a></li>
@@ -76,7 +45,107 @@
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Snack</a></li>
             </ul>
         </div>
+        <div class="flexRow mt-1 mb-1 minWidth100">
+            <div class="accordion minWidth100" id="accordionExample">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" >
+                            Suchwörter auswählen
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                        <div class="accordion-body ">
+                            <div class="flexRowToColumn flexWrap">
 
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Vegan" value="" id="flexCheckVegan">
+                                    <label class="form-check-label" for="flexCheckVegan">
+                                        Vegan
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Vegetarian" value="" id="flexCheckVegetarisch">
+                                    <label class="form-check-label" for="flexCheckVegetarisch">
+                                        Vegetarisch
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="LowCarb" value="" id="flexCheckLowCarb">
+                                    <label class="form-check-label" for="flexCheckLowCarb">
+                                        Low-Carb
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Pastry" value="" id="flexCheckGebäck">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Gebäck
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="BBQ" value="" id="flexCheckBBQ">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        BBQ
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Bread" value="" id="flexCheckBread">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Brot
+                                    </label>
+                                </div>
+
+                            </div>
+
+                            <div class="flexRowToColumn flexWrap">
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Biscuits" value="" id="flexCheckBiscuits">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Kekse
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Cocktails" value="" id="flexCheckCocktails">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Cocktails
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Pie" value="" id="flexCheckPie">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Torte
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Cake" value="" id="flexCheckCake">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Kuchen
+                                    </label>
+                                </div>
+
+                                <div class="form-check" style="margin-left:7px;">
+                                    <input class="form-check-input" type="checkbox" name="Diet" value="" id="flexCheckDiet">
+                                    <label class="form-check-label" for="flexCheckBackware">
+                                        Diat
+                                    </label>
+                                </div>
+                            </div>
+
+                           
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         <div class="flexRow">
             <span class="flex flexAlginItemCenter">Zutat Hinzufügen</span>
 
@@ -95,9 +164,6 @@
 
 
 
-
-
-
         <div id="container">
 
             <div class="flexColumn" id="editorRows">
@@ -106,7 +172,7 @@
                     foreach (var item in Model.IngredientHandler)
                     {
 
-                        <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
+                                    <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
 
                     }
 
@@ -145,12 +211,12 @@
 @section Scripts {
     <script>
 
+        
 
         $("#submit").click(function (e) {
             e.preventDefault();
             var formData = new FormData();
-
-
+           
             $("input[name='Id']").each(function () {
                 var Id = $(this).val();
                 formData.set("Recipes.Id", Id);
@@ -168,28 +234,61 @@
 
              $("input[name='Vegan']").each(function () {
                 var Vegan = (this).checked;
-                formData.set("Recipes.Vegan", Vegan);
+                formData.set("RecipeType.Vegan", Vegan);
             });
 
             $("input[name='Vegetarian']").each(function () {
                 var Vegetarian = (this).checked;
-                formData.set("Recipes.Vegetarian", Vegetarian);
+                formData.set("RecipeType.Vegetarian", Vegetarian);
             });
 
-            $("input[name='LowCap']").each(function () {
-                var LowCap = (this).checked;
-                formData.set("Recipes.LowCap", LowCap);
-            });
-
-            $("input[name='Bake']").each(function () {
-                var Bake = (this).checked;
-                formData.set("Recipes.Bake", Bake);
+            $("input[name='LowCarb']").each(function () {
+                var LowCarb = (this).checked;
+                formData.set("RecipeType.LowCarb", LowCarb);
             });
 
             $("input[name='BBQ']").each(function () {
                 var BBQ = (this).checked;
-                formData.set("Recipes.BBQ", BBQ);
+                formData.set("RecipeType.BBQ", BBQ);
             });
+
+            $("input[name='Pastry']").each(function () {
+                var Pastry = (this).checked;
+                formData.set("RecipeType.Pastry", Pastry);
+            });
+
+            $("input[name='Bread']").each(function () {
+                var Bread = (this).checked;
+                formData.set("RecipeType.Bread", Bread);
+            });
+
+            $("input[name='Cake']").each(function () {
+                
+                var Cake = (this).checked;
+                formData.set("RecipeType.Cake", Cake);
+            });
+
+            $("input[name='Biscuits']").each(function () {
+                var Biscuits = (this).checked;
+                formData.set("RecipeType.Biscuits", Biscuits);
+            });
+
+            $("input[name='Cocktails']").each(function () {
+                var Cocktails = (this).checked;
+                formData.set("RecipeType.Cocktails", Cocktails);
+            });
+
+            $("input[name='Pie']").each(function () {
+                var Pie = (this).checked;
+                formData.set("RecipeType.Pie", Pie);
+            });
+
+            $("input[name='Diet']").each(function () {
+                var Diet = (this).checked;
+                formData.set("RecipeType.Diet", Diet);
+            });
+
+           
 
             $("textarea[name='Preparation']").each(function () {
                 var Preparation = $(this).val();

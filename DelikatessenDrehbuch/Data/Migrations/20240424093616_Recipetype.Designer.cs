@@ -4,6 +4,7 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DelikatessenDrehbuch.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240424093616_Recipetype")]
+    partial class Recipetype
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -159,12 +161,6 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<bool>("BBQ")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Bake")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Category")
                         .HasColumnType("nvarchar(max)");
 
@@ -173,9 +169,6 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
                     b.Property<int?>("LikeCount")
                         .HasColumnType("int");
-
-                    b.Property<bool>("LowCap")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -187,12 +180,6 @@ namespace DelikatessenDrehbuch.Data.Migrations
                     b.Property<string>("Preparation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Vegan")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Vegetarian")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -257,7 +244,7 @@ namespace DelikatessenDrehbuch.Data.Migrations
                     b.Property<bool>("Pie")
                         .HasColumnType("bit");
 
-                    b.Property<int>("RecipesId")
+                    b.Property<int>("RecipesIdId")
                         .HasColumnType("int");
 
                     b.Property<bool>("Vegan")
@@ -268,7 +255,7 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipesId");
+                    b.HasIndex("RecipesIdId");
 
                     b.ToTable("RecipeTypes");
                 });
@@ -571,13 +558,13 @@ namespace DelikatessenDrehbuch.Data.Migrations
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipeType", b =>
                 {
-                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "Recipes")
+                    b.HasOne("DelikatessenDrehbuch.Models.Recipes", "RecipesId")
                         .WithMany()
-                        .HasForeignKey("RecipesId")
+                        .HasForeignKey("RecipesIdId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Recipes");
+                    b.Navigation("RecipesId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -110,6 +110,11 @@ namespace DelikatessenDrehbuch.Controllers
             return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
         }
 
+        private void AddOrEditRecipeType(Recipetype recipetype)
+        {
+
+        }
+
         [HttpPost]
         public IActionResult AddOrEditRecipes(FullRecipes newRecipes)
         {
@@ -117,6 +122,8 @@ namespace DelikatessenDrehbuch.Controllers
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
             newRecipes.Recipes.OwnerEmail = User.Identity.Name;
+
+            
 
             var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
@@ -131,14 +138,9 @@ namespace DelikatessenDrehbuch.Controllers
                     Category = newRecipes.Recipes.Category,
                     LikeCount = 0,
                     ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
-                    Vegan=newRecipes.Recipes.Vegan,
-                    Vegetarian=newRecipes.Recipes.Vegetarian,
-                    LowCap=newRecipes.Recipes.LowCap,
-                    Bake=newRecipes.Recipes.Bake,
-                    BBQ=newRecipes.Recipes.BBQ,
+                  
 
                 };
-
 
 
                 _dbContext.Add(recipes);
@@ -152,11 +154,7 @@ namespace DelikatessenDrehbuch.Controllers
                 recipeFromDb.Category = newRecipes.Recipes.Category;
                 recipeFromDb.ImagePath = newRecipes.Recipes.FormFile == null ? recipeFromDb.ImagePath:GetImagePathFromAzure(newRecipes.Recipes.FormFile) ;
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
-                recipeFromDb.Vegan = newRecipes.Recipes.Vegan;
-                recipeFromDb.Vegetarian = newRecipes.Recipes.Vegetarian;
-                recipeFromDb.LowCap = newRecipes.Recipes.LowCap;
-                recipeFromDb.Bake = newRecipes.Recipes.Bake;
-                recipeFromDb.BBQ = newRecipes.Recipes.BBQ;
+              
 
                 _dbContext.SaveChanges();
                 EditRecipes(newRecipes, recipeFromDb);

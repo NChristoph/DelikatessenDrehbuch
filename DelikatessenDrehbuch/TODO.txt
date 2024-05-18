@@ -1,8 +1,9 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
-Fillter bei der Rezeptsuche verbessern Mehrere Parameter auswelbar machen vl ein enum als
-filter um zusehen ob das rezep eine wahren parameter aus dem enum hat
+Die komplette Rezeptsuche noch implementieren und den Filter noch ins Layout verschiben dan die Daten,
+mitels Formular an den HomeController Übergeben die Width vut das Dropdown in der IngriedientPartialView 
+setzen. Such Algoryhtmus noch Schreiben,
 
 Passwort zurücksetzen noch auf Funktionalität überprüfen.
 
@@ -10,7 +11,7 @@ Passwort zurücksetzen noch auf Funktionalität überprüfen.
 
 Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.
 
-Benutzer noch seeden Viedeo ansehen.
+
 
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
 
@@ -32,7 +33,6 @@ arbeiten mit api noch lernen
 
 Layout rezepte hochladen noch auf mobiel geräte width einstellen meta tag
 
-bewertung in eigenes model packen und model für bereits gelikte rezepte einfügen bzw datatable
 
 Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
 
