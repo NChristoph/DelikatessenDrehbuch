@@ -33,4 +33,8 @@
     <PackageReference Include="System.Memory.Data" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
 </Project>

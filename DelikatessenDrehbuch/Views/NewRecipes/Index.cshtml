@@ -24,19 +24,19 @@
 
                 if (Model.Recipes.Id != 0)
                 {
-                                <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto;">
-                                    @Model.Recipes.Category
-                                </button>
+                    <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto;">
+                        @Model.Recipes.Category
+                    </button>
                 }
                 else
                 {
-                                <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto">
-                                    Kategorie
-                                </button>
+                    <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto">
+                        Kategorie
+                    </button>
                 }
             }
 
-            
+
 
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Vorspeise</a></li>
@@ -49,13 +49,13 @@
             <div class="accordion minWidth100" id="accordionExample">
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" >
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                             Suchwörter auswählen
                         </button>
                     </h2>
                     <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
                         <div class="accordion-body ">
-                            <div class="flexRowToColumn flexWrap">
+                            <div class="flexRowToColumn flexWrap flexJustifyContendSpaceBetween">
 
                                 <div class="form-check" style="margin-left:7px;">
                                     <input class="form-check-input" type="checkbox" name="Vegan" value="" id="flexCheckVegan">
@@ -101,7 +101,7 @@
 
                             </div>
 
-                            <div class="flexRowToColumn flexWrap">
+                            <div class="flexRowToColumn flexWrap flexJustifyContendSpaceBetween">
 
                                 <div class="form-check" style="margin-left:7px;">
                                     <input class="form-check-input" type="checkbox" name="Biscuits" value="" id="flexCheckBiscuits">
@@ -139,7 +139,7 @@
                                 </div>
                             </div>
 
-                           
+
                         </div>
                     </div>
                 </div>
@@ -172,7 +172,7 @@
                     foreach (var item in Model.IngredientHandler)
                     {
 
-                                    <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
+                        <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
 
                     }
 
@@ -194,7 +194,7 @@
             <input asp-for="Recipes.FormFile" id="form" name="Recipes.FormFile" class="form-control-file" type="file">
         </div>
 
-        <button id="submit" class="btn bgRed grid-Button max-Widthcontent" typeof="button" style="margin-left:auto; color:#FFFDD0">Speichern</button>
+        <button id="submit" class="btn bgRed grid-Button max-Widthcontent mt-2" typeof="button" style="margin-left:auto; color:#FFFDD0">Speichern</button>
 
     </form>
 
@@ -211,12 +211,12 @@
 @section Scripts {
     <script>
 
-        
+
 
         $("#submit").click(function (e) {
             e.preventDefault();
             var formData = new FormData();
-           
+
             $("input[name='Id']").each(function () {
                 var Id = $(this).val();
                 formData.set("Recipes.Id", Id);
@@ -232,7 +232,7 @@
                 formData.set("Recipes.Name", Name);
             });
 
-             $("input[name='Vegan']").each(function () {
+            $("input[name='Vegan']").each(function () {
                 var Vegan = (this).checked;
                 formData.set("RecipeType.Vegan", Vegan);
             });
@@ -263,7 +263,7 @@
             });
 
             $("input[name='Cake']").each(function () {
-                
+
                 var Cake = (this).checked;
                 formData.set("RecipeType.Cake", Cake);
             });
@@ -288,7 +288,7 @@
                 formData.set("RecipeType.Diet", Diet);
             });
 
-           
+
 
             $("textarea[name='Preparation']").each(function () {
                 var Preparation = $(this).val();
@@ -377,11 +377,11 @@
 
 
         function DeleteRow(html) {
-            
+
             var first = html.parentNode;
             var second = first.parentNode.remove();
-           
-          
+
+
         }
 
 

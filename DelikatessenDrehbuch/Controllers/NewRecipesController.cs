@@ -2,7 +2,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using DelikatessenDrehbuch.Data;
-using DelikatessenDrehbuch.Data.Migrations;
+
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
@@ -110,10 +110,7 @@ namespace DelikatessenDrehbuch.Controllers
             return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
         }
 
-        private void AddOrEditRecipeType(Recipetype recipetype)
-        {
-
-        }
+     
 
         [HttpPost]
         public IActionResult AddOrEditRecipes(FullRecipes newRecipes)

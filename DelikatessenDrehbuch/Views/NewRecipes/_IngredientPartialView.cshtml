@@ -10,18 +10,18 @@
     <div class="flexRow flexNoWrap">
         <input class=" mt-1 flex " asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" style="max-width:70px;margin-right:2px;" />
 
-        <div class="dropdown maxWidth40 mobieleWidth45 mt-1 flex" style="padding:0;">
+        <div class="dropdown maxWidth40 mobieleWidth45 mt-1 flex" style="padding:0">
             @{
 
                 if (Model.IngredientHandler.Measure != null)
                 {
-                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle mobieleWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0">
+                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle mobieleWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;;min-width:120px;">
                         @Model.IngredientHandler.Measure.UnitOfMeasurement.ToString()
                     </div>
                 }
                 else
                 {
-                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle mobieleWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0">Stk.</div>
+                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle mobieleWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;;min-width:120px;">Stk.</div>
                 }
 
             }

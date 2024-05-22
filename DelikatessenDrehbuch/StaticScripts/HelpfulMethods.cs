@@ -21,7 +21,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             fullRecipes.Likes=dbContext.Likes.Where(x=>x.Recipe== recipeFromDb).ToList();
             fullRecipes.Recession=dbContext.Recessions.Where(x=>x.Recipes==recipeFromDb).ToList();
             fullRecipes.Measure = dbContext.Metrics.ToList();
-            fullRecipes.RecipeType = dbContext.RecipeTypes.SingleOrDefault(x => x.Recipes.Id == recipeId);
+            fullRecipes.RecipeType = dbContext.RecipeType.SingleOrDefault(x => x.Recipes.Id == recipeId);
 
             return fullRecipes;
         }

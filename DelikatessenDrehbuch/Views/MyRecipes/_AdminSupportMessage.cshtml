@@ -8,6 +8,7 @@
     <thead>
         <tr>
             <th>Type</th>
+            <th>TypeId</th>
             <th>Email</th>
             <th>Message</th>
             <th>Action</th>
@@ -19,6 +20,7 @@
             <tbody>
                 <tr>
                     <td>@supportMessage.Type</td>
+                    <td>@supportMessage.TypeId</td>
                     <td>@supportMessage.SenderEmail</td>
                     <td>
                         <a class="btn btn-primary" typeof="Button" title="ReadButton" onclick="MessageModalShow('@supportMessage.Message.ToString().Trim()')">Nachricht Anzeigen</a>
@@ -48,6 +50,8 @@
                 <div class="card-body">
                     @supportMessage.Type
                     <hr />
+                    @supportMessage.TypeId
+                    <hr/>
                     @supportMessage.Message
                 </div>
                 <div class="card-footer flex flexJustifyContendEnd">
