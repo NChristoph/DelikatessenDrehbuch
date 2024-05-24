@@ -1,6 +1,8 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -31,6 +33,23 @@ namespace DelikatessenDrehbuch.Controllers
                 Cocktails = recipeType.Cocktails,
                 Pie = recipeType.Pie,
                 Diet = recipeType.Diet,
+                
+            };
+
+            filterClass.ListToCompare = new()
+            {
+                filterClass.Vegan,
+                filterClass.Vegetarian,
+                filterClass.LowCarb,
+                filterClass.BBQ,
+                filterClass.Pastry,
+                filterClass.Bread,
+                filterClass.Cake,
+                filterClass.Biscuits,
+                filterClass.Cocktails,
+                filterClass.Pie,
+                filterClass.Diet,
+
             };
 
             return filterClass;
@@ -39,15 +58,18 @@ namespace DelikatessenDrehbuch.Controllers
         private List<Recipes> FilterRecipes(List<RecipeType> recipeTypes, RecipeType recipeType)
         {
             var filter = CreateFilterClass(recipeType);
-            
+            List<Recipes> filtered = new List<Recipes>();   
            
             foreach (var recipe in recipeTypes)
             {
                 var dataFromDb = CreateFilterClass(recipe);
-                
+                bool equal = filter.ListToCompare.SequenceEqual(dataFromDb.ListToCompare);
+                if (equal)
+                    filtered.Add(recipe.Recipes);
+
             }
 
-            return filtertList;
+            return filtered;
         }
 
 
@@ -64,7 +86,8 @@ namespace DelikatessenDrehbuch.Controllers
             }
             else
             {
-                recipes = FilterRecipes(_context.RecipeType.Where(x => x.Recipes.Name.Contains(recipeType.Recipes.Name.ToLower())).ToList(), recipeType);
+                recipes = FilterRecipes( _context.RecipeType.Where(x => x.Recipes.Name.Contains(recipeType.Recipes.Name.ToLower()))
+                                                            .Include(x=>x.Recipes).ToList(),recipeType);
               
             }
 

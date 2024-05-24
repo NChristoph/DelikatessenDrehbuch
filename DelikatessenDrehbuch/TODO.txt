@@ -2,8 +2,7 @@ Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 
-Such Algoryhtmus noch Schreiben,Habe jetzt eine filterklasse erstellt überprüfe anhand der filter ob 
-Die Objekte gleich sind.
+
 
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend
