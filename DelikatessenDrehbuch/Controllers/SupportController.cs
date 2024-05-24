@@ -24,6 +24,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult CreatSupportMessage([FromBody] SupportMessage message)
         {
             if (message == null)

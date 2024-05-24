@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
 </head>
 <body>
+    @Html.AntiForgeryToken()
     <header>
         <nav class="navbar-expand-sm navbar-toggleable-sm navbar-light flexJustifyContendCenter flex bgRedGardien border-bottom box-shadow mb-3">
 
@@ -264,6 +265,16 @@
 
 
 <script>
+
+    $(document).ready(function () {
+        var token = $("input[name='__RequestVerificationToken']").val();
+
+        $.ajaxSetup({
+            headers: {
+                'RequestVerificationToken': token
+            }
+        });
+    });
 
     function CangeValue(checkbox) {
        

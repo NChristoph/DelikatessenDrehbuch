@@ -42,8 +42,6 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult LoadMyRecipes()
         {
-
-            
             if(User.IsInRole("Admin"))
             {
                 var recipesFromDb = _dbcontext.Recipes.ToList();

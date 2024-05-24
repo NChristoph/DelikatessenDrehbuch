@@ -82,14 +82,14 @@ namespace DelikatessenDrehbuch.Controllers
             // Get a reference to a blob named "sample-file" in a container named "sample-container"
             BlobClient blob = container.GetBlobClient(blobName);
 
-            bool blobExist =  blob.Exists();
+            bool blobExist = blob.Exists();
 
             if (blobExist)
                 return;
 
             if (file != null)
             {
-                
+
 
                 using (var ms = new MemoryStream())
                 {
@@ -100,7 +100,7 @@ namespace DelikatessenDrehbuch.Controllers
                     blob.Upload(new BinaryData(byteArry));
                 }
             }
-           
+
         }
 
         private string GetImagePathFromAzure(IFormFile formFile)
@@ -110,17 +110,26 @@ namespace DelikatessenDrehbuch.Controllers
             return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
         }
 
-     
+
+        private void CreateOrEditRecipeType(FullRecipes newRecipes)
+        {
+            //TODO: Recipetype noch erstellon oder bearbeiten
+
+        }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult AddOrEditRecipes(FullRecipes newRecipes)
         {
+            newRecipes.RecipeType.Recipes = newRecipes.Recipes;
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
+           
+
             newRecipes.Recipes.OwnerEmail = User.Identity.Name;
 
-            
+
 
             var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
@@ -135,7 +144,7 @@ namespace DelikatessenDrehbuch.Controllers
                     Category = newRecipes.Recipes.Category,
                     LikeCount = 0,
                     ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
-                  
+
 
                 };
 
@@ -149,13 +158,15 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 recipeFromDb.Name = newRecipes.Recipes.Name;
                 recipeFromDb.Category = newRecipes.Recipes.Category;
-                recipeFromDb.ImagePath = newRecipes.Recipes.FormFile == null ? recipeFromDb.ImagePath:GetImagePathFromAzure(newRecipes.Recipes.FormFile) ;
+                recipeFromDb.ImagePath = newRecipes.Recipes.FormFile == null ? recipeFromDb.ImagePath : GetImagePathFromAzure(newRecipes.Recipes.FormFile);
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
-              
+
 
                 _dbContext.SaveChanges();
                 EditRecipes(newRecipes, recipeFromDb);
             }
+
+            CreateOrEditRecipeType(newRecipes);
 
             return Json(new { redirect = Url.Action("Index", "Home") });
         }
