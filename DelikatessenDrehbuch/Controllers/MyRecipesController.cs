@@ -23,21 +23,26 @@ namespace DelikatessenDrehbuch.Controllers
             return View();
         }
 
+     
         public IActionResult DeleteRecipes(int id)
         {
             
             var recipesFromDb=_dbcontext.Recipes.SingleOrDefault(x=>x.Id==id);
+            var recipeTypeFromDb=_dbcontext.RecipeType.SingleOrDefault(x=>x.Recipes==recipesFromDb);
 
-            if (recipesFromDb != null)
-            {
-                _dbcontext.Remove(recipesFromDb);
-                _dbcontext.SaveChanges();
-
-                return RedirectToAction("Index");
-            }
-            else
+            if (recipeTypeFromDb == null)
                 return BadRequest();
-          
+
+            if (recipesFromDb == null)
+                return BadRequest();
+
+
+            _dbcontext.Remove(recipesFromDb);
+            _dbcontext.Remove(recipeTypeFromDb);
+            _dbcontext.SaveChanges();
+
+            return RedirectToAction("Index");
+
         }
 
         public IActionResult LoadMyRecipes()

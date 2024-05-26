@@ -111,9 +111,40 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-        private void CreateOrEditRecipeType(FullRecipes newRecipes)
+        private void CreateOrEditRecipeType(Recipes recipes, RecipeType recipeType)
         {
-            //TODO: Recipetype noch erstellon oder bearbeiten
+            var recipeTypeFromDb = _dbContext.RecipeType.SingleOrDefault(x => x.Recipes == recipes);
+           
+
+            if (recipeTypeFromDb != null)
+            {
+                _dbContext.RecipeType.Remove(recipeTypeFromDb);
+                _dbContext.SaveChanges();
+            }
+
+
+            recipeTypeFromDb = new RecipeType()
+            {
+                Id = 0,
+                Recipes = recipes,
+                Vegan = recipeType.Vegan,
+                Vegetarian = recipeType.Vegetarian,
+                LowCarb = recipeType.LowCarb,
+                BBQ = recipeType.BBQ,
+                Pastry = recipeType.Pastry,
+                Bread = recipeType.Bread,
+                Biscuits = recipeType.Biscuits,
+                Pie = recipeType.Pie,
+                Cake = recipeType.Cake,
+                Cocktails = recipeType.Cocktails,
+                Diet = recipeType.Diet,
+
+
+            };
+
+            _dbContext.RecipeType.Add(recipeTypeFromDb);
+            _dbContext.SaveChanges();
+
 
         }
 
@@ -125,11 +156,8 @@ namespace DelikatessenDrehbuch.Controllers
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
-           
 
             newRecipes.Recipes.OwnerEmail = User.Identity.Name;
-
-
 
             var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
@@ -149,9 +177,11 @@ namespace DelikatessenDrehbuch.Controllers
                 };
 
 
-                _dbContext.Add(recipes);
-                _dbContext.SaveChanges();
+                //_dbContext.Add(recipes);
+                //_dbContext.SaveChanges();
+                CreateOrEditRecipeType(recipes, newRecipes.RecipeType);
                 CreateRecipesHandler(newRecipes);
+               
 
             }
             else
@@ -162,11 +192,12 @@ namespace DelikatessenDrehbuch.Controllers
                 recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
 
 
-                _dbContext.SaveChanges();
+
                 EditRecipes(newRecipes, recipeFromDb);
+                CreateOrEditRecipeType(recipeFromDb, newRecipes.RecipeType);
             }
 
-            CreateOrEditRecipeType(newRecipes);
+
 
             return Json(new { redirect = Url.Action("Index", "Home") });
         }

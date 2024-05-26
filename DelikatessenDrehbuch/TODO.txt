@@ -2,7 +2,8 @@ Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 
-
+Noch die Ingredient anzeige bearbeiten in der Rezept
+himzufügen View passt weder am Desktoop noch in der Mobielen version
 
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend
