@@ -58,6 +58,44 @@ tr:nth-child(odd) {
 
 
 /*#region FlexBox */
+
+.ingredient-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.ingredient-deteils-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    gap: 10px;
+   
+}
+
+   
+   
+
+.ingredient-name {
+    flex: 2;
+}
+
+.ingredient-amount {
+    flex: 1;
+    
+}
+
+.dropdown {
+    flex: 1;
+}
+
+.ingredient-button {
+    flex: 0;
+}
+
 .flex {
     display: flex;
 }
@@ -483,8 +521,6 @@ tr:nth-child(odd) {
         flex: 1;
         grid-template-columns: repeat(2,minmax(200px,1fr));
     }
-
-   
 }
 
 
@@ -495,13 +531,25 @@ tr:nth-child(odd) {
         font-size: 16px;
     }
 
+    .ingredient-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .ingredient-name-row{
+        flex:2;
+    }
+    .ingredient-deteils-row{
+        flex:3;
+        flex-direction:row;
+    }
+
     .flexRowToColumn {
         display: flex;
         flex-direction: column;
     }
 
-    .mobileMarginBottom{
-        margin-bottom:0.5rem;
+    .mobileMarginBottom {
+        margin-bottom: 0.5rem;
     }
 
     .m-3 {
@@ -536,6 +584,7 @@ tr:nth-child(odd) {
     .mobieleWidth45 {
         max-width: 45% !important;
     }
+
     .mobieleWidth10 {
         max-width: 10% !important;
     }
@@ -547,8 +596,9 @@ tr:nth-child(odd) {
     .mobileCenter {
         align-self: center !important;
     }
-    .justifyMobileEnd{
-        justify-content:end;
+
+    .justifyMobileEnd {
+        justify-content: end;
     }
 }
 
