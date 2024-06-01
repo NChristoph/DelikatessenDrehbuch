@@ -541,6 +541,7 @@ tr:nth-child(odd) {
     .ingredient-deteils-row{
         flex:3;
         flex-direction:row;
+        justify-content:flex-start;
     }
 
     .flexRowToColumn {

@@ -14,22 +14,22 @@
         <input asp-for="Recipes.Id" name="Id" hidden />
         <input id="Catergory" asp-for="Recipes.Category" name="Category" hidden />
 
-        <div class="flexRowToColumn flexAuto flexWrap mobieleWidth90 ">
+        <div class="flexRowToColumn flexAuto flexWrap mobieleWidth90 flexJustifyContendSpaceBetween">
 
-            <input asp-for="Recipes.Name" class="grid-Title mobileMarginBottom" name="Name" placeholder="Name des Rezeptes" style="min-height:37px" />
+            <input asp-for="Recipes.Name" class="grid-Title mobileMarginBottom " name="Name" placeholder="Name des Rezeptes" style="min-height:37px" />
 
 
             @{
 
                 if (Model.Recipes.Id != 0)
                 {
-                        <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto;">
+                        <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;">
                             @Model.Recipes.Category
                         </button>
                 }
                 else
                 {
-                        <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;margin-left:auto">
+                        <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;">
                             Kategorie
                         </button>
                 }
