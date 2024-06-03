@@ -3,8 +3,8 @@ Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 
 Email Geht nicht!
-wen ich ein rezept lösche lösch auch alle bewertzungen und alle recesionen!
-Filter um fleich erweitern.
+
+ filter bei der rezeptsuche noch optimiren vl auch anzeigen wen nur ein hacken gesetzt ist;
 
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend

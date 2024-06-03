@@ -14,6 +14,7 @@
         public bool Cocktails { get; set; }
         public bool Pie { get; set; }
         public bool Diet { get; set; }
+        public bool Meat { get; set; }
 
         public List<bool> ListToCompare { get; set; }
 

@@ -49,6 +49,7 @@ namespace DelikatessenDrehbuch.Controllers
                 filterClass.Cocktails,
                 filterClass.Pie,
                 filterClass.Diet,
+                filterClass.Meat,
 
             };
 
