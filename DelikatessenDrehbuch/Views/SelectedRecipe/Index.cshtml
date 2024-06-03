@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using System.Web
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @model FullRecipes
@@ -60,8 +61,10 @@
                     </tbody>
 
                 </table>
+               
 
                 <p class="grid-Preparation">@Model.Recipes.Preparation</p>
+
 
 
                 @{

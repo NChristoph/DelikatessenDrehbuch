@@ -138,6 +138,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Cake = recipeType.Cake,
                 Cocktails = recipeType.Cocktails,
                 Diet = recipeType.Diet,
+                Meat= recipeType.Meat,
 
 
             };

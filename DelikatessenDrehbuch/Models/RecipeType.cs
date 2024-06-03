@@ -18,6 +18,7 @@ namespace DelikatessenDrehbuch.Models
         public bool Cocktails { get; set; }
         public bool Pie { get; set; }
         public bool Diet { get; set; }
+        public bool Meat { get; set; }
 
        
 
