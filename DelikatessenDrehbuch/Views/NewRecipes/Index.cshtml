@@ -9,12 +9,12 @@
 
 
 
-    <form class="flex flexColumn minWidth80 maxWidth80 mobieleWidth100" asp-controller="NewRecipes" asp-action="AddNewRecipes">
+    <form class="flex flexColumn minWidth80 maxWidth80 mobieleWidth90" asp-controller="NewRecipes" asp-action="AddNewRecipes">
 
         <input asp-for="Recipes.Id" name="Id" hidden />
         <input id="Catergory" asp-for="Recipes.Category" name="Category" hidden />
 
-        <div class="flexRowToColumn flexAuto flexWrap mobieleWidth90 flexJustifyContendSpaceBetween">
+        <div class="flexRow flexAuto flexWrap mobieleWidth90 flexJustifyContendSpaceBetween">
 
             <input asp-for="Recipes.Name" class="grid-Title mobileMarginBottom " name="Name" placeholder="Name des Rezeptes" style="min-height:37px" />
 

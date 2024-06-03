@@ -2,12 +2,12 @@
 
 <div class="flexRowToColumn flexJustifyContendCenter mobieleWidth100 minWidth100 ">
 
-    <div class="ingredient-name-row ingredient-row flexRowToColumn">
+    <div class="ingredient-name-row ingredient-row flex">
         <input class="form-control ingredient-name" type="text" asp-for="IngredientHandler.Ingredient.Name" name="Ingredient" placeholder="Zutat" />
-        <input class="form-control ingredient-amount" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
 
     </div>
-    <div class="ingredient-deteils-row">
+    <div class="ingredient-deteils-row flex">
+        <input class="form-control ingredient-amount" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
 
         <div class="ingredient-unit">
             @{

@@ -63,7 +63,6 @@ tr:nth-child(odd) {
     display: flex;
     flex-direction: row;
     gap: 10px;
-    margin-bottom: 10px;
     width: 100%;
 }
 
