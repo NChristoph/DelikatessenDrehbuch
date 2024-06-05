@@ -3,6 +3,9 @@ Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 
 Email Geht nicht!
+Passwort zurücksetzen noch auf Funktionalität überprüfen.
+
+
 
  filter bei der rezeptsuche noch optimiren vl auch anzeigen wen nur ein hacken gesetzt ist;
 
@@ -12,14 +15,7 @@ mochte startet der curser auch am anfang das ist nicht ziehlfürend
 Die anleitung noch formatirt ausgeben;
 
 
-
-Passwort zurücksetzen noch auf Funktionalität überprüfen.
-
-
-
-
 Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.
-
 
 
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
@@ -29,19 +25,11 @@ Rezepte runterladen
 
 Bildvorschau einfügen bei deinen Rezepten und beim bearbeiten von Rezepten
 
-
-
-
-
-
-
 Mach eine Dokumentation und Kommentier alles gut aus
 
 arbeiten mit api noch lernen
 
-
 Layout rezepte hochladen noch auf mobiel geräte width einstellen meta tag
-
 
 Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
 

@@ -1,31 +1,31 @@
 ﻿@model DropdownModel
 
-<div class="flexRowToColumn flexJustifyContendCenter mobieleWidth100 minWidth100 ">
+<div class="flexRowToColumn flexJustifyContendCenter mobieleWidth100 minWidth100 mb-1">
 
     <div class="ingredient-name-row ingredient-row flex">
         <input class="form-control ingredient-name" type="text" asp-for="IngredientHandler.Ingredient.Name" name="Ingredient" placeholder="Zutat" />
 
     </div>
     <div class="ingredient-deteils-row flex">
-        <input class="form-control ingredient-amount" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
+        <input class="form-control ingredient-amount" step="any" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
 
         <div class="ingredient-unit">
             @{
 
                 if (Model.IngredientHandler.Measure != null)
                 {
-                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle minWidth100 mb-1" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;">
+                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle minWidth100 " type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;">
                         @Model.IngredientHandler.Measure.UnitOfMeasurement.ToString()
                     </div>
                 }
                 else
                 {
-                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle minWidth100 mb-1" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;">Stk.</div>
+                    <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle minWidth100 " type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;">Stk.</div>
                 }
 
             }
 
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu" style="height:200px;overflow-y:auto">
                 @{
                     var MeasureNames = Model.Measure.Select(x => x.UnitOfMeasurement).ToList();
 
@@ -40,7 +40,7 @@
             </ul>
 
         </div>
-        <button class="btn bg-transparent ingredient-button" type="button" typeof="button" href="#" onclick="DeleteRow(this)">
+        <button title="DeleteButton" class="btn bg-transparent ingredient-button" type="button" typeof="button" href="#" onclick="DeleteRow(this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#D4AF37" class="bi bi-trash3" viewBox="0 0 16 16">
                 <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
             </svg>

@@ -23,15 +23,15 @@
 
                 if (Model.Recipes.Id != 0)
                 {
-                        <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;">
-                            @Model.Recipes.Category
-                        </button>
+                            <button id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;">
+                                @Model.Recipes.Category
+                            </button>
                 }
                 else
                 {
-                        <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;">
-                            Kategorie
-                        </button>
+                            <button name="test" id="CategoryDropdown" class="btn bgRed dropdown-toggle max-Widthcontent mobileMarginBottom" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:#FFFDD0;">
+                                Kategorie
+                            </button>
                 }
             }
 
@@ -178,7 +178,7 @@
                     foreach (var item in Model.IngredientHandler)
                     {
 
-                            <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
+                                <div id="@item.Id" name="MyDiv">@Model.Recipes.Id</div>
 
                     }
 
@@ -309,7 +309,8 @@
 
 
             $("input[name='Quantity']").each(function (i) {
-                var Quantity = $(this).val();
+                var input = $(this).val();
+                var Quantity = input.replace('.', ',');
                 formData.append("IngredientHandler[" + i + "].Quantity.Quantitys", Quantity);
             });
 
