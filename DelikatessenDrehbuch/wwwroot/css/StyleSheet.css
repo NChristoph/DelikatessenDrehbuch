@@ -530,6 +530,10 @@ tr:nth-child(odd) {
         font-size: 16px;
     }
 
+    .mobilehigth60px{
+        height:60px;
+    }
+
     .ingredient-row {
         flex-direction: column;
         align-items: stretch;
