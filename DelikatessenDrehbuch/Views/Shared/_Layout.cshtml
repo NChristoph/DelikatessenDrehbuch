@@ -21,11 +21,7 @@
                 <button class="navbar-toggler text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation" style="height:40px;">
                         Menü
-                   @*  <span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16" style="color:#FFFDD0">
-                            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5" />
-                        </svg>
-                    </span> *@
+                  
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
                     <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
@@ -67,7 +63,7 @@
             <form class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90" method="post" asp-controller="Home" asp-action="Index">
                 <div class="flexRowToColumn flexWrap">
                     <div class="accordion minWidth100 mb-2" id="accordionSearch">
-                        <div class="accordion-item">
+                     @*    <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSearch" aria-expanded="false" aria-controls="collapseSearch">
                                     Filtern
@@ -169,7 +165,7 @@
 
                                 </div>
                             </div>
-                        </div>
+                        </div> *@
 
                     </div>
 
@@ -177,7 +173,7 @@
                 </div>
 
                 <div class="flexRow wrap">
-                    <input name="Recipes.Name" class="minWidth70 flexAuto" placeholder="Nach Rezept suchen" style="border-radius:5px;flex-shrink:2" />
+                    <input name="query" class="minWidth70 flexAuto" placeholder="Nach Rezept suchen" style="border-radius:5px;flex-shrink:2" />
                     <button class="btn bgRed  " title="SearchButton" type="submit" typeof="button">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />

@@ -6,7 +6,6 @@ namespace DelikatessenDrehbuch.StaticScripts
 {
     public static class HelpfulMethods
     {
-
         public static FullRecipes GetFullRecipeById(ApplicationDbContext dbContext, int recipeId)
         {
             var recipeFromDb= dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
@@ -21,8 +20,9 @@ namespace DelikatessenDrehbuch.StaticScripts
             fullRecipes.Likes=dbContext.Likes.Where(x=>x.Recipe== recipeFromDb).ToList();
             fullRecipes.Recession=dbContext.Recessions.Where(x=>x.Recipes==recipeFromDb).ToList();
             fullRecipes.Measure = dbContext.Metrics.ToList();
-            fullRecipes.RecipeType = dbContext.RecipeType.SingleOrDefault(x => x.Recipes.Id == recipeId);
-
+            fullRecipes.QueryHandler = dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb)
+                                                             .Select(x=>x.Query.Query).ToList();
+            fullRecipes.Querys= dbContext.Querys.ToList();
             return fullRecipes;
         }
 
@@ -32,5 +32,5 @@ namespace DelikatessenDrehbuch.StaticScripts
     }
 
 
-    
+   
 }

@@ -28,11 +28,9 @@ namespace DelikatessenDrehbuch.Controllers
         {
             
             var recipesFromDb=_dbcontext.Recipes.SingleOrDefault(x=>x.Id==id);
-            var recipeTypeFromDb=_dbcontext.RecipeType.SingleOrDefault(x=>x.Recipes==recipesFromDb);
             var recessionFromDb = _dbcontext.Recessions.Where(x => x.Recipes.Id == id).ToList();
-
-            if (recipeTypeFromDb == null)
-                return BadRequest();
+            var queryHandlerFromDb = _dbcontext.QueryHandler.Where(x =>x.Recipe.Id==id).ToList();
+           
 
             if (recipesFromDb == null)
                 return BadRequest();
@@ -42,9 +40,11 @@ namespace DelikatessenDrehbuch.Controllers
                 foreach (var recession in recessionFromDb)
                     _dbcontext.Remove(recession);
 
+            if (queryHandlerFromDb != null)
+                foreach(var queryHandler in queryHandlerFromDb)
+                    _dbcontext.QueryHandler.Remove(queryHandler);
 
             _dbcontext.Remove(recipesFromDb);
-            _dbcontext.Remove(recipeTypeFromDb);
             _dbcontext.SaveChanges();
 
             return RedirectToAction("Index");

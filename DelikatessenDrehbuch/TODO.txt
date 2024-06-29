@@ -2,12 +2,22 @@ Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 
+
+Wichtig
+
+Filter überarbeiten,auf string umgestellt noch das binden im formdata machen 
+ wen ein rezep überarbeitet wird bekoom ich keinen  Queryhandler in den controller
+ 
+
+
+
+
+
+ dan die suche so anpassen das ,man nach suchwörtern suchen kann
 Email Geht nicht!
 Passwort zurücksetzen noch auf Funktionalität überprüfen.
 
 
-
- filter bei der rezeptsuche noch optimiren vl auch anzeigen wen nur ein hacken gesetzt ist;
 
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend
@@ -44,3 +54,11 @@ IR@c45a96d9-72f5-44d0-8029-3067291a477b@DelikatessenDrehbuch@nore@a16jvZusTPa+tm
 
 kay 2
 IR@c45a96d9-72f5-44d0-8029-3067291a477b@DelikatessenDrehbuch@nore@aHUxG+EHjyKb75ZO5zmHp1A5Sbd9SDjkehXN9FrUPN4=
+
+{
+ for (var pair of formData.entries()) {
+                console.log(pair[0] + ', '+pair[1]);
+            }
+}
+Formdata in console ausgeben
+

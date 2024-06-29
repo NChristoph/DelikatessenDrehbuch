@@ -1,5 +1,6 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
@@ -18,67 +19,27 @@ namespace DelikatessenDrehbuch.Controllers
             _context = dbContext;
         }
 
-        private FilterClass CreateFilterClass(RecipeType recipeType)
+      
+        private List<Recipes> GetRecipeByQuery(string query)
         {
-            FilterClass filterClass = new FilterClass()
-            {
-                Vegan = recipeType.Vegan,
-                Vegetarian = recipeType.Vegetarian,
-                LowCarb = recipeType.LowCarb,
-                BBQ = recipeType.BBQ,
-                Pastry = recipeType.Pastry,
-                Bread = recipeType.Bread,
-                Cake = recipeType.Cake,
-                Biscuits = recipeType.Biscuits,
-                Cocktails = recipeType.Cocktails,
-                Pie = recipeType.Pie,
-                Diet = recipeType.Diet,
-                
-            };
+            var sortedQueryList=_context.QueryHandler.Where(x=>x.Query.Query.ToLower()==query.ToLower())
+                                                     .Include(x=>x.Recipe)
+                                                     .ToList();
 
-            filterClass.ListToCompare = new()
-            {
-                filterClass.Vegan,
-                filterClass.Vegetarian,
-                filterClass.LowCarb,
-                filterClass.BBQ,
-                filterClass.Pastry,
-                filterClass.Bread,
-                filterClass.Cake,
-                filterClass.Biscuits,
-                filterClass.Cocktails,
-                filterClass.Pie,
-                filterClass.Diet,
-                filterClass.Meat,
+            sortedQueryList = sortedQueryList.DistinctBy(x => x.Recipe).ToList();
 
-            };
+            var recipes=sortedQueryList.Select(x=>x.Recipe).ToList();
 
-            return filterClass;
-        }
-
-        private List<Recipes> FilterRecipes(List<RecipeType> recipeTypes, RecipeType recipeType)
-        {
-            var filter = CreateFilterClass(recipeType);
-            List<Recipes> filtered = new List<Recipes>();   
-           
-            foreach (var recipe in recipeTypes)
-            {
-                var dataFromDb = CreateFilterClass(recipe);
-                bool equal = filter.ListToCompare.SequenceEqual(dataFromDb.ListToCompare);
-                if (equal)
-                    filtered.Add(recipe.Recipes);
-
-            }
-
-            return filtered;
+            return recipes;
         }
 
 
-        public IActionResult Index(RecipeType recipeType)
+        public IActionResult Index(string query)
         {
+            var filter =_context.Querys.Select(x=>x.Query.ToLower()).ToList();
             List<Recipes> recipes = new List<Recipes>();
 
-            if (recipeType.Recipes == null)
+            if (string.IsNullOrEmpty(query))
             {
                 var random = new Random();
                 recipes = _context.Recipes.ToList();
@@ -87,9 +48,11 @@ namespace DelikatessenDrehbuch.Controllers
             }
             else
             {
-                recipes = FilterRecipes( _context.RecipeType.Where(x => x.Recipes.Name.Contains(recipeType.Recipes.Name.ToLower()))
-                                                            .Include(x=>x.Recipes).ToList(),recipeType);
-              
+                if (filter.Contains(query.ToLower()))
+                    recipes=GetRecipeByQuery(query);
+                else
+                    recipes = _context.Recipes.Where(x => x.Name.Contains(query.ToLower())).ToList();
+                    
             }
 
 

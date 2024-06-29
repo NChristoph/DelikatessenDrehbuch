@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.WebEncoders.Testing;
+using Microsoft.Extensions.Logging;
+
 using NuGet.Packaging;
 using System;
 using System.Runtime.CompilerServices;
@@ -30,16 +32,35 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly string _azureAcoutName = "blobdelikatessendrehbuch";
 
 
-
+        private readonly ILogger<NewRecipesController> _logger;
         private readonly ApplicationDbContext _dbContext;
-        public NewRecipesController(ApplicationDbContext context)
+        public NewRecipesController(ILogger<NewRecipesController> logger,ApplicationDbContext context)
         {
+            _logger = logger;
             _dbContext = context;
+        }
+
+        private Recipes GetRecipeFromDb(Recipes recipes)
+        {
+            var recipeFromDb = _dbContext.Recipes.FirstOrDefault(x => x.Name == recipes.Name
+                                                           && x.Preparation == recipes.Preparation
+                                                           && x.OwnerEmail == recipes.OwnerEmail
+                                                           );
+            //TODO:ExeptionHandling
+
+            if (recipeFromDb == null) 
+                return new Recipes();
+
+            return recipeFromDb;
         }
         public IActionResult Index(int id)
         {
             if (id == 0)
-                return View(new FullRecipes());
+            {
+                var fullRecipes = new FullRecipes();
+                fullRecipes.Querys = _dbContext.Querys.ToList();
+                return View(fullRecipes);
+            }
             else
             {
                 var fullRecipes = HelpfulMethods.GetFullRecipeById(_dbContext, id);
@@ -67,7 +88,6 @@ namespace DelikatessenDrehbuch.Controllers
             dropdown.Measure = measureFromDb;
             return PartialView("_IngredientPartialView", dropdown);
         }
-
 
         public void UploadMsToAzureBlop(IFormFile file)
         {
@@ -110,50 +130,16 @@ namespace DelikatessenDrehbuch.Controllers
             return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
         }
 
-
-        private void CreateOrEditRecipeType(Recipes recipes, RecipeType recipeType)
-        {
-            var recipeTypeFromDb = _dbContext.RecipeType.SingleOrDefault(x => x.Recipes == recipes);
-           
-
-            if (recipeTypeFromDb != null)
-            {
-                _dbContext.RecipeType.Remove(recipeTypeFromDb);
-                _dbContext.SaveChanges();
-            }
-
-
-            recipeTypeFromDb = new RecipeType()
-            {
-                Id = 0,
-                Recipes = recipes,
-                Vegan = recipeType.Vegan,
-                Vegetarian = recipeType.Vegetarian,
-                LowCarb = recipeType.LowCarb,
-                BBQ = recipeType.BBQ,
-                Pastry = recipeType.Pastry,
-                Bread = recipeType.Bread,
-                Biscuits = recipeType.Biscuits,
-                Pie = recipeType.Pie,
-                Cake = recipeType.Cake,
-                Cocktails = recipeType.Cocktails,
-                Diet = recipeType.Diet,
-                Meat= recipeType.Meat,
-
-
-            };
-
-            _dbContext.RecipeType.Add(recipeTypeFromDb);
-            _dbContext.SaveChanges();
-
-
-        }
+        //TODO:Nur der Name Reicht nicht wegen der Nahmensgleichheit
+        //TODO: Noch sicherstellen das Nur querys auch erstellt werden die ein query in der db haben
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddOrEditRecipes(FullRecipes newRecipes)
+        [Route("NewRecipes/AddOrEditRecipes")]
+        public IActionResult AddOrEditRecipes([FromForm]FullRecipes newRecipes)
         {
-            newRecipes.RecipeType.Recipes = newRecipes.Recipes;
+            
+
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
@@ -178,11 +164,12 @@ namespace DelikatessenDrehbuch.Controllers
                 };
 
 
-                //_dbContext.Add(recipes);
-                //_dbContext.SaveChanges();
-                CreateOrEditRecipeType(recipes, newRecipes.RecipeType);
+                _dbContext.Recipes.Add(recipes);
+                _dbContext.SaveChanges();
+
                 CreateRecipesHandler(newRecipes);
-               
+               CreateQuaryHandler(recipes, newRecipes.QueryHandler);
+
 
             }
             else
@@ -195,7 +182,8 @@ namespace DelikatessenDrehbuch.Controllers
 
 
                 EditRecipes(newRecipes, recipeFromDb);
-                CreateOrEditRecipeType(recipeFromDb, newRecipes.RecipeType);
+               CreateQuaryHandler(recipeFromDb, newRecipes.QueryHandler);
+
             }
 
 
@@ -225,6 +213,39 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
+        private void CreateQuaryHandler(Recipes recipes, List<string> queryHandlers)
+        {
+            var recipeFromDb = GetRecipeFromDb(recipes);
+            var querysFromDb = _dbContext.Querys.ToList();
+
+            if (recipeFromDb == null)
+                return;
+
+            var queryHandlerFromDb = _dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb).ToList();
+            foreach (var queryHandler in queryHandlerFromDb)
+            {
+                _dbContext.Remove(queryHandler);
+                
+            }
+
+            foreach (var query in queryHandlers)
+            {
+                
+                var quaryHandler = new QueryHandler()
+                {
+                    Id = 0,
+                    Recipe = recipeFromDb,
+                    Query = _dbContext.Querys.SingleOrDefault(x => x.Query.ToLower() == query.ToLower()),
+                };
+
+                _dbContext.QueryHandler.Add(quaryHandler);
+               
+            }
+
+            _dbContext.SaveChanges();
+
+        }
+
         private void CreateRecipesHandler(FullRecipes newRecipes, Recipes recipesFromDb = null)
         {
             //Entferne die Doppelten
@@ -235,10 +256,7 @@ namespace DelikatessenDrehbuch.Controllers
             if (recipesFromDb != null)
                 myRecipes = recipesFromDb;
             else
-                myRecipes = _dbContext.Recipes.FirstOrDefault(x => x.Name == newRecipes.Recipes.Name
-                                                           && x.Preparation == newRecipes.Recipes.Preparation
-                                                           && x.OwnerEmail == newRecipes.Recipes.OwnerEmail
-                                                           );
+                myRecipes = GetRecipeFromDb(newRecipes.Recipes);
 
 
             foreach (var ingredientHandler in newRecipes.IngredientHandler)
