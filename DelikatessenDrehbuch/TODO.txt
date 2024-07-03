@@ -6,7 +6,6 @@ Das nzeigen der zu bearbeitenden zahl im Rezeptbearbeiten fenster geht nicht bei
 Dezimalstellen
  
 
- Anzeige beim selected recipe
 
 
 
@@ -18,7 +17,6 @@ Passwort zurücksetzen noch auf Funktionalität überprüfen.
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend
 
-Die anleitung noch formatirt ausgeben;
 
 
 Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.
@@ -35,7 +33,6 @@ Mach eine Dokumentation und Kommentier alles gut aus
 
 arbeiten mit api noch lernen
 
-Layout rezepte hochladen noch auf mobiel geräte width einstellen meta tag
 
 Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
 

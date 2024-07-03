@@ -55,7 +55,9 @@ tr:nth-child(odd) {
     color: #D4AF37;
 }
 
-
+.mobile-aktive {
+    display: none;
+}
 
 /*#region FlexBox */
 
@@ -454,27 +456,7 @@ tr:nth-child(odd) {
     grid-area: Button;
 }
 
-/*Grid für neues Rezept Hochladen */
 
-/*.grid-UploadNewRecipe {
-    display: grid;
-    grid-gap: 2px;
-    grid-template-areas:
-        'Titel category'
-        'grid-h1 AdRemoveButtons'
-        'Ingredient Ingredient'
-        'Preparation Preparation'
-        'gridImage gridImage'
-        'Button Button'
-}
-
-.grid-h1 {
-    grid-area: grid-h1;
-}
-
-.grid-AdRemoveButton {
-    grid-area: AdRemoveButtons;
-}*/
 
 /*Grid Navbar*/
 
@@ -533,6 +515,13 @@ tr:nth-child(odd) {
 
     html {
         font-size: 16px;
+    }
+    .mobile-hidden {
+        display: none;
+    }
+
+    .mobile-aktive{
+        display:unset;
     }
 
     .mobilehigth60px{
