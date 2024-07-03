@@ -2,18 +2,14 @@ Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 
-
-Wichtig
-
-Filter überarbeiten,auf string umgestellt noch das binden im formdata machen 
- wen ein rezep überarbeitet wird bekoom ich keinen  Queryhandler in den controller
+Das nzeigen der zu bearbeitenden zahl im Rezeptbearbeiten fenster geht nicht bei 
+Dezimalstellen
  
 
+ Anzeige beim selected recipe
 
 
 
-
- dan die suche so anpassen das ,man nach suchwörtern suchen kann
 Email Geht nicht!
 Passwort zurücksetzen noch auf Funktionalität überprüfen.
 

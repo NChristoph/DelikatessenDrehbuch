@@ -131,7 +131,6 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
         //TODO:Nur der Name Reicht nicht wegen der Nahmensgleichheit
-        //TODO: Noch sicherstellen das Nur querys auch erstellt werden die ein query in der db haben
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -191,7 +190,6 @@ namespace DelikatessenDrehbuch.Controllers
             return Json(new { redirect = Url.Action("Index", "Home") });
         }
 
-
         private void EditRecipes(FullRecipes newRecipes, Recipes recipesFromDb)
         {
 
@@ -230,16 +228,18 @@ namespace DelikatessenDrehbuch.Controllers
 
             foreach (var query in queryHandlers)
             {
-                
-                var quaryHandler = new QueryHandler()
+                if(querysFromDb.Select(x=>x.Query.ToLower()).Contains(query.ToLower()))
                 {
-                    Id = 0,
-                    Recipe = recipeFromDb,
-                    Query = _dbContext.Querys.SingleOrDefault(x => x.Query.ToLower() == query.ToLower()),
-                };
+                    var quaryHandler = new QueryHandler()
+                    {
+                        Id = 0,
+                        Recipe = recipeFromDb,
+                        Query = _dbContext.Querys.SingleOrDefault(x => x.Query.ToLower() == query.ToLower()),
+                    };
 
-                _dbContext.QueryHandler.Add(quaryHandler);
-               
+                    _dbContext.QueryHandler.Add(quaryHandler);
+                }
+                
             }
 
             _dbContext.SaveChanges();
@@ -301,9 +301,6 @@ namespace DelikatessenDrehbuch.Controllers
             }
 
         }
-
-
-
 
 
         #region IngredientHandlerContent

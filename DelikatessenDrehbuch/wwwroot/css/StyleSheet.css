@@ -424,6 +424,7 @@ tr:nth-child(odd) {
         'Titel Titel'
         'gridImage gridImage'
         'gridImage gridImage'
+        'KeyWords KeyWords'
         'grid-hr grid-hr'
         'likeCount LikeButton'
         'Ingredient Ingredient'
@@ -435,6 +436,10 @@ tr:nth-child(odd) {
 
 .grid-Likebutton {
     grid-area: LikeButton;
+}
+
+.grid-KeyWords {
+    grid-area: KeyWords;
 }
 
 .grid-ingredient {
