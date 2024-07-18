@@ -19,44 +19,51 @@ namespace DelikatessenDrehbuch.Controllers
             _context = dbContext;
         }
 
-      
-        private List<Recipes> GetRecipeByQuery(string query)
+
+        private List<QueryHandler> GetQueryHandlerByQuery(string query)
         {
-            var sortedQueryList=_context.QueryHandler.Where(x=>x.Query.Query.ToLower()==query.ToLower())
-                                                     .Include(x=>x.Recipe)
+            var sortedQueryList = _context.QueryHandler.Where(x => x.Query.Query.ToLower() == query.ToLower())
+                                                     .Include(x => x.Recipe)
+                                                     .Include(x => x.Query)
                                                      .ToList();
 
-            sortedQueryList = sortedQueryList.DistinctBy(x => x.Recipe).ToList();
 
-            var recipes=sortedQueryList.Select(x=>x.Recipe).ToList();
 
-            return recipes;
+            return sortedQueryList;
         }
 
 
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult Index(string query)
         {
-            var filter =_context.Querys.Select(x=>x.Query.ToLower()).ToList();
-            List<Recipes> recipes = new List<Recipes>();
+            var filter = _context.Querys.Select(x => x.Query.ToLower()).ToList();
+            var queryHandler = new List<QueryHandler>();
 
             if (string.IsNullOrEmpty(query))
             {
                 var random = new Random();
-                recipes = _context.Recipes.ToList();
-                recipes.OrderBy(x => random.Next()).Take(15).ToList();
+                queryHandler = _context.QueryHandler.Include(x => x.Recipe)
+                                                    .Include(x => x.Query).ToList();
+
+                queryHandler = queryHandler.OrderBy(x => random.Next()).Take(15).ToList();
+
 
             }
             else
             {
                 if (filter.Contains(query.ToLower()))
-                    recipes=GetRecipeByQuery(query);
+                    queryHandler = GetQueryHandlerByQuery(query);
                 else
-                    recipes = _context.Recipes.Where(x => x.Name.Contains(query.ToLower())).ToList();
-                    
+                    queryHandler = _context.QueryHandler.Where(x => x.Recipe.Name.Contains(query.ToLower()))
+                                                        .Include(x => x.Recipe)
+                                                        .Include(x => x.Query).ToList();
+
+                queryHandler = queryHandler.DistinctBy(x => x.Recipe).ToList();
+
             }
 
 
-            return View(recipes);
+            return View(queryHandler);
 
         }
 

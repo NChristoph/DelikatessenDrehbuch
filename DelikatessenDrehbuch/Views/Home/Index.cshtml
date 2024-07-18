@@ -1,12 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-@model List<Recipes>
+@model List<QueryHandler>
 @{
     ViewData["Title"] = "Rezepte";
 }
 <div class="minWidth100 flex flexJustifyContendCenter">
-    <div class="grid-Container maxWidth80 mobieleWidth90 " >
+    <div  class="grid-Container maxWidth80 mobieleWidth90 " >
 
         @{
             foreach (var recipe in Model)
@@ -14,9 +14,9 @@
                 <div class="grid-Recipes grid-Item">
                     <a class=" grid-atag text-black" asp-route-id="@recipe.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
 
-                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                        @if (!string.IsNullOrEmpty(recipe.Recipe.ImagePath))
                         {
-                            <img class="grid-Image " title="@recipe.Name" src="@recipe.ImagePath" loading="lazy" style="max-width:100%" />
+                            <img class="grid-Image " title="@recipe.Recipe.Name" src="@recipe.Recipe.ImagePath" loading="lazy" style="max-width:100%" />
                         }
                         else
                         {
@@ -26,19 +26,19 @@
 
 
                     </a>
-
+                    
                     <hr class="grid-hr" style="margin:1px;" />
-                    <div class="grid-LikeCount"> Gefält @recipe.LikeCount <br /> Benutzer</div>
-                    <div class="grid-Category">@recipe.Category</div>
-                    <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Name</h3>
-
-                    @{
-                        if(SignInManager.IsSignedIn(User))
-                        {
-
-                        }
+                    <div class="grid-LikeCount"> Gefält @recipe.Recipe.LikeCount <br /> Benutzer</div>
+                    <div class="grid-Category">@recipe.Recipe.Category</div>
+                    <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Recipe.Name</h3>
+                    @if (@recipe.Query.Query=="Vegan")
+                    {
+                        <div class="grid-DeleteButton" style="color:green">@recipe.Query.Query</div>
                     }
-                   
+                    else{
+                        <div class="grid-DeleteButton">@recipe.Query.Query</div>
+                    }
+                    
                 </div>
 
                

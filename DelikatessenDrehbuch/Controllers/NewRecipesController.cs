@@ -18,12 +18,12 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Text;
 
 namespace DelikatessenDrehbuch.Controllers
 {
     [Authorize]
-
-
     public class NewRecipesController : Controller
     {
         //Azure storage Adresse und Container Name
@@ -34,11 +34,78 @@ namespace DelikatessenDrehbuch.Controllers
 
         private readonly ILogger<NewRecipesController> _logger;
         private readonly ApplicationDbContext _dbContext;
-        public NewRecipesController(ILogger<NewRecipesController> logger,ApplicationDbContext context)
+        public NewRecipesController(ILogger<NewRecipesController> logger, ApplicationDbContext context)
         {
             _logger = logger;
             _dbContext = context;
+
+          // ParseRecipesFromFile();
         }
+
+
+
+
+        private void ParseRecipesFromFile()
+        {
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "recipes.txt");
+            List<FullRecipes> recipes = new List<FullRecipes>();
+            FullRecipes currentRecipe = null;
+            string[] lines = System.IO.File.ReadAllLines(filePath, Encoding.UTF8);
+
+            foreach (string line in lines)
+            {
+                if (line == "Rezept")
+                {
+                    currentRecipe = new FullRecipes();
+                    currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
+                    recipes.Add(currentRecipe);
+
+                }
+                if (line.StartsWith("Id:"))
+                {
+
+                    currentRecipe.Recipes.Id = int.Parse(line.Split(':')[1].Trim());
+                }
+                else if (line.StartsWith("Category:"))
+                {
+                    currentRecipe.Recipes.Category = line.Split(':')[1].Trim();
+                }
+                else if (line.StartsWith("Name:"))
+                {
+                    currentRecipe.Recipes.Name = line.Split(':')[1].Trim();
+                }
+                else if (line.StartsWith("Preparation:"))
+                {
+                    currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
+                }
+                if(line.StartsWith("Zutaten"))
+                {
+                    string[] ing = line.Split(":");
+                    ing[3].Replace(".", ",");
+                    IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                    ingredientHandler.Id = 0;
+                    ingredientHandler.Ingredient.Name = ing[1].Trim();
+                    ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
+                    ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
+
+                    currentRecipe.IngredientHandler.Add(ingredientHandler);
+                }
+                if(line.StartsWith("Querys:"))
+                {
+                    currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
+                }
+                
+
+            }
+
+            foreach(var fullrecipes in recipes)
+            {
+                AddRecipes(fullrecipes);
+            }
+
+           
+        }
+
 
         private Recipes GetRecipeFromDb(Recipes recipes)
         {
@@ -48,7 +115,7 @@ namespace DelikatessenDrehbuch.Controllers
                                                            );
             //TODO:ExeptionHandling
 
-            if (recipeFromDb == null) 
+            if (recipeFromDb == null)
                 return new Recipes();
 
             return recipeFromDb;
@@ -130,20 +197,43 @@ namespace DelikatessenDrehbuch.Controllers
             return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
         }
 
-        //TODO:Nur der Name Reicht nicht wegen der Nahmensgleichheit
+        public void AddRecipes( FullRecipes newRecipes)
+        {
+
+            var recipes = new Recipes()
+            {
+                Id = 0,
+                OwnerEmail = newRecipes.Recipes.OwnerEmail,
+                Name = newRecipes.Recipes.Name,
+                Preparation = newRecipes.Recipes.Preparation,
+                Category = newRecipes.Recipes.Category,
+                LikeCount = 0,
+                ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
+
+
+            };
+
+
+            _dbContext.Recipes.Add(recipes);
+            _dbContext.SaveChanges();
+
+            CreateRecipesHandler(newRecipes);
+            CreateQuaryHandler(recipes, newRecipes.QueryHandler);
+
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("NewRecipes/AddOrEditRecipes")]
-        public IActionResult AddOrEditRecipes([FromForm]FullRecipes newRecipes)
+        public IActionResult AddOrEditRecipes([FromForm] FullRecipes newRecipes)
         {
-            
+
 
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
 
-            newRecipes.Recipes.OwnerEmail = User.Identity.Name;
+           newRecipes.Recipes.OwnerEmail = User.Identity.Name;
 
             var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
@@ -167,7 +257,7 @@ namespace DelikatessenDrehbuch.Controllers
                 _dbContext.SaveChanges();
 
                 CreateRecipesHandler(newRecipes);
-               CreateQuaryHandler(recipes, newRecipes.QueryHandler);
+                CreateQuaryHandler(recipes, newRecipes.QueryHandler);
 
 
             }
@@ -181,7 +271,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
                 EditRecipes(newRecipes, recipeFromDb);
-               CreateQuaryHandler(recipeFromDb, newRecipes.QueryHandler);
+                CreateQuaryHandler(recipeFromDb, newRecipes.QueryHandler);
 
             }
 
@@ -223,12 +313,12 @@ namespace DelikatessenDrehbuch.Controllers
             foreach (var queryHandler in queryHandlerFromDb)
             {
                 _dbContext.Remove(queryHandler);
-                
+
             }
 
             foreach (var query in queryHandlers)
             {
-                if(querysFromDb.Select(x=>x.Query.ToLower()).Contains(query.ToLower()))
+                if (querysFromDb.Select(x => x.Query.ToLower()).Contains(query.ToLower()))
                 {
                     var quaryHandler = new QueryHandler()
                     {
@@ -239,7 +329,7 @@ namespace DelikatessenDrehbuch.Controllers
 
                     _dbContext.QueryHandler.Add(quaryHandler);
                 }
-                
+
             }
 
             _dbContext.SaveChanges();

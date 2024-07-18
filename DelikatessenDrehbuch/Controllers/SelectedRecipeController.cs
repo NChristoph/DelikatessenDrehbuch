@@ -1,4 +1,5 @@
-﻿using DelikatessenDrehbuch.Data;
+﻿using Azure;
+using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace DelikatessenDrehbuch.Controllers
         {
             _context = dbContext;
         }
+
         public IActionResult Index(int id)
         {
             return View(HelpfulMethods.GetFullRecipeById(_context,id));

@@ -8,11 +8,12 @@
     </div>
     <div class="ingredient-deteils-row flex">
         <input class="form-control ingredient-amount" step="any" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
-
+@*         //        <input class="form-control ingredient-amount" type="text" pattern="[0-9]+([.,][0-9]+)?" asp-for="IngredientHandler.Quantity.Quantitys" name="Quantity" placeholder="Mänge" />
+ *@
         <div class="ingredient-unit">
             @{
 
-                if (Model.IngredientHandler.Measure != null)
+                if (Model.IngredientHandler.Measure.UnitOfMeasurement != null)
                 {
                     <div asp-for="IngredientHandler.Measure.UnitOfMeasurement" name="Measure" onclick="GetElement(this)" class="btn bgRed dropdown-toggle minWidth100 " type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;">
                         @Model.IngredientHandler.Measure.UnitOfMeasurement.ToString()

@@ -43,6 +43,8 @@
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Hauptspeise</a></li>
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Dessert</a></li>
                 <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Snack</a></li>
+                <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Sauce</a></li>
+                <li><a class="dropdown-item" onclick="GetThisTextToCategoryInput(this)" href="#">Beilagen</a></li>
             </ul>
         </div>
         <div class="flexRow mt-1 mb-1 minWidth100">
@@ -240,22 +242,23 @@
                 var fileData = $('#form')[0];
                 formData.append("Recipes.FormFile", fileData.files[0]);
             });
-
+            
             // for (var pair of formData.entries()) {
             //     console.log(pair[0] + ', '+pair[1]);
             // }
 
 
             $.ajax({
-
+               
                 method: 'post',
                 url: "/NewRecipes/AddOrEditRecipes",
                 data: formData,
+               
                 processData: false,
                 contentType: false,
                 success: function (data) {
 
-
+                    
                     window.location.href = data.redirect;
 
                 }

@@ -1,0 +1,135 @@
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Schokoladenmousse
+Preparation: Die Avocados halbieren, entkernen und das Fruchtfleisch in eine Schüssel geben. Den Kakao, Ahornsirup, Vanilleextrakt und eine Prise Salz hinzufügen. Mit einem Stabmixer oder in einem Mixer glatt pürieren. Die Mousse in Dessertgläser füllen und mindestens eine Stunde im Kühlschrank kühlen. Mit frischen Beeren oder Nüssen garnieren und servieren.
+Querys: Vegan
+Zutaten: Avocado:Stk.:2
+Zutaten: Kakao:El.:3
+Zutaten: Ahornsirup:El.:4
+Zutaten: Vanilleextrakt:Tl.:1
+Zutaten: Salz:Priese:1
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Himbeer-Cheesecake
+Preparation: Die Kekse in einen Gefrierbeutel geben und mit einem Nudelholz fein zerbröseln. Die Margarine schmelzen und mit den Keksbröseln vermischen. Die Mischung in eine Springform drücken und den Boden fest andrücken. Für die Füllung den Seidentofu, Kokosmilch, Ahornsirup, Zitronensaft und Vanilleextrakt in einem Mixer glatt pürieren. Die Füllung auf den Keksboden geben und glatt streichen. Die Himbeeren darauf verteilen und leicht eindrücken. Den Kuchen mindestens vier Stunden, am besten über Nacht, im Kühlschrank fest werden lassen.
+Querys: Vegan
+Zutaten: Kekse:g:200
+Zutaten: Margarine:El.:5
+Zutaten: Seidentofu:g:400
+Zutaten: Kokosmilch:ml:200
+Zutaten: Ahornsirup:El.:6
+Zutaten: Zitronensaft:El.:2
+Zutaten: Vanilleextrakt:Tl.:1
+Zutaten: Himbeeren:g:200
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Brownies
+Preparation: Den Ofen auf 180°C vorheizen und eine Backform mit Backpapier auslegen. Das Mehl, Kakaopulver, Zucker, Backpulver und eine Prise Salz in einer Schüssel vermischen. Das Apfelmus, Pflanzenöl und Vanilleextrakt hinzufügen und gut verrühren, bis ein glatter Teig entsteht. Den Teig in die vorbereitete Form füllen und glatt streichen. Die Brownies etwa 25-30 Minuten backen, bis sie durchgebacken sind. Vollständig abkühlen lassen und in Stücke schneiden.
+Querys: Vegan
+Zutaten: Mehl:g:200
+Zutaten: Kakaopulver:El.:4
+Zutaten: Zucker:g:150
+Zutaten: Backpulver:Tl.:1
+Zutaten: Salz:Priese:1
+Zutaten: Apfelmus:ml:150
+Zutaten: Pflanzenöl:El.:6
+Zutaten: Vanilleextrakt:Tl.:1
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Zitronen-Tarte
+Preparation: Den Ofen auf 180°C vorheizen und eine Tarteform einfetten. Das Mehl, Zucker und Salz in einer Schüssel vermischen. Die Margarine hinzufügen und zu einem krümeligen Teig verarbeiten. Wasser hinzufügen und zu einem glatten Teig verkneten. Den Teig in die Tarteform drücken und den Boden fest andrücken. Etwa 15 Minuten vorbacken. Für die Füllung Zitronensaft, Kokosmilch, Zucker und Speisestärke in einem Topf verrühren und unter Rühren aufkochen, bis die Mischung eindickt. Die Füllung auf den vorgebackenen Boden geben und glatt streichen. Die Tarte etwa 20 Minuten backen, bis sie goldbraun ist. Vollständig abkühlen lassen und mit Puderzucker bestreuen.
+Querys: Vegan
+Zutaten: Mehl:g:200
+Zutaten: Zucker:g:100
+Zutaten: Salz:Priese:1
+Zutaten: Margarine:El.:6
+Zutaten: Wasser:El.:2
+Zutaten: Zitronensaft:ml:100
+Zutaten: Kokosmilch:ml:200
+Zutaten: Zucker:g:150
+Zutaten: Speisestärke:El.:3
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Bananenbrot
+Preparation: Den Ofen auf 180°C vorheizen und eine Kastenform einfetten. Die reifen Bananen in einer Schüssel zerdrücken. Zucker, Pflanzenmilch, Pflanzenöl und Vanilleextrakt hinzufügen und gut verrühren. Mehl, Backpulver, Natron und eine Prise Salz hinzufügen und zu einem glatten Teig verrühren. Den Teig in die vorbereitete Form füllen und glatt streichen. Das Bananenbrot etwa 60 Minuten backen, bis es durchgebacken ist. Vollständig abkühlen lassen und in Scheiben schneiden.
+Querys: Vegan
+Zutaten: Bananen:Stk.:3
+Zutaten: Zucker:g:100
+Zutaten: Pflanzenmilch:ml:100
+Zutaten: Pflanzenöl:El.:6
+Zutaten: Vanilleextrakt:Tl.:1
+Zutaten: Mehl:g:200
+Zutaten: Backpulver:Tl.:1
+Zutaten: Natron:Tl.:1
+Zutaten: Salz:Priese:1
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Erdbeer-Panna-Cotta
+Preparation: Die Erdbeeren waschen, entstielen und in Stücke schneiden. Die Hälfte der Erdbeeren mit dem Zucker in einem Topf erhitzen und pürieren. Die restlichen Erdbeeren beiseite stellen. Die Pflanzenmilch, Kokosmilch und Agar-Agar in einem weiteren Topf verrühren und unter Rühren aufkochen. Die pürierten Erdbeeren hinzufügen und gut vermischen. Die Mischung in Dessertgläser füllen und mindestens zwei Stunden im Kühlschrank fest werden lassen. Mit den restlichen Erdbeeren garnieren und servieren.
+Querys: Vegan
+Zutaten: Erdbeeren:g:300
+Zutaten: Zucker:El.:4
+Zutaten: Pflanzenmilch:ml:200
+Zutaten: Kokosmilch:ml:200
+Zutaten: Agar-Agar:Tl.:1
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Schoko-Avocado-Pudding
+Preparation: Die Avocados halbieren, entkernen und das Fruchtfleisch in eine Schüssel geben. Den Kakao, Ahornsirup, Pflanzenmilch und eine Prise Salz hinzufügen. Mit einem Stabmixer oder in einem Mixer glatt pürieren. Den Pudding in Dessertgläser füllen und mindestens eine Stunde im Kühlschrank kühlen. Mit gehackten Nüssen oder Kokosraspeln garnieren und servieren.
+Querys: Vegan
+Zutaten: Avocado:Stk.:2
+Zutaten: Kakao:El.:3
+Zutaten: Ahornsirup:El.:4
+Zutaten: Pflanzenmilch:ml:100
+Zutaten: Salz:Priese:1
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Apfel-Crumble
+Preparation: Den Ofen auf 180°C vorheizen und eine Auflaufform einfetten. Die Äpfel schälen, entkernen und in kleine Stücke schneiden. Mit Zucker, Zimt und Zitronensaft vermischen und in die Auflaufform geben. Für die Streusel Mehl, Haferflocken, Zucker und Margarine in einer Schüssel vermischen und zu krümeligen Streuseln verarbeiten. Die Streusel über die Äpfel streuen. Den Apfel-Crumble etwa 30 Minuten backen, bis die Streusel goldbraun sind. Warm servieren.
+Querys: Vegan
+Zutaten: Äpfel:Stk.:4
+Zutaten: Zucker:El.:4
+Zutaten: Zimt:Tl.:1
+Zutaten: Zitronensaft:El.:2
+Zutaten: Mehl:g:100
+Zutaten: Haferflocken:g:50
+Zutaten: Zucker:g:50
+Zutaten: Margarine:El.:6
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Mango-Lassi
+Preparation: Die Mango schälen, entkernen und das Fruchtfleisch in einen Mixer geben. Die Pflanzenmilch, Kokosjoghurt, Ahornsirup und eine Prise Kardamom hinzufügen. Alles glatt pürieren. Den Mango-Lassi in Gläser füllen und gut gekühlt servieren.
+Querys: Vegan
+Zutaten: Mango:Stk.:2
+Zutaten: Pflanzenmilch:ml:200
+Zutaten: Kokosjoghurt:ml:200
+Zutaten: Ahornsirup:El.:2
+Zutaten: Kardamom:Priese:1
+
+Rezept
+Id:0
+Category: Dessert
+Name: Vegane Kokos-Makronen
+Preparation: Den Ofen auf 180°C vorheizen und ein Backblech mit Backpapier auslegen. Das Kichererbsenwasser in eine Schüssel geben und mit einem Handmixer steif schlagen. Den Zucker nach und nach einrieseln lassen und weiter schlagen, bis die Masse fest ist. Die Kokosraspeln und Vanilleextrakt vorsichtig unterheben. Mit einem Teelöffel kleine Häufchen auf das Backblech setzen. Die Makronen etwa 15 Minuten backen, bis sie leicht gebräunt sind. Vollständig abkühlen lassen und servieren.
+Querys: Vegan
+Zutaten: Kichererbsenwasser:ml:100
+Zutaten: Zucker:g:100
+Zutaten: Kokosraspeln:g:150
+Zutaten: Vanilleextrakt:Tl.:1
