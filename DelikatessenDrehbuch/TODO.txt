@@ -4,11 +4,6 @@ Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 Das nzeigen der zu bearbeitenden zahl im Rezeptbearbeiten fenster geht nicht bei 
 Dezimalstellen
- 
- Das Model im HomeController noch auf ein Dictonary umstellen das Key Recipes ist und Volu Query 
- damit du bei den veganen auch Vegan in Grün anzeigen kannst
-
-
 
 Email Geht nicht!
 Passwort zurücksetzen noch auf Funktionalität überprüfen.

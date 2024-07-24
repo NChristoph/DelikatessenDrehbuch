@@ -1,22 +1,22 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-@model List<QueryHandler>
+@model Dictionary<Recipes,List<string>>
 @{
     ViewData["Title"] = "Rezepte";
 }
 <div class="minWidth100 flex flexJustifyContendCenter">
-    <div  class="grid-Container maxWidth80 mobieleWidth90 " >
+    <div class="grid-Container maxWidth80 mobieleWidth90 ">
 
         @{
             foreach (var recipe in Model)
             {
                 <div class="grid-Recipes grid-Item">
-                    <a class=" grid-atag text-black" asp-route-id="@recipe.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
+                    <a class=" grid-atag text-black" asp-route-id="@recipe.Key.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
 
-                        @if (!string.IsNullOrEmpty(recipe.Recipe.ImagePath))
+                        @if (!string.IsNullOrEmpty(recipe.Key.ImagePath))
                         {
-                            <img class="grid-Image " title="@recipe.Recipe.Name" src="@recipe.Recipe.ImagePath" loading="lazy" style="max-width:100%" />
+                            <img class="grid-Image " title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
                         }
                         else
                         {
@@ -26,23 +26,39 @@
 
 
                     </a>
-                    
+
                     <hr class="grid-hr" style="margin:1px;" />
-                    <div class="grid-LikeCount"> Gefält @recipe.Recipe.LikeCount <br /> Benutzer</div>
-                    <div class="grid-Category">@recipe.Recipe.Category</div>
-                    <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Recipe.Name</h3>
-                    @if (@recipe.Query.Query=="Vegan")
-                    {
-                        <div class="grid-DeleteButton" style="color:green">@recipe.Query.Query</div>
+                    <div class="grid-LikeCount"> Gefält @recipe.Key.LikeCount <br /> Benutzer</div>
+                    <div class="grid-Category">@recipe.Key.Category</div>
+                    <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Key.Name</h3>
+
+
+                    @{
+                        if (@recipe.Value.Contains("Vegan"))
+                        {
+                            <div class="grid-DeleteButton" style="color:green">Vegan</div>
+
+                        }
+                        if (@recipe.Value.Contains("Vegetarisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Fleisch"))
+                        {
+                            <div class="grid-DeleteButton" style="color:yellow">Vegetarisch</div>
+                        }
+                        if (@recipe.Value.Contains("Fleisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Vegetarisch"))
+                        {
+                            <div class="grid-DeleteButton" style="color:red">Fleisch</div>
+                        }
+                        if (!@recipe.Value.Contains("Fleisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Vegetarisch"))
+                        {
+                           <div class="grid-DeleteButton">@recipe.Value.First()</div>
+                        }
                     }
-                    else{
-                        <div class="grid-DeleteButton">@recipe.Query.Query</div>
-                    }
-                    
+
+
+
                 </div>
 
-               
-               
+
+
             }
         }
 

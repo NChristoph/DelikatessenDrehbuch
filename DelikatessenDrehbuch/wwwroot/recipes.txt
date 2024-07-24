@@ -1,135 +1,159 @@
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Schokoladenmousse
-Preparation: Die Avocados halbieren, entkernen und das Fruchtfleisch in eine Schüssel geben. Den Kakao, Ahornsirup, Vanilleextrakt und eine Prise Salz hinzufügen. Mit einem Stabmixer oder in einem Mixer glatt pürieren. Die Mousse in Dessertgläser füllen und mindestens eine Stunde im Kühlschrank kühlen. Mit frischen Beeren oder Nüssen garnieren und servieren.
+Category: Hauptspeise
+Name: Vegane Tomatensuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die gehackten Tomaten, die Gemüsebrühe, den Basilikum und den Oregano hinzufügen. Mit Salz und Pfeffer würzen. Die Suppe zum Kochen bringen und dann die Hitze reduzieren. Etwa 20 Minuten köcheln lassen, bis die Tomaten weich sind. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit frischem Basilikum garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Avocado:Stk.:2
-Zutaten: Kakao:El.:3
-Zutaten: Ahornsirup:El.:4
-Zutaten: Vanilleextrakt:Tl.:1
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Gehackte Tomaten:ml:800
+Zutaten: Gemüsebrühe:ml:500
+Zutaten: Basilikum:Bund:1
+Zutaten: Oregano:Tl.:1
 Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Himbeer-Cheesecake
-Preparation: Die Kekse in einen Gefrierbeutel geben und mit einem Nudelholz fein zerbröseln. Die Margarine schmelzen und mit den Keksbröseln vermischen. Die Mischung in eine Springform drücken und den Boden fest andrücken. Für die Füllung den Seidentofu, Kokosmilch, Ahornsirup, Zitronensaft und Vanilleextrakt in einem Mixer glatt pürieren. Die Füllung auf den Keksboden geben und glatt streichen. Die Himbeeren darauf verteilen und leicht eindrücken. Den Kuchen mindestens vier Stunden, am besten über Nacht, im Kühlschrank fest werden lassen.
+Category: Hauptspeise
+Name: Vegane Kürbissuppe
+Preparation: Den Kürbis schälen, entkernen und in kleine Würfel schneiden. Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Kürbis und die geschälten und in Scheiben geschnittenen Karotten hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis der Kürbis und die Karotten weich sind. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz und Pfeffer abschmecken. Mit Kürbiskernen und gehackter Petersilie garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Kekse:g:200
-Zutaten: Margarine:El.:5
-Zutaten: Seidentofu:g:400
-Zutaten: Kokosmilch:ml:200
-Zutaten: Ahornsirup:El.:6
-Zutaten: Zitronensaft:El.:2
-Zutaten: Vanilleextrakt:Tl.:1
-Zutaten: Himbeeren:g:200
+Zutaten: Kürbis:Kg:1
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Karotten:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Gemüsebrühe:ml:800
+Zutaten: Kürbiskerne:El.:2
+Zutaten: Petersilie:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Brownies
-Preparation: Den Ofen auf 180°C vorheizen und eine Backform mit Backpapier auslegen. Das Mehl, Kakaopulver, Zucker, Backpulver und eine Prise Salz in einer Schüssel vermischen. Das Apfelmus, Pflanzenöl und Vanilleextrakt hinzufügen und gut verrühren, bis ein glatter Teig entsteht. Den Teig in die vorbereitete Form füllen und glatt streichen. Die Brownies etwa 25-30 Minuten backen, bis sie durchgebacken sind. Vollständig abkühlen lassen und in Stücke schneiden.
+Category: Hauptspeise
+Name: Vegane Linsensuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Karotten und die Kartoffeln schälen und in kleine Würfel schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Linsen, die Karotten und die Kartoffeln hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 25 Minuten köcheln lassen, bis das Gemüse weich ist. Mit Salz, Pfeffer und Kreuzkümmel abschmecken. Mit gehackter Petersilie garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Mehl:g:200
-Zutaten: Kakaopulver:El.:4
-Zutaten: Zucker:g:150
-Zutaten: Backpulver:Tl.:1
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Linsen:g:200
+Zutaten: Karotten:Stk.:2
+Zutaten: Kartoffeln:Stk.:2
+Zutaten: Gemüsebrühe:ml:800
 Zutaten: Salz:Priese:1
-Zutaten: Apfelmus:ml:150
-Zutaten: Pflanzenöl:El.:6
-Zutaten: Vanilleextrakt:Tl.:1
+Zutaten: Pfeffer:Priese:1
+Zutaten: Kreuzkümmel:Tl.:1
+Zutaten: Petersilie:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Zitronen-Tarte
-Preparation: Den Ofen auf 180°C vorheizen und eine Tarteform einfetten. Das Mehl, Zucker und Salz in einer Schüssel vermischen. Die Margarine hinzufügen und zu einem krümeligen Teig verarbeiten. Wasser hinzufügen und zu einem glatten Teig verkneten. Den Teig in die Tarteform drücken und den Boden fest andrücken. Etwa 15 Minuten vorbacken. Für die Füllung Zitronensaft, Kokosmilch, Zucker und Speisestärke in einem Topf verrühren und unter Rühren aufkochen, bis die Mischung eindickt. Die Füllung auf den vorgebackenen Boden geben und glatt streichen. Die Tarte etwa 20 Minuten backen, bis sie goldbraun ist. Vollständig abkühlen lassen und mit Puderzucker bestreuen.
+Category: Hauptspeise
+Name: Vegane Erbsensuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Kartoffeln schälen und in kleine Würfel schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Erbsen und die Kartoffeln hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis das Gemüse weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und gehackter Minze abschmecken. Mit frischer Minze garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Mehl:g:200
-Zutaten: Zucker:g:100
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Erbsen:g:400
+Zutaten: Kartoffeln:Stk.:2
+Zutaten: Gemüsebrühe:ml:800
 Zutaten: Salz:Priese:1
-Zutaten: Margarine:El.:6
-Zutaten: Wasser:El.:2
-Zutaten: Zitronensaft:ml:100
-Zutaten: Kokosmilch:ml:200
-Zutaten: Zucker:g:150
-Zutaten: Speisestärke:El.:3
+Zutaten: Pfeffer:Priese:1
+Zutaten: Minze:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Bananenbrot
-Preparation: Den Ofen auf 180°C vorheizen und eine Kastenform einfetten. Die reifen Bananen in einer Schüssel zerdrücken. Zucker, Pflanzenmilch, Pflanzenöl und Vanilleextrakt hinzufügen und gut verrühren. Mehl, Backpulver, Natron und eine Prise Salz hinzufügen und zu einem glatten Teig verrühren. Den Teig in die vorbereitete Form füllen und glatt streichen. Das Bananenbrot etwa 60 Minuten backen, bis es durchgebacken ist. Vollständig abkühlen lassen und in Scheiben schneiden.
+Category: Hauptspeise
+Name: Vegane Karottensuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Karotten schälen und in Scheiben schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Karotten hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis die Karotten weich sind. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und geriebenem Ingwer abschmecken. Mit gehacktem Koriander garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Bananen:Stk.:3
-Zutaten: Zucker:g:100
-Zutaten: Pflanzenmilch:ml:100
-Zutaten: Pflanzenöl:El.:6
-Zutaten: Vanilleextrakt:Tl.:1
-Zutaten: Mehl:g:200
-Zutaten: Backpulver:Tl.:1
-Zutaten: Natron:Tl.:1
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Karotten:g:500
+Zutaten: Gemüsebrühe:ml:800
 Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1
+Zutaten: Ingwer:El.:1
+Zutaten: Koriander:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Erdbeer-Panna-Cotta
-Preparation: Die Erdbeeren waschen, entstielen und in Stücke schneiden. Die Hälfte der Erdbeeren mit dem Zucker in einem Topf erhitzen und pürieren. Die restlichen Erdbeeren beiseite stellen. Die Pflanzenmilch, Kokosmilch und Agar-Agar in einem weiteren Topf verrühren und unter Rühren aufkochen. Die pürierten Erdbeeren hinzufügen und gut vermischen. Die Mischung in Dessertgläser füllen und mindestens zwei Stunden im Kühlschrank fest werden lassen. Mit den restlichen Erdbeeren garnieren und servieren.
+Category: Hauptspeise
+Name: Vegane Blumenkohlsuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Den Blumenkohl in Röschen teilen. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Blumenkohl hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis der Blumenkohl weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und Muskat abschmecken. Mit gehackter Petersilie garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Erdbeeren:g:300
-Zutaten: Zucker:El.:4
-Zutaten: Pflanzenmilch:ml:200
-Zutaten: Kokosmilch:ml:200
-Zutaten: Agar-Agar:Tl.:1
-
-Rezept
-Id:0
-Category: Dessert
-Name: Vegane Schoko-Avocado-Pudding
-Preparation: Die Avocados halbieren, entkernen und das Fruchtfleisch in eine Schüssel geben. Den Kakao, Ahornsirup, Pflanzenmilch und eine Prise Salz hinzufügen. Mit einem Stabmixer oder in einem Mixer glatt pürieren. Den Pudding in Dessertgläser füllen und mindestens eine Stunde im Kühlschrank kühlen. Mit gehackten Nüssen oder Kokosraspeln garnieren und servieren.
-Querys: Vegan
-Zutaten: Avocado:Stk.:2
-Zutaten: Kakao:El.:3
-Zutaten: Ahornsirup:El.:4
-Zutaten: Pflanzenmilch:ml:100
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Blumenkohl:Stk.:1
+Zutaten: Gemüsebrühe:ml:800
 Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1
+Zutaten: Muskat:Priese:1
+Zutaten: Petersilie:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Apfel-Crumble
-Preparation: Den Ofen auf 180°C vorheizen und eine Auflaufform einfetten. Die Äpfel schälen, entkernen und in kleine Stücke schneiden. Mit Zucker, Zimt und Zitronensaft vermischen und in die Auflaufform geben. Für die Streusel Mehl, Haferflocken, Zucker und Margarine in einer Schüssel vermischen und zu krümeligen Streuseln verarbeiten. Die Streusel über die Äpfel streuen. Den Apfel-Crumble etwa 30 Minuten backen, bis die Streusel goldbraun sind. Warm servieren.
+Category: Hauptspeise
+Name: Vegane Brokkolisuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Den Brokkoli in Röschen teilen. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Brokkoli hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 15 Minuten köcheln lassen, bis der Brokkoli weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und Muskat abschmecken. Mit gehacktem Schnittlauch garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Äpfel:Stk.:4
-Zutaten: Zucker:El.:4
-Zutaten: Zimt:Tl.:1
-Zutaten: Zitronensaft:El.:2
-Zutaten: Mehl:g:100
-Zutaten: Haferflocken:g:50
-Zutaten: Zucker:g:50
-Zutaten: Margarine:El.:6
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Brokkoli:g:500
+Zutaten: Gemüsebrühe:ml:800
+Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1
+Zutaten: Muskat:Priese:1
+Zutaten: Schnittlauch:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Mango-Lassi
-Preparation: Die Mango schälen, entkernen und das Fruchtfleisch in einen Mixer geben. Die Pflanzenmilch, Kokosjoghurt, Ahornsirup und eine Prise Kardamom hinzufügen. Alles glatt pürieren. Den Mango-Lassi in Gläser füllen und gut gekühlt servieren.
+Category: Hauptspeise
+Name: Vegane Spinatsuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Spinat hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 10 Minuten köcheln lassen, bis der Spinat weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und Muskat abschmecken. Mit gehacktem Schnittlauch garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Mango:Stk.:2
-Zutaten: Pflanzenmilch:ml:200
-Zutaten: Kokosjoghurt:ml:200
-Zutaten: Ahornsirup:El.:2
-Zutaten: Kardamom:Priese:1
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Spinat:g:400
+Zutaten: Gemüsebrühe:ml:800
+Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1
+Zutaten: Muskat:Priese:1
+Zutaten: Schnittlauch:Bund:1
 
 Rezept
 Id:0
-Category: Dessert
-Name: Vegane Kokos-Makronen
-Preparation: Den Ofen auf 180°C vorheizen und ein Backblech mit Backpapier auslegen. Das Kichererbsenwasser in eine Schüssel geben und mit einem Handmixer steif schlagen. Den Zucker nach und nach einrieseln lassen und weiter schlagen, bis die Masse fest ist. Die Kokosraspeln und Vanilleextrakt vorsichtig unterheben. Mit einem Teelöffel kleine Häufchen auf das Backblech setzen. Die Makronen etwa 15 Minuten backen, bis sie leicht gebräunt sind. Vollständig abkühlen lassen und servieren.
+Category: Hauptspeise
+Name: Vegane Kartoffelsuppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Kartoffeln schälen und in kleine Würfel schneiden. Den Lauch in Ringe schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Kartoffeln und den Lauch hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 25 Minuten köcheln lassen, bis das Gemüse weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz und Pfeffer abschmecken. Mit gehackter Petersilie garnieren und heiß servieren.
 Querys: Vegan
-Zutaten: Kichererbsenwasser:ml:100
-Zutaten: Zucker:g:100
-Zutaten: Kokosraspeln:g:150
-Zutaten: Vanilleextrakt:Tl.:1
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Kartoffeln:g:500
+Zutaten: Lauch:Stk.:1
+Zutaten: Gemüsebrühe:ml:800
+Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1
+Zutaten: Petersilie:Bund:1
+
+Rezept
+Id:0
+Category: Hauptspeise
+Name: Vegane Tomaten-Basilikum-Suppe
+Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die gehackten Tomaten und die Gemüsebrühe hinzufügen und zum Kochen bringen. Die Hitze reduzieren und etwa 15 Minuten köcheln lassen. Den Basilikum hinzufügen und die Suppe mit einem Stabmixer pürieren, bis sie glatt ist. Mit Salz und Pfeffer abschmecken. Mit frischem Basilikum garnieren und heiß servieren.
+Querys: Vegan
+Zutaten: Zwiebel:Stk.:1
+Zutaten: Knoblauchzehe:Stk.:2
+Zutaten: Olivenöl:El.:2
+Zutaten: Gehackte Tomaten:ml:800
+Zutaten: Gemüsebrühe:ml:500
+Zutaten: Basilikum:Bund:1
+Zutaten: Salz:Priese:1
+Zutaten: Pfeffer:Priese:1

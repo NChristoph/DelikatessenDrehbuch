@@ -3,6 +3,7 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -16,10 +17,41 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index(int id)
         {
+            CreateUserPreferencesRecipe(id);
             return View(HelpfulMethods.GetFullRecipeById(_context,id));
         }
 
+        private void CreateUserPreferencesRecipe(int id)
+       // private void CreateUserPreferencesQuery(int id)
+        {
+            var userName = User.Identity.Name;
+            if (userName==null)
+                return;
+            
+            var recipeFromDb=_context.Recipes.SingleOrDefault(x => x.Id == id);
 
+            if (recipeFromDb == null)
+                return;
+
+
+            var userPreferenceRecipeFromDb = _context.UserPreferencesRecipes.SingleOrDefault(x => x.Recipes == recipeFromDb
+                                                             && x.UserEmail == userName);
+
+            if(userPreferenceRecipeFromDb != null)
+                return;
+
+            var UserPreferenceRecipe = new UserPreferencesRecipe()
+            {
+                Id = 0,
+                Recipes = recipeFromDb,
+                UserEmail = userName,
+            };
+
+
+            _context.UserPreferencesRecipes.Add(UserPreferenceRecipe);
+            _context.SaveChanges();
+
+        }
 
         public IActionResult AddOrRemoveLike(int id)
         {

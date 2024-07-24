@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.Reflection;
 
 namespace DelikatessenDrehbuch.Controllers
@@ -36,6 +37,7 @@ namespace DelikatessenDrehbuch.Controllers
         [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult Index(string query)
         {
+            
             var filter = _context.Querys.Select(x => x.Query.ToLower()).ToList();
             var queryHandler = new List<QueryHandler>();
 
@@ -58,13 +60,34 @@ namespace DelikatessenDrehbuch.Controllers
                                                         .Include(x => x.Recipe)
                                                         .Include(x => x.Query).ToList();
 
-                queryHandler = queryHandler.DistinctBy(x => x.Recipe).ToList();
+
+
+                
 
             }
 
+            var recipesAndQuerys = CreateDictonary(queryHandler);
+            return View(recipesAndQuerys);
 
-            return View(queryHandler);
+        }
 
+        private Dictionary<Recipes,List<string>> CreateDictonary(List<QueryHandler> queryHandler)
+        {
+            var recipesAndQuerys=new Dictionary<Recipes, List<string>>();
+
+            foreach(var recipe in queryHandler)
+            {
+                if(recipesAndQuerys.TryGetValue(recipe.Recipe,out List<string> querys))
+                {
+                    querys.Add(recipe.Query.Query);
+                }
+                else
+                {
+                    recipesAndQuerys[recipe.Recipe] = new List<string> { recipe.Query.Query };
+                }
+            }
+
+            return recipesAndQuerys;
         }
 
         public IActionResult Privacy()
