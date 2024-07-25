@@ -37,7 +37,11 @@ namespace DelikatessenDrehbuch.Controllers
         [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult Index(string query)
         {
-            
+            bool loggedIn = User.Identity.IsAuthenticated;
+
+            if (loggedIn)
+                HelpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
+
             var filter = _context.Querys.Select(x => x.Query.ToLower()).ToList();
             var queryHandler = new List<QueryHandler>();
 
@@ -60,10 +64,6 @@ namespace DelikatessenDrehbuch.Controllers
                                                         .Include(x => x.Recipe)
                                                         .Include(x => x.Query).ToList();
 
-
-
-                
-
             }
 
             var recipesAndQuerys = CreateDictonary(queryHandler);
@@ -71,13 +71,13 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
-        private Dictionary<Recipes,List<string>> CreateDictonary(List<QueryHandler> queryHandler)
+        private Dictionary<Recipes, List<string>> CreateDictonary(List<QueryHandler> queryHandler)
         {
-            var recipesAndQuerys=new Dictionary<Recipes, List<string>>();
+            var recipesAndQuerys = new Dictionary<Recipes, List<string>>();
 
-            foreach(var recipe in queryHandler)
+            foreach (var recipe in queryHandler)
             {
-                if(recipesAndQuerys.TryGetValue(recipe.Recipe,out List<string> querys))
+                if (recipesAndQuerys.TryGetValue(recipe.Recipe, out List<string> querys))
                 {
                     querys.Add(recipe.Query.Query);
                 }
