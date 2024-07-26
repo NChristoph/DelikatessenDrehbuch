@@ -4,7 +4,7 @@ Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 Das nzeigen der zu bearbeitenden zahl im Rezeptbearbeiten fenster geht nicht bei 
 Dezimalstellen
-
+ such algorütmus bereitstellen das user besserenerlebnis haben
 Email Geht nicht!
 Passwort zurücksetzen noch auf Funktionalität überprüfen.
 

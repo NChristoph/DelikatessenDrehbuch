@@ -10,43 +10,45 @@ namespace DelikatessenDrehbuch.Controllers
     public class SelectedRecipeController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public SelectedRecipeController(ApplicationDbContext dbContext)
+        private readonly HelpfulMethods _helpfulMethods;
+        public SelectedRecipeController(ApplicationDbContext dbContext, HelpfulMethods helpfulMethods)
         {
             _context = dbContext;
+            _helpfulMethods = helpfulMethods;
         }
 
         public IActionResult Index(int id)
         {
-           HelpfulMethods.CreateUserPreferencesRecipe(id,User.Identity.Name,_context);
-            return View(HelpfulMethods.GetFullRecipeById(_context,id));
+           _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
+            return View(_helpfulMethods.GetFullRecipeById(_context, id));
         }
 
 
-        public IActionResult AddOrRemoveLike(int id)
+        public async Task<IActionResult> AddOrRemoveLike(int id)
         {
             var currentUserName = User.Identity.Name;
-            var recipe = _context.Recipes.SingleOrDefault(x => x.Id == id);
+            var recipe = await _helpfulMethods.GetRecipeFromDbById(_context, id);
             var like = _context.Likes.SingleOrDefault(x => x.UserMail == currentUserName && x.Recipe == recipe);
 
             if (recipe == null)
-             return BadRequest();
+                return BadRequest();
 
             if (like == null)
                 AddLike(currentUserName, id, recipe);
             else
-                RemoveLike(like,recipe);
-            
-            return RedirectToAction("Index",new { id });
+                RemoveLike(like, recipe);
+
+            return RedirectToAction("Index", new { id });
         }
 
-        private void AddLike(string currentUserName,int id,Recipes recipes)
+        private void AddLike(string currentUserName, int id, Recipes recipes)
         {
             var like = new Like
             {
                 Id = 0,
                 UserMail = currentUserName,
                 Recipe = recipes,
-               
+
 
             };
 
@@ -56,14 +58,14 @@ namespace DelikatessenDrehbuch.Controllers
             _context.SaveChanges();
         }
 
-        private void RemoveLike(Like like,Recipes recipe)
+        private void RemoveLike(Like like, Recipes recipe)
         {
             recipe.LikeCount--;
             _context.Likes.Remove(like);
             _context.SaveChanges();
         }
 
-        public IActionResult SaveRecessionInDB(int id, string assessment)
+        public async Task<IActionResult> SaveRecessionInDB(int id, string assessment)
         {
 
             if (id == null)
@@ -74,11 +76,11 @@ namespace DelikatessenDrehbuch.Controllers
             newRecession.CreationDate = DateTime.Now;
             newRecession.UserEmail = User.Identity.Name;
             newRecession.Assessment = assessment;
-            newRecession.Recipes = _context.Recipes.SingleOrDefault(_ => _.Id == id);
+            newRecession.Recipes = await _helpfulMethods.GetRecipeFromDbById(_context, id);
 
             _context.Recessions.Add(newRecession);
             _context.SaveChanges();
-            return RedirectToAction("Index",new { id = id });
+            return RedirectToAction("Index", new { id = id });
         }
     }
 }

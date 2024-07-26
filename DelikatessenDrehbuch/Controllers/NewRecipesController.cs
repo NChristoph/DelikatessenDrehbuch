@@ -34,11 +34,12 @@ namespace DelikatessenDrehbuch.Controllers
 
         private readonly ILogger<NewRecipesController> _logger;
         private readonly ApplicationDbContext _dbContext;
-        public NewRecipesController(ILogger<NewRecipesController> logger, ApplicationDbContext context)
+        private readonly HelpfulMethods _helpfulMethods;
+        public NewRecipesController(ILogger<NewRecipesController> logger, ApplicationDbContext context, HelpfulMethods helpfulMethods)
         {
             _logger = logger;
             _dbContext = context;
-
+            _helpfulMethods = helpfulMethods;
 
         }
 
@@ -47,10 +48,10 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult CreateRechipes()
         {
-           
+
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string folderPath = Path.Combine(desktopPath, "Recipes");
-            string imageFolderPath = Path.Combine(folderPath, "Images");
+            string imageFolderPath = Path.Combine(folderPath, "Bolognese Rezepte");
             string filePath = Path.Combine(imageFolderPath, "recipes.txt");
 
             var imageFiles = Directory.GetFiles(imageFolderPath, "*", SearchOption.TopDirectoryOnly)
@@ -66,8 +67,8 @@ namespace DelikatessenDrehbuch.Controllers
             foreach (var imageFile in imageFiles)
             {
                 var fileInfo = new FileInfo(imageFile);
-                
-               
+
+
                 string extension = fileInfo.Extension.ToLower();
                 string contentType = mimeTypes.ContainsKey(extension) ? mimeTypes[extension] : "application/octet-stream";
 
@@ -146,12 +147,14 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     AddRecipes(fullrecipes);
                 }
-               
+
             }
 
             return RedirectToAction("Index");
         }
 
+
+        //Las dir für das was anderes einfallen
 
         private Recipes GetRecipeFromDb(Recipes recipes)
         {
@@ -159,10 +162,11 @@ namespace DelikatessenDrehbuch.Controllers
                                                            && x.Preparation == recipes.Preparation
                                                            && x.OwnerEmail == recipes.OwnerEmail
                                                            );
-            //TODO:ExeptionHandling
+
 
             if (recipeFromDb == null)
-                return new Recipes();
+                recipeFromDb = new Recipes();
+
 
             return recipeFromDb;
         }
@@ -176,30 +180,20 @@ namespace DelikatessenDrehbuch.Controllers
             }
             else
             {
-                var fullRecipes = HelpfulMethods.GetFullRecipeById(_dbContext, id);
+                var fullRecipes = _helpfulMethods.GetFullRecipeById(_dbContext, id);
                 return View(fullRecipes);
             }
 
         }
 
-        public IActionResult EditRecipesPartialView(int id)
+        public async Task<IActionResult> EditRecipesPartialViewAsync(int id)
         {
-
-            var metrics = _dbContext.Metrics.ToList();
-            var test = _dbContext.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefault(x => x.Id == id);
-
-            var dropDownModel = new DropdownModel();
-            dropDownModel.IngredientHandler = test;
-            dropDownModel.Measure = metrics;
-            return PartialView("_IngredientPartialView", dropDownModel);
+            return PartialView("_IngredientPartialView", await _helpfulMethods.GetDropdownModel(_dbContext, id));
         }
 
-        public IActionResult BlankSentence()
+        public async Task<IActionResult> BlankSentenceAsync()
         {
-            var measureFromDb = _dbContext.Metrics.ToList();
-            DropdownModel dropdown = new DropdownModel();
-            dropdown.Measure = measureFromDb;
-            return PartialView("_IngredientPartialView", dropdown);
+            return PartialView("_IngredientPartialView", await _helpfulMethods.GetDropdownModel(_dbContext));
         }
 
         public void UploadMsToAzureBlop(IFormFile file)
@@ -230,7 +224,6 @@ namespace DelikatessenDrehbuch.Controllers
                     file.CopyTo(ms);
                     ms.Position = 0;
                     var byteArry = ms.ToArray();
-                    // Upload local file
 
                     blob.Upload(new BinaryData(byteArry));
                 }
@@ -277,17 +270,13 @@ namespace DelikatessenDrehbuch.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("NewRecipes/AddOrEditRecipes")]
-        public IActionResult AddOrEditRecipes([FromForm] FullRecipes newRecipes)
+        public  IActionResult AddOrEditRecipes([FromForm] FullRecipes newRecipes)
         {
-
+            var recipeFromDb =  _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
-
-            newRecipes.Recipes.OwnerEmail = User.Identity.Name;
-
-            var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
             if (recipeFromDb == null)
             {
@@ -308,34 +297,38 @@ namespace DelikatessenDrehbuch.Controllers
                 _dbContext.Recipes.Add(recipes);
                 _dbContext.SaveChanges();
 
-                CreateRecipesHandler(newRecipes);
+                CreateRecipesHandler(newRecipes,recipes);
                 CreateQuaryHandler(recipes, newRecipes.QueryHandler);
 
 
             }
             else
-            {
-                recipeFromDb.Name = newRecipes.Recipes.Name;
-                recipeFromDb.Category = newRecipes.Recipes.Category;
-                recipeFromDb.ImagePath = newRecipes.Recipes.FormFile == null ? recipeFromDb.ImagePath : GetImagePathFromAzure(newRecipes.Recipes.FormFile);
-                recipeFromDb.Preparation = newRecipes.Recipes.Preparation;
+                EditRecipes(recipeFromDb, newRecipes);
 
 
 
-                EditRecipes(newRecipes, recipeFromDb);
-                CreateQuaryHandler(recipeFromDb, newRecipes.QueryHandler);
+            newRecipes.Recipes.OwnerEmail = User.Identity.Name;
 
-            }
 
 
 
             return Json(new { redirect = Url.Action("Index", "Home") });
         }
+        private void EditRecipes(Recipes recipeFromDb, FullRecipes editedRecipes)
+        {
+            recipeFromDb.Name = editedRecipes.Recipes.Name;
+            recipeFromDb.Category = editedRecipes.Recipes.Category;
+            recipeFromDb.ImagePath = editedRecipes.Recipes.FormFile == null ? recipeFromDb.ImagePath : GetImagePathFromAzure(editedRecipes.Recipes.FormFile);
+            recipeFromDb.Preparation = editedRecipes.Recipes.Preparation;
 
-        private void EditRecipes(FullRecipes newRecipes, Recipes recipesFromDb)
+            RemoveOldRecipeHandler(editedRecipes, recipeFromDb);
+            CreateRecipesHandler(editedRecipes, recipeFromDb);
+            CreateQuaryHandler(recipeFromDb, editedRecipes.QueryHandler);
+        }
+        private void RemoveOldRecipeHandler(FullRecipes newRecipes, Recipes recipesFromDb)
         {
 
-            var editIngredients = newRecipes.IngredientHandler;
+
             var recipeHandlerFromDb = _dbContext.RecipesHandlers.Where(x => x.Recipe == recipesFromDb)
                                                                 .Include(x => x.IngredientHandler)
                                                                 .Include(x => x.IngredientHandler.Measure)
@@ -349,24 +342,33 @@ namespace DelikatessenDrehbuch.Controllers
                 _dbContext.SaveChanges();
             }
 
-            CreateRecipesHandler(newRecipes, recipesFromDb);
+
 
         }
-
-        private void CreateQuaryHandler(Recipes recipes, List<string> queryHandlers)
+        private  void RemoveOldQueryHandler(Recipes recipesFromDb)
         {
-            var recipeFromDb = GetRecipeFromDb(recipes);
-            var querysFromDb = _dbContext.Querys.ToList();
-
-            if (recipeFromDb == null)
-                return;
-
-            var queryHandlerFromDb = _dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb).ToList();
+            var queryHandlerFromDb =  _dbContext.QueryHandler.Where(x => x.Recipe == recipesFromDb).ToList();
             foreach (var queryHandler in queryHandlerFromDb)
             {
                 _dbContext.Remove(queryHandler);
 
             }
+        }
+        private void CreateQuaryHandler(Recipes recipes, List<string> queryHandlers)
+        {
+            var recipesFromDb = new Recipes();
+            if (recipes.Id == 0)
+                recipesFromDb = GetRecipeFromDb(recipes);
+            else
+            {
+                recipesFromDb = recipes;
+                RemoveOldQueryHandler(recipesFromDb);
+            }
+                
+            var querysFromDb = _dbContext.Querys.ToList();
+
+           
+           
 
             foreach (var query in queryHandlers)
             {
@@ -375,7 +377,7 @@ namespace DelikatessenDrehbuch.Controllers
                     var quaryHandler = new QueryHandler()
                     {
                         Id = 0,
-                        Recipe = recipeFromDb,
+                        Recipe = recipesFromDb,
                         Query = _dbContext.Querys.SingleOrDefault(x => x.Query.ToLower() == query.ToLower()),
                     };
 
@@ -384,7 +386,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             }
 
-            _dbContext.SaveChanges();
+           _dbContext.SaveChanges();
 
         }
 

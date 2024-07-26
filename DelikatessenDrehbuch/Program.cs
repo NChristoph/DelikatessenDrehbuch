@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using System.Drawing.Text;
 using DelikatessenDrehbuch.Email;
+using DelikatessenDrehbuch.StaticScripts;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -20,6 +21,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EmailSender>();
+builder.Services.AddTransient<HelpfulMethods>();
 var app = builder.Build();
 
 

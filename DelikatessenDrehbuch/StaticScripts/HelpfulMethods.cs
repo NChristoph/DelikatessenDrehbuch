@@ -5,9 +5,9 @@ using SQLitePCL;
 
 namespace DelikatessenDrehbuch.StaticScripts
 {
-    public static class HelpfulMethods
+    public class HelpfulMethods
     {
-        public static FullRecipes GetFullRecipeById(ApplicationDbContext dbContext, int recipeId)
+        public FullRecipes GetFullRecipeById(ApplicationDbContext dbContext, int recipeId)
         {
             var recipeFromDb = dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
             var recipHandlerFromDb = dbContext.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
@@ -27,18 +27,20 @@ namespace DelikatessenDrehbuch.StaticScripts
             return fullRecipes;
         }
 
-        public static void CreateUserPreferencesRecipe(int id, string email, ApplicationDbContext context)
+        public async void CreateUserPreferencesRecipe(int id, string email, ApplicationDbContext context)
         {
             if (string.IsNullOrEmpty(email))
-                return;
+                throw new KeyNotFoundException($"Email {email} not found.");
 
-            var recipeFromDb = context.Recipes.SingleOrDefault(x => x.Id == id);
+
+            var recipeFromDb = await GetRecipeFromDbById(context,id);
 
             if (recipeFromDb == null)
-                return;
+                throw new KeyNotFoundException($"Recipe with ID {id} not found.");
 
 
-            var userPreferenceRecipeFromDb = context.UserPreferencesRecipes.SingleOrDefault(x => x.Recipes == recipeFromDb
+
+            var userPreferenceRecipeFromDb = await context.UserPreferencesRecipes.SingleOrDefaultAsync(x => x.Recipes == recipeFromDb
                                                              && x.UserEmail == email);
 
             if (userPreferenceRecipeFromDb != null)
@@ -52,19 +54,20 @@ namespace DelikatessenDrehbuch.StaticScripts
             };
 
 
-            context.UserPreferencesRecipes.Add(UserPreferenceRecipe);
-            context.SaveChanges();
+           await context.UserPreferencesRecipes.AddAsync(UserPreferenceRecipe);
+           await context.SaveChangesAsync();
 
         }
 
 
-        public static void CreateUserPreferencesQuery( string email, string query, ApplicationDbContext context)
+        public void CreateUserPreferencesQuery(string email, string query, ApplicationDbContext context)
         {
             var userPreferencesQueryFromDb = context.UserPreferencesQuerys.Where(x => x.UserEmail == email).ToList();
             UserPreferencesQuery userPreferencesQuery = null;
 
             if (string.IsNullOrEmpty(query))
-                return;
+                throw new KeyNotFoundException($" Query was empty");
+
 
             if (!userPreferencesQueryFromDb.Any())
             {
@@ -73,7 +76,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             }
             else
             {
-                userPreferencesQuery = userPreferencesQueryFromDb.SingleOrDefault(x=>x.Query.ToLower()== query.ToLower());
+                userPreferencesQuery = userPreferencesQueryFromDb.SingleOrDefault(x => x.Query.ToLower() == query.ToLower());
                 if (userPreferencesQuery != null)
                     userPreferencesQuery.Count++;
                 else
@@ -84,14 +87,14 @@ namespace DelikatessenDrehbuch.StaticScripts
 
 
             }
-            
-            
-               context.SaveChanges();
 
-            
+
+            context.SaveChanges();
+
+
         }
 
-        private static UserPreferencesQuery GetUserPreferenceQuery(string email, string query, ApplicationDbContext context)
+        private UserPreferencesQuery GetUserPreferenceQuery(string email, string query, ApplicationDbContext context)
         {
             var userPreferencesQuery = new UserPreferencesQuery()
             {
@@ -105,7 +108,31 @@ namespace DelikatessenDrehbuch.StaticScripts
             return userPreferencesQuery;
         }
 
+        public async Task<DropdownModel> GetDropdownModel(ApplicationDbContext context,int id=0)
+        {
+            var metricsFromDb = context.Metrics.ToList();
+            var ingredientHandlerFromDb = await context.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefaultAsync(x => x.Id == id);
 
+            DropdownModel dropdownModel = new DropdownModel();
+            dropdownModel.Measure = metricsFromDb;
+            if (ingredientHandlerFromDb != null)
+                dropdownModel.IngredientHandler = ingredientHandlerFromDb;
+            else
+                dropdownModel.IngredientHandler = new();
+            return dropdownModel;
+        }
+
+        public async Task<Recipes> GetRecipeFromDbById(ApplicationDbContext context,int id)
+        {
+            
+            var recipe = await context.Recipes.SingleOrDefaultAsync(x => x.Id == id);
+
+            if(recipe == null)
+                throw new KeyNotFoundException($"Recipe with ID {id} not found.");
+
+            return recipe;
+
+        }
     }
 
 

@@ -14,10 +14,12 @@ namespace DelikatessenDrehbuch.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext)
+        private readonly HelpfulMethods _helpfulMethods;
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext, HelpfulMethods helpfulMethods)
         {
             _logger = logger;
             _context = dbContext;
+            _helpfulMethods = helpfulMethods;
         }
 
 
@@ -39,14 +41,21 @@ namespace DelikatessenDrehbuch.Controllers
         {
             bool loggedIn = User.Identity.IsAuthenticated;
 
-            if (loggedIn)
-                HelpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
+            if (loggedIn&&!string.IsNullOrEmpty(query))
+                _helpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
 
             var filter = _context.Querys.Select(x => x.Query.ToLower()).ToList();
             var queryHandler = new List<QueryHandler>();
 
             if (string.IsNullOrEmpty(query))
             {
+                if(loggedIn)
+                {
+                    var userPreferencesRecipesFromDb =_context.UserPreferencesRecipes.Where(x=>x.UserEmail==User.Identity.Name).ToList();
+                    var userPreferencesQuerysFromDb =_context.UserPreferencesQuerys.Where(x=>x.UserEmail==User.Identity.Name).ToList();
+
+                    var userPreferencQueryMax = userPreferencesQuerysFromDb.Select(x => x.Count).Max();
+                }
                 var random = new Random();
                 queryHandler = _context.QueryHandler.Include(x => x.Recipe)
                                                     .Include(x => x.Query).ToList();
