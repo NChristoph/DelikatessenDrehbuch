@@ -9,8 +9,8 @@ namespace DelikatessenDrehbuch.StaticScripts
     {
         public FullRecipes GetFullRecipeById(ApplicationDbContext dbContext, int recipeId)
         {
-            var recipeFromDb = dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
-            var recipHandlerFromDb = dbContext.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
+            var recipeFromDb =  dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
+            var recipHandlerFromDb =  dbContext.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
                                                              .Include(x => x.IngredientHandler.Ingredient)
                                                              .Include(x => x.IngredientHandler.Measure)
                                                              .Include(x => x.IngredientHandler.Quantity)
@@ -24,23 +24,23 @@ namespace DelikatessenDrehbuch.StaticScripts
             fullRecipes.QueryHandler = dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb)
                                                              .Select(x => x.Query.Query).ToList();
             fullRecipes.Querys = dbContext.Querys.ToList();
-            return fullRecipes;
+            return  fullRecipes;
         }
 
-        public async void CreateUserPreferencesRecipe(int id, string email, ApplicationDbContext context)
+        public void CreateUserPreferencesRecipe(int id, string email, ApplicationDbContext context)
         {
             if (string.IsNullOrEmpty(email))
                 throw new KeyNotFoundException($"Email {email} not found.");
 
 
-            var recipeFromDb = await GetRecipeFromDbById(context,id);
+            var recipeFromDb = GetRecipeFromDbById(context,id);
 
             if (recipeFromDb == null)
                 throw new KeyNotFoundException($"Recipe with ID {id} not found.");
 
 
 
-            var userPreferenceRecipeFromDb = await context.UserPreferencesRecipes.SingleOrDefaultAsync(x => x.Recipes == recipeFromDb
+            var userPreferenceRecipeFromDb = context.UserPreferencesRecipes.SingleOrDefault(x => x.Recipes == recipeFromDb
                                                              && x.UserEmail == email);
 
             if (userPreferenceRecipeFromDb != null)
@@ -54,8 +54,8 @@ namespace DelikatessenDrehbuch.StaticScripts
             };
 
 
-           await context.UserPreferencesRecipes.AddAsync(UserPreferenceRecipe);
-           await context.SaveChangesAsync();
+           context.UserPreferencesRecipes.Add(UserPreferenceRecipe);
+            context.SaveChanges();
 
         }
 
@@ -108,10 +108,10 @@ namespace DelikatessenDrehbuch.StaticScripts
             return userPreferencesQuery;
         }
 
-        public async Task<DropdownModel> GetDropdownModel(ApplicationDbContext context,int id=0)
+        public  DropdownModel GetDropdownModel(ApplicationDbContext context,int id=0)
         {
             var metricsFromDb = context.Metrics.ToList();
-            var ingredientHandlerFromDb = await context.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefaultAsync(x => x.Id == id);
+            var ingredientHandlerFromDb = context.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefault(x => x.Id == id);
 
             DropdownModel dropdownModel = new DropdownModel();
             dropdownModel.Measure = metricsFromDb;
@@ -122,16 +122,21 @@ namespace DelikatessenDrehbuch.StaticScripts
             return dropdownModel;
         }
 
-        public async Task<Recipes> GetRecipeFromDbById(ApplicationDbContext context,int id)
+        public Recipes GetRecipeFromDbById(ApplicationDbContext context,int id)
         {
             
-            var recipe = await context.Recipes.SingleOrDefaultAsync(x => x.Id == id);
+            var recipe = context.Recipes.SingleOrDefault(x => x.Id == id);
 
             if(recipe == null)
                 throw new KeyNotFoundException($"Recipe with ID {id} not found.");
 
             return recipe;
 
+        }
+
+        public List<UserPreferencesQuery> GetUserPreferencesQueryListByEmail(ApplicationDbContext context,string email)
+        {
+           return context.UserPreferencesQuerys.Where(x => x.UserEmail == email).ToList();
         }
     }
 

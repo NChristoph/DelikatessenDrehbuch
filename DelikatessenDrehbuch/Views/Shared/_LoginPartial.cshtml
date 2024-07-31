@@ -5,9 +5,9 @@
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
+        @* <li class="nav-item">
             <a class="nav-link" asp-route-id="0" asp-controller="NewRecipes" asp-action="Index" style="color:#FFFDD0">Rezept Hochladen</a>
-        </li> 
+        </li>  *@
         <li class="nav-item">
             <a class="nav-link " asp-area="" asp-controller="MyRecipes" asp-action="Index" style="color:#FFFDD0">Mein Bereich</a>
         </li>
@@ -20,7 +20,7 @@
     else
     {
         <li class="nav-item">
-            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login" style="color:#FFFDD0">Rezept hochladen</a>
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login" style="color:#FFFDD0">Anmelden</a>
         </li>
         <li class="nav-item">
             <a class="nav-link " asp-area="Identity" asp-page="/Account/Register" style="color:#FFFDD0">Registrieren</a>

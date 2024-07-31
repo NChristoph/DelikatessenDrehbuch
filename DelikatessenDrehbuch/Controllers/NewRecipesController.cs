@@ -51,7 +51,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string folderPath = Path.Combine(desktopPath, "Recipes");
-            string imageFolderPath = Path.Combine(folderPath, "Bolognese Rezepte");
+            string imageFolderPath = Path.Combine(folderPath, "Images");
             string filePath = Path.Combine(imageFolderPath, "recipes.txt");
 
             var imageFiles = Directory.GetFiles(imageFolderPath, "*", SearchOption.TopDirectoryOnly)
@@ -154,7 +154,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-        //Las dir für das was anderes einfallen
+
 
         private Recipes GetRecipeFromDb(Recipes recipes)
         {
@@ -186,14 +186,14 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
-        public async Task<IActionResult> EditRecipesPartialViewAsync(int id)
+        public IActionResult EditRecipesPartialViewAsync(int id)
         {
-            return PartialView("_IngredientPartialView", await _helpfulMethods.GetDropdownModel(_dbContext, id));
+            return PartialView("_IngredientPartialView", _helpfulMethods.GetDropdownModel(_dbContext, id));
         }
 
-        public async Task<IActionResult> BlankSentenceAsync()
+        public IActionResult BlankSentenceAsync()
         {
-            return PartialView("_IngredientPartialView", await _helpfulMethods.GetDropdownModel(_dbContext));
+            return PartialView("_IngredientPartialView", _helpfulMethods.GetDropdownModel(_dbContext));
         }
 
         public void UploadMsToAzureBlop(IFormFile file)
@@ -270,9 +270,9 @@ namespace DelikatessenDrehbuch.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("NewRecipes/AddOrEditRecipes")]
-        public  IActionResult AddOrEditRecipes([FromForm] FullRecipes newRecipes)
+        public IActionResult AddOrEditRecipes([FromForm] FullRecipes newRecipes)
         {
-            var recipeFromDb =  _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
+            var recipeFromDb = _dbContext.Recipes.SingleOrDefault(x => x.Id == newRecipes.Recipes.Id);
 
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
@@ -293,13 +293,20 @@ namespace DelikatessenDrehbuch.Controllers
 
                 };
 
+                try
+                {
+                    _dbContext.Recipes.Add(recipes);
+                    _dbContext.SaveChanges();
 
-                _dbContext.Recipes.Add(recipes);
-                _dbContext.SaveChanges();
+                    CreateRecipesHandler(newRecipes, recipes);
+                    CreateQuaryHandler(recipes, newRecipes.QueryHandler);
 
-                CreateRecipesHandler(newRecipes,recipes);
-                CreateQuaryHandler(recipes, newRecipes.QueryHandler);
-
+                }
+                catch (Exception ex) {
+                    _logger.LogError($"A Error by adsing new Recipes {ex.ToString()}");
+                    return StatusCode(500, "Internal server error");
+                }
+               
 
             }
             else
@@ -345,9 +352,9 @@ namespace DelikatessenDrehbuch.Controllers
 
 
         }
-        private  void RemoveOldQueryHandler(Recipes recipesFromDb)
+        private void RemoveOldQueryHandler(Recipes recipesFromDb)
         {
-            var queryHandlerFromDb =  _dbContext.QueryHandler.Where(x => x.Recipe == recipesFromDb).ToList();
+            var queryHandlerFromDb = _dbContext.QueryHandler.Where(x => x.Recipe == recipesFromDb).ToList();
             foreach (var queryHandler in queryHandlerFromDb)
             {
                 _dbContext.Remove(queryHandler);
@@ -356,19 +363,19 @@ namespace DelikatessenDrehbuch.Controllers
         }
         private void CreateQuaryHandler(Recipes recipes, List<string> queryHandlers)
         {
-            var recipesFromDb = new Recipes();
-            if (recipes.Id == 0)
-                recipesFromDb = GetRecipeFromDb(recipes);
-            else
-            {
-                recipesFromDb = recipes;
-                RemoveOldQueryHandler(recipesFromDb);
-            }
-                
+            //var recipesFromDb = new Recipes();
+            //if (recipes.Id == 0)
+            //    recipesFromDb = GetRecipeFromDb(recipes);
+            //else
+            //{
+            //    recipesFromDb = recipes;
+            //    RemoveOldQueryHandler(recipesFromDb);
+            //}
+
             var querysFromDb = _dbContext.Querys.ToList();
 
-           
-           
+
+
 
             foreach (var query in queryHandlers)
             {
@@ -377,7 +384,7 @@ namespace DelikatessenDrehbuch.Controllers
                     var quaryHandler = new QueryHandler()
                     {
                         Id = 0,
-                        Recipe = recipesFromDb,
+                        Recipe = recipes,
                         Query = _dbContext.Querys.SingleOrDefault(x => x.Query.ToLower() == query.ToLower()),
                     };
 
@@ -386,7 +393,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             }
 
-           _dbContext.SaveChanges();
+            _dbContext.SaveChanges();
 
         }
 
@@ -437,7 +444,7 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     Id = 0,
                     Ingredient = GetOrCreateIngredient(handler.Ingredient),
-                    Quantity = GetOrCreateQuantity(handler.Quantity),
+                    Quantity =  GetOrCreateQuantity(handler.Quantity),
                     Measure = GetMeasure(handler.Measure),
                 };
 

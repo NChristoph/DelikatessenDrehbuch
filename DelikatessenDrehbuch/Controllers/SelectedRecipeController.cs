@@ -19,15 +19,18 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index(int id)
         {
-           _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
+            var userIsLoggedIn = User.Identity.IsAuthenticated;
+            if (userIsLoggedIn)
+                _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
+
             return View(_helpfulMethods.GetFullRecipeById(_context, id));
         }
 
 
-        public async Task<IActionResult> AddOrRemoveLike(int id)
+        public IActionResult AddOrRemoveLike(int id)
         {
             var currentUserName = User.Identity.Name;
-            var recipe = await _helpfulMethods.GetRecipeFromDbById(_context, id);
+            var recipe = _helpfulMethods.GetRecipeFromDbById(_context, id);
             var like = _context.Likes.SingleOrDefault(x => x.UserMail == currentUserName && x.Recipe == recipe);
 
             if (recipe == null)
@@ -65,7 +68,7 @@ namespace DelikatessenDrehbuch.Controllers
             _context.SaveChanges();
         }
 
-        public async Task<IActionResult> SaveRecessionInDB(int id, string assessment)
+        public IActionResult SaveRecessionInDB(int id, string assessment)
         {
 
             if (id == null)
@@ -76,7 +79,7 @@ namespace DelikatessenDrehbuch.Controllers
             newRecession.CreationDate = DateTime.Now;
             newRecession.UserEmail = User.Identity.Name;
             newRecession.Assessment = assessment;
-            newRecession.Recipes = await _helpfulMethods.GetRecipeFromDbById(_context, id);
+            newRecession.Recipes = _helpfulMethods.GetRecipeFromDbById(_context, id);
 
             _context.Recessions.Add(newRecession);
             _context.SaveChanges();

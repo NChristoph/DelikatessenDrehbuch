@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-adsense-account" content="ca-pub-2332503983815482">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+            crossorigin="anonymous"></script>
     <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.4/css/dataTables.dataTables.min.css" />
@@ -12,79 +15,82 @@
 </head>
 <body>
     @Html.AntiForgeryToken()
-    <header>
-        <nav class="navbar-expand-sm navbar-toggleable-sm navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px" ">
-           
-            <div class="mobile-aktive">
-                <div class="grid-Navbar">
-                    <img class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Weiß.png" title="logo" style=" max-height:60px;" />
-                    <div class="grid-Name" style="color:white;font-size:10px">Delikatessen Drehbuch</div>
-                    <div class="grid-Slogan" style="color:white;font-size:8px">Kulinarische Genüsse, von Herzen geschrieben.</div>
+    <div class="minWidth100 mb-1" style="position:fixed;background-color:white;">
+        <header>
+            <nav class="navbar-expand-sm navbar-toggleable-sm navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px">
 
-                </div>
-            </div>
+                <div class="mobile-aktive">
+                    <div class="grid-Navbar">
+                        <img class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Weiß.png" title="logo" style=" max-height:60px;" />
+                        <div class="grid-Name" style="color:white;font-size:10px">Delikatessen Drehbuch</div>
+                        <div class="grid-Slogan" style="color:white;font-size:8px">Kulinarische Genüsse, von Herzen geschrieben.</div>
 
-            <div class="container-fluid " style="width:auto;margin-left:auto;align-self:center">
-
-                <button class="navbar-toggler text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation" style="height:40px;">
-                    Menü
-
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
-                    <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
-                        <li class="nav-item">
-                            <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy" style="color:#FFFDD0">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <partial class="grid-Partial" name="_LoginPartial" />
-                        </li>
-
-                    </ul>
-
+                    </div>
                 </div>
 
-            </div>
+                <div class="container-fluid " style="width:auto;margin-left:auto;align-self:center">
 
+                    <button class="navbar-toggler text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation" style="height:40px;">
+                        Menü
 
-
-
-
-        </nav>
-
-
-
-    </header>
-    <div class="flexRowToColumn flexWrap">
-        <div class="col maxWidth30 mobieleWidth90 mobile-hidden">
-            <div class="grid-Navbar">
-                <img title="logo" class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
-                <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
-                <div class="grid-Slogan" style="color:#D4AF37;font-size:11px">Kulinarische Genüsse,<br /> von Herzen geschrieben.</div>
-
-            </div>
-        </div>
-        <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
-            <form class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90" method="get"  asp-controller="Home" asp-action="Index">
-                <div class="flexRowToColumn flexWrap">
-                </div>
-
-                <div class="flexRow wrap">
-                    <input name="query" class="minWidth70 flexAuto" placeholder="Rezeptname oder Stichwort eingeben (z.B. Vegan, BBQ usw) " style="border-radius:5px;flex-shrink:2" />
-                    <button class="btn bgRed  " title="SearchButton" type="submit" typeof="button">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                        </svg>
                     </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
+                        <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
+                            <li class="nav-item">
+                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy" style="color:#FFFDD0">Privacy</a>
+                            </li>
+                            <li class="nav-item">
+                                <partial class="grid-Partial" name="_LoginPartial" />
+                            </li>
+
+                        </ul>
+
+                    </div>
+
                 </div>
 
-            </form>
-        </div>
 
+
+
+
+            </nav>
+
+
+
+        </header>
+        <div class="flexRowToColumn flexWrap">
+            <div class="col maxWidth30 mobieleWidth90 mobile-hidden">
+                <div class="grid-Navbar">
+                    <img title="logo" class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
+                    <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
+                    <div class="grid-Slogan" style="color:#D4AF37;font-size:11px">Kulinarische Genüsse,<br /> von Herzen geschrieben.</div>
+
+                </div>
+            </div>
+            <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
+                <form class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90" method="get" asp-controller="Home" asp-action="Index">
+                    <div class="flexRowToColumn flexWrap">
+                    </div>
+
+                    <div class="flexRow wrap">
+                        <input name="query" class="minWidth70 flexAuto" placeholder="Rezeptname oder Stichwort eingeben (z.B. Vegan, BBQ usw) " style="border-radius:5px;flex-shrink:2" />
+                        <button class="btn bgRed  " title="SearchButton" type="submit" typeof="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                            </svg>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
     </div>
+   
 
 
     <div class="offcanvas offcanvas-start " tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
@@ -154,7 +160,7 @@
 
 
     <div class=" flexRow flexJustifyContendCenter">
-        <hr style="width:87%;margin-bottom:0 !important;" />
+       
     </div>
     <div class="m-3">
         <main role="main" class="pb-3">
