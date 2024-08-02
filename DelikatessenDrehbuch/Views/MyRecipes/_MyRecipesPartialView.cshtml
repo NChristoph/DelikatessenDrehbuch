@@ -32,10 +32,10 @@
 
 
                     </a>
-                    <hr class="grid-hr" style="margin:1px;" />
+                    <hr class="grid-hr" style="margin:1px;opacity:1;" />
                     <div class="grid-LikeCount"> Gefält @recipe.LikeCount <br /> Benutzer</div>
                     <div class="grid-Category">@recipe.Category</div>
-                    <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Name</h3>
+                    <h6 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Name</h6>
 
                     @{
                         if (SignInManager.IsSignedIn(User))

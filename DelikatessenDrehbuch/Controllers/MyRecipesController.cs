@@ -23,6 +23,11 @@ namespace DelikatessenDrehbuch.Controllers
             return View();
         }
 
+        public IActionResult DashBoard() {
+            var recipesCount= _dbcontext.Recipes.Count();
+            return PartialView("_dashBoard",recipesCount);
+        }
+
      
         public IActionResult DeleteRecipes(int id)
         {

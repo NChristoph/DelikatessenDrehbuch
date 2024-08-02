@@ -5,9 +5,23 @@ using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using System.Drawing.Text;
 using DelikatessenDrehbuch.Email;
+using Polly;
+using Polly.Retry;
 using DelikatessenDrehbuch.StaticScripts;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var retryPolicy = Policy
+    .Handle<SqlException>()
+    .WaitAndRetry(
+        retryCount: 5,
+        sleepDurationProvider: attempt => TimeSpan.FromSeconds(2),
+        onRetry: (exception, sleepDuration, attempt, context) =>
+        {
+            // Logging, falls gewünscht
+            Console.WriteLine($"Retry {attempt} due to {exception}");
+        });
 var configuration = builder.Configuration;
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -15,7 +29,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
@@ -81,3 +95,5 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+

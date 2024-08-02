@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="~/css/StyleSheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
 </head>
+
 <body>
     @Html.AntiForgeryToken()
     <div class="minWidth100 mb-1" style="position:fixed;background-color:white;">
@@ -40,8 +41,11 @@
                             <li class="nav-item">
                                 <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
                             </li>
+                            @* <li class="nav-item">
+                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy" style="color:#FFFDD0">AGB'S</a>
+                            </li> *@
                             <li class="nav-item">
-                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy" style="color:#FFFDD0">Privacy</a>
+                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Impressum" style="color:#FFFDD0">Impressum & AGB'S </a>
                             </li>
                             <li class="nav-item">
                                 <partial class="grid-Partial" name="_LoginPartial" />
@@ -62,7 +66,7 @@
 
 
         </header>
-        <div class="flexRowToColumn flexWrap">
+        <div class="flexRowToColumn flexWrap mb-3">
             <div class="col maxWidth30 mobieleWidth90 mobile-hidden">
                 <div class="grid-Navbar">
                     <img title="logo" class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
@@ -77,7 +81,7 @@
                     </div>
 
                     <div class="flexRow wrap">
-                        <input name="query" class="minWidth70 flexAuto" placeholder="Rezeptname oder Stichwort eingeben (z.B. Vegan, BBQ usw) " style="border-radius:5px;flex-shrink:2" />
+                        <input name="query" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
                         <button class="btn bgRed  " title="SearchButton" type="submit" typeof="button">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
@@ -179,7 +183,14 @@
 </body>
 </html>
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MSMG2FFJ1J"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
+    gtag('config', 'G-MSMG2FFJ1J');
+</script>
 <script>
 
     $(document).ready(function () {

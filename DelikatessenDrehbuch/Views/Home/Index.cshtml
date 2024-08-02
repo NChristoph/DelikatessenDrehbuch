@@ -16,7 +16,7 @@
 
                         @if (!string.IsNullOrEmpty(recipe.Key.ImagePath))
                         {
-                            <img class="grid-Image " title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
+                            <img class="grid-Image" alt="@recipe.Key.Name" title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
                         }
                         else
                         {
@@ -27,10 +27,14 @@
 
                     </a>
 
-                    <hr class="grid-hr" style="margin:1px;opacity:1;" />
-                    <div class="grid-LikeCount"> Gefält @recipe.Key.LikeCount <br /> Benutzer</div>
+                    <hr class="grid-hr" style="margin:1px;opacity:1;border:0;" />
+                    @if(recipe.Key.LikeCount>0)
+                    {
+                        <div class="grid-LikeCount"> Gefällt @recipe.Key.LikeCount <br /> Benutzer</div>
+
+                    }
                     <div class="grid-Category">@recipe.Key.Category</div>
-                    <h3 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Key.Name</h3>
+                    <h5 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Key.Name</h5>
 
 
                     @{
