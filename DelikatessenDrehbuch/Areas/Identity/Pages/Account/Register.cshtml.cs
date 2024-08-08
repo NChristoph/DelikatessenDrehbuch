@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -85,6 +86,7 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
             /// </summary>
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            //[RegularExpression(@"^[a-zA-z0-9]*$", ErrorMessage = "Nur Buchstaben und Zahlen Erlaubt")]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }

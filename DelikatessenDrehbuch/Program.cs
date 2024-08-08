@@ -29,7 +29,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<IdentityUser>(options => {
+    options.Password.RequireDigit = false; // Keine Zahl erforderlich
+    options.Password.RequireLowercase = false; // Kein Kleinbuchstabe erforderlich
+    options.Password.RequireNonAlphanumeric = false; // Kein Sonderzeichen erforderlich
+    options.Password.RequireUppercase = false; // Kein Groﬂbuchstabe erforderlich
+    options.Password.RequiredLength = 6; // Mindestl‰nge des Passworts
+    options.Password.RequiredUniqueChars = 1; // Anzahl der erforderlichen eindeutigen Zeichen
+    options.SignIn.RequireConfirmedAccount = false;
+})
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();

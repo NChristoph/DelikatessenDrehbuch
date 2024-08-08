@@ -24,8 +24,12 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
         public IActionResult DashBoard() {
-            var recipesCount= _dbcontext.Recipes.Count();
-            return PartialView("_dashBoard",recipesCount);
+            var dashBoardModel = new DashBoardModel
+            {
+                RecipesCount = _dbcontext.Recipes.Count(),
+                User = _dbcontext.Users.Count()
+            };
+            return PartialView("_dashBoard",dashBoardModel);
         }
 
      
@@ -35,11 +39,12 @@ namespace DelikatessenDrehbuch.Controllers
             var recipesFromDb=_dbcontext.Recipes.SingleOrDefault(x=>x.Id==id);
             var recessionFromDb = _dbcontext.Recessions.Where(x => x.Recipes.Id == id).ToList();
             var queryHandlerFromDb = _dbcontext.QueryHandler.Where(x =>x.Recipe.Id==id).ToList();
-           
+           var userPreverenceRecipeFromDb=_dbcontext.UserPreferencesRecipes.SingleOrDefault(x=>x.Recipes.Id==id);
 
             if (recipesFromDb == null)
                 return BadRequest();
-
+            if(userPreverenceRecipeFromDb!=null)
+                _dbcontext.UserPreferencesRecipes.Remove(userPreverenceRecipeFromDb);
 
             if (recessionFromDb != null)
                 foreach (var recession in recessionFromDb)
@@ -49,6 +54,7 @@ namespace DelikatessenDrehbuch.Controllers
                 foreach(var queryHandler in queryHandlerFromDb)
                     _dbcontext.QueryHandler.Remove(queryHandler);
 
+            
             _dbcontext.Remove(recipesFromDb);
             _dbcontext.SaveChanges();
 

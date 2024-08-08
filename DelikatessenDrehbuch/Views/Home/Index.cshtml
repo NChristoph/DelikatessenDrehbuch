@@ -28,12 +28,23 @@
                     </a>
 
                     <hr class="grid-hr" style="margin:1px;opacity:1;border:0;" />
-                    @if(recipe.Key.LikeCount>0)
+                    @if(recipe.Key.LikeCount>1)
                     {
-                        <div class="grid-LikeCount"> Gefällt @recipe.Key.LikeCount <br /> Benutzer</div>
+                        <div class="grid-Category"> Gefällt @recipe.Key.LikeCount Benutzer</div>
 
                     }
-                    <div class="grid-Category">@recipe.Key.Category</div>
+                    else
+                    {
+                        <div class="grid-Category">@recipe.Key.Category</div>
+
+                    }
+
+                    @if(recipe.Key.PreparationTime!=null)
+                    {
+                        <div class="grid-LikeCount">@recipe.Key.PreparationTime min.<br /> Zubereitungszeit</div>
+
+                    }
+
                     <h5 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Key.Name</h5>
 
 

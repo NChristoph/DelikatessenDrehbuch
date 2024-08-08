@@ -119,6 +119,12 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
                 }
+                
+                else if (line.StartsWith("PreparationTime:"))
+                {
+                    var test = line.Split(":")[1].Trim();
+                    currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
+                }
                 if (line.StartsWith("Zutaten"))
                 {
                     string[] ing = line.Split(":");
@@ -131,7 +137,7 @@ namespace DelikatessenDrehbuch.Controllers
 
                     currentRecipe.IngredientHandler.Add(ingredientHandler);
                 }
-                if (line.StartsWith("Querys:"))
+                if (line.StartsWith("Query:"))
                 {
                     currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
                 }
@@ -252,6 +258,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Name = newRecipes.Recipes.Name,
                 Preparation = newRecipes.Recipes.Preparation,
                 Category = newRecipes.Recipes.Category,
+                PreparationTime = newRecipes.Recipes.PreparationTime,
                 LikeCount = 0,
                 ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
 
@@ -374,12 +381,26 @@ namespace DelikatessenDrehbuch.Controllers
 
             var querysFromDb = _dbContext.Querys.ToList();
 
+            foreach(var queryHandler in queryHandlers)
+            {
+                if (!querysFromDb.Select(x => x.Query.ToLower()).Contains(queryHandler.ToLower()))
+                {
+                    var query = new Querys()
+                    {
+                        Id =0,
+                        Query = queryHandler,
+                    };
 
+                    _dbContext.Querys.Add(query);
+                }
+            }
+            _dbContext.SaveChanges();
 
+            var querysFromDbNew = _dbContext.Querys.ToList();
 
             foreach (var query in queryHandlers)
             {
-                if (querysFromDb.Select(x => x.Query.ToLower()).Contains(query.ToLower()))
+                if (querysFromDbNew.Select(x => x.Query.ToLower()).Contains(query.ToLower()))
                 {
                     var quaryHandler = new QueryHandler()
                     {
