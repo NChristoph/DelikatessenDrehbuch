@@ -4,6 +4,12 @@
 @inject UserManager<IdentityUser> UserManager
 @model FullRecipes
 
+@{
+    ViewData["Title"] = Model.Recipes.Name;
+    ViewData["Description"] = $"Genießen Sie ein Rezept für {Model.Recipes.Name} eine exquisite Delikatesse auf Delikatessen-Drehbuch.com. Tauchen Sie ein in die detaillierte Anleitung, um ein unvergessliches kulinarisches Erlebnis zu schaffen. Perfekt für besondere Anlässe oder um einfach Ihren Gaumen zu verwöhnen.";
+
+}
+
 <body>
     <div class="minWidth100 flex flexJustifyContendCenter">
         <div class="maxWidth80 minWidth80 mobieleWidth90 mobileCenter ">

@@ -67,7 +67,10 @@ namespace DelikatessenDrehbuch.Controllers
             foreach (var imageFile in imageFiles)
             {
                 var fileInfo = new FileInfo(imageFile);
-
+                if (fileInfo.Name.Contains("_"))
+                {
+                    fileInfo.Name.Replace("_", " ");
+                }
 
                 string extension = fileInfo.Extension.ToLower();
                 string contentType = mimeTypes.ContainsKey(extension) ? mimeTypes[extension] : "application/octet-stream";
@@ -119,7 +122,12 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
                 }
-                
+
+                else if (line.StartsWith("Description:"))
+                {
+                    currentRecipe.Recipes.Description = line.Split(':')[1].Trim();
+                }
+
                 else if (line.StartsWith("PreparationTime:"))
                 {
                     var test = line.Split(":")[1].Trim();
@@ -128,7 +136,6 @@ namespace DelikatessenDrehbuch.Controllers
                 if (line.StartsWith("Zutaten"))
                 {
                     string[] ing = line.Split(":");
-                    ing[3].Replace(".", ",");
                     IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
                     ingredientHandler.Id = 0;
                     ingredientHandler.Ingredient.Name = ing[1].Trim();
@@ -309,11 +316,12 @@ namespace DelikatessenDrehbuch.Controllers
                     CreateQuaryHandler(recipes, newRecipes.QueryHandler);
 
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError($"A Error by adsing new Recipes {ex.ToString()}");
                     return StatusCode(500, "Internal server error");
                 }
-               
+
 
             }
             else
@@ -381,13 +389,13 @@ namespace DelikatessenDrehbuch.Controllers
 
             var querysFromDb = _dbContext.Querys.ToList();
 
-            foreach(var queryHandler in queryHandlers)
+            foreach (var queryHandler in queryHandlers)
             {
                 if (!querysFromDb.Select(x => x.Query.ToLower()).Contains(queryHandler.ToLower()))
                 {
                     var query = new Querys()
                     {
-                        Id =0,
+                        Id = 0,
                         Query = queryHandler,
                     };
 
@@ -465,7 +473,7 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     Id = 0,
                     Ingredient = GetOrCreateIngredient(handler.Ingredient),
-                    Quantity =  GetOrCreateQuantity(handler.Quantity),
+                    Quantity = GetOrCreateQuantity(handler.Quantity),
                     Measure = GetMeasure(handler.Measure),
                 };
 
@@ -514,7 +522,21 @@ namespace DelikatessenDrehbuch.Controllers
         private Measure GetMeasure(Measure measure)
         {
             var measureFromDb = _dbContext.Metrics.FirstOrDefault(x => x.UnitOfMeasurement.ToLower() == measure.UnitOfMeasurement.ToLower().Trim());
-            return measureFromDb;
+
+            if (measureFromDb != null)
+                return measureFromDb;
+            else
+            {
+                measureFromDb = new Measure()
+                {
+                    Id = 0,
+                    UnitOfMeasurement = measure.UnitOfMeasurement
+                };
+                _dbContext.Metrics.Add(measureFromDb);
+                _dbContext.SaveChanges();
+
+                return measure;
+            }
         }
 
         #endregion
