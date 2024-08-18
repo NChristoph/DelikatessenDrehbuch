@@ -429,6 +429,8 @@ tr:nth-child(odd) {
         'gridImage gridImage'
         'KeyWords KeyWords'
         'grid-hr grid-hr'
+        'PreparationTime Calories'
+        'Discription Discription'
         'likeCount LikeButton'
         'Ingredient Ingredient'
         'Ingredient Ingredient'
@@ -437,6 +439,17 @@ tr:nth-child(odd) {
         'Button Button'
 }
 
+.grid-Discription {
+    grid-area: Discription;
+}
+
+.grid-PreparationTime {
+    grid-area: PreparationTime;
+}
+
+.grid-Calories{
+    grid-area:Calories;
+}
 .grid-Likebutton {
     grid-area: LikeButton;
 }

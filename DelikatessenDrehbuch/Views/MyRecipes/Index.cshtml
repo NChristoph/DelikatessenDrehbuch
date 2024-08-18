@@ -22,6 +22,7 @@
     @{
         if(User.IsInRole("Admin"))
         {
+
                 <div class="flexColumn">
                     <a typeof="button" class="btn" onclick="loadSupportTicketsPartialView()">
                         Support Tickets
@@ -35,10 +36,16 @@
                 </div>
 
                 <div class="flexColumn">
-                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRechipes">
+                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
                         Add Recipes
                     </a>
                 </div>
+
+            <div class="flexColumn">
+                <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
+                    Create Folder
+                </a>
+            </div>
         }
     }
 </div>

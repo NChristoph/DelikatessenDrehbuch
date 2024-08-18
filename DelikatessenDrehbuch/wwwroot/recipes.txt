@@ -1,159 +1,82 @@
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Tomatensuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die gehackten Tomaten, die Gemüsebrühe, den Basilikum und den Oregano hinzufügen. Mit Salz und Pfeffer würzen. Die Suppe zum Kochen bringen und dann die Hitze reduzieren. Etwa 20 Minuten köcheln lassen, bis die Tomaten weich sind. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit frischem Basilikum garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Gehackte Tomaten:ml:800
-Zutaten: Gemüsebrühe:ml:500
-Zutaten: Basilikum:Bund:1
-Zutaten: Oregano:Tl.:1
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Kürbissuppe
-Preparation: Den Kürbis schälen, entkernen und in kleine Würfel schneiden. Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Kürbis und die geschälten und in Scheiben geschnittenen Karotten hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis der Kürbis und die Karotten weich sind. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz und Pfeffer abschmecken. Mit Kürbiskernen und gehackter Petersilie garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Kürbis:Kg:1
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Karotten:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Kürbiskerne:El.:2
-Zutaten: Petersilie:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Linsensuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Karotten und die Kartoffeln schälen und in kleine Würfel schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Linsen, die Karotten und die Kartoffeln hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 25 Minuten köcheln lassen, bis das Gemüse weich ist. Mit Salz, Pfeffer und Kreuzkümmel abschmecken. Mit gehackter Petersilie garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Linsen:g:200
-Zutaten: Karotten:Stk.:2
-Zutaten: Kartoffeln:Stk.:2
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Kreuzkümmel:Tl.:1
-Zutaten: Petersilie:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Erbsensuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Kartoffeln schälen und in kleine Würfel schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Erbsen und die Kartoffeln hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis das Gemüse weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und gehackter Minze abschmecken. Mit frischer Minze garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Erbsen:g:400
-Zutaten: Kartoffeln:Stk.:2
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Minze:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Karottensuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Karotten schälen und in Scheiben schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Karotten hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis die Karotten weich sind. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und geriebenem Ingwer abschmecken. Mit gehacktem Koriander garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Karotten:g:500
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Ingwer:El.:1
-Zutaten: Koriander:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Blumenkohlsuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Den Blumenkohl in Röschen teilen. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Blumenkohl hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 20 Minuten köcheln lassen, bis der Blumenkohl weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und Muskat abschmecken. Mit gehackter Petersilie garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Blumenkohl:Stk.:1
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Muskat:Priese:1
-Zutaten: Petersilie:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Brokkolisuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Den Brokkoli in Röschen teilen. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Brokkoli hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 15 Minuten köcheln lassen, bis der Brokkoli weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und Muskat abschmecken. Mit gehacktem Schnittlauch garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Brokkoli:g:500
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Muskat:Priese:1
-Zutaten: Schnittlauch:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Spinatsuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Den Spinat hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 10 Minuten köcheln lassen, bis der Spinat weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz, Pfeffer und Muskat abschmecken. Mit gehacktem Schnittlauch garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Spinat:g:400
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Muskat:Priese:1
-Zutaten: Schnittlauch:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Kartoffelsuppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. Die Kartoffeln schälen und in kleine Würfel schneiden. Den Lauch in Ringe schneiden. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die Kartoffeln und den Lauch hinzufügen und kurz mitdünsten. Die Gemüsebrühe hinzufügen und die Suppe zum Kochen bringen. Die Hitze reduzieren und etwa 25 Minuten köcheln lassen, bis das Gemüse weich ist. Mit einem Stabmixer die Suppe pürieren, bis sie glatt ist. Mit Salz und Pfeffer abschmecken. Mit gehackter Petersilie garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Kartoffeln:g:500
-Zutaten: Lauch:Stk.:1
-Zutaten: Gemüsebrühe:ml:800
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
-Zutaten: Petersilie:Bund:1
-
-Rezept
-Id:0
-Category: Hauptspeise
-Name: Vegane Tomaten-Basilikum-Suppe
-Preparation: Die Zwiebel und den Knoblauch schälen und fein hacken. In einem großen Topf das Olivenöl erhitzen und die Zwiebeln und den Knoblauch darin glasig dünsten. Die gehackten Tomaten und die Gemüsebrühe hinzufügen und zum Kochen bringen. Die Hitze reduzieren und etwa 15 Minuten köcheln lassen. Den Basilikum hinzufügen und die Suppe mit einem Stabmixer pürieren, bis sie glatt ist. Mit Salz und Pfeffer abschmecken. Mit frischem Basilikum garnieren und heiß servieren.
-Querys: Vegan
-Zutaten: Zwiebel:Stk.:1
-Zutaten: Knoblauchzehe:Stk.:2
-Zutaten: Olivenöl:El.:2
-Zutaten: Gehackte Tomaten:ml:800
-Zutaten: Gemüsebrühe:ml:500
-Zutaten: Basilikum:Bund:1
-Zutaten: Salz:Priese:1
-Zutaten: Pfeffer:Priese:1
+Klassisches Tres Leches
+Schokoladen Tres Leches
+Kokos Tres Leches
+Erdbeer Tres Leches
+Café Tres Leches
+Klassische Churros
+Schokoladen Churros
+Vanille Churros
+Zimt Churros
+Gefüllte Churros
+Klassischer Flan Napolitano
+Schokoladen Flan Napolitano
+Kokos Flan Napolitano
+Erdbeer Flan Napolitano
+Café Flan Napolitano
+Klassische Erdbeer-Käsekuchen-Chimichangas
+Schokoladen Erdbeer-Käsekuchen-Chimichangas
+Vanille Erdbeer-Käsekuchen-Chimichangas
+Kokos Erdbeer-Käsekuchen-Chimichangas
+Café Erdbeer-Käsekuchen-Chimichangas
+Klassischer Mezcal Negroni
+Klassische Brezenknödel
+Brezenknödel mit Speck
+Brezenknödel mit Käse
+Vegetarische Brezenknödel
+Brezenknödel mit Pilzen
+Klassische Semmelknödel
+Semmelknödel mit Speck
+Semmelknödel mit Pilzen
+Semmelknödel mit Kräutern
+Semmelknödel mit Käse
+Klassischer Sauerbraten
+Rheinischer Sauerbraten
+Sauerbraten mit Rosinen
+Sauerbraten mit Lebkuchen
+Veganer Sauerbraten
+Klassische Rindsuppe
+Rindsuppe mit Markklößchen
+Rindsuppe mit Grießnockerl
+Rindsuppe mit Eierstich
+Rindsuppe mit Frittaten
+Klassische Faschierte Leibchen
+Mediterrane Faschierte Leibchen
+Pikante Faschierte Leibchen
+Faschierte Leibchen mit Käse
+Faschierte Leibchen mit Speck
+Vegane Linsenleibchen
+Vegane Kichererbsenleibchen
+Vegane Quinoaleibchen
+Vegane Süßkartoffelleibchen
+Vegane Pilzleibchen
+Klassischer Böhmischer Semmelknödel
+Böhmische Kartoffelknödel
+Böhmische Hefeknödel
+Böhmische Speckknödel
+Böhmische Leberknödel
+Klassischer Tiroler Speckknödel
+Tiroler Käseknödel
+Tiroler Spinatknödel
+Tiroler Semmelknödel
+Tiroler Wurstknödel
+Klassische Ungarische Semmelknödel
+Ungarische Kartoffelknödel
+Ungarische Spinatknödel
+Ungarische Hefeknödel
+Ungarische Wurstknödel
+Klassische Tacos al Pastor
+Tacos de Cochinita Pibil
+Tacos de Carne Asada
+Veganer Tacos mit Jackfruit
+Veganer Tacos mit Pilzen
+Klassische Tacos de Pescado
+Klassische Paloma
+Tequila Sunrise
+Margarita
+Mezcal Mule
+Michelada
+Virgin Paloma
+Agua Fresca de Pepino
+Horchata
+Agua de Jamaica
+Virgin Mojito
