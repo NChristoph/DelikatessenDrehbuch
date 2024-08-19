@@ -8,6 +8,41 @@
 
 }
 
+<link rel="canonical" href="https://www.delikatessen-drehbuch.com" />
+
+<script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "ItemList",
+            "itemListElement": [
+    @{
+        int position = 1;
+        foreach (var recipe in Model.Keys)
+        {
+           @:{
+                @: "@@type": "ListItem",
+                @: "position": @position,
+                @:  "url": "https://www.delikatessen-drehbuch.com/SelectedRecipe/Index/@(recipe.Id)"
+           @:}
+
+            
+            if (position < Model.Keys.Count)
+            {
+                @:,
+                position++;
+            }
+            
+
+        }
+
+
+    }
+
+        ]
+    }
+</script>
+
+
 
 
 
@@ -35,7 +70,7 @@
                     </a>
 
                     <hr class="grid-hr" style="margin:1px;opacity:1;border:0;" />
-                    @if(recipe.Key.LikeCount>1)
+                    @if (recipe.Key.LikeCount > 1)
                     {
                         <div class="grid-Category"> Gefällt @recipe.Key.LikeCount Benutzer</div>
 
@@ -46,7 +81,7 @@
 
                     }
 
-                    @if(recipe.Key.PreparationTime!=null)
+                    @if (recipe.Key.PreparationTime != null)
                     {
                         <div class="grid-LikeCount">@recipe.Key.PreparationTime min.<br /> Zubereitungszeit</div>
 
@@ -71,7 +106,7 @@
                         }
                         if (!@recipe.Value.Contains("Fleisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Vegetarisch"))
                         {
-                           <div class="grid-DeleteButton">@recipe.Value.First()</div>
+                            <div class="grid-DeleteButton">@recipe.Value.First()</div>
                         }
                     }
 

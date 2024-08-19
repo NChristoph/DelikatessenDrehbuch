@@ -1,8 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using System.Web
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -21,13 +18,13 @@ using System.Text.Unicode;
       {
     @{
         var keyWords = "";
-        var ingredient = "";
+        var ingredients = "";
         var names = Model.IngredientHandler.Select(x => x.Ingredient.Name);
         var keys = Model.QueryHandler;
         foreach (var ingre in names)
         {
             ingre.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df");
-            ingredient += "," + ingre;
+            ingredients += "," + ingre;
         }
 
         foreach(var key in keys)
@@ -50,7 +47,7 @@ using System.Text.Unicode;
         "totalTime": "@Model.Recipes.PreparationTime",
         "recipeCategory": "@Model.Recipes.Category",
         "keywords":"@Html.Raw(keyWords)",
-        "recipeIngredient":"@Html.Raw(ingredient.ToArray())",
+        "recipeIngredient":"@Html.Raw(ingredients)",
         "recipeInstructions": [
             {
                 "@@type": "HowToStep",
