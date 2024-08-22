@@ -44,6 +44,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 

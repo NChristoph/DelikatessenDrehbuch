@@ -1,6 +1,7 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
+Filter rezeptsuche noch anpassen das alle gut funktioniert
 
 Das nzeigen der zu bearbeitenden zahl im Rezeptbearbeiten fenster geht nicht bei 
 Dezimalstellen

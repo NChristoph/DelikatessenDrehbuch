@@ -81,7 +81,18 @@
 
                 <h1 class="grid-Title" style="font-family:'Lucida Handwriting';margin-bottom:1rem;text-align:center;color:#D4AF37">@Model.Recipes.Name</h1>
 
-                <img class="grid-Image" src="@Model.Recipes.ImagePath" title="Recipe Image" style="max-width:100%;" />
+                @{
+                    if (Model.Recipes.Description!=null)
+                    {
+                        <img class="grid-Image" alt="@Model.Recipes.Description" src="@Model.Recipes.ImagePath" title="@Model.Recipes.Name" style="max-width:100%;" />
+
+                    }
+                    else
+                    {
+                        <img class="grid-Image" alt="@Model.Recipes.Name" src="@Model.Recipes.ImagePath" title="@Model.Recipes.Name" style="max-width:100%;" />
+
+                    }
+                }
                 <div class="grid-KeyWords flex flexRow flexWrap flexJustifyContendCenter  minWidth100 maxWidth100 mobieleWidth90 mt-1">
                     <div class="flex flexRow flexWrap flexJustifyContendSpaceBetween  minWidth80 maxWidth80 mobieleWidth90">
                         @{

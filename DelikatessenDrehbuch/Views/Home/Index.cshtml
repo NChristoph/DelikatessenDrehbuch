@@ -9,6 +9,7 @@
 }
 
 <link rel="canonical" href="https://www.delikatessen-drehbuch.com" />
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
 
 <script type="application/ld+json">
         {
@@ -45,12 +46,20 @@
 
 
 
+@{
+    if (Model.Count == 0)
+    {
+        <h1  style="margin-top:30%;width:100%;display:flex;justify-content:center;">Kein Rezept gefunden.</h1>
 
+    }
+}
 
 <div class="minWidth100 flex flexJustifyContendCenter">
+   
     <div class="grid-Container maxWidth80 mobieleWidth90 ">
 
         @{
+           
             foreach (var recipe in Model)
             {
                 <div class="grid-Recipes grid-Item">
@@ -58,7 +67,16 @@
 
                         @if (!string.IsNullOrEmpty(recipe.Key.ImagePath))
                         {
-                            <img class="grid-Image" alt="@recipe.Key.Name" title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
+                            if(recipe.Key.Description!=null)
+                            {
+                                <img class="grid-Image" alt="@recipe.Key.Description" title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
+
+                            }
+                            else
+                            {
+                                <img class="grid-Image" alt="@recipe.Key.Name" title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
+
+                            }
                         }
                         else
                         {
