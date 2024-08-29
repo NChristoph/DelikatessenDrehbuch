@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Caching.Memory;
+using NuGet.Packaging;
 using System.Diagnostics;
 using System.Drawing.Text;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -19,13 +21,15 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly IMemoryCache _cache;
         private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helpfulMethods;
-        string[] importentKeyWords = { "vegan", "vegetarisch" };
+
+        private readonly List<string> importantKeyWordsList;
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext, HelpfulMethods helpfulMethods, IMemoryCache cache)
         {
             _logger = logger;
             _context = dbContext;
             _helpfulMethods = helpfulMethods;
             _cache = cache;
+            importantKeyWordsList = GetQueryListFromDb();
         }
 
 
@@ -60,11 +64,13 @@ namespace DelikatessenDrehbuch.Controllers
 
         private List<string> RemoveQuerys(List<string> splitedQuerys)
         {
+
+
             List<string> filtredSplitedQuerys = new();
 
             for (int i = 0; i < splitedQuerys.Count; i++)
             {
-                if (!importentKeyWords.Contains(splitedQuerys[i].ToLower()))
+                if (!importantKeyWordsList.Contains(splitedQuerys[i].ToLower()))
                     filtredSplitedQuerys.Add(splitedQuerys[i]);
             }
 
@@ -77,25 +83,93 @@ namespace DelikatessenDrehbuch.Controllers
             return _context.Querys.Select(x => x.Query.ToLower()).ToList();
         }
 
-        private List<QueryHandler> FindeRecipesByQuerys(List<string> splitedQuery)
+        private List<string> GetQuerysFromSplitedQuerys(List<string> splitedQuerys)
         {
-            List<QueryHandler> querySearchResults = new();
-            querySearchResults = _context.QueryHandler.Where(x => splitedQuery.Contains(x.Query.Query.ToLower())).Include(x => x.Recipe).Include(x => x.Query).ToList();
+            return importantKeyWordsList.Where(x => splitedQuerys.Contains(x.ToLower())).ToList();
+        }
+        private List<QueryHandler> GetQueryHandlersByQuerys(List<string> splitedQuerys)
+        {
+            var queryFilter = GetQuerysFromSplitedQuerys(splitedQuerys);
+            var querySearchResults = _context.QueryHandler.Where(x => queryFilter.Contains(x.Query.Query.ToLower()))
+                                                    .Include(x => x.Recipe)
+                                                    .Include(x => x.Query)
+                                                    .ToList();
+
             return querySearchResults;
         }
+        //TodoAuch wen eine zutrift sollte rezeptausgabe funktionieren prüfe den splittetQueryCount ps Du hast bei ein Paar gerichten die querys doppelt
 
-        private List<QueryHandler> FindRecipesByName(string query)
+        private List<QueryHandler> GroupeAndSortQueryList(List<QueryHandler> querySearchResults, List<string> splitedQuerys)
         {
+            var queryFilter = GetQuerysFromSplitedQuerys(splitedQuerys);
+            var groupedQueryhandler = querySearchResults.GroupBy(x => x.Recipe.Id).ToList();
+            List<QueryHandler > sortedQueryHandler = new ();
+            if (splitedQuerys.Count > 1)
+            {
+                foreach (var queryHandler in groupedQueryhandler)
+                {
+                    var selectQueryFromGroup = queryHandler.Select(x => x.Query.Query).ToList();
+                    int matchCount = selectQueryFromGroup.Count(query => queryFilter.Contains(query, StringComparer.OrdinalIgnoreCase));
+                    if (matchCount > 1)
+                    {
+                        sortedQueryHandler.Add(queryHandler.First());
+                    }
+                }
+            }
+            else
+            {
+                sortedQueryHandler=groupedQueryhandler.Select(x=>x.First()).ToList();
+            }
+            
+            
+
+            return sortedQueryHandler;
+        }
+
+        private List<QueryHandler> GetQueryHandlersByNameAndQuery(List<string> splitedQuery)
+        {
+            List<QueryHandler> querySearchResults = GetQueryHandlersByQuerys(splitedQuery);
+
+            var sortedQueryhandler= GroupeAndSortQueryList(querySearchResults, splitedQuery);
+            var nameFilter = RemoveQuerys(splitedQuery);
 
             List<QueryHandler> nameSearchResults = new();
-            var recipesFromDb = _context.Recipes.Where(x => x.Name.Contains(query.ToLower())).ToList();
-            nameSearchResults = _context.QueryHandler.Where(x => recipesFromDb.Contains(x.Recipe))
-                                                     .Include(x => x.Query)
-                                                     .GroupBy(x => x.Recipe.Id)
-                                                     .Select(x => x.First())
-                                                     .ToList();
-            return nameSearchResults;
+
+
+            var querys = RemoveQuerys(splitedQuery);
+            foreach (var filter in querys)
+            {
+
+                nameSearchResults.AddRange(_context.QueryHandler.Where(x => x.Recipe.Name.ToLower().Contains(filter))
+                                                                .Include(x => x.Recipe)
+                                                                .Include(x => x.Query)
+                                                                .ToList());
+            }
+
+
+
+            List<QueryHandler> finalFiltredList = new();
+
+            if(querySearchResults.Any())
+            {
+                finalFiltredList = nameSearchResults.Where(x => querySearchResults.Contains(x)).ToList();
+            }
+            else
+            {
+                finalFiltredList = nameSearchResults;
+            }
+           
+            if (!finalFiltredList.Any())
+            {
+                finalFiltredList = nameSearchResults;
+                finalFiltredList.AddRange(sortedQueryhandler);
+            }
+                
+
+
+            return finalFiltredList;
         }
+
 
         private List<string> GetQuerysplitedListToLower(string query)
         {
@@ -120,13 +194,6 @@ namespace DelikatessenDrehbuch.Controllers
             return handler;
         }
 
-        private List<QueryHandler> GetFinalFiltredList(List<QueryHandler> querySearchResults, List<string> splitedQuerys)
-        {
-            List<QueryHandler> finalList = new();
-            finalList = querySearchResults.Where(x => splitedQuerys.Any(w => x.Recipe.Name.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)).ToList();
-
-            return finalList;
-        }
 
 
         [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
@@ -137,62 +204,52 @@ namespace DelikatessenDrehbuch.Controllers
             List<QueryHandler> handlers;
             string cacheKey = $"{User.Identity.Name}_handlers_{query?.ToLower()}";
 
-            if (!_cache.TryGetValue(cacheKey, out handlers))
+
+            handlers = new();
+            if (string.IsNullOrEmpty(query))
             {
-                handlers = new();
-                if (string.IsNullOrEmpty(query))
+                if (_cache.TryGetValue(cacheKey, out handlers))
                 {
+                    var dictonaryFromCache = CreateDictonary(handlers);
+                    return View(dictonaryFromCache);
+                }
 
-                    if (isLoggedIn)
-                    {
-                        handlers = GetQueryHandlerByUserPreferences();
-                    }
-                    else
-                    {
-
-                        handlers = GetRandomRecipes();
-
-
-                    }
+                if (isLoggedIn)
+                {
+                    handlers = GetQueryHandlerByUserPreferences();
                 }
                 else
                 {
 
-                    if (isLoggedIn)
-                    {
-                        _helpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
-                    }
-
-                    List<string> splitedQuery = GetQuerysplitedListToLower(query);
-
-                    List<QueryHandler> querySearchResults = FindeRecipesByQuerys(splitedQuery);
-
-
-
-                    if (splitedQuery.Contains("vegan"))
-                    {
-                        splitedQuery = RemoveQuerys(splitedQuery);
-                        handlers = GetFinalFiltredList(querySearchResults, splitedQuery);
-                    }
-                    if (splitedQuery.Contains("vegetarisch"))
-                    {
-                        splitedQuery = RemoveQuerys(splitedQuery);
-                        handlers.AddRange(GetFinalFiltredList(querySearchResults, splitedQuery));
-                    }
-                    if (!querySearchResults.Any())
-                    {
-                        List<QueryHandler> nameSearchResults = FindRecipesByName(query);
-                        handlers = nameSearchResults.ToList();
-                    }
-
+                    handlers = GetRandomRecipes();
 
 
                 }
-                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)); // Setzt das Caching-Timeout auf 10 Minuten (anpassbar)
-
-                _cache.Set(cacheKey, handlers, cacheEntryOptions);
             }
-           
+            else
+            {
+
+                if (isLoggedIn)
+                {
+                    _helpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
+                }
+
+                List<string> splitedQuery = GetQuerysplitedListToLower(query);
+
+                handlers = GetQueryHandlersByNameAndQuery(splitedQuery);
+                //Todo:Vegan Mexikanisch funktionirt wieder nicht aber 3 querys gehen 
+
+                if (!handlers.Any())
+                {
+
+                }
+
+
+
+            }
+            var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)); // Setzt das Caching-Timeout auf 10 Minuten (anpassbar)
+
+            _cache.Set(cacheKey, handlers, cacheEntryOptions);
 
             var recipesAndQuerys = CreateDictonary(handlers);
             return View(recipesAndQuerys);
