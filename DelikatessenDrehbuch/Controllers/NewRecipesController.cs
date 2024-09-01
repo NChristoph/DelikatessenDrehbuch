@@ -63,7 +63,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Directory.CreateDirectory(path);
                 System.IO.File.Create(Path.Combine(path, "recipes.txt"));
             }
-
+            
             return RedirectToAction("Index");
         }
 
@@ -199,7 +199,7 @@ namespace DelikatessenDrehbuch.Controllers
             foreach (var directory in direktoryInfo)
             {
                 var subDirectory = Path.Combine(folderPath, directory);
-                var lines = System.IO.File.ReadAllLines(Path.Combine(subDirectory, "rexipes.txt"), Encoding.UTF8);
+                var lines = System.IO.File.ReadAllLines(Path.Combine(subDirectory, "recipes.txt"), Encoding.UTF8);
                 var image = Directory.GetFiles(subDirectory, "*.webp").FirstOrDefault();
                 string newPath = "";
                 if (image != null)
@@ -263,6 +263,11 @@ namespace DelikatessenDrehbuch.Controllers
                     {
                         var test = line.Split(":")[1].Trim();
                         currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
+                    }
+                    else if (line.StartsWith("Kalorien:"))
+                    {
+                        
+                        currentRecipe.Recipes.Calories= line.Split(':')[1].Trim();
                     }
                     if (line.StartsWith("Zutaten"))
                     {
@@ -391,9 +396,10 @@ namespace DelikatessenDrehbuch.Controllers
                 Preparation = newRecipes.Recipes.Preparation,
                 Category = newRecipes.Recipes.Category,
                 PreparationTime = newRecipes.Recipes.PreparationTime,
+                Description= newRecipes.Recipes.Description,
                 LikeCount = 0,
                 ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
-
+                Calories=newRecipes.Recipes.Calories
 
             };
 
