@@ -32,6 +32,11 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("_dashBoard",dashBoardModel);
         }
 
+        public IActionResult Premium()
+        {
+            return PartialView("_premiumUserPartialView");
+        }
+
      
         public IActionResult DeleteRecipes(int id)
         {

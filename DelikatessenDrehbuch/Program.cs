@@ -83,12 +83,7 @@ else
 
 
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var serviceProvider = scope.ServiceProvider;
-//    CreateRolls(serviceProvider, "Admin").Wait();
-//    CreateDefauldUser(serviceProvider, "Admin", "Delikatessen.Drehbuch@outlook.com").Wait();
-//}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

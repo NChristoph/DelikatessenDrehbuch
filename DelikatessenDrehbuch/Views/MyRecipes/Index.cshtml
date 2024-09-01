@@ -23,30 +23,42 @@
         if(User.IsInRole("Admin"))
         {
 
-                <div class="flexColumn">
-                    <a typeof="button" class="btn" onclick="loadSupportTicketsPartialView()">
-                        Support Tickets
-                    </a>
-                </div>
+                    <div class="flexColumn">
+                        <a typeof="button" class="btn" onclick="loadSupportTicketsPartialView()">
+                            Support Tickets
+                        </a>
+                    </div>
+
+                    <div class="flexColumn">
+                        <a typeof="button" class="btn" onclick="loadDashBoardPartialView()">
+                            Dashboard
+                        </a>
+                    </div>
+
+                    <div class="flexColumn">
+                        <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
+                            Add Recipes
+                        </a>
+                    </div>
 
                 <div class="flexColumn">
-                    <a typeof="button" class="btn" onclick="loadDashBoardPartialView()">
-                        Dashboard
-                    </a>
-                </div>
-
-                <div class="flexColumn">
-                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
-                        Add Recipes
-                    </a>
-                </div>
-
-            <div class="flexColumn">
                 <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
-                    Create Folder
-                </a>
-            </div>
+                        Create Folder
+                    </a>
+                </div>
+            
         }
+        if (User.IsInRole("PremiumUser"))
+        {
+                <div class="flexColumn">
+                <a typeof="button" class="btn" onclick="loadPremiumPartialView()">
+                        Premium Vorteile
+                    </a>
+                </div>
+        }
+
+
+
     }
 </div>
 
@@ -69,9 +81,13 @@
         function loadDashBoardPartialView() {
             $('#PartailaView').load("MyRecipes/DashBoard")
         }
-        function loadSupportTicketsPartialView()
-        {
+        function loadSupportTicketsPartialView(){
+
             $('#PartailaView').load("MyRecipes/LoadSupportTicketsPartialView")
+        }
+
+        function loadPremiumPartialView() {
+            $('#PartailaView').load("MyRecipes/Premium")
         }
 
         function deleteSupportMessage(id) {
