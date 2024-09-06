@@ -23,12 +23,14 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
         private readonly UserManager<IdentityUser> _userManager;
         private readonly EmailSender _emailSender;
         private readonly EmailSettings _emailSettings;
+        private readonly ILogger<ForgotPasswordModel> _logger;
 
-        public ForgotPasswordModel(UserManager<IdentityUser> userManager, EmailSender emailSender,IOptions<EmailSettings> emailSetings)
+        public ForgotPasswordModel(UserManager<IdentityUser> userManager, EmailSender emailSender, IOptions<EmailSettings> emailSetings, ILogger<ForgotPasswordModel> logger)
         {
             _userManager = userManager;
             _emailSender = emailSender;
             _emailSettings = emailSetings.Value;
+            _logger = logger;   
         }
 
         /// <summary>
@@ -67,7 +69,15 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
                 }
 
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, token = token }, protocol: HttpContext.Request.Scheme);
+                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));  // Token korrekt encodieren
+                var callbackUrl = Url.Page(
+                    "/Account/ResetPassword",
+                    null,
+                    new { area = "Identity", userId = user.Id, code = encodedToken },
+                    protocol: Request.Scheme);
+
+
+
                 // Send email with link to reset password
                 await _emailSender.SendEmailAsync(Input.Email, "Reset Password",
                     $"Please reset your password by <a href='{callbackUrl}'>clicking here</a>.");
@@ -79,6 +89,6 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
         }
 
 
-       
+
     }
 }

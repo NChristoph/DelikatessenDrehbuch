@@ -11,16 +11,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
 {
     public class ResetPasswordModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ILogger<ResetPasswordModel> _logger;
 
-        public ResetPasswordModel(UserManager<IdentityUser> userManager)
+        public ResetPasswordModel(UserManager<IdentityUser> userManager, ILogger<ResetPasswordModel> logger)
         {
             _userManager = userManager;
+            _logger = logger;
         }
 
         /// <summary>
@@ -49,7 +52,7 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            // [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
@@ -73,25 +76,41 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
 
         public IActionResult OnGet(string code = null)
         {
+            
+            Input = new InputModel();
+
             if (code == null)
             {
-                return BadRequest("A code must be supplied for password reset.");
+                return BadRequest("Ein Code muss für das Zurücksetzen des Passworts bereitgestellt werden.");
             }
-            else
+
+            // Decodiere den Token und setze ihn in das InputModel
+            try
             {
-                Input = new InputModel
-                {
-                    Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code))
-                };
-                return Page();
+                Input.Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+                _logger.LogInformation($"Decoded Token: {Input.Code}");  // Zum Testen
             }
+            catch (Exception ex)
+            {
+                _logger.LogError("Fehler beim Decodieren des Tokens: {Message}", ex.Message);
+                return BadRequest("Der Token ist ungültig oder konnte nicht decodiert werden.");
+            }
+
+            return Page();
         }
+
 
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
-                return Page();
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                foreach (var error in errors)
+                {
+                    _logger.LogError("Validation error: {Error}", error);
+                }
+                _logger.LogInformation("Email: {Email}, Code: {Code}", Input.Email, Input.Code);
+                return BadRequest(new { Errors = errors });
             }
 
             var user = await _userManager.FindByEmailAsync(Input.Email);
@@ -111,7 +130,7 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-            return Page();
+            return BadRequest(ModelState.ErrorCount);
         }
     }
 }
