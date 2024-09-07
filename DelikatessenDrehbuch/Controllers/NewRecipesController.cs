@@ -271,14 +271,22 @@ namespace DelikatessenDrehbuch.Controllers
                     }
                     if (line.StartsWith("Zutaten"))
                     {
-                        string[] ing = line.Split(":");
-                        IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
-                        ingredientHandler.Id = 0;
-                        ingredientHandler.Ingredient.Name = ing[1].Trim();
-                        ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
-                        ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
+                        try
+                        {
+                            string[] ing = line.Split(":");
+                            IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                            ingredientHandler.Id = 0;
+                            ingredientHandler.Ingredient.Name = ing[1].Trim();
+                            ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
+                            ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
 
-                        currentRecipe.IngredientHandler.Add(ingredientHandler);
+                            currentRecipe.IngredientHandler.Add(ingredientHandler);
+                        }
+                        catch
+                        {
+                            BadRequest($"Zutaten des Rezeptes: {currentRecipe.Recipes.Name} kannten nicht gespeichert werden , {line}");
+                        }
+                       
                     }
                     if (line.StartsWith("Query:"))
                     {
