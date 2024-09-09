@@ -11,6 +11,7 @@ Passwort zurücksetzen noch auf Funktionalität überprüfen.
 
 
 
+
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend
 
