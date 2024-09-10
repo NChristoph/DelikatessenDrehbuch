@@ -1,5 +1,7 @@
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Identity;
+using DelikatessenDrehbuch.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
@@ -9,6 +11,7 @@ using Polly;
 using Polly.Retry;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.Data.SqlClient;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,9 +48,22 @@ builder.Services.Configure<EmailSettings>(configuration.GetSection("EmailSetting
 builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
 builder.Services.AddMemoryCache();
+
+
+var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
+
+if (string.IsNullOrEmpty(stripeApiKey))
+{
+    throw new Exception("Stripe API Key is missing. Please set STRIPE_API_KEY environment variable.");
+}
+
+// Stripe API-Schlüssel festlegen
+StripeConfiguration.ApiKey = stripeApiKey;
+
+// Füge Dienste hinzu (z.B. für MVC/Controllers)
+builder.Services.AddControllersWithViews().AddNewtonsoftJson();
+
 var app = builder.Build();
-
-
 async Task CreateRolls(IServiceProvider serviceProvider, string roleName)
 {
     var roleManager = serviceProvider.GetService<RoleManager<IdentityRole>>();
