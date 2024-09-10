@@ -44,7 +44,7 @@ namespace DelikatessenDrehbuch.Controllers
             [HttpPost]
             public ActionResult Create()
             {
-                
+
                 var domain = "https://Delikatessen-Drehbuch.com";
                 var options = new SessionCreateOptions
                 {

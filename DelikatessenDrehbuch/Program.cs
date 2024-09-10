@@ -52,6 +52,8 @@ builder.Services.AddMemoryCache();
 
 var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
 
+//var stripeApiKey = "sk_test_51Pudp8FspvIIGBtcg4p4V0mIFyxOlA81LVgXVmEwLDvL9wC4K81SqHQHX5ORN870vQMPJwwodHFTvD1kL6JksKU600PJAdirM2";
+
 if (string.IsNullOrEmpty(stripeApiKey))
 {
     throw new Exception("Stripe API Key is missing. Please set STRIPE_API_KEY environment variable.");

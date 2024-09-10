@@ -32,6 +32,11 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("_dashBoard",dashBoardModel);
         }
 
+        public IActionResult PremiumUserPage()
+        {
+            return PartialView("_PremiumUserPage");
+        }
+
         public IActionResult Premium()
         {
             return PartialView("_premiumUserPartialView");

@@ -6,70 +6,91 @@
 
     ViewData["Title"] = "Mein Bereich";
 }
+@*
+TODO: Hier noch Layout anpassen *@
+<div class="col">
+    <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white" style="position:fixed;z-index:1000">
+        <div class="flexColumn">
+            <a class="btn" typeof="button" onclick="loadMyRecipes()">
+                Meine Rezepte
+            </a>
+        </div>
+        <div class="flexColumn">
+            <a typeof="button" class="btn" onclick="loadRecipesILike()">
+                Meine Rezeptbuch
+            </a>
+        </div>
 
-<div class="flexRowToColumn maxWidth100 mobieleWidth90 flexJustifyContendCenter" style="margin-top:30vh">
-   <div class="flexColumn">
-       <a class="btn" typeof="button" onclick="loadMyRecipes()">
-           Meine Rezepte
-       </a>
-   </div>
-   <div class="flexColumn">
-        <a typeof="button" class="btn" onclick="loadRecipesILike()">
-            Meine Rezeptbuch
-        </a>
-   </div>
-
-    @{
-        if(User.IsInRole("Admin"))
-        {
-
-                    <div class="flexColumn">
-                        <a typeof="button" class="btn" onclick="loadSupportTicketsPartialView()">
-                            Support Tickets
-                        </a>
-                    </div>
-
-                    <div class="flexColumn">
-                        <a typeof="button" class="btn" onclick="loadDashBoardPartialView()">
-                            Dashboard
-                        </a>
-                    </div>
-
-                    <div class="flexColumn">
-                        <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
-                            Add Recipes
-                        </a>
-                    </div>
+        @{
+            if (User.IsInRole("Admin"))
+            {
 
                 <div class="flexColumn">
-                <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
+                    <a typeof="button" class="btn" onclick="loadSupportTicketsPartialView()">
+                        Support Tickets
+                    </a>
+                </div>
+
+                <div class="flexColumn">
+                    <a typeof="button" class="btn" onclick="loadDashBoardPartialView()">
+                        Dashboard
+                    </a>
+                </div>
+
+                <div class="flexColumn">
+                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
+                        Add Recipes
+                    </a>
+                </div>
+
+                <div class="flexColumn">
+                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
                         Create Folder
                     </a>
                 </div>
-            
-        }
-        if (User.IsInRole("PremiumUser"))
-        {
+
+            }
+            if (User.IsInRole("PremiumUser"))
+            {
                 <div class="flexColumn">
-                <a typeof="button" class="btn" onclick="loadPremiumPartialView()">
+                    <a typeof="button" class="btn" onclick="loadPremiumPartialView()">
                         Premium Vorteile
                     </a>
                 </div>
+            }
+            if (!User.IsInRole("PremiumUser"))
+            {
+                <div class="flexColumn">
+                    <a typeof="button" class="btn" onclick="loadAboPage()">
+                        Premium Vorteile
+                    </a>
+                </div>
+            }
+
+
+
+
         }
+    </div>
+    <div class="flexRow justify-content-center mobieleWidth90 minWidth100">
+        <div class="flex flexJustifyContendCenter mt-5" id="PartailaView"></div>
 
+    </div>
 
-
-    }
 </div>
 
-<div id="PartailaView"></div>
+
+
 
 @section Scripts {
     <script>
 
-        $('#PartailaView').load("MyRecipes/LoadMyRecipes")
+        function loadAboPage() {
+            $('#PartailaView').load("MyRecipes/PremiumUserPage")
+
+        }
         function loadMyRecipes() {
-            
+
             $('#PartailaView').load("MyRecipes/LoadMyRecipes")
         }
 
@@ -81,7 +102,7 @@
         function loadDashBoardPartialView() {
             $('#PartailaView').load("MyRecipes/DashBoard")
         }
-        function loadSupportTicketsPartialView(){
+        function loadSupportTicketsPartialView() {
 
             $('#PartailaView').load("MyRecipes/LoadSupportTicketsPartialView")
         }
@@ -91,13 +112,13 @@
         }
 
         function deleteSupportMessage(id) {
-            
+
             $.ajax({
                 type: "POST",
                 url: "/Support/DeleteSupportTicket",
                 data: { id: id },
                 success: function (response) {
-                   
+
                     $('#PartailaView').html(response);
                 }
 
