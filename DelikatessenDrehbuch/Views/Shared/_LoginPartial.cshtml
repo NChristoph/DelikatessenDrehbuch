@@ -2,7 +2,7 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
-<ul class="navbar-nav">
+<ul class="navbar-nav minWidth100 flexJustifyContendCenter">
     @if (SignInManager.IsSignedIn(User))
     {
         @* <li class="nav-item">
@@ -16,6 +16,7 @@
                 <button type="submit" class="nav-link btn btn-link " style="color:#FFFDD0">Logout</button>
             </form>
         </li>
+        
     }
     else
     {
@@ -25,5 +26,11 @@
         <li class="nav-item">
             <a class="nav-link " asp-area="Identity" asp-page="/Account/Register" style="color:#FFFDD0">Registrieren</a>
         </li>
+
+       
     }
+
+
 </ul>
+
+

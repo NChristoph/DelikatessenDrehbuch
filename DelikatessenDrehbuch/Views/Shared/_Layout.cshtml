@@ -24,7 +24,7 @@
 
 <body>
     @Html.AntiForgeryToken()
-    <div class="minWidth100 mb-1" style="position:fixed;background-color:white;">
+    <div class="minWidth100 " style="position:fixed;background-color:white;height:28vh;z-index:100">
         <header>
             <nav class="navbar-expand-sm navbar-toggleable-sm navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px">
 
@@ -37,8 +37,17 @@
                     </div>
                 </div>
 
-                <div class="container-fluid " style="width:auto;margin-left:auto;align-self:center">
+                <div class="container-fluid flexRow" style="width:100%;margin-left:auto;align-self:center">
 
+                    @{
+                        if(!string.IsNullOrEmpty(User.Identity.Name))
+                        {
+                            <div class="nav-item flex flexAlginItemCenter mobile-hidden" style="margin-right:auto">
+                                <a class="nav-link" style="color:#FFFDD0;font-size:small">@User.Identity.Name</a>
+                            </div>
+                        }
+                    }
+                    
                     <button class="navbar-toggler text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation" style="height:40px;">
                         Menü
@@ -62,6 +71,15 @@
                         </ul>
 
                     </div>
+
+                    @{
+                        if (User.IsInRole("PremiumUser"))
+                        {
+                            <div class="nav-item mobile-hidden" style="margin-left:auto">
+                                <a class="nav-link" style="color:#FFFDD0">Premium</a>
+                            </div>
+                        }
+                    }
 
                 </div>
 
@@ -98,6 +116,8 @@
                     </div>
 
                 </form>
+
+                
             </div>
 
         </div>
