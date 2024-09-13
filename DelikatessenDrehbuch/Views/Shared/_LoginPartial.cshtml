@@ -16,6 +16,12 @@
                 <button type="submit" class="nav-link btn btn-link " style="color:#FFFDD0">Logout</button>
             </form>
         </li>
+        if (User.IsInRole("Admin"))
+        {
+            <li class="nav-item">
+                <a class="nav-link " asp-controller="Admin" asp-action="Index" style="color:#FFFDD0">Admin Controll</a>
+            </li>
+        }
         
     }
     else
@@ -26,6 +32,8 @@
         <li class="nav-item">
             <a class="nav-link " asp-area="Identity" asp-page="/Account/Register" style="color:#FFFDD0">Registrieren</a>
         </li>
+
+        
 
        
     }

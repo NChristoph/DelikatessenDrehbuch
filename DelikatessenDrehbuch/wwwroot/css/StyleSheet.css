@@ -1,5 +1,5 @@
 ﻿main {
-  margin-top:28vh;
+    margin-top: 28vh;
 }
 
 .textColoreCream {
@@ -62,6 +62,11 @@ tr:nth-child(odd) {
 
 /*#region FlexBox */
 
+.flex-item {
+    align-self: flex-start;
+    flex-basis: 49%; /* Festlegt, dass jedes Element 50% des Containers einnimmt */
+}
+
 .ingredient-row {
     display: flex;
     flex-direction: row;
@@ -75,11 +80,10 @@ tr:nth-child(odd) {
     justify-content: center;
     align-content: center;
     gap: 10px;
-   
 }
 
-   
-   
+
+
 
 .ingredient-name {
     flex: 2;
@@ -87,7 +91,6 @@ tr:nth-child(odd) {
 
 .ingredient-amount {
     flex: 1;
-    
 }
 
 .dropdown {
@@ -447,9 +450,10 @@ tr:nth-child(odd) {
     grid-area: PreparationTime;
 }
 
-.grid-Calories{
-    grid-area:Calories;
+.grid-Calories {
+    grid-area: Calories;
 }
+
 .grid-Likebutton {
     grid-area: LikeButton;
 }
@@ -505,7 +509,10 @@ tr:nth-child(odd) {
 /*#endregion Grid*/
 
 /*#region @Media*/
-@media(max-width:920px) {
+@media(min-width: 459px) {
+    .desktop-Hidden {
+        display: none !important;
+    }
 }
 
 
@@ -514,6 +521,7 @@ tr:nth-child(odd) {
     body {
         overflow-x: hidden;
     }
+
 
     .grid-Container {
         display: grid;
@@ -530,29 +538,32 @@ tr:nth-child(odd) {
     html {
         font-size: 16px;
     }
+
     .mobile-hidden {
         display: none;
     }
 
-    .mobile-aktive{
-        display:unset;
+    .mobile-aktive {
+        display: unset;
     }
 
-    .mobilehigth60px{
-        height:60px;
+    .mobilehigth60px {
+        height: 60px;
     }
 
     .ingredient-row {
         flex-direction: column;
         align-items: stretch;
     }
-    .ingredient-name-row{
-        flex:2;
+
+    .ingredient-name-row {
+        flex: 2;
     }
-    .ingredient-deteils-row{
-        flex:3;
-        flex-direction:row;
-        justify-content:flex-start;
+
+    .ingredient-deteils-row {
+        flex: 3;
+        flex-direction: row;
+        justify-content: flex-start;
     }
 
     .flexRowToColumn {

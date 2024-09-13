@@ -1,0 +1,180 @@
+﻿@model AdminControllerModel
+
+<div class=" minWidth100 flex flexJustifyContendCenter" style="height:100vh">
+    <div class="mobieleWidth90 minWidth90 Bg-Cream flexColumn">
+        @* Suportmassage div *@
+        <div>
+            <div class="accordion accordion-flush mt-3  Border-Gold" id="accordionFlushSupport">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed " type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseSupport" aria-expanded="true" aria-controls="flush-collapseOne">
+                            <span class="minWidth100" style="text-align:center">Support Messages</span>
+                        </button>
+                    </h2>
+                    <div id="flush-collapseSupport" class="accordion-collapse collapse" data-bs-parent="#accordionFlushSupport">
+                        <table class="mobile-hidden minWidth100">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>TypeId</th>
+                                    <th>Email</th>
+                                    <th>Message</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            @{
+                                foreach (var supportMessage in Model.SupportMessage)
+                                {
+                                        <tbody>
+                                            <tr>
+                                                <td>@supportMessage.Type</td>
+                                                <td>@supportMessage.TypeId</td>
+                                                <td>@supportMessage.SenderEmail</td>
+                                                <td>
+                                                    <a class="btn btn-primary" typeof="Button" title="ReadButton" onclick="MessageModalShow('@supportMessage.Message.ToString().Trim()')">Nachricht Anzeigen</a>
+                                                </td>
+                                                <td>
+                                                    <a asp-route-id="@supportMessage.Id" asp-controller="Admin" asp-action="DeleteSupportTicket" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1"> Löschen</a>
+                                                </td>
+                                            </tr>
+
+                                        </tbody>
+                                }
+                            }
+
+
+                        </table>
+
+
+                        <div class="flexColumn mobieleWidth90 mobile-aktive desktop-Hidden">
+                            @{
+                                foreach (var supportMessage in Model.SupportMessage)
+                                {
+                                        <div class="card mobieleWidth100">
+
+                                            <div class="card-header">
+                                                @supportMessage.SenderEmail
+                                            </div>
+                                            <div class="card-body">
+                                                @supportMessage.Type
+                                                <hr />
+                                                @supportMessage.TypeId
+                                                <hr />
+                                                @supportMessage.Message
+                                            </div>
+                                            <div class="card-footer flex flexJustifyContendEnd">
+                                                <a asp-route-id="@supportMessage.Id" asp-controller="Admin" asp-action="DeleteSupportTicket" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1;"> Löschen</a>
+                                            </div>
+
+                                        </div>
+                                }
+
+
+                            }
+
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        @*Daschbord Div *@
+        <div class="flexRowToColumn minWidth100 mobieleWidth100 flexJustifyContendSpaceBetween">
+            <div class="accordion accordion-flush mt-3 Border-Gold  mobieleWidth100 flex-item" id="accordionFlushUser">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed " type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseUser" aria-expanded="true" aria-controls="flush-collapseOne">
+                            <span class="minWidth100" style="text-align:center">Users</span>
+                        </button>
+                    </h2>
+                    <div id="flush-collapseUser" class="accordion-collapse collapse" data-bs-parent="#accordionFlushUser">
+                        <div class="col  mobieleWidth100 m-1">
+                            <div class="card">
+                                <div class="card-header">
+                                    User:
+                                </div>
+                                <div class="card-body">
+                                    Es existieren @Model.UserCount Benuzer.<br />
+                                    Davon @Model.PremiumUser PremiumUser
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="accordion accordion-flush mt-3 Border-Gold  mobieleWidth100 flex-item" id="accordionFlushRecipes">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed " type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseRecipes" aria-expanded="true" aria-controls="flush-collapseOne">
+                            <span class="minWidth100" style="text-align:center">Rezepte</span>
+                        </button>
+                    </h2>
+                    <div id="flush-collapseRecipes" class="accordion-collapse collapse" data-bs-parent="#accordionFlushRecipes">
+                        <div class="col m-1">
+                            <div class="card">
+                                <div class="card-header">
+                                    Rezeptanzahl:
+                                </div>
+                                <div class="card-body">
+                                    Es befinden sich @Model.Recipes.Count() Rezepte in der Datenbank
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="accordion accordion-flush mt-3  Border-Gold" id="accordionFlushAdditOrDeliteRecipe">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed " type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseAdditOrDeliteRecipe" aria-expanded="true" aria-controls="flush-collapseOne">
+                        <span class="minWidth100" style="text-align:center">Rezept bearbeiten oder löschen</span>
+                    </button>
+                </h2>
+                <div id="flush-collapseAdditOrDeliteRecipe" class="accordion-collapse collapse" data-bs-parent="#accordionFlushAdditOrDeliteRecipe">
+                    <div class="flexRow mt-2  flexJustifyContendSpaceBetween">
+                        
+                        <input id="recipeSearch" class="m-1" style="flex-basis:55%" placeholder="RezeptId oder Name" />
+                        <button onclick="loadAdditOrDeliteRecipePartialView()" class=" m-1 btn bgRed Border-Gold" style="flex-basis:38%;color:white">Rezept suchen</button>
+                       
+                    </div>
+                    <div id="AdditOrDeliteRecipePartialView"></div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+
+
+
+
+
+<script>
+
+    function loadAdditOrDeliteRecipePartialView(){
+        var recipeSearch = $('#recipeSearch').val();
+        $('#AdditOrDeliteRecipePartialView').load("Admin/AdditOrDeliteRecipePartialView?query="+recipeSearch);
+    }
+
+    function MessageModalShow(message) {
+
+        $('#ShowMessage').modal('show');
+        var messages = document.getElementById("AdminSupportMessage");
+        messages.textContent = message;
+    }
+</script>

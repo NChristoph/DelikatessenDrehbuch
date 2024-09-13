@@ -28,7 +28,7 @@ namespace DelikatessenDrehbuch.Controllers
         public IActionResult CreatSupportMessage([FromBody] SupportMessage message)
         {
             if (message == null)
-                return BadRequest();
+                return BadRequest("No Message input");
 
             _context.SupportMessage.Add(message);
             _context.SaveChanges();
@@ -36,20 +36,6 @@ namespace DelikatessenDrehbuch.Controllers
             return Ok();
         }
 
-        public IActionResult DeleteSupportTicket(int id)
-        {
-            if (id == 0)
-                return BadRequest();
-            var supportMessageFromDb = _context.SupportMessage.SingleOrDefault(x => x.Id == id);
-
-            if (supportMessageFromDb == null)
-                return BadRequest();
-
-            _context.Remove(supportMessageFromDb);
-            _context.SaveChanges();
-
-            var newSupportMessageFromDb = _context.SupportMessage.ToList();
-            return PartialView("~/Views/MyRecipes/_AdminSupportMessage.cshtml", newSupportMessageFromDb);
-        }
+      
     }
 }

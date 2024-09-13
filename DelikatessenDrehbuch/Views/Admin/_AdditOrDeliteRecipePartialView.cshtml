@@ -1,0 +1,46 @@
+﻿@model List<Recipes>
+
+
+@{
+    if(!Model.Any())
+    {
+        <h3>Kein Rezept Gefunden</h3>
+    }
+    foreach (var recipes in Model)
+    {
+            <ul style="list-style-type:none;padding:0">
+                <li>
+                    <div class="flexRow flexAlginItemCenter Border-Gold m-1 p-3">
+                        <div class="m-1" style="flex-basis:50%">@recipes.Name</div>
+                        <button  data-bs-toggle="modal" data-bs-target="#deleteModal-@recipes.Id" class="m-1 bgRed Border-Gold" style="color:white">Löschen</button>
+                        <button onclick="" class="m-1 Bg-Cream Border-Gold">Bearbeiten</button>
+                    </div>
+                </li>
+            </ul>
+
+        <div class="modal fade" id="deleteModal-@recipes.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">@recipes.Name</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Rezept wirklich entgültig löschen? @recipes.Id
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <form asp-route-id="@recipes.Id" asp-controller="Admin" asp-action="DeleteRecipes">
+                            <button data-bs-dismiss="modal" type="submit" href="#" class="btn btn-primary">Löschen</button>
+                        </form>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+
+
