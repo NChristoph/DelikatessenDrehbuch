@@ -1,7 +1,9 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -12,12 +14,13 @@ namespace DelikatessenDrehbuch.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
+        private readonly HelpfulMethods _helpfulMethods;
 
-        public AdminController(ApplicationDbContext context, IMemoryCache cache)
+        public AdminController(ApplicationDbContext context, IMemoryCache cache,HelpfulMethods helpfulMethods)
         {
             _context = context;
             _cache = cache;
-
+            _helpfulMethods = helpfulMethods;
         }
         public IActionResult Index()
         {
@@ -33,22 +36,28 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
-
-        public IActionResult DeleteSupportTicket(int id)
+        public IActionResult EditRecipesPartialView(int id)
         {
-            if (id == 0)
-                return BadRequest("No Id Found");
-            var supportMessageFromDb = _context.SupportMessage.SingleOrDefault(x => x.Id == id);
+            var fullRecipes = _helpfulMethods.GetFullRecipeById(_context,id);  
+            return View("EditRecipes",fullRecipes);
+        }
+        public IActionResult Test(int id)
+        {
+            DropdownModel dropdownModel = new DropdownModel();
+            dropdownModel.IngredientHandler = new IngredientHandlerModel();
+            dropdownModel.Measure=_context.Metrics.ToList();
+            dropdownModel.Index=id;
 
-            if (supportMessageFromDb == null)
-                return BadRequest("No Message Fund");
 
-            _context.Remove(supportMessageFromDb);
-            _context.SaveChanges();
+            return PartialView("_IngredientPartialView", dropdownModel);
+        }
 
-
+        //TODO:RezeptBearbeiten noch machen
+        public IActionResult EditeRecipes(FullRecipes fullRecipes)
+        {
             return RedirectToAction("Index");
         }
+       
 
        // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult AdditOrDeliteRecipePartialView(string query)
@@ -100,6 +109,22 @@ namespace DelikatessenDrehbuch.Controllers
 
             return RedirectToAction("Index");
 
+        }
+
+        public IActionResult DeleteSupportTicket(int id)
+        {
+            if (id == 0)
+                return BadRequest("No Id Found");
+            var supportMessageFromDb = _context.SupportMessage.SingleOrDefault(x => x.Id == id);
+
+            if (supportMessageFromDb == null)
+                return BadRequest("No Message Fund");
+
+            _context.Remove(supportMessageFromDb);
+            _context.SaveChanges();
+
+
+            return RedirectToAction("Index");
         }
 
 

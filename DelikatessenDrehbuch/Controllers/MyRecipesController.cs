@@ -57,10 +57,6 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("_MyRecipesPartialView", recipesFromLikes);
         }
 
-        public IActionResult LoadSupportTicketsPartialView()
-        {
-            var supportMessagesFromDb=_dbcontext.SupportMessage.ToList();
-            return PartialView("_AdminSupportMessage", supportMessagesFromDb);
-        }
+       
     }
 }

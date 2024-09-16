@@ -2,21 +2,24 @@
 
 
 @{
-    if(!Model.Any())
+    if (!Model.Any())
     {
         <h3>Kein Rezept Gefunden</h3>
     }
     foreach (var recipes in Model)
     {
-            <ul style="list-style-type:none;padding:0">
-                <li>
-                    <div class="flexRow flexAlginItemCenter Border-Gold m-1 p-3">
-                        <div class="m-1" style="flex-basis:50%">@recipes.Name</div>
-                        <button  data-bs-toggle="modal" data-bs-target="#deleteModal-@recipes.Id" class="m-1 bgRed Border-Gold" style="color:white">Löschen</button>
-                        <button onclick="" class="m-1 Bg-Cream Border-Gold">Bearbeiten</button>
-                    </div>
-                </li>
-            </ul>
+        <ul style="list-style-type:none;padding:0">
+            <li>
+                <div class="flexRow flexAlginItemCenter Border-Gold m-1 p-3">
+                    <div class="m-1" style="flex-basis:50%">@recipes.Name</div>
+                    <button data-bs-toggle="modal" data-bs-target="#deleteModal-@recipes.Id" class="m-1 bgRed Border-Gold" style="color:white">Löschen</button>
+                    <form asp-controller="Admin" asp-action="EditRecipesPartialView" asp-route-id="@recipes.Id">
+                        <button  type="submit" class="m-1 Bg-Cream Border-Gold">Bearbeiten</button>
+                    </form>
+
+                </div>
+            </li>
+        </ul>
 
         <div class="modal fade" id="deleteModal-@recipes.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -29,18 +32,18 @@
                         Rezept wirklich entgültig löschen? @recipes.Id
                     </div>
                     <div class="modal-footer">
+
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <form asp-route-id="@recipes.Id" asp-controller="Admin" asp-action="DeleteRecipes">
                             <button data-bs-dismiss="modal" type="submit" href="#" class="btn btn-primary">Löschen</button>
                         </form>
-                       
+
                     </div>
                 </div>
             </div>
         </div>
     }
 }
-
 
 
 

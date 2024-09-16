@@ -1,0 +1,155 @@
+﻿@model FullRecipes
+
+@*TODO:ModelBinding und Rezept Bearbeitten noch machen*@
+
+<style>
+    #fileInput {
+        display: none;
+    }
+
+    /*  #fileLable {
+                                                    background-color: aqua;
+                                                    color: white;
+                                                    padding: 10px;
+                                                    border-radius:5px;
+                                                    cursor:pointer;
+                                                } */
+</style>
+
+<div class="minWidth90 mobieleWidth90 flexColumn flexJustifyContendCenter Bg-Cream">
+    <form asp-controller="Admin" asp-action="EditeRecipes">
+
+        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Id" hidden />
+
+        <div class="flexRow minWidth90 flexJustifyContendCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Rezept Name :</p>
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Name" />
+
+        </div>
+        <div class="flexRow minWidth90 flexJustifyContendCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Rezept Kategory :</p>
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Category" />
+
+        </div>
+        <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
+            <p style="margin-top:1rem;"> Zubereitung :</p>
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" asp-for="@Model.Recipes.Preparation"> </textarea>
+
+        </div>
+
+        <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
+            <p style="margin-top:1rem">Beschreibung :</p>
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" asp-for="@Model.Recipes.Description"> </textarea>
+
+        </div>
+        <div class="flexRow minWidth90 flexJustifyContendCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Kalorien: </p>
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Calories" />
+
+        </div>
+
+        <div class="flexRow minWidth90 flexJustifyContendCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Zubereitungszeit </p>
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.PreparationTime" />
+
+        </div>
+
+        <div class="flexRow minWidth90 mobieleWidth90 flexJustifyContendCenter flexAlginItemCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Foto : </p>
+            <input id="fileInput" style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;" class="form-control-file" name="Recipes.FormFile" type="file" asp-for="@Model.Recipes.FormFile" />
+            <label class="btn bgRed Border-Gold" style="color:white;text-align:center" id="fileLable" for="fileInput">Foto Auswählen</label>
+
+        </div>
+
+
+        <div id="IngredientContainer">
+
+
+            @{
+                for (int i = 0; i < Model.IngredientHandler.Count; i++)
+                {
+                    var dropdownModel = new DropdownModel
+                {
+                    IngredientHandler = Model.IngredientHandler[i],
+                    Measure = Model.Measure,
+                    Index = i
+
+                };
+
+                    // Übergibt den Index korrekt in die PartialView
+                                    @Html.Partial("_IngredientPartialView", dropdownModel, new ViewDataDictionary(ViewData) { { "Index", i } })
+                }
+
+            }
+
+        </div>
+
+
+        <a href="#" type="button" class="btn btn-primary" id="addRow">AddRow</a>
+
+
+
+
+
+
+
+        <button class="btn btn-primary" type="submit">Test</button>
+    </form>
+
+</div>
+
+@section Scripts {
+    <script>
+        
+
+       
+        
+        $("#addRow").click(function () {
+            var test = document.getElementsByName("partial").length;
+           
+            debugger;
+            $.ajax({
+                url: "/Admin/Test",
+                type:'GET',
+                data: { id: test },
+                cache: false,
+                success: function (html) {
+                    $('#IngredientContainer').append(html);
+
+                }
+
+            });
+            return false;
+        });
+
+        // function AddRow() {
+        //     // Finde das versteckte Template
+        //     var template = document.getElementById("hiddenIngredientTemplate").innerHTML;
+
+        //     // Ersetze den Platzhalter-Index (0) durch den aktuellen Index
+        //     var newRow = template.replace(/IngredientHandler\[0\]/g, 'IngredientHandler[' + rowIndex + ']')
+        //         .replace(/hiddenUnit_0/g, 'hiddenUnit_' + rowIndex)
+        //         .replace(/unitDropdown_0/g, 'unitDropdown_' + rowIndex)
+        //         .replace(/dropdownMenu_0/g, 'dropdownMenu_' + rowIndex);
+
+        //     // Füge die neue Zeile in den Container ein
+        //     document.getElementById("IngredientContainer").append(template);
+
+        //     // Inkrementiere den Index für die nächste Zeile
+        //     rowIndex++;
+        // }
+        function DeleteRow(html) {
+
+            var first = html.parentNode;
+            var second = first.parentNode.remove();
+
+
+        }
+
+    </script>
+}
+
+
+
+
+
