@@ -109,7 +109,7 @@
            
             debugger;
             $.ajax({
-                url: "/Admin/Test",
+                url: "/Admin/AddIngredientRow",
                 type:'GET',
                 data: { id: test },
                 cache: false,
@@ -122,22 +122,7 @@
             return false;
         });
 
-        // function AddRow() {
-        //     // Finde das versteckte Template
-        //     var template = document.getElementById("hiddenIngredientTemplate").innerHTML;
-
-        //     // Ersetze den Platzhalter-Index (0) durch den aktuellen Index
-        //     var newRow = template.replace(/IngredientHandler\[0\]/g, 'IngredientHandler[' + rowIndex + ']')
-        //         .replace(/hiddenUnit_0/g, 'hiddenUnit_' + rowIndex)
-        //         .replace(/unitDropdown_0/g, 'unitDropdown_' + rowIndex)
-        //         .replace(/dropdownMenu_0/g, 'dropdownMenu_' + rowIndex);
-
-        //     // Füge die neue Zeile in den Container ein
-        //     document.getElementById("IngredientContainer").append(template);
-
-        //     // Inkrementiere den Index für die nächste Zeile
-        //     rowIndex++;
-        // }
+       
         function DeleteRow(html) {
 
             var first = html.parentNode;

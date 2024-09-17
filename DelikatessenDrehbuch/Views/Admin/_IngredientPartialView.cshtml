@@ -13,20 +13,24 @@
         <input class="form-control ingredient-amount" step="any" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="IngredientHandler[@Model.Index].Quantity.Quantitys" placeholder="Mänge" />
 
         <div class="ingredient-unit">
-            <input type="hidden" name="IngredientHandler[@Model.Index].Measure.UnitOfMeasurement" id="hiddenUnit_@Model.Index" value="@Model.IngredientHandler.Measure.UnitOfMeasurement" />
+           
 
             @{
                 if (!string.IsNullOrEmpty(Model.IngredientHandler.Measure.UnitOfMeasurement))
                 {
-                        <div id="unitDropdown_@Model.Index" class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
-                            @Model.IngredientHandler.Measure.UnitOfMeasurement
-                        </div>
+                    <input type="hidden" name="IngredientHandler[@Model.Index].Measure.UnitOfMeasurement" id="hiddenUnit_@Model.Index" value="@Model.IngredientHandler.Measure.UnitOfMeasurement" />
+
+                            <div id="unitDropdown_@Model.Index" class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
+                                @Model.IngredientHandler.Measure.UnitOfMeasurement
+                            </div>
                 }
                 else
                 {
-                        <div id="unitDropdown_@Model.Index" class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
-                            Stk.
-                        </div>
+                    <input type="hidden" name="IngredientHandler[@Model.Index].Measure.UnitOfMeasurement" id="hiddenUnit_@Model.Index" value="Stk." />
+
+                            <div id="unitDropdown_@Model.Index"  class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
+                                Stk.
+                            </div>
                 }
                
             }
@@ -53,6 +57,8 @@
 
 
 <script>
+
+   
     function openDropdown(index,text) {
         
         var dropdown = document.getElementById('unitDropdown_' + index);
