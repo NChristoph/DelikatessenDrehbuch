@@ -24,13 +24,13 @@ TODO: Hier noch Layout anpassen *@
         @{
             if (User.IsInRole("Admin"))
             {
-                <div class="flexColumn">
+                <div class="flexColumn mobile-hidden">
                     <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
                         Add Recipes
                     </a>
                 </div>
 
-                <div class="flexColumn">
+                <div class="flexColumn mobile-hidden">
                     <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
                         Create Folder
                     </a>

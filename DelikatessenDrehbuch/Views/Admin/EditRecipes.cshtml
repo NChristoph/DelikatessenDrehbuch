@@ -7,13 +7,6 @@
         display: none;
     }
 
-    /*  #fileLable {
-                                                    background-color: aqua;
-                                                    color: white;
-                                                    padding: 10px;
-                                                    border-radius:5px;
-                                                    cursor:pointer;
-                                                } */
 </style>
 
 <div class="minWidth90 mobieleWidth90 flexColumn flexJustifyContendCenter Bg-Cream">
@@ -76,8 +69,8 @@
 
                 };
 
-                    // Übergibt den Index korrekt in die PartialView
-                                    @Html.Partial("_IngredientPartialView", dropdownModel, new ViewDataDictionary(ViewData) { { "Index", i } })
+
+                    @Html.Partial("_IngredientPartialView", dropdownModel, new ViewDataDictionary(ViewData) { { "Index", i } })
                 }
 
             }
@@ -100,17 +93,17 @@
 
 @section Scripts {
     <script>
-        
 
-       
-        
+
+
+
         $("#addRow").click(function () {
             var test = document.getElementsByName("partial").length;
-           
+
             debugger;
             $.ajax({
                 url: "/Admin/AddIngredientRow",
-                type:'GET',
+                type: 'GET',
                 data: { id: test },
                 cache: false,
                 success: function (html) {
@@ -122,7 +115,7 @@
             return false;
         });
 
-       
+
         function DeleteRow(html) {
 
             var first = html.parentNode;

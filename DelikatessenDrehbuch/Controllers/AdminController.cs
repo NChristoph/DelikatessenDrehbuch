@@ -1,4 +1,5 @@
-﻿using DelikatessenDrehbuch.Data;
+﻿using Azure.Storage.Blobs;
+using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Polly;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -16,6 +19,10 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
         private readonly HelpfulMethods _helpfulMethods;
+
+        private readonly string _connectionString = "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/";
+        private readonly string _containerName = "picdelikatessendrehbuch";
+        private readonly string _azureAcoutName = "blobdelikatessendrehbuch";
 
         public AdminController(ApplicationDbContext context, IMemoryCache cache, HelpfulMethods helpfulMethods)
         {
@@ -37,54 +44,226 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
-        public IActionResult EditRecipesPartialView(int id)
+        public IActionResult AddNewRecipes()
         {
-            var fullRecipes = _helpfulMethods.GetFullRecipeById(_context, id);
-            return View("EditRecipes", fullRecipes);
-        }
-        public IActionResult AddIngredientRow(int id)
-        {
-            DropdownModel dropdownModel = new DropdownModel();
-            dropdownModel.IngredientHandler = new IngredientHandlerModel();
-            dropdownModel.Measure = _context.Metrics.ToList();
-            dropdownModel.Index = id;
-
-
-            return PartialView("_IngredientPartialView", dropdownModel);
+            return View(new NewRecipesMobileUpload());
         }
 
-        //TODO:Bei keiner auswahl in dropdown einen defoult
-        //wert übergeben und Läschen von rezept Funktioniert  nicht ansehen
-        public IActionResult EditeRecipes(FullRecipes fullRecipes)
+        #region BlobAzure_SaveImage
+        public void UploadMsToAzureBlop(IFormFile file)
         {
-            var recipesFromDb = _context.Recipes.SingleOrDefault(x => x.Id == fullRecipes.Recipes.Id);
-            var recipeHandlersFromDb = _context.RecipesHandlers.Where(x => x.Recipe.Id == recipesFromDb.Id)
-                                                                 .ToList();
 
-            if (recipesFromDb == null)
-                return BadRequest("Kein Rezept gefunden");
-            using (var transaction = _context.Database.BeginTransaction())
+            string blobName = $"{file.FileName}";
+
+
+            // Get a reference to a container named "sample-container" and then create it
+            BlobContainerClient container = new BlobContainerClient(_connectionString, _containerName);
+            //container.Create();
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blob = container.GetBlobClient(blobName);
+
+            bool blobExist = blob.Exists();
+
+            if (blobExist)
+                return;
+
+            if (file != null)
             {
-                try
-                {
-                    EditRecipe(recipesFromDb, fullRecipes);
-                    DeleteReciphandlerFromDb(recipeHandlersFromDb);
-                    CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
 
-                    transaction.Commit();
-                }
-                catch (Exception ex)
+
+                using (var ms = new MemoryStream())
                 {
-                    transaction.Rollback();
-                    throw new Exception("Fehler beim Verarbeiten der Daten", ex);
+
+                    file.CopyTo(ms);
+                    ms.Position = 0;
+                    var byteArry = ms.ToArray();
+
+                    blob.Upload(new BinaryData(byteArry));
                 }
+            }
+
+        }
+
+        private string GetImagePathFromAzure(IFormFile formFile)
+        {
+            string blobName = $"{formFile.FileName}";
+
+            return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
+        }
+        #endregion
+
+        #region SaveNewRecipe_In_DB
+        public IActionResult SaveNewRecipes(NewRecipesMobileUpload newRecipes)
+        {
+            CreateRecipesFromString(newRecipes.RecipeData, newRecipes.RecipesImage);
+            return RedirectToAction("Index");
+        }
+
+        private void CreateRecipesFromString(string recipesData, IFormFile recipesImage)
+        {
+            var lines = recipesData.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            FullRecipes currentRecipe = null;
+            foreach (string line in lines)
+            {
+                if (line == "Rezept")
+                {
+                    currentRecipe = new FullRecipes();
+                    currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
+
+
+                }
+                if (line.StartsWith("Id:"))
+                {
+
+                    currentRecipe.Recipes.Id = 0;
+                }
+                else if (line.StartsWith("Category:"))
+                {
+                    currentRecipe.Recipes.Category = line.Split(':')[1].Trim();
+                }
+                else if (line.StartsWith("Name:"))
+                {
+                    currentRecipe.Recipes.Name = line.Split(':')[1].Trim();
+                }
+                else if (line.StartsWith("Preparation:"))
+                {
+                    currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
+                }
+
+                else if (line.StartsWith("Description:"))
+                {
+                    currentRecipe.Recipes.Description = line.Split(':')[1].Trim();
+                }
+
+                else if (line.StartsWith("PreparationTime:"))
+                {
+                    var test = line.Split(":")[1].Trim();
+                    currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
+                }
+                else if (line.StartsWith("Kalorien:"))
+                {
+
+                    currentRecipe.Recipes.Calories = line.Split(':')[1].Trim();
+                }
+                if (line.StartsWith("Zutaten"))
+                {
+                    try
+                    {
+                        string[] ing = line.Split(":");
+                        IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                        ingredientHandler.Id = 0;
+                        ingredientHandler.Ingredient.Name = ing[1].Trim();
+                        ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
+                        ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
+
+                        currentRecipe.IngredientHandler.Add(ingredientHandler);
+                    }
+                    catch
+                    {
+                        BadRequest($"Zutaten des Rezeptes: {currentRecipe.Recipes.Name} kannten nicht gespeichert werden , {line}");
+                    }
+
+                }
+                if (line.StartsWith("Query:"))
+                {
+                    currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
+                }
+                currentRecipe.Recipes.FormFile = recipesImage;
+
+
+
+            }
+
+            var ifExist = _context.Recipes.SingleOrDefault(x => x.Name == currentRecipe.Recipes.Name && x.Preparation == currentRecipe.Recipes.Preparation);
+            if (ifExist == null)
+            {
+                AddRecipes(currentRecipe);
             }
 
 
 
-            return RedirectToAction("Index");
+        }
+        public void AddRecipes(FullRecipes newRecipes)
+        {
+
+
+            if (newRecipes.Recipes.FormFile != null)
+                UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
+
+            var recipes = new Recipes()
+            {
+                Id = 0,
+                OwnerEmail = newRecipes.Recipes.OwnerEmail,
+                Name = newRecipes.Recipes.Name,
+                Preparation = newRecipes.Recipes.Preparation,
+                Category = newRecipes.Recipes.Category,
+                PreparationTime = newRecipes.Recipes.PreparationTime,
+                Description = newRecipes.Recipes.Description,
+                LikeCount = 0,
+                ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
+                Calories = newRecipes.Recipes.Calories
+
+            };
+
+
+            _context.Recipes.Add(recipes);
+            _context.SaveChanges();
+
+            CreateRecipeHandler(newRecipes.Recipes, newRecipes.IngredientHandler);
+            CreateQuaryHandler(recipes, newRecipes.QueryHandler);
+
         }
 
+
+
+        #endregion
+
+        #region Create_QuaryHandler
+        private void CreateQuaryHandler(Recipes recipes, List<string> queryHandlers)
+        {
+
+            var querysFromDb = _context.Querys.ToList();
+
+            foreach (var queryHandler in queryHandlers)
+            {
+                if (!querysFromDb.Select(x => x.Query.ToLower()).Contains(queryHandler.ToLower()))
+                {
+                    var query = new Querys()
+                    {
+                        Id = 0,
+                        Query = queryHandler,
+                    };
+
+                    _context.Querys.Add(query);
+                }
+            }
+            _context.SaveChanges();
+
+            var querysFromDbNew = _context.Querys.ToList();
+
+            foreach (var query in queryHandlers)
+            {
+                if (querysFromDbNew.Select(x => x.Query.ToLower()).Contains(query.ToLower()))
+                {
+                    var quaryHandler = new QueryHandler()
+                    {
+                        Id = 0,
+                        Recipe = recipes,
+                        Query = _context.Querys.SingleOrDefault(x => x.Query.ToLower() == query.ToLower()),
+                    };
+
+                    _context.QueryHandler.Add(quaryHandler);
+                }
+
+            }
+
+            _context.SaveChanges();
+
+        }
+        #endregion
+
+        #region EditeRecipe
         private void EditRecipe(Recipes recipesFromDb, FullRecipes fullRecipes)
         {
 
@@ -101,14 +280,16 @@ namespace DelikatessenDrehbuch.Controllers
             _context.SaveChanges();
         }
 
-   
+
         private void DeleteReciphandlerFromDb(List<RecipesHandler> recipeHandlersFromDb)
         {
             _context.RecipesHandlers.RemoveRange(recipeHandlersFromDb);
             _context.SaveChanges();
         }
-        private void CreateRecipeHandler(Recipes recipesFromDb, List<IngredientHandlerModel> ingredienthandler)
+
+        private void CreateRecipeHandler(Recipes recipes, List<IngredientHandlerModel> ingredienthandler)
         {
+            var recipesFromDb = GetRecipeFromDb(recipes);
             List<RecipesHandler> newReciphandler = new();
             foreach (var handler in ingredienthandler)
             {
@@ -204,6 +385,77 @@ namespace DelikatessenDrehbuch.Controllers
 
         #endregion
 
+        #endregion
+        private Recipes GetRecipeFromDb(Recipes recipes)
+        {
+            var recipeFromDb = _context.Recipes.FirstOrDefault(x => x.Name == recipes.Name
+                                                           && x.Preparation == recipes.Preparation
+                                                           && x.OwnerEmail == recipes.OwnerEmail
+                                                           );
+
+            return recipeFromDb;
+        }
+
+
+        public IActionResult EditRecipesPartialView(int id)
+        {
+            var fullRecipes = _helpfulMethods.GetFullRecipeById(_context, id);
+            return View("EditRecipes", fullRecipes);
+        }
+        public IActionResult AddIngredientRow(int id)
+        {
+            DropdownModel dropdownModel = new DropdownModel();
+            dropdownModel.IngredientHandler = new IngredientHandlerModel();
+            dropdownModel.Measure = _context.Metrics.ToList();
+            dropdownModel.Index = id;
+
+
+            return PartialView("_IngredientPartialView", dropdownModel);
+        }
+        public IActionResult EditeRecipes(FullRecipes fullRecipes)
+        {
+            var recipesFromDb = _context.Recipes.SingleOrDefault(x => x.Id == fullRecipes.Recipes.Id);
+            var recipeHandlersFromDb = _context.RecipesHandlers.Where(x => x.Recipe.Id == recipesFromDb.Id)
+                                                                 .ToList();
+
+            if (recipesFromDb == null)
+                return BadRequest("Kein Rezept gefunden");
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    EditRecipe(recipesFromDb, fullRecipes);
+                    DeleteReciphandlerFromDb(recipeHandlersFromDb);
+                    CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new Exception("Fehler beim Verarbeiten der Daten", ex);
+                }
+            }
+
+
+
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult AddWeekRecipes()
+        {
+            WeekyRecipesModel model = new WeekyRecipesModel();
+            model.WeeklyRecipeHandlers = new();
+            return View(model);
+        }
+
+        public IActionResult AddNewWeeklyRecipes(WeekyRecipesModel newWeeklyRecipes)
+        {
+            return RedirectToAction("Index");
+        }
+
+       
+
         // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult AdditOrDeliteRecipePartialView(string query)
         {
@@ -234,18 +486,18 @@ namespace DelikatessenDrehbuch.Controllers
             var recessionFromDb = _context.Recessions.Where(x => x.Recipes.Id == id).ToList();
             var queryHandlerFromDb = _context.QueryHandler.Where(x => x.Recipe.Id == id).ToList();
             var userPreverenceRecipeFromDb = _context.UserPreferencesRecipes.SingleOrDefault(x => x.Recipes.Id == id);
-            
+
             if (recipesFromDb == null)
                 return BadRequest();
 
             if (userPreverenceRecipeFromDb != null)
                 _context.UserPreferencesRecipes.Remove(userPreverenceRecipeFromDb);
 
-            if (recessionFromDb != null)             
-                    _context.RemoveRange(recessionFromDb);
+            if (recessionFromDb != null)
+                _context.RemoveRange(recessionFromDb);
 
             if (queryHandlerFromDb != null)
-                    _context.QueryHandler.RemoveRange(queryHandlerFromDb);
+                _context.QueryHandler.RemoveRange(queryHandlerFromDb);
 
 
             _context.Remove(recipesFromDb);

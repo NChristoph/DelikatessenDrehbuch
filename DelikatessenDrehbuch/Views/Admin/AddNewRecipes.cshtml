@@ -1,0 +1,21 @@
+﻿@model NewRecipesMobileUpload
+
+
+<div class="minWidth100 mobieleWidth90 Bg-Cream flexColumn flexAlginItemCenter flexJustifyContendCenter">
+    <form asp-controller="Admin" asp-action="SaveNewRecipes" class="minWidth100 flexColumn" enctype="multipart/form-data">
+        <textarea asp-for="@Model.RecipeData" class="minWidth90 maxWidth90 mt-4 s mobieleWidth90" rows="25" style="align-self:center;"></textarea>
+
+        <div class="flexRow minWidth90 mobieleWidth90 flexJustifyContendCenter flexAlginItemCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Foto : </p>
+            <input id="fileInput" style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;display:none" class="form-control-file" name="RecipesImage" type="file" asp-for="@Model.RecipesImage" />
+            <label class="btn bgRed Border-Gold" style="color:white;text-align:center" id="fileLable" for="fileInput">Foto Auswählen</label>
+
+        </div>
+
+        <button class="btn bgRed Border-Gold m-2" style="color:white;max-width:max-content" type="submit">Rezept speichern</button>
+    </form>
+
+
+
+
+</div>

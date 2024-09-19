@@ -1,0 +1,12 @@
+﻿@model WeekyRecipesModel
+
+<div class="Bg-Cream minWidth100 mobieleWidth90">
+    <form asp-controller="Admin" asp-action="AddNewWeeklyRecipes">
+        <input asp-for="@Model.WeeklyRecipe.Name" />
+
+        <button type="submit" class="bgRed Border-Gold" style="color:white">Rezept erstellen</button>
+    </form>
+    <div>
+
+    </div>
+</div>

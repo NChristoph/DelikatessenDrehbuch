@@ -67,127 +67,7 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction("Index");
         }
 
-        // public IActionResult CreateRechipes()
-        //{
-
-        //    string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        //    string folderPath = Path.Combine(desktopPath, "Recipes");
-        //    string imageFolderPath = Path.Combine(folderPath, "Images");
-        //    string filePath = Path.Combine(imageFolderPath, "recipes.txt");
-
-        //    var imageFiles = Directory.GetFiles(imageFolderPath, "*", SearchOption.TopDirectoryOnly)
-        //                        .Where(x => x.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)).ToList();
-
-        //    List<IFormFile> formFiles = new List<IFormFile>();
-        //    var mimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        //{
-        //    { ".jpg", "image/jpeg" },   // Einheitlich als image/jpeg
-        //    { ".jpeg", "image/jpeg" },
-        //    { ".png", "image/png" }
-        //};
-        //    foreach (var imageFile in imageFiles)
-        //    {
-        //        var fileInfo = new FileInfo(imageFile);
-        //        if (fileInfo.Name.Contains("_"))
-        //        {
-        //            fileInfo.Name.Replace("_", " ");
-        //        }
-
-        //        string extension = fileInfo.Extension.ToLower();
-        //        string contentType = mimeTypes.ContainsKey(extension) ? mimeTypes[extension] : "application/octet-stream";
-
-        //        using (var fileStream = new FileStream(imageFile, FileMode.Open, FileAccess.Read))
-        //        {
-        //            var memoryStream = new MemoryStream();
-        //            fileStream.CopyTo(memoryStream);
-        //            memoryStream.Position = 0;
-
-        //            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, "Recipes.FormFile", fileInfo.Name)
-        //            {
-        //                Headers = new HeaderDictionary(),
-        //                ContentType = contentType
-        //            };
-        //            formFile.Headers.Add("Content-Disposition", $"form-data; name=\"Recipes.FormFile\"; filename=\"{fileInfo.Name}\"");
-        //            formFiles.Add(formFile);
-        //        }
-        //    }
-
-
-        //    List<FullRecipes> recipes = new List<FullRecipes>();
-        //    FullRecipes currentRecipe = null;
-        //    string[] lines = System.IO.File.ReadAllLines(filePath, Encoding.UTF8);
-
-        //    foreach (string line in lines)
-        //    {
-        //        if (line == "Rezept")
-        //        {
-        //            currentRecipe = new FullRecipes();
-        //            currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
-        //            recipes.Add(currentRecipe);
-
-        //        }
-        //        if (line.StartsWith("Id:"))
-        //        {
-
-        //            currentRecipe.Recipes.Id = int.Parse(line.Split(':')[1].Trim());
-        //        }
-        //        else if (line.StartsWith("Category:"))
-        //        {
-        //            currentRecipe.Recipes.Category = line.Split(':')[1].Trim();
-        //        }
-        //        else if (line.StartsWith("Name:"))
-        //        {
-        //            currentRecipe.Recipes.Name = line.Split(':')[1].Trim();
-        //        }
-        //        else if (line.StartsWith("Preparation:"))
-        //        {
-        //            currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
-        //        }
-
-        //        else if (line.StartsWith("Description:"))
-        //        {
-        //            currentRecipe.Recipes.Description = line.Split(':')[1].Trim();
-        //        }
-
-        //        else if (line.StartsWith("PreparationTime:"))
-        //        {
-        //            var test = line.Split(":")[1].Trim();
-        //            currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
-        //        }
-        //        if (line.StartsWith("Zutaten"))
-        //        {
-        //            string[] ing = line.Split(":");
-        //            IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
-        //            ingredientHandler.Id = 0;
-        //            ingredientHandler.Ingredient.Name = ing[1].Trim();
-        //            ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
-        //            ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
-
-        //            currentRecipe.IngredientHandler.Add(ingredientHandler);
-        //        }
-        //        if (line.StartsWith("Query:"))
-        //        {
-        //            currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
-        //        }
-        //        currentRecipe.Recipes.FormFile = formFiles.FirstOrDefault(x => x.FileName.Equals($"{currentRecipe.Recipes.Name}.jpg"));
-
-
-        //    }
-
-        //    foreach (var fullrecipes in recipes)
-        //    {
-        //        var ifExist = _dbContext.Recipes.SingleOrDefault(x => x.Name == fullrecipes.Recipes.Name && x.Preparation == fullrecipes.Recipes.Preparation);
-        //        if (ifExist == null)
-        //        {
-        //            AddRecipes(fullrecipes);
-        //        }
-
-        //    }
-
-        //    return RedirectToAction("Index");
-        //}
-
-
+       
         public IActionResult CreateRecipes()
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
@@ -313,11 +193,6 @@ namespace DelikatessenDrehbuch.Controllers
                                                            && x.Preparation == recipes.Preparation
                                                            && x.OwnerEmail == recipes.OwnerEmail
                                                            );
-
-
-            if (recipeFromDb == null)
-                recipeFromDb = new Recipes();
-
 
             return recipeFromDb;
         }
