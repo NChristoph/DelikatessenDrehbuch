@@ -138,6 +138,11 @@ namespace DelikatessenDrehbuch.StaticScripts
         {
            return context.UserPreferencesQuerys.Where(x => x.UserEmail == email).ToList();
         }
+
+        public List<string> GetQueryListFromDb(ApplicationDbContext context)
+        {
+            return context.Querys.Select(x=>x.Query).ToList();
+        }
     }
 
 

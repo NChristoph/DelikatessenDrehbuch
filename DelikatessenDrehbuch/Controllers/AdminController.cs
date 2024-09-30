@@ -102,76 +102,86 @@ namespace DelikatessenDrehbuch.Controllers
 
         private void CreateRecipesFromString(string recipesData, IFormFile recipesImage)
         {
-            var lines = recipesData.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var lines = recipesData.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                                   .Select(line => line.Trim())
+                                   .ToArray();
+
             FullRecipes currentRecipe = null;
             foreach (string line in lines)
             {
-                if (line == "Rezept")
+                try
                 {
-                    currentRecipe = new FullRecipes();
-                    currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
-
-
-                }
-                if (line.StartsWith("Id:"))
-                {
-
-                    currentRecipe.Recipes.Id = 0;
-                }
-                else if (line.StartsWith("Category:"))
-                {
-                    currentRecipe.Recipes.Category = line.Split(':')[1].Trim();
-                }
-                else if (line.StartsWith("Name:"))
-                {
-                    currentRecipe.Recipes.Name = line.Split(':')[1].Trim();
-                }
-                else if (line.StartsWith("Preparation:"))
-                {
-                    currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
-                }
-
-                else if (line.StartsWith("Description:"))
-                {
-                    currentRecipe.Recipes.Description = line.Split(':')[1].Trim();
-                }
-
-                else if (line.StartsWith("PreparationTime:"))
-                {
-                    var test = line.Split(":")[1].Trim();
-                    currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
-                }
-                else if (line.StartsWith("Kalorien:"))
-                {
-
-                    currentRecipe.Recipes.Calories = line.Split(':')[1].Trim();
-                }
-                if (line.StartsWith("Zutaten"))
-                {
-                    try
+                    if (line == "Rezept")
                     {
-                        string[] ing = line.Split(":");
-                        IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
-                        ingredientHandler.Id = 0;
-                        ingredientHandler.Ingredient.Name = ing[1].Trim();
-                        ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
-                        ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
+                        currentRecipe = new FullRecipes();
+                        currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
 
-                        currentRecipe.IngredientHandler.Add(ingredientHandler);
+
                     }
-                    catch
+                    if (line.StartsWith("Id:"))
                     {
-                        BadRequest($"Zutaten des Rezeptes: {currentRecipe.Recipes.Name} kannten nicht gespeichert werden , {line}");
+
+                        currentRecipe.Recipes.Id = 0;
+                    }
+                    else if (line.StartsWith("Category:"))
+                    {
+                        currentRecipe.Recipes.Category = line.Split(':')[1].Trim();
+                    }
+                    else if (line.StartsWith("Name:"))
+                    {
+                        currentRecipe.Recipes.Name = line.Split(':')[1].Trim();
+                    }
+                    else if (line.StartsWith("Preparation:"))
+                    {
+                        currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
                     }
 
+                    else if (line.StartsWith("Description:"))
+                    {
+                        currentRecipe.Recipes.Description = line.Split(':')[1].Trim();
+                    }
+
+                    else if (line.StartsWith("PreparationTime:"))
+                    {
+                        var test = line.Split(":")[1].Trim();
+                        currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
+                    }
+                    else if (line.StartsWith("Kalorien:"))
+                    {
+
+                        currentRecipe.Recipes.Calories = line.Split(':')[1].Trim();
+                    }
+                    if (line.StartsWith("Zutaten"))
+                    {
+                        try
+                        {
+                            string[] ing = line.Split(":");
+                            IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                            ingredientHandler.Id = 0;
+                            ingredientHandler.Ingredient.Name = ing[1].Trim();
+                            ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
+                            ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
+
+                            currentRecipe.IngredientHandler.Add(ingredientHandler);
+                        }
+                        catch
+                        {
+                            BadRequest($"Zutaten des Rezeptes: {currentRecipe.Recipes.Name} kannten nicht gespeichert werden , {line}");
+                        }
+
+                    }
+                    if (line.StartsWith("Query:"))
+                    {
+                        currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
+                    }
+                    currentRecipe.Recipes.FormFile = recipesImage;
+
+
                 }
-                if (line.StartsWith("Query:"))
+                catch (Exception ex)
                 {
-                    currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
+                    BadRequest($"Fehler in {line}");
                 }
-                currentRecipe.Recipes.FormFile = recipesImage;
-
-
 
             }
 
@@ -445,7 +455,7 @@ namespace DelikatessenDrehbuch.Controllers
         public IActionResult AddWeekRecipes()
         {
             WeekyRecipesModel model = new WeekyRecipesModel();
-            model.WeeklyRecipeHandlers = new();
+            model.WeeklyRecipeHandlers = new WeeklyRecipeHandler[21];
             return View(model);
         }
 
@@ -453,8 +463,6 @@ namespace DelikatessenDrehbuch.Controllers
         {
             return RedirectToAction("Index");
         }
-
-       
 
         // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult AdditOrDeliteRecipePartialView(string query)

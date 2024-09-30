@@ -22,164 +22,49 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helpfulMethods;
 
-        private readonly List<string> importantKeyWordsList;
+        private readonly List<string> _importantKeyWordsList;
+        private readonly List<string> _importantKeyWordsListToLower;
+
+        private bool Vegan { get; set; }
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext, HelpfulMethods helpfulMethods, IMemoryCache cache)
         {
             _logger = logger;
             _context = dbContext;
             _helpfulMethods = helpfulMethods;
             _cache = cache;
-            importantKeyWordsList = GetQueryListFromDb();
+            _importantKeyWordsList = _helpfulMethods.GetQueryListFromDb(_context);
+            _importantKeyWordsListToLower = _importantKeyWordsList.Select(x => x.ToLower().Trim()).ToList();
         }
-
-
 
 
         private List<QueryHandler> GetQueryHandlerByUserPreferences()
         {
-            var userPreferencesQueryListFromDb = _helpfulMethods.GetUserPreferencesQueryListByEmail(_context, User.Identity.Name)
-                                                                .OrderByDescending(x => x.Count).Take(5).ToList();
+            var queryHandlers = new List<QueryHandler>();
+            var queryHandlersByPreference = _helpfulMethods.GetUserPreferencesQueryListByEmail(_context, User.Identity.Name.ToString());
 
-            List<QueryHandler> queryHandlerFromDb = new List<QueryHandler>();
-
-            if (userPreferencesQueryListFromDb.Any())
+            if (!queryHandlersByPreference.Any())
             {
-                var queryListFromDb = GetQueryListFromDb();
-                var filterList = userPreferencesQueryListFromDb.Where(x => queryListFromDb.Contains(x.Query.ToLower())).Select(x => x.Query).ToList();
-
-                queryHandlerFromDb = _context.QueryHandler.Where(x => filterList.Contains(x.Query.Query))
-                                                          .Include(x => x.Recipe)
-                                                          .Include(x => x.Query).ToList();
-
-
+                queryHandlers = GetRandomRecipes();
+                return queryHandlers;
             }
             else
             {
-                return GetRandomRecipes();
+                var sortet = queryHandlersByPreference.OrderByDescending(x => x.Count).Take(3).ToList();
+                var queryList = new List<string>();
+
+
+                queryList = sortet.Select(x => x.Query.ToString().ToLower()).ToList();
+                queryHandlers = _context.QueryHandler.Where(x => queryList.Contains(x.Query.Query.ToLower()))
+                                                     .Include(x => x.Recipe)
+                                                     .Include(x => x.Query)
+                                                     .ToList();
+
+                return queryHandlers;
             }
-
-            return queryHandlerFromDb;
-
-        }
-
-        private List<string> RemoveQuerys(List<string> splitedQuerys)
-        {
-
-
-            List<string> filtredSplitedQuerys = new();
-
-            for (int i = 0; i < splitedQuerys.Count; i++)
-            {
-                if (!importantKeyWordsList.Contains(splitedQuerys[i].ToLower()))
-                    filtredSplitedQuerys.Add(splitedQuerys[i]);
-            }
-
-
-            return filtredSplitedQuerys;
-        }
-
-        private List<string> GetQueryListFromDb()
-        {
-            return _context.Querys.Select(x => x.Query.ToLower()).ToList();
-        }
-
-        private List<string> GetQuerysFromSplitedQuerys(List<string> splitedQuerys)
-        {
-            return importantKeyWordsList.Where(x => splitedQuerys.Contains(x.ToLower())).ToList();
-        }
-        private List<QueryHandler> GetQueryHandlersByQuerys(List<string> splitedQuerys)
-        {
-            var queryFilter = GetQuerysFromSplitedQuerys(splitedQuerys);
-            var querySearchResults = _context.QueryHandler.Where(x => queryFilter.Contains(x.Query.Query.ToLower()))
-                                                    .Include(x => x.Recipe)
-                                                    .Include(x => x.Query)
-                                                    .ToList();
-
-            return querySearchResults;
-        }
-        //TodoAuch wen eine zutrift sollte rezeptausgabe funktionieren prüfe den splittetQueryCount ps Du hast bei ein Paar gerichten die querys doppelt
-
-        private List<QueryHandler> GroupeAndSortQueryList(List<QueryHandler> querySearchResults, List<string> splitedQuerys)
-        {
-            var queryFilter = GetQuerysFromSplitedQuerys(splitedQuerys);
-            var groupedQueryhandler = querySearchResults.GroupBy(x => x.Recipe.Id).ToList();
-            List<QueryHandler > sortedQueryHandler = new ();
-            if (splitedQuerys.Count > 1)
-            {
-                foreach (var queryHandler in groupedQueryhandler)
-                {
-                    var selectQueryFromGroup = queryHandler.Select(x => x.Query.Query).ToList();
-                    int matchCount = selectQueryFromGroup.Count(query => queryFilter.Contains(query, StringComparer.OrdinalIgnoreCase));
-                    if (matchCount > 1)
-                    {
-                        sortedQueryHandler.Add(queryHandler.First());
-                    }
-                }
-            }
-            else
-            {
-                sortedQueryHandler=groupedQueryhandler.Select(x=>x.First()).ToList();
-            }
-            
-            
-
-            return sortedQueryHandler;
-        }
-
-        private List<QueryHandler> GetQueryHandlersByNameAndQuery(List<string> splitedQuery)
-        {
-            List<QueryHandler> querySearchResults = GetQueryHandlersByQuerys(splitedQuery);
-
-            var sortedQueryhandler= GroupeAndSortQueryList(querySearchResults, splitedQuery);
-            var nameFilter = RemoveQuerys(splitedQuery);
-
-            List<QueryHandler> nameSearchResults = new();
-
-
-            var querys = RemoveQuerys(splitedQuery);
-            foreach (var filter in querys)
-            {
-
-                nameSearchResults.AddRange(_context.QueryHandler.Where(x => x.Recipe.Name.ToLower().Contains(filter))
-                                                                .Include(x => x.Recipe)
-                                                                .Include(x => x.Query)
-                                                                .ToList());
-            }
-
-
-
-            List<QueryHandler> finalFiltredList = new();
-
-            if(querySearchResults.Any())
-            {
-                finalFiltredList = nameSearchResults.Where(x => querySearchResults.Contains(x)).ToList();
-            }
-            else
-            {
-                finalFiltredList = nameSearchResults;
-            }
-           
-            if (!finalFiltredList.Any())
-            {
-                finalFiltredList = nameSearchResults;
-                finalFiltredList.AddRange(sortedQueryhandler);
-            }
-                
-
-
-            return finalFiltredList;
         }
 
 
-        private List<string> GetQuerysplitedListToLower(string query)
-        {
-            var splitedQuery = query.Split(' ').ToList();
-            List<string> splitedQueryList = new();
 
-            splitedQueryList = splitedQuery.ConvertAll(x => x.ToLower());
-
-            return splitedQueryList;
-        }
 
         private List<QueryHandler> GetRandomRecipes()
         {
@@ -194,11 +79,58 @@ namespace DelikatessenDrehbuch.Controllers
             return handler;
         }
 
+        private List<QueryHandler> GetQueryHandlersByNameAndQuery(string searchQuery)
+        {
+            var query = searchQuery.ToLower().Trim();
+            // ToDo:Zutatensuche einbinden Wird für die zutaten suche noch gebraucht
+            var keywords = query.Split(' ').Where(x => x.Length > 3).ToArray();
+
+            var queryHandlerFromDb = _context.QueryHandler
+                                     .Include(x => x.Recipe)
+                                     .Include(x => x.Query)
+                                     .Where(x => x.Recipe.Name.ToLower().Contains(query) ||
+                                                 x.Query.Query.ToLower().Contains(query))
+                                     .ToList();
+
+           
+
+
+            if (Vegan)
+            {
+                queryHandlerFromDb = queryHandlerFromDb
+                                    .Where(x => x.Query.Query.ToLower().Contains("vegan") ||
+                                                x.Recipe.Name.ToLower().Contains("vegan"))
+                                    .ToList();
+            }
+
+            return queryHandlerFromDb;
+        }
+
 
 
         [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult Index(string query)
         {
+
+            bool? vegan = Request.Query.ContainsKey("vegan");
+            if (vegan.HasValue)
+            {
+                if (vegan.Value == true)
+                    Vegan = true;
+                else
+                {
+                    vegan = false;
+                    Vegan = false;
+                }
+            }
+
+
+
+            HttpContext.Session.SetString("veganFilter", vegan.Value.ToString());
+            var veganFilter = HttpContext.Session.GetString("veganFilter");
+            ViewBag.IsVegan = veganFilter != null && bool.Parse(veganFilter);
+
+
 
             var isLoggedIn = User.Identity.IsAuthenticated;
             List<QueryHandler> handlers;
@@ -216,7 +148,8 @@ namespace DelikatessenDrehbuch.Controllers
 
                 if (isLoggedIn)
                 {
-                    handlers = GetQueryHandlerByUserPreferences();
+                    //TODO:UserPreferenz noch einbinden
+                    handlers = GetRandomRecipes();
                 }
                 else
                 {
@@ -234,14 +167,14 @@ namespace DelikatessenDrehbuch.Controllers
                     _helpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
                 }
 
-                List<string> splitedQuery = GetQuerysplitedListToLower(query);
 
-                handlers = GetQueryHandlersByNameAndQuery(splitedQuery);
-                //Todo:Vegan Mexikanisch funktionirt wieder nicht aber 3 querys gehen 
+
+                handlers = GetQueryHandlersByNameAndQuery(query.ToLower());
+
 
                 if (!handlers.Any())
                 {
-
+                    handlers = GetRandomRecipes();
                 }
 
 

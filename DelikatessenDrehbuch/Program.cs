@@ -49,6 +49,15 @@ builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
 builder.Services.AddMemoryCache();
 
+// Füge den Session-Service hinzu
+builder.Services.AddDistributedMemoryCache(); // Für die Nutzung von Sessions im Speicher
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Zeit, bis die Session abläuft
+    options.Cookie.HttpOnly = true; // Sicherheitseinstellungen
+    options.Cookie.IsEssential = true; // Erforderlich für EU-Cookie-Richtlinien
+});
+
 
 var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
 
@@ -66,6 +75,7 @@ StripeConfiguration.ApiKey = stripeApiKey;
 builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 var app = builder.Build();
+app.UseSession();
 async Task CreateRolls(IServiceProvider serviceProvider, string roleName)
 {
     var roleManager = serviceProvider.GetService<RoleManager<IdentityRole>>();

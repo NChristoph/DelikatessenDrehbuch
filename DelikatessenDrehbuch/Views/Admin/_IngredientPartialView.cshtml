@@ -2,14 +2,14 @@
 
 
 
-<div name="partial" class="flexRowToColumn flexJustifyContendCenter mobieleWidth100 minWidth100 mb-1">
+<div name="partial" class="flexRowToColumn  flexJustifyContendCenter mobieleWidth100 minWidth100  mb-2 p-2">
     
     <div class="ingredient-name-row ingredient-row flex">
         <!-- Verwende den Index in den Namen -->
         <input class="form-control ingredient-name" type="text" asp-for="IngredientHandler.Ingredient.Name" name="IngredientHandler[@Model.Index].Ingredient.Name" placeholder="Zutat" />
     </div>
 
-    <div class="ingredient-deteils-row flex">
+    <div class="ingredient-deteils-row flex mt-2">
         <input class="form-control ingredient-amount" step="any" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="IngredientHandler[@Model.Index].Quantity.Quantitys" placeholder="Mänge" />
 
         <div class="ingredient-unit">

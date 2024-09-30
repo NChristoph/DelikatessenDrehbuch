@@ -114,6 +114,13 @@
                             </svg>
                         </button>
                     </div>
+                    <div class="flexRow">
+                        <div class="form-check form-switch">
+                            <input name="vegan" class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" aria-checked="false" @(ViewBag.IsVegan != null && ViewBag.IsVegan == true ? "checked" : "")>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Nur Vegane Rezepte</label>
+                        </div>
+                    </div>
+
 
                 </form>
 
