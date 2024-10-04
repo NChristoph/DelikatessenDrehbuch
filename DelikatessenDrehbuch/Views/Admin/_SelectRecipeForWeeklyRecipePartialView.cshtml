@@ -1,0 +1,52 @@
+﻿@model List<Recipes>
+
+
+<table id="Datatable">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Kategory</th>
+            <th>Aktion</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var recipe in Model)
+        {
+
+            <tr >
+                <td>@recipe.Id</td>
+                <td>@recipe.Name</td>
+                <td>@recipe.Category</td>
+                <td>
+                    <button onclick="AddRecipes(@recipe.Id)" type="button" class="bgRed Border-Gold" style="color:white;">
+                        Add
+                    </button>
+                </td>
+
+            </tr>
+
+
+        }
+    </tbody>
+
+
+
+</table>
+
+<script>
+
+    if (!$.fn.DataTable.isDataTable('#Datatable')) {
+        let table = new DataTable('#Datatable');
+    }
+    
+    function AddRecipes(id) {
+        var code = $('#setValue').val();
+        $('#'+code).val(id);
+
+        $('#selectRecipeModal').modal('hide');
+        
+    }
+        
+</script>

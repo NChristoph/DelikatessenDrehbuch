@@ -45,7 +45,8 @@ TODO: Hier noch Layout anpassen *@
                     </a>
                 </div>
             }
-            if (!User.IsInRole("PremiumUser"))
+            //TODO:Speter wieder auf!Premiumuser umstellen
+            if (User.IsInRole("Admin"))
             {
                 <div class="flexColumn">
                     <a typeof="button" class="btn" onclick="loadAboPage()">

@@ -83,7 +83,9 @@ namespace DelikatessenDrehbuch.Controllers
         {
             var query = searchQuery.ToLower().Trim();
             // ToDo:Zutatensuche einbinden Wird für die zutaten suche noch gebraucht
-            var keywords = query.Split(' ').Where(x => x.Length > 3).ToArray();
+            var keywords = query.Split(' ').Where(x => x.Length > 3).ToList();
+
+            
 
             var queryHandlerFromDb = _context.QueryHandler
                                      .Include(x => x.Recipe)

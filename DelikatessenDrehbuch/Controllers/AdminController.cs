@@ -461,7 +461,15 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult AddNewWeeklyRecipes(WeekyRecipesModel newWeeklyRecipes)
         {
+            //TODO Weekly Recipes erstellen
             return RedirectToAction("Index");
+        }
+
+        public IActionResult SelectWeeklyRecipes()
+        {
+            var recipesFromDb=_context.Recipes.ToList();
+
+            return PartialView("_SelectRecipeForWeeklyRecipePartialView",recipesFromDb);
         }
 
         // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     @{
-        if(!User.IsInRole("PremiumUser"))
+        if(!User.IsInRole("PremiumUser")||User.Identity.IsAuthenticated)
         {
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
                     crossorigin="anonymous"></script>
@@ -213,7 +213,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="https://cdn.datatables.net/2.0.4/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
