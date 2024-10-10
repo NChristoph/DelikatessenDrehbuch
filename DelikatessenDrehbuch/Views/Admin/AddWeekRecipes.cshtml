@@ -7,24 +7,24 @@
             for (int i = 0; i < Model.WeeklyRecipeHandlers.Length / 3; i++)
             {
                 int index = i + 1;
-                        <div class="flexColumn mt-2 Border-Gold p-2">
-                            <span class="mb-2"> Rezept Nummer : @index</span>
-                            <div class="flexRow flexJustifyContendSpaceBetween mt-1">
-                                <span style="flex-basis:25%">Frühstück:</span>
-                                <input id="Breakfast_@i" asp-for="@Model.WeeklyRecipeHandlers[i].Breakfast.Id" hidden />
-                        <button type="button" class="bgRed Border-Gold" style="color:white;flex-basis:50%" data-bs-toggle="modal" data-id="Breakfast_@i.ToString()" data-bs-target="#selectRecipeModal">Rezept auswählen</button>
-                            </div>
-                            <div class="flexRow flexJustifyContendSpaceBetween mt-1">
-                                <span style="flex-basis:25%">Mittag:</span>
-                                <input id="Lunch_@i" asp-for="@Model.WeeklyRecipeHandlers[i].Lunch.Id"  hidden />
-                        <button type="button" class="bgRed Border-Gold" style="color:white;flex-basis:50%" data-bs-toggle="modal" data-id="Lunch_@i.ToString()" data-bs-target="#selectRecipeModal">Rezept auswählen</button>
-                            </div>
-                            <div class="flexRow flexJustifyContendSpaceBetween mt-1">
-                                <span style="flex-basis:25%">Abednd:</span>
-                                <input id="Dinner_@i" asp-for="@Model.WeeklyRecipeHandlers[i].Dinner.Id" hidden />
-                        <button type="button" class="bgRed Border-Gold" style="color:white;flex-basis:50%" data-bs-toggle="modal" data-id="Dinner_@i.ToString()" data-bs-target="#selectRecipeModal">Rezept auswählen</button>
-                            </div>
+                    <div class="flexColumn mt-2 Border-Gold p-2">
+                        <span class="mb-2"> Rezept Nummer : @index</span>
+                        <div class="flexRow flexJustifyContendSpaceBetween mt-1">
+                            <span style="flex-basis:25%">Frühstück:</span>
+                            <input type="number" name="ids" id="Breakfast_@i" asp-for="@Model.WeeklyRecipeHandlers[i].Breakfast.Id" hidden />
+                            <button id="BreakfastButton_@i" type="button" class="bgRed Border-Gold" style="color:white;flex-basis:50%" data-bs-toggle="modal" data-name="BreakfastButton_@i.ToString()" data-id="Breakfast_@i.ToString()" data-bs-target="#selectRecipeModal">Kein Rezept ausgewählt</button>
                         </div>
+                        <div class="flexRow flexJustifyContendSpaceBetween mt-1">
+                            <span style="flex-basis:25%">Mittag:</span>
+                            <input type="number" name="ids" id="Lunch_@i" asp-for="@Model.WeeklyRecipeHandlers[i].Lunch.Id" hidden />
+                            <button id="LunchButton_@i" type="button" class="bgRed Border-Gold" style="color:white;flex-basis:50%" data-bs-toggle="modal" data-name="LunchButton_@i.ToString()" data-id="Lunch_@i.ToString()" data-bs-target="#selectRecipeModal">Kein Rezept ausgewählt</button>
+                        </div>
+                        <div class="flexRow flexJustifyContendSpaceBetween mt-1">
+                            <span style="flex-basis:25%">Abednd:</span>
+                            <input type="number" name="ids" id="Dinner_@i" asp-for="@Model.WeeklyRecipeHandlers[i].Dinner.Id" hidden />
+                            <button id="DinnerButton_@i" type="button" class="bgRed Border-Gold" style="color:white;flex-basis:50%" data-bs-toggle="modal" data-name="DinnerButton_@i.ToString()" data-id="Dinner_@i.ToString()" data-bs-target="#selectRecipeModal">Kein Rezept ausgewählt</button>
+                        </div>
+                    </div>
 
 
             }
@@ -32,6 +32,8 @@
 
         <button type="submit" class="bgRed Border-Gold mt-2" style="color:white">Rezept erstellen</button>
     </form>
+
+    <div class="minWidth100 mobieleWidth90" id="shopingList"></div>
 
 </div>
 
@@ -44,7 +46,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input id="setValue" hidden/>
+                <input id="setValue" hidden  />
+                <input id="setName" hidden />
                 <div id="containerForWeeklyRecipes"></div>
             </div>
             <div class="modal-footer">
@@ -62,26 +65,34 @@
     <script>
         $(document).ready(function () {
             $('#selectRecipeModal').on('shown.bs.modal', function (event) {
-                var button = $(event.relatedTarget); 
+                var button = $(event.relatedTarget);
                 var id = button.attr('data-id');
+                var name = button.attr('data-name')
                 $('#setValue').val(id);
+                $('#setName').val(name);
                 $('#containerForWeeklyRecipes').load('@Url.Action("SelectWeeklyRecipes")');
+                
               
+
             })
 
+            $('#selectRecipeModal').on('hidden.bs.modal', function () {
+                var intList = [];
+                var inputElements = document.getElementsByName("ids");
+
+               
+                for (var i = 0; i < inputElements.length; i++) {
+                    intList.push(inputElements[i].value);
+                }
+
+                $('#shopingList').load('@Url.Action("CreateShopingList")', { recipesIds: intList });
+
+            });
            
+
+
         });
-       
-        function SelectBreakfast(id) {
 
-        }
 
-        function SelectLunch(id) {
-
-        }
-
-        function SelectDinner(id) {
-
-        }
     </script>
 }

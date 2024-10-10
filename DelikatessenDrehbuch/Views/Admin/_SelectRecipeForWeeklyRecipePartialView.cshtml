@@ -6,7 +6,7 @@
         <tr>
             <th>Id</th>
             <th>Name</th>
-            <th>Kategory</th>
+
             <th>Aktion</th>
         </tr>
     </thead>
@@ -15,12 +15,12 @@
         @foreach (var recipe in Model)
         {
 
-            <tr >
+            <tr>
                 <td>@recipe.Id</td>
                 <td>@recipe.Name</td>
-                <td>@recipe.Category</td>
+
                 <td>
-                    <button onclick="AddRecipes(@recipe.Id)" type="button" class="bgRed Border-Gold" style="color:white;">
+                    <button onclick="AddRecipes(@recipe.Id,'@recipe.Name')" data-name="@recipe.Name.ToString()" type="button" class="bgRed Border-Gold" style="color:white;">
                         Add
                     </button>
                 </td>
@@ -40,13 +40,15 @@
     if (!$.fn.DataTable.isDataTable('#Datatable')) {
         let table = new DataTable('#Datatable');
     }
-    
-    function AddRecipes(id) {
-        var code = $('#setValue').val();
-        $('#'+code).val(id);
 
+    function AddRecipes(id,name) {
+
+        var code = $('#setValue').val();
+        var buttonToChange = $('#setName').val();
+        $('#' + code).val(id); 
+        $('#' + buttonToChange).text(name);
         $('#selectRecipeModal').modal('hide');
-        
+
     }
-        
+
 </script>

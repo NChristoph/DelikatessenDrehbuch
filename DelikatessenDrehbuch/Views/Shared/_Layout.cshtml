@@ -4,10 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     @{
-        if(!User.IsInRole("PremiumUser")||User.Identity.IsAuthenticated)
+        if(!User.IsInRole("PremiumUser"))
         {
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
-                    crossorigin="anonymous"></script>
+            bool isLoggedIn = User.Identity.IsAuthenticated;
+            if (!isLoggedIn)
+            {
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+                        crossorigin="anonymous"></script>
+            }
+           
         }
     }
     <meta name="google-adsense-account" content="ca-pub-2332503983815482">

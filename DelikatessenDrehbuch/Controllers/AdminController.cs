@@ -19,6 +19,7 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
         private readonly HelpfulMethods _helpfulMethods;
+        private List<IngredientHandlerModel?> IngredientHandlers { get; set; }
 
         private readonly string _connectionString = "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/";
         private readonly string _containerName = "picdelikatessendrehbuch";
@@ -29,6 +30,7 @@ namespace DelikatessenDrehbuch.Controllers
             _context = context;
             _cache = cache;
             _helpfulMethods = helpfulMethods;
+            IngredientHandlers = new();
         }
         public IActionResult Index()
         {
@@ -461,15 +463,83 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult AddNewWeeklyRecipes(WeekyRecipesModel newWeeklyRecipes)
         {
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    AddNewWeeklyRecipesToDb(newWeeklyRecipes.WeeklyRecipe.Name);
+                    CreateWeeklyRecipesHandler(newWeeklyRecipes.WeeklyRecipeHandlers, newWeeklyRecipes.WeeklyRecipe.Name);
+
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new Exception(ex.Message, ex);
+                }
+
+            }
+
+
             //TODO Weekly Recipes erstellen
             return RedirectToAction("Index");
         }
 
+        private void AddNewWeeklyRecipesToDb(string name)
+        {
+            var weeklyRecipes = new WeeklyRecipe()
+            {
+                Id = 0,
+                Name = name,
+            };
+            _context.WeeklyRecipe.Add(weeklyRecipes);
+            _context.SaveChanges();
+        }
+        private void CreateWeeklyRecipesHandler(WeeklyRecipeHandler[] weeklyRecipesHnadlers, string weeklyRecipesName)
+        {
+            foreach (var weeklyRecipeHandler in weeklyRecipesHnadlers)
+            {
+                WeeklyRecipeHandler handler = new()
+                {
+                    Id = 0,
+                    Breakfast = weeklyRecipeHandler.Breakfast.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, weeklyRecipeHandler.Breakfast.Id) : null,
+                    Lunch = weeklyRecipeHandler.Lunch.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, weeklyRecipeHandler.Lunch.Id) : null,
+                    Dinner = weeklyRecipeHandler.Dinner.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, weeklyRecipeHandler.Dinner.Id) : null,
+                    WeeklyRecipe = _context.WeeklyRecipe.SingleOrDefault(x => x.Name.ToLower() == weeklyRecipesName.ToLower()),
+                };
+                _context.WeeklyRecipeHandler.Add(handler);
+                _context.SaveChanges();
+            }
+        }
+
+        public IActionResult CreateShopingList(List<int> recipesIds)
+        {
+            
+            IngredientHandlers = _context.RecipesHandlers.Where(rh => recipesIds
+                                                           .Contains(rh.Recipe.Id))
+                                                           .Include(rh => rh.IngredientHandler)
+                                                           .Include(rh => rh.IngredientHandler.Ingredient)
+                                                           .Include(rh => rh.IngredientHandler.Measure)
+                                                           .Include(rh => rh.IngredientHandler.Quantity)
+                                                           .Select(x => x.IngredientHandler)
+                                                           .ToList();
+
+            var groupedIngredients = IngredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
+                                                       .Select(g => new IngredientHandlerModel
+                                                       {
+                                                           Ingredient = g.First().Ingredient,
+                                                           Measure = g.First().Measure,
+                                                           Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
+                                                       })
+       .ToList();
+            return PartialView("_shopingListPartialView", groupedIngredients);
+        }
         public IActionResult SelectWeeklyRecipes()
         {
-            var recipesFromDb=_context.Recipes.ToList();
+            var recipesFromDb = _context.Recipes.ToList();
 
-            return PartialView("_SelectRecipeForWeeklyRecipePartialView",recipesFromDb);
+            return PartialView("_SelectRecipeForWeeklyRecipePartialView", recipesFromDb);
         }
 
         // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
