@@ -320,7 +320,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         private IngredientHandlerModel GetOrCreateIngredientHandler(IngredientHandlerModel ingredientHandler)
         {
-            var handler = _context.IngredientHandlers.SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientHandler.Ingredient.Name.ToLower()
+            var handler = _context.IngredientHandlers.FirstOrDefault(x => x.Ingredient.Name.ToLower() == ingredientHandler.Ingredient.Name.ToLower()
                                                                   && x.Measure.UnitOfMeasurement == ingredientHandler.Measure.UnitOfMeasurement
                                                                   && x.Quantity.Quantitys == ingredientHandler.Quantity.Quantitys);
 
@@ -454,21 +454,21 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult AddWeekRecipes()
+        public IActionResult AddWeekRecipes(int recipesCount)
         {
-            WeekyRecipesModel model = new WeekyRecipesModel();
-            model.WeeklyRecipeHandlers = new WeeklyRecipeHandler[21];
+            MealPlanModel model = new MealPlanModel();
+            model.MealPlanHandlers = new MealPlanHandler[recipesCount];
             return View(model);
         }
 
-        public IActionResult AddNewWeeklyRecipes(WeekyRecipesModel newWeeklyRecipes)
+        public IActionResult AddNewMealPlan(MealPlanModel mealPlanModel)
         {
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    AddNewWeeklyRecipesToDb(newWeeklyRecipes.WeeklyRecipe.Name);
-                    CreateWeeklyRecipesHandler(newWeeklyRecipes.WeeklyRecipeHandlers, newWeeklyRecipes.WeeklyRecipe.Name);
+                    AddNewMealPlanToDb(mealPlanModel.MealPlan.Name);
+                    CreateMealPlanHandler(mealPlanModel.MealPlanHandlers, mealPlanModel.MealPlan.Name);
 
 
                     transaction.Commit();
@@ -486,36 +486,34 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction("Index");
         }
 
-        private void AddNewWeeklyRecipesToDb(string name)
+        private void AddNewMealPlanToDb(string name)
         {
-            var weeklyRecipes = new WeeklyRecipe()
+            var weeklyRecipes = new MealPlan()
             {
                 Id = 0,
                 Name = name,
             };
-            _context.WeeklyRecipe.Add(weeklyRecipes);
+            _context.MealPlans.Add(weeklyRecipes);
             _context.SaveChanges();
         }
-        private void CreateWeeklyRecipesHandler(WeeklyRecipeHandler[] weeklyRecipesHnadlers, string weeklyRecipesName)
+        private void CreateMealPlanHandler(MealPlanHandler[] mealPlanHandlers, string mealPlanName)
         {
-            foreach (var weeklyRecipeHandler in weeklyRecipesHnadlers)
+            foreach (var mealPlanHandler in mealPlanHandlers)
             {
-                WeeklyRecipeHandler handler = new()
+                MealPlanHandler handler = new()
                 {
                     Id = 0,
-                    Breakfast = weeklyRecipeHandler.Breakfast.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, weeklyRecipeHandler.Breakfast.Id) : null,
-                    Lunch = weeklyRecipeHandler.Lunch.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, weeklyRecipeHandler.Lunch.Id) : null,
-                    Dinner = weeklyRecipeHandler.Dinner.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, weeklyRecipeHandler.Dinner.Id) : null,
-                    WeeklyRecipe = _context.WeeklyRecipe.SingleOrDefault(x => x.Name.ToLower() == weeklyRecipesName.ToLower()),
+                    Recipes = mealPlanHandler.Recipes.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, mealPlanHandler.Recipes.Id) : null,
+                    MealPlan = _context.MealPlans.SingleOrDefault(x => x.Name.ToLower() == mealPlanName.ToLower()),
                 };
-                _context.WeeklyRecipeHandler.Add(handler);
+                _context.MealPlanHandlers.Add(handler);
                 _context.SaveChanges();
             }
         }
 
         public IActionResult CreateShopingList(List<int> recipesIds)
         {
-            
+
             IngredientHandlers = _context.RecipesHandlers.Where(rh => recipesIds
                                                            .Contains(rh.Recipe.Id))
                                                            .Include(rh => rh.IngredientHandler)
@@ -532,7 +530,7 @@ namespace DelikatessenDrehbuch.Controllers
                                                            Measure = g.First().Measure,
                                                            Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
                                                        })
-       .ToList();
+                                                       .ToList();
             return PartialView("_shopingListPartialView", groupedIngredients);
         }
         public IActionResult SelectWeeklyRecipes()

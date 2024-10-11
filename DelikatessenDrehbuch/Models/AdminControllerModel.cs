@@ -5,9 +5,9 @@ namespace DelikatessenDrehbuch.Models
 {
     public class AdminControllerModel
     {
-        public WeeklyRecipe WeeklyRecipe { get; set; }
-        public WeeklyRecipeHandler WeeklyRecipeHandler { get; set; }
-        public List<WeeklyRecipeHandler> WeeklyRecipeHandlers { get; set; }
+        public MealPlan WeeklyRecipe { get; set; }
+        public MealPlanHandler WeeklyRecipeHandler { get; set; }
+        public List<MealPlanHandler> WeeklyRecipeHandlers { get; set; }
 
         public List<SupportMessage> SupportMessage { get; set; }
 
@@ -17,7 +17,7 @@ namespace DelikatessenDrehbuch.Models
 
         public AdminControllerModel()
         {
-            WeeklyRecipeHandlers = new List<WeeklyRecipeHandler>();
+            WeeklyRecipeHandlers = new List<MealPlanHandler>();
             SupportMessage = new List<SupportMessage>();
             Recipes = new List<Recipes>();
         }

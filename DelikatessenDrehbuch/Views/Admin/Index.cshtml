@@ -1,6 +1,6 @@
 ﻿@model AdminControllerModel
 
-<div class=" minWidth100 flex flexJustifyContendCenter" style="height:100vh">
+<div class=" minWidth90 flex flexJustifyContendCenter" style="height:100vh">
     <div class="mobieleWidth90 minWidth90 Bg-Cream flexColumn">
         @* Suportmassage div *@
         <div>
@@ -142,10 +142,10 @@
                 </h2>
                 <div id="flush-collapseAdditOrDeliteRecipe" class="accordion-collapse collapse" data-bs-parent="#accordionFlushAdditOrDeliteRecipe">
                     <div class="flexRow mt-2  flexJustifyContendSpaceBetween">
-                        
+
                         <input id="recipeSearch" class="m-1" style="flex-basis:55%" placeholder="RezeptId oder Name" />
                         <button onclick="loadAdditOrDeliteRecipePartialView()" class=" m-1 btn bgRed Border-Gold" style="flex-basis:38%;color:white">Rezept suchen</button>
-                       
+
                     </div>
                     <div id="AdditOrDeliteRecipePartialView"></div>
 
@@ -154,12 +154,18 @@
 
         </div>
 
-        <div class="flexRow flexWrap flexJustifyContendSpaceBetween">
-            <a asp-action="AddNewRecipes" asp-controller="Admin" class="btn bgRed Border-Gold mt-2" style="color:white;max-width:max-content">Neues Rezept Hinzugfügen</a>
-            <a asp-action="AddWeekRecipes" asp-controller="Admin" class="btn bgRed Border-Gold mt-2" style="color:white;max-width:max-content">Neues Wochen Rezept</a>
+        <div class=" mt-3 p-1 flexRow flexWrap flexJustifyContendSpaceBetween flexAlginItemCenter Border-Gold bg-white">
+            <span>Rezept Anzahl:</span>
+            <input style="flex-basis:15%" type="number" id="RecipesCount" />
+            <a onclick="AddWeeklyRecipes()" class="btn bgRed Border-Gold " style="color:white;max-width:max-content">Neuen Menüplan erstellen</a>
 
         </div>
        
+        <div class="flexRow flexWrap flexJustifyContendSpaceBetween">
+            <a asp-action="AddNewRecipes" asp-controller="Admin" class="btn bgRed Border-Gold mt-2" style="color:white;max-width:max-content">Neues Rezept Hinzugfügen</a>
+
+        </div>
+
     </div>
 </div>
 
@@ -172,9 +178,14 @@
 
 <script>
 
-    function loadAdditOrDeliteRecipePartialView(){
+    function AddWeeklyRecipes() {
+        var count = $('#RecipesCount').val();
+        window.location.href=("Admin/AddWeekRecipes?recipesCount=" + count);
+    }
+
+    function loadAdditOrDeliteRecipePartialView() {
         var recipeSearch = $('#recipeSearch').val();
-        $('#AdditOrDeliteRecipePartialView').load("Admin/AdditOrDeliteRecipePartialView?query="+recipeSearch);
+        $('#AdditOrDeliteRecipePartialView').load("Admin/AdditOrDeliteRecipePartialView?query=" + recipeSearch);
     }
 
     function MessageModalShow(message) {

@@ -21,8 +21,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<QueryHandler> QueryHandler { get; set; }
         public DbSet<UserPreferencesQuery> UserPreferencesQuerys { get; set; }
         public DbSet<UserPreferencesRecipe> UserPreferencesRecipes { get; set; }
-        public DbSet<WeeklyRecipe> WeeklyRecipe { get; set; }
-        public DbSet<WeeklyRecipeHandler> WeeklyRecipeHandler { get; set; }
+        public DbSet<MealPlan> MealPlans { get; set; }
+        public DbSet<MealPlanHandler> MealPlanHandlers { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

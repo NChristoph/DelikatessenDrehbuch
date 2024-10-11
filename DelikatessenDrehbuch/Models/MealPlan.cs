@@ -1,6 +1,6 @@
 ﻿namespace DelikatessenDrehbuch.Models
 {
-    public class WeeklyRecipe
+    public class MealPlan
     {
         public int Id { get; set; }
         public string Name { get; set; }
