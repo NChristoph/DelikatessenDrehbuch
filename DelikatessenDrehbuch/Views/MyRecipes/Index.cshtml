@@ -20,23 +20,28 @@ TODO: Hier noch Layout anpassen *@
                 Meine Rezeptbuch
             </a>
         </div>
+        <div class="flexColumn">
+            <a typeof="button" class="btn" onclick="loadMealPlanView()">
+                Menü Pläne
+            </a>
+        </div>
 
         @{
-            if (User.IsInRole("Admin"))
-            {
-                <div class="flexColumn mobile-hidden">
-                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
-                        Add Recipes
-                    </a>
-                </div>
+            // if (User.IsInRole("Admin"))
+            // {
+            //     <div class="flexColumn mobile-hidden">
+            //         <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
+            //             Add Recipes
+            //         </a>
+            //     </div>
 
-                <div class="flexColumn mobile-hidden">
-                    <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
-                        Create Folder
-                    </a>
-                </div>
+            //     <div class="flexColumn mobile-hidden">
+            //         <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
+            //             Create Folder
+            //         </a>
+            //     </div>
 
-            }
+            // }
             if (User.IsInRole("PremiumUser"))
             {
                 <div class="flexColumn">
@@ -61,7 +66,7 @@ TODO: Hier noch Layout anpassen *@
         }
     </div>
     <div class="flexRow justify-content-center mobieleWidth90 minWidth100">
-        <div class="flex flexJustifyContendCenter mt-5" id="PartailaView"></div>
+        <div class="flex flexJustifyContendCenter mt-5" id="PartailaView" style="min-width:100%;"></div>
 
     </div>
 
@@ -75,6 +80,11 @@ TODO: Hier noch Layout anpassen *@
 
         function loadAboPage() {
             $('#PartailaView').load("MyRecipes/PremiumUserPage")
+
+        }
+
+        function loadMealPlanView() {
+            $('#PartailaView').load("MyRecipes/MealPlanView")
 
         }
         function loadMyRecipes() {

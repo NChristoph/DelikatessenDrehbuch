@@ -94,21 +94,7 @@
                     }
                 }
                 <div class="grid-KeyWords flex flexRow flexWrap flexJustifyContendCenter  minWidth100 maxWidth100 mobieleWidth90 mt-1">
-                    <div class="flex flexRow flexWrap flexJustifyContendSpaceBetween  minWidth80 maxWidth80 mobieleWidth90">
-                        @{
-                            if (Model.QueryHandler != null || !Model.QueryHandler.Any())
-                            {
-                                foreach (var query in Model.QueryHandler)
-                                {
-                                    <span>
-                                        @query.ToString()
-                                    </span>
-                                }
-                            }
-
-                        }
-
-                    </div>
+                   <span>@Model.Recipes.Name</span> 
                 </div>
 
 

@@ -2,12 +2,15 @@
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
+using Microsoft.ApplicationInsights.Channel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.Caching.Memory;
 using Polly;
+using Stripe;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -19,7 +22,7 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
         private readonly HelpfulMethods _helpfulMethods;
-        private List<IngredientHandlerModel?> IngredientHandlers { get; set; }
+
 
         private readonly string _connectionString = "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/";
         private readonly string _containerName = "picdelikatessendrehbuch";
@@ -30,7 +33,8 @@ namespace DelikatessenDrehbuch.Controllers
             _context = context;
             _cache = cache;
             _helpfulMethods = helpfulMethods;
-            IngredientHandlers = new();
+
+
         }
         public IActionResult Index()
         {
@@ -109,10 +113,13 @@ namespace DelikatessenDrehbuch.Controllers
                                    .ToArray();
 
             FullRecipes currentRecipe = null;
+            MealPlan mealPlan = null;
+
             foreach (string line in lines)
             {
                 try
                 {
+
                     if (line == "Rezept")
                     {
                         currentRecipe = new FullRecipes();
@@ -120,44 +127,52 @@ namespace DelikatessenDrehbuch.Controllers
 
 
                     }
-                    if (line.StartsWith("Id:"))
+
+                    else if (line.StartsWith("Essensplan#"))
+                    {
+                        mealPlan = new();
+                        mealPlan.Id = 0;
+                        mealPlan.Name = line.Split('#')[1].Trim();
+
+                    }
+                    if (line.StartsWith("Id#"))
                     {
 
                         currentRecipe.Recipes.Id = 0;
                     }
-                    else if (line.StartsWith("Category:"))
+                    else if (line.StartsWith("Category#"))
                     {
-                        currentRecipe.Recipes.Category = line.Split(':')[1].Trim();
+                        currentRecipe.Recipes.Category = line.Split('#')[1].Trim();
                     }
-                    else if (line.StartsWith("Name:"))
+                    else if (line.StartsWith("Name#"))
                     {
-                        currentRecipe.Recipes.Name = line.Split(':')[1].Trim();
+                        currentRecipe.Recipes.Name = line.Split('#')[1].Trim();
                     }
-                    else if (line.StartsWith("Preparation:"))
+                    else if (line.StartsWith("Preparation#"))
                     {
-                        currentRecipe.Recipes.Preparation = line.Split(':')[1].Trim();
-                    }
-
-                    else if (line.StartsWith("Description:"))
-                    {
-                        currentRecipe.Recipes.Description = line.Split(':')[1].Trim();
+                        currentRecipe.Recipes.Preparation = line.Split('#')[1].Trim();
                     }
 
-                    else if (line.StartsWith("PreparationTime:"))
+                    else if (line.StartsWith("Description#"))
                     {
-                        var test = line.Split(":")[1].Trim();
-                        currentRecipe.Recipes.PreparationTime = int.Parse(line.Split(':')[1].Trim());
+                        currentRecipe.Recipes.Description = line.Split('#')[1].Trim();
                     }
-                    else if (line.StartsWith("Kalorien:"))
+
+                    else if (line.StartsWith("PreparationTime#"))
+                    {
+                        var test = line.Split("#")[1].Trim();
+                        currentRecipe.Recipes.PreparationTime = int.Parse(line.Split('#')[1].Trim());
+                    }
+                    else if (line.StartsWith("Kalorien#"))
                     {
 
-                        currentRecipe.Recipes.Calories = line.Split(':')[1].Trim();
+                        currentRecipe.Recipes.Calories = line.Split('#')[1].Trim();
                     }
                     if (line.StartsWith("Zutaten"))
                     {
                         try
                         {
-                            string[] ing = line.Split(":");
+                            string[] ing = line.Split("#");
                             IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
                             ingredientHandler.Id = 0;
                             ingredientHandler.Ingredient.Name = ing[1].Trim();
@@ -172,11 +187,12 @@ namespace DelikatessenDrehbuch.Controllers
                         }
 
                     }
-                    if (line.StartsWith("Query:"))
+                    if (line.StartsWith("Query#"))
                     {
-                        currentRecipe.QueryHandler.Add(line.Split(':')[1].Trim());
+                        currentRecipe.QueryHandler.Add(line.Split('#')[1].Trim());
                     }
-                    currentRecipe.Recipes.FormFile = recipesImage;
+                    if (currentRecipe !=null)
+                        currentRecipe.Recipes.FormFile = recipesImage;
 
 
                 }
@@ -190,18 +206,21 @@ namespace DelikatessenDrehbuch.Controllers
             var ifExist = _context.Recipes.SingleOrDefault(x => x.Name == currentRecipe.Recipes.Name && x.Preparation == currentRecipe.Recipes.Preparation);
             if (ifExist == null)
             {
-                AddRecipes(currentRecipe);
+                AddRecipes(currentRecipe, mealPlan);
             }
 
 
 
         }
-        public void AddRecipes(FullRecipes newRecipes)
+        public void AddRecipes(FullRecipes newRecipes, MealPlan mealPlan = null)
         {
+            MealPlanHandler mealPlanHandler = null;
 
 
             if (newRecipes.Recipes.FormFile != null)
                 UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
+
+
 
             var recipes = new Recipes()
             {
@@ -224,6 +243,41 @@ namespace DelikatessenDrehbuch.Controllers
 
             CreateRecipeHandler(newRecipes.Recipes, newRecipes.IngredientHandler);
             CreateQuaryHandler(recipes, newRecipes.QueryHandler);
+
+            if (mealPlan != null)
+            {
+
+                var exist = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
+                if (exist == null)
+                    _context.MealPlan.Add(mealPlan);
+
+                _context.SaveChanges();
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        
+
+                        mealPlanHandler = new();
+                        mealPlanHandler.Id = 0;
+                        mealPlanHandler.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
+                        mealPlanHandler.Recipes = _context.Recipes.SingleOrDefault(x => x.Name.ToLower() == recipes.Name.ToLower() && x.Preparation.ToLower() == recipes.Preparation.ToLower());
+
+                        _context.MealPlanHandler.Add(mealPlanHandler);
+                        _context.SaveChanges();
+
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Fehler bei den Menüplans", ex);
+                        transaction.Rollback();
+                    }
+                }
+
+
+
+            }
 
         }
 
@@ -454,91 +508,10 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult AddWeekRecipes(int recipesCount)
-        {
-            MealPlanModel model = new MealPlanModel();
-            model.MealPlanHandlers = new MealPlanHandler[recipesCount];
-            return View(model);
-        }
-
-        public IActionResult AddNewMealPlan(MealPlanModel mealPlanModel)
-        {
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    AddNewMealPlanToDb(mealPlanModel.MealPlan.Name);
-                    CreateMealPlanHandler(mealPlanModel.MealPlanHandlers, mealPlanModel.MealPlan.Name);
 
 
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    throw new Exception(ex.Message, ex);
-                }
-
-            }
 
 
-            //TODO Weekly Recipes erstellen
-            return RedirectToAction("Index");
-        }
-
-        private void AddNewMealPlanToDb(string name)
-        {
-            var weeklyRecipes = new MealPlan()
-            {
-                Id = 0,
-                Name = name,
-            };
-            _context.MealPlans.Add(weeklyRecipes);
-            _context.SaveChanges();
-        }
-        private void CreateMealPlanHandler(MealPlanHandler[] mealPlanHandlers, string mealPlanName)
-        {
-            foreach (var mealPlanHandler in mealPlanHandlers)
-            {
-                MealPlanHandler handler = new()
-                {
-                    Id = 0,
-                    Recipes = mealPlanHandler.Recipes.Id != 0 ? _helpfulMethods.GetRecipeFromDbById(_context, mealPlanHandler.Recipes.Id) : null,
-                    MealPlan = _context.MealPlans.SingleOrDefault(x => x.Name.ToLower() == mealPlanName.ToLower()),
-                };
-                _context.MealPlanHandlers.Add(handler);
-                _context.SaveChanges();
-            }
-        }
-
-        public IActionResult CreateShopingList(List<int> recipesIds)
-        {
-
-            IngredientHandlers = _context.RecipesHandlers.Where(rh => recipesIds
-                                                           .Contains(rh.Recipe.Id))
-                                                           .Include(rh => rh.IngredientHandler)
-                                                           .Include(rh => rh.IngredientHandler.Ingredient)
-                                                           .Include(rh => rh.IngredientHandler.Measure)
-                                                           .Include(rh => rh.IngredientHandler.Quantity)
-                                                           .Select(x => x.IngredientHandler)
-                                                           .ToList();
-
-            var groupedIngredients = IngredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                                                       .Select(g => new IngredientHandlerModel
-                                                       {
-                                                           Ingredient = g.First().Ingredient,
-                                                           Measure = g.First().Measure,
-                                                           Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
-                                                       })
-                                                       .ToList();
-            return PartialView("_shopingListPartialView", groupedIngredients);
-        }
-        public IActionResult SelectWeeklyRecipes()
-        {
-            var recipesFromDb = _context.Recipes.ToList();
-
-            return PartialView("_SelectRecipeForWeeklyRecipePartialView", recipesFromDb);
-        }
 
         // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult AdditOrDeliteRecipePartialView(string query)

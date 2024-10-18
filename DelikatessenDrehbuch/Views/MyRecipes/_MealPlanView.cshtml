@@ -1,0 +1,25 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model List<MealPlanModel>
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+
+<div class="mt-3 minWidth100 mobieleWidth90">
+
+
+
+    
+        @{
+            //TODO: MealPlan Layout Noch machen Und Für Premium User Noch Eine Eigene Partial View Vl ein Drop Down
+            foreach (var mealplan in Model)
+            {
+                <a class=" bgRed Border-Gold btn m-1" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="color:white">@mealplan.MealPlan.Name</a>
+
+            }
+
+        }
+    
+</div>
+
+
+

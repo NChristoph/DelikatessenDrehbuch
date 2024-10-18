@@ -1,0 +1,41 @@
+﻿@model MealModel
+
+<div class="flexRowToColumn minWidth100 mobieleWidth90">
+    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth100  mobileCenter">
+        @{
+            foreach (var recipes in Model.Recipes)
+            {
+                <div class="row p-1">
+                    <div class="flexColumn flexAlginItemCenter minWidth40 maxWidth40 mobieleWidth100">
+                        <img src="@recipes.ImagePath" class="mobieleWidth90" alt="@recipes.Description" width="150" />
+                    </div>
+                    <div class="flexColumn flexJustifyContendCenter flexAlginItemCenter mobieleWidth100 minWidth50 maxWidth50">
+                        <span style="text-align:center">@recipes.Name</span>
+                    </div>
+
+                </div>
+                <hr style="width:90%" class="flexAlginItemCenter" />
+
+            }
+        }
+    </div>
+    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth100 Bg-Cream p-3">
+        <div class="flexRow flexJustifyContendCenter ">
+            <h3 style="font-family:'Lucida Handwriting';color:#D4AF37">Einkauf's Liste :</h3>
+
+            
+        </div>
+        @{
+            foreach (var ingredient in Model.Ingredients)
+            {
+                <div class="row p-1 mobieleWidth100 mt-1 minWidth100">
+                    <div class="col minWidth30 maxWidth60" style="white-space:normal">@ingredient.Ingredient.Name</div>
+                    <div class="col minWidth20 maxWidth20">@ingredient.Quantity.Quantitys</div>
+                    <div class="col minWidth10 maxWidth10">@ingredient.Measure.UnitOfMeasurement</div>
+
+                </div>
+            }
+        }
+    </div>
+
+</div>
