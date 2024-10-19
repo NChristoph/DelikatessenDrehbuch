@@ -4,21 +4,37 @@
 @inject UserManager<IdentityUser> UserManager
 
 
-<div class="mt-3 minWidth100 mobieleWidth90">
+<div class="mt-3 minWidth100 mobieleWidth90 flexRow flexWrap flexJustifyContendSpaceAround">
 
 
 
-    
-        @{
-            //TODO: MealPlan Layout Noch machen Und Für Premium User Noch Eine Eigene Partial View Vl ein Drop Down
-            foreach (var mealplan in Model)
-            {
-                <a class=" bgRed Border-Gold btn m-1" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="color:white">@mealplan.MealPlan.Name</a>
 
-            }
+    @{
+        //TODO: MealPlan Layout Noch machen Und Für Premium User Noch Eine Eigene Partial View Vl ein Drop Down
+        foreach (var mealplan in Model)
+        {
+            <a class=" m-1 mobieleWidth90" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="text-decoration:none">
+                <div class="flexColumn Border-Gold mobieleWidth90 mobileCenter p-1 m-1" style="max-width:300px">
+                    <div class="flexRow flexJustifyContendCenter">
+                        @foreach (var recipes in mealplan.Recipes)
+                        {
+                            <img class="p-1" width="92" height="92" src="@recipes.ImagePath" loading="lazy" />
+                        }
+
+                    </div>
+
+                    <div class="flexRow flexJustifyContendCenter mt-1">
+                        <span style="color:black;width:max-content;text-align:center"> @mealplan.MealPlan.Name</span>
+
+                    </div>
+                </div>
+
+            </a>
 
         }
-    
+
+    }
+
 </div>
 
 

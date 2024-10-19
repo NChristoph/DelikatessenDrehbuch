@@ -80,6 +80,7 @@ namespace DelikatessenDrehbuch.Controllers
                                                          .ToList();
 
             var mealModel = new MealModel();
+            mealModel.MealPlan = _dbcontext.MealPlan.SingleOrDefault(x => x.Id == id);
             mealModel.Recipes=_dbcontext.Recipes.Where(x=>recipesIds.Contains(x.Id)).ToList();
             mealModel.Ingredients= ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
                                                        .Select(g => new IngredientHandlerModel

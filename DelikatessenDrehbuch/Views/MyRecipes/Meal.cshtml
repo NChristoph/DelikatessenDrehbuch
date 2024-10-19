@@ -1,29 +1,32 @@
 ﻿@model MealModel
 
-<div class="flexRowToColumn minWidth100 mobieleWidth90">
-    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth100  mobileCenter">
+<div class="flexRowToColumn minWidth100 mobieleWidth100">
+
+    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth90 flexJustifyContendCenter  mobileCenter p-3">
         @{
             foreach (var recipes in Model.Recipes)
             {
-                <div class="row p-1">
+                <a asp-route-id="@recipes.Id" asp-controller="SelectedRecipe" asp-action="Index" class="row p-1" style="text-decoration:none;color:black">
                     <div class="flexColumn flexAlginItemCenter minWidth40 maxWidth40 mobieleWidth100">
                         <img src="@recipes.ImagePath" class="mobieleWidth90" alt="@recipes.Description" width="150" />
                     </div>
                     <div class="flexColumn flexJustifyContendCenter flexAlginItemCenter mobieleWidth100 minWidth50 maxWidth50">
                         <span style="text-align:center">@recipes.Name</span>
+                       
                     </div>
 
-                </div>
-                <hr style="width:90%" class="flexAlginItemCenter" />
+                </a>
+              
+                <hr style="width:90%" class="flexAlginSelfCenter" />
 
             }
         }
     </div>
-    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth100 Bg-Cream p-3">
+    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth90 mobileCenter Bg-Cream p-3">
         <div class="flexRow flexJustifyContendCenter ">
             <h3 style="font-family:'Lucida Handwriting';color:#D4AF37">Einkauf's Liste :</h3>
 
-            
+
         </div>
         @{
             foreach (var ingredient in Model.Ingredients)
@@ -38,4 +41,10 @@
         }
     </div>
 
+    
+
+</div>
+
+<div class="minWidth100 mobieleWidth90 p-2 mt-3 Border-Gold ">
+    <p class=" p-4"><strong>Menü Zubereitung:</strong><br /><br/>@Html.Raw(@Model.MealPlan.Preperation)</p>
 </div>
