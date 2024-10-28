@@ -3,39 +3,67 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
+<div class="flexColumn mobieleWidth90 mobileCenter">
 
-<div class="mt-3 minWidth100 mobieleWidth90 flexRow flexWrap flexJustifyContendSpaceAround">
+    <div class="mt-3 minWidth100 mobieleWidth90 flexRow flexWrap flexJustifyContendSpaceAround ">
 
 
 
 
-    @{
-        //TODO: MealPlan Layout Noch machen Und Für Premium User Noch Eine Eigene Partial View Vl ein Drop Down
-        foreach (var mealplan in Model)
-        {
-            <a class=" m-1 mobieleWidth90" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="text-decoration:none">
-                <div class="flexColumn Border-Gold mobieleWidth90 mobileCenter p-1 m-1" style="max-width:300px">
-                    <div class="flexRow flexJustifyContendCenter">
-                        @foreach (var recipes in mealplan.Recipes)
-                        {
-                            <img class="p-1" width="92" height="92" src="@recipes.ImagePath" loading="lazy" />
-                        }
+        @{
+            List<MealPlanModel> model = new();
+            if (!User.IsInRole("PremiumUser"))
+            {
+                model = Model.Take(10).ToList();
 
+            }
+            model = Model.ToList();
+
+            foreach (var mealplan in model)
+            {
+                var test = mealplan.Recipes.Select(x => x.Name);
+                var names = string.Join(" <br>", mealplan.Recipes.Select(x => x.Name+".").ToList());
+                <a class=" m-1 mobieleWidth90" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="text-decoration:none;flex-basis:30%">
+                    <div class="flexColumn Border-Gold mobieleWidth90 mobileCenter p-1 m-1 " style="max-width:300px;height:100%;width:100%">
+                        <div class="flexRow flexJustifyContendCenter">
+                            @foreach (var recipes in mealplan.Recipes)
+                            {
+                                <img class="p-1" width="92" height="92" src="@recipes.ImagePath" loading="lazy" />
+                            }
+
+                        </div>
+
+                        <div class="flexRow flexJustifyContendCenter flexAlginItemCenter mt-1">
+                            <span  style="font-size:16px;color:black;width:max-content;text-align:center;max-width:280px;min-width:280px;">@Html.Raw(@names.ToString())</span>
+
+                        </div>
                     </div>
 
-                    <div class="flexRow flexJustifyContendCenter mt-1">
-                        <span style="color:black;width:max-content;text-align:center"> @mealplan.MealPlan.Name</span>
+                </a>
 
-                    </div>
-                </div>
-
-            </a>
+            }
 
         }
 
-    }
 
+    </div>
+
+    @{
+        if (!User.IsInRole("PremiumUser"))
+        {
+            <hr />
+            //TODO:PremiumAboAbschluss ermöglichen
+            <div class="flexColumn flexAlginItemCenter mt-3">
+                <span class="mt-2 ">Auf Premium Upgraden für mehr Menü`s</span>
+
+                <span class="mt-2">Premium ist bald verfügbar</span>
+            </div>
+           
+        }
+
+    }
 </div>
+
 
 
 

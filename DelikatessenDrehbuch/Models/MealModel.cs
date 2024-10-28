@@ -6,7 +6,8 @@
         public List<Recipes> Recipes { get; set; }
         
         public List<IngredientHandlerModel> Ingredients { get; set;}
+        public List<NutrientsHandler> NutrientsHandlers { get; set; }
 
-
+      
     }
 }

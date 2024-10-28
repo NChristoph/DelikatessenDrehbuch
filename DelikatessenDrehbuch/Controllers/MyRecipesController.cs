@@ -79,9 +79,12 @@ namespace DelikatessenDrehbuch.Controllers
                                                          .Select(x => x.IngredientHandler)
                                                          .ToList();
 
+           
+
             var mealModel = new MealModel();
             mealModel.MealPlan = _dbcontext.MealPlan.SingleOrDefault(x => x.Id == id);
             mealModel.Recipes=_dbcontext.Recipes.Where(x=>recipesIds.Contains(x.Id)).ToList();
+         
             mealModel.Ingredients= ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
                                                        .Select(g => new IngredientHandlerModel
                                                        {
@@ -91,7 +94,21 @@ namespace DelikatessenDrehbuch.Controllers
                                                        })
                                                        .ToList();
 
+            var test = mealModel.Ingredients.Select(x => x.Ingredient.Name.ToLower()).ToList();
+            mealModel.NutrientsHandlers = _dbcontext.NutrientsHandler.Where(x => test.Contains(x.IngredientNutrientHandler.Ingredient.Name.ToLower()))
+                                                                   .Include(x => x.Nutrient)
+                                                                   .Include(x => x.Quantity)
+                                                                   .Include(x => x.Measure)
+                                                                   .Include(x => x.IngredientNutrientHandler)
+                                                                   .Include(x=>x.IngredientNutrientHandler.Ingredient).ToList();
+
+
+
+            var ingredientsName = ingredientHandlers.Select(x => x.Ingredient.Name.ToLower()).ToList();
            
+
+
+
             return View("Meal",mealModel);
         }
 

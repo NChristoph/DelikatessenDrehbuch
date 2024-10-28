@@ -20,8 +20,8 @@ html {
 }
 
 .Border-Gold {
-    border: 1px solid #D4AF37;
-    border-color: #D4AF37;
+    border: 1px solid #D4AF37 !important;
+    border-color: #D4AF37 !important;
 }
 
 tr:nth-child(even) {
@@ -514,6 +514,12 @@ tr:nth-child(odd) {
         display: none !important;
     }
 }
+
+
+
+
+
+
 
 
 @media (max-width: 768px) {

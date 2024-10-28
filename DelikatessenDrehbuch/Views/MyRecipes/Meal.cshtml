@@ -1,5 +1,8 @@
 ﻿@model MealModel
+@using Microsoft.AspNetCore.Identity
 
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
 <div class="flexRowToColumn minWidth100 mobieleWidth100">
 
     <div class="flexColumn minWidth50 maxWidth50 mobieleWidth90 flexJustifyContendCenter  mobileCenter p-3">
@@ -12,11 +15,11 @@
                     </div>
                     <div class="flexColumn flexJustifyContendCenter flexAlginItemCenter mobieleWidth100 minWidth50 maxWidth50">
                         <span style="text-align:center">@recipes.Name</span>
-                       
+
                     </div>
 
                 </a>
-              
+
                 <hr style="width:90%" class="flexAlginSelfCenter" />
 
             }
@@ -41,10 +44,76 @@
         }
     </div>
 
-    
+
 
 </div>
 
+
 <div class="minWidth100 mobieleWidth90 p-2 mt-3 Border-Gold ">
-    <p class=" p-4"><strong>Menü Zubereitung:</strong><br /><br/>@Html.Raw(@Model.MealPlan.Preperation)</p>
+    @{
+        int maxChars = 1;
+        if (Model.MealPlan.Preperation.ToString().Length < 400)
+        {
+            maxChars = 400;
+        }
+        // Beispiel: Zeige die ersten 200 Zeichen
+
+        // Der vollständige Text der Zubereitung
+        string halfPreperation = Model.MealPlan.Preperation.Substring(0, maxChars) + "<br><br>.....Auf Premium upgraden, um die vollständige Zubereitung zu sehen.<br><br>Premium kommt bald.<br><br>Bis dahin können Sie die Rezepte einfach anklicken und der Reihe nach machen";
+
+
+        if (User.IsInRole("PremiumUser"))
+        {
+            <p class=" p-4"><strong>Menü Zubereitung:</strong><br /><br />@Html.Raw(@Model.MealPlan.Preperation)</p>
+        }
+        else
+        {
+            <hr />
+            //TODO:PremiumAboAbschluss ermöglichen
+            <p class=" p-4"><strong>Menü Zubereitung:</strong><br /><br />@Html.Raw(halfPreperation)</p>
+        }
+
+    }
+
+</div>
+<div class="flexColumn">
+
+    <div class="card-group flexJustifyContendSpaceAround flex flexWrap mobileCenter ">
+        @{
+            var group = Model.NutrientsHandlers.GroupBy(x => x.IngredientNutrientHandler.Ingredient.Name).ToList();
+
+            foreach (var nurient in group)
+            {
+                string effect = nurient.Select(x => x.IngredientNutrientHandler.Effect).First();
+                <div class="card  Border-Gold minWidth30  mobieleWidth90 mt-3 m-2">
+                    <div class="card-header Bg-Cream" style="text-align:center;"><strong>@nurient.Key</strong></div>
+                    <div class="card-body p-2 flexColumn">
+                        @foreach (var ingredient in nurient)
+                        {
+                            var ingretientFromHandler = Model.Ingredients.Single(x => x.Ingredient.Name.ToLower().Trim() == ingredient.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim()).Quantity.Quantitys;
+                            // <span>@nurient.Key</span>
+                            // <span>@ingretientFromHandler</span>
+                            <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
+                                <span class="col minWidth50 maxWidth50">@ingredient.Nutrient.Name</span>
+                                <span class="col minWidth20 maxWidth20" style="text-align:end">@ingredient.Quantity.Quantitys</span>
+                                <span class="col minWidth20 maxWidth20">@ingredient.Measure.UnitOfMeasurement</span>
+
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer Bg-Cream">@effect</div>
+                </div>
+
+
+
+
+
+            }
+
+
+        }
+    </div>
+
+
+
 </div>
