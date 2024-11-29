@@ -78,6 +78,8 @@
 </div>
 <div class="flexColumn">
 
+    <span class="m-1 flexAlginSelfCenter">Nährstoffe je Hundert gramm:</span>
+
     <div class="card-group flexJustifyContendSpaceAround flex flexWrap mobileCenter ">
         @{
             var group = Model.NutrientsHandlers.GroupBy(x => x.IngredientNutrientHandler.Ingredient.Name).ToList();
@@ -90,9 +92,7 @@
                     <div class="card-body p-2 flexColumn">
                         @foreach (var ingredient in nurient)
                         {
-                            var ingretientFromHandler = Model.Ingredients.Single(x => x.Ingredient.Name.ToLower().Trim() == ingredient.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim()).Quantity.Quantitys;
-                            // <span>@nurient.Key</span>
-                            // <span>@ingretientFromHandler</span>
+                            
                             <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
                                 <span class="col minWidth50 maxWidth50">@ingredient.Nutrient.Name</span>
                                 <span class="col minWidth20 maxWidth20" style="text-align:end">@ingredient.Quantity.Quantitys</span>

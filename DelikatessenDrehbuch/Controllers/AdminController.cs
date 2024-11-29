@@ -1,19 +1,13 @@
 ﻿using Azure.Storage.Blobs;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.StaticScripts;
-using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.Caching.Memory;
-using Polly;
-using Stripe;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -22,6 +16,7 @@ namespace DelikatessenDrehbuch.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
+        private readonly AddRecipeException _myExceptions;
         private readonly HelpfulMethods _helpfulMethods;
 
 
@@ -29,11 +24,13 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly string _containerName = "picdelikatessendrehbuch";
         private readonly string _azureAcoutName = "blobdelikatessendrehbuch";
 
-        public AdminController(ApplicationDbContext context, IMemoryCache cache, HelpfulMethods helpfulMethods)
+        public AdminController(ApplicationDbContext context, IMemoryCache cache, HelpfulMethods helpfulMethods, AddRecipeException myExceptions)
         {
             _context = context;
             _cache = cache;
             _helpfulMethods = helpfulMethods;
+            _myExceptions = myExceptions;
+
 
 
         }
@@ -103,113 +100,95 @@ namespace DelikatessenDrehbuch.Controllers
         #region SaveNewRecipe_In_DB
         public IActionResult SaveNewRecipes(NewRecipesMobileUpload newRecipes)
         {
-            CreateRecipesFromString(newRecipes.RecipeData, newRecipes.RecipesImage);
-            return RedirectToAction("Index");
-        }
 
-        private void CreateRecipesFromString(string recipesData, IFormFile recipesImage)
-        {
-            var lines = recipesData.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
-                                   .Select(line => line.Trim())
-                                   .ToArray();
-
-            FullRecipes currentRecipe = null;
-            MealPlan mealPlan = null;
-
-            foreach (string line in lines)
+            using (var transAction = _context.Database.BeginTransaction())
             {
                 try
                 {
-
-                    if (line == "Rezept")
+                    if (newRecipes.Id == 0)
+                        CreateRecipesFromString(newRecipes);
+                    else
                     {
-                        currentRecipe = new FullRecipes();
-                        currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
-
-
+                        EditeRecipes(_helpfulMethods.GetFullRecipeById(_context, newRecipes.Id));
                     }
 
-                    else if (line.StartsWith("Essensplan#"))
-                    {
-                        mealPlan = new();
-                        mealPlan.Id = 0;
-                        mealPlan.Name = line.Split('#')[1].Trim();
-
-                    }
-                    if (line.StartsWith("Id#"))
-                    {
-
-                        currentRecipe.Recipes.Id = 0;
-                    }
-                    else if (line.StartsWith("Category#"))
-                    {
-                        currentRecipe.Recipes.Category = line.Split('#')[1].Trim();
-                    }
-                    else if (line.StartsWith("Name#"))
-                    {
-                        currentRecipe.Recipes.Name = line.Split('#')[1].Trim();
-                    }
-                    else if (line.StartsWith("Preparation#"))
-                    {
-                        currentRecipe.Recipes.Preparation = line.Split('#')[1].Trim();
-                    }
-
-                    else if (line.StartsWith("Description#"))
-                    {
-                        currentRecipe.Recipes.Description = line.Split('#')[1].Trim();
-                    }
-
-                    else if (line.StartsWith("PreparationTime#"))
-                    {
-                        var test = line.Split("#")[1].Trim();
-                        currentRecipe.Recipes.PreparationTime = int.Parse(line.Split('#')[1].Trim());
-                    }
-                    else if (line.StartsWith("Kalorien#"))
-                    {
-
-                        currentRecipe.Recipes.Calories = line.Split('#')[1].Trim();
-                    }
-                    if (line.StartsWith("Zutaten"))
-                    {
-                        try
-                        {
-                            string[] ing = line.Split("#");
-                            IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
-                            ingredientHandler.Id = 0;
-                            ingredientHandler.Ingredient.Name = ing[1].Trim();
-                            ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
-                            ingredientHandler.Quantity.Quantitys = float.Parse(ing[3].Trim());
-
-                            currentRecipe.IngredientHandler.Add(ingredientHandler);
-                        }
-                        catch
-                        {
-                            BadRequest($"Zutaten des Rezeptes: {currentRecipe.Recipes.Name} kannten nicht gespeichert werden , {line}");
-                        }
-
-                    }
-                    if (line.StartsWith("Query#"))
-                    {
-                        currentRecipe.QueryHandler.Add(line.Split('#')[1].Trim());
-                    }
-                    if (currentRecipe != null)
-                        currentRecipe.Recipes.FormFile = recipesImage;
-
-
+                    transAction.Commit();
                 }
                 catch (Exception ex)
                 {
-                    BadRequest($"Fehler in {line}");
+                    transAction.Rollback();
+                    throw new Exception(_myExceptions.ErrorMessage);
+                }
+               
+            }
+            
+           
+            
+            return RedirectToAction("Index");
+        }
+
+        private string[] GetArrayFromString(string convertToArray)
+        {
+            var lines = convertToArray.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                                 .Select(line => line.Trim())
+                                 .ToArray();
+
+            return lines;
+        }
+        private void CreateRecipesFromString(NewRecipesMobileUpload newRecipes)
+        {
+
+            FullRecipes currentRecipe = new();
+            MealPlan mealPlan = null;
+
+            currentRecipe.Recipes.Name = newRecipes.Name;
+            currentRecipe.Recipes.Calories = newRecipes.Calories;
+            currentRecipe.Recipes.Category = newRecipes.Category;
+            currentRecipe.Recipes.Description = newRecipes.Description;
+            currentRecipe.Recipes.Preparation = newRecipes.Preperation;
+            currentRecipe.Recipes.PreparationTime = Int32.Parse(newRecipes.PreperationTime);
+            currentRecipe.Recipes.OwnerEmail = "Delikatessen.drehbuch@outlook.com";
+            if (!string.IsNullOrEmpty(newRecipes.MealPlan))
+            {
+                mealPlan = new();
+                mealPlan.Name = newRecipes.MealPlan;
+            }
+
+            var ingredients = GetArrayFromString(newRecipes.Ingredients);
+
+            foreach (var ingredient in ingredients)
+            {
+                if (!string.IsNullOrEmpty(ingredient))
+                {
+                    string[] ing = ingredient.Split("#");
+                    IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                    ingredientHandler.Id = 0;
+                    ingredientHandler.Ingredient.Name = ing[2].Trim();
+                    ingredientHandler.Measure.UnitOfMeasurement = ing[1].Trim();
+                    ingredientHandler.Quantity.Quantitys = float.Parse(ing[0].Trim());
+
+                    currentRecipe.IngredientHandler.Add(ingredientHandler);
                 }
 
             }
 
-            var ifExist = _context.Recipes.SingleOrDefault(x => x.Name == currentRecipe.Recipes.Name && x.Preparation == currentRecipe.Recipes.Preparation);
+            var querys = GetArrayFromString(newRecipes.Querys);
+            foreach (var query in querys)
+            {
+                currentRecipe.QueryHandler.Add(query.Trim());
+            }
+
+            if (currentRecipe != null)
+                currentRecipe.Recipes.FormFile = newRecipes.RecipesImage;
+
+
+
+            var ifExist = _context.Recipes.FirstOrDefault(x => x.Name == currentRecipe.Recipes.Name && x.Preparation == currentRecipe.Recipes.Preparation);
             if (ifExist == null)
             {
                 AddRecipes(currentRecipe, mealPlan);
+                
             }
-
 
 
         }
@@ -248,7 +227,7 @@ namespace DelikatessenDrehbuch.Controllers
             if (mealPlan != null)
             {
 
-                var exist = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
+                var exist = _context.MealPlan.FirstOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
                 if (exist == null)
                     _context.MealPlan.Add(mealPlan);
 
@@ -273,7 +252,7 @@ namespace DelikatessenDrehbuch.Controllers
                     {
                         transaction.Rollback();
                         throw new Exception("Fehler bei den Menüplans", ex);
-                        
+
                     }
                 }
 
@@ -374,29 +353,36 @@ namespace DelikatessenDrehbuch.Controllers
 
         private IngredientHandlerModel GetOrCreateIngredientHandler(IngredientHandlerModel ingredientHandler)
         {
-            var handler = _context.IngredientHandlers.FirstOrDefault(x => x.Ingredient.Name.ToLower() == ingredientHandler.Ingredient.Name.ToLower()
-                                                                  && x.Measure.UnitOfMeasurement == ingredientHandler.Measure.UnitOfMeasurement
-                                                                  && x.Quantity.Quantitys == ingredientHandler.Quantity.Quantitys);
 
+            var handler = _context.IngredientHandlers.SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientHandler.Ingredient.Name.ToLower()
+                                                  && x.Measure.UnitOfMeasurement == ingredientHandler.Measure.UnitOfMeasurement
+                                                  && x.Quantity.Quantitys == ingredientHandler.Quantity.Quantitys);
             if (handler != null)
                 return handler;
-            else
+
+            handler = new IngredientHandlerModel()
             {
-                handler = new IngredientHandlerModel()
-                {
-                    Id = 0,
-                    Ingredient = GetOrCreateIngredient(ingredientHandler.Ingredient),
-                    Quantity = GetOrCreateQuantity(ingredientHandler.Quantity),
-                    Measure = GetMeasure(ingredientHandler.Measure)
-                };
-                return handler;
-            }
+                Id = 0,
+                Ingredient = GetOrCreateIngredient(ingredientHandler.Ingredient.Name),
+                Quantity = GetOrCreateQuantity(ingredientHandler.Quantity.Quantitys),
+                Measure = GetorCreateMeasure(ingredientHandler.Measure.UnitOfMeasurement)
+            };
+
+
+            _myExceptions.ErrorMessage=$"IngredientHandler mit Zutat: {ingredientHandler.Ingredient.Name} " +
+                                        $"Mänge: {ingredientHandler.Quantity.Quantitys} " +
+                                        $"Maßeinheit: {ingredientHandler.Measure.UnitOfMeasurement} " +
+                                        $"Hat ein Fehler ausgegeben möglicherweise doppelter Eintrag in der Db";
+
+            return handler;
+
+            
         }
 
         #region IngredientHandlerContent
-        private Ingredient GetOrCreateIngredient(Ingredient ingredient)
+        private Ingredient GetOrCreateIngredient(string ingredient)
         {
-            var ingredientFromDb = _context.Ingredients.SingleOrDefault(x => x.Name.ToLower() == ingredient.Name.ToLower());
+            var ingredientFromDb = _context.Ingredients.Single(x => x.Name.ToLower().Trim() == ingredient.ToLower().Trim());
 
             if (ingredientFromDb != null)
                 return ingredientFromDb;
@@ -405,7 +391,7 @@ namespace DelikatessenDrehbuch.Controllers
                 ingredientFromDb = new Ingredient()
                 {
                     Id = 0,
-                    Name = ingredient.Name,
+                    Name = ingredient.Trim(),
 
                 };
 
@@ -415,23 +401,31 @@ namespace DelikatessenDrehbuch.Controllers
 
             return ingredientFromDb;
         }
-        private Quantity GetOrCreateQuantity(Quantity quantity)
+        private Quantity GetOrCreateQuantity(float quantity)
         {
-            var quantityFromDb = _context.Quantities.FirstOrDefault(x => x.Quantitys == quantity.Quantitys);
+            var quantityFromDb = _context.Quantities.Single(x => x.Quantitys == quantity);
 
             if (quantityFromDb != null)
                 return quantityFromDb;
             else
             {
-                _context.Quantities.Add(quantity);
+                quantityFromDb = new()
+                {
+                    Id = 0,
+                    Quantitys = quantity
+                };
+
+                _context.Quantities.Add(quantityFromDb);
                 _context.SaveChanges();
-                return quantity;
+                return quantityFromDb;
             }
         }
 
-        private Measure GetMeasure(Measure measure)
+        private Measure GetorCreateMeasure(string measure)
         {
-            var measureFromDb = _context.Metrics.FirstOrDefault(x => x.UnitOfMeasurement.ToLower() == measure.UnitOfMeasurement.ToLower().Trim());
+
+            var measureFromDb = _context.Metrics.Single(x => x.UnitOfMeasurement.ToLower().Trim() == measure.ToLower().Trim()
+                                                                || x.UnitOfMeasurement.ToLower().Trim() == measure.Trim().ToLower() + ".");
 
             if (measureFromDb != null)
                 return measureFromDb;
@@ -440,12 +434,12 @@ namespace DelikatessenDrehbuch.Controllers
                 measureFromDb = new Measure()
                 {
                     Id = 0,
-                    UnitOfMeasurement = measure.UnitOfMeasurement
+                    UnitOfMeasurement = measure
                 };
                 _context.Metrics.Add(measureFromDb);
                 _context.SaveChanges();
 
-                return measure;
+                return measureFromDb;
             }
         }
 
@@ -480,92 +474,27 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult EditeRecipes(FullRecipes fullRecipes)
         {
-            var recipesFromDb = _context.Recipes.SingleOrDefault(x => x.Id == fullRecipes.Recipes.Id);
+            var recipesFromDb = _context.Recipes.FirstOrDefault(x => x.Id == fullRecipes.Recipes.Id);
             var recipeHandlersFromDb = _context.RecipesHandlers.Where(x => x.Recipe.Id == recipesFromDb.Id)
                                                                  .ToList();
 
             if (recipesFromDb == null)
                 return BadRequest("Kein Rezept gefunden");
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    EditRecipe(recipesFromDb, fullRecipes);
-                    DeleteReciphandlerFromDb(recipeHandlersFromDb);
-                    CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
 
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    throw new Exception("Fehler beim Verarbeiten der Daten", ex);
-                }
-            }
 
+            EditRecipe(recipesFromDb, fullRecipes);
+            DeleteReciphandlerFromDb(recipeHandlersFromDb);
+            CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
+
+           
 
 
             return RedirectToAction("Index");
         }
 
 
-        public Ingredient GetOrCreateIngredient(string ingredient)
-        {
-            var ingredientFromDb = _context.Ingredients.SingleOrDefault(x => x.Name.Trim().ToLower() == ingredient.ToLower().Trim());
-            if (ingredientFromDb != null)
-                return ingredientFromDb;
-            else
-            {
-                Ingredient newIngredient = new()
-                {
-                    Id = 0,
-                    Name = ingredient
-                };
-                _context.Ingredients.Add(newIngredient);
-                _context.SaveChanges();
 
-            }
 
-            return _context.Ingredients.Single(x => x.Name.Trim().ToLower() == ingredient.ToLower().Trim());
-        }
-        public Quantity GetOrCreateQuantity(float quantity)
-        {
-            var quantityFromDb = _context.Quantities.SingleOrDefault(x => x.Quantitys == quantity);
-            if (quantityFromDb != null)
-                return quantityFromDb;
-            else
-            {
-                Quantity newQuantity = new()
-                {
-                    Id = 0,
-                    Quantitys = quantity
-                };
-                _context.Quantities.Add(newQuantity);
-                _context.SaveChanges();
-
-            }
-
-            return _context.Quantities.Single(x => x.Quantitys == quantity);
-        }
-        public Measure GetOrCreateMetric(string metric)
-        {
-            var metricFromDb = _context.Metrics.FirstOrDefault(x => x.UnitOfMeasurement.Trim().ToLower() == metric.ToLower().Trim());
-            if (metricFromDb != null)
-                return metricFromDb;
-            else
-            {
-                Measure newMetric = new()
-                {
-                    Id = 0,
-                    UnitOfMeasurement = metric
-                };
-                _context.Metrics.Add(newMetric);
-                _context.SaveChanges();
-
-            }
-
-            return _context.Metrics.Single(x => x.UnitOfMeasurement.Trim().ToLower() == metric.ToLower().Trim());
-        }
 
         private IngredientNutrientHandler GetOrCreateIngredientNutrienHandler(NutrientsModel nutrients)
         {
@@ -616,10 +545,10 @@ namespace DelikatessenDrehbuch.Controllers
             var lines = System.IO.File.ReadAllLines(path);
             NutrientsModel nutrients = new();
             string ingredient = "";
-           
+
             foreach (var line in lines)
             {
-               
+
                 using (var transaction = _context.Database.BeginTransaction())
                 {
                     try
@@ -632,7 +561,7 @@ namespace DelikatessenDrehbuch.Controllers
                         }
                         else if (line.StartsWith("Zutat#"))
                         {
-                            
+
                             var word = line.Split('#');
                             ingredient = word[1];
                             nutrients.IngredientNutrientHandler.Ingredient = GetOrCreateIngredient(word[1]);
@@ -659,11 +588,11 @@ namespace DelikatessenDrehbuch.Controllers
 
                             var floatToParse = ingredients[1].Replace(".", ",");
                             handler.Quantity = GetOrCreateQuantity(float.Parse(floatToParse.Trim()));
-                            handler.Measure = GetOrCreateMetric(ingredients[2]);
+                            handler.Measure = GetorCreateMeasure(ingredients[2]);
                             handler.Nutrient = GetOrCreateNutrients(ingredients[0], nutrients);
                             handler.IngredientNutrientHandler = GetOrCreateIngredientNutrienHandler(nutrients);
 
-                            var handlerExist = _context.NutrientsHandler.SingleOrDefault(x => x.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim()
+                            var handlerExist = _context.NutrientsHandler.FirstOrDefault(x => x.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim()
                                                                         == ingredient.ToLower().Trim() && x.Nutrient.Name.ToLower() == ingredients[0].ToLower());
 
                             if (handlerExist == null)
@@ -677,7 +606,7 @@ namespace DelikatessenDrehbuch.Controllers
 
                         }
 
-                       
+
                     }
                     catch (Exception ex)
                     {
@@ -685,7 +614,7 @@ namespace DelikatessenDrehbuch.Controllers
                         throw new Exception($"Fehler in Line {line}", ex);
                     }
                 }
-               
+
 
 
 

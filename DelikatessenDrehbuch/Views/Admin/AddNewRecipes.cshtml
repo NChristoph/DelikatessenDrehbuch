@@ -2,8 +2,40 @@
 
 
 <div class="minWidth100 mobieleWidth90 Bg-Cream flexColumn flexAlginItemCenter flexJustifyContendCenter">
-    <form asp-controller="Admin" asp-action="SaveNewRecipes" class="minWidth100 flexColumn" enctype="multipart/form-data">
-        <textarea asp-for="@Model.RecipeData" class="minWidth90 maxWidth90 mt-4 s mobieleWidth90" rows="25" style="align-self:center;"></textarea>
+    <form asp-controller="Admin" asp-action="SaveNewRecipes" class="minWidth100 flexColumn flexAlginItemCenter" enctype="multipart/form-data">
+        <div class="minWidth90" hidden>
+            <input class="minWidth100 m-1" asp-for="Id" hidden type="number" value="0" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1" asp-for="Category" placeholder="Kategorie" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1" asp-for="Name" placeholder="Name" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1" asp-for="MealPlan" placeholder="Essensplan" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1" asp-for="PreperationTime" placeholder="Zubereitungszeit" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1" asp-for="Calories" placeholder="Kalorien" />
+        </div>
+
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" asp-for="Description" placeholder="Beschreibung" style="min-height:30vh"></textarea>
+        </div>
+       
+
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" asp-for="Preperation" placeholder="Zubereitung" style="min-height:70vh"></textarea>
+        </div>
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" asp-for="Ingredients" placeholder="Zutaten" style="min-height:40vh"></textarea>
+        </div>
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" asp-for="Querys" placeholder="Querys" style="min-height:40vh"></textarea>
+        </div>
 
         <div class="flexRow minWidth90 mobieleWidth90 flexJustifyContendCenter flexAlginItemCenter">
             <p style="margin-top:1rem;flex-basis:40%">Foto : </p>

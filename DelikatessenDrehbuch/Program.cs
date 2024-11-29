@@ -1,5 +1,6 @@
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Identity;
+using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
@@ -47,6 +48,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
+builder.Services.AddTransient<AddRecipeException>();
 builder.Services.AddMemoryCache();
 
 // Füge den Session-Service hinzu
