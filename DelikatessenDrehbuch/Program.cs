@@ -13,6 +13,7 @@ using Polly.Retry;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.Data.SqlClient;
 using Stripe;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,12 @@ builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
 builder.Services.AddTransient<AddRecipeException>();
 builder.Services.AddMemoryCache();
+
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
+
 
 // Füge den Session-Service hinzu
 builder.Services.AddDistributedMemoryCache(); // Für die Nutzung von Sessions im Speicher

@@ -3,6 +3,8 @@
 
 <div class="minWidth100 mobieleWidth90 Bg-Cream flexColumn flexAlginItemCenter flexJustifyContendCenter">
     <form asp-controller="Admin" asp-action="SaveNewRecipes" class="minWidth100 flexColumn flexAlginItemCenter" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        
         <div class="minWidth90" hidden>
             <input class="minWidth100 m-1" asp-for="Id" hidden type="number" value="0" />
         </div>

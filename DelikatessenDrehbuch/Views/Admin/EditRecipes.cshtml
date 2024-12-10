@@ -1,7 +1,6 @@
-﻿@model FullRecipes
+﻿@model EditRecipesModel
 
-@*TODO:ModelBinding und Rezept Bearbeitten noch machen*@
-
+@* FormFile Not Worke *@
 <style>
     #fileInput {
         display: none;
@@ -9,47 +8,52 @@
 
 </style>
 
-<div class="minWidth90 mobieleWidth90 flexColumn flexJustifyContendCenter Bg-Cream">
-    <form asp-controller="Admin" asp-action="EditeRecipes">
 
-        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Id" hidden />
+
+<div class="minWidth90 mobieleWidth90 flexColumn flexJustifyContendCenter Bg-Cream">
+    <form asp-controller="Admin" asp-action="SaveNewRecipes" enctype="multipart/form-data">
+        
+
+        @Html.AntiForgeryToken()
+        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.Id" asp-for="@Model.Recipes.Id" hidden />
+        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.OwnerEmail" asp-for="@Model.Recipes.OwnerEmail" hidden />
 
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Rezept Name :</p>
-            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Name" />
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.Name" asp-for="@Model.Recipes.Name" />
 
         </div>
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Rezept Kategory :</p>
-            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Category" />
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.Category" asp-for="Recipes.Category" />
 
         </div>
         <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
             <p style="margin-top:1rem;"> Zubereitung :</p>
-            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" asp-for="@Model.Recipes.Preparation"> </textarea>
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" name="recipes.Recipes.Preparation" asp-for="Recipes.Preparation"> </textarea>
 
         </div>
 
         <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
             <p style="margin-top:1rem">Beschreibung :</p>
-            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" asp-for="@Model.Recipes.Description"> </textarea>
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" name="recipes.Recipes.Description" asp-for="Recipes.Description"> </textarea>
 
         </div>
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Kalorien: </p>
-            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.Calories" />
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.Calories" asp-for="Recipes.Calories" />
 
         </div>
 
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Zubereitungszeit </p>
-            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" asp-for="@Model.Recipes.PreparationTime" />
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.PreparationTime" asp-for="Recipes.PreparationTime" />
 
         </div>
 
         <div class="flexRow minWidth90 mobieleWidth90 flexJustifyContendCenter flexAlginItemCenter">
             <p style="margin-top:1rem;flex-basis:40%">Foto : </p>
-            <input id="fileInput" style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;" class="form-control-file" name="Recipes.FormFile" type="file" asp-for="@Model.Recipes.FormFile" />
+            <input id="fileInput" style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;" class="form-control-file" name="recipes.Recipes.FormFile" name="Recipes.FormFile" type="file" asp-for="Recipes.FormFile" />
             <label class="btn bgRed Border-Gold" style="color:white;text-align:center" id="fileLable" for="fileInput">Foto Auswählen</label>
 
         </div>
@@ -70,7 +74,7 @@
                 };
 
 
-                    @Html.Partial("_IngredientPartialView", dropdownModel, new ViewDataDictionary(ViewData) { { "Index", i } })
+                    @Html.Partial("_IngredientPartialViewEditRecipes", dropdownModel, new ViewDataDictionary(ViewData) { { "Index", i } })
                 }
 
             }
@@ -80,7 +84,7 @@
         <div class="minWidth100 flex flexJustifyContendEnd mt-4 ">
             <a href="#" type="button" class="btn Border-Gold bgRed m-1" style="color:white;min-width:138px" id="addRow">Neue Zutat</a>
             <button class="btn Border-Gold bgRed m-1" style="color:white;min-width:138px" type="submit">Speichern</button>
-        </div>
+        </div> 
        
     </form>
 

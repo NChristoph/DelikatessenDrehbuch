@@ -116,13 +116,13 @@
                         </button>
                     </h2>
                     <div id="flush-collapseRecipes" class="accordion-collapse collapse" data-bs-parent="#accordionFlushRecipes">
-                        <div class="col m-1">
+                        <div class="col mobieleWidth100 m-1">
                             <div class="card">
                                 <div class="card-header">
                                     Rezeptanzahl:
                                 </div>
                                 <div class="card-body">
-                                    Es befinden sich @Model.Recipes.Count() Rezepte in der Datenbank
+                                   @Html.Raw($"Es befinden sich {@Model.Recipes.Count()} <br /> Rezepte in der Datenbank.<br>Die Id des letzten Rezeptes ist <br> {Model.Recipes.Last().Id} ")
                                 </div>
                             </div>
 
@@ -141,13 +141,13 @@
                     </button>
                 </h2>
                 <div id="flush-collapseAdditOrDeliteRecipe" class="accordion-collapse collapse" data-bs-parent="#accordionFlushAdditOrDeliteRecipe">
-                    <div class="flexRow mt-2  flexJustifyContendSpaceBetween">
+                    <div class="flexRowToColumn mobieleWidth100 mt-2  flexJustifyContendSpaceBetween">
 
-                        <input id="recipeSearch" class="m-1" style="flex-basis:55%" placeholder="RezeptId oder Name" />
+                        <input id="recipeSearch" class="m-1" style="flex-basis:45%" placeholder="RezeptId oder Name" />
                         <button onclick="loadAdditOrDeliteRecipePartialView()" class=" m-1 btn bgRed Border-Gold" style="flex-basis:38%;color:white">Rezept suchen</button>
 
                     </div>
-                    <div id="AdditOrDeliteRecipePartialView"></div>
+                    <div id="AdditOrDeliteRecipePartialView" class="mobieleWidth90"></div>
 
                 </div>
             </div>

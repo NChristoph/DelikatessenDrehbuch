@@ -50,9 +50,11 @@ TODO: Hier noch Layout anpassen *@
                     </a>
                 </div>
             }
-            //TODO:Später wieder auf!PremiumUser umstellen
-            if (User.IsInRole("Admin"))
+            
+            if (User.IsInRole("Admin") || !User.IsInRole("PremiumUser"))
             {
+
+                
                 <div class="flexColumn">
                     <a typeof="button" class="btn" onclick="loadAboPage()">
                         Premium Vorteile

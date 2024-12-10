@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Polly;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -98,18 +99,27 @@ namespace DelikatessenDrehbuch.Controllers
         #endregion
 
         #region SaveNewRecipe_In_DB
-        public IActionResult SaveNewRecipes(NewRecipesMobileUpload newRecipes)
+
+
+        [ValidateAntiForgeryToken]
+        public IActionResult SaveNewRecipes(NewRecipesMobileUpload newRecipes = null, [FromForm] EditRecipesModel recipes = null)
         {
+            var x = ModelState;
+            if (ModelState.IsValid)
+            {
+
+                return BadRequest(ModelState);
+            }
 
             using (var transAction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    if (newRecipes.Id == 0)
+                    if (!string.IsNullOrEmpty(newRecipes.Name))
                         CreateRecipesFromString(newRecipes);
                     else
                     {
-                        EditeRecipes(_helpfulMethods.GetFullRecipeById(_context, newRecipes.Id));
+                        EditeRecipes(recipes);
                     }
 
                     transAction.Commit();
@@ -117,13 +127,13 @@ namespace DelikatessenDrehbuch.Controllers
                 catch (Exception ex)
                 {
                     transAction.Rollback();
-                    throw new Exception(_myExceptions.ErrorMessage);
+                    throw new Exception($"{_myExceptions.ErrorMessage}");
                 }
-               
+
             }
-            
-           
-            
+
+
+
             return RedirectToAction("Index");
         }
 
@@ -187,7 +197,7 @@ namespace DelikatessenDrehbuch.Controllers
             if (ifExist == null)
             {
                 AddRecipes(currentRecipe, mealPlan);
-                
+
             }
 
 
@@ -309,7 +319,7 @@ namespace DelikatessenDrehbuch.Controllers
         #endregion
 
         #region EditeRecipe
-        private void EditRecipe(Recipes recipesFromDb, FullRecipes fullRecipes)
+        private void EditRecipe(Recipes recipesFromDb, EditRecipesModel fullRecipes)
         {
 
             recipesFromDb.Name = fullRecipes.Recipes.Name;
@@ -338,6 +348,12 @@ namespace DelikatessenDrehbuch.Controllers
             List<RecipesHandler> newReciphandler = new();
             foreach (var handler in ingredienthandler)
             {
+                if (string.IsNullOrEmpty(handler.Measure.UnitOfMeasurement))
+                {
+                    handler.Measure.UnitOfMeasurement = "Stk.";
+                }
+
+
                 RecipesHandler newHandler = new RecipesHandler()
                 {
                     Id = 0,
@@ -350,13 +366,26 @@ namespace DelikatessenDrehbuch.Controllers
             _context.AddRange(newReciphandler);
             _context.SaveChanges(true);
         }
-
+        
         private IngredientHandlerModel GetOrCreateIngredientHandler(IngredientHandlerModel ingredientHandler)
         {
+            _myExceptions.ErrorMessage = $"IngredientHandler mit Zutat: {ingredientHandler.Ingredient.Name} " +
+                                       $"Mänge: {ingredientHandler.Quantity.Quantitys} " +
+                                       $"Maßeinheit: {ingredientHandler.Measure.UnitOfMeasurement} " +
+                                       $"Hat ein Fehler ausgegeben möglicherweise doppelter Eintrag in der Db";
 
-            var handler = _context.IngredientHandlers.SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientHandler.Ingredient.Name.ToLower()
-                                                  && x.Measure.UnitOfMeasurement == ingredientHandler.Measure.UnitOfMeasurement
-                                                  && x.Quantity.Quantitys == ingredientHandler.Quantity.Quantitys);
+           
+
+            var handler = _context.IngredientHandlers
+                          .SingleOrDefault(x => x.Ingredient.Name.ToLower().Trim() == ingredientHandler.Ingredient.Name.ToLower().Trim()
+                                                  &&
+                                                     (
+                                                         x.Measure.UnitOfMeasurement.Trim().ToLower() == ingredientHandler.Measure.UnitOfMeasurement.Trim().ToLower()
+                                                      || x.Measure.UnitOfMeasurement.Trim().ToLower() == ingredientHandler.Measure.UnitOfMeasurement.Trim().ToLower() + "."
+                                                     )
+                                                  && x.Quantity.Quantitys == ingredientHandler.Quantity.Quantitys)
+                          ;
+
             if (handler != null)
                 return handler;
 
@@ -369,14 +398,11 @@ namespace DelikatessenDrehbuch.Controllers
             };
 
 
-            _myExceptions.ErrorMessage=$"IngredientHandler mit Zutat: {ingredientHandler.Ingredient.Name} " +
-                                        $"Mänge: {ingredientHandler.Quantity.Quantitys} " +
-                                        $"Maßeinheit: {ingredientHandler.Measure.UnitOfMeasurement} " +
-                                        $"Hat ein Fehler ausgegeben möglicherweise doppelter Eintrag in der Db";
+
 
             return handler;
 
-            
+
         }
 
         #region IngredientHandlerContent
@@ -459,8 +485,24 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult EditRecipesPartialView(int id)
         {
-            var fullRecipes = _helpfulMethods.GetFullRecipeById(_context, id);
-            return View("EditRecipes", fullRecipes);
+            var recipeFromDb = _helpfulMethods.GetRecipeFromDbById(_context, id);
+            var ingredientHandlersFromDb = _context.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
+                                                             .Include(x => x.IngredientHandler.Ingredient)
+                                                             .Include(x => x.IngredientHandler.Measure)
+                                                             .Include(x => x.IngredientHandler.Quantity)
+                                                             .Select(x => x.IngredientHandler)
+                                                             .ToList();
+            EditRecipesModel editRecipesModel = new()
+            {
+                Recipes = recipeFromDb,
+                IngredientHandler = ingredientHandlersFromDb,
+                Measure = _context.Metrics.ToList(),
+
+
+            };
+
+            ViewData.TemplateInfo.HtmlFieldPrefix = string.Empty;
+            return View("EditRecipes", editRecipesModel);
         }
         public IActionResult AddIngredientRow(int id)
         {
@@ -470,9 +512,9 @@ namespace DelikatessenDrehbuch.Controllers
             dropdownModel.Index = id;
 
 
-            return PartialView("_IngredientPartialView", dropdownModel);
+            return PartialView("_IngredientPartialViewEditRecipes", dropdownModel);
         }
-        public IActionResult EditeRecipes(FullRecipes fullRecipes)
+        public IActionResult EditeRecipes(EditRecipesModel fullRecipes)
         {
             var recipesFromDb = _context.Recipes.FirstOrDefault(x => x.Id == fullRecipes.Recipes.Id);
             var recipeHandlersFromDb = _context.RecipesHandlers.Where(x => x.Recipe.Id == recipesFromDb.Id)
@@ -486,7 +528,7 @@ namespace DelikatessenDrehbuch.Controllers
             DeleteReciphandlerFromDb(recipeHandlersFromDb);
             CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
 
-           
+            _myExceptions.ErrorMessage = "Bearbeiten des rezeptes Fehlgeschlagen";
 
 
             return RedirectToAction("Index");

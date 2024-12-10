@@ -64,19 +64,26 @@
 
 
             </div>
-            <div class="card-footer">
-                <div class="flexRow minWidth100 flexJustifyContendSpaceBetween" >
-                    <div class="description" style="max-width:fit-content">
-                        <span>Abokosten</span>
-                        <span>1,59 Euro</span>
+
+            @{
+                <div class="card-footer">
+                    <div class="flexRow minWidth100 flexJustifyContendSpaceBetween">
+                        <div class="description" style="max-width:fit-content">
+                            <span>Abokosten</span>
+                            <span>1,59 Euro</span>
+                        </div>
+                        <section style="max-width:fit-content;">
+                          <button class="bgRed Border-Gold" style="color:white">Premium bald verfügbar! </button>
+
+                        </section>
                     </div>
-                    <section style="max-width:fit-content;">
-                        <form action="/create-checkout-session" method="POST">
-                            <button class="bgRed Border-Gold" type="submit" id="checkout-button" style="color:white">Premium werden </button>
-                        </form>
-                    </section>
                 </div>
-            </div>
+                //ToDo:Wider inn die section wen premium verfügbar
+                // <form action="/create-checkout-session" method="POST">
+                //     <button class="bgRed Border-Gold" type="submit" id="checkout-button" style="color:white">Premium werden </button>
+                // </form>
+            }
+           
 
         </div>
 
