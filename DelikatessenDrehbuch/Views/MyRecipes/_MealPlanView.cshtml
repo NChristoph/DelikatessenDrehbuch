@@ -17,7 +17,10 @@
                 model = Model.Take(10).ToList();
 
             }
-            model = Model.ToList();
+            else{
+                model = Model.ToList();
+            }
+            
 
             foreach (var mealplan in model)
             {

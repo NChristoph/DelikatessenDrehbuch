@@ -1,172 +1,99 @@
-﻿@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
-@model Dictionary<Recipes,List<string>>
-@{
+﻿@{
     ViewData["Title"] = "Rezepte";
     ViewData["Description"] = "Entdecken Sie köstliche Rezepte für feine Delikatessen auf Delikatessen-Drehbuch.com. Unsere Sammlung von exquisiten Gerichten bietet Inspiration für jeden Anlass – von raffinierten Vorspeisen bis zu verlockenden Desserts. Perfekt für Feinschmecker und Hobbyköche.";
 
 }
 
-<meta name="description" content="Entdecke köstliche und einfache Rezepte für jeden Anlass. Von schnellen Gerichten bis zu raffinierten Menüs – unsere Sammlung bietet Inspiration für Hobbyköche und Genießer. Finde Schritt-für-Schritt-Anleitungen, Kochtricks und leckere Ideen für dein nächstes Lieblingsgericht.">
-<link rel="canonical" href="https://www.delikatessen-drehbuch.com" />
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<meta name="robots" content="index,follow" />
-
-<script type="application/ld+json">
-        {
-            "@@context": "https://schema.org",
-            "@@type": "ItemList",
-            "itemListElement": [
-    @{
-        int position = 1;
-        foreach (var recipe in Model.Keys)
-        {
-           @:{
-                @: "@@type": "ListItem",
-                @: "position": @position,
-                @:  "url": "https://www.delikatessen-drehbuch.com/SelectedRecipe/Index/@(recipe.Id)"
-           @:}
-
-            
-            if (position < Model.Keys.Count)
-            {
-                @:,
-                position++;
-            }
-            
-
-        }
-
-
-    }
-
-        ]
-    }
-</script>
-
-
-
 
 
 
 <div class="minWidth100 flex flexJustifyContendCenter">
-   
-    <div class="grid-Container maxWidth80 mobieleWidth90 ">
 
-        @{
-           
-            foreach (var recipe in Model)
-            {
-                <div class="grid-Recipes grid-Item">
-                    <a class=" grid-atag text-black" asp-route-id="@recipe.Key.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
-
-                        @if (!string.IsNullOrEmpty(recipe.Key.ImagePath))
-                        {
-                            if(recipe.Key.Description!=null)
-                            {
-                                <img class="grid-Image" alt="@recipe.Key.Description" title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
-                                // <img class="grid-Image"
-                                //      alt="@recipe.Key.Description"
-                                //      title="@recipe.Key.Name"
-                                //      src="@recipe.Key.ImagePath"
-                                //      srcset="@recipe.Key.ImagePath-small 300w, @recipe.Key.ImagePath-medium 600w, @recipe.Key.ImagePath-large 1200w"
-                                //      sizes="(max-width: 600px) 300px, (max-width: 900px) 600px, 1200px"
-                                //      loading="lazy"
-                                //      style="max-width:100%" />
-
-                                // <picture>
-                                //     <source srcset="@recipe.Key.ImagePath-small.webp 300w, @recipe.Key.ImagePath-medium.webp 600w, @recipe.Key.ImagePath-large.webp 1200w" type="image/webp">
-                                //     <source srcset="@recipe.Key.ImagePath-small.jpg 300w, @recipe.Key.ImagePath-medium.jpg 600w, @recipe.Key.ImagePath-large.jpg 1200w" type="image/jpeg">
-                                //     <img class="grid-Image"
-                                //          alt="@recipe.Key.Description"
-                                //          title="@recipe.Key.Name"
-                                //          src="@recipe.Key.ImagePath-large.jpg"
-                                //          loading="lazy"
-                                //          style="max-width:100%" />
-                                // </picture>
-
-
-                            }
-                            else
-                            {
-                                <img class="grid-Image" alt="@recipe.Key.Name" title="@recipe.Key.Name" src="@recipe.Key.ImagePath" loading="lazy" style="max-width:100%" />
-                               
-
-                            }
-                        }
-                        else
-                        {
-                            <img class="grid-Image" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" loading="lazy" />
-
-                        }
-
-
-                    </a>
-
-                    <hr class="grid-hr" style="margin:1px;opacity:1;border:0;" />
-                    @if (recipe.Key.LikeCount > 1)
-                    {
-                        <div class="grid-Category"> Gefällt @recipe.Key.LikeCount Benutzer</div>
-
-                    }
-                    else
-                    {
-                        <div class="grid-Category">@recipe.Key.Category</div>
-
-                    }
-
-                    @if (recipe.Key.PreparationTime != null)
-                    {
-                        <div class="grid-LikeCount">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
-                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
-                                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
-                            </svg>
-                            @recipe.Key.PreparationTime min.
-                        </div>
-
-                    }
-
-                    <h5 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipe.Key.Name</h5>
-
-
-                    @{
-                        if (@recipe.Value.Contains("Vegan"))
-                        {
-                            <div class="grid-DeleteButton" style="color:green">Vegan</div>
-
-                        }
-                        if (@recipe.Value.Contains("Vegetarisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Fleisch"))
-                        {
-                            <div class="grid-DeleteButton" style="color:yellow">Vegetarisch</div>
-                        }
-                        if (@recipe.Value.Contains("Fleisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Vegetarisch"))
-                        {
-                            <div class="grid-DeleteButton" style="color:red">Fleisch</div>
-                        }
-                        if (!@recipe.Value.Contains("Fleisch") && !@recipe.Value.Contains("Vegan") && !@recipe.Value.Contains("Vegetarisch"))
-                        {
-                            <div class="grid-DeleteButton">@recipe.Value.First()</div>
-                        }
-                    }
-
-
-
-                </div>
-
-
-
-            }
-        }
-
+    <div id="RecipesPartialView" class="grid-Container maxWidth80 mobieleWidth90 ">
     </div>
 </div>
 
 
 
+<div id="mainContent" class="minWidth100 mobieleWidth90 flex flexJustifyContendEnd">
+    <button class="btn bgRed Border-Gold m-2 " style="color:white" onclick="LoadRecipes()">Weitere Rezepte Laden</button>
+</div>
 
+
+
+
+@section Scripts
+{
+    <script>
+
+
+         $(window).on("load", function () {
+
+            const cachedContent = sessionStorage.getItem("cachedRecipesPartialView");
+
+                      if (cachedContent) {            
+                        const parentElement = document.getElementById("RecipesPartialView");
+
+                           if (parentElement) {
+                                parentElement.innerHTML = cachedContent;
+                
+                           } 
+                      }
+                      else{
+                          LoadRecipes();
+                      }
+
+
+
+
+         });
+
+       
+
+         function LoadRecipes(){
+
+                  var RecipesIds = $("[name='RecipesId']").map(function () {
+                                     return $(this).val();
+
+                  }).get().join(",");
+
+                var url = RecipesIds
+               ? "Home/GetRecipesPartialView?Ids=" + encodeURIComponent(RecipesIds)
+               : "Home/GetRecipesPartialView";
+
+           // AJAX-Request, um die PartialView zu laden
+           $.get(url, function (data) {
+               // Die Antwort (`data`) als letztes Kindelement einfügen
+               $('#RecipesPartialView').append(data);
+           });
+
+
+         }
+
+         $(window).on("unload", function () {
+
+                 const parentElement = document.getElementById("RecipesPartialView");
+
+              if (parentElement) {
+
+
+                 const childElements = parentElement.innerHTML;
+                 sessionStorage.setItem("cachedRecipesPartialView", childElements);
+              }
+
+
+
+         });
+
+         function LoadRecipesByQuery()
+         {
+                 var searchWord=$('#searchQuery').val();
+
+                 $('#RecipesPartialView').load("Home/SearchRecipes?query=" + encodeURIComponent(searchWord));
+
+         }
+    </script>
+}
 
 
 

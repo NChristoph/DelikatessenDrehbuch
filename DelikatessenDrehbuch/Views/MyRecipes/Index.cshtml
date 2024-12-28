@@ -6,15 +6,10 @@
 
     ViewData["Title"] = "Mein Bereich";
 }
-@*
-TODO: Hier noch Layout anpassen *@
+
 <div class="col">
     <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white" style="position:fixed;z-index:1000">
-        <div class="flexColumn">
-            <a class="btn" typeof="button" onclick="loadMyRecipes()">
-                Meine Rezepte
-            </a>
-        </div>
+        
         <div class="flexColumn">
             <a typeof="button" class="btn" onclick="loadRecipesILike()">
                 Meine Rezeptbuch
@@ -25,23 +20,10 @@ TODO: Hier noch Layout anpassen *@
                 Menü Pläne
             </a>
         </div>
+       
 
         @{
-            // if (User.IsInRole("Admin"))
-            // {
-            //     <div class="flexColumn mobile-hidden">
-            //         <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateRecipes">
-            //             Add Recipes
-            //         </a>
-            //     </div>
-
-            //     <div class="flexColumn mobile-hidden">
-            //         <a typeof="button" class="btn" asp-controller="NewRecipes" asp-action="CreateFolder">
-            //             Create Folder
-            //         </a>
-            //     </div>
-
-            // }
+           
             if (User.IsInRole("PremiumUser"))
             {
                 <div class="flexColumn">

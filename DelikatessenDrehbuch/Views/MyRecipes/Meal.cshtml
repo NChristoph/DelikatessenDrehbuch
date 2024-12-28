@@ -15,7 +15,7 @@
                     </div>
                     <div class="flexColumn flexJustifyContendCenter flexAlginItemCenter mobieleWidth100 minWidth50 maxWidth50">
                         <span style="text-align:center">@recipes.Name</span>
-
+                       
                     </div>
 
                 </a>
@@ -51,15 +51,11 @@
 
 <div class="minWidth100 mobieleWidth90 p-2 mt-3 Border-Gold ">
     @{
-        int maxChars = 1;
-        if (Model.MealPlan.Preperation.ToString().Length < 400)
-        {
-            maxChars = 400;
-        }
+        
         // Beispiel: Zeige die ersten 200 Zeichen
 
         // Der vollständige Text der Zubereitung
-        string halfPreperation = Model.MealPlan.Preperation.Substring(0, maxChars) + "<br><br>.....Auf Premium upgraden, um die vollständige Zubereitung zu sehen.<br><br>Premium kommt bald.<br><br>Bis dahin können Sie die Rezepte einfach anklicken und der Reihe nach machen";
+        string halfPreperation = Model.MealPlan.Preperation.Substring(0, 600) + "<strong><br><br>.....Auf Premium upgraden, um die vollständige Zubereitung zu sehen.<br><br>Premium kommt bald.<br><br>Bis dahin können Sie die Rezepte einfach anklicken und der Reihe nach machen</strong>";
 
 
         if (User.IsInRole("PremiumUser"))
@@ -70,7 +66,7 @@
         {
             <hr />
             //TODO:PremiumAboAbschluss ermöglichen
-            <p class=" p-4"><strong>Menü Zubereitung:</strong><br /><br />@Html.Raw(halfPreperation)</p>
+            <p class=" p-4"><strong>Menü Zubereitung:</strong>@Html.Raw(halfPreperation)</p>
         }
 
     }

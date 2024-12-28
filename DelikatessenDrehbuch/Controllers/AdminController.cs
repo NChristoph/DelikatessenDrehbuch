@@ -3,6 +3,7 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.StaticScripts;
+using Humanizer;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -236,34 +237,32 @@ namespace DelikatessenDrehbuch.Controllers
 
             if (mealPlan != null)
             {
+                _myExceptions.ErrorMessage = "Fehler bei den Menüplans";
 
                 var exist = _context.MealPlan.FirstOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
                 if (exist == null)
                     _context.MealPlan.Add(mealPlan);
 
                 _context.SaveChanges();
-                using (var transaction = _context.Database.BeginTransaction())
+                try
                 {
-                    try
-                    {
+                    
 
+                    mealPlanHandler = new();
+                    mealPlanHandler.Id = 0;
+                    mealPlanHandler.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
+                    mealPlanHandler.Recipes = _context.Recipes.SingleOrDefault(x => x.Name.ToLower() == recipes.Name.ToLower() && x.Preparation.ToLower() == recipes.Preparation.ToLower());
 
-                        mealPlanHandler = new();
-                        mealPlanHandler.Id = 0;
-                        mealPlanHandler.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
-                        mealPlanHandler.Recipes = _context.Recipes.SingleOrDefault(x => x.Name.ToLower() == recipes.Name.ToLower() && x.Preparation.ToLower() == recipes.Preparation.ToLower());
+                    _context.MealPlanHandler.Add(mealPlanHandler);
+                    _context.SaveChanges();
 
-                        _context.MealPlanHandler.Add(mealPlanHandler);
-                        _context.SaveChanges();
+                    
+                }
+                catch (Exception ex)
+                {
+                    
+                    throw new Exception("Fehler bei den Menüplans", ex);
 
-                        transaction.Commit();
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        throw new Exception("Fehler bei den Menüplans", ex);
-
-                    }
                 }
 
 
@@ -497,6 +496,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Recipes = recipeFromDb,
                 IngredientHandler = ingredientHandlersFromDb,
                 Measure = _context.Metrics.ToList(),
+                Querys=_context.QueryHandler.Where(x=>x.Recipe.Id == id).Select(x=>x.Query.Query).ToList(),
 
 
             };

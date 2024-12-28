@@ -1,15 +1,17 @@
 Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
+//TODO:suche noch verbessern noch filter einfügen unnd die zutaten in ganzen anzeigen also die inhalte fürs ganze menü
 
+TODO:Nutrients Hinzufügen für alle menü komponenten dazu eigene view erstellen mit auswah nutriens 
+Ingredient hinzufügen noch machen und nicht vergessen s Bearbeiten geht noch nicht 
 
-Das nzeigen der zu bearbeitenden zahl im Rezeptbearbeiten fenster geht nicht bei 
-Dezimalstellen
- such algorütmus bereitstellen das user besserenerlebnis haben
-Email Geht nicht!
-Passwort zurücksetzen noch auf Funktionalität überprüfen.
+Nacher Essensplaner erstellen 
 
+eine eigene seite für Zutaten Inhaltsstoffe noch bereitstellen Das NutrirntLexikon Nur für Premium User und das im selectet
+recipe auch die nutrients anzeigen aber nur für premium User
 
+Rezepte Hochladen
 
 Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
 mochte startet der curser auch am anfang das ist nicht ziehlfürend
@@ -22,16 +24,13 @@ Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Mon
 Bei den Grid Style Sheed noch die convention vereinheitlichen.
 
 
-Rezepte runterladen
-
-Bildvorschau einfügen bei deinen Rezepten und beim bearbeiten von Rezepten
 
 Mach eine Dokumentation und Kommentier alles gut aus
 
 arbeiten mit api noch lernen
 
 
-Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
+
 
 Code Übersichtlicher machen 
 //

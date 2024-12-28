@@ -2,16 +2,19 @@
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Caching.Memory;
 using NuGet.Packaging;
+using Polly;
 using System.Diagnostics;
 using System.Drawing.Text;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -37,81 +40,73 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-        private List<QueryHandler> GetQueryHandlerByUserPreferences()
-        {
-            var queryHandlers = new List<QueryHandler>();
-            var queryHandlersByPreference = _helpfulMethods.GetUserPreferencesQueryListByEmail(_context, User.Identity.Name.ToString());
-
-            if (!queryHandlersByPreference.Any())
-            {
-                queryHandlers = GetRandomRecipes();
-                return queryHandlers;
-            }
-            else
-            {
-                var sortet = queryHandlersByPreference.OrderByDescending(x => x.Count).Take(3).ToList();
-                var queryList = new List<string>();
-
-
-                queryList = sortet.Select(x => x.Query.ToString().ToLower()).ToList();
-                queryHandlers = _context.QueryHandler.Where(x => queryList.Contains(x.Query.Query.ToLower()))
-                                                     .Include(x => x.Recipe)
-                                                     .Include(x => x.Query)
-                                                     .ToList();
-
-                return queryHandlers;
-            }
-        }
 
 
 
 
-        private List<QueryHandler> GetRandomRecipes()
+
+        private List<Recipes> GetRandomRecipes()
         {
             var random = new Random();
-            List<QueryHandler> handler = new();
+            var handler = _context.Recipes.ToList();
+            return handler.OrderBy(x => random.Next()).ToList();
 
-            handler = _context.QueryHandler.Include(x => x.Recipe)
-                                                .Include(x => x.Query).ToList();
 
-            handler = handler.OrderBy(x => random.Next()).Take(50).ToList();
-
-            return handler;
         }
 
-        private List<QueryHandler> GetQueryHandlersByNameAndQuery(string searchQuery)
-        {
-            var query = searchQuery.ToLower().Trim();
-            // ToDo:Zutatensuche einbinden Wird für die zutaten suche noch gebraucht
-            var keywords = query.Split(' ').Where(x => x.Length > 3).ToList();
 
+       
+      
+        public IActionResult GetRecipesPartialView(string Ids = null)
+        {
+
+            ShowRecipesModel model = new();
+            var allRecipes = _context.Recipes.ToList();
+            List<int> idList = new List<int>();
             
 
-            var queryHandlerFromDb = _context.QueryHandler
-                                     .Include(x => x.Recipe)
-                                     .Include(x => x.Query)
-                                     .Where(x => x.Recipe.Name.ToLower().Contains(query) ||
-                                                 x.Query.Query.ToLower().Contains(query))
-                                     .ToList();
-
+            var list = allRecipes.Where(x => !idList.Contains(x.Id)).OrderBy(x => Guid.NewGuid()).Take(25).ToList();
+            model.RecipesList = list;
+            return PartialView("_recipesPartialView", model);
            
 
-
-            if (Vegan)
-            {
-                queryHandlerFromDb = queryHandlerFromDb
-                                    .Where(x => x.Query.Query.ToLower().Contains("vegan") ||
-                                                x.Recipe.Name.ToLower().Contains("vegan"))
-                                    .ToList();
-            }
-
-            return queryHandlerFromDb;
         }
 
 
 
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public IActionResult Index(string query)
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        private List<string> GetListFromQueryString(string query)
+        {
+            return query.ToLower().Split(" ").ToList();
+        }
+        private async Task<List<Recipes>> GetRecipeListByQuerys(List<string> querys)
+        {
+            return await _context.QueryHandler.Where(x => querys.Contains(x.Query.Query.ToLower())).Select(x => x.Recipe).ToListAsync();
+        }
+
+        private async Task<List<Recipes>> GetRecipesByName(string query)
+        {
+            return await _context.Recipes.Where(x => x.Name.Replace(" ", "").Trim().ToLower() == query ||
+                                                x.Name.Contains(query)).ToListAsync();
+        }
+        public async Task<IActionResult> SearchRecipes(string query)
+        {
+            var filterList = GetListFromQueryString(query);
+
+            var filtredRecipesByQuereys = await GetRecipeListByQuerys(filterList);
+            var filtredRecipesByName = await GetRecipesByName(query.Replace(" ", "").Trim().ToLower());
+
+            var recipes = new List<Recipes>();
+            recipes = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
+
+
+            return PartialView("_recipesPartialView", recipes);
+        }
+        public IActionResult Index2(string query)
         {
 
             bool? vegan = Request.Query.ContainsKey("vegan");
@@ -135,7 +130,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
             var isLoggedIn = User.Identity.IsAuthenticated;
-            List<QueryHandler> handlers;
+            List<Recipes> handlers;
             string cacheKey = $"{User.Identity.Name}_handlers_{query?.ToLower()}";
 
 
@@ -144,7 +139,7 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 if (_cache.TryGetValue(cacheKey, out handlers))
                 {
-                    var dictonaryFromCache = CreateDictonary(handlers);
+                    var dictonaryFromCache = handlers;
                     return View(dictonaryFromCache);
                 }
 
@@ -171,7 +166,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
 
-                handlers = GetQueryHandlersByNameAndQuery(query.ToLower());
+                //    handlers = GetQueryHandlersByNameAndQuery(query.ToLower());
 
 
                 if (!handlers.Any())
@@ -186,29 +181,12 @@ namespace DelikatessenDrehbuch.Controllers
 
             _cache.Set(cacheKey, handlers, cacheEntryOptions);
 
-            var recipesAndQuerys = CreateDictonary(handlers);
-            return View(recipesAndQuerys);
+
+
+            return View(handlers);
 
         }
 
-        private Dictionary<Recipes, List<string>> CreateDictonary(List<QueryHandler> queryHandler)
-        {
-            var recipesAndQuerys = new Dictionary<Recipes, List<string>>();
-
-            foreach (var recipe in queryHandler)
-            {
-                if (recipesAndQuerys.TryGetValue(recipe.Recipe, out List<string> querys))
-                {
-                    querys.Add(recipe.Query.Query);
-                }
-                else
-                {
-                    recipesAndQuerys[recipe.Recipe] = new List<string> { recipe.Query.Query };
-                }
-            }
-
-            return recipesAndQuerys;
-        }
 
         public IActionResult Privacy()
         {

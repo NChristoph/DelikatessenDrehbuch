@@ -3,7 +3,7 @@
 @* FormFile Not Worke *@
 <style>
     #fileInput {
-        display: none;
+    display: none;
     }
 
 </style>
@@ -12,7 +12,7 @@
 
 <div class="minWidth90 mobieleWidth90 flexColumn flexJustifyContendCenter Bg-Cream">
     <form asp-controller="Admin" asp-action="SaveNewRecipes" enctype="multipart/form-data">
-        
+
 
         @Html.AntiForgeryToken()
         <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.Id" asp-for="@Model.Recipes.Id" hidden />
@@ -36,9 +36,19 @@
 
         <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
             <p style="margin-top:1rem">Beschreibung :</p>
-            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" name="recipes.Recipes.Description" asp-for="Recipes.Description"> </textarea>
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:350px;margin-left:5px" name="recipes.Recipes.Description" asp-for="Recipes.Description"> </textarea>
 
         </div>
+        @{
+            
+            var JoinQuerys = string.Join(",",Model.Querys);
+            <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
+                <p style="margin-top:1rem">Beschreibung :</p>
+                <textarea style="margin-top:1rem;margin-bottom:1rem;height:250px;margin-left:5px">@JoinQuerys</textarea>
+
+            </div>
+        }
+        
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Kalorien: </p>
             <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" name="recipes.Recipes.Calories" asp-for="Recipes.Calories" />

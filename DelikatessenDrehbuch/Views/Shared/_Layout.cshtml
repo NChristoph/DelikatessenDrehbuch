@@ -3,17 +3,23 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     @{
-        if(!User.IsInRole("PremiumUser"))
-        {
-            bool isLoggedIn = User.Identity.IsAuthenticated;
-            if (!isLoggedIn)
+       #if(!DEBUG)
+        
+           if (!User.IsInRole("PremiumUser"))
             {
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
-                        crossorigin="anonymous"></script>
+                bool isLoggedIn = User.Identity.IsAuthenticated;
+                if (!isLoggedIn)
+                {
+                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+                            crossorigin="anonymous"></script>
+                }
+
             }
-           
-        }
+        
+        #endif
+       
     }
     <meta name="google-adsense-account" content="ca-pub-2332503983815482">
     <meta name="google-site-verification" content="R_edf408xfCW8GF8MnQ62aQJ9MUfSvp9jhhjxmyGs3U">
@@ -107,13 +113,13 @@
                 </div>
             </div>
             <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
-                <form class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90" method="get" asp-controller="Home" asp-action="Index">
+                <div class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90">
                     <div class="flexRowToColumn flexWrap">
                     </div>
 
                     <div class="flexRow wrap">
-                        <input name="query" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
-                        <button class="btn bgRed  " title="SearchButton" type="submit" typeof="button">
+                        <input  id="searchQuery" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
+                        <button class="btn bgRed" onclick="LoadRecipesByQuery()" title="SearchButton" type="submit" typeof="button">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
                             </svg>
@@ -127,7 +133,7 @@
                     </div>
 
 
-                </form>
+                </div>
 
                 
             </div>
