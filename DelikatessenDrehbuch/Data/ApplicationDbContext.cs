@@ -27,6 +27,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<IngredientNutrientHandler> IngredientNutrientHandler { get; set; }
         public DbSet<MealPlanHandler> MealPlanHandler { get; set; }
        
+       
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

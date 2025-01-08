@@ -25,20 +25,20 @@
                             @{
                                 foreach (var supportMessage in Model.SupportMessage)
                                 {
-                                        <tbody>
-                                            <tr>
-                                                <td>@supportMessage.Type</td>
-                                                <td>@supportMessage.TypeId</td>
-                                                <td>@supportMessage.SenderEmail</td>
-                                                <td>
-                                                    <a class="btn btn-primary" typeof="Button" title="ReadButton" onclick="MessageModalShow('@supportMessage.Message.ToString().Trim()')">Nachricht Anzeigen</a>
-                                                </td>
-                                                <td>
-                                                    <a asp-route-id="@supportMessage.Id" asp-controller="Admin" asp-action="DeleteSupportTicket" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1"> Löschen</a>
-                                                </td>
-                                            </tr>
+                                    <tbody>
+                                        <tr>
+                                            <td>@supportMessage.Type</td>
+                                            <td>@supportMessage.TypeId</td>
+                                            <td>@supportMessage.SenderEmail</td>
+                                            <td>
+                                                <a class="btn btn-primary" typeof="Button" title="ReadButton" onclick="MessageModalShow('@supportMessage.Message.ToString().Trim()')">Nachricht Anzeigen</a>
+                                            </td>
+                                            <td>
+                                                <a asp-route-id="@supportMessage.Id" asp-controller="Admin" asp-action="DeleteSupportTicket" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1"> Löschen</a>
+                                            </td>
+                                        </tr>
 
-                                        </tbody>
+                                    </tbody>
                                 }
                             }
 
@@ -50,23 +50,23 @@
                             @{
                                 foreach (var supportMessage in Model.SupportMessage)
                                 {
-                                        <div class="card mobieleWidth100">
+                                    <div class="card mobieleWidth100">
 
-                                            <div class="card-header">
-                                                @supportMessage.SenderEmail
-                                            </div>
-                                            <div class="card-body">
-                                                @supportMessage.Type
-                                                <hr />
-                                                @supportMessage.TypeId
-                                                <hr />
-                                                @supportMessage.Message
-                                            </div>
-                                            <div class="card-footer flex flexJustifyContendEnd">
-                                                <a asp-route-id="@supportMessage.Id" asp-controller="Admin" asp-action="DeleteSupportTicket" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1;"> Löschen</a>
-                                            </div>
-
+                                        <div class="card-header">
+                                            @supportMessage.SenderEmail
                                         </div>
+                                        <div class="card-body">
+                                            @supportMessage.Type
+                                            <hr />
+                                            @supportMessage.TypeId
+                                            <hr />
+                                            @supportMessage.Message
+                                        </div>
+                                        <div class="card-footer flex flexJustifyContendEnd">
+                                            <a asp-route-id="@supportMessage.Id" asp-controller="Admin" asp-action="DeleteSupportTicket" class="btn bgRedGardien" typeof="button" style="color:#FEFFF1;"> Löschen</a>
+                                        </div>
+
+                                    </div>
                                 }
 
 
@@ -122,7 +122,7 @@
                                     Rezeptanzahl:
                                 </div>
                                 <div class="card-body">
-                                   @Html.Raw($"Es befinden sich {@Model.Recipes.Count()} <br /> Rezepte in der Datenbank.<br>Die Id des letzten Rezeptes ist <br> {Model.Recipes.Last().Id} ")
+                                    @Html.Raw($"Es befinden sich {@Model.Recipes.Count()} <br /> Rezepte in der Datenbank.<br>Die Id des letzten Rezeptes ist <br> {Model.Recipes.Last().Id} ")
                                 </div>
                             </div>
 
@@ -154,8 +154,8 @@
 
         </div>
 
-       
-       
+
+
         <div class="flexRow flexWrap flexJustifyContendSpaceBetween">
             <a asp-action="AddNewRecipes" asp-controller="Admin" class="btn bgRed Border-Gold mt-2" style="color:white;max-width:max-content">Neues Rezept Hinzugfügen</a>
 
@@ -163,13 +163,41 @@
 
         <a class="btn bgRed Border-Gold mt-3" asp-action="AddNutriensAndEffects" asp-controller="Admin" style="color:white;width:150px">Add nutriens</a>
 
+
+
+
     </div>
 </div>
 
 
 
 
-
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Fehler bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <form id="errorForm">
+                    <div class="mb-3">
+                        <label for="errorHeader" class="form-label">Header:</label>
+                        <input type="text" id="errorHeader" class="form-control" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label for="errorValue" class="form-label">Fehlerhafter Wert:</label>
+                        <input type="text" id="errorValue" class="form-control" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="submitCorrection()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 

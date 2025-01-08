@@ -95,16 +95,17 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public async Task<IActionResult> SearchRecipes(string query)
         {
+            ShowRecipesModel model = new ();
             var filterList = GetListFromQueryString(query);
 
             var filtredRecipesByQuereys = await GetRecipeListByQuerys(filterList);
             var filtredRecipesByName = await GetRecipesByName(query.Replace(" ", "").Trim().ToLower());
 
-            var recipes = new List<Recipes>();
-            recipes = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
+           
+            model.RecipesList = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
 
 
-            return PartialView("_recipesPartialView", recipes);
+            return PartialView("_recipesPartialView", model);
         }
         public IActionResult Index2(string query)
         {

@@ -5,9 +5,99 @@
 
 <div class="flexColumn mobieleWidth90 mobileCenter">
 
+    <div class=" flex flexRow w-100 flexJustifyContendCenter flexAlginItemCenter ">
+        <div class="flex flexRow flexAlginItemCenter">
+            <span class="m-3">Menü´s Filtern:</span>
+            <div class="dropdown">
+                <button class="btn dropdown-toggle Border-Gold bgRed m-1" style="color:white" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filter auswählen
+                </button>
+                <ul class="dropdown-menu">
+
+                    <li class="flexRow flexAlginItemCenter"><a class="dropdown-item" href="#">Menü´s zum Abnehmen</a>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                            
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Festliche Menüs</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault" >
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Tages Menü´s</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Gesund und Lecker</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Italienisch</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Türkisch</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Mexikanisch</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Herbstliche Menü´s</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">Vegane Menü´s</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                    <li class="flexRow flexAlginItemCenter">
+                        <a class="dropdown-item" href="#">LowCarb Menü´s</a>
+                        <div class="form-check">
+                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+
+            <button class="btn  Border-Gold bgRed m-1" style="color:white" type="button" >
+                Anwenden
+            </button>
+        </div>
+       
+
+    </div>
+
     <div class="mt-3 minWidth100 mobieleWidth90 flexRow flexWrap flexJustifyContendSpaceAround ">
-
-
+        
+       
 
 
         @{
@@ -20,6 +110,8 @@
             else{
                 model = Model.ToList();
             }
+
+
             
 
             foreach (var mealplan in model)
