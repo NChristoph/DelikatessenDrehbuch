@@ -1,4 +1,5 @@
-﻿@{
+﻿@model string
+@{
     ViewData["Title"] = "Rezepte";
     ViewData["Description"] = "Entdecken Sie köstliche Rezepte für feine Delikatessen auf Delikatessen-Drehbuch.com. Unsere Sammlung von exquisiten Gerichten bietet Inspiration für jeden Anlass – von raffinierten Vorspeisen bis zu verlockenden Desserts. Perfekt für Feinschmecker und Hobbyköche.";
 
@@ -25,73 +26,81 @@
 @section Scripts
 {
     <script>
-
-
-         $(window).on("load", function () {
-
-            const cachedContent = sessionStorage.getItem("cachedRecipesPartialView");
-
-                      if (cachedContent) {            
-                        const parentElement = document.getElementById("RecipesPartialView");
-
-                           if (parentElement) {
-                                parentElement.innerHTML = cachedContent;
-                
-                           } 
-                      }
-                      else{
-                          LoadRecipes();
-                      }
-
-
-
-
-         });
-
        
 
-         function LoadRecipes(){
 
-                  var RecipesIds = $("[name='RecipesId']").map(function () {
-                                     return $(this).val();
+        $(window).on("load", function () {
 
-                  }).get().join(",");
+           const cachedContent = sessionStorage.getItem("cachedRecipesPartialView");
 
-                var url = RecipesIds
-               ? "Home/GetRecipesPartialView?Ids=" + encodeURIComponent(RecipesIds)
-               : "Home/GetRecipesPartialView";
+            var query = sessionStorage.getItem("searchQuery");
+          
+            if(!query)
+            {
+                 if (cachedContent) {
+                    const parentElement = document.getElementById("RecipesPartialView");
 
-           // AJAX-Request, um die PartialView zu laden
-           $.get(url, function (data) {
-               // Die Antwort (`data`) als letztes Kindelement einfügen
-               $('#RecipesPartialView').append(data);
-           });
+                    if (parentElement) {
+                     parentElement.innerHTML = cachedContent;
 
-
-         }
-
-         $(window).on("unload", function () {
-
-                 const parentElement = document.getElementById("RecipesPartialView");
-
-              if (parentElement) {
-
-
-                 const childElements = parentElement.innerHTML;
-                 sessionStorage.setItem("cachedRecipesPartialView", childElements);
-              }
+                    }
+                 }
+                else
+                {
+                  LoadRecipes();
+                }
+            }
+            else{
+                 $('#RecipesPartialView').load("/Home/SearchRecipes?query=" + query);
+            }
 
 
 
-         });
+           
 
-         function LoadRecipesByQuery()
-         {
-                 var searchWord=$('#searchQuery').val();
 
-                 $('#RecipesPartialView').load("Home/SearchRecipes?query=" + encodeURIComponent(searchWord));
 
-         }
+
+        });
+
+
+
+        function LoadRecipes(){
+
+                 var RecipesIds = $("[name='RecipesId']").map(function () {
+                                    return $(this).val();
+
+                 }).get().join(",");
+
+               var url = RecipesIds
+              ? "/Home/GetRecipesPartialView?Ids=" + encodeURIComponent(RecipesIds)
+              : "/Home/GetRecipesPartialView";
+
+          // AJAX-Request, um die PartialView zu laden
+          $.get(url, function (data) {
+              // Die Antwort (`data`) als letztes Kindelement einfügen
+              $('#RecipesPartialView').append(data);
+          });
+
+
+        }
+
+        $(window).on("unload", function () {
+
+                const parentElement = document.getElementById("RecipesPartialView");
+
+             if (parentElement) {
+
+
+                const childElements = parentElement.innerHTML;
+                sessionStorage.setItem("cachedRecipesPartialView", childElements);
+             }
+
+
+
+        });
+
+
     </script>
 }
 

@@ -1,147 +1,53 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@model List<MealPlanModel>
+@model List<string>
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
-<div class="flexColumn mobieleWidth90 mobileCenter">
+<div class="flexColumn mobieleWidth90 mobileCenter mt-4">
 
     <div class=" flex flexRow w-100 flexJustifyContendCenter flexAlginItemCenter ">
         <div class="flex flexRow flexAlginItemCenter">
             <span class="m-3">Menü´s Filtern:</span>
-            <div class="dropdown">
-                <button class="btn dropdown-toggle Border-Gold bgRed m-1" style="color:white" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="dropdown" >
+
+                <button class="btn dropdown-toggle Border-Gold bgRed m-1" style="color:white" type="button" data-bs-auto-close="false" data-bs-toggle="dropdown" aria-expanded="false">
                     Filter auswählen
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu  " style="overflow:scroll;overflow-x:hidden;max-height:250px">
 
-                    <li class="flexRow flexAlginItemCenter"><a class="dropdown-item" href="#">Menü´s zum Abnehmen</a>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Festliche Menüs</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault" >
 
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Tages Menü´s</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                    @{
+                        
 
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Gesund und Lecker</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                        foreach (var category in Model)
+                        {
+                            <li class="flexRow flexAlginItemCenter">
+                                <label class="dropdown-item" href="#">@category
+                                    <input name="Filtercheckbox" class="form-check-input" type="checkbox" value="@category">
+                                </label>
+                                
+                            </li>
+                        }
+                    }
 
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Italienisch</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
 
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Türkisch</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
 
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Mexikanisch</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Herbstliche Menü´s</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">Vegane Menü´s</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-
-                        </div>
-                    </li>
-                    <li class="flexRow flexAlginItemCenter">
-                        <a class="dropdown-item" href="#">LowCarb Menü´s</a>
-                        <div class="form-check">
-                            <input name="Menüfilter" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-
-                        </div>
-                    </li>
                 </ul>
 
             </div>
 
-            <button class="btn  Border-Gold bgRed m-1" style="color:white" type="button" >
+            <button class="btn  Border-Gold bgRed m-1" onclick="ApplyFilter()" style="color:white" type="button">
                 Anwenden
             </button>
+           
         </div>
-       
-
-    </div>
-
-    <div class="mt-3 minWidth100 mobieleWidth90 flexRow flexWrap flexJustifyContendSpaceAround ">
-        
-       
-
-
-        @{
-            List<MealPlanModel> model = new();
-            if (!User.IsInRole("PremiumUser"))
-            {
-                model = Model.Take(10).ToList();
-
-            }
-            else{
-                model = Model.ToList();
-            }
-
-
-            
-
-            foreach (var mealplan in model)
-            {
-                var test = mealplan.Recipes.Select(x => x.Name);
-                var names = string.Join(" <br>", mealplan.Recipes.Select(x => x.Name+".").ToList());
-                <a class=" m-1 mobieleWidth90" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="text-decoration:none;flex-basis:30%">
-                    <div class="flexColumn Border-Gold mobieleWidth90 mobileCenter p-1 m-1 " style="max-width:300px;height:100%;width:100%">
-                        <div class="flexRow flexJustifyContendCenter">
-                            @foreach (var recipes in mealplan.Recipes)
-                            {
-                                <img class="p-1" width="92" height="92" src="@recipes.ImagePath" loading="lazy" />
-                            }
-
-                        </div>
-
-                        <div class="flexRow flexJustifyContendCenter flexAlginItemCenter mt-1">
-                            <span  style="font-size:16px;color:black;width:max-content;text-align:center;max-width:280px;min-width:280px;">@Html.Raw(@names.ToString())</span>
-
-                        </div>
-                    </div>
-
-                </a>
-
-            }
-
-        }
 
 
     </div>
+
+    <div id="menuePartialView"></div>
+
+    
 
     @{
         if (!User.IsInRole("PremiumUser"))
@@ -152,13 +58,37 @@
                 <span class="mt-2 ">Auf Premium Upgraden für mehr Menü`s</span>
 
                 <span class="mt-2">Premium ist bald verfügbar</span>
+                <span class="mt-2">Ohne Premium sehen sie immer nur die gleichen 10 Menü´s</span>
             </div>
-           
+
         }
 
     }
 </div>
 
 
+<script>
+        function ApplyFilter()
+        {
+           
+             var checkedCategories = $("input[name='Filtercheckbox']:checked")
+                         .map(function() {
+                          return $(this).val();
+                         }).get();
 
+
+
+                   $.ajax({
+                     url: '/MyRecipes/FilterMenues', 
+                     type: 'POST',               
+                     contentType: 'application/json', 
+                     data: JSON.stringify(checkedCategories), 
+                     success: function(response) {
+
+                            $("#menuePartialView").html(response);
+                     },
+        
+                   });
+        }
+</script>
 

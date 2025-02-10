@@ -76,6 +76,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index()
         {
+           
             return View();
         }
 

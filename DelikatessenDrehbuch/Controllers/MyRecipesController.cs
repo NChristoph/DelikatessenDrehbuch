@@ -39,20 +39,48 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("_premiumUserPartialView");
         }
 
-
-
-        public IActionResult MealPlanView()
+        //TODO: Mach das ordentlich
+        public IActionResult FilterMenues([FromBody]  List<string> categories)
         {
             List<MealPlanModel> model = new();
-            var mealPlanHandlerFromDb = _dbcontext.MealPlanHandler.Where(x => x.Id != 0)
+
+            if (!User.IsInRole("PremiumUser"))
+            {
+
+               var notPremiumModel=_dbcontext.MealPlanHandler.Where(x => x.Id != 0 )
                                                               .Include(x => x.MealPlan)
-                                                              .Include(x => x.Recipes).ToList();
+                                                              .Include(x => x.Recipes)
+                                                              .ToList();
+
+                var groupedPlans = notPremiumModel.GroupBy(x => x.MealPlan);
+
+                foreach (var mealPlan in groupedPlans)
+                {
+                    MealPlanModel mealPlanModel = new();
+                    mealPlanModel.MealPlan = mealPlan.Key;
+                    foreach (var recipes in mealPlan)
+                    {
+                        mealPlanModel.Recipes.Add(recipes.Recipes);
+                    }
+                    model.Add(mealPlanModel);
+                }
+                model.Take(10);
+
+                return PartialView("_mealPlansPartialView", model);
+
+            }
+            
+            var mealPlanHandlerFromDb = _dbcontext.MealPlanHandler.Where(x => x.Id != 0&&categories.Contains( x.MealPlan.MyMealModel.Category))
+                                                              .Include(x => x.MealPlan)
+                                                              .Include(x => x.Recipes)
+                                                              .ToList();
+
             var groupedMealPlans = mealPlanHandlerFromDb.GroupBy(x => x.MealPlan);
             foreach (var mealpan in groupedMealPlans)
             {
                 MealPlanModel mealPlanModel = new();
                 mealPlanModel.MealPlan = mealpan.Key;
-               
+
                 foreach (var recipes in mealpan)
                 {
                     mealPlanModel.Recipes.Add(recipes.Recipes);
@@ -60,8 +88,14 @@ namespace DelikatessenDrehbuch.Controllers
 
                 model.Add(mealPlanModel);
             }
+            return PartialView("_mealPlansPartialView", model);
+        }
+        public IActionResult MealPlanView()
+        {
+            var categoryFromDb=_dbcontext.MyMealModel.Select(x => x.Category).ToList();
+           
 
-            return PartialView("_MealPlanView", model);
+            return PartialView("_MealPlanView", categoryFromDb);
         }
 
         public ActionResult GetMeal(int id)

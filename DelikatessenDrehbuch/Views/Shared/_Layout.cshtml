@@ -3,27 +3,27 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    @{
-       #if(!DEBUG)
-        
-           if (!User.IsInRole("PremiumUser"))
-            {
-                bool isLoggedIn = User.Identity.IsAuthenticated;
-                if (!isLoggedIn)
-                {
-                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
-                            crossorigin="anonymous"></script>
-                }
 
+    @{
+#if (!DEBUG)
+
+        if (!User.IsInRole("PremiumUser"))
+        {
+            bool isLoggedIn = User.Identity.IsAuthenticated;
+            if (!isLoggedIn)
+            {
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+                        crossorigin="anonymous"></script>
             }
-        
-        #endif
-       
+
+        }
+
+#endif
+
     }
     <meta name="google-adsense-account" content="ca-pub-2332503983815482">
     <meta name="google-site-verification" content="R_edf408xfCW8GF8MnQ62aQJ9MUfSvp9jhhjxmyGs3U">
-    
+
     <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.4/css/dataTables.dataTables.min.css" />
@@ -51,14 +51,14 @@
                 <div class="container-fluid flexRow" style="width:100%;margin-left:auto;align-self:center">
 
                     @{
-                        if(!string.IsNullOrEmpty(User.Identity.Name))
+                        if (!string.IsNullOrEmpty(User.Identity.Name))
                         {
                             <div class="nav-item flex flexAlginItemCenter mobile-hidden" style="margin-right:auto">
                                 <a class="nav-link" style="color:#FFFDD0;font-size:small">@User.Identity.Name</a>
                             </div>
                         }
                     }
-                    
+
                     <button class="navbar-toggler text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation" style="height:40px;margin-left:auto">
                         Menü
@@ -118,7 +118,7 @@
                     </div>
 
                     <div class="flexRow wrap">
-                        <input  id="searchQuery" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
+                        <input id="searchQuery" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
                         <button class="btn bgRed" onclick="LoadRecipesByQuery()" title="SearchButton" type="submit" typeof="button">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
@@ -135,12 +135,12 @@
 
                 </div>
 
-                
+
             </div>
 
         </div>
     </div>
-   
+
 
 
     <div class="offcanvas offcanvas-start " tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
@@ -210,7 +210,6 @@
 
 
     <div class=" flexRow flexJustifyContendCenter">
-       
     </div>
     <div class="m-3">
         <main role="main" class="pb-3">
@@ -230,6 +229,14 @@
 </body>
 </html>
 
+
+@section Scripts {
+    <script>
+
+
+    </script>
+
+}
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MSMG2FFJ1J"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
@@ -237,8 +244,20 @@
     gtag('js', new Date());
 
     gtag('config', 'G-MSMG2FFJ1J');
+
+
+
 </script>
 <script>
+    
+
+     window.LoadRecipesByQuery = function() {
+
+            var searchWord=$('#searchQuery').val();
+            sessionStorage.setItem("searchQuery",searchWord);
+            window.location.href="/Home/Index";
+
+        }
 
     $(document).ready(function () {
         var token = $("input[name='__RequestVerificationToken']").val();

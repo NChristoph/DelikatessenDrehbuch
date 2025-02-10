@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO.Pipes;
 using NuGet.Protocol.Core.Types;
+using Microsoft.EntityFrameworkCore.Query;
 
 public class TestResult
 {
@@ -180,8 +181,10 @@ namespace DelikatessenDrehbuch.Controllers
             currentRecipe.Recipes.OwnerEmail = "Delikatessen.drehbuch@outlook.com";
             if (!string.IsNullOrEmpty(newRecipes.MealPlan))
             {
+                var melplanArry=newRecipes.MealPlan.Split(";");
                 mealPlan = new();
-                mealPlan.Name = newRecipes.MealPlan;
+                mealPlan.Name = melplanArry[0];
+                mealPlan.MyMealModel = _context.MyMealModel.Single(x=>x.Id==Int32.Parse(melplanArry[1]));
             }
 
             var ingredients = GetArrayFromString(newRecipes.Ingredients);
@@ -256,7 +259,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             if (mealPlan != null)
             {
-                _myExceptions.ErrorMessage = "Fehler bei den Menüplans";
+                _myExceptions.ErrorMessage = "Fehler bei den Menüplan erstellung";
 
                 var exist = _context.MealPlan.FirstOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
                 if (exist == null)
