@@ -539,6 +539,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult EditeRecipes(EditRecipesModel fullRecipes)
         {
+            _myExceptions.ErrorMessage = "Bearbeiten des rezeptes Fehlgeschlagen";
             var recipesFromDb = _context.Recipes.FirstOrDefault(x => x.Id == fullRecipes.Recipes.Id);
             var recipeHandlersFromDb = _context.RecipesHandlers.Where(x => x.Recipe.Id == recipesFromDb.Id)
                                                                  .ToList();
@@ -551,7 +552,7 @@ namespace DelikatessenDrehbuch.Controllers
             DeleteReciphandlerFromDb(recipeHandlersFromDb);
             CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
 
-            _myExceptions.ErrorMessage = "Bearbeiten des rezeptes Fehlgeschlagen";
+            
 
 
             return RedirectToAction("Index");

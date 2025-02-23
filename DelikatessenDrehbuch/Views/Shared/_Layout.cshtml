@@ -67,7 +67,7 @@
                     <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
                         <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
                             <li class="nav-item">
-                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
+                                <a class="nav-link " onclick="RemoveCachedContent()" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
                             </li>
                             @* <li class="nav-item">
                                 <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy" style="color:#FFFDD0">AGB'S</a>
@@ -154,7 +154,7 @@
             <div>
                 <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
                     <li class="nav-item">
-                        <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
+                        <a class="nav-link " onclick="RemoveCachedContent()" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Impressum" style="color:#FFFDD0">Impressum & AGB'S</a>
@@ -249,6 +249,17 @@
 
 </script>
 <script>
+
+    function RemoveCachedContent()
+    {
+          var cachedContent = localStorage.getItem("cachedRecipesPartialView");
+          if(cachedContent)
+          {
+              localStorage.removeItem("cachedRecipesPartialView");
+
+          }
+           location.reload(true);
+    }
     
 
      window.LoadRecipesByQuery = function() {
@@ -257,7 +268,7 @@
             sessionStorage.setItem("searchQuery",searchWord);
             window.location.href="/Home/Index";
 
-        }
+     }
 
     $(document).ready(function () {
         var token = $("input[name='__RequestVerificationToken']").val();

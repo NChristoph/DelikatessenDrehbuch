@@ -27,12 +27,9 @@
 {
     <script>
        
-
-
         $(window).on("load", function () {
-
-           const cachedContent = sessionStorage.getItem("cachedRecipesPartialView");
-
+           
+            var cachedContent = localStorage.getItem("cachedRecipesPartialView");
             var query = sessionStorage.getItem("searchQuery");
           
             if(!query)
@@ -47,26 +44,21 @@
                  }
                 else
                 {
-                  LoadRecipes();
+                   LoadRecipes();
                 }
+                
             }
             else{
+                sessionStorage.removeItem("searchQuery");
                  $('#RecipesPartialView').load("/Home/SearchRecipes?query=" + query);
             }
-
-
-
-           
-
-
-
 
         });
 
 
 
         function LoadRecipes(){
-
+           
                  var RecipesIds = $("[name='RecipesId']").map(function () {
                                     return $(this).val();
 
@@ -85,20 +77,16 @@
 
         }
 
-        $(window).on("unload", function () {
+        function SaveCache()
+        {
 
-                const parentElement = document.getElementById("RecipesPartialView");
+             const parentElement = document.getElementById("RecipesPartialView");
 
              if (parentElement) {
-
-
                 const childElements = parentElement.innerHTML;
-                sessionStorage.setItem("cachedRecipesPartialView", childElements);
+                localStorage.setItem("cachedRecipesPartialView", childElements);
              }
-
-
-
-        });
+        }
 
 
     </script>

@@ -14,6 +14,7 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.Data.SqlClient;
 using Stripe;
 using Microsoft.AspNetCore.Mvc;
+using DelikatessenDrehbuch.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -129,10 +130,31 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+//Todo:Noch anpassen das id und name angegeben werden so das das im link drinnen steht
+//app.MapControllerRoute(
+//    name: "Recipes",
+//    pattern: "Recipes/{Name}",
+//    defaults: new { controller = "Recipe", action = "Details" }
+//);
+
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=Home}/{action=Index}/{id?}"
+
+
+
+//);
 
 app.MapControllerRoute(
+    name: "Recipes",
+    pattern: "SelectedRecipe/Index/{id}/{name?}",
+    defaults: new { controller = "SelectedRecipe", action = "Index" }
+);
+app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
+
 app.MapRazorPages();
 
 app.Run();

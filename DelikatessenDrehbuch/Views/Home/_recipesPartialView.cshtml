@@ -55,11 +55,34 @@
 
 
 @{
+
+   
+
+   
+        
+    
+
     foreach (var recipes in Model.RecipesList)
     {
+
+       var name= recipes.Name.ToLowerInvariant()  // Case-Insensitive machen
+        .Replace("ä", "ae")
+        .Replace("ö", "oe")
+        .Replace("ü", "ue")
+        .Replace("ß", "ss")
+        .Replace(" ", "-")
+        .Replace("&", "und")
+        .Replace("?", "")
+        .Replace("!", "")
+        .Replace(",", "")
+        .Replace(".", "")
+        .Replace(":", "")
+        .Replace(";", "");
+
+
         <input name="RecipesId" value="@recipes.Id" hidden />
         <div class="grid-Recipes grid-Item">
-            <a class=" grid-atag text-black" asp-route-id="@recipes.Id" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
+            <a class=" grid-atag text-black" onclick="SaveCache()" asp-route-id="@recipes.Id" asp-route-name="@name" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
 
                 @if (!string.IsNullOrEmpty(recipes.ImagePath))
                 {

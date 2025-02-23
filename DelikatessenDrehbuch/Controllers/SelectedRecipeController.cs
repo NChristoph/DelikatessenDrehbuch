@@ -17,14 +17,19 @@ namespace DelikatessenDrehbuch.Controllers
             _context = dbContext;
             _helpfulMethods = helpfulMethods;
         }
+       
 
-        public IActionResult Index(int id)
+        public IActionResult Index(int id,string name)
         {
+            
+
+            
             var userIsLoggedIn = User.Identity.IsAuthenticated;
             if (userIsLoggedIn)
                 _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
 
-            return View(_helpfulMethods.GetFullRecipeById(_context, id));
+            var recipe = _helpfulMethods.GetFullRecipeById(_context, id);
+            return View(recipe);
         }
 
       
