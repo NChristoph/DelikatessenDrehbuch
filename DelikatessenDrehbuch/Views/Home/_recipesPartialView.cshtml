@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using DelikatessenDrehbuch.Models
+@using System.Net;
+@using DelikatessenDrehbuch.StaticScripts;
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @model ShowRecipesModel
@@ -23,10 +25,12 @@
         int position = 1;
         foreach (var recipe in Model.RecipesList)
         {
+            var encodedRecipeName = HelpfulMethods.CaseInsensitive(recipe.Name);
+            var encodedRecipeId = HelpfulMethods.CaseInsensitive(recipe.Id.ToString());
             @:{
             @: "@@type": "ListItem",
             @: "position": @position,
-            @:  "url": "https://www.delikatessen-drehbuch.com/SelectedRecipe/Index/@(recipe.Id)"
+            @:  "url": "https://www.delikatessen-drehbuch.com/SelectedRecipe/Index/@(encodedRecipeId)/(@encodedRecipeName)"
             @:}
 
 
@@ -56,28 +60,16 @@
 
 @{
 
-   
 
-   
-        
-    
+
+
+
+
 
     foreach (var recipes in Model.RecipesList)
     {
 
-       var name= recipes.Name.ToLowerInvariant()  // Case-Insensitive machen
-        .Replace("ä", "ae")
-        .Replace("ö", "oe")
-        .Replace("ü", "ue")
-        .Replace("ß", "ss")
-        .Replace(" ", "-")
-        .Replace("&", "und")
-        .Replace("?", "")
-        .Replace("!", "")
-        .Replace(",", "")
-        .Replace(".", "")
-        .Replace(":", "")
-        .Replace(";", "");
+        var name = HelpfulMethods.CaseInsensitive(recipes.Name);
 
 
         <input name="RecipesId" value="@recipes.Id" hidden />
@@ -86,21 +78,40 @@
 
                 @if (!string.IsNullOrEmpty(recipes.ImagePath))
                 {
+                    var subPath = recipes.ImagePath
+                    .Replace(".webp", "")
+                    .Replace(".jpg", "")
+                    .Replace(" ", "%20")
+                    .Replace(".png","");
+
+
+
+                    var smallPath = subPath.Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
+                    var mediumPath = subPath.Replace("picdelikatessendrehbuch", "blobmediumdelikatessendrehbuch");
                     if (recipes.Description != null)
                     {
-                        <img class="grid-Image" alt="@recipes.Description" title="@recipes.Name" src="@recipes.ImagePath" loading="lazy" style="max-width:100%" />
+                        <img class="img-fluid" alt="@recipes.Description" title="@recipes.Name"
+                             srcset="@($"{smallPath}_small.webp 313w, {mediumPath}_medium.webp 600w")"
+                             sizes="(max-width:600px) 313px,(max-width 1200px) 600px,100vh"
+                             src="@recipes.ImagePath"
+                             loading="lazy" />
+
 
                     }
                     else
                     {
-                        <img class="grid-Image" alt="@recipes.Name" title="@recipes.Name" src="@recipes.ImagePath" loading="lazy" style="max-width:100%" />
+                        <img class="img-fluid" alt="@recipes.Name" title="@recipes.Name"
+                             srcset="@($"{smallPath}_small.webp 313w, {mediumPath}_medium.webp 600w")"
+                             sizes="(max-width:600px) 313px,(max-width 1200px) 600px,100vh"
+                             src="@recipes.ImagePath"
+                             loading="lazy" />
 
 
                     }
                 }
                 else
                 {
-                    <img class="grid-Image" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" loading="lazy" />
+                    <img class="img-fluid" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" loading="lazy" />
 
                 }
 

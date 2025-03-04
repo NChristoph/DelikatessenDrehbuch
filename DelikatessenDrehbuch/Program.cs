@@ -14,6 +14,7 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.Data.SqlClient;
 using Stripe;
 using Microsoft.AspNetCore.Mvc;
+
 using DelikatessenDrehbuch.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +53,7 @@ builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
 builder.Services.AddTransient<AddRecipeException>();
 builder.Services.AddMemoryCache();
+
 
 builder.Services.AddControllersWithViews(options =>
 {
@@ -118,8 +120,6 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
-
 
 
 app.UseHttpsRedirection();

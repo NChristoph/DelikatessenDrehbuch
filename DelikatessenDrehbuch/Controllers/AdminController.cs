@@ -19,6 +19,21 @@ using System.IO.Pipes;
 using NuGet.Protocol.Core.Types;
 using Microsoft.EntityFrameworkCore.Query;
 
+using System.Drawing;
+using System.Drawing.Imaging;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using Azure.Storage.Blobs.Models;
+using SixLabors.ImageSharp.Formats.Webp;
+using System.ComponentModel;
+using System.Reflection.Metadata;
+using System.Collections;
+
+
+
+
+
 public class TestResult
 {
     public bool Result { get; set; }
@@ -38,6 +53,8 @@ namespace DelikatessenDrehbuch.Controllers
 
         private readonly string _connectionString = "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/";
         private readonly string _containerName = "picdelikatessendrehbuch";
+        private readonly string _containerNameSmall = "blobsmalldelikatessendrehbuch";
+        private readonly string _containerNameMedium = "blobmediumdelikatessendrehbuch";
         private readonly string _azureAcoutName = "blobdelikatessendrehbuch";
 
         public AdminController(ApplicationDbContext context, IMemoryCache cache, HelpfulMethods helpfulMethods, AddRecipeException myExceptions)
@@ -64,48 +81,41 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
-       
+
+
+
+
+
 
 
 
         public IActionResult AddNewRecipes()
         {
+
+
             return View(new NewRecipesMobileUpload());
         }
 
         #region BlobAzure_SaveImage
-        public void UploadMsToAzureBlop(IFormFile file)
+        public async Task UploadMsToAzureBlop(IFormFile file)
         {
 
             string blobName = $"{file.FileName}";
 
 
-            // Get a reference to a container named "sample-container" and then create it
-            BlobContainerClient container = new BlobContainerClient(_connectionString, _containerName);
-            //container.Create();
-
-            // Get a reference to a blob named "sample-file" in a container named "sample-container"
-            BlobClient blob = container.GetBlobClient(blobName);
-
-            bool blobExist = blob.Exists();
-
-            if (blobExist)
-                return;
-
-            if (file != null)
-            {
+            BlobServiceClient blobServiceClient = new BlobServiceClient(_connectionString);
+            BlobContainerClient container = blobServiceClient.GetBlobContainerClient(_containerName);
+            BlobContainerClient smallContainer = blobServiceClient.GetBlobContainerClient(_containerNameSmall);
+            BlobContainerClient mediumContainer = blobServiceClient.GetBlobContainerClient(_containerNameMedium);
 
 
-                using (var ms = new MemoryStream())
-                {
 
-                    file.CopyTo(ms);
-                    ms.Position = 0;
-                    var byteArry = ms.ToArray();
+            await Task.WhenAll(
 
-                    blob.Upload(new BinaryData(byteArry));
-                }
-            }
+                   ResizeAndUploadImage(container, blobName, 1024, 1024, "", file),
+                   ResizeAndUploadImage(smallContainer, blobName, 313, 313, "_small", file),
+                   ResizeAndUploadImage(mediumContainer, blobName, 600, 600, "_medium", file)
+            );
 
         }
 
@@ -114,6 +124,57 @@ namespace DelikatessenDrehbuch.Controllers
             string blobName = $"{formFile.FileName}";
 
             return $"https://{_azureAcoutName}.blob.core.windows.net/{_containerName}/{blobName}";
+        }
+
+        private static MemoryStream ResizeImageToWebP(SixLabors.ImageSharp.Image imageStream, int width, int height)
+        {
+
+            imageStream.Mutate(x => x.Resize(width, height));
+
+            MemoryStream memoryStream = new MemoryStream();
+            memoryStream.Position = 0;
+
+            imageStream.Save(memoryStream, new WebpEncoder { Quality = 80 });
+
+            return new MemoryStream(memoryStream.ToArray());
+        }
+        private static async Task ResizeAndUploadImage(BlobContainerClient targetContainer, string fileName, int width, int height, string suffix, IFormFile file)
+        {
+
+            BlobClient resizedBlob = targetContainer.GetBlobClient(GetResizedFileName(fileName, suffix));
+
+            using (var ms = new MemoryStream())
+            {
+
+                file.CopyTo(ms);
+                ms.Position = 0;
+                var byteArray = ms.ToArray();
+
+
+                try
+                {
+                    using var image = SixLabors.ImageSharp.Image.Load(byteArray);
+                    using var resizedStream = ResizeImageToWebP(image, width, height);
+
+
+                    BlobClient blob = targetContainer.GetBlobClient(fileName);
+                    await resizedBlob.UploadAsync(resizedStream, overwrite: true);
+
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+
+
+            }
+
+        }
+
+        private static string GetResizedFileName(string originalFileName, string suffix)
+        {
+            return Path.GetFileNameWithoutExtension(originalFileName) + suffix + ".webp";
         }
         #endregion
 
@@ -181,10 +242,10 @@ namespace DelikatessenDrehbuch.Controllers
             currentRecipe.Recipes.OwnerEmail = "Delikatessen.drehbuch@outlook.com";
             if (!string.IsNullOrEmpty(newRecipes.MealPlan))
             {
-                var melplanArry=newRecipes.MealPlan.Split(";");
+                var melplanArry = newRecipes.MealPlan.Split(";");
                 mealPlan = new();
                 mealPlan.Name = melplanArry[0];
-                mealPlan.MyMealModel = _context.MyMealModel.Single(x=>x.Id==Int32.Parse(melplanArry[1]));
+                mealPlan.MyMealModel = _context.MyMealModel.Single(x => x.Id == Int32.Parse(melplanArry[1]));
             }
 
             var ingredients = GetArrayFromString(newRecipes.Ingredients);
@@ -552,7 +613,7 @@ namespace DelikatessenDrehbuch.Controllers
             DeleteReciphandlerFromDb(recipeHandlersFromDb);
             CreateRecipeHandler(recipesFromDb, fullRecipes.IngredientHandler);
 
-            
+
 
 
             return RedirectToAction("Index");

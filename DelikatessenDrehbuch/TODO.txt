@@ -2,14 +2,16 @@ Hab die Rezeptesuche in die Layout.cshtml geschrieben.
 Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
 //TODO:suche noch verbessern noch filter einfügen unnd die zutaten in ganzen anzeigen also die inhalte fürs ganze menü
-
+//ToDo: nutze umgebungsvarieablen
+//ToDo:Nutriens anzeige auf die im Rezept vorkommende Mänge anpassen ,auserdem eine ligth versiun der nutrienanzeige 
+//     fur _selectedRechipes noch machen(Ligth Version = free ,full Version=Premiun user abo)
 TODO:Nutrients Hinzufügen für alle menü komponenten dazu eigene view erstellen mit auswah nutriens 
-Ingredient hinzufügen noch machen und nicht vergessen s Bearbeiten geht noch nicht 
+
 
 Nacher Essensplaner erstellen 
 
 eine eigene seite für Zutaten Inhaltsstoffe noch bereitstellen Das NutrirntLexikon Nur für Premium User und das im selectet
-recipe auch die nutrients anzeigen aber nur für premium User
+
 
 Rezepte Hochladen
 

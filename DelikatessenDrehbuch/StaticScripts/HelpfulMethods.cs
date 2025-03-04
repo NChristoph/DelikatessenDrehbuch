@@ -9,8 +9,8 @@ namespace DelikatessenDrehbuch.StaticScripts
     {
         public FullRecipes GetFullRecipeById(ApplicationDbContext dbContext, int recipeId)
         {
-            var recipeFromDb =  dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
-            var recipHandlerFromDb =  dbContext.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
+            var recipeFromDb = dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
+            var recipHandlerFromDb = dbContext.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
                                                              .Include(x => x.IngredientHandler.Ingredient)
                                                              .Include(x => x.IngredientHandler.Measure)
                                                              .Include(x => x.IngredientHandler.Quantity)
@@ -24,7 +24,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             fullRecipes.QueryHandler = dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb)
                                                              .Select(x => x.Query.Query).ToList();
             fullRecipes.Querys = dbContext.Querys.ToList();
-            return  fullRecipes;
+            return fullRecipes;
         }
 
         public void CreateUserPreferencesRecipe(int id, string email, ApplicationDbContext context)
@@ -33,7 +33,7 @@ namespace DelikatessenDrehbuch.StaticScripts
                 throw new KeyNotFoundException($"Email {email} not found.");
 
 
-            var recipeFromDb = GetRecipeFromDbById(context,id);
+            var recipeFromDb = GetRecipeFromDbById(context, id);
 
             if (recipeFromDb == null)
                 throw new KeyNotFoundException($"Recipe with ID {id} not found.");
@@ -54,7 +54,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             };
 
 
-           context.UserPreferencesRecipes.Add(UserPreferenceRecipe);
+            context.UserPreferencesRecipes.Add(UserPreferenceRecipe);
             context.SaveChanges();
 
         }
@@ -108,7 +108,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             return userPreferencesQuery;
         }
 
-        public  DropdownModel GetDropdownModel(ApplicationDbContext context,int id=0)
+        public DropdownModel GetDropdownModel(ApplicationDbContext context, int id = 0)
         {
             var metricsFromDb = context.Metrics.ToList();
             var ingredientHandlerFromDb = context.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefault(x => x.Id == id);
@@ -122,26 +122,45 @@ namespace DelikatessenDrehbuch.StaticScripts
             return dropdownModel;
         }
 
-        public Recipes GetRecipeFromDbById(ApplicationDbContext context,int id)
+        public Recipes GetRecipeFromDbById(ApplicationDbContext context, int id)
         {
-            
+
             var recipe = context.Recipes.SingleOrDefault(x => x.Id == id);
 
-            if(recipe == null)
+            if (recipe == null)
                 throw new KeyNotFoundException($"Recipe with ID {id} not found.");
 
             return recipe;
 
         }
 
-        public List<UserPreferencesQuery> GetUserPreferencesQueryListByEmail(ApplicationDbContext context,string email)
+        public List<UserPreferencesQuery> GetUserPreferencesQueryListByEmail(ApplicationDbContext context, string email)
         {
-           return context.UserPreferencesQuerys.Where(x => x.UserEmail == email).ToList();
+            return context.UserPreferencesQuerys.Where(x => x.UserEmail == email).ToList();
         }
 
         public List<string> GetQueryListFromDb(ApplicationDbContext context)
         {
-            return context.Querys.Select(x=>x.Query).ToList();
+            return context.Querys.Select(x => x.Query).ToList();
+        }
+
+        public static string CaseInsensitive(string encodetString)
+        {
+            var name = encodetString.ToLowerInvariant()  
+                                    .Replace("ä", "ae")
+                                    .Replace("ö", "oe")
+                                    .Replace("ü", "ue")
+                                    .Replace("ß", "ss")
+                                    .Replace(" ", "-")
+                                    .Replace("&", "und")
+                                    .Replace("?", "")
+                                    .Replace("!", "")
+                                    .Replace(",", "")
+                                    .Replace(".", "")
+                                    .Replace(":", "")
+                                    .Replace(";", "");
+
+            return name;
         }
     }
 
