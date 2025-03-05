@@ -41,7 +41,7 @@ tr:nth-child(odd) {
 }
 
 .bgRed {
-    background-color: #770f05;
+    background-color: #770f05 !important;
 }
 
 .bgRedGardien {
@@ -439,9 +439,13 @@ tr:nth-child(odd) {
         'Ingredient Ingredient'
         'Ingredient Ingredient'
         'Preparation Preparation'
+        'Carusel Carusel'
         'Button Button'
 }
 
+.grid-Carusel {
+    grid-area: Carusel;
+}
 .grid-Discription {
     grid-area: Discription;
 }

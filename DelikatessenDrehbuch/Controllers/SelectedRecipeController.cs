@@ -18,7 +18,13 @@ namespace DelikatessenDrehbuch.Controllers
             _helpfulMethods = helpfulMethods;
         }
        
-
+        public List<Recipes> GetRecipesSuggetions(List<Recipes> recipes)
+        {
+            return recipes.GroupBy(x => x.Name).OrderBy(g => Guid.NewGuid())
+                          .Take(7)                               
+                          .Select(g => g.First())           
+                          .ToList();
+        }
         public IActionResult Index(int id,string name)
         {
             
@@ -28,8 +34,15 @@ namespace DelikatessenDrehbuch.Controllers
             if (userIsLoggedIn)
                 _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
 
-            var recipe = _helpfulMethods.GetFullRecipeById(_context, id);
-            return View(recipe);
+            SelectedRecipesModel model = new SelectedRecipesModel();
+            model.FullRecipes = _helpfulMethods.GetFullRecipeById(_context, id);
+            var test = _helpfulMethods.GetFullRecipeById(_context, id).QueryHandler;
+           
+            model.RecipeSuggestions = GetRecipesSuggetions(_context.QueryHandler.Where(x => model.FullRecipes.QueryHandler.Contains(x.Query.Query)).Select(x => x.Recipe).ToList());
+                                                         
+
+           
+            return View(model);
         }
 
       

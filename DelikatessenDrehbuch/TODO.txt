@@ -5,8 +5,8 @@ Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 //ToDo: nutze umgebungsvarieablen
 //ToDo:Nutriens anzeige auf die im Rezept vorkommende Mänge anpassen ,auserdem eine ligth versiun der nutrienanzeige 
 //     fur _selectedRechipes noch machen(Ligth Version = free ,full Version=Premiun user abo)
-TODO:Nutrients Hinzufügen für alle menü komponenten dazu eigene view erstellen mit auswah nutriens 
-
+//TODO:Nutrients Hinzufügen für alle menü komponenten dazu eigene view erstellen mit auswah nutriens 
+//Auf der rezepte seite noch andere rezepte vorschlagen im karusen aber vorher querys vereinheitlichen
 
 Nacher Essensplaner erstellen 
 
