@@ -404,6 +404,7 @@ namespace DelikatessenDrehbuch.Controllers
         #region EditeRecipe
         private void EditRecipe(Recipes recipesFromDb, EditRecipesModel fullRecipes)
         {
+            DeleteQuerys(recipesFromDb.Id);
 
             recipesFromDb.Name = fullRecipes.Recipes.Name;
             recipesFromDb.Category = fullRecipes.Recipes.Category;
@@ -414,7 +415,15 @@ namespace DelikatessenDrehbuch.Controllers
             if (fullRecipes.Recipes.FormFile != null)
                 recipesFromDb.FormFile = fullRecipes.Recipes.FormFile;
 
+            CreateQuaryHandler(recipesFromDb,fullRecipes.Querys.Split(",").Select(l=>l.Trim()).ToList());
 
+            _context.SaveChanges();
+        }
+
+        public void DeleteQuerys(int id)
+        {
+            var queryhandlerFromDb = _context.QueryHandler.Where(x => x.Recipe.Id == id).ToList();
+            _context.RemoveRange(queryhandlerFromDb);
             _context.SaveChanges();
         }
 
@@ -575,12 +584,14 @@ namespace DelikatessenDrehbuch.Controllers
                                                              .Include(x => x.IngredientHandler.Quantity)
                                                              .Select(x => x.IngredientHandler)
                                                              .ToList();
+
+            var queryList = _context.QueryHandler.Where(x => x.Recipe.Id == id).Select(x => x.Query.Query).ToList();
             EditRecipesModel editRecipesModel = new()
             {
                 Recipes = recipeFromDb,
                 IngredientHandler = ingredientHandlersFromDb,
                 Measure = _context.Metrics.ToList(),
-                Querys = _context.QueryHandler.Where(x => x.Recipe.Id == id).Select(x => x.Query.Query).ToList(),
+                Querys = string.Join(",",queryList) ,
 
 
             };

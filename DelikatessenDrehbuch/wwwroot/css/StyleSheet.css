@@ -1,5 +1,5 @@
 ﻿main {
-    margin-top: 28vh;
+    margin-top: 222px;
 }
 
 .textColoreCream {
@@ -517,12 +517,19 @@ tr:nth-child(odd) {
     .desktop-Hidden {
         display: none !important;
     }
+
+   
 }
 
 
 
 
-
+@media(max-width: 459px) {
+    
+    main {
+        margin-top: 130px;
+    }
+}
 
 
 

@@ -35,9 +35,9 @@
 
 <body>
     @Html.AntiForgeryToken()
-    <div class="minWidth100 " style="position:fixed;background-color:white;height:28vh;z-index:100">
-        <header>
-            <nav class="navbar-expand-sm navbar-toggleable-sm navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px">
+    <div class="minWidth100 " style="position:fixed;background-color:white;z-index:100;min-height:110px">
+        <header >
+            <nav class="navbar-expand-md navbar-toggleable-md navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px ">
 
                 <div class="mobile-aktive">
                     <div class="grid-Navbar">
@@ -48,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="container-fluid flexRow" style="width:100%;margin-left:auto;align-self:center">
+                <div class="container-fluid flexRow" style="width:100%;margin-left:auto;align-self:center;">
 
                     @{
                         if (!string.IsNullOrEmpty(User.Identity.Name))
@@ -64,18 +64,18 @@
                         Menü
 
                     </button>
-                    <div class="navbar-collapse collapse d-sm-inline-flex" style="justify-content:center">
-                        <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
-                            <li class="nav-item">
+                    <div class="navbar-collapse collapse d-md-inline-flex" style="justify-content:center">
+                        <ul class="navbar-nav flex-grow-1 " style="max-width:max-content;align-items:center">
+                            <li class="nav-item m-1">
                                 <a class="nav-link " onclick="RemoveCachedContent()" asp-controller="Home" asp-action="Index" style="color:#FFFDD0">Rezepte</a>
                             </li>
                             @* <li class="nav-item">
                                 <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Privacy" style="color:#FFFDD0">AGB'S</a>
                             </li> *@
-                            <li class="nav-item">
+                            <li class="nav-item m-1">
                                 <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Impressum" style="color:#FFFDD0">Impressum & AGB'S </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item m-1">
                                 <partial class="grid-Partial" name="_LoginPartial" />
                             </li>
 
@@ -100,45 +100,45 @@
 
             </nav>
 
+            <div class="flexRowToColumn flexWrap mb-3">
+                <div class="col maxWidth30 mobieleWidth90 mobile-hidden">
+                    <div class="grid-Navbar">
+                        <img title="logo" class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
+                        <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
+                        <div class="grid-Slogan" style="color:#D4AF37;font-size:11px">Kulinarische Genüsse,<br /> von Herzen geschrieben.</div>
 
-
-        </header>
-        <div class="flexRowToColumn flexWrap mb-3">
-            <div class="col maxWidth30 mobieleWidth90 mobile-hidden">
-                <div class="grid-Navbar">
-                    <img title="logo" class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
-                    <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
-                    <div class="grid-Slogan" style="color:#D4AF37;font-size:11px">Kulinarische Genüsse,<br /> von Herzen geschrieben.</div>
-
+                    </div>
                 </div>
-            </div>
-            <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
-                <div class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90">
-                    <div class="flexRowToColumn flexWrap">
-                    </div>
+                <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
+                    <div class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90">
+                        <div class="flexRowToColumn flexWrap">
+                        </div>
 
-                    <div class="flexRow wrap">
-                        <input id="searchQuery" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
-                        <button class="btn bgRed" onclick="LoadRecipesByQuery()" title="SearchButton" type="submit" typeof="button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="flexRow">
+                        <div class="flexRow wrap">
+                            <input id="searchQuery" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
+                            <button class="btn bgRed" onclick="LoadRecipesByQuery()" title="SearchButton" type="submit" typeof="button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="color:#FFFDD0">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        @*  <div class="flexRow">
                         <div class="form-check form-switch">
                             <input name="vegan" class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" aria-checked="false" @(ViewBag.IsVegan != null && ViewBag.IsVegan == true ? "checked" : "")>
                             <label class="form-check-label" for="flexSwitchCheckDefault">Nur Vegane Rezepte</label>
                         </div>
                     </div>
+ *@
+
+                    </div>
 
 
                 </div>
 
-
             </div>
 
-        </div>
+        </header>
+       
     </div>
 
 
@@ -153,10 +153,10 @@
         <div class="offcanvas-body bgRedGardien">
             <div>
                 <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
-                    <li class="nav-item">
+                    <li class="nav-item ">
                         <a class="nav-link " onclick="RemoveCachedContent()" style="color:#FFFDD0">Rezepte</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item ">
                         <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Impressum" style="color:#FFFDD0">Impressum & AGB'S</a>
                     </li>
                     <li class="nav-item">
@@ -259,6 +259,7 @@
 
           }
            location.reload(true);
+           location.href="/Home/Index.cshtml"
     }
     
 
