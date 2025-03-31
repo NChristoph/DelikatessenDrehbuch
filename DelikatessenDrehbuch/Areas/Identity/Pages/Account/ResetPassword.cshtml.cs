@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
 {
@@ -76,7 +72,7 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
 
         public IActionResult OnGet(string code = null)
         {
-            
+
             Input = new InputModel();
 
             if (code == null)
@@ -88,7 +84,7 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
             try
             {
                 Input.Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-                _logger.LogInformation($"Decoded Token: {Input.Code}");  // Zum Testen
+                _logger.LogInformation($"Decoded Token: {Input.Code}");
             }
             catch (Exception ex)
             {

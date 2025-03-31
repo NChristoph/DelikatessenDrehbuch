@@ -230,13 +230,7 @@
 </html>
 
 
-@section Scripts {
-    <script>
 
-
-    </script>
-
-}
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MSMG2FFJ1J"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
@@ -259,12 +253,12 @@
 
           }
            location.reload(true);
-           location.href="/Home/Index.cshtml"
+           window.location.href="/Home/Index"
     }
     
 
      window.LoadRecipesByQuery = function() {
-
+         
             var searchWord=$('#searchQuery').val();
             sessionStorage.setItem("searchQuery",searchWord);
             window.location.href="/Home/Index";
@@ -342,12 +336,3 @@
 
 
 
-@* <script>
-
-    function SearchRecipe() {
-
-        var keyWord = $('#keyWord').val();
-        var encodeKeyWord = encodeURIComponent(keyWord);
-        $('#RecipesPartial').load('Home/SearchRecipes?keyWord=' + encodeKeyWord)
-    }
-</script> *@

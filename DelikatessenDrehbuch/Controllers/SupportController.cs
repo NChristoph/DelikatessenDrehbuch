@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using DelikatessenDrehbuch.StaticScripts;
-using System.Runtime.CompilerServices;
+﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
-using DelikatessenDrehbuch.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -36,6 +34,6 @@ namespace DelikatessenDrehbuch.Controllers
             return Ok();
         }
 
-      
+
     }
 }

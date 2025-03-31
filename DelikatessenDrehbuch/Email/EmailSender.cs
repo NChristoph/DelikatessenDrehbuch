@@ -30,11 +30,13 @@ namespace DelikatessenDrehbuch.Email
                     Credentials = new NetworkCredential(_emailSettings.Email, _emailSettings.Password)
                 };
 
-                var mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress(_emailSettings.Email);
-                mailMessage.Subject = subject;
-                mailMessage.Body = htmlMessage;
-                mailMessage.IsBodyHtml = true;
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(_emailSettings.Email),
+                    Subject = subject,
+                    Body = htmlMessage,
+                    IsBodyHtml = true
+                };
                 mailMessage.To.Add(new MailAddress(email));
 
 
@@ -47,7 +49,7 @@ namespace DelikatessenDrehbuch.Email
                 throw;
             }
 
-           
+
         }
     }
 }

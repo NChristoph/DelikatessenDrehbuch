@@ -1,7 +1,7 @@
 ﻿@model AdminControllerModel
 
-<div class=" minWidth90 flex flexJustifyContendCenter" style="height:100vh">
-    <div class="mobieleWidth90 minWidth90 Bg-Cream flexColumn">
+<div class=" minWidth90  flex flexJustifyContendCenter" style="height:100vh">
+    <div class="mobieleWidth90 minWidth90 maxWidth90 m Bg-Cream flexColumn">
         @* Suportmassage div *@
         <div>
             <div class="accordion accordion-flush mt-3  Border-Gold" id="accordionFlushSupport">
@@ -80,7 +80,7 @@
 
             </div>
         </div>
-        @*Daschbord Div *@
+       
         <div class="flexRowToColumn minWidth100 mobieleWidth100 flexJustifyContendSpaceBetween">
             <div class="accordion accordion-flush mt-3 Border-Gold  mobieleWidth100 flex-item" id="accordionFlushUser">
                 <div class="accordion-item">
@@ -141,7 +141,7 @@
                     </button>
                 </h2>
                 <div id="flush-collapseAdditOrDeliteRecipe" class="accordion-collapse collapse" data-bs-parent="#accordionFlushAdditOrDeliteRecipe">
-                    <div class="flexRowToColumn mobieleWidth100 mt-2  flexJustifyContendSpaceBetween">
+                    <div class="flexRowToColumn mobieleWidth100 mt-2  flexJustifyContendSpaceBetween maxWidth100">
 
                         <input id="recipeSearch" class="m-1" style="flex-basis:45%" placeholder="RezeptId oder Name" />
                         <button onclick="loadAdditOrDeliteRecipePartialView()" class=" m-1 btn bgRed Border-Gold" style="flex-basis:38%;color:white">Rezept suchen</button>
@@ -161,7 +161,7 @@
 
         </div>
 
-        <a class="btn bgRed Border-Gold mt-3" asp-action="AddNutriensAndEffects" asp-controller="Admin" style="color:white;width:150px">Add nutriens</a>
+        <a class="btn bgRed Border-Gold mt-3" asp-action="AddNutrients" asp-controller="Admin" style="color:white;width:150px">Add nutriens</a>
 
 
 

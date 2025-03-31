@@ -1,7 +1,6 @@
 ﻿using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 
 namespace DelikatessenDrehbuch.Data
 {
@@ -13,7 +12,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<Ingredient> Ingredients { get; set; }
         public DbSet<Quantity> Quantities { get; set; }
         public DbSet<Measure> Metrics { get; set; }
-      
+
         public DbSet<RecipesHandler> RecipesHandlers { get; set; }
         public DbSet<IngredientHandlerModel> IngredientHandlers { get; set; }
         public DbSet<SupportMessage> SupportMessage { get; set; }
@@ -22,13 +21,12 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<UserPreferencesQuery> UserPreferencesQuerys { get; set; }
         public DbSet<UserPreferencesRecipe> UserPreferencesRecipes { get; set; }
         public DbSet<MealPlan> MealPlan { get; set; }
-        public DbSet<Nutrient> Nutrient { get; set; }
-        public DbSet<NutrientsHandler> NutrientsHandler { get; set; }
-        public DbSet<IngredientNutrientHandler> IngredientNutrientHandler { get; set; }
         public DbSet<MealPlanHandler> MealPlanHandler { get; set; }
         public DbSet<MyMealModel> MyMealModel { get; set; }
-       
-       
+        public DbSet<Nutrients> Nutrients { get; set; }
+        public DbSet<NutrienHandler> NutrienHandler { get; set; }
+
+
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -38,7 +36,7 @@ namespace DelikatessenDrehbuch.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-           
+
         }
     }
 }

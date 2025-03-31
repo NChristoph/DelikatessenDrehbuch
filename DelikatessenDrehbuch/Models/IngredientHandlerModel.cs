@@ -9,12 +9,12 @@
 
         public IngredientHandlerModel()
         {
-            if(this.Ingredient == null)
-                Ingredient=new Ingredient();
-            if(this.Quantity == null)
-                Quantity=new Quantity();
-            if(this.Measure == null)
-                Measure=new Measure();
+            if (this.Ingredient == null)
+                Ingredient = new Ingredient();
+            if (this.Quantity == null)
+                Quantity = new Quantity();
+            if (this.Measure == null)
+                Measure = new Measure();
         }
     }
 }

@@ -31,7 +31,7 @@
            
             var cachedContent = localStorage.getItem("cachedRecipesPartialView");
             var query = sessionStorage.getItem("searchQuery");
-          
+        
             if(!query)
             {
                  if (cachedContent) {
@@ -49,8 +49,9 @@
                 
             }
             else{
+                debugger;
                 sessionStorage.removeItem("searchQuery");
-                 $('#RecipesPartialView').load("/Home/SearchRecipes?query=" + query);
+                 $('#RecipesPartialView').load("/Home/SearchRecipes?query=" +  encodeURIComponent(query));
             }
 
         });

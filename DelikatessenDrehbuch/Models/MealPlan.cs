@@ -4,8 +4,8 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string? Preperation {  get; set; }    
-       public MyMealModel MyMealModel { get; set; }
-        
+        public string? Preperation { get; set; }
+        public MyMealModel MyMealModel { get; set; }
+
     }
 }

@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-
-namespace DelikatessenDrehbuch.Models
+﻿namespace DelikatessenDrehbuch.Models
 {
     public class AdminControllerModel
     {
-      
+
 
         public List<SupportMessage> SupportMessage { get; set; }
 
@@ -15,7 +12,7 @@ namespace DelikatessenDrehbuch.Models
 
         public AdminControllerModel()
         {
-           
+
             SupportMessage = new List<SupportMessage>();
             Recipes = new List<Recipes>();
         }

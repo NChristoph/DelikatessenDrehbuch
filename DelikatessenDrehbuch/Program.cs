@@ -1,21 +1,14 @@
 using DelikatessenDrehbuch.Data;
-using Microsoft.AspNetCore.Identity;
-using DelikatessenDrehbuch.MyExceptions;
-using DelikatessenDrehbuch.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using System.Configuration;
-using System.Drawing.Text;
 using DelikatessenDrehbuch.Email;
-using Polly;
-using Polly.Retry;
+using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.StaticScripts;
-using Microsoft.Data.SqlClient;
-using Stripe;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
-using DelikatessenDrehbuch.Models;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Polly;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +29,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => {
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{
     options.Password.RequireDigit = false; // Keine Zahl erforderlich
     options.Password.RequireLowercase = false; // Kein Kleinbuchstabe erforderlich
     options.Password.RequireNonAlphanumeric = false; // Kein Sonderzeichen erforderlich
@@ -71,6 +65,8 @@ builder.Services.AddSession(options =>
 });
 
 
+
+
 var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
 
 //var stripeApiKey = "sk_test_51Pudp8FspvIIGBtcg4p4V0mIFyxOlA81LVgXVmEwLDvL9wC4K81SqHQHX5ORN870vQMPJwwodHFTvD1kL6JksKU600PJAdirM2";
@@ -88,6 +84,32 @@ builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 var app = builder.Build();
 app.UseSession();
+
+#region Coop xxs CSP schutz
+
+//app.Use(async (context, next) =>
+//{
+//    context.Response.Headers.Add("Content-Security-Policy",
+//        "default-src 'self'; script-src 'self' https://www.googletagmanager.com 'nonce-random123'; " +
+//        "connect-src 'self' wss://localhost:*; style-src 'self' 'unsafe-inline';");
+//    await next();
+//});
+
+
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("Cross-Origin-Opener-Policy", "same-origin");
+    await next();
+});
+
+#endregion
+
 async Task CreateRolls(IServiceProvider serviceProvider, string roleName)
 {
     var roleManager = serviceProvider.GetService<RoleManager<IdentityRole>>();
@@ -95,8 +117,6 @@ async Task CreateRolls(IServiceProvider serviceProvider, string roleName)
 
     if (!roleExist)
         await roleManager.CreateAsync(new IdentityRole(roleName));
-
-
 
 }
 
@@ -129,21 +149,6 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-//Todo:Noch anpassen das id und name angegeben werden so das das im link drinnen steht
-//app.MapControllerRoute(
-//    name: "Recipes",
-//    pattern: "Recipes/{Name}",
-//    defaults: new { controller = "Recipe", action = "Details" }
-//);
-
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller=Home}/{action=Index}/{id?}"
-
-
-
-//);
 
 app.MapControllerRoute(
     name: "Recipes",

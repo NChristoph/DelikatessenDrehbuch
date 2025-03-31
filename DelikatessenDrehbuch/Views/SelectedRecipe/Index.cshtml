@@ -174,7 +174,8 @@
                 <div class="grid-ingredient minWidth90 mobieleWidth90 flex flexJustifyContendCenter ">
                     <ul class="minWidth100 mobieleWidth90" style="list-style-type:none;padding-left:0;">
                         @{
-                            foreach (var ingredient in Model.FullRecipes.IngredientHandler)
+                           
+                            foreach (var ingredient in Model.FullRecipes.IngredientHandler.OrderByDescending(x=>x.Quantity.Quantitys))
                             {
 
                                 <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem">

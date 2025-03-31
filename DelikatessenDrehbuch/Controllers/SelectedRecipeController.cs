@@ -1,10 +1,7 @@
-﻿using Azure;
-using DelikatessenDrehbuch.Data;
+﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -17,35 +14,37 @@ namespace DelikatessenDrehbuch.Controllers
             _context = dbContext;
             _helpfulMethods = helpfulMethods;
         }
-       
+
         public List<Recipes> GetRecipesSuggetions(List<Recipes> recipes)
         {
             return recipes.GroupBy(x => x.Name).OrderBy(g => Guid.NewGuid())
-                          .Take(7)                               
-                          .Select(g => g.First())           
+                          .Take(7)
+                          .Select(g => g.First())
                           .ToList();
         }
-        public IActionResult Index(int id,string name)
+        public IActionResult Index(int id, string name)
         {
-            
 
-            
+
+
             var userIsLoggedIn = User.Identity.IsAuthenticated;
             if (userIsLoggedIn)
                 _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
 
-            SelectedRecipesModel model = new SelectedRecipesModel();
-            model.FullRecipes = _helpfulMethods.GetFullRecipeById(_context, id);
-            var test = _helpfulMethods.GetFullRecipeById(_context, id).QueryHandler;
-           
-            model.RecipeSuggestions = GetRecipesSuggetions(_context.QueryHandler.Where(x => model.FullRecipes.QueryHandler.Contains(x.Query.Query)).Select(x => x.Recipe).ToList());
-                                                         
+            SelectedRecipesModel model = new()
+            {
+                FullRecipes = _helpfulMethods.GetFullRecipeById(_context, id)
+            };
+         
 
-           
+            model.RecipeSuggestions = GetRecipesSuggetions(_context.QueryHandler.Where(x => model.FullRecipes.QueryHandler.Contains(x.Query.Query)).Select(x => x.Recipe).ToList());
+
+
+
             return View(model);
         }
 
-      
+
 
         public IActionResult AddOrRemoveLike(int id)
         {
@@ -94,16 +93,18 @@ namespace DelikatessenDrehbuch.Controllers
             if (id == null)
                 return BadRequest();
 
-            Recession newRecession = new();
-            newRecession.Id = 0;
-            newRecession.CreationDate = DateTime.Now;
-            newRecession.UserEmail = User.Identity.Name;
-            newRecession.Assessment = assessment;
-            newRecession.Recipes = _helpfulMethods.GetRecipeFromDbById(_context, id);
+            Recession newRecession = new()
+            {
+                Id = 0,
+                CreationDate = DateTime.Now,
+                UserEmail = User.Identity.Name,
+                Assessment = assessment,
+                Recipes = _helpfulMethods.GetRecipeFromDbById(_context, id)
+            };
 
             _context.Recessions.Add(newRecession);
             _context.SaveChanges();
-            return RedirectToAction("Index", new { id = id });
+            return RedirectToAction("Index", new { id });
         }
     }
 }

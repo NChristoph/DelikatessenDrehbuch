@@ -1,28 +1,12 @@
-﻿using Azure.Core.Pipeline;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Specialized;
+﻿using Azure.Storage.Blobs;
 using DelikatessenDrehbuch.Data;
 
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.WebEncoders.Testing;
-using Microsoft.Extensions.Logging;
-
-using NuGet.Packaging;
-using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Text;
-using System.Drawing;
-using System.Drawing.Imaging;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -63,18 +47,18 @@ namespace DelikatessenDrehbuch.Controllers
                 Directory.CreateDirectory(path);
                 System.IO.File.Create(Path.Combine(path, "recipes.txt"));
             }
-            
+
             return RedirectToAction("Index");
         }
 
-       
+
         public IActionResult CreateRecipes()
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string folderPath = Path.Combine(desktopPath, "Recipes/Rezepte Neu");
 
             var direktoryInfo = Directory.GetDirectories(folderPath);
-           
+
             FullRecipes currentRecipe = null;
             foreach (var directory in direktoryInfo)
             {
@@ -84,14 +68,14 @@ namespace DelikatessenDrehbuch.Controllers
                 string newPath = "";
                 if (image != null)
                 {
-                    var x=Path.GetFileNameWithoutExtension(image);
-                    x = x + ".jpg";
-                     newPath = Path.Combine(subDirectory,x );
-                   System.IO.File.Move(image, newPath);
+                    var x = Path.GetFileNameWithoutExtension(image);
+                    x += ".jpg";
+                    newPath = Path.Combine(subDirectory, x);
+                    System.IO.File.Move(image, newPath);
                 }
                 var jpgPath = Directory.GetFiles(subDirectory, "*.jpg").FirstOrDefault();
                 var fileInfo = new FileInfo(jpgPath);
-                IFormFile file= null;
+                IFormFile file = null;
                 using (var fileStream = new FileStream(jpgPath, FileMode.Open, FileAccess.Read))
                 {
                     var memoryStream = new MemoryStream();
@@ -101,10 +85,10 @@ namespace DelikatessenDrehbuch.Controllers
                     var formFile = new FormFile(memoryStream, 0, memoryStream.Length, "Recipes.FormFile", fileInfo.Name)
                     {
                         Headers = new HeaderDictionary(),
-                       
+
                     };
                     formFile.Headers.Add("Content-Disposition", $"form-data; name=\"Recipes.FormFile\"; filename=\"{fileInfo.Name}\"");
-                    file= formFile;
+                    file = formFile;
                 }
 
                 foreach (string line in lines)
@@ -113,7 +97,7 @@ namespace DelikatessenDrehbuch.Controllers
                     {
                         currentRecipe = new FullRecipes();
                         currentRecipe.Recipes.OwnerEmail = "delikatessen.drehbuch@outlook.com";
-                       
+
 
                     }
                     if (line.StartsWith("Id:"))
@@ -146,15 +130,15 @@ namespace DelikatessenDrehbuch.Controllers
                     }
                     else if (line.StartsWith("Kalorien:"))
                     {
-                        
-                        currentRecipe.Recipes.Calories= line.Split(':')[1].Trim();
+
+                        currentRecipe.Recipes.Calories = line.Split(':')[1].Trim();
                     }
                     if (line.StartsWith("Zutaten"))
                     {
                         try
                         {
                             string[] ing = line.Split(":");
-                            IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                            IngredientHandlerModel ingredientHandler = new();
                             ingredientHandler.Id = 0;
                             ingredientHandler.Ingredient.Name = ing[1].Trim();
                             ingredientHandler.Measure.UnitOfMeasurement = ing[2].Trim();
@@ -166,7 +150,7 @@ namespace DelikatessenDrehbuch.Controllers
                         {
                             BadRequest($"Zutaten des Rezeptes: {currentRecipe.Recipes.Name} kannten nicht gespeichert werden , {line}");
                         }
-                       
+
                     }
                     if (line.StartsWith("Query:"))
                     {
@@ -174,7 +158,7 @@ namespace DelikatessenDrehbuch.Controllers
                     }
                     currentRecipe.Recipes.FormFile = file;
 
-                    
+
 
                 }
 
@@ -200,8 +184,10 @@ namespace DelikatessenDrehbuch.Controllers
         {
             if (id == 0)
             {
-                var fullRecipes = new FullRecipes();
-                fullRecipes.Querys = _dbContext.Querys.ToList();
+                FullRecipes fullRecipes = new()
+                {
+                    Querys = _dbContext.Querys.ToList()
+                };
                 return View(fullRecipes);
             }
             else
@@ -229,7 +215,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
             // Get a reference to a container named "sample-container" and then create it
-            BlobContainerClient container = new BlobContainerClient(_connectionString, _containerName);
+            BlobContainerClient container = new(_connectionString, _containerName);
             //container.Create();
 
             // Get a reference to a blob named "sample-file" in a container named "sample-container"
@@ -244,15 +230,13 @@ namespace DelikatessenDrehbuch.Controllers
             {
 
 
-                using (var ms = new MemoryStream())
-                {
+                using var ms = new MemoryStream();
 
-                    file.CopyTo(ms);
-                    ms.Position = 0;
-                    var byteArry = ms.ToArray();
+                file.CopyTo(ms);
+                ms.Position = 0;
+                var byteArry = ms.ToArray();
 
-                    blob.Upload(new BinaryData(byteArry));
-                }
+                blob.Upload(new BinaryData(byteArry));
             }
 
         }
@@ -279,10 +263,10 @@ namespace DelikatessenDrehbuch.Controllers
                 Preparation = newRecipes.Recipes.Preparation,
                 Category = newRecipes.Recipes.Category,
                 PreparationTime = newRecipes.Recipes.PreparationTime,
-                Description= newRecipes.Recipes.Description,
+                Description = newRecipes.Recipes.Description,
                 LikeCount = 0,
                 ImagePath = newRecipes.Recipes.FormFile != null ? GetImagePathFromAzure(newRecipes.Recipes.FormFile) : "",
-                Calories=newRecipes.Recipes.Calories
+                Calories = newRecipes.Recipes.Calories
 
             };
 
@@ -332,7 +316,7 @@ namespace DelikatessenDrehbuch.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"A Error by adsing new Recipes {ex.ToString()}");
+                    _logger.LogError($"A Error by adsing new Recipes {ex}");
                     return StatusCode(500, "Internal server error");
                 }
 

@@ -3,32 +3,12 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.StaticScripts;
-using Humanizer;
-using Microsoft.ApplicationInsights.Channel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
-using Polly;
-using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.IO.Pipes;
-using NuGet.Protocol.Core.Types;
-using Microsoft.EntityFrameworkCore.Query;
-
-using System.Drawing;
-using System.Drawing.Imaging;
-
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using Azure.Storage.Blobs.Models;
 using SixLabors.ImageSharp.Formats.Webp;
-using System.ComponentModel;
-using System.Reflection.Metadata;
-using System.Collections;
+using SixLabors.ImageSharp.Processing;
 
 
 
@@ -46,7 +26,7 @@ namespace DelikatessenDrehbuch.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMemoryCache _cache;
+
         private readonly AddRecipeException _myExceptions;
         private readonly HelpfulMethods _helpfulMethods;
 
@@ -57,10 +37,9 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly string _containerNameMedium = "blobmediumdelikatessendrehbuch";
         private readonly string _azureAcoutName = "blobdelikatessendrehbuch";
 
-        public AdminController(ApplicationDbContext context, IMemoryCache cache, HelpfulMethods helpfulMethods, AddRecipeException myExceptions)
+        public AdminController(ApplicationDbContext context, HelpfulMethods helpfulMethods, AddRecipeException myExceptions)
         {
             _context = context;
-            _cache = cache;
             _helpfulMethods = helpfulMethods;
             _myExceptions = myExceptions;
 
@@ -69,14 +48,16 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult Index()
         {
-            AdminControllerModel model = new();
-            model.SupportMessage = _context.SupportMessage.ToList();
-            model.Recipes = _context.Recipes.ToList();
-            model.UserCount = _context.Users.Count();
-            model.PremiumUser = _context.Users.Where(user => _context.UserRoles
-                                              .Any(ur => ur.UserId == user.Id && _context.Roles
-                                              .Any(r => r.Id == ur.RoleId && r.Name == "PremiumUser")))
-                                              .Count();
+            AdminControllerModel model = new()
+            {
+                SupportMessage = _context.SupportMessage.ToList(),
+                Recipes = _context.Recipes.ToList(),
+                UserCount = _context.Users.Count(),
+                PremiumUser = _context.Users.Where(user => _context.UserRoles
+                                                  .Any(ur => ur.UserId == user.Id && _context.Roles
+                                                  .Any(r => r.Id == ur.RoleId && r.Name == "PremiumUser")))
+                                              .Count()
+            };
 
             return View(model);
         }
@@ -103,7 +84,7 @@ namespace DelikatessenDrehbuch.Controllers
             string blobName = $"{file.FileName}";
 
 
-            BlobServiceClient blobServiceClient = new BlobServiceClient(_connectionString);
+            BlobServiceClient blobServiceClient = new(_connectionString);
             BlobContainerClient container = blobServiceClient.GetBlobContainerClient(_containerName);
             BlobContainerClient smallContainer = blobServiceClient.GetBlobContainerClient(_containerNameSmall);
             BlobContainerClient mediumContainer = blobServiceClient.GetBlobContainerClient(_containerNameMedium);
@@ -131,8 +112,10 @@ namespace DelikatessenDrehbuch.Controllers
 
             imageStream.Mutate(x => x.Resize(width, height));
 
-            MemoryStream memoryStream = new MemoryStream();
-            memoryStream.Position = 0;
+            MemoryStream memoryStream = new()
+            {
+                Position = 0
+            };
 
             imageStream.Save(memoryStream, new WebpEncoder { Quality = 80 });
 
@@ -143,31 +126,27 @@ namespace DelikatessenDrehbuch.Controllers
 
             BlobClient resizedBlob = targetContainer.GetBlobClient(GetResizedFileName(fileName, suffix));
 
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+
+            file.CopyTo(ms);
+            ms.Position = 0;
+            var byteArray = ms.ToArray();
+
+
+            try
             {
-
-                file.CopyTo(ms);
-                ms.Position = 0;
-                var byteArray = ms.ToArray();
+                using var image = SixLabors.ImageSharp.Image.Load(byteArray);
+                using var resizedStream = ResizeImageToWebP(image, width, height);
 
 
-                try
-                {
-                    using var image = SixLabors.ImageSharp.Image.Load(byteArray);
-                    using var resizedStream = ResizeImageToWebP(image, width, height);
+                BlobClient blob = targetContainer.GetBlobClient(fileName);
+                await resizedBlob.UploadAsync(resizedStream, overwrite: true);
 
 
-                    BlobClient blob = targetContainer.GetBlobClient(fileName);
-                    await resizedBlob.UploadAsync(resizedStream, overwrite: true);
-
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
-
-
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
 
         }
@@ -186,19 +165,13 @@ namespace DelikatessenDrehbuch.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SaveNewRecipes(NewRecipesMobileUpload newRecipes = null, [FromForm] EditRecipesModel recipes = null)
         {
-            var x = ModelState;
-            if (ModelState.IsValid)
-            {
-
-                return BadRequest(ModelState);
-            }
 
             using (var transAction = _context.Database.BeginTransaction())
             {
                 try
                 {
                     if (!string.IsNullOrEmpty(newRecipes.Name))
-                        CreateRecipesFromString(newRecipes);
+                        CreateRecipesFromStringAsync(newRecipes);
                     else
                     {
                         EditeRecipes(recipes);
@@ -209,7 +182,7 @@ namespace DelikatessenDrehbuch.Controllers
                 catch (Exception ex)
                 {
                     transAction.Rollback();
-                    throw new Exception($"{_myExceptions.ErrorMessage}");
+                    throw new Exception($"{_myExceptions.ErrorMessage} {ex}");
                 }
 
             }
@@ -227,7 +200,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             return lines;
         }
-        private void CreateRecipesFromString(NewRecipesMobileUpload newRecipes)
+        private async Task CreateRecipesFromStringAsync(NewRecipesMobileUpload newRecipes)
         {
 
             FullRecipes currentRecipe = new();
@@ -243,9 +216,11 @@ namespace DelikatessenDrehbuch.Controllers
             if (!string.IsNullOrEmpty(newRecipes.MealPlan))
             {
                 var melplanArry = newRecipes.MealPlan.Split(";");
-                mealPlan = new();
-                mealPlan.Name = melplanArry[0];
-                mealPlan.MyMealModel = _context.MyMealModel.Single(x => x.Id == Int32.Parse(melplanArry[1]));
+                mealPlan = new()
+                {
+                    Name = melplanArry[0],
+                    MyMealModel = _context.MyMealModel.Single(x => x.Id == Int32.Parse(melplanArry[1]))
+                };
             }
 
             var ingredients = GetArrayFromString(newRecipes.Ingredients);
@@ -255,7 +230,7 @@ namespace DelikatessenDrehbuch.Controllers
                 if (!string.IsNullOrEmpty(ingredient))
                 {
                     string[] ing = ingredient.Split("#");
-                    IngredientHandlerModel ingredientHandler = new IngredientHandlerModel();
+                    IngredientHandlerModel ingredientHandler = new();
                     ingredientHandler.Id = 0;
                     ingredientHandler.Ingredient.Name = ing[2].Trim();
                     ingredientHandler.Measure.UnitOfMeasurement = ing[1].Trim();
@@ -280,19 +255,19 @@ namespace DelikatessenDrehbuch.Controllers
             var ifExist = _context.Recipes.FirstOrDefault(x => x.Name == currentRecipe.Recipes.Name && x.Preparation == currentRecipe.Recipes.Preparation);
             if (ifExist == null)
             {
-                AddRecipes(currentRecipe, mealPlan);
+                await AddRecipesAsync(currentRecipe, mealPlan);
 
             }
 
 
         }
-        public void AddRecipes(FullRecipes newRecipes, MealPlan mealPlan = null)
+        public async Task AddRecipesAsync(FullRecipes newRecipes, MealPlan mealPlan = null)
         {
             MealPlanHandler mealPlanHandler = null;
 
 
             if (newRecipes.Recipes.FormFile != null)
-                UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
+                await UploadMsToAzureBlop(newRecipes.Recipes.FormFile);
 
 
 
@@ -331,10 +306,12 @@ namespace DelikatessenDrehbuch.Controllers
                 {
 
 
-                    mealPlanHandler = new();
-                    mealPlanHandler.Id = 0;
-                    mealPlanHandler.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
-                    mealPlanHandler.Recipes = _context.Recipes.SingleOrDefault(x => x.Name.ToLower() == recipes.Name.ToLower() && x.Preparation.ToLower() == recipes.Preparation.ToLower());
+                    mealPlanHandler = new()
+                    {
+                        Id = 0,
+                        MealPlan = _context.MealPlan.SingleOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower()),
+                        Recipes = _context.Recipes.SingleOrDefault(x => x.Name.ToLower() == recipes.Name.ToLower() && x.Preparation.ToLower() == recipes.Preparation.ToLower())
+                    };
 
                     _context.MealPlanHandler.Add(mealPlanHandler);
                     _context.SaveChanges();
@@ -415,7 +392,7 @@ namespace DelikatessenDrehbuch.Controllers
             if (fullRecipes.Recipes.FormFile != null)
                 recipesFromDb.FormFile = fullRecipes.Recipes.FormFile;
 
-            CreateQuaryHandler(recipesFromDb,fullRecipes.Querys.Split(",").Select(l=>l.Trim()).ToList());
+            CreateQuaryHandler(recipesFromDb, fullRecipes.Querys.Split(",").Select(l => l.Trim()).ToList());
 
             _context.SaveChanges();
         }
@@ -446,7 +423,7 @@ namespace DelikatessenDrehbuch.Controllers
                 }
 
 
-                RecipesHandler newHandler = new RecipesHandler()
+                RecipesHandler newHandler = new()
                 {
                     Id = 0,
                     Recipe = recipesFromDb,
@@ -521,7 +498,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
         private Quantity GetOrCreateQuantity(float quantity)
         {
-            var quantityFromDb = _context.Quantities.Single(x => x.Quantitys == quantity);
+            var quantityFromDb = _context.Quantities.SingleOrDefault(x => x.Quantitys == quantity);
 
             if (quantityFromDb != null)
                 return quantityFromDb;
@@ -591,7 +568,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Recipes = recipeFromDb,
                 IngredientHandler = ingredientHandlersFromDb,
                 Measure = _context.Metrics.ToList(),
-                Querys = string.Join(",",queryList) ,
+                Querys = string.Join(",", queryList),
 
 
             };
@@ -601,10 +578,12 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult AddIngredientRow(int id)
         {
-            DropdownModel dropdownModel = new DropdownModel();
-            dropdownModel.IngredientHandler = new IngredientHandlerModel();
-            dropdownModel.Measure = _context.Metrics.ToList();
-            dropdownModel.Index = id;
+            DropdownModel dropdownModel = new()
+            {
+                IngredientHandler = new(),
+                Measure = _context.Metrics.ToList(),
+                Index = id
+            };
 
 
             return PartialView("_IngredientPartialViewEditRecipes", dropdownModel);
@@ -634,145 +613,59 @@ namespace DelikatessenDrehbuch.Controllers
 
 
 
-        private IngredientNutrientHandler GetOrCreateIngredientNutrienHandler(NutrientsModel nutrients)
+        public IActionResult AddNutrients()
         {
-            var ingredientNutrienHandlerFromDb = _context.IngredientNutrientHandler.FirstOrDefault(x => x.Ingredient.Name.ToLower().Trim() == nutrients.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim());
+            return View();
+        }
 
-            if (ingredientNutrienHandlerFromDb != null)
-                return ingredientNutrienHandlerFromDb;
-            else
+        public IActionResult AddNutrienHandlers(string Nutrients, string Ingredient)
+        {
+            var IngredientFromDb=_context.Ingredients.SingleOrDefault(x=>x.Name.ToLower()==Ingredient.ToLower().Trim());
+            if (IngredientFromDb == null)
+                return BadRequest("Zutat nicht in der Db");
+
+            var nutrientsArray= Nutrients.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+            List<NutrienHandler> nutrienHandlers = new();
+
+            for (int i = 0; i < nutrientsArray.Length; i++)
             {
-                ingredientNutrienHandlerFromDb = new IngredientNutrientHandler()
-                {
-                    Id = 0,
-                    Ingredient = GetOrCreateIngredient(nutrients.IngredientNutrientHandler.Ingredient.Name),
-                    Effect = nutrients.IngredientNutrientHandler.Effect,
+                var nutrient = nutrientsArray[i].Split("#").ToArray();
 
+                NutrienHandler nutrienHandler = new()
+                {
+                    Ingredient = IngredientFromDb,
+                    Nutrients = GetOrCreateNutrients(nutrient[0]),
+                    Quantity = GetOrCreateQuantity(float.Parse(nutrient[1])),
+                    Metrics = GetorCreateMeasure(nutrient[2])
                 };
-                _context.IngredientNutrientHandler.Add(ingredientNutrienHandlerFromDb);
-                _context.SaveChanges();
 
+                nutrienHandlers.Add(nutrienHandler);
+               
             }
-            return _context.IngredientNutrientHandler.FirstOrDefault(x => x.Ingredient.Name.ToLower().Trim() == nutrients.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim());
 
+            _context.NutrienHandler.AddRange(nutrienHandlers);
+            _context.SaveChanges();
+
+          return RedirectToAction("Index");
         }
-        public Nutrient GetOrCreateNutrients(string name, NutrientsModel nutrients)
+
+        private Nutrients GetOrCreateNutrients(string nutrient)
         {
-            var nutrientFromDb = _context.Nutrient.FirstOrDefault(x => x.Name.Trim().ToLower() == name.ToLower().Trim());
+            var NutrientsFromDb=_context.Nutrients.SingleOrDefault(x=>x.Nutrient.ToLower().Trim()==nutrient.ToLower().Trim());
 
-            if (nutrientFromDb != null)
-                return nutrientFromDb;
-            else
-            {
-                nutrientFromDb = new Nutrient()
-                {
-                    Id = 0,
-                    Name = name,
+            if (NutrientsFromDb == null)
+                throw new Exception($"Nutrient mit den Namen: {nutrient} existierst nicht.");
 
-                };
-                _context.Nutrient.Add(nutrientFromDb);
-                _context.SaveChanges();
-            }
-            return _context.Nutrient.FirstOrDefault(x => x.Name.Trim().ToLower() == name.ToLower().Trim());
-
+            return NutrientsFromDb;
         }
-
-        public IActionResult AddNutriensAndEffects()
-        {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/Nutrients_and_Effects.txt";
-            var lines = System.IO.File.ReadAllLines(path);
-            NutrientsModel nutrients = new();
-            string ingredient = "";
-
-            foreach (var line in lines)
-            {
-
-                using (var transaction = _context.Database.BeginTransaction())
-                {
-                    try
-                    {
-
-                        if (line.StartsWith("Neu#"))
-                        {
-                            nutrients = new();
-
-                        }
-                        else if (line.StartsWith("Zutat#"))
-                        {
-
-                            var word = line.Split('#');
-                            ingredient = word[1];
-                            nutrients.IngredientNutrientHandler.Ingredient = GetOrCreateIngredient(word[1]);
-                        }
-                        else if (line.StartsWith("Nutzen#"))
-                        {
-                            var word = line.Split("#");
-                            nutrients.IngredientNutrientHandler.Ingredient.Name = ingredient;
-                            nutrients.IngredientNutrientHandler.Effect = word[1];
-
-
-
-                        }
-                        else if (line.StartsWith("End#"))
-                        {
-
-
-
-                        }
-                        else
-                        {
-                            var ingredients = line.Split('#');
-                            NutrientsHandler handler = new();
-
-                            var floatToParse = ingredients[1].Replace(".", ",");
-                            handler.Quantity = GetOrCreateQuantity(float.Parse(floatToParse.Trim()));
-                            handler.Measure = GetorCreateMeasure(ingredients[2]);
-                            handler.Nutrient = GetOrCreateNutrients(ingredients[0], nutrients);
-                            handler.IngredientNutrientHandler = GetOrCreateIngredientNutrienHandler(nutrients);
-
-                            var handlerExist = _context.NutrientsHandler.FirstOrDefault(x => x.IngredientNutrientHandler.Ingredient.Name.ToLower().Trim()
-                                                                        == ingredient.ToLower().Trim() && x.Nutrient.Name.ToLower() == ingredients[0].ToLower());
-
-                            if (handlerExist == null)
-                            {
-                                _context.NutrientsHandler.Add(handler);
-                                _context.SaveChanges();
-                                transaction.Commit();
-                            }
-
-
-
-                        }
-
-
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        throw new Exception($"Fehler in Line {line}", ex);
-                    }
-                }
-
-
-
-
-            }
-
-            return RedirectToAction("Index");
-        }
-
-
-
-
 
 
         // [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IActionResult AdditOrDeliteRecipePartialView(string query)
         {
             // string cacheKey = $"{User.Identity.Name}_handlers_{query?.ToLower()}";
-            List<Recipes> recipes = new List<Recipes>();
-            int recipeId;
-            var isNuber = int.TryParse(query, out recipeId);
+            List<Recipes> recipes = new();
+            var isNuber = int.TryParse(query, out int recipeId);
             if (isNuber)
                 recipes = _context.Recipes.Where(x => x.Id == recipeId).ToList();
             else

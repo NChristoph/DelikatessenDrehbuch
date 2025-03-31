@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace DelikatessenDrehbuch.MyExceptions
+﻿namespace DelikatessenDrehbuch.MyExceptions
 {
-    public  class AddRecipeException
+    public class AddRecipeException
     {
-        public string ErrorMessage {  get; set; }   
+        public string ErrorMessage { get; set; }
 
-        
+
     }
 }

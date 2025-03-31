@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security.Policy;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -25,28 +23,28 @@ namespace DelikatessenDrehbuch.Controllers
             return View();
         }
 
-        public async Task< IActionResult> Success()
+        public async Task<IActionResult> Success()
         {
 
             var user = User.Identity;
-            if(user!=null&&user.IsAuthenticated)
+            if (user != null && user.IsAuthenticated)
             {
                 var currentUser = _context.Users.FirstOrDefault(x => x.UserName == user.Name);
                 var rolmenager = _serviceProvider.GetService<RoleManager<IdentityRole>>();
 
 
-              
+
                 if (currentUser != null)
                 {
                     var userManager = _serviceProvider.GetService<UserManager<IdentityUser>>();
-                   
-                  var result= await  userManager.AddToRoleAsync(currentUser, "PremiumUser");
-                    
+
+                    var result = await userManager.AddToRoleAsync(currentUser, "PremiumUser");
+
                 }
             }
             return View();
         }
 
-       
+
     }
 }

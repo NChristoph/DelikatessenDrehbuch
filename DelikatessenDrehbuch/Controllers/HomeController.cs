@@ -2,19 +2,9 @@
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Caching.Memory;
-using NuGet.Packaging;
-using Polly;
 using System.Diagnostics;
-using System.Drawing.Text;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -55,20 +45,20 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-       
-      
+
+
         public IActionResult GetRecipesPartialView(string Ids = null)
         {
 
             ShowRecipesModel model = new();
             var allRecipes = _context.Recipes.ToList();
             List<int> idList = new List<int>();
-            
+
 
             var list = allRecipes.Where(x => !idList.Contains(x.Id)).OrderBy(x => Guid.NewGuid()).Take(25).ToList();
             model.RecipesList = list;
             return PartialView("_recipesPartialView", model);
-           
+
 
         }
 
@@ -76,7 +66,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index()
         {
-           
+
             return View();
         }
 
@@ -91,18 +81,18 @@ namespace DelikatessenDrehbuch.Controllers
 
         private async Task<List<Recipes>> GetRecipesByName(string query)
         {
-            return await _context.Recipes.Where(x => x.Name.Replace(" ", "").Trim().ToLower() == query ||
+            return await _context.Recipes.Where(x => x.Name.Trim().ToLower() == query ||
                                                 x.Name.Contains(query)).ToListAsync();
         }
         public async Task<IActionResult> SearchRecipes(string query)
         {
-            ShowRecipesModel model = new ();
+            ShowRecipesModel model = new();
             var filterList = GetListFromQueryString(query);
 
             var filtredRecipesByQuereys = await GetRecipeListByQuerys(filterList);
-            var filtredRecipesByName = await GetRecipesByName(query.Replace(" ", "").Trim().ToLower());
+            var filtredRecipesByName = await GetRecipesByName(query.Trim().ToLower());
 
-           
+
             model.RecipesList = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
 
 

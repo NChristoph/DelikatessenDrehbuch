@@ -4,9 +4,6 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Polly;
-using SQLitePCL;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -15,19 +12,19 @@ namespace DelikatessenDrehbuch.Controllers
     {
         private readonly ApplicationDbContext _dbcontext;
         private readonly HelpfulMethods _helpfulMethods;
-        public MyRecipesController(ApplicationDbContext context,HelpfulMethods helpfulMethods)
+        public MyRecipesController(ApplicationDbContext context, HelpfulMethods helpfulMethods)
         {
             _dbcontext = context;
-            _helpfulMethods = helpfulMethods;   
+            _helpfulMethods = helpfulMethods;
         }
 
         public IActionResult Index()
         {
-          
+
             return View();
         }
 
-      
+
 
         public IActionResult PremiumUserPage()
         {
@@ -40,17 +37,17 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
         //TODO: Mach das ordentlich
-        public IActionResult FilterMenues([FromBody]  List<string> categories)
+        public IActionResult FilterMenues([FromBody] List<string> categories)
         {
             List<MealPlanModel> model = new();
 
             if (!User.IsInRole("PremiumUser"))
             {
 
-               var notPremiumModel=_dbcontext.MealPlanHandler.Where(x => x.Id != 0 )
-                                                              .Include(x => x.MealPlan)
-                                                              .Include(x => x.Recipes)
-                                                              .ToList();
+                var notPremiumModel = _dbcontext.MealPlanHandler.Where(x => x.Id != 0)
+                                                               .Include(x => x.MealPlan)
+                                                               .Include(x => x.Recipes)
+                                                               .ToList();
 
                 var groupedPlans = notPremiumModel.GroupBy(x => x.MealPlan);
 
@@ -69,8 +66,8 @@ namespace DelikatessenDrehbuch.Controllers
                 return PartialView("_mealPlansPartialView", model);
 
             }
-            
-            var mealPlanHandlerFromDb = _dbcontext.MealPlanHandler.Where(x => x.Id != 0&&categories.Contains( x.MealPlan.MyMealModel.Category))
+
+            var mealPlanHandlerFromDb = _dbcontext.MealPlanHandler.Where(x => x.Id != 0 && categories.Contains(x.MealPlan.MyMealModel.Category))
                                                               .Include(x => x.MealPlan)
                                                               .Include(x => x.Recipes)
                                                               .ToList();
@@ -92,8 +89,8 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult MealPlanView()
         {
-            var categoryFromDb=_dbcontext.MyMealModel.Select(x => x.Category).ToList();
-           
+            var categoryFromDb = _dbcontext.MyMealModel.Select(x => x.Category).ToList();
+
 
             return PartialView("_MealPlanView", categoryFromDb);
         }
@@ -113,13 +110,13 @@ namespace DelikatessenDrehbuch.Controllers
                                                          .Select(x => x.IngredientHandler)
                                                          .ToList();
 
-           
+
 
             var mealModel = new MealModel();
             mealModel.MealPlan = _dbcontext.MealPlan.SingleOrDefault(x => x.Id == id);
-            mealModel.Recipes=_dbcontext.Recipes.Where(x=>recipesIds.Contains(x.Id)).ToList();
-         
-            mealModel.Ingredients= ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
+            mealModel.Recipes = _dbcontext.Recipes.Where(x => recipesIds.Contains(x.Id)).ToList();
+
+            mealModel.Ingredients = ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
                                                        .Select(g => new IngredientHandlerModel
                                                        {
                                                            Ingredient = g.First().Ingredient,
@@ -129,26 +126,26 @@ namespace DelikatessenDrehbuch.Controllers
                                                        .ToList();
 
             var test = mealModel.Ingredients.Select(x => x.Ingredient.Name.ToLower()).ToList();
-            mealModel.NutrientsHandlers = _dbcontext.NutrientsHandler.Where(x => test.Contains(x.IngredientNutrientHandler.Ingredient.Name.ToLower()))
-                                                                   .Include(x => x.Nutrient)
-                                                                   .Include(x => x.Quantity)
-                                                                   .Include(x => x.Measure)
-                                                                   .Include(x => x.IngredientNutrientHandler)
-                                                                   .Include(x=>x.IngredientNutrientHandler.Ingredient).ToList();
+            //mealModel.NutrientsHandlers = _dbcontext.NutrientsHandler.Where(x => test.Contains(x.IngredientNutrientHandler.Ingredient.Name.ToLower()))
+            //                                                       .Include(x => x.Nutrient)
+            //                                                       .Include(x => x.Quantity)
+            //                                                       .Include(x => x.Measure)
+            //                                                       .Include(x => x.IngredientNutrientHandler)
+            //                                                       .Include(x => x.IngredientNutrientHandler.Ingredient).ToList();
 
 
 
             var ingredientsName = ingredientHandlers.Select(x => x.Ingredient.Name.ToLower()).ToList();
-           
 
 
 
-            return View("Meal",mealModel);
+
+            return View("Meal", mealModel);
         }
 
         public IActionResult LoadMyRecipes()
         {
-            if(User.IsInRole("Admin"))
+            if (User.IsInRole("Admin"))
             {
                 var recipesFromDb = _dbcontext.Recipes.ToList();
                 return PartialView("_MyRecipesPartialView", recipesFromDb);
@@ -160,11 +157,11 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult LoadRecipesILike()
         {
-            var likesFromDb = _dbcontext.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x=>x.Recipe).ToList();
-            var recipesFromLikes=likesFromDb.Select(x=>x.Recipe).ToList();
+            var likesFromDb = _dbcontext.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x => x.Recipe).ToList();
+            var recipesFromLikes = likesFromDb.Select(x => x.Recipe).ToList();
             return PartialView("_MyRecipesPartialView", recipesFromLikes);
         }
 
-       
+
     }
 }

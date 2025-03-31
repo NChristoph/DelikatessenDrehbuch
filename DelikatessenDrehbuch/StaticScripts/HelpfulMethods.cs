@@ -1,7 +1,6 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
 
 namespace DelikatessenDrehbuch.StaticScripts
 {
@@ -15,15 +14,17 @@ namespace DelikatessenDrehbuch.StaticScripts
                                                              .Include(x => x.IngredientHandler.Measure)
                                                              .Include(x => x.IngredientHandler.Quantity)
                                                              .ToList();
-            FullRecipes fullRecipes = new FullRecipes();
-            fullRecipes.Recipes = recipeFromDb;
-            fullRecipes.IngredientHandler = recipHandlerFromDb.Select(x => x.IngredientHandler).ToList();
-            fullRecipes.Likes = dbContext.Likes.Where(x => x.Recipe == recipeFromDb).ToList();
-            fullRecipes.Recession = dbContext.Recessions.Where(x => x.Recipes == recipeFromDb).ToList();
-            fullRecipes.Measure = dbContext.Metrics.ToList();
-            fullRecipes.QueryHandler = dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb)
-                                                             .Select(x => x.Query.Query).ToList();
-            fullRecipes.Querys = dbContext.Querys.ToList();
+            FullRecipes fullRecipes = new()
+            {
+                Recipes = recipeFromDb,
+                IngredientHandler = recipHandlerFromDb.Select(x => x.IngredientHandler).ToList(),
+                Likes = dbContext.Likes.Where(x => x.Recipe == recipeFromDb).ToList(),
+                Recession = dbContext.Recessions.Where(x => x.Recipes == recipeFromDb).ToList(),
+                Measure = dbContext.Metrics.ToList(),
+                QueryHandler = dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb)
+                                                             .Select(x => x.Query.Query).ToList(),
+                Querys = dbContext.Querys.ToList()
+            };
             return fullRecipes;
         }
 
@@ -33,12 +34,7 @@ namespace DelikatessenDrehbuch.StaticScripts
                 throw new KeyNotFoundException($"Email {email} not found.");
 
 
-            var recipeFromDb = GetRecipeFromDbById(context, id);
-
-            if (recipeFromDb == null)
-                throw new KeyNotFoundException($"Recipe with ID {id} not found.");
-
-
+            var recipeFromDb = GetRecipeFromDbById(context, id) ?? throw new KeyNotFoundException($"Recipe with ID {id} not found.");
 
             var userPreferenceRecipeFromDb = context.UserPreferencesRecipes.SingleOrDefault(x => x.Recipes == recipeFromDb
                                                              && x.UserEmail == email);
@@ -113,8 +109,10 @@ namespace DelikatessenDrehbuch.StaticScripts
             var metricsFromDb = context.Metrics.ToList();
             var ingredientHandlerFromDb = context.IngredientHandlers.Include(x => x.Ingredient).Include(x => x.Measure).Include(x => x.Quantity).SingleOrDefault(x => x.Id == id);
 
-            DropdownModel dropdownModel = new DropdownModel();
-            dropdownModel.Measure = metricsFromDb;
+            DropdownModel dropdownModel = new()
+            {
+                Measure = metricsFromDb
+            };
             if (ingredientHandlerFromDb != null)
                 dropdownModel.IngredientHandler = ingredientHandlerFromDb;
             else
@@ -127,11 +125,7 @@ namespace DelikatessenDrehbuch.StaticScripts
 
             var recipe = context.Recipes.SingleOrDefault(x => x.Id == id);
 
-            if (recipe == null)
-                throw new KeyNotFoundException($"Recipe with ID {id} not found.");
-
-            return recipe;
-
+            return recipe ?? throw new KeyNotFoundException($"Recipe with ID {id} not found.");
         }
 
         public List<UserPreferencesQuery> GetUserPreferencesQueryListByEmail(ApplicationDbContext context, string email)
@@ -146,7 +140,7 @@ namespace DelikatessenDrehbuch.StaticScripts
 
         public static string CaseInsensitive(string encodetString)
         {
-            var name = encodetString.ToLowerInvariant()  
+            var name = encodetString.ToLowerInvariant()
                                     .Replace("ä", "ae")
                                     .Replace("ö", "oe")
                                     .Replace("ü", "ue")

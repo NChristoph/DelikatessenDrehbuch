@@ -72,44 +72,4 @@
     }
 
 </div>
-<div class="flexColumn">
 
-    <span class="m-1 flexAlginSelfCenter">Nährstoffe je Hundert gramm:</span>
-
-    <div class="card-group flexJustifyContendSpaceAround flex flexWrap mobileCenter ">
-        @{
-            var group = Model.NutrientsHandlers.GroupBy(x => x.IngredientNutrientHandler.Ingredient.Name).ToList();
-
-            foreach (var nurient in group)
-            {
-                string effect = nurient.Select(x => x.IngredientNutrientHandler.Effect).First();
-                <div class="card  Border-Gold minWidth30  mobieleWidth90 mt-3 m-2">
-                    <div class="card-header Bg-Cream" style="text-align:center;"><strong>@nurient.Key</strong></div>
-                    <div class="card-body p-2 flexColumn">
-                        @foreach (var ingredient in nurient)
-                        {
-                            
-                            <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
-                                <span class="col minWidth50 maxWidth50">@ingredient.Nutrient.Name</span>
-                                <span class="col minWidth20 maxWidth20" style="text-align:end">@ingredient.Quantity.Quantitys</span>
-                                <span class="col minWidth20 maxWidth20">@ingredient.Measure.UnitOfMeasurement</span>
-
-                            </div>
-                        }
-                    </div>
-                    <div class="card-footer Bg-Cream">@effect</div>
-                </div>
-
-
-
-
-
-            }
-
-
-        }
-    </div>
-
-
-
-</div>

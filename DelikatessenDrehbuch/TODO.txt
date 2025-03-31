@@ -6,8 +6,7 @@ Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 //ToDo:Nutriens anzeige auf die im Rezept vorkommende Mänge anpassen ,auserdem eine ligth versiun der nutrienanzeige 
 //     fur _selectedRechipes noch machen(Ligth Version = free ,full Version=Premiun user abo)
 //TODO:Nutrients Hinzufügen für alle menü komponenten dazu eigene view erstellen mit auswah nutriens 
-//Auf der rezepte seite noch andere rezepte vorschlagen im karusen aber vorher querys vereinheitlichen
-
+//Todo Wochenplan Fürs essen machen und filter für filter steicghern
 Nacher Essensplaner erstellen 
 
 eine eigene seite für Zutaten Inhaltsstoffe noch bereitstellen Das NutrirntLexikon Nur für Premium User und das im selectet

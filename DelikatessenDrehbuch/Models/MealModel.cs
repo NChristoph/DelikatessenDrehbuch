@@ -4,10 +4,10 @@
     {
         public MealPlan MealPlan { get; set; }
         public List<Recipes> Recipes { get; set; }
-        
-        public List<IngredientHandlerModel> Ingredients { get; set;}
-        public List<NutrientsHandler> NutrientsHandlers { get; set; }
 
-      
+        public List<IngredientHandlerModel> Ingredients { get; set; }
+   
+
+
     }
 }
