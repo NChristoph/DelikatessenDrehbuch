@@ -2,6 +2,7 @@
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -24,9 +25,6 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult Index(int id, string name)
         {
-
-
-
             var userIsLoggedIn = User.Identity.IsAuthenticated;
             if (userIsLoggedIn)
                 _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
@@ -36,9 +34,13 @@ namespace DelikatessenDrehbuch.Controllers
                 FullRecipes = _helpfulMethods.GetFullRecipeById(_context, id)
             };
          
+            var IngredientNames=model.FullRecipes.IngredientHandler.Select(x=>x.Ingredient.Name.ToLower()).ToList();
+            model.NutrienHandlers = _context.NutrienHandler.Where(x => IngredientNames.Contains(x.Ingredient.Name.ToLower()))
+                                                           .Include(x=>x.Ingredient)
+                                                           .Include(x=>x.Quantity)
+                                                           .Include(x=>x.Nutrients).ToList();
 
             model.RecipeSuggestions = GetRecipesSuggetions(_context.QueryHandler.Where(x => model.FullRecipes.QueryHandler.Contains(x.Query.Query)).Select(x => x.Recipe).ToList());
-
 
 
             return View(model);

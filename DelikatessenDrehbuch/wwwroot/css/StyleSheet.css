@@ -439,8 +439,13 @@ tr:nth-child(odd) {
         'Ingredient Ingredient'
         'Ingredient Ingredient'
         'Preparation Preparation'
+        'Nutrients Nutrients'
         'Carusel Carusel'
         'Button Button'
+}
+
+.grid-Nutrients{
+    grid-area: Nutrients;
 }
 
 .grid-Carusel {

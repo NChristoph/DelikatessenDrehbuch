@@ -22,6 +22,7 @@
     <None Include="Views\Payment\Success.cshtml" />
     <None Include="wwwroot\ads.txt" />
     <None Include="wwwroot\css\Logo\DelikatessenDrehbuch_Logo.png" />
+    <None Include="wwwroot\css\Logo\Schema Querys.png" />
   </ItemGroup>
 
   <ItemGroup>

@@ -49,7 +49,7 @@
                 
             }
             else{
-                debugger;
+                
                 sessionStorage.removeItem("searchQuery");
                  $('#RecipesPartialView').load("/Home/SearchRecipes?query=" +  encodeURIComponent(query));
             }

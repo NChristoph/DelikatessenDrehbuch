@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using System.Web
+@using System.Linq;
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -19,7 +20,7 @@
 
 </head>
 
-<script type="application/ld+json" >
+<script type="application/ld+json">
 
 
     {
@@ -34,7 +35,7 @@
             ingredients += "," + ingre;
         }
 
-        foreach(var key in keys)
+        foreach (var key in keys)
         {
             key.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df");
             keyWords += "," + key;
@@ -91,7 +92,7 @@
                 @{
 
 
-                    if (Model.FullRecipes.Recipes.Description!=null)
+                    if (Model.FullRecipes.Recipes.Description != null)
                     {
                         <img class="grid-Image" alt="@Model.FullRecipes.Recipes.Description" src="@Model.FullRecipes.Recipes.ImagePath" title="@Model.FullRecipes.Recipes.Name" style="max-width:100%;" />
 
@@ -103,7 +104,7 @@
                     }
                 }
                 <div class="grid-KeyWords flex flexRow flexWrap flexJustifyContendCenter  minWidth100 maxWidth100 mobieleWidth90 mt-1">
-                    <span>@Model.FullRecipes.Recipes.Name</span> 
+                    <span>@Model.FullRecipes.Recipes.Name</span>
                 </div>
 
 
@@ -170,12 +171,12 @@
 
                     </a>
                 }
-                <hr class="grid-hr" style="opacity:1"/>
+                <hr class="grid-hr" style="opacity:1" />
                 <div class="grid-ingredient minWidth90 mobieleWidth90 flex flexJustifyContendCenter ">
                     <ul class="minWidth100 mobieleWidth90" style="list-style-type:none;padding-left:0;">
                         @{
-                           
-                            foreach (var ingredient in Model.FullRecipes.IngredientHandler.OrderByDescending(x=>x.Quantity.Quantitys))
+
+                            foreach (var ingredient in Model.FullRecipes.IngredientHandler.OrderByDescending(x => x.Quantity.Quantitys))
                             {
 
                                 <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem">
@@ -197,9 +198,121 @@
                 </div>
                 <div class="grid-Preparation Bg-Cream" style="padding:2%">
                     <h4 class="mb-3">Zubereitung :</h4>
-                    <p  style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipes.Recipes.Preparation)</p>
+                    <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipes.Recipes.Preparation)</p>
 
                 </div>
+
+                <!-- #region Närstoffe Anzeige -->
+                <div class="grid-Nutrients flexRowToColumn flexWrap flexJustifyContendSpaceAround">
+                    
+                    @{
+                        double Result(double multi, float nutrient) => Math.Round(multi / 100 * nutrient, 2);
+
+                        var sortedList = Model.NutrienHandlers
+                        .GroupBy(x => x.Ingredient.Name)
+                        .ToList();
+
+                        // Neue Dictionary für Gesamtsumme initialisieren
+                        var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
+                    }
+
+                    @foreach (var nutrients in sortedList)
+                    {
+                        var ingredientName = nutrients.Key.ToLower();
+                        var handler = Model.FullRecipes.IngredientHandler
+                        .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
+
+                        if (handler == null)
+                        {
+                            continue;
+                        }
+
+                        <div style="max-width:210px">
+                            <div class="card Border-Gold mobieleWidth90 m-2" style="min-width:210px">
+                                <div class="card-header Bg-Cream text-center">
+                                    @nutrients.Key
+                                </div>
+                                <div class="card-body Bg-Cream p-2 flexColumn">
+
+                                    @foreach (var nutrient in nutrients)
+                                    {
+                                        double grammMenge;
+
+                                        if (nutrient.Metrics.UnitOfMeasurement == "Stk." && nutrient.Ingredient.AverageWeight != null)
+                                        {
+                                            grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
+                                        }
+                                        else
+                                        {
+                                            grammMenge = handler.Quantity.Quantitys;
+                                        }
+
+                                        double einzelWert = Result(grammMenge, nutrient.Quantity.Quantitys);
+
+                                        // Sammeln für Gesamtnährwerte
+                                        if (nutrientTotals.ContainsKey(nutrient.Nutrients.Nutrient))
+                                        {
+                                            var current = nutrientTotals[nutrient.Nutrients.Nutrient];
+                                            nutrientTotals[nutrient.Nutrients.Nutrient] = (current.sum + einzelWert, current.unit);
+                                        }
+                                        else
+                                        {
+                                            nutrientTotals[nutrient.Nutrients.Nutrient] = (einzelWert, nutrient.Metrics.UnitOfMeasurement);
+                                        }
+
+                                        <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
+                                            <span name="NutrientPremium">@nutrient.Nutrients.Nutrient</span>
+                                            <span name="QyantityPremium">@einzelWert</span>
+                                            <span name="UnitOfMeasurementPremium">@nutrient.Metrics.UnitOfMeasurement</span>
+                                        </div>
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (User.IsInRole("PremiumUser") && nutrientTotals.Any())
+                    {
+                        <div style="max-width:210px">
+                            <div class="card Border-Gold mobieleWidth90 m-2" style="min-width:210px">
+                                <div class="card-header Bg-Cream text-center">
+                                    Gesamtnährwerte
+                                </div>
+                                <div class="card-body Bg-Cream p-2 flexColumn">
+                                    @foreach (var entry in nutrientTotals)
+                                    {
+                                        <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
+                                            <span>@entry.Key</span>
+                                            <span>@Math.Round(entry.Value.sum, 2)</span>
+                                            <span>@entry.Value.unit</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        //TODO:Premium user abbo noch ermoglichen
+                        <div style="max-width:210px">
+                            <div class="card Border-Gold mobieleWidth90 m-2" style="min-width:210px">
+                                <div class="card-header Bg-Cream text-center">
+                                    Gesamtnährwerte
+                                </div>
+                                <div class="card-body Bg-Cream p-2 flexColumn">
+                                    <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
+                                        <span>Premium User Werden um  Gesamtnährwerte zu sehen </span>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    
+                </div>
+                <!-- #endregion Närstoffe Anzeige-->
 
 
 
@@ -218,7 +331,7 @@
                                     <span class="w-100" style="text-align:center;display:block">@Model.RecipeSuggestions[i].Name</span>
                                 </a>
                             }
-                           
+
                         }
 
 
@@ -232,7 +345,7 @@
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
-               
+
                 @{
                     @if (SignInManager.IsSignedIn(User))
                     {
@@ -259,6 +372,9 @@
 
 
     </div>
+
+
+
 
 
 
@@ -327,7 +443,15 @@
 </body>
 
 
+
+
 <script>
+
+    function AddUpNutritionalValues(){
+        var Nutrients=
+
+    }
+
     function GoBack() {
 
         if (window.history.length > 1) {
