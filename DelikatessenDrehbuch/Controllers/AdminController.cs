@@ -234,7 +234,7 @@ namespace DelikatessenDrehbuch.Controllers
                     ingredientHandler.Id = 0;
                     ingredientHandler.Ingredient.Name = ing[2].Trim();
                     ingredientHandler.Measure.UnitOfMeasurement = ing[1].Trim();
-                    ingredientHandler.Quantity.Quantitys = float.Parse(ing[0].Trim());
+                    ingredientHandler.Quantity.Quantitys = double.Parse(ing[0].Trim());
 
                     currentRecipe.IngredientHandler.Add(ingredientHandler);
                 }
@@ -496,7 +496,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             return ingredientFromDb;
         }
-        private Quantity GetOrCreateQuantity(float quantity)
+        private Quantity GetOrCreateQuantity(double quantity)
         {
             var quantityFromDb = _context.Quantities.SingleOrDefault(x => x.Quantitys == quantity);
 
@@ -635,16 +635,25 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     Ingredient = IngredientFromDb,
                     Nutrients = GetOrCreateNutrients(nutrient[0]),
-                    Quantity = GetOrCreateQuantity(float.Parse(nutrient[1])),
+                    Quantity = GetOrCreateQuantity(double.Parse(nutrient[1])),
                     Metrics = GetorCreateMeasure(nutrient[2])
                 };
 
                 nutrienHandlers.Add(nutrienHandler);
                
             }
+            var nutrientFromDb = _context.NutrienHandler.SingleOrDefault(x => x.Nutrients.Nutrient.ToLower() == Nutrients.ToLower());
 
-            _context.NutrienHandler.AddRange(nutrienHandlers);
-            _context.SaveChanges();
+            if(nutrientFromDb==null)
+            {
+                _context.NutrienHandler.AddRange(nutrienHandlers);
+                _context.SaveChanges();
+            }
+            else
+            {
+                BadRequest("Zutat schon Erledigt");
+            }
+           
 
           return RedirectToAction("Index");
         }

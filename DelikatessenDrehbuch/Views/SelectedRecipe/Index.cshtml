@@ -18,6 +18,9 @@
     <!-- Bootstrap Bundle mit Popper.js (JavaScript für interaktive Komponenten) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 </head>
 
 <script type="application/ld+json">
@@ -131,7 +134,6 @@
                         if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Calories))
                         {
                             <p>@Model.FullRecipes.Recipes.Calories Kalorien</p>
-
                         }
                     }
 
@@ -196,122 +198,177 @@
 
 
                 </div>
-                <div class="grid-Preparation Bg-Cream" style="padding:2%">
-                    <h4 class="mb-3">Zubereitung :</h4>
-                    <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipes.Recipes.Preparation)</p>
+
+
+
+                <div class="grid-Preparation Bg-Cream col " style="padding:2%">
+
+                    <ul class="nav nav-tabs" id="recipeTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="prep-tab" data-bs-toggle="tab" data-bs-target="#prep" type="button" role="tab">Zubereitung</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab">Nährstoffe je Zutat</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ZutatenGesamt-tab" data-bs-toggle="tab" data-bs-target="#gesamtZutaten" type="button" role="tab">Nährstoffe gesamt</button>
+                        </li>
+                       @*  <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#video" type="button" role="tab">Video Anleitung</button>
+                        </li> *@
+                    </ul>
+
+
+
+
+
+                    <!-- Inhalt unten -->
+                    <div class="tab-content mt-3" id="recipeTabsContent">
+                        <div class="tab-pane fade show active Bg-Cream" id="prep" role="tabpanel" style="padding:2%">
+                            <h4 class="mb-3">Zubereitung :</h4>
+                            <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipes.Recipes.Preparation)</p>
+                        </div>
+                        <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white" id="nutrition" role="tabpanel">
+                            @{
+                                double Result(double grammMenge, double nutrient) => Math.Round(grammMenge * nutrient / 100, 2);
+
+                                var sortedList = Model.NutrienHandlers
+                                .GroupBy(x => x.Ingredient.Name)
+                                .ToList();
+
+                                // Neue Dictionary für Gesamtsumme initialisieren
+                                var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
+                                if (User.IsInRole("Admin"))
+                                {
+
+
+                                    <div class=" flexRowToColumn flexWrap flexJustifyContendSpaceAround">
+
+                                        @{
+                                          
+                                        }
+
+                                        @foreach (var nutrients in sortedList)
+                                        {
+                                            var ingredientName = nutrients.Key.ToLower();
+                                            var handler = Model.FullRecipes.IngredientHandler
+                                            .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
+
+                                            if (handler == null)
+                                            {
+                                                continue;
+                                            }
+
+                                            <div class="dropdown">
+                                                <button class="btn btn-secondary dropdown-toggle mobieleWidth90 m-2 bgRedGardien Border-Gold"  type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white">
+                                                    @nutrients.Key
+                                                </button>
+
+                                                <ul class="dropdown-menu mobieleWidth90 p-2">
+                                                    <li class="minWidth100 ">
+                                                        @foreach (var nutrient in nutrients)
+                                                        {
+
+                                                          
+                                                            double grammMenge;
+
+                                                            if (nutrient.Metrics.UnitOfMeasurement == "Stk." || nutrient.Metrics.UnitOfMeasurement == "EL." && nutrient.Ingredient.AverageWeight != null)
+                                                            {
+                                                                grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
+                                                            }
+                                                            else
+                                                            {
+                                                                grammMenge = handler.Quantity.Quantitys;
+                                                            }
+
+                                                            double einzelWert = Result(grammMenge, nutrient.Quantity.Quantitys);
+
+                                                            // Sammeln für Gesamtnährwerte
+                                                            if (nutrientTotals.ContainsKey(nutrient.Nutrients.Nutrient))
+                                                            {
+                                                                var current = nutrientTotals[nutrient.Nutrients.Nutrient];
+                                                                nutrientTotals[nutrient.Nutrients.Nutrient] = (current.sum + einzelWert, current.unit);
+                                                            }
+                                                            else
+                                                            {
+                                                                nutrientTotals[nutrient.Nutrients.Nutrient] = (einzelWert, nutrient.Metrics.UnitOfMeasurement);
+                                                            }
+
+                                                            <div class="flexRow flexJustifyContendSpaceBetween flexWrap Border-Gold mt-2 p-1 rounded-2">
+                                                                <span name="NutrientPremium" >@nutrient.Nutrients.Nutrient</span>
+                                                                <span name="QyantityPremium" >@einzelWert</span>
+                                                                <span name="UnitOfMeasurementPremium" >@nutrient.Metrics.UnitOfMeasurement</span>
+                                                            </div>
+                                                        }
+                                                    </li>
+
+                                                </ul>
+
+                                            </div>
+
+                                           
+                                        }
+
+
+                                       
+                                       
+
+
+                                    </div>
+
+                                   
+
+                                   
+                                }
+
+                               
+                            }
+                        </div>
+                        <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white" id="gesamtZutaten" role="tabpanel">
+                            @if (User.IsInRole("PremiumUser") && nutrientTotals.Any())
+                            {
+
+
+                                <div class="mobieleWidth90" style="min-width:90%">
+
+                                    <table class="minWidth100">
+                                        <thead>Gesamtnährwerte</thead>
+                                        @foreach (var entry in nutrientTotals)
+                                        {
+                                            <tr class="flexRow flexJustifyContendSpaceBetween flexWrap mt-2 p-2 bg-white Border-Gold">
+                                                <td>@entry.Key</td>
+                                                <td>@Math.Round(entry.Value.sum, 2)</td>
+                                                <td>@entry.Value.unit</td>
+                                            </tr>
+                                        }
+                                    </table>
+                                   
+                                </div>
+
+                               
+                            }
+                            else
+                            {
+                                //TODO:Premium user Abo noch ermoglichen
+                                <p>
+                                    Gesamte Nährstoffanzeige nur mit Premium-Abo möglich.<br />
+                                    Premium-Abo bald verfügbar.
+                                </p>
+                            }
+                        </div>
+                        
+                        @*
+                            TODO:Viedeoanleitung noch einbinden
+                            
+                        <div class="tab-pane fade" id="video" role="tabpanel">
+                            <p>Videoanleitung...</p>
+                        </div> *@
+                    </div>
+
 
                 </div>
 
                 <!-- #region Närstoffe Anzeige -->
-                <div class="grid-Nutrients flexRowToColumn flexWrap flexJustifyContendSpaceAround">
-                    
-                    @{
-                        double Result(double multi, float nutrient) => Math.Round(multi / 100 * nutrient, 2);
-
-                        var sortedList = Model.NutrienHandlers
-                        .GroupBy(x => x.Ingredient.Name)
-                        .ToList();
-
-                        // Neue Dictionary für Gesamtsumme initialisieren
-                        var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
-                    }
-
-                    @foreach (var nutrients in sortedList)
-                    {
-                        var ingredientName = nutrients.Key.ToLower();
-                        var handler = Model.FullRecipes.IngredientHandler
-                        .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
-
-                        if (handler == null)
-                        {
-                            continue;
-                        }
-
-                        <div style="max-width:210px">
-                            <div class="card Border-Gold mobieleWidth90 m-2" style="min-width:210px">
-                                <div class="card-header Bg-Cream text-center">
-                                    @nutrients.Key
-                                </div>
-                                <div class="card-body Bg-Cream p-2 flexColumn">
-
-                                    @foreach (var nutrient in nutrients)
-                                    {
-                                        double grammMenge;
-
-                                        if (nutrient.Metrics.UnitOfMeasurement == "Stk." && nutrient.Ingredient.AverageWeight != null)
-                                        {
-                                            grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
-                                        }
-                                        else
-                                        {
-                                            grammMenge = handler.Quantity.Quantitys;
-                                        }
-
-                                        double einzelWert = Result(grammMenge, nutrient.Quantity.Quantitys);
-
-                                        // Sammeln für Gesamtnährwerte
-                                        if (nutrientTotals.ContainsKey(nutrient.Nutrients.Nutrient))
-                                        {
-                                            var current = nutrientTotals[nutrient.Nutrients.Nutrient];
-                                            nutrientTotals[nutrient.Nutrients.Nutrient] = (current.sum + einzelWert, current.unit);
-                                        }
-                                        else
-                                        {
-                                            nutrientTotals[nutrient.Nutrients.Nutrient] = (einzelWert, nutrient.Metrics.UnitOfMeasurement);
-                                        }
-
-                                        <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
-                                            <span name="NutrientPremium">@nutrient.Nutrients.Nutrient</span>
-                                            <span name="QyantityPremium">@einzelWert</span>
-                                            <span name="UnitOfMeasurementPremium">@nutrient.Metrics.UnitOfMeasurement</span>
-                                        </div>
-                                    }
-
-                                </div>
-                            </div>
-                        </div>
-                    }
-
-                    @if (User.IsInRole("PremiumUser") && nutrientTotals.Any())
-                    {
-                        <div style="max-width:210px">
-                            <div class="card Border-Gold mobieleWidth90 m-2" style="min-width:210px">
-                                <div class="card-header Bg-Cream text-center">
-                                    Gesamtnährwerte
-                                </div>
-                                <div class="card-body Bg-Cream p-2 flexColumn">
-                                    @foreach (var entry in nutrientTotals)
-                                    {
-                                        <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
-                                            <span>@entry.Key</span>
-                                            <span>@Math.Round(entry.Value.sum, 2)</span>
-                                            <span>@entry.Value.unit</span>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        //TODO:Premium user abbo noch ermoglichen
-                        <div style="max-width:210px">
-                            <div class="card Border-Gold mobieleWidth90 m-2" style="min-width:210px">
-                                <div class="card-header Bg-Cream text-center">
-                                    Gesamtnährwerte
-                                </div>
-                                <div class="card-body Bg-Cream p-2 flexColumn">
-                                    <div class="flexRow flexJustifyContendSpaceBetween flexWrap Bg-Cream mt-2 p-1 Border-Gold">
-                                        <span>Premium User Werden um  Gesamtnährwerte zu sehen </span>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-
-                    
-                </div>
                 <!-- #endregion Närstoffe Anzeige-->
 
 
