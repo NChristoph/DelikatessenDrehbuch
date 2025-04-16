@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="de-at">
 <head>
+    @await RenderSectionAsync("PreloadLinks", required: false)
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -9,12 +10,8 @@
 
         if (!User.IsInRole("PremiumUser"))
         {
-            bool isLoggedIn = User.Identity.IsAuthenticated;
-            if (!isLoggedIn)
-            {
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
-                        crossorigin="anonymous"></script>
-            }
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+                    crossorigin="anonymous"></script>
 
         }
 
@@ -25,9 +22,10 @@
     <meta name="google-site-verification" content="R_edf408xfCW8GF8MnQ62aQJ9MUfSvp9jhhjxmyGs3U">
 
     <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
+    <meta name="description" content="@ViewData["Description"]">
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.4/css/dataTables.dataTables.min.css" />
-    @*   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> *@
     <link rel="stylesheet" href="~/css/StyleSheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -226,6 +224,7 @@
     <script src="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+  
 </body>
 </html>
 

@@ -7,6 +7,8 @@
 }
 
 
+
+
 html {
     font-size: 18px;
 }
@@ -381,13 +383,23 @@ tr:nth-child(odd) {
         'likeCount deleteButton'
 }
 
+.grid-Adds {
+    display: grid;
+    grid-template-areas:
+        'Add Add'
+}
+
+.grid-Add {
+    grid-area: Add;
+}
 
 
-    .grid-Recipes img {
-        width: 100%;
-        height: auto;
-        object-fit: cover;
-    }
+
+.grid-Recipes img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
 
 .grid-atag {
     grid-area: grid-atag;
@@ -435,22 +447,44 @@ tr:nth-child(odd) {
         'PreparationTime Calories'
         'Discription Discription'
         'likeCount LikeButton'
+        'Adds1 Adds1'
         'Ingredient Ingredient'
         'Ingredient Ingredient'
         'Ingredient Ingredient'
+        'Adds2 Adds2'
         'Preparation Preparation'
         'Nutrients Nutrients'
         'Carusel Carusel'
+        'Adds3 Adds3'
         'Button Button'
 }
 
-.grid-Nutrients{
+.grid-Adds1 {
+    grid-area: Adds1;
+    grid-column: span 2;
+}
+
+.grid-Adds2 {
+    grid-area: Adds2;
+    grid-column: span 2;
+}
+
+.grid-Adds3 {
+    grid-area: Adds3;
+    grid-column: span 2;
+}
+
+
+
+.grid-Nutrients {
     grid-area: Nutrients;
 }
 
 .grid-Carusel {
     grid-area: Carusel;
+    grid-column: span 2;
 }
+
 .grid-Discription {
     grid-area: Discription;
 }
@@ -522,15 +556,13 @@ tr:nth-child(odd) {
     .desktop-Hidden {
         display: none !important;
     }
-
-   
 }
 
 
 
 
 @media(max-width: 459px) {
-    
+
     main {
         margin-top: 130px;
     }
@@ -556,6 +588,8 @@ tr:nth-child(odd) {
 
 
 @media (max-width: 458px) {
+
+   
 
     html {
         font-size: 16px;

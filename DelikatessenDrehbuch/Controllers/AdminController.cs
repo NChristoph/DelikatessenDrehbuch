@@ -163,7 +163,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
         [ValidateAntiForgeryToken]
-        public IActionResult SaveNewRecipes(NewRecipesMobileUpload newRecipes = null, [FromForm] EditRecipesModel recipes = null)
+        public async Task<IActionResult> SaveNewRecipesAsync(NewRecipesMobileUpload newRecipes = null, [FromForm] EditRecipesModel recipes = null)
         {
 
             using (var transAction = _context.Database.BeginTransaction())
@@ -171,7 +171,7 @@ namespace DelikatessenDrehbuch.Controllers
                 try
                 {
                     if (!string.IsNullOrEmpty(newRecipes.Name))
-                        CreateRecipesFromStringAsync(newRecipes);
+                       await CreateRecipesFromStringAsync(newRecipes);
                     else
                     {
                         EditeRecipes(recipes);
@@ -285,10 +285,10 @@ namespace DelikatessenDrehbuch.Controllers
                 Calories = newRecipes.Recipes.Calories
 
             };
-
+            
 
             _context.Recipes.Add(recipes);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             CreateRecipeHandler(newRecipes.Recipes, newRecipes.IngredientHandler);
             CreateQuaryHandler(recipes, newRecipes.QueryHandler);

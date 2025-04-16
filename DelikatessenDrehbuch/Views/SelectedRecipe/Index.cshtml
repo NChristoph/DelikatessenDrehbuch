@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using System.Web
 @using System.Linq;
+@using DelikatessenDrehbuch.StaticScripts;
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
@@ -20,32 +21,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+            crossorigin="anonymous"></script>
 </head>
 
 <script type="application/ld+json">
 
 
+
+
+
     {
-    @{
-        var keyWords = "";
-        var ingredients = "";
-        var names = Model.FullRecipes.IngredientHandler.Select(x => x.Ingredient.Name);
-        var keys = Model.FullRecipes.QueryHandler;
-        foreach (var ingre in names)
-        {
-            ingre.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df");
-            ingredients += "," + ingre;
-        }
-
-        foreach (var key in keys)
-        {
-            key.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df");
-            keyWords += "," + key;
-        }
-
-
-    }
     "@@context": "https://schema.org",
     "@@type": "Recipe",
     "name": "@Model.FullRecipes.Recipes.Name",
@@ -54,21 +40,25 @@
     "name": "Christoph Nitsch"
     },
     "description": "@Model.FullRecipes.Recipes.Description",
-    "prepTime": "@Model.FullRecipes.Recipes.PreparationTime",
-    "totalTime": "@Model.FullRecipes.Recipes.PreparationTime",
+    "prepTime": "PT@Model.FullRecipes.Recipes.PreparationTimeMins@M",
+    "totalTime": "PT@Model.FullRecipes.Recipes.PreparationTimeMins@M",
     "recipeCategory": "@Model.FullRecipes.Recipes.Category",
-    "keywords":"@Html.Raw(keyWords)",
-    "recipeIngredient":"@Html.Raw(ingredients)",
+    "keywords": [
+    @Html.Raw(string.Join(",", Model.FullRecipes.QueryHandler.Select(q => "\"" + q.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
+    ],
+    "recipeIngredient": [
+    @Html.Raw(string.Join(",", Model.FullRecipes.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
+    ],
     "recipeInstructions": [
     {
     "@@type": "HowToStep",
-    "text": "@Html.Raw(Model.FullRecipes.Recipes.Preparation.ToString())"
+    "text": "@Html.Raw(Model.FullRecipes.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
     }
     ],
     "image": "@Model.FullRecipes.Recipes.ImagePath",
     "publisher": {
     "@@type": "Organization",
-    "name": "Delikatessen-drehbuch",
+    "name": "Delikatessen-Drehbuch",
     "url": "https://www.delikateessen-drehbuch.com",
     "logo": {
     "@@type": "ImageObject",
@@ -79,7 +69,19 @@
     },
     "sameAs": "https://www.facebook.com/profile.php?id=61563421617642"
     }
+</script>
 
+
+<script>
+    function GoBack() {
+
+    if (window.history.length > 1) {
+    window.history.back();
+    }
+    else {
+    window.location.href = '../../Home/Index';
+    }
+    }
 </script>
 
 
@@ -93,17 +95,40 @@
                 <h1 class="grid-Title" style="font-family:'Lucida Handwriting';margin-bottom:1rem;text-align:center;color:#D4AF37">@Model.FullRecipes.Recipes.Name</h1>
 
                 @{
+                    var name = HelpfulMethods.CaseInsensitive(Model.FullRecipes.Recipes.Name);
 
+                    var subPath = Model.FullRecipes.Recipes.ImagePath?
+                    .Replace(".webp", "")
+                    .Replace(".jpg", "")
+                    .Replace(".png", "")
+                    .Replace(" ", "%20");
 
-                    if (Model.FullRecipes.Recipes.Description != null)
+                    var smallPath = subPath?.Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
+                    var mediumPath = subPath?.Replace("picdelikatessendrehbuch", "blobmediumdelikatessendrehbuch");
+
+                    @if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.ImagePath))
                     {
-                        <img class="grid-Image" alt="@Model.FullRecipes.Recipes.Description" src="@Model.FullRecipes.Recipes.ImagePath" title="@Model.FullRecipes.Recipes.Name" style="max-width:100%;" />
+
+                                                                                <picture class="grid-Image">
+                                                                                    <source srcset="@($"{smallPath}_small.webp")" media="(max-width: 600px)">
+                                                                                    <source srcset="@($"{mediumPath}_medium.webp")" media="(max-width: 1200px)">
+                                                                                    <img class="img-fluid"
+                                                                                         src="@Model.FullRecipes.Recipes.ImagePath"
+                                                                                         alt="@(!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Description) ? Model.FullRecipes.Recipes.Description : Model.FullRecipes.Recipes.Name)"
+                                                                                         title="@Model.FullRecipes.Recipes.Name"
+                                                                                         width="600"
+                                                                                         height="400"
+                                                                                         decoding="async"
+                                                                                         style="aspect-ratio: 3 / 2; object-fit: cover;" />
+                                                                                </picture>
+
+
+
 
                     }
                     else
                     {
-                        <img class="grid-Image" alt="@Model.FullRecipes.Recipes.Name" src="@Model.FullRecipes.Recipes.ImagePath" title="@Model.FullRecipes.Recipes.Name" style="max-width:100%;" />
-
+                                                                                <img class="img-fluid" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" />
                     }
                 }
                 <div class="grid-KeyWords flex flexRow flexWrap flexJustifyContendCenter  minWidth100 maxWidth100 mobieleWidth90 mt-1">
@@ -118,11 +143,11 @@
                     @{
                         if (Model.FullRecipes.Recipes.PreparationTime != 0 && Model.FullRecipes.Recipes.PreparationTime != null)
                         {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
-                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
-                                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
-                            </svg>
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+                                                                                        <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
+                                                                                        <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
+                                                                                        <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
+                                                                                    </svg>
 
 
                         }
@@ -133,7 +158,7 @@
                     @{
                         if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Calories))
                         {
-                            <p>@Model.FullRecipes.Recipes.Calories Kalorien</p>
+                                                                                    <p>@Model.FullRecipes.Recipes.Calories Kalorien</p>
                         }
                     }
 
@@ -142,36 +167,38 @@
                 @{
                     if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Description))
                     {
-                        <div class="grid-Discription Bg-Cream " style="padding:5%">
-                            <h4 class="mb-4">Rezept Beschreibung</h4>
-                            <p>@Html.Raw(@Model.FullRecipes.Recipes.Description)</p>
-                        </div>
+                                                                                <div class="grid-Discription Bg-Cream " style="padding:5%">
+                                                                                    <h4 class="mb-4">Rezept Beschreibung</h4>
+                                                                                    <p>@Html.Raw(@Model.FullRecipes.Recipes.Description)</p>
+                                                                                </div>
 
                     }
                 }
 
 
 
+
+
                 @if (SignInManager.IsSignedIn(User))
                 {
-                    <a asp-controller="SelectedRecipe" asp-action="AddOrRemoveLike" asp-route-id="@Model.FullRecipes.Recipes.Id" class="btn bgRed Border-Gold grid-Likebutton mt-3 mb-3" typeof="Button" title="Like Button" style="width:100px;height:max-content;padding:0.35rem;margin-left:auto;">
+                                                <a asp-controller="SelectedRecipe" asp-action="AddOrRemoveLike" asp-route-id="@Model.FullRecipes.Recipes.Id" class="btn bgRed Border-Gold grid-Likebutton mt-3 mb-3" typeof="Button" title="Like Button" style="width:100px;height:max-content;padding:0.35rem;margin-left:auto;">
                         @{
                             Like like = Model.FullRecipes.Likes.SingleOrDefault(x => x.UserMail == User.Identity.Name && x.Recipe == Model.FullRecipes.Recipes);
                             if (like != null)
                             {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16" style="color:#FFFDD0">
-                                    <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
-                                </svg>
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16" style="color:#FFFDD0">
+                                                                                                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                                                                                                                    </svg>
                             }
                             else
                             {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16" style="color:#FFFDD0">
-                                    <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z" />
-                                </svg>
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16" style="color:#FFFDD0">
+                                                                                                                        <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z" />
+                                                                                                                    </svg>
                             }
                         }
 
-                    </a>
+                                                </a>
                 }
                 <hr class="grid-hr" style="opacity:1" />
                 <div class="grid-ingredient minWidth90 mobieleWidth90 flex flexJustifyContendCenter ">
@@ -181,16 +208,16 @@
                             foreach (var ingredient in Model.FullRecipes.IngredientHandler.OrderByDescending(x => x.Quantity.Quantitys))
                             {
 
-                                <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem">
+                                                                                        <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem">
 
-                                    <span style="text-align:end;color:#D4AF37;width:50px">
-                                        <span style="margin-right:10px">
+                                                                                            <span style="text-align:end;color:#D4AF37;width:50px">
+                                                                                                <span style="margin-right:10px">
                                             @ingredient.Quantity.Quantitys
-                                        </span>
-                                    </span>
-                                    <span style="color:#D4AF37;width:105px ">@ingredient.Measure.UnitOfMeasurement</span>
-                                    <span style="color:#D4AF37;width:150px"> @ingredient.Ingredient.Name</span>
-                                </li>
+                                                                                                </span>
+                                                                                            </span>
+                                                                                            <span style="color:#D4AF37;width:105px ">@ingredient.Measure.UnitOfMeasurement</span>
+                                                                                            <span style="color:#D4AF37;width:150px"> @ingredient.Ingredient.Name</span>
+                                                                                        </li>
                             }
                         }
 
@@ -201,28 +228,75 @@
 
 
 
+                <div class="grid-Adds1 m-1 ">
+
+                    <!-- Display Anzeige 300x300 -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:300px;height:300px"
+                         data-ad-client="ca-pub-2332503983815482"
+                         data-ad-slot="1475024307"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+
+
+
+                <div class=" grid-Adds2 m-1 ">
+
+                   <!-- Display1 -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:300px;height:300px"
+                         data-ad-client="ca-pub-2332503983815482"
+                         data-ad-slot="8288802523"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+
+
+
+                <div class=" grid-Adds3 m-1 ">
+
+                    <!-- Display2 -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:300px;height:300px"
+                         data-ad-client="ca-pub-2332503983815482"
+                         data-ad-slot="2944976505"></ins>
+                    <script>
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+
+
+
+
+
+
+
+
+
+
+                <!--#region Tap: Preperation,Nutrient,Viedeo-->
                 <div class="grid-Preparation Bg-Cream col " style="padding:2%">
 
                     <ul class="nav nav-tabs" id="recipeTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="prep-tab" data-bs-toggle="tab" data-bs-target="#prep" type="button" role="tab">Zubereitung</button>
+                            <button class="nav-link active" id="prep-tab" data-bs-toggle="tab" data-bs-target="#prep" type="button" role="tab" style="font-size:14px;">Zubereitung</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab">Nährstoffe je Zutat</button>
+                            <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab" style="font-size:14px;">Nährstoffe je Zutat</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="ZutatenGesamt-tab" data-bs-toggle="tab" data-bs-target="#gesamtZutaten" type="button" role="tab">Nährstoffe gesamt</button>
+                            <button class="nav-link" id="ZutatenGesamt-tab" data-bs-toggle="tab" data-bs-target="#gesamtZutaten" type="button" role="tab" style="font-size:14px;">Nährstoffe gesamt</button>
                         </li>
-                       @*  <li class="nav-item" role="presentation">
+                        @*  <li class="nav-item" role="presentation">
                             <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#video" type="button" role="tab">Video Anleitung</button>
                         </li> *@
                     </ul>
 
 
 
-
-
-                    <!-- Inhalt unten -->
                     <div class="tab-content mt-3" id="recipeTabsContent">
                         <div class="tab-pane fade show active Bg-Cream" id="prep" role="tabpanel" style="padding:2%">
                             <h4 class="mb-3">Zubereitung :</h4>
@@ -238,90 +312,93 @@
 
                                 // Neue Dictionary für Gesamtsumme initialisieren
                                 var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
-                                if (User.IsInRole("Admin"))
-                                {
 
 
-                                    <div class=" flexRowToColumn flexWrap flexJustifyContendSpaceAround">
 
-                                        @{
-                                          
-                                        }
+                                                            <div class=" flexRowToColumn flexWrap flexJustifyContendSpaceAround">
 
-                                        @foreach (var nutrients in sortedList)
+                                    @{
+
+                                    }
+
+                                    @foreach (var nutrients in sortedList)
+                                    {
+                                        var ingredientName = nutrients.Key.ToLower();
+                                        var handler = Model.FullRecipes.IngredientHandler
+                                        .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
+
+                                        if (handler == null)
                                         {
-                                            var ingredientName = nutrients.Key.ToLower();
-                                            var handler = Model.FullRecipes.IngredientHandler
-                                            .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
-
-                                            if (handler == null)
-                                            {
-                                                continue;
-                                            }
-
-                                            <div class="dropdown">
-                                                <button class="btn btn-secondary dropdown-toggle mobieleWidth90 m-2 bgRedGardien Border-Gold"  type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white">
-                                                    @nutrients.Key
-                                                </button>
-
-                                                <ul class="dropdown-menu mobieleWidth90 p-2">
-                                                    <li class="minWidth100 ">
-                                                        @foreach (var nutrient in nutrients)
-                                                        {
-
-                                                          
-                                                            double grammMenge;
-
-                                                            if (nutrient.Metrics.UnitOfMeasurement == "Stk." || nutrient.Metrics.UnitOfMeasurement == "EL." && nutrient.Ingredient.AverageWeight != null)
-                                                            {
-                                                                grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
-                                                            }
-                                                            else
-                                                            {
-                                                                grammMenge = handler.Quantity.Quantitys;
-                                                            }
-
-                                                            double einzelWert = Result(grammMenge, nutrient.Quantity.Quantitys);
-
-                                                            // Sammeln für Gesamtnährwerte
-                                                            if (nutrientTotals.ContainsKey(nutrient.Nutrients.Nutrient))
-                                                            {
-                                                                var current = nutrientTotals[nutrient.Nutrients.Nutrient];
-                                                                nutrientTotals[nutrient.Nutrients.Nutrient] = (current.sum + einzelWert, current.unit);
-                                                            }
-                                                            else
-                                                            {
-                                                                nutrientTotals[nutrient.Nutrients.Nutrient] = (einzelWert, nutrient.Metrics.UnitOfMeasurement);
-                                                            }
-
-                                                            <div class="flexRow flexJustifyContendSpaceBetween flexWrap Border-Gold mt-2 p-1 rounded-2">
-                                                                <span name="NutrientPremium" >@nutrient.Nutrients.Nutrient</span>
-                                                                <span name="QyantityPremium" >@einzelWert</span>
-                                                                <span name="UnitOfMeasurementPremium" >@nutrient.Metrics.UnitOfMeasurement</span>
-                                                            </div>
-                                                        }
-                                                    </li>
-
-                                                </ul>
-
-                                            </div>
-
-                                           
+                                            continue;
                                         }
 
+                                                                                                <div class="dropdown">
+                                                                                                    <button class="btn btn-secondary dropdown-toggle mobieleWidth90 m-2 bgRedGardien Border-Gold" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white">
+                                                @nutrients.Key
+                                                                                                    </button>
 
-                                       
-                                       
+                                                                                                    <ul class="dropdown-menu mobieleWidth90 p-2">
+                                                                                                        <li class="minWidth100 ">
+                                                    @foreach (var nutrient in nutrients)
+                                                    {
 
 
-                                    </div>
+                                                        double grammMenge;
+                                                        if (nutrient.Ingredient.Name == "Hähnchen")
+                                                        {
+                                                            var x = nutrient.Nutrients.Nutrient;
+                                                        }
 
-                                   
+                                                        if (handler.Measure.UnitOfMeasurement == "Stk." || handler.Measure.UnitOfMeasurement == "EL." || handler.Measure.UnitOfMeasurement == "TL." && nutrient.Ingredient.AverageWeight != null)
+                                                        {
+                                                            grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
+                                                        }
+                                                        else
+                                                        {
+                                                            grammMenge = handler.Quantity.Quantitys;
+                                                        }
 
-                                   
-                                }
+                                                        double einzelWert = Result(grammMenge, nutrient.Quantity.Quantitys);
 
-                               
+
+                                                        if (nutrientTotals.ContainsKey(nutrient.Nutrients.Nutrient))
+                                                        {
+                                                            var current = nutrientTotals[nutrient.Nutrients.Nutrient];
+                                                            nutrientTotals[nutrient.Nutrients.Nutrient] = (current.sum + einzelWert, current.unit);
+                                                        }
+                                                        else
+                                                        {
+                                                            nutrientTotals[nutrient.Nutrients.Nutrient] = (einzelWert, nutrient.Metrics.UnitOfMeasurement);
+                                                        }
+
+                                                                                                                                            <div class="flexRow flexJustifyContendSpaceBetween flexWrap Border-Gold mt-2 p-1 rounded-2">
+                                                                                                                                                <span name="NutrientPremium">@nutrient.Nutrients.Nutrient</span>
+                                                                                                                                                <span name="QyantityPremium">@einzelWert</span>
+                                                                                                                                                <span name="UnitOfMeasurementPremium">@nutrient.Metrics.UnitOfMeasurement</span>
+                                                                                                                                            </div>
+                                                    }
+                                                                                                        </li>
+
+                                                                                                    </ul>
+
+                                                                                                </div>
+
+
+                                    }
+
+
+
+
+
+
+                                                            </div>
+
+
+
+
+
+
+
                             }
                         </div>
                         <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white" id="gesamtZutaten" role="tabpanel">
@@ -329,37 +406,37 @@
                             {
 
 
-                                <div class="mobieleWidth90" style="min-width:90%">
+                                                            <div class="mobieleWidth90" style="min-width:90%">
 
-                                    <table class="minWidth100">
-                                        <thead>Gesamtnährwerte</thead>
+                                                                <table class="minWidth100">
+                                                                    <thead>Gesamtnährwerte</thead>
                                         @foreach (var entry in nutrientTotals)
                                         {
-                                            <tr class="flexRow flexJustifyContendSpaceBetween flexWrap mt-2 p-2 bg-white Border-Gold">
-                                                <td>@entry.Key</td>
-                                                <td>@Math.Round(entry.Value.sum, 2)</td>
-                                                <td>@entry.Value.unit</td>
-                                            </tr>
+                                                                                                    <tr class="flexRow flexJustifyContendSpaceBetween flexWrap mt-2 p-2 bg-white Border-Gold">
+                                                                                                        <td>@entry.Key</td>
+                                                                                                        <td>@Math.Round(entry.Value.sum, 2)</td>
+                                                                                                        <td>@entry.Value.unit</td>
+                                                                                                    </tr>
                                         }
-                                    </table>
-                                   
-                                </div>
+                                                                </table>
 
-                               
+                                                            </div>
+
+
                             }
                             else
                             {
-                                //TODO:Premium user Abo noch ermoglichen
-                                <p>
-                                    Gesamte Nährstoffanzeige nur mit Premium-Abo möglich.<br />
-                                    Premium-Abo bald verfügbar.
-                                </p>
+                //TODO:Premium user Abo noch ermoglichen
+                                                            <p>
+                                                                Gesamte Nährstoffanzeige nur mit Premium-Abo möglich.<br />
+                                                                Premium-Abo bald verfügbar.
+                                                            </p>
                             }
                         </div>
-                        
+
                         @*
                             TODO:Viedeoanleitung noch einbinden
-                            
+
                         <div class="tab-pane fade" id="video" role="tabpanel">
                             <p>Videoanleitung...</p>
                         </div> *@
@@ -368,55 +445,88 @@
 
                 </div>
 
-                <!-- #region Närstoffe Anzeige -->
-                <!-- #endregion Närstoffe Anzeige-->
+                <!--#endRregion Tap: Preperation,Nutrient,Viedeo-->
 
 
 
-                <div id="RecipeSuggestions" class="carousel slide grid-Carusel" data-bs-ride="carousel">
+
+
+                <div id="RecipeSuggestions" class="carousel minWidth100 flexColumn align-items-lg-center slide grid-Carusel" data-bs-ride="carousel">
                     <div class="w100 flex flexJustifyContendCenter m-2">
                         <span style="text-align:center"><strong>Das könnte Ihnen auch schmecken</strong></span>
                     </div>
-                    <div class="carousel-inner flexJustifyContendCenter w-100">
 
+                    <div class="carousel-inner flexJustifyContendCenter" style="max-width:600px;">
                         @{
-
-                            for (int i = 0; i < Model.RecipeSuggestions.Count; i++)
-                            {
-                                <a class="carousel-item @(i == 0 ? "active" : "") mobieleWidth80" asp-controller="SelectedRecipe" asp-action="Index" asp-route-id="@Model.RecipeSuggestions[i].Id" asp-route-name="@Model.RecipeSuggestions[i].Name" style="text-decoration:none;color:black">
-                                    <img src="@Model.RecipeSuggestions[i].ImagePath" class="d-block w-100" alt="@Model.RecipeSuggestions[1].Description">
-                                    <span class="w-100" style="text-align:center;display:block">@Model.RecipeSuggestions[i].Name</span>
-                                </a>
-                            }
-
+                            var first = true;
                         }
 
+                        @foreach (var recipe in Model.RecipeSuggestions)
+                        {
 
+                            var subPath1 = recipe.ImagePath?
+                            .Replace(".webp", "")
+                            .Replace(".jpg", "")
+                            .Replace(".png", "")
+                            .Replace(" ", "%20");
+
+                            var smallPath1 = subPath1?.Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
+                            var mediumPath1 = subPath1?.Replace("picdelikatessendrehbuch", "blobmediumdelikatessendrehbuch");
+
+                                                        <a class="carousel-item @(first ? "active" : "") mobieleWidth80"
+                                                           asp-controller="SelectedRecipe"
+                                                           asp-action="Index"
+                                                           asp-route-id="@recipe.Id"
+                                                           asp-route-name="@recipe.Name"
+                                                           style="text-decoration:none;color:black;">
+
+                                                            <picture>
+                                                                <source srcset="@($"{smallPath1}_small.webp")" media="(max-width: 600px)">
+                                                                <source srcset="@($"{mediumPath1}_medium.webp")" media="(max-width: 1200px)">
+                                                                <img class="img-fluid"
+                                                                     src="@recipe.ImagePath"
+                                                                     alt="@(!string.IsNullOrEmpty(recipe.Description) ? recipe.Description : recipe.Name)"
+                                                                     title="@recipe.Name"
+                                                                     width="600"
+                                                                     height="400"
+                                                                     decoding="async"
+                                                                     style="aspect-ratio: 3 / 2; object-fit: cover;" />
+                                                            </picture>
+                                                            <span class="w-100 text-center d-block">@recipe.Name</span>
+                                                        </a>
+
+                            first = false;
+
+                        }
                     </div>
+
                     <button class="carousel-control-prev" type="button" data-bs-target="#RecipeSuggestions" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
+                        <span class="visually-hidden">Zurück</span>
                     </button>
                     <button class="carousel-control-next" type="button" data-bs-target="#RecipeSuggestions" data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
+                        <span class="visually-hidden">Weiter</span>
                     </button>
                 </div>
+
+
+
 
                 @{
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <a class="btn bgRed mb-2 grid-Button" href="#" onclick="MessageModalShowWrite('@Model.FullRecipes.Recipes.GetType().Name',@Model.FullRecipes.Recipes.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-right:auto">Rezept melden</a>
+                                                                                <a class="btn bgRed mb-2 grid-Button" href="#" onclick="MessageModalShowWrite('@Model.FullRecipes.Recipes.GetType().Name',@Model.FullRecipes.Recipes.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-right:auto">Rezept melden</a>
 
-                        <!-- Button trigger modal -->
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" typeof="Button" title="Rating Button" class="btn mb-2 grid-Button" style="width:max-content;margin-left:auto;color:#FFFDD0;background:#770f05">
-                            Bewerten
+                                                                                <!-- Button trigger modal -->
+                                                                                <button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" typeof="Button" title="Rating Button" class="btn mb-2 grid-Button" style="width:max-content;margin-left:auto;color:#FFFDD0;background:#770f05">
+                                                                                    Bewerten
 
-                        </button>
+                                                                                </button>
                     }
                     else
                     {
-                        <Button type="Button" href="#" title="Rating Button" class="btn  Border-Gold m-4 grid-Button" style="width:max-content;color:#FFFDD0;background:#770f05" disabled>Zum Bewerten Einloggen</Button>
+                                                                                <Button type="Button" href="#" title="Rating Button" class="btn  Border-Gold m-4 grid-Button" style="width:max-content;color:#FFFDD0;background:#770f05" disabled>Zum Bewerten Einloggen</Button>
 
                     }
 
@@ -468,32 +578,32 @@
 
             string email = recessionFromDb.UserEmail.Substring(0, 5) + "*******";
             var createTime = DateOnly.FromDateTime(recessionFromDb.CreationDate);
-            <div class="minWidth100 flex flexJustifyContendCenter">
-                <div class="card Border-Gold maxWidth80 minWidth80 mobieleWidth90 mb-3 ">
-                    <div class="card-header flex flexRowToColumn jspaceBetween flexWrap bgRedGardien" style="color:#FFFDD0">
-                        <div class="minWidth40">
+                                                                    <div class="minWidth100 flex flexJustifyContendCenter">
+                                                                        <div class="card Border-Gold maxWidth80 minWidth80 mobieleWidth90 mb-3 ">
+                                                                            <div class="card-header flex flexRowToColumn jspaceBetween flexWrap bgRedGardien" style="color:#FFFDD0">
+                                                                                <div class="minWidth40">
                             @email
-                        </div>
-                        <div class="minWidth40 flex flexJustifyContendEnd">
+                                                                                </div>
+                                                                                <div class="minWidth40 flex flexJustifyContendEnd">
                             @createTime
-                        </div>
+                                                                                </div>
 
-                    </div>
-                    <div class="card-body  Bg-Cream">
+                                                                            </div>
+                                                                            <div class="card-body  Bg-Cream">
                         @recessionFromDb.Assessment
-                    </div>
+                                                                            </div>
                     @{
                         @if (SignInManager.IsSignedIn(User))
                         {
-                            <div class=" card-footer Bg-Cream minWidth100 flex ">
-                                <a class="btn bgRed mb-2 " href="#" onclick="MessageModalShowWrite('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
+                                                                                                                                            <div class=" card-footer Bg-Cream minWidth100 flex ">
+                                                                                                                                                <a class="btn bgRed mb-2 " href="#" onclick="MessageModalShowWrite('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
 
-                            </div>
+                                                                                                                                            </div>
                         }
                     }
 
-                </div>
-            </div>
+                                                                        </div>
+                                                                    </div>
 
         }
     }
@@ -501,24 +611,6 @@
 
 
 
-
-<script>
-
-    function AddUpNutritionalValues(){
-        var Nutrients=
-
-    }
-
-    function GoBack() {
-
-        if (window.history.length > 1) {
-            window.history.back();
-        }
-        else {
-            window.location.href = '../../Home/Index';
-        }
-    }
-</script>
 
 
 

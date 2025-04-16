@@ -6,15 +6,48 @@
 @inject UserManager<IdentityUser> UserManager
 @model ShowRecipesModel
 @{
-    ViewData["Title"] = "Rezepte";
+    ViewData["Title"] = "Schnelle Rezepte für jeden Tag.";
     ViewData["Description"] = "Entdecken Sie köstliche Rezepte für feine Delikatessen auf Delikatessen-Drehbuch.com. Unsere Sammlung von exquisiten Gerichten bietet Inspiration für jeden Anlass – von raffinierten Vorspeisen bis zu verlockenden Desserts. Perfekt für Feinschmecker und Hobbyköche.";
 
+}
+
+
+@{
+    var firstRecipe = Model.RecipesList.FirstOrDefault();
+    string preloadSmall = null;
+    string preloadMedium = null;
+
+    if (firstRecipe != null && !string.IsNullOrEmpty(firstRecipe.ImagePath))
+    {
+        var basePath = firstRecipe.ImagePath
+            .Replace(".webp", "")
+            .Replace(".jpg", "")
+            .Replace(".png", "")
+            .Replace(" ", "%20")
+            .Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
+
+        preloadSmall = basePath + "_small.webp";
+        preloadMedium = basePath.Replace("blobsmalldelikatessendrehbuch", "blobmediumdelikatessendrehbuch") + "_medium.webp";
+    }
+}
+
+@section PreloadLinks {
+    @if (!string.IsNullOrEmpty(preloadSmall))
+    {
+        <link rel="preload" as="image" href="@preloadSmall" media="(max-width: 600px)" fetchpriority="high" />
+    }
+    @if (!string.IsNullOrEmpty(preloadMedium))
+    {
+        <link rel="preload" as="image" href="@preloadMedium" media="(min-width: 601px)" fetchpriority="high" />
+    }
 }
 
 <meta name="description" content="Entdecke köstliche und einfache Rezepte für jeden Anlass. Von schnellen Gerichten bis zu raffinierten Menüs – unsere Sammlung bietet Inspiration für Hobbyköche und Genießer. Finde Schritt-für-Schritt-Anleitungen, Kochtricks und leckere Ideen für dein nächstes Lieblingsgericht.">
 <link rel="canonical" href="https://www.delikatessen-drehbuch.com" />
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <meta name="robots" content="index,follow" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+        crossorigin="anonymous"></script>
 
 <script type="application/ld+json">
     {
@@ -55,79 +88,68 @@
 
 
 
-
-
-
 @{
-
-
-
-
-
-
-
+    bool isFirst = true;
+    int count = 0;
     foreach (var recipes in Model.RecipesList)
     {
-
+        count++;
         var name = HelpfulMethods.CaseInsensitive(recipes.Name);
+
+        var subPath = recipes.ImagePath?
+        .Replace(".webp", "")
+        .Replace(".jpg", "")
+        .Replace(".png", "")
+        .Replace(" ", "%20");
+
+        var smallPath = subPath?.Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
+        var mediumPath = subPath?.Replace("picdelikatessendrehbuch", "blobmediumdelikatessendrehbuch");
+
+
 
 
         <input name="RecipesId" value="@recipes.Id" hidden />
+
         <div class="grid-Recipes grid-Item">
-            <a class=" grid-atag text-black" onclick="SaveCache()" asp-route-id="@recipes.Id" asp-route-name="@name" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
+            <a class="grid-atag text-black" onclick="SaveCache()" asp-route-id="@recipes.Id" asp-route-name="@name" asp-controller="SelectedRecipe" asp-action="Index" style="text-decoration:none;">
 
                 @if (!string.IsNullOrEmpty(recipes.ImagePath))
                 {
-                    var subPath = recipes.ImagePath
-                    .Replace(".webp", "")
-                    .Replace(".jpg", "")
-                    .Replace(" ", "%20")
-                    .Replace(".png","");
 
-
-
-                    var smallPath = subPath.Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
-                    var mediumPath = subPath.Replace("picdelikatessendrehbuch", "blobmediumdelikatessendrehbuch");
-                    if (recipes.Description != null)
-                    {
-                        <img class="img-fluid" alt="@recipes.Description" title="@recipes.Name"
-                             srcset="@($"{smallPath}_small.webp 313w, {mediumPath}_medium.webp 600w")"
-                             sizes="(max-width:600px) 313px,(max-width:1200px) 600px,100vh"
+                    <picture>
+                        <source srcset="@($"{smallPath}_small.webp")" media="(max-width: 600px)">
+                        <source srcset="@($"{mediumPath}_medium.webp")" media="(max-width: 1200px)">
+                        <img class="img-fluid"
                              src="@recipes.ImagePath"
-                             loading="lazy" />
+                             alt="@(!string.IsNullOrEmpty(recipes.Description) ? recipes.Description : recipes.Name)"
+                             title="@recipes.Name"
+                             width="600"
+                             height="400"
+                             decoding="async"
+                             style="aspect-ratio: 3 / 2; object-fit: cover;"
+                        @(isFirst ? "fetchpriority=\"high\"" : "loading=\"lazy\"") />
+                    </picture>
 
 
-                    }
-                    else
-                    {
-                        <img class="img-fluid" alt="@recipes.Name" title="@recipes.Name"
-                             srcset="@($"{smallPath}_small.webp 313w, {mediumPath}_medium.webp 600w")"
-                             sizes="(max-width:600px) 313px,(max-width:1200px) 600px,100vh"
-                             src="@recipes.ImagePath"
-                             loading="lazy" />
 
-
-                    }
+                    isFirst = false;
                 }
                 else
                 {
-                    <img class="img-fluid" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" loading="lazy" />
-
+                    <img class="img-fluid" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" />
                 }
-
 
             </a>
 
             <hr class="grid-hr" style="margin:1px;opacity:1;border:0;" />
+
             @if (recipes.LikeCount > 1)
             {
-                <div class="grid-Category"> Gefällt @recipes.LikeCount Benutzer</div>
-
+                <div class="grid-Category">Gefällt @recipes.LikeCount Benutzer</div>
             }
             else
             {
                 <div class="grid-Category">@recipes.Category</div>
-
             }
 
             @if (recipes.PreparationTime != null)
@@ -140,16 +162,35 @@
                     </svg>
                     @recipes.PreparationTime min.
                 </div>
-
             }
 
             <h5 class="grid-Title" style="text-align:center;grid-column:1/span 2;">@recipes.Name</h5>
-
-
-
         </div>
 
+        if (count % 10 == 0)
+        {
+                        <div class="grid-Item mobile-aktive">
+
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-format="fluid"
+                     data-ad-layout-key="-7q+f2-1s-4w+fm"
+                     data-ad-client="ca-pub-2332503983815482"
+                     data-ad-slot="7801583916"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            continue;
+        }
     }
+
+
 }
+
+
+
+
+
 
 

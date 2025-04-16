@@ -9,7 +9,7 @@
 
 <div class="col">
     <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white" style="position:fixed;z-index:1000">
-        
+
         <div class="flexColumn">
             <a typeof="button" class="btn" onclick="loadRecipesILike()">
                 Meine Rezeptbuch
@@ -20,9 +20,17 @@
                 Menü Pläne
             </a>
         </div>
-       
+
 
         @{
+            if(User.IsInRole("Admin"))
+            {
+                <div class="flexColumn">
+                    <a typeof="button" class="btn" asp-controller="CreateMealPlan" asp-action="Index">
+                        Essensplan erstellen
+                    </a>
+                </div>
+            }
            
             if (User.IsInRole("PremiumUser"))
             {
