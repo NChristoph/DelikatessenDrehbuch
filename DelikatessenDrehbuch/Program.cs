@@ -97,6 +97,7 @@ app.UseSession();
 
 
 
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
@@ -109,6 +110,7 @@ app.Use(async (context, next) =>
 });
 
 #endregion
+
 
 async Task CreateRolls(IServiceProvider serviceProvider, string roleName)
 {

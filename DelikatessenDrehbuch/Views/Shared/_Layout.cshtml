@@ -1,9 +1,15 @@
-﻿<!DOCTYPE html>
+﻿
+
+<!DOCTYPE html>
+
+
 <html lang="de-at">
 <head>
     @await RenderSectionAsync("PreloadLinks", required: false)
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+
 
     @{
 #if (!DEBUG)
@@ -34,7 +40,7 @@
 <body>
     @Html.AntiForgeryToken()
     <div class="minWidth100 " style="position:fixed;background-color:white;z-index:100;min-height:110px">
-        <header >
+        <header>
             <nav class="navbar-expand-md navbar-toggleable-md navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px ">
 
                 <div class="mobile-aktive">
@@ -98,7 +104,7 @@
 
             </nav>
 
-            <div class="flexRowToColumn flexWrap mb-3">
+            <div class="flexRowToColumn flexWrap mb-5">
                 <div class="col maxWidth30 mobieleWidth90 mobile-hidden">
                     <div class="grid-Navbar">
                         <img title="logo" class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
@@ -136,7 +142,7 @@
             </div>
 
         </header>
-       
+
     </div>
 
 
@@ -152,7 +158,7 @@
             <div>
                 <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
                     <li class="nav-item ">
-                        <a class="nav-link " onclick="RemoveCachedContent()" style="color:#FFFDD0">Rezepte</a>
+                        <a href="#" class="nav-link"  onclick="RemoveCachedContent()" style="color:#FFFDD0">Rezepte</a>
                     </li>
                     <li class="nav-item ">
                         <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Impressum" style="color:#FFFDD0">Impressum & AGB'S</a>
@@ -224,7 +230,7 @@
     <script src="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
-  
+
 </body>
 </html>
 
@@ -254,10 +260,10 @@
            location.reload(true);
            window.location.href="/Home/Index"
     }
-    
+
 
      window.LoadRecipesByQuery = function() {
-         
+
             var searchWord=$('#searchQuery').val();
             sessionStorage.setItem("searchQuery",searchWord);
             window.location.href="/Home/Index";

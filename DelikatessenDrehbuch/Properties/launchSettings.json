@@ -14,14 +14,23 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7179;http://localhost:5043",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BigPic": "picdelikatessendrehbuch",
+        "SmalPic": "blobsmalldelikatessendrehbuch",
+        "MediumPic": "blobmediumdelikatessendrehbuch",
+        "EmailPasswort": "Ni049753!"
       }
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BigPic": "picdelikatessendrehbuch",
+        "SmalPic": "blobsmalldelikatessendrehbuch",
+        "MediumPic": "blobmediumdelikatessendrehbuch",
+        "EmailPasswort": "Ni049753!"
+
       }
     }
   }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
+using System.Linq;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -18,7 +19,7 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly List<string> _importantKeyWordsList;
         private readonly List<string> _importantKeyWordsListToLower;
 
-        private bool Vegan { get; set; }
+     
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext, HelpfulMethods helpfulMethods, IMemoryCache cache)
         {
             _logger = logger;
@@ -30,33 +31,28 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-
-
-
-
-
-        private List<Recipes> GetRandomRecipes()
+        private List<int> GetRandomRecipesIds(List<int> ids)
         {
             var random = new Random();
-            var handler = _context.Recipes.ToList();
-            return handler.OrderBy(x => random.Next()).ToList();
-
+           
+            return ids.OrderBy(x => random.Next()).Take(25).ToList();
 
         }
 
-
-
-
-        public IActionResult GetRecipesPartialView(string Ids = null)
+        public IActionResult GetRecipesPartialView(List<int> Ids = null)
         {
 
-            ShowRecipesModel model = new();
-            var allRecipes = _context.Recipes.ToList();
-            List<int> idList = new List<int>();
+            List<Recipes> model = new();
+            var recipeIdsFromDb = _context.Recipes
+                .Where(x => Ids == null || !Ids.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToList();
 
+            var randomRecipeIds = GetRandomRecipesIds(recipeIdsFromDb);
 
-            var list = allRecipes.Where(x => !idList.Contains(x.Id)).OrderBy(x => Guid.NewGuid()).Take(25).ToList();
-            model.RecipesList = list;
+           
+            model=_context.Recipes.Where(x=>randomRecipeIds.Contains(x.Id)).ToList();
+            
             return PartialView("_recipesPartialView", model);
 
 
@@ -86,98 +82,19 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public async Task<IActionResult> SearchRecipes(string query)
         {
-            ShowRecipesModel model = new();
+           List<Recipes> model = new();
             var filterList = GetListFromQueryString(query);
 
             var filtredRecipesByQuereys = await GetRecipeListByQuerys(filterList);
             var filtredRecipesByName = await GetRecipesByName(query.Trim().ToLower());
 
 
-            model.RecipesList = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
+            model = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
 
 
             return PartialView("_recipesPartialView", model);
         }
-        public IActionResult Index2(string query)
-        {
-
-            bool? vegan = Request.Query.ContainsKey("vegan");
-            if (vegan.HasValue)
-            {
-                if (vegan.Value == true)
-                    Vegan = true;
-                else
-                {
-                    vegan = false;
-                    Vegan = false;
-                }
-            }
-
-
-
-            HttpContext.Session.SetString("veganFilter", vegan.Value.ToString());
-            var veganFilter = HttpContext.Session.GetString("veganFilter");
-            ViewBag.IsVegan = veganFilter != null && bool.Parse(veganFilter);
-
-
-
-            var isLoggedIn = User.Identity.IsAuthenticated;
-            List<Recipes> handlers;
-            string cacheKey = $"{User.Identity.Name}_handlers_{query?.ToLower()}";
-
-
-            handlers = new();
-            if (string.IsNullOrEmpty(query))
-            {
-                if (_cache.TryGetValue(cacheKey, out handlers))
-                {
-                    var dictonaryFromCache = handlers;
-                    return View(dictonaryFromCache);
-                }
-
-                if (isLoggedIn)
-                {
-                    //TODO:UserPreferenz noch einbinden
-                    handlers = GetRandomRecipes();
-                }
-                else
-                {
-
-                    handlers = GetRandomRecipes();
-
-
-                }
-            }
-            else
-            {
-
-                if (isLoggedIn)
-                {
-                    _helpfulMethods.CreateUserPreferencesQuery(User.Identity.Name, query, _context);
-                }
-
-
-
-                //    handlers = GetQueryHandlersByNameAndQuery(query.ToLower());
-
-
-                if (!handlers.Any())
-                {
-                    handlers = GetRandomRecipes();
-                }
-
-
-
-            }
-            var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)); // Setzt das Caching-Timeout auf 10 Minuten (anpassbar)
-
-            _cache.Set(cacheKey, handlers, cacheEntryOptions);
-
-
-
-            return View(handlers);
-
-        }
+      
 
 
         public IActionResult Privacy()

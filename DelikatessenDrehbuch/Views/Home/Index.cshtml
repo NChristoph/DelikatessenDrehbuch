@@ -8,7 +8,7 @@
 
 
 
-<div class="minWidth100 flex flexJustifyContendCenter">
+<div class="minWidth100 flex flexJustifyContendCenter mt-1">
 
     <div id="RecipesPartialView" class="grid-Container maxWidth80 mobieleWidth90 ">
     </div>
@@ -58,12 +58,13 @@
 
 
 
-        function LoadRecipes(){
-           
-                 var RecipesIds = $("[name='RecipesId']").map(function () {
-                                    return $(this).val();
+        function LoadRecipes()
+        {
+                   var RecipesIds = $("[name='RecipesId']").map(function () {
+                                       return parseInt($(this).val());
+                                      }).get();
 
-                 }).get().join(",");
+                
 
                var url = RecipesIds
               ? "/Home/GetRecipesPartialView?Ids=" + encodeURIComponent(RecipesIds)

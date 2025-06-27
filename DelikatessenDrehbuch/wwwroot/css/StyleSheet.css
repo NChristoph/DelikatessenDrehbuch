@@ -1,5 +1,5 @@
 ﻿main {
-    margin-top: 222px;
+    margin-top: 250px;
 }
 
 .textColoreCream {
@@ -290,9 +290,7 @@ tr:nth-child(odd) {
     min-width: 90%;
 }
 
-.minWidth80 {
-    min-width: 80%;
-}
+
 
 .minWidth70 {
     min-width: 70%;
@@ -330,9 +328,6 @@ tr:nth-child(odd) {
     max-width: 90%;
 }
 
-.maxWidth80 {
-    max-width: 80%;
-}
 
 .maxWidth70 {
     max-width: 70%;
@@ -431,7 +426,7 @@ tr:nth-child(odd) {
 /*Grid für das Ausgewählte Rezept*/
 .grid-Selected-Recipe img {
     width: 100%;
-    height: 600px;
+    height: 450px;
     object-fit: contain;
 }
 
@@ -552,6 +547,55 @@ tr:nth-child(odd) {
 /*#endregion Grid*/
 
 /*#region @Media*/
+
+/* Bei 1040px und mehr: Collapse sichtbar, Toggler ausblenden */
+@media (min-width: 1040px) {
+    .navbar-expand-md .navbar-collapse {
+        display: flex !important;
+        flex-basis: auto;
+    }
+
+    .navbar-expand-md .navbar-toggler {
+        display: none !important;
+    }
+
+    .d-md-inline-flex {
+        display: inline-flex !important;
+    }
+
+}
+
+/* Unter 1040px: Collapse verstecken, Toggler einblenden */
+@media (max-width: 1039.98px) {
+
+   
+    .navbar-expand-md .navbar-collapse {
+        display: none !important;
+    }
+
+    .navbar-expand-md .collapse.show {
+        display: block !important;
+    }
+
+    .navbar-expand-md .navbar-toggler {
+        display: block !important;
+    }
+}
+
+
+@media (min-width: 868px) {
+   
+
+    .minWidth80 {
+        min-width: 80%;
+    }
+
+
+    .maxWidth80 {
+        max-width: 80%;
+    }
+}
+
 @media(min-width: 459px) {
     .desktop-Hidden {
         display: none !important;
@@ -564,7 +608,7 @@ tr:nth-child(odd) {
 @media(max-width: 459px) {
 
     main {
-        margin-top: 130px;
+        margin-top: 160px;
     }
 }
 
@@ -589,7 +633,7 @@ tr:nth-child(odd) {
 
 @media (max-width: 458px) {
 
-   
+
 
     html {
         font-size: 16px;
@@ -636,6 +680,7 @@ tr:nth-child(odd) {
     }
 
     .grid-Container {
+        max-width: 90%;
         display: grid;
         grid-gap: 10px;
         flex: 1;

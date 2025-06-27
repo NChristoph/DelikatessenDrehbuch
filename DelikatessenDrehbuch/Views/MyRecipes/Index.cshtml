@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@model List<string>
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -7,19 +8,54 @@
     ViewData["Title"] = "Mein Bereich";
 }
 
-<div class="col">
-    <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white" style="position:fixed;z-index:1000">
 
-        <div class="flexColumn">
-            <a typeof="button" class="btn" onclick="loadRecipesILike()">
-                Meine Rezeptbuch
-            </a>
-        </div>
-        <div class="flexColumn">
-            <a typeof="button" class="btn" onclick="loadMealPlanView()">
-                Menü Pläne
-            </a>
-        </div>
+
+
+
+
+<div class="col">
+    <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white mt-5">
+
+
+        <ul class="nav nav-tabs m-2" id="recipeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-black active"
+                        id="Myrecipes-tab"
+                        onclick="loadRecipesILike()"
+                        data-bs-toggle="tab"
+                        data-bs-target="#myRecipes"
+                        type="button" role="tab"
+                        style="font-size:14px;">
+                    Favoriten
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-black"
+                        id="Menue-tab"
+                        onclick="loadMealPlanView()"
+                        data-bs-toggle="tab"
+                        data-bs-target="#Menue"
+                        type="button" role="tab"
+                        style="font-size:14px;">
+                    Fertige Menüs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-black"
+                        id="MenuePlan-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#MenuePlan"
+                        type="button" role="tab"
+                        style="font-size:14px;">
+                    Wochenplan erstellen
+                </button>
+            </li>
+
+        </ul>
+
+
+        @*  
+
 
 
         @{
@@ -31,7 +67,7 @@
                     </a>
                 </div>
             }
-           
+
             if (User.IsInRole("PremiumUser"))
             {
                 <div class="flexColumn">
@@ -40,11 +76,11 @@
                     </a>
                 </div>
             }
-            
+
             if (User.IsInRole("Admin") || !User.IsInRole("PremiumUser"))
             {
 
-                
+
                 <div class="flexColumn">
                     <a typeof="button" class="btn" onclick="loadAboPage()">
                         Premium Vorteile
@@ -60,11 +96,72 @@
     <div class="flexRow justify-content-center mobieleWidth90 minWidth100">
         <div class="flex flexJustifyContendCenter mt-5" id="PartailaView" style="min-width:100%;"></div>
 
+    </div> *@
+
     </div>
+
 
 </div>
 
+<div class="tab-content mt-3" id="MyRecipesTabconted" style="height:min-content">
+    <div class="tab-pane fade show active Bg-Cream" id="myRecipes" role="tabpanel" style="padding:2%">
+        <div id="Favoriten"></div>
 
+    </div>
+    <div class="tab-pane fade Bg-Cream" id="Menue" role="tabpanel" style="padding:2%">
+        <div id="Menue"></div>
+
+
+    </div>
+    @if (User.IsInRole("PremiumUser"))
+    {
+        <div class="tab-pane fade Bg-Cream" id="MenuePlan" role="tabpanel" style="padding:2%">
+
+            <span>Wählen sie die dienge aus die sie nicht Essen !</span>
+
+            <div class="flexColumn flexAlginItemCenter">
+                <form asp-controller="CreateNewMealPlan" asp-action="CreateNewMealPlan">
+
+                    @{
+                        int index = 0;
+                        foreach (var query in Model)
+                        {
+                            index++;
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       checked
+                                       name="queryList"
+                                       type="checkbox"
+                                       value="@query"
+                                       id="filterCheckbox@{index.ToString();}">
+
+                                <label class="form-check-label"
+                                       for="filterCheckbox@{index.ToString();}">
+                                    @query
+                                </label>
+                            </div>
+
+                        }
+
+
+                    }
+
+                    <button class="btn bgRed Border-Gold"
+                            type="submit"
+                            style="max-width:fit-content">
+                        Essensplan Erstellen
+                    </button>
+
+                </form>
+            </div>
+
+
+
+        </div>
+    }
+
+
+</div>
 
 
 @section Scripts {
@@ -76,26 +173,22 @@
         }
 
         function loadMealPlanView() {
-            $('#PartailaView').load("MyRecipes/MealPlanView")
+            $('#Menue').load("MyRecipes/MealPlanView")
 
-        }
-        function loadMyRecipes() {
-
-            $('#PartailaView').load("MyRecipes/LoadMyRecipes")
         }
 
         function loadRecipesILike() {
 
-            $('#PartailaView').load("MyRecipes/LoadRecipesILike")
+            $('#Favoriten').load("MyRecipes/LoadRecipesILike")
         }
 
-       
+
 
         function loadPremiumPartialView() {
             $('#PartailaView').load("MyRecipes/Premium")
         }
 
-       
+
     </script>
 }
 

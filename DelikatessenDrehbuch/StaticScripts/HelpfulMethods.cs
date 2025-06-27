@@ -138,24 +138,7 @@ namespace DelikatessenDrehbuch.StaticScripts
             return context.Querys.Select(x => x.Query).ToList();
         }
 
-        public static string CaseInsensitive(string encodetString)
-        {
-            var name = encodetString.ToLowerInvariant()
-                                    .Replace("ä", "ae")
-                                    .Replace("ö", "oe")
-                                    .Replace("ü", "ue")
-                                    .Replace("ß", "ss")
-                                    .Replace(" ", "-")
-                                    .Replace("&", "und")
-                                    .Replace("?", "")
-                                    .Replace("!", "")
-                                    .Replace(",", "")
-                                    .Replace(".", "")
-                                    .Replace(":", "")
-                                    .Replace(";", "");
-
-            return name;
-        }
+       
     }
 
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.ApplicationInsights;
+﻿
 
 namespace DelikatessenDrehbuch.Models
 {

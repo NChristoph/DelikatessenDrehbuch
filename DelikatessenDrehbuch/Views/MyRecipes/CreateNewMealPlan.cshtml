@@ -1,0 +1,55 @@
+﻿@model List<Recipes>
+
+<div class="flexColumn minWidth100 mobieleWidth90 flexAlginItemCenter mt-5">
+
+    
+
+        <div class="flexcolumn minWidth100 flexJustifyContendCenter">
+
+            @foreach (var recipes in Model)
+            {
+
+                <div class="mobieleWidth90 col m-3 Bg-Cream p-2" >
+                    <div class="row m-1">
+                        
+                    </div>
+                    <hr />
+                    <div class="row m-1">
+                        <div class="col"
+                             style="max-width:max-content">
+                        <img width="150" src="@recipes.ImagePath" />
+                        </div>
+                        <div class="col">
+                        <div>@recipes.Name</div>
+                        <div>@recipes.Description</div>
+                        <div class="flexRow flexJustifyContendSpaceBetween mt-2">
+                            <div class="col">
+                                <button class="bgRed Border-Gold"
+                                        style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">Vorspeise hinzufügen</button>
+                            </div>
+                            <div class="col">
+                                <button class="bgRed Border-Gold"
+                                        style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                                        Dessert hinzufügen</button>
+                            </div>
+                            <div class="col">
+                                <button class="bgRed" 
+                                        style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                                        Rezept Ändern</button>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row m-1">
+                        
+                    </div>
+                </div>
+                <hr />
+
+            }
+        </div>
+
+    
+
+</div>

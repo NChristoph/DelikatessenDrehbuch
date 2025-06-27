@@ -4,24 +4,26 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 
 namespace DelikatessenDrehbuch.Controllers
 {
     [Authorize]
     public class MyRecipesController : Controller
     {
-        private readonly ApplicationDbContext _dbcontext;
+        private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helpfulMethods;
         public MyRecipesController(ApplicationDbContext context, HelpfulMethods helpfulMethods)
         {
-            _dbcontext = context;
+            _context = context;
             _helpfulMethods = helpfulMethods;
         }
 
         public IActionResult Index()
         {
+            var querylist = _context.MealplanFilter.Select(x => x.Filter).ToList();
 
-            return View();
+            return View(querylist);
         }
 
 
@@ -44,7 +46,7 @@ namespace DelikatessenDrehbuch.Controllers
             if (!User.IsInRole("PremiumUser"))
             {
 
-                var notPremiumModel = _dbcontext.MealPlanHandler.Where(x => x.Id != 0)
+                var notPremiumModel = _context.MealPlanHandler.Where(x => x.Id != 0)
                                                                .Include(x => x.MealPlan)
                                                                .Include(x => x.Recipes)
                                                                .ToList();
@@ -67,7 +69,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             }
 
-            var mealPlanHandlerFromDb = _dbcontext.MealPlanHandler.Where(x => x.Id != 0 && categories.Contains(x.MealPlan.MyMealModel.Category))
+            var mealPlanHandlerFromDb = _context.MealPlanHandler.Where(x => x.Id != 0 && categories.Contains(x.MealPlan.MyMealModel.Category))
                                                               .Include(x => x.MealPlan)
                                                               .Include(x => x.Recipes)
                                                               .ToList();
@@ -89,7 +91,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult MealPlanView()
         {
-            var categoryFromDb = _dbcontext.MyMealModel.Select(x => x.Category).ToList();
+            var categoryFromDb =  _context.MyMealModel.Select(x => x.Category).ToList();
 
 
             return PartialView("_MealPlanView", categoryFromDb);
@@ -97,11 +99,11 @@ namespace DelikatessenDrehbuch.Controllers
 
         public ActionResult GetMeal(int id)
         {
-            var recipesIds = _dbcontext.MealPlanHandler.Where(x => x.MealPlan.Id == id)
+            var recipesIds = _context.MealPlanHandler.Where(x => x.MealPlan.Id == id)
                                                                  .Select(x => x.Recipes.Id)
                                                                  .ToList();
 
-            var ingredientHandlers = _dbcontext.RecipesHandlers.Where(rh => recipesIds
+            var ingredientHandlers = _context.RecipesHandlers.Where(rh => recipesIds
                                                          .Contains(rh.Recipe.Id))
                                                          .Include(rh => rh.IngredientHandler)
                                                          .Include(rh => rh.IngredientHandler.Ingredient)
@@ -113,8 +115,8 @@ namespace DelikatessenDrehbuch.Controllers
 
 
             var mealModel = new MealModel();
-            mealModel.MealPlan = _dbcontext.MealPlan.SingleOrDefault(x => x.Id == id);
-            mealModel.Recipes = _dbcontext.Recipes.Where(x => recipesIds.Contains(x.Id)).ToList();
+            mealModel.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Id == id);
+            mealModel.Recipes = _context.Recipes.Where(x => recipesIds.Contains(x.Id)).ToList();
 
             mealModel.Ingredients = ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
                                                        .Select(g => new IngredientHandlerModel
@@ -147,17 +149,17 @@ namespace DelikatessenDrehbuch.Controllers
         {
             if (User.IsInRole("Admin"))
             {
-                var recipesFromDb = _dbcontext.Recipes.ToList();
+                var recipesFromDb = _context.Recipes.ToList();
                 return PartialView("_MyRecipesPartialView", recipesFromDb);
             }
 
-            var myRecipesFromDb = _dbcontext.Recipes.Where(x => x.OwnerEmail == User.Identity.Name).ToList();
+            var myRecipesFromDb = _context.Recipes.Where(x => x.OwnerEmail == User.Identity.Name).ToList();
             return PartialView("_MyRecipesPartialView", myRecipesFromDb);
         }
 
         public IActionResult LoadRecipesILike()
         {
-            var likesFromDb = _dbcontext.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x => x.Recipe).ToList();
+            var likesFromDb = _context.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x => x.Recipe).ToList();
             var recipesFromLikes = likesFromDb.Select(x => x.Recipe).ToList();
             return PartialView("_MyRecipesPartialView", recipesFromLikes);
         }

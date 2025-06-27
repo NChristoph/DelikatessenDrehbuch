@@ -4,7 +4,7 @@
 @using DelikatessenDrehbuch.StaticScripts;
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-@model ShowRecipesModel
+@model List<Recipes>
 @{
     ViewData["Title"] = "Schnelle Rezepte für jeden Tag.";
     ViewData["Description"] = "Entdecken Sie köstliche Rezepte für feine Delikatessen auf Delikatessen-Drehbuch.com. Unsere Sammlung von exquisiten Gerichten bietet Inspiration für jeden Anlass – von raffinierten Vorspeisen bis zu verlockenden Desserts. Perfekt für Feinschmecker und Hobbyköche.";
@@ -13,21 +13,18 @@
 
 
 @{
-    var firstRecipe = Model.RecipesList.FirstOrDefault();
+    var firstRecipe = Model.FirstOrDefault();
     string preloadSmall = null;
     string preloadMedium = null;
 
     if (firstRecipe != null && !string.IsNullOrEmpty(firstRecipe.ImagePath))
     {
-        var basePath = firstRecipe.ImagePath
-            .Replace(".webp", "")
-            .Replace(".jpg", "")
-            .Replace(".png", "")
-            .Replace(" ", "%20")
-            .Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
-
+        var basePath = FrontendFunctions.CaseInsensitivePath(firstRecipe.ImagePath);
+    
+        var smallPath = basePath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                    Environment.GetEnvironmentVariable("SmalPic"));
         preloadSmall = basePath + "_small.webp";
-        preloadMedium = basePath.Replace("blobsmalldelikatessendrehbuch", "blobmediumdelikatessendrehbuch") + "_medium.webp";
+       
     }
 }
 
@@ -46,8 +43,6 @@
 <link rel="canonical" href="https://www.delikatessen-drehbuch.com" />
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <meta name="robots" content="index,follow" />
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
-        crossorigin="anonymous"></script>
 
 <script type="application/ld+json">
     {
@@ -56,10 +51,10 @@
     "itemListElement": [
     @{
         int position = 1;
-        foreach (var recipe in Model.RecipesList)
+        foreach (var recipe in Model)
         {
-            var encodedRecipeName = HelpfulMethods.CaseInsensitive(recipe.Name);
-            var encodedRecipeId = HelpfulMethods.CaseInsensitive(recipe.Id.ToString());
+            var encodedRecipeName = FrontendFunctions.CaseInsensitiveName(recipe.Name);
+            var encodedRecipeId = FrontendFunctions.CaseInsensitiveName(recipe.Id.ToString());
             @:{
             @: "@@type": "ListItem",
             @: "position": @position,
@@ -67,7 +62,7 @@
             @:}
 
 
-            if (position < Model.RecipesList.Count)
+            if (position < Model.Count)
             {
                 @:,
                 position++;
@@ -91,19 +86,18 @@
 @{
     bool isFirst = true;
     int count = 0;
-    foreach (var recipes in Model.RecipesList)
+    foreach (var recipes in Model)
     {
         count++;
-        var name = HelpfulMethods.CaseInsensitive(recipes.Name);
+        var name = FrontendFunctions.CaseInsensitiveName(recipes.Name);
 
-        var subPath = recipes.ImagePath?
-        .Replace(".webp", "")
-        .Replace(".jpg", "")
-        .Replace(".png", "")
-        .Replace(" ", "%20");
+        var subPath = FrontendFunctions.CaseInsensitivePath(recipes.ImagePath);
 
-        var smallPath = subPath?.Replace("picdelikatessendrehbuch", "blobsmalldelikatessendrehbuch");
-        var mediumPath = subPath?.Replace("picdelikatessendrehbuch", "blobmediumdelikatessendrehbuch");
+        var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                         Environment.GetEnvironmentVariable("SmalPic"));
+
+        var mediumPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                          Environment.GetEnvironmentVariable("MediumPic"));
 
 
 
@@ -117,14 +111,13 @@
                 {
 
                     <picture>
-                        <source srcset="@($"{smallPath}_small.webp")" media="(max-width: 600px)">
-                        <source srcset="@($"{mediumPath}_medium.webp")" media="(max-width: 1200px)">
+                        <source srcset="@($"{smallPath}_small.webp")">
                         <img class="img-fluid"
                              src="@recipes.ImagePath"
                              alt="@(!string.IsNullOrEmpty(recipes.Description) ? recipes.Description : recipes.Name)"
                              title="@recipes.Name"
                              width="600"
-                             height="400"
+                             height="600"
                              decoding="async"
                              style="aspect-ratio: 3 / 2; object-fit: cover;"
                         @(isFirst ? "fetchpriority=\"high\"" : "loading=\"lazy\"") />
@@ -169,7 +162,7 @@
 
         if (count % 10 == 0)
         {
-                        <div class="grid-Item mobile-aktive">
+                <div class="grid-Item mobile-aktive">
 
                 <ins class="adsbygoogle"
                      style="display:block"

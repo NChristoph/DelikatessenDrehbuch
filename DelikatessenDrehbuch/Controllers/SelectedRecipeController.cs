@@ -17,10 +17,11 @@ namespace DelikatessenDrehbuch.Controllers
             _helpfulMethods = helpfulMethods;
         }
 
-        public List<Recipes> GetRecipesSuggetions(List<Recipes> recipes)
+        public async Task<List<Recipes>> GetRecipesSuggetions(Task<List<Recipes>> recipes)
         {
             var random= new Random();
-            return recipes.GroupBy(x => x.Name).OrderBy(g => random.Next())
+            var recipeList = await recipes;
+            return  recipeList.GroupBy(x => x.Name).OrderBy(g => random.Next())
                           .Take(7)
                           .Select(g => g.First())
                           .ToList();
@@ -42,9 +43,9 @@ namespace DelikatessenDrehbuch.Controllers
                                                            .Include(x=>x.Quantity)
                                                            .Include(x=>x.Nutrients).ToListAsync();
 
-            model.RecipeSuggestions =  GetRecipesSuggetions(_context.QueryHandler.Where(x => model.FullRecipes.QueryHandler.Contains(x.Query.Query)).Select(x => x.Recipe).ToList());
-
-
+            var querys = _context.QueryHandler.Where(x=>x.Recipe==model.FullRecipes.Recipes).Select(x=>x.Query.Query.ToLower().Trim()).ToList();
+            model.RecipeSuggestions= await GetRecipesSuggetions(_context.QueryHandler.Where(x=>x.Query.Query.ToLower().Trim()==querys.First()).Select(x=>x.Recipe).ToListAsync());
+          
             return View(model);
         }
 
