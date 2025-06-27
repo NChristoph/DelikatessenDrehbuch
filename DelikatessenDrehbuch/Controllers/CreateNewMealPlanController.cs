@@ -54,12 +54,12 @@ namespace DelikatessenDrehbuch.Controllers
             List<Recipes> mealPlan = new();
             var random = new Random();
             var cleanedList = CleanQueryList(queryList);
-            var recipesFromDbIds = _context.QueryHandler.Where(x => cleanedList.Contains(x.Query.Query.ToLower()))
+            var recipesFromDbIds = _context.QueryHandler.Where(x => cleanedList.Contains(x.Query.Query.ToLower()) && x.Recipe.Category == "Hauptspeise")
                                                          .Select(x => x.Recipe.Id).ToList();
 
             var recipeIds = recipesFromDbIds.OrderBy(x => random.Next()).Take(7).ToList();
 
-            mealPlan=_context.Recipes.Where(x=>recipeIds.Contains(x.Id)&&x.Category=="Hauptspeise").ToList();
+            mealPlan=_context.Recipes.Where(x=>recipeIds.Contains(x.Id)).ToList();
 
 
             return mealPlan;
