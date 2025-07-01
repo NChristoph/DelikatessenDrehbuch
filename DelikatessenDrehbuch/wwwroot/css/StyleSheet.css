@@ -721,6 +721,10 @@ tr:nth-child(odd) {
         align-self: center !important;
     }
 
+    .mobileItemCenter {
+        align-items: center !important;
+    }
+
     .justifyMobileEnd {
         justify-content: end;
     }

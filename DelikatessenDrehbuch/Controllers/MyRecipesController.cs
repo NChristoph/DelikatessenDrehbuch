@@ -103,43 +103,13 @@ namespace DelikatessenDrehbuch.Controllers
                                                                  .Select(x => x.Recipes.Id)
                                                                  .ToList();
 
-            var ingredientHandlers = _context.RecipesHandlers.Where(rh => recipesIds
-                                                         .Contains(rh.Recipe.Id))
-                                                         .Include(rh => rh.IngredientHandler)
-                                                         .Include(rh => rh.IngredientHandler.Ingredient)
-                                                         .Include(rh => rh.IngredientHandler.Measure)
-                                                         .Include(rh => rh.IngredientHandler.Quantity)
-                                                         .Select(x => x.IngredientHandler)
-                                                         .ToList();
-
 
 
             var mealModel = new MealModel();
             mealModel.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Id == id);
             mealModel.Recipes = _context.Recipes.Where(x => recipesIds.Contains(x.Id)).ToList();
 
-            mealModel.Ingredients = ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                                                       .Select(g => new IngredientHandlerModel
-                                                       {
-                                                           Ingredient = g.First().Ingredient,
-                                                           Measure = g.First().Measure,
-                                                           Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
-                                                       })
-                                                       .ToList();
-
-            var test = mealModel.Ingredients.Select(x => x.Ingredient.Name.ToLower()).ToList();
-            //mealModel.NutrientsHandlers = _dbcontext.NutrientsHandler.Where(x => test.Contains(x.IngredientNutrientHandler.Ingredient.Name.ToLower()))
-            //                                                       .Include(x => x.Nutrient)
-            //                                                       .Include(x => x.Quantity)
-            //                                                       .Include(x => x.Measure)
-            //                                                       .Include(x => x.IngredientNutrientHandler)
-            //                                                       .Include(x => x.IngredientNutrientHandler.Ingredient).ToList();
-
-
-
-            var ingredientsName = ingredientHandlers.Select(x => x.Ingredient.Name.ToLower()).ToList();
-
-
+            mealModel.Ingredients = _helpfulMethods.GetIngredientsByRecipesIdsList(_context, recipesIds);
 
 
             return View("Meal", mealModel);

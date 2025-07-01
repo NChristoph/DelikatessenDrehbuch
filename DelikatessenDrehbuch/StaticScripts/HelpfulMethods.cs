@@ -1,6 +1,7 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 
 namespace DelikatessenDrehbuch.StaticScripts
 {
@@ -137,6 +138,34 @@ namespace DelikatessenDrehbuch.StaticScripts
         {
             return context.Querys.Select(x => x.Query).ToList();
         }
+
+
+        public List<IngredientHandlerModel> GetIngredientsByRecipesIdsList(ApplicationDbContext context,List<int> recipesIds)
+        {
+            var ingredientHandlers = context.RecipesHandlers.Where(rh => recipesIds
+                                                         .Contains(rh.Recipe.Id))
+                                                         .Include(rh => rh.IngredientHandler)
+                                                         .Include(rh => rh.IngredientHandler.Ingredient)
+                                                         .Include(rh => rh.IngredientHandler.Measure)
+                                                         .Include(rh => rh.IngredientHandler.Quantity)
+                                                         .Select(x => x.IngredientHandler);
+                                                         
+
+
+            var sortedIngredientHandler= ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
+                                                       .Select(g => new IngredientHandlerModel
+                                                       {
+                                                           Ingredient = g.First().Ingredient,
+                                                           Measure = g.First().Measure,
+                                                           Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
+                                                       })
+                                                       .ToList();
+
+
+            return sortedIngredientHandler;
+        }
+
+       
 
        
     }

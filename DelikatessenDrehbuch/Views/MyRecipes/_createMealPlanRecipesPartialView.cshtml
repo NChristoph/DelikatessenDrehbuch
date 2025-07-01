@@ -1,0 +1,70 @@
+﻿
+@model Recipes
+
+<div id="appetizer_@Model.Id"
+     class="row m-1">
+</div>
+<hr />
+<div name="Recipes"
+     id="@Model.Id"
+    class="flexRowToColumn m-1 flexAlginItemCenter">
+
+    <div class="flexColumn flexJustifyContendCenter m-2 mobieleWidth100 flexAlginItemCenter"
+         style="max-width:max-content">
+        <img style="width:150px;"
+             onload="if (window.innerWidth < 768) this.style.width='90%';"
+             src="@Model.ImagePath" />
+    </div>
+    <div class="col">
+        <div class="d-none d-md-block">@Model.PreparationTime</div>
+        <div class="d-none d-md-block"><strong>@Model.Name</strong></div>
+        <div class="d-none d-md-block">@Model.Description</div>
+        <div class="d-block d-md-none">
+            <button class="btn btn-sm bgRed Border-Gold text-white mb-2 mobieleWidth100 flexAlginItemCenter"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#descCollapse_@Model.Id">
+                Beschreibung anzeigen
+            </button>
+            <div class="mobieleWidth100"
+                 style="text-align:center">
+                <strong>@Model.Name</strong>
+            </div>
+            <div class="collapse" id="descCollapse_@Model.Id">
+                <div class="card card-body">
+                    @Model.Description
+                </div>
+            </div>
+        </div>
+
+
+        <div class="flexRow flexJustifyContendSpaceBetween mt-2">
+            <div class="col">
+                <button class="bgRed Border-Gold"
+                        style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                    Vorspeise hinzufügen
+                </button>
+            </div>
+            <div class="col">
+                <button class="bgRed Border-Gold"
+                        style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                    Dessert hinzufügen
+                </button>
+            </div>
+            <div class="col">
+                <button id="@Model.Id"
+                        value="@Model.Id"
+                        onclick="CangeRecipes(this)"
+                        class="bgRed"
+                        style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                    Rezept Ändern
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<hr />
+<div id="dessert_@Model.Id"
+     class="row m-1">
+</div>

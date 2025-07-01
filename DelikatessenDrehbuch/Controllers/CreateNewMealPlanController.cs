@@ -13,14 +13,14 @@ namespace DelikatessenDrehbuch.Controllers
     {
 
         private readonly ApplicationDbContext _context;
-
+        private readonly HelpfulMethods _helpfulMethods;
         private List<Recipes> Melplan { get; set; } = new List<Recipes>();
 
-        public CreateNewMealPlanController(ApplicationDbContext applicationDbContext)
+        public CreateNewMealPlanController(ApplicationDbContext applicationDbContext,HelpfulMethods helpfulMethods)
         {
 
             _context = applicationDbContext;
-
+            _helpfulMethods = helpfulMethods;
         }
         [Authorize]
         public ActionResult Index()
@@ -49,9 +49,9 @@ namespace DelikatessenDrehbuch.Controllers
             return cleanedList;
         }
 
-        private List<Recipes> GetMealplanList(List<string> queryList)
+        private MealModel GetMealplanList(List<string> queryList)
         {
-            List<Recipes> mealPlan = new();
+            MealModel mealPlan = new();
             var random = new Random();
             var cleanedList = CleanQueryList(queryList);
             var recipesFromDbIds = _context.QueryHandler.Where(x => cleanedList.Contains(x.Query.Query.ToLower()) && x.Recipe.Category == "Hauptspeise")
@@ -59,10 +59,29 @@ namespace DelikatessenDrehbuch.Controllers
 
             var recipeIds = recipesFromDbIds.OrderBy(x => random.Next()).Take(7).ToList();
 
-            mealPlan=_context.Recipes.Where(x=>recipeIds.Contains(x.Id)).ToList();
+            mealPlan.Recipes=_context.Recipes.Where(x=>recipeIds.Contains(x.Id)).ToList();
+
+            mealPlan.Ingredients = _helpfulMethods.GetIngredientsByRecipesIdsList(_context, recipeIds);
 
 
             return mealPlan;
+        }
+
+        public IActionResult LoadIngredientPartialView(string recipesIds)
+        {
+            var idsToList = recipesIds.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(id => int.Parse(id))
+                                      .ToList();
+
+            var ingredientHandlerFromDb= _helpfulMethods.GetIngredientsByRecipesIdsList(_context, idsToList);
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml", ingredientHandlerFromDb);
+        }
+
+        //TODO: Rezept QAndern einfügen
+        public IActionResult LoadRecipesPartialView(string recipesIds)
+        {
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml");
         }
 
 
