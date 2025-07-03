@@ -12,13 +12,20 @@
             foreach (var recipes in Model.Recipes)
             {
                 index++;
-
+                
+                <span class="m-2 p-2">Tag @index</span>
                 <div name="recipesContainer"
-                     id="@recipes.Id"
-                     class="mobieleWidth90 col m-3 Bg-Cream p-2">
-                    <span class="m-2 p-2">Tag @index</span>
-                    <partial model="@recipes"
-                             name="~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml" />
+                     id="recipesContainer_@index">
+                   
+                    <div id="@recipes.Id"
+                        class="mobieleWidth90 col m-3 Bg-Cream p-2">
+
+                        @await Html.PartialAsync(
+                             "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
+                             recipes,
+                             new ViewDataDictionary(ViewData) { { "Index", index } })
+                    </div>
+                    
                 </div>
 
             }
@@ -49,26 +56,41 @@
     function CangeRecipes(button)
     {
 
-        var recipesId = button.value;
-        var recipes = document.getElementById(recipesId);
-
+        var recipeId = button.value;
+        
+        var index = button.getAttribute("data-index");
+        var recipe = document.getElementById(recipeId);
 
         var ingredientList = document.getElementById("ingredientPartialView").innerHTML = "";
+      
+        recipe.remove();
+         
+        var recipesIds = GetRecipesIdsList().join(";");
        
-        recipes.remove();
+        
+
+        $.get("/CreateNewMealPlan/LoadRecipesPartialView", { recipesIds: recipesIds,recipeId:recipeId ,index:index }, function (html) {
+         $("#recipesContainer_" + index).html(html);
+        });
+
         ReloadIngredientList();
 
     }
 
+    function GetRecipesIdsList(){
+
+         var recipesElements = document.getElementsByName("Recipes");
+
+         var recipesIdsList = Array.from(recipesElements).map(function (el) {
+              return el.title;
+        });
+
+        return recipesIdsList;
+    }
 
     function ReloadIngredientList()
     {
-        var recipesElements = document.getElementsByName("Recipes");
-
-
-        var recipesIdsList = Array.from(recipesElements).map(function (el) {
-              return el.id;
-        });
+        var recipesIdsList = GetRecipesIdsList();
 
 
        $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds="+recipesIdsList.join(";"));

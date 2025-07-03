@@ -14,9 +14,9 @@ namespace DelikatessenDrehbuch.Controllers
 
         private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helpfulMethods;
-        private List<Recipes> Melplan { get; set; } = new List<Recipes>();
+        private int[] RecipesId { get; set; } = new int[6];
 
-        public CreateNewMealPlanController(ApplicationDbContext applicationDbContext,HelpfulMethods helpfulMethods)
+        public CreateNewMealPlanController(ApplicationDbContext applicationDbContext, HelpfulMethods helpfulMethods)
         {
 
             _context = applicationDbContext;
@@ -59,7 +59,9 @@ namespace DelikatessenDrehbuch.Controllers
 
             var recipeIds = recipesFromDbIds.OrderBy(x => random.Next()).Take(7).ToList();
 
-            mealPlan.Recipes=_context.Recipes.Where(x=>recipeIds.Contains(x.Id)).ToList();
+            HttpContext.Session.SetString("RecipesFromDbIds", string.Join(";", recipesFromDbIds));
+
+            mealPlan.Recipes = _context.Recipes.Where(x => recipeIds.Contains(x.Id)).ToList();
 
             mealPlan.Ingredients = _helpfulMethods.GetIngredientsByRecipesIdsList(_context, recipeIds);
 
@@ -73,16 +75,38 @@ namespace DelikatessenDrehbuch.Controllers
                                       .Select(id => int.Parse(id))
                                       .ToList();
 
-            var ingredientHandlerFromDb= _helpfulMethods.GetIngredientsByRecipesIdsList(_context, idsToList);
+            var ingredientHandlerFromDb = _helpfulMethods.GetIngredientsByRecipesIdsList(_context, idsToList);
 
             return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml", ingredientHandlerFromDb);
         }
 
-        //TODO: Rezept QAndern einfügen
-        public IActionResult LoadRecipesPartialView(string recipesIds)
+        //TODO: Ordentlicher machen
+
+        public IActionResult LoadRecipesPartialView(string recipesIds, int recipeId,string index)
         {
-            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml");
+            var random = new Random();
+            ViewData["Index"] = int.Parse(index);
+           var recipesToChange = recipesIds.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            var idsString = HttpContext.Session.GetString("RecipesFromDbIds")?.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            if (idsString == null)
+                return BadRequest("Session enthält keine Rezept-IDs.");
+
+            var matchingRecipes = _context.Recipes.Where(x =>
+                                  idsString.Contains(x.Id.ToString()) &&
+                                  x.Id != recipeId &&
+                                  !recipesToChange.Contains(x.Id.ToString()))
+                                  .Select(x=>x.Id).ToList(); 
+
+            var Id = matchingRecipes
+                .OrderBy(x => random.Next())
+                .Take(1).FirstOrDefault();
+
+            var model= _context.Recipes.Single(x=>x.Id == Id);
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", model);
         }
+
 
 
     }
