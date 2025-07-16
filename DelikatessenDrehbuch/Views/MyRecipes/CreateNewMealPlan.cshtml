@@ -1,4 +1,5 @@
 ﻿@using DelikatessenDrehbuch.Models
+@using DelikatessenDrehbuch.StaticScripts
 @model MealModel
 
 <div class="flexRowToColumn minWidth100 mobieleWidth90 mobileItemCenter mt-5">
@@ -12,21 +13,180 @@
             foreach (var recipes in Model.Recipes)
             {
                 index++;
-                
                 <span class="m-2 p-2">Tag @index</span>
-                <div name="recipesContainer"
-                     id="recipesContainer_@index">
-                   
-                    <div id="@recipes.Id"
-                        class="mobieleWidth90 col m-3 Bg-Cream p-2">
+                <ul class="flexColumn Bg-Cream p-1 mt-2"
+                    style="list-style-type:none;min-width:49%">
 
-                        @await Html.PartialAsync(
-                             "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
-                             recipes,
-                             new ViewDataDictionary(ViewData) { { "Index", index } })
-                    </div>
-                    
-                </div>
+                    @if (!FrontendFunctions.CheckCategory(recipes.Category))
+                    {
+                        <li class="mt-1 flexColumn">
+                            <div class="flexRow">
+                                <div id="appetizer_@index"
+                                     style="max-width:fit-content">
+                                </div>
+
+                                <div class="flexColumn flexJustifyContendSpaceBetween w-100"
+                                     style="margin-left:1rem">
+
+                                    <div id="appetizerName_@index">
+                                    </div>
+
+                                    <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendSpaceBetween">
+                                        <div>
+                                            <a id="appetizerDeleteButton_@index"
+                                               onclick="RemoveItem('appetizer_@index,appetizerName_@index,appetizerPreperationTime_@index,appetizerDiscription_@index','appetizerDeleteButton_@index')"
+                                               hidden>
+                                                <i class="bi bi-trash3"></i> Löschen
+                                            </a>
+
+                                        </div>
+                                        <div id="appetizerPreperationTime_@index"></div>
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+
+                            <div class="flexRow w-100 mobieleWidth90"
+                                 id="appetizerDiscription_@index">
+                            </div>
+
+
+                        </li>
+                    }
+                    <li class="flexColumn">
+                        <div class="flexRow">
+                            <div name="recipesContainer"
+                                 id="recipesContainer_@index"
+                                 style="max-width:fit-content">
+                                @await Html.PartialAsync(
+                                     "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
+                                     recipes,
+                                     new ViewDataDictionary(ViewData) { { "Index", index }
+
+                        })
+                            </div>
+
+                            <div class="flexColumn flexJustifyContendSpaceBetween w-100"
+                                 style="margin-left:1rem">
+                                <div id="recipesContainerName_@index">
+                                    @recipes.Name
+                                </div>
+
+                                <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendEnd"
+                                     id="recipesContainerPreperationTime_@index">
+                                    Zubereitungszeit  @recipes.PreparationTime min
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div id="recipesContainerDiscription_@index">
+                            @await Html.PartialAsync(
+                                 "~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml",
+                                 new[] { recipes.Name, recipes.Description }
+                                 )
+                        </div>
+
+
+                    </li>
+
+                    @if (!FrontendFunctions.CheckCategory(recipes.Category))
+                    {
+
+                        <li class="mt-1 flexColumn">
+                            <div class="flexRow">
+                                <div id="dessert_@index"
+                                     style="max-width:fit-content">
+                                </div>
+
+                                <div class="flexColumn flexJustifyContendSpaceBetween w-100"
+                                     style="margin-left:1rem">
+
+                                    <div id="dessertName_@index">
+                                    </div>
+
+                                    <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendSpaceBetween">
+                                        <div>
+                                            <a id="dessertDeleteButton_@index"
+                                               onclick="RemoveItem('dessert_@index,dessertName_@index,dessertPreperationTime_@index,dessertDiscription_@index','dessertDeleteButton_@index')"
+                                               hidden>
+                                                <i class="bi bi-trash3"></i> Löschen
+                                            </a>
+
+                                        </div>
+                                        <div id="dessertPreperationTime_@index"></div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="flexRow w-100 mobieleWidth90"
+                                 id="dessertDiscription_@index">
+                            </div>
+
+
+
+                        </li>
+                    }
+
+
+
+
+                </ul>
+
+
+                <span class="w-100"
+                      style="text-align:center">
+                    Hinzufügen oder ändern ?
+                </span>
+                <ul class="flexRow flexAlginItemCenter flexJustifyContendSpaceBetween w-100 m-0 p-0"
+                    style="list-style-type:none">
+
+
+                    <li>
+                        <button data-index="@index"
+                                value="Vorspeise"
+                                onclick="AddAppetizerOrDessert(this)"
+                                class="bgRed Border-Gold"
+                                style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                            Vorspeise
+                        </button>
+                    </li>
+
+                    <li>
+                        <button data-index="@index"
+                                data-category="@recipes.Category"
+                                value="@recipes.Id"
+                                onclick="CangeRecipes(this)"
+                                class="bgRed Border-Gold"
+                                style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                            Hauptspeise
+                        </button>
+                    </li>
+
+                    <li>
+                        <button data-index="@index"
+                                value="Dessert"
+                                onclick="AddAppetizerOrDessert(this)"
+                                class="bgRed Border-Gold"
+                                style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
+                            Dessert
+                        </button>
+                    </li>
+
+
+
+
+                </ul>
+
+                <hr />
+
 
             }
         }
@@ -50,50 +210,122 @@
 
 
 </div>
-
-
+<a onclick="CreatedMealPlan()">
+    Fertig
+</a>
 <script>
-    function CangeRecipes(button)
-    {
+    function CreatedMealPlan(index){
 
-        var recipeId = button.value;
-        
-        var index = button.getAttribute("data-index");
-        var recipe = document.getElementById(recipeId);
+        var ids=GetRecipesIdsList().join(";");
 
-        var ingredientList = document.getElementById("ingredientPartialView").innerHTML = "";
-      
-        recipe.remove();
-         
-        var recipesIds = GetRecipesIdsList().join(";");
-       
-        
+        window.location.href = "/CreateNewMealPlan/CreatedMealPlan?ids=" + ids;
+    };
 
-        $.get("/CreateNewMealPlan/LoadRecipesPartialView", { recipesIds: recipesIds,recipeId:recipeId ,index:index }, function (html) {
-         $("#recipesContainer_" + index).html(html);
+
+
+       function RemoveItem(id,buttonId) {
+           var ids = id.split(",");
+        ids.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = "";
+            }
         });
+
+       document.getElementById(buttonId).hidden = true;
 
         ReloadIngredientList();
-
     }
 
-    function GetRecipesIdsList(){
+    function CangeRecipes(button) {
+        var recipeId = button.value;
+        var index = button.getAttribute("data-index");
+        var category = button.dataset.category;
 
-         var recipesElements = document.getElementsByName("Recipes");
 
-         var recipesIdsList = Array.from(recipesElements).map(function (el) {
-              return el.title;
-        });
+        document.getElementById("ingredientPartialView").innerHTML = "";
 
-        return recipesIdsList;
+        var recipesIds = GetRecipesIdsList().join(";");
+
+        if (category !== "Hauptspeise") {
+            CheckCategory(category, index);
+        } else {
+            $.get("/CreateNewMealPlan/LoadRecipesPartialView", {
+                recipesIds: recipesIds,
+                recipeId: recipeId,
+                index: index
+            }, function (html) {
+                $("#recipesContainer_" + index).html(html);
+                ReloadIngredientList();
+
+                var dataArray = getDataArray($("#recipesContainer_" + index).find("[name='Data']"));
+                document.getElementById("recipesContainerName_" + index).innerHTML = dataArray[0];
+                document.getElementById("recipesContainerPreperationTime_" + index).innerHTML ="Zubereitungszeit "+ dataArray[2]+"min";
+
+                $.get("/CreateNewMealPlan/GetNameAndDescription", {
+                    name: dataArray[0],
+                    description: dataArray[1]
+                }, function (html) {
+                    $("#recipesContainerDiscription_" + index).html(html);
+                });
+            });
+        }
     }
 
-    function ReloadIngredientList()
-    {
-        var recipesIdsList = GetRecipesIdsList();
+ 
 
-
-       $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds="+recipesIdsList.join(";"));
-
+    function getDataArray($element) {
+        var name = $element.attr("data-Name");
+        var description = $element.attr("data-description");
+        var preperationTime = $element.attr("data-preperationTime");
+        return [name, description, preperationTime];
     }
+
+    function CheckCategory(category, index) {
+        if (category === "Dessert") {
+            $.get("/CreateNewMealPlan/LoadAppetizerOrDessertPartialView", {
+                category: category,
+                index: index
+            }, function (html) {
+                $("#dessert_" + index).html(html);
+                ReloadIngredientList();
+
+                    var dataArray = getDataArray($("#dessert_" + index).find("[name='Data']"));
+                    document.getElementById("dessertName_" + index).innerHTML = dataArray[0];
+                    document.getElementById("dessertPreperationTime_" + index).innerHTML = "Zubereitungszeit "+ dataArray[2]+"min";
+                     document.getElementById("dessertDeleteButton_"+index).hidden=false;
+                    $.get("/CreateNewMealPlan/GetNameAndDescription", {
+                        description: dataArray[1]
+                    }, function (html) {
+                        $("#dessertDiscription_" + index).html(html);
+                    });
+                });
+        } else {
+            $.get("/CreateNewMealPlan/LoadAppetizerOrDessertPartialView", {
+                category: category,
+                index: index
+            }, function (html) {
+                $("#appetizer_" + index).html(html);
+                ReloadIngredientList();
+
+                    var dataArray = getDataArray($("#appetizer_" + index).find("[name='Data']"));
+                    document.getElementById("appetizerName_" + index).innerHTML = dataArray[0];
+                    document.getElementById("appetizerPreperationTime_" + index).innerHTML = "Zubereitungszeit "+ dataArray[2]+"min";
+                    document.getElementById("appetizerDeleteButton_"+index).hidden=false;
+                    $.get("/CreateNewMealPlan/GetNameAndDescription", {
+                        name: dataArray[0],
+                        description: dataArray[1]
+                    }, function (html) {
+                        $("#appetizerDiscription_" + index).html(html);
+                });
+            });
+        }
+    }
+
+    function AddAppetizerOrDessert(button) {
+        var category = button.value;
+        var index = button.getAttribute("data-index");
+        CheckCategory(category, index);
+    }
+
 </script>

@@ -8,7 +8,8 @@
     @await RenderSectionAsync("PreloadLinks", required: false)
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+   
 
 
     @{
@@ -230,7 +231,8 @@
     <script src="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
+    <script src="~/js/site.js"></script>
+    
 </body>
 </html>
 

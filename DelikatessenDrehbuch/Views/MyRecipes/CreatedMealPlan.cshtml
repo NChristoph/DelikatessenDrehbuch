@@ -1,0 +1,45 @@
+﻿@model List<Recipes>
+
+@{
+    var index = ViewData["Index"];
+}
+
+<div class="w-100 mobieleWidth90 flexColumn flexJustifyContendCenter">
+
+    @{
+        foreach (var recipes in Model)
+        {
+            
+            <span class="w-100 mt-2 mb-2"
+                  style="text-align:center;display:block"><strong>@recipes.Name</strong></span>
+            <div class=" flexRowToColumn flexAlginItemCenter Bg-Cream Border-Gold w-100 mobieleWidth90">
+
+                <div class=" mobieleWidth100 ">
+                    <div name="Recipes"
+                         title="@recipes.Id"></div>
+                    <div class="flexRow flexJustifyContendSpaceBetween">
+
+                        <div id="ingredientPartialView_@recipes.Id"
+                             class="p-2"
+                             style="max-width:49%;font-size:13px">
+                        </div>
+                        <span class="p-2"
+                              style="max-width:49%;white-space:pre-line">
+                            @Html.Raw(@recipes.Preparation)
+                        </span>
+
+                    </div>
+                    <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                            ReloadIngredientList("ingredientPartialView_@recipes.Id",@recipes.Id);
+                           
+                        });
+                    </script>
+                </div>
+
+            </div>
+
+        }
+    }
+
+</div>

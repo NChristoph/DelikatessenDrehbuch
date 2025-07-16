@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -31,11 +33,30 @@ namespace DelikatessenDrehbuch.Controllers
             return View(querylist);
         }
 
-
-        //TODO noch filter einbauen gibt aktuerll alle rezepte aus
-        public ActionResult CreateNewMealPlan(List<string> queryList)
+        public IActionResult GetNameAndDescription(string name,string description)
         {
-            var mealplan = GetMealplanList(queryList);
+            string[] model = new[] { name, description };
+
+            return PartialView("~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml",model);
+        }
+
+        public IActionResult CreatedMealPlan(string ids)
+        {
+           
+            var idList = ids.Split(";").Select(x => int.Parse(x)).ToList();
+            var model = _context.Recipes.Where(x => idList.Contains(x.Id)).ToList();
+
+            return View("~/Views/MyRecipes/CreatedMealPlan.cshtml",model);
+        }
+       
+        public ActionResult CreateNewMealPlan(List<string> queryList, int dayCount)
+        {
+            if (dayCount > 7)
+            {
+                return Ok("Maximal 7 Tage erlaubt"); 
+            }
+
+            var mealplan = GetMealplanList(queryList,dayCount);
 
             return View("~/Views/MyRecipes/CreateNewMealPlan.cshtml", mealplan);
         }
@@ -49,15 +70,16 @@ namespace DelikatessenDrehbuch.Controllers
             return cleanedList;
         }
 
-        private MealModel GetMealplanList(List<string> queryList)
+        private MealModel GetMealplanList(List<string> queryList, int dayCount)
         {
+           
             MealModel mealPlan = new();
             var random = new Random();
             var cleanedList = CleanQueryList(queryList);
             var recipesFromDbIds = _context.QueryHandler.Where(x => cleanedList.Contains(x.Query.Query.ToLower()) && x.Recipe.Category == "Hauptspeise")
                                                          .Select(x => x.Recipe.Id).ToList();
 
-            var recipeIds = recipesFromDbIds.OrderBy(x => random.Next()).Take(7).ToList();
+            var recipeIds = recipesFromDbIds.OrderBy(x => random.Next()).Take(dayCount).ToList();
 
             HttpContext.Session.SetString("RecipesFromDbIds", string.Join(";", recipesFromDbIds));
 
@@ -82,21 +104,28 @@ namespace DelikatessenDrehbuch.Controllers
 
         //TODO: Ordentlicher machen
 
+        private List<int> GetMatchingRecipesIds(List<int> recipesIds, int recipeId)
+        {
+            var idsString = HttpContext.Session.GetString("RecipesFromDbIds")?.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+           
+            var matchingRecipes = _context.Recipes.Where(x =>
+                                  idsString.Contains(x.Id) &&
+                                  x.Id != recipeId &&
+                                  !recipesIds.Contains(x.Id))
+                                  .Select(x => x.Id).ToList();
+
+            return matchingRecipes;
+        }
+
+       
+
         public IActionResult LoadRecipesPartialView(string recipesIds, int recipeId,string index)
         {
             var random = new Random();
             ViewData["Index"] = int.Parse(index);
-           var recipesToChange = recipesIds.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            var idsString = HttpContext.Session.GetString("RecipesFromDbIds")?.Split(';', StringSplitOptions.RemoveEmptyEntries);
+           var recipesToChange = recipesIds.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
 
-            if (idsString == null)
-                return BadRequest("Session enthält keine Rezept-IDs.");
-
-            var matchingRecipes = _context.Recipes.Where(x =>
-                                  idsString.Contains(x.Id.ToString()) &&
-                                  x.Id != recipeId &&
-                                  !recipesToChange.Contains(x.Id.ToString()))
-                                  .Select(x=>x.Id).ToList(); 
+            var matchingRecipes = GetMatchingRecipesIds(recipesToChange, recipeId);
 
             var Id = matchingRecipes
                 .OrderBy(x => random.Next())
@@ -107,6 +136,21 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", model);
         }
 
+        public IActionResult LoadAppetizerOrDessertPartialView(string category,string index)
+        {
+            var random = new Random();
+            ViewData["Index"] = int.Parse(index);
+            var matchingRecipes = _context.Recipes.Where(x=>x.Category.ToLower().Trim() == category.ToLower().Trim())
+                                                  .Select(x=>x.Id).ToList();
+
+            var randomId=matchingRecipes.OrderBy(x => random.Next()).Take(1).FirstOrDefault();
+
+            var model =_context.Recipes.Single(x=>x.Id==randomId);
+
+
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",model);
+        }
 
 
     }

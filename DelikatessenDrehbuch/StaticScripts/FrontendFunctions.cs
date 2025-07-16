@@ -2,6 +2,16 @@
 {
     public static class FrontendFunctions
     {
+        public static bool CheckCategory(string category)
+        {
+            var stringToCheck = category.ToLower().Trim();
+
+            if (stringToCheck == "dessert" || stringToCheck == "vorspeise")
+                return true;
+
+            return false;
+        }
+
         public static string CaseInsensitiveName(string encodetString)
         {
             var name = encodetString.ToLowerInvariant()

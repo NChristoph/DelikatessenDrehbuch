@@ -1,4 +1,18 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿function ReloadIngredientList(id,recipesId) {
+   
+    if (!id) {
+        var recipesIdsList = GetRecipesIdsList();
+        $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesIdsList.join(";"));
+    } else {
+        
+        $("#" + id).load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesId);
+    }
+}
 
-// Write your JavaScript code.
+function GetRecipesIdsList() {
+    var recipesElements = document.getElementsByName("Recipes");
+    
+    return Array.from(recipesElements).map(function (el) {
+        return el.title;
+    });
+}

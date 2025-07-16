@@ -111,23 +111,41 @@
     <div class="tab-pane fade Bg-Cream" id="Menue" role="tabpanel" style="padding:2%">
         <div id="Menue"></div>
 
-
     </div>
     @if (User.IsInRole("PremiumUser"))
     {
-        <div class="tab-pane fade Bg-Cream" id="MenuePlan" role="tabpanel" style="padding:2%">
+        <div id="MenuePlan"
+             class="tab-pane fade Bg-Cream"
+             role="tabpanel"
+             style="padding:2%">
 
-            <span>Wählen sie die dienge aus die sie nicht Essen !</span>
+           
 
-            <div class="flexColumn flexAlginItemCenter">
-                <form asp-controller="CreateNewMealPlan" asp-action="CreateNewMealPlan">
+            <span>Wählen sie die dienge aus die sie Essen !</span>
+
+            <div class="flexRowToColumn">
+                <form asp-controller="CreateNewMealPlan"
+                      asp-action="CreateNewMealPlan" 
+                      class="flexRowToColumn flexWrap"
+                      style="min-width:100%">
+
+                    <span class="flexRow flexAlginItemCenter w-100 m-2">
+                        Menü für :
+                        <input class=" m-2"
+                               type="number"
+                               name="dayCount"
+                               style="width:55px" />
+                        Tage erstellen.
+
+                    </span>
 
                     @{
                         int index = 0;
                         foreach (var query in Model)
                         {
                             index++;
-                            <div class="form-check">
+                            <div class="form-check m-2"
+                                 style="max-width:fit-content">
                                 <input class="form-check-input"
                                        checked
                                        name="queryList"
@@ -148,7 +166,7 @@
 
                     <button class="btn bgRed Border-Gold"
                             type="submit"
-                            style="max-width:fit-content">
+                            style="max-width:fit-content;color:white">
                         Essensplan Erstellen
                     </button>
 
