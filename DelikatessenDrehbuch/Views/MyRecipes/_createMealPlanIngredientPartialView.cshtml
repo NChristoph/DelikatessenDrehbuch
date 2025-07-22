@@ -9,11 +9,11 @@
     foreach (var ingredient in sortedList)
     {
         <div class="row mt-1 minWidth100">
-            <div class="col minWidth30"
+            <div class="col minWidth30 mobieleFontSize"
                  style="white-space:normal;text-align:start">
                 @ingredient.Ingredient.Name
             </div>
-            <div class="col p-0 minWidth30 maxWidth30">
+            <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
                 @ingredient.Quantity.Quantitys
                 @ingredient.Measure.UnitOfMeasurement
             </div>

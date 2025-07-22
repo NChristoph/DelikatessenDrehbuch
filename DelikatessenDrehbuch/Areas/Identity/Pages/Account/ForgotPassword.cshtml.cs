@@ -58,7 +58,9 @@ namespace DelikatessenDrehbuch.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(Input.Email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                //TODO: if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                //So hat das vorher ausgesehen mach die email confirm entlich
+                if (user == null )
                 {
                     // Don't reveal that the user does not exist or is not confirmed
                     return RedirectToAction("ForgotPasswordConfirmation");

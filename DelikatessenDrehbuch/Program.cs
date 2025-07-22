@@ -1,6 +1,8 @@
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
 using DelikatessenDrehbuch.MyExceptions;
+using DelikatessenDrehbuch.Services;
+using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +30,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddScoped<IMealPlanService, MealPlanService>();
+builder.Services.AddScoped<IRecipesService, RecipesService>();
+builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {

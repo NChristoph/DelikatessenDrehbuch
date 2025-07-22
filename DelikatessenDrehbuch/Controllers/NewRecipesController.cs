@@ -30,28 +30,6 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
-
-        public IActionResult CreateFolder()
-        {
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string folderPath = Path.Combine(desktopPath, "Recipes");
-            string recipesNeuPath = Path.Combine(folderPath, "Rezepte Neu");
-
-            string txtPath = Path.Combine(folderPath, "RezeptNamen.txt");
-
-            string[] lines = System.IO.File.ReadAllLines(txtPath, Encoding.UTF8);
-
-            foreach (var line in lines)
-            {
-                string path = Path.Combine(recipesNeuPath, line);
-                Directory.CreateDirectory(path);
-                System.IO.File.Create(Path.Combine(path, "recipes.txt"));
-            }
-
-            return RedirectToAction("Index");
-        }
-
-
         public IActionResult CreateRecipes()
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
@@ -376,14 +354,6 @@ namespace DelikatessenDrehbuch.Controllers
         }
         private void CreateQuaryHandler(Recipes recipes, List<string> queryHandlers)
         {
-            //var recipesFromDb = new Recipes();
-            //if (recipes.Id == 0)
-            //    recipesFromDb = GetRecipeFromDb(recipes);
-            //else
-            //{
-            //    recipesFromDb = recipes;
-            //    RemoveOldQueryHandler(recipesFromDb);
-            //}
 
             var querysFromDb = _dbContext.Querys.ToList();
 

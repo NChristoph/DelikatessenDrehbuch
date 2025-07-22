@@ -112,7 +112,7 @@
         <div id="Menue"></div>
 
     </div>
-    @if (User.IsInRole("PremiumUser"))
+    @if (User.IsInRole("PremiumUser") || User.Identity.Name.ToLower() == "free.88@mailxl.at")
     {
         <div id="MenuePlan"
              class="tab-pane fade Bg-Cream"

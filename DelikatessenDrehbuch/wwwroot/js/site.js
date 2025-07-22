@@ -1,4 +1,5 @@
-﻿function ReloadIngredientList(id,recipesId) {
+﻿function ReloadIngredientList(id, recipesId) {
+   
    
     if (!id) {
         var recipesIdsList = GetRecipesIdsList();
