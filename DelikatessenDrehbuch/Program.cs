@@ -34,6 +34,18 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IMealPlanService, MealPlanService>();
 builder.Services.AddScoped<IRecipesService, RecipesService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IAdminControllerModelService, AdminControllerModelService>();
+builder.Services.AddScoped<IBlobAzureService, BlobAzureService>();
+builder.Services.AddScoped<IQueryService, QueryService>();
+builder.Services.AddScoped<IRecipesHandlerService, RecipesHandlerService>();
+builder.Services.AddScoped<IQuantityService, QuantityService>();
+builder.Services.AddScoped<IMeasureService,  MeasureService>();
+builder.Services.AddScoped<INutrientService,  NutrientService>();
+builder.Services.AddScoped<ISupportTicketService,  SupportTicketService>();
+builder.Services.AddScoped<IRecessionsService,  RecessionsService>();
+builder.Services.AddScoped<ILikeService,  LikeService>();
+builder.Services.AddScoped<IUtilityService,  UtilityService>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>

@@ -105,7 +105,8 @@
 
 <div class="tab-content mt-3" id="MyRecipesTabconted" style="height:min-content">
     <div class="tab-pane fade show active Bg-Cream" id="myRecipes" role="tabpanel" style="padding:2%">
-        <div id="Favoriten"></div>
+        <div id="Favoriten">
+        </div>
 
     </div>
     <div class="tab-pane fade Bg-Cream" id="Menue" role="tabpanel" style="padding:2%">
@@ -119,13 +120,13 @@
              role="tabpanel"
              style="padding:2%">
 
-           
+
 
             <span>Wählen sie die dienge aus die sie Essen !</span>
 
             <div class="flexRowToColumn">
                 <form asp-controller="CreateNewMealPlan"
-                      asp-action="CreateNewMealPlan" 
+                      asp-action="CreateNewMealPlan"
                       class="flexRowToColumn flexWrap"
                       style="min-width:100%">
 
@@ -151,10 +152,11 @@
                                        name="queryList"
                                        type="checkbox"
                                        value="@query"
-                                       id="filterCheckbox@{index.ToString();}">
+                                       id="filterCheckbox@(index)">
+
 
                                 <label class="form-check-label"
-                                       for="filterCheckbox@{index.ToString();}">
+                                       for="filterCheckbox@(index)">
                                     @query
                                 </label>
                             </div>
@@ -184,6 +186,10 @@
 
 @section Scripts {
     <script>
+
+        $(function () {
+            $("#Favoriten").load("/MyRecipes/LoadRecipesILike");
+        });
 
         function loadAboPage() {
             $('#PartailaView').load("MyRecipes/PremiumUserPage")

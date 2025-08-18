@@ -2,7 +2,8 @@
 {
     public class SelectedRecipesModel
     {
-        public FullRecipes FullRecipes { get; set; }
+        public FullRecipeData FullRecipeData { get; set; }
+        public List<string> Querys { get; set; }
         public List<Recipes> RecipeSuggestions { get; set; }
 
         public List<NutrienHandler> NutrienHandlers { get; set; }

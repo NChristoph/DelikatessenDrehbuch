@@ -1,5 +1,6 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,107 +11,82 @@ namespace DelikatessenDrehbuch.Controllers
     public class SelectedRecipeController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly HelpfulMethods _helpfulMethods;
-        public SelectedRecipeController(ApplicationDbContext dbContext, HelpfulMethods helpfulMethods)
+        private readonly IRecipesService _recipesService;
+        private readonly IQueryService _queryService;
+        private readonly INutrientService _nutrientService;
+        private readonly IIngredientService _ingredientService;
+        private readonly ILikeService _likeService;
+        private readonly IRecessionsService _recessionsService;
+
+        public SelectedRecipeController(ApplicationDbContext dbContext, IRecipesService recipesService,
+                                        IQueryService queryService, INutrientService nutrientService,
+                                        IIngredientService ingredientService, ILikeService likeService,
+                                        IRecessionsService recessionsService)
         {
             _context = dbContext;
-            _helpfulMethods = helpfulMethods;
+            _recipesService = recipesService;
+            _queryService = queryService;
+            _nutrientService = nutrientService;
+            _ingredientService = ingredientService;
+            _likeService = likeService;
+            _recessionsService = recessionsService;
         }
 
-        public async Task<List<Recipes>> GetRecipesSuggetions(Task<List<Recipes>> recipes)
-        {
-            var random= new Random();
-            var recipeList = await recipes;
-            return  recipeList.GroupBy(x => x.Name).OrderBy(g => random.Next())
-                          .Take(7)
-                          .Select(g => g.First())
-                          .ToList();
-        }
+
         public async Task<IActionResult> Index(int id, string name)
         {
             var userIsLoggedIn = User.Identity.IsAuthenticated;
-            if (userIsLoggedIn)
-                _helpfulMethods.CreateUserPreferencesRecipe(id, User.Identity.Name, _context);
+
+            var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(id);
+            var recipesIds = await _context.QueryHandler.Where(x => x.Query.Query.ToLower().Trim() == querys.First().ToLower().Trim())
+                                                        .Select(x => x.Recipe.Id)
+                                                        .ToListAsync();
+
+            var randomRecipesIds = _recipesService.GetRendomRecipesIdsByCountFromIdListAsync(recipesIds, 7);
 
             SelectedRecipesModel model = new()
             {
-                FullRecipes = _helpfulMethods.GetFullRecipeById(_context, id)
-            };
-         
-            var IngredientNames= model.FullRecipes.IngredientHandler.Select(x=>x.Ingredient.Name.ToLower()).ToList();
-            model.NutrienHandlers = await _context.NutrienHandler.Where(x => IngredientNames.Contains(x.Ingredient.Name.ToLower()))
-                                                           .Include(x=>x.Ingredient)
-                                                           .Include(x=>x.Quantity)
-                                                           .Include(x=>x.Nutrients).ToListAsync();
+                FullRecipeData = await _recipesService.GetFullRecipeDataByRecipesIdAsync(id),
+                Querys = querys,
+                NutrienHandlers = await _nutrientService.GetNutrienHandlersByIngredientNamesAsync(
+                                       await _ingredientService.GetIngredientsNamesByRecipesId(id)),
 
-            var querys = _context.QueryHandler.Where(x=>x.Recipe==model.FullRecipes.Recipes).Select(x=>x.Query.Query.ToLower().Trim()).ToList();
-            model.RecipeSuggestions= await GetRecipesSuggetions(_context.QueryHandler.Where(x=>x.Query.Query.ToLower().Trim()==querys.First()).Select(x=>x.Recipe).ToListAsync());
-          
+                RecipeSuggestions = await _context.Recipes.Where(x => randomRecipesIds.Contains(x.Id))
+                                                          .ToListAsync()
+            };
+
             return View(model);
         }
 
 
 
-        public async Task <IActionResult> AddOrRemoveLike(int id)
+        public async Task<IActionResult> AddOrRemoveLike(int id)
         {
             var currentUserName = User.Identity.Name;
-            var recipe = _helpfulMethods.GetRecipeFromDbById(_context, id);
+            var recipe = await _recipesService.GetRecipesFromDbByIdAsync(id);
             var like = _context.Likes.SingleOrDefault(x => x.UserMail == currentUserName && x.Recipe == recipe);
 
             if (recipe == null)
-                return BadRequest();
+                return BadRequest("Rezept nicht gefunden.");
 
             if (like == null)
-               await AddLikeAsync(currentUserName, id, recipe);
+                await _likeService.CreateLikeAsync(id, currentUserName);
             else
-               await RemoveLikeAsync(like, recipe);
+                await _likeService.RemoveLikeAsync(like);
 
             return RedirectToAction("Index", new { id });
         }
 
-        private async Task AddLikeAsync(string currentUserName, int id, Recipes recipe)
-        {
-            var like = new Like
-            {
-                UserMail = currentUserName,
-                Recipe = recipe
-            };
-
-            _context.Likes.Add(like);
-
-            
-            recipe.LikeCount = await _context.Likes.CountAsync(x => x.Recipe.Id == id) + 1;
-
-            await _context.SaveChangesAsync();
-        }
+       
 
 
-        private async Task RemoveLikeAsync(Like like, Recipes recipe)
-        {
-           
-            _context.Likes.Remove(like);
-            recipe.LikeCount = await _context.Likes.CountAsync(x => x.Recipe.Id == recipe.Id) - 1;
-            _context.SaveChanges();
-        }
+
 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveRecessionInDB(int id, string assessment)
         {
+            await _recessionsService.SaveNewRecessionInDbAsync(id, assessment, User.Identity.Name);
 
-            if (id == 0)
-                return NotFound("Rezept nicht gefunden");
-
-            Recession newRecession = new()
-            {
-                Id = 0,
-                CreationDate = DateTime.Now,
-                UserEmail = User.Identity.Name,
-                Assessment = assessment,
-                Recipes = _helpfulMethods.GetRecipeFromDbById(_context, id)
-            };
-
-           await _context.Recessions.AddAsync(newRecession);
-           await _context.SaveChangesAsync();
             return RedirectToAction("Index", new { id });
         }
     }

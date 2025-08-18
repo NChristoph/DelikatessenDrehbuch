@@ -9,6 +9,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         Dictionary<int, List<Recipes>> MapToMealPlanDictionary(string json);
         List<int> GetIntListByString(string Ids);
         List<string> GetMealPlanFilter();
+        public Task CreateMealPlanAsync(int recipesId, string mealPlanName);
 
     }
 }

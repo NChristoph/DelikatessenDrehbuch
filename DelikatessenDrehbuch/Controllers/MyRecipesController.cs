@@ -1,5 +1,6 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,14 @@ namespace DelikatessenDrehbuch.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helpfulMethods;
-        public MyRecipesController(ApplicationDbContext context, HelpfulMethods helpfulMethods)
+        private readonly IIngredientService _ingredientService;
+        private readonly ILikeService _likeService;
+        public MyRecipesController(ApplicationDbContext context, HelpfulMethods helpfulMethods, IIngredientService ingredientService, ILikeService likeService)
         {
             _context = context;
             _helpfulMethods = helpfulMethods;
+            _ingredientService = ingredientService;
+            _likeService = likeService;
         }
 
         public IActionResult Index()
@@ -91,7 +96,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
         public IActionResult MealPlanView()
         {
-            var categoryFromDb =  _context.MyMealModel.Select(x => x.Category).ToList();
+            var categoryFromDb = _context.MyMealModel.Select(x => x.Category).ToList();
 
 
             return PartialView("_MealPlanView", categoryFromDb);
@@ -109,29 +114,32 @@ namespace DelikatessenDrehbuch.Controllers
             mealModel.MealPlan = _context.MealPlan.SingleOrDefault(x => x.Id == id);
             mealModel.Recipes = _context.Recipes.Where(x => recipesIds.Contains(x.Id)).ToList();
 
-            mealModel.Ingredients = _helpfulMethods.GetIngredientsByRecipesIdsList(_context, recipesIds);
+            mealModel.Ingredients = _ingredientService.GetIngredientsByRecipesIdsList(recipesIds);
 
 
             return View("Meal", mealModel);
         }
 
-        public IActionResult LoadMyRecipes()
-        {
-            if (User.IsInRole("Admin"))
-            {
-                var recipesFromDb = _context.Recipes.ToList();
-                return PartialView("_MyRecipesPartialView", recipesFromDb);
-            }
 
-            var myRecipesFromDb = _context.Recipes.Where(x => x.OwnerEmail == User.Identity.Name).ToList();
-            return PartialView("_MyRecipesPartialView", myRecipesFromDb);
-        }
 
         public IActionResult LoadRecipesILike()
         {
-            var likesFromDb = _context.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x => x.Recipe).ToList();
-            var recipesFromLikes = likesFromDb.Select(x => x.Recipe).ToList();
-            return PartialView("_MyRecipesPartialView", recipesFromLikes);
+            var recipesILikeFromDb = _context.Likes.Where(x => x.UserMail == User.Identity.Name).Include(x => x.Recipe).Select(x => x.Recipe).ToList();
+
+            return PartialView("_MyRecipesPartialView", recipesILikeFromDb);
+        }
+
+        public async Task<IActionResult> RemoveRecipeFromLikedList(int recipeId)
+        {
+            var recipesILikeFromDb = _context.Likes.Where(x => x.UserMail == User.Identity.Name).Select(x => x.Recipe).ToList();
+            var recipe = recipesILikeFromDb.First(x => x.Id == recipeId);
+            var currentUserName = User.Identity.Name;
+            var like = _context.Likes.SingleOrDefault(x => x.UserMail == currentUserName && x.Recipe == recipe);
+            await _likeService.RemoveLikeAsync(like);
+           
+
+
+            return  RedirectToAction("Index");
         }
 
 

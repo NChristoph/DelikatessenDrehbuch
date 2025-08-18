@@ -3,22 +3,33 @@
 
 
 <div name="partial" class="flexRowToColumn  flexJustifyContendCenter mobieleWidth100 minWidth100  mb-2 p-2">
-    
+
+   
+
     <div class="ingredient-name-row ingredient-row flex">
         <!-- Verwende den Index in den Namen -->
-        <input class="form-control ingredient-name" type="text" asp-for="IngredientHandler.Ingredient.Name" name="recipes.IngredientHandler[@Model.Index].Ingredient.Name" placeholder="Zutat" />
+        <input class="form-control ingredient-name"
+               type="text" 
+               asp-for="IngredientHandler.Ingredient.Name"
+               name="recipes.IngredientHandler[@Model.Index].Ingredient.Name"
+              
+              
+               placeholder="Zutat" />
     </div>
 
     <div class="ingredient-deteils-row flex mt-2">
-        <input class="form-control ingredient-amount" step="any" type="number" asp-for="IngredientHandler.Quantity.Quantitys" name="recipes.IngredientHandler[@Model.Index].Quantity.Quantitys" placeholder="Mänge" />
+        <input class="form-control ingredient-amount" 
+               step="any" 
+               type="number" 
+               asp-for="IngredientHandler.Quantity.Quantitys" 
+               placeholder="Mänge" />
 
         <div class="ingredient-unit">
            
-
             @{
                 if (!string.IsNullOrEmpty(Model.IngredientHandler.Measure.UnitOfMeasurement))
                 {
-                    <input type="hidden" name="recipes.IngredientHandler[@Model.Index].Measure.UnitOfMeasurement" id="hiddenUnit_@Model.Index" value="@Model.IngredientHandler.Measure.UnitOfMeasurement" />
+                    <input type="hidden" id="hiddenUnit_@Model.Index" value="@Model.IngredientHandler.Measure.UnitOfMeasurement" />
 
                             <div id="unitDropdown_@Model.Index" class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
                                 @Model.IngredientHandler.Measure.UnitOfMeasurement
@@ -26,9 +37,9 @@
                 }
                 else
                 {
-                    <input type="hidden" name="recipes.IngredientHandler[@Model.Index].Measure.UnitOfMeasurement" id="hiddenUnit_@Model.Index" value="Stk." />
+                    <input type="hidden" id="hiddenUnit_@Model.Index" value="Stk." />
 
-                            <div id="unitDropdown_@Model.Index"  class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
+                            <div id="unitDropdown_@Model.Index" class="btn bgRed dropdown-toggle minWidth100" type="button" data-bs-toggle="dropdown" style="color:#FFFDD0;" >
                                 Stk. 
                             </div>
                 }

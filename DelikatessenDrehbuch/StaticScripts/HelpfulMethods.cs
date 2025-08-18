@@ -7,28 +7,6 @@ namespace DelikatessenDrehbuch.StaticScripts
 {
     public class HelpfulMethods
     {
-        public FullRecipes GetFullRecipeById(ApplicationDbContext dbContext, int recipeId)
-        {
-            var recipeFromDb = dbContext.Recipes.SingleOrDefault(x => x.Id == recipeId);
-            var recipHandlerFromDb = dbContext.RecipesHandlers.Where(x => x.Recipe == recipeFromDb)
-                                                             .Include(x => x.IngredientHandler.Ingredient)
-                                                             .Include(x => x.IngredientHandler.Measure)
-                                                             .Include(x => x.IngredientHandler.Quantity)
-                                                             .ToList();
-            FullRecipes fullRecipes = new()
-            {
-                Recipes = recipeFromDb,
-                IngredientHandler = recipHandlerFromDb.Select(x => x.IngredientHandler).ToList(),
-                Likes = dbContext.Likes.Where(x => x.Recipe == recipeFromDb).ToList(),
-                Recession = dbContext.Recessions.Where(x => x.Recipes == recipeFromDb).ToList(),
-                Measure = dbContext.Metrics.ToList(),
-                QueryHandler = dbContext.QueryHandler.Where(x => x.Recipe == recipeFromDb)
-                                                             .Select(x => x.Query.Query).ToList(),
-                Querys = dbContext.Querys.ToList()
-            };
-            return fullRecipes;
-        }
-
         public void CreateUserPreferencesRecipe(int id, string email, ApplicationDbContext context)
         {
             if (string.IsNullOrEmpty(email))
@@ -140,34 +118,10 @@ namespace DelikatessenDrehbuch.StaticScripts
         }
 
 
-        public List<IngredientHandlerModel> GetIngredientsByRecipesIdsList(ApplicationDbContext context,List<int> recipesIds)
-        {
-            var ingredientHandlers = context.RecipesHandlers.Where(rh => recipesIds
-                                                         .Contains(rh.Recipe.Id))
-                                                         .Include(rh => rh.IngredientHandler)
-                                                         .Include(rh => rh.IngredientHandler.Ingredient)
-                                                         .Include(rh => rh.IngredientHandler.Measure)
-                                                         .Include(rh => rh.IngredientHandler.Quantity)
-                                                         .Select(x => x.IngredientHandler);
-                                                         
 
 
-            var sortedIngredientHandler= ingredientHandlers.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                                                       .Select(g => new IngredientHandlerModel
-                                                       {
-                                                           Ingredient = g.First().Ingredient,
-                                                           Measure = g.First().Measure,
-                                                           Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
-                                                       })
-                                                       .ToList();
 
 
-            return sortedIngredientHandler;
-        }
-
-       
-
-       
     }
 
 

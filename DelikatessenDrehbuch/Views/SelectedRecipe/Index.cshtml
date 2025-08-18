@@ -2,15 +2,17 @@
 @using System.Web
 @using System.Linq;
 @using DelikatessenDrehbuch.StaticScripts;
+@using DelikatessenDrehbuch.Services.Interfaces;
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @inject IJsonHelper Json
+@inject IUtilityService _utilityService
 @model SelectedRecipesModel
 
 @{
-    ViewData["Title"] = $"{Model.FullRecipes.Recipes.Name} – Rezept & Anleitung | Delikatessen-Drehbuch";
-    ViewData["Description"] = $"Entdecken Sie das Rezept für {Model.FullRecipes.Recipes.Name} – eine exquisite Delikatesse mit detaillierter Anleitung. Perfekt für besondere Anlässe oder den puren Genuss. Jetzt entdecken & nachkochen!";
+    ViewData["Title"] = $"{Model.FullRecipeData.Recipes.Name} – Rezept & Anleitung | Delikatessen-Drehbuch";
+    ViewData["Description"] = $"Entdecken Sie das Rezept für {Model.FullRecipeData.Recipes.Name} – eine exquisite Delikatesse mit detaillierter Anleitung. Perfekt für besondere Anlässe oder den puren Genuss. Jetzt entdecken & nachkochen!";
 }
 <head>
     <!-- Bootstrap CSS -->
@@ -33,28 +35,28 @@
     {
     "@@context": "https://schema.org",
     "@@type": "Recipe",
-    "name": "@Model.FullRecipes.Recipes.Name",
+    "name": "@Model.FullRecipeData.Recipes.Name",
     "author": {
     "@@type": "Person",
     "name": "Christoph Nitsch"
     },
-    "description": "@Model.FullRecipes.Recipes.Description",
-    "prepTime": "PT@Model.FullRecipes.Recipes.PreparationTimeMins@M",
-    "totalTime": "PT@Model.FullRecipes.Recipes.PreparationTimeMins@M",
-    "recipeCategory": "@Model.FullRecipes.Recipes.Category",
+    "description": "@Model.FullRecipeData.Recipes.Description",
+    "prepTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
+    "totalTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
+    "recipeCategory": "@Model.FullRecipeData.Recipes.Category",
     "keywords": [
-    @Html.Raw(string.Join(",", Model.FullRecipes.QueryHandler.Select(q => "\"" + q.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
+   
     ],
     "recipeIngredient": [
-    @Html.Raw(string.Join(",", Model.FullRecipes.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
+    @Html.Raw(string.Join(",", Model.FullRecipeData.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
     ],
     "recipeInstructions": [
     {
     "@@type": "HowToStep",
-    "text": "@Html.Raw(Model.FullRecipes.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
+    "text": "@Html.Raw(Model.FullRecipeData.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
     }
     ],
-    "image": "@Model.FullRecipes.Recipes.ImagePath",
+    "image": "@Model.FullRecipeData.Recipes.ImagePath",
     "publisher": {
     "@@type": "Organization",
     "name": "Delikatessen-Drehbuch",
@@ -81,6 +83,7 @@
     window.location.href = '../../Home/Index';
     }
     }
+
 </script>
 
 
@@ -88,34 +91,45 @@
 
     <div class="minWidth100 flex flexJustifyContendCenter">
         <div class="maxWidth80 minWidth80 mobieleWidth90 mobileCenter ">
-            <a class="Border-Gold btn " typeof="button" onclick="GoBack()" style="text-decoration:none;color:white;background:#770f05">Zurück</a>
+
+            <a class="Border-Gold btn "
+               typeof="button"
+               onclick="GoBack()"
+               style="text-decoration:none;color:white;background:#770f05">
+                Zurück
+            </a>
+
             <div class="grid-Selected-Recipe minWidth100 flexJustifyContendSpaceAround ">
 
-                <h3 class="grid-KeyWords m-4" style="font-family:Century;margin-bottom:1rem;text-align:center">@Model.FullRecipes.Recipes.Name</h3>
+                <h3 class="grid-KeyWords m-4"
+                    style="font-family:Century;margin-bottom:1rem;text-align:center">
+                    @Model.FullRecipeData.Recipes.Name
+                </h3>
 
                 @{
-                   
-
-                    @if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.ImagePath))
+                    @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.ImagePath))
                     {
 
-                        var subPath = FrontendFunctions.CaseInsensitivePath(Model.FullRecipes.Recipes.ImagePath);
+                        var subPath = FrontendFunctions.CaseInsensitivePath(Model.FullRecipeData.Recipes.ImagePath);
 
                         var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
                         Environment.GetEnvironmentVariable("SmalPic"));
 
                         <div class=" grid-Image w-100 flex flexJustifyContendCenter mt-3">
-                            <picture class="mobieleWidth90 " style="max-width:450px;max-height:450px">
+                            <picture class="mobieleWidth90 "
+                                     style="max-width:450px;max-height:450px">
+
                                 <source srcset="@($"{smallPath}_small.webp")">
 
                                 <img class="img-fluid"
                                      src="@smallPath"
-                                     alt="@(!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Description) ? Model.FullRecipes.Recipes.Description : Model.FullRecipes.Recipes.Name)"
-                                     title="@Model.FullRecipes.Recipes.Name"
+                                     alt="@(!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Description) ? Model.FullRecipeData.Recipes.Description : Model.FullRecipeData.Recipes.Name)"
+                                     title="@Model.FullRecipeData.Recipes.Name"
                                      width="450"
                                      height="450"
                                      decoding="async"
                                      style="aspect-ratio: 3 / 2; object-fit: cover;" />
+
                             </picture>
                         </div>
 
@@ -123,22 +137,23 @@
                     }
                     else
                     {
-                        <img class="img-fluid" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" />
+                        <img class="img-fluid"
+                             src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" />
                     }
                 }
 
 
                 @{
                     <p class="grid-LikeCount mt-3 mb-3">
-                        @(Model.FullRecipes.Recipes.LikeCount == 0
-                        ? "Sei der Erste, dem das Rezept gefällt."
-                        : $"Dieses Rezept gefällt {Model.FullRecipes.Recipes.LikeCount} Benutzern.")
-                    </p>
+                        @(Model.FullRecipeData.Recipes.LikeCount == 0
+                                            ? "Sei der Erste, dem das Rezept gefällt."
+                                            : $"Dieses Rezept gefällt {Model.FullRecipeData.Recipes.LikeCount} Benutzern.")
+                </p>
 
-                }
+                                }
 
 
-                @if (Model.FullRecipes.Recipes.PreparationTime > 0)
+                @if (Model.FullRecipeData.Recipes.PreparationTime > 0)
                 {
                     <div class="col minWidth50 grid-PreparationTime">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
@@ -146,23 +161,32 @@
                             <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
                             <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
                         </svg>
-                        @Model.FullRecipes.Recipes.PreparationTime min.
+                        @Model.FullRecipeData.Recipes.PreparationTime min.
                     </div>
                 }
 
-                @if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Calories))
+                @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Calories))
                 {
-                    <div class="grid-Calories col minWidth50" style="margin-left:auto;">
-                        <p>@Model.FullRecipes.Recipes.Calories Kalorien</p>
+                    <div class="grid-Calories col minWidth50"
+                    style="margin-left:auto;">
+                        @{
+                            var calories = _utilityService.GetCaloriesByIngredientHandlers(Model.FullRecipeData.IngredientHandler);
+                        }
+
+                        <p>calories neu :@calories</p>
                     </div>
                 }
 
 
-                @if (!string.IsNullOrEmpty(Model.FullRecipes.Recipes.Description))
+                @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Description))
                 {
-                    <div class="grid-Discription Bg-Cream" style="padding:5%">
+                    <div class="grid-Discription Bg-Cream"
+                         style="padding:5%">
+
                         <h4 class="mb-4">Rezept Beschreibung</h4>
-                        <p>@Html.Raw(Model.FullRecipes.Recipes.Description)</p>
+
+                        <p>@Html.Raw(Model.FullRecipeData.Recipes.Description)</p>
+
                     </div>
                 }
 
@@ -175,7 +199,7 @@
                 {
                     <a class="btn bgRed mb-2 grid-Button"
                        href="#"
-                       onclick="MessageModalShowWrite('@Model.FullRecipes.Recipes.GetType().Name', @Model.FullRecipes.Recipes.Id, '@User.Identity.Name')"
+                       onclick="MessageModalShowWrite('@Model.FullRecipeData.Recipes.GetType().Name', @Model.FullRecipeData.Recipes.Id, '@User.Identity.Name')"
                        style="color:#FFFDD0; width:max-content; margin-right:auto">
                         Rezept melden
                     </a>
@@ -184,13 +208,13 @@
 
                         <a asp-controller="SelectedRecipe"
                            asp-action="AddOrRemoveLike"
-                           asp-route-id="@Model.FullRecipes.Recipes.Id"
+                           asp-route-id="@Model.FullRecipeData.Recipes.Id"
                            title="Like Button"
                            style="width:100px; height:max-content; padding:0.35rem; margin-left:auto;">
                             @{
-                                var like = Model.FullRecipes.Likes.SingleOrDefault(x =>
+                                var like = Model.FullRecipeData.Likes.SingleOrDefault(x =>
                                 x.UserMail == User.Identity.Name &&
-                                x.Recipe == Model.FullRecipes.Recipes);
+                                x.Recipe == Model.FullRecipeData.Recipes);
                             }
 
                             @if (like != null)
@@ -198,7 +222,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor"
                                      class="bi bi-hand-thumbs-up" viewBox="0 0 16 16" style="color:black">
                                     <path d="M6.956 1.745C7.021.81 7.908.087 8.864.325l.261.066c.463.116.874.456 1.012.965.22.816.533 2.511.062 4.51a10 10 0 0 1 .443-.051c.713-.065 1.669-.072 2.516.21.518.173.994.681 1.2 1.273.184.532.16 1.162-.234 1.733q.086.18.138.363c.077.27.113.567.113.856s-.036.586-.113.856c-.039.135-.09.273-.16.404.169.387.107.819-.003 1.148a3.2 3.2 0 0 1-.488.901c.054.152.076.312.076.465 0 .305-.089.625-.253.912C13.1 15.522 12.437 16 11.5 16H8c-.605 0-1.07-.081-1.466-.218a4.8 4.8 0 0 1-.97-.484l-.048-.03c-.504-.307-.999-.609-2.068-.722C2.682 14.464 2 13.846 2 13V9c0-.85.685-1.432 1.357-1.615.849-.232 1.574-.787 2.132-1.41.56-.627.914-1.28 1.039-1.639.199-.575.356-1.539.428-2.59z" />
-                                   
+
                                 </svg>
                             }
                             else
@@ -211,7 +235,7 @@
                             }
                         </a>
 
-                       
+
                         <button type="button"
                                 data-bs-toggle="modal"
                                 data-bs-target="#exampleModal"
@@ -227,22 +251,78 @@
                 <hr class="grid-hr" style="opacity:1" />
 
                 <div class="grid-ingredient flex flexJustifyContendCenter">
-                    <ul class="mobieleWidth90 minWidth50" style="list-style-type:none; padding-left:0;">
-                        @foreach (var ingredient in Model.FullRecipes.IngredientHandler.OrderByDescending(x => x.Quantity.Quantitys))
-                        {
-                            <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem;">
-                                <span style="text-align:right; width:50px; margin-right:10px;">
-                                    @ingredient.Quantity.Quantitys
-                                </span>
-                                <span style="width:105px;">
-                                    @ingredient.Measure.UnitOfMeasurement
-                                </span>
-                                <span style="width:150px;">
-                                    @ingredient.Ingredient.Name
-                                </span>
-                            </li>
+                    <div class="col">
+
+                        <span class="m-2 mb-2"
+                              style="text-align:center;display:block;width:90%">
+                            Dieses Rezept ist für
+                            <input id="personCount"
+                                   value="1"
+                                   min="0"
+                                   type="number"
+                                   onchange="ChangeRecipesQuantity()"
+                                   style="width:55px;" />
+                            Personen.
+                        </span>
+
+                        @{
+                            bool salt = false;
+                            bool pepper = false;
+                            var ingredientList = Model.FullRecipeData.IngredientHandler.ToList();
+
+                            if (ingredientList.Select(x => x.Ingredient.Name).Contains("Salz"))
+                            {
+                                salt = true;
+                                ingredientList.Remove(ingredientList.Find(x => x.Ingredient.Name == "Salz"));
+                            }
+                            if (ingredientList.Select(x => x.Ingredient.Name).Contains("Pfeffer"))
+                            {
+                                pepper = true;
+                                ingredientList.Remove(ingredientList.Find(x => x.Ingredient.Name == "Pfeffer"));
+                            }
+
+                            <ul class="mobieleWidth90 minWidth50"
+                                style="list-style-type:none; padding-left:0;">
+
+                                @foreach (var ingredient in ingredientList)
+                                {
+                                    <li name="IngredientContainer_SelectetRecipe" class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter"
+                                        style="border-radius:0.25rem;">
+
+                                        <span name="quantity"
+                                              data-original="@ingredient.Quantity.Quantitys"
+                                              style="text-align:right; width:50px; margin-right:10px;">
+                                            @ingredient.Quantity.Quantitys
+                                        </span>
+                                        <span style="width:105px;">
+                                            @ingredient.Measure.UnitOfMeasurement
+                                        </span>
+                                        <span style="width:150px;">
+                                            @ingredient.Ingredient.Name
+                                        </span>
+
+                                    </li>
+
+
+                                }
+                                @if (salt || pepper)
+                                {
+                                    <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter">
+                                        @{
+                                            <span style="width:90%;display:block;text-align:center">
+                                                @(salt && pepper ? "Salz und Pfeffer nach Geschmack"
+                                                                 : salt ? "Salz nach Geschmack"
+                                                                 : "Pfeffer nach Geschmack")
+                                             </span>
+                                        }
+                                    </li>
+
+                                }
+                            </ul>
                         }
-                    </ul>
+
+                    </div>
+
                 </div>
 
 
@@ -299,17 +379,51 @@
 
 
                 <!--#region Tap: Preperation,Nutrient,Viedeo-->
-                <div class="grid-Preparation Bg-Cream col " style="padding:2%">
+                <div class="grid-Preparation Bg-Cream col "
+                     style="padding:2%">
 
-                    <ul class="nav nav-tabs" id="recipeTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="prep-tab" data-bs-toggle="tab" data-bs-target="#prep" type="button" role="tab" style="font-size:14px;">Zubereitung</button>
+                    <ul class="nav nav-tabs"
+                        id="recipeTabs"
+                        role="tablist">
+
+                        <li class="nav-item"
+                            role="presentation">
+
+                            <button class="nav-link active"
+                                    id="prep-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#prep"
+                                    type="button" role="tab"
+                                    style="font-size:14px;">
+                                Zubereitung
+                            </button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab" style="font-size:14px;">Nährstoffe je Zutat</button>
+
+                        <li class="nav-item"
+                            role="presentation">
+
+                            <button class="nav-link"
+                                    id="nutrition-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#nutrition"
+                                    type="button"
+                                    role="tab"
+                                    style="font-size:14px;">
+                                Nährstoffe je Zutat
+                            </button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="ZutatenGesamt-tab" data-bs-toggle="tab" data-bs-target="#gesamtZutaten" type="button" role="tab" style="font-size:14px;">Nährstoffe gesamt</button>
+                        <li class="nav-item"
+                            role="presentation">
+
+                            <button class="nav-link"
+                                    id="ZutatenGesamt-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#gesamtZutaten"
+                                    type="button"
+                                    role="tab"
+                                    style="font-size:14px;">
+                                Nährstoffe gesamt
+                            </button>
                         </li>
                         @*  <li class="nav-item" role="presentation">
                             <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#video" type="button" role="tab">Video Anleitung</button>
@@ -318,12 +432,22 @@
 
 
 
-                    <div class="tab-content mt-3" id="recipeTabsContent">
-                        <div class="tab-pane fade show active Bg-Cream" id="prep" role="tabpanel" style="padding:2%">
+                    <div class="tab-content mt-3"
+                         id="recipeTabsContent">
+
+                        <div class="tab-pane fade show active Bg-Cream"
+                             id="prep"
+                             role="tabpanel"
+                             style="padding:2%">
+
                             <h4 class="mb-3">Zubereitung :</h4>
-                            <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipes.Recipes.Preparation)</p>
+
+                            <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipeData.Recipes.Preparation)</p>
                         </div>
-                        <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white" id="nutrition" role="tabpanel">
+
+                        <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white"
+                             id="nutrition"
+                             role="tabpanel">
                             @{
                                 double Result(double grammMenge, double nutrient) => Math.Round(grammMenge * nutrient / 100, 2);
 
@@ -334,15 +458,13 @@
                                 // Neue Dictionary für Gesamtsumme initialisieren
                                 var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
 
-
-
                                 <div class=" flexRowToColumn flexWrap flexJustifyContendSpaceAround">
 
                                     @foreach (var nutrients in sortedList)
                                     {
                                         var ingredientName = nutrients.Key.ToLower();
-                                        var handler = Model.FullRecipes.IngredientHandler
-                                        .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
+                                        var handler = Model.FullRecipeData.IngredientHandler
+                                                     .SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
 
                                         if (handler == null)
                                         {
@@ -350,7 +472,11 @@
                                         }
 
                                         <div class="dropdown">
-                                            <button class="btn btn-secondary dropdown-toggle mobieleWidth90 m-2 bgRedGardien Border-Gold" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white">
+                                            <button class="btn btn-secondary dropdown-toggle mobieleWidth90 m-2 bgRedGardien Border-Gold"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    style="color:white">
                                                 @nutrients.Key
                                             </button>
 
@@ -358,14 +484,8 @@
                                                 <li class="minWidth100 ">
                                                     @foreach (var nutrient in nutrients)
                                                     {
-
-
                                                         double grammMenge;
-                                                        if (nutrient.Ingredient.Name == "Hähnchen")
-                                                        {
-                                                            var x = nutrient.Nutrients.Nutrient;
-                                                        }
-
+                                                        
                                                         if (handler.Measure.UnitOfMeasurement == "Stk." || handler.Measure.UnitOfMeasurement == "EL." || handler.Measure.UnitOfMeasurement == "TL." && nutrient.Ingredient.AverageWeight != null)
                                                         {
                                                             grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
@@ -390,7 +510,8 @@
 
                                                         <div class="flexRow flexJustifyContendSpaceBetween flexWrap Border-Gold mt-2 p-1 rounded-2">
                                                             <span name="NutrientPremium">@nutrient.Nutrients.Nutrient</span>
-                                                            <span name="QyantityPremium">@einzelWert</span>
+                                                            <span name="nutrientQuantity"
+                                                                  data-original="@einzelWert">@einzelWert</span>
                                                             <span name="UnitOfMeasurementPremium">@nutrient.Metrics.UnitOfMeasurement</span>
                                                         </div>
                                                     }
@@ -404,25 +525,17 @@
                                     }
 
 
-
-
-
-
                                 </div>
-
-
-
-
-
 
 
                             }
                         </div>
-                        <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white" id="gesamtZutaten" role="tabpanel">
+                        <div class="tab-pane fade flexRowToColumn justify-content-around mobileCenter bg-white"
+                             id="gesamtZutaten"
+                             role="tabpanel">
+
                             @if (User.IsInRole("PremiumUser") && nutrientTotals.Any())
                             {
-
-
                                 <div class="mobieleWidth90" style="min-width:90%">
 
                                     <table class="minWidth100">
@@ -431,7 +544,8 @@
                                         {
                                             <tr class="flexRow flexJustifyContendSpaceBetween flexWrap mt-2 p-2 bg-white Border-Gold">
                                                 <td>@entry.Key</td>
-                                                <td>@Math.Round(entry.Value.sum, 2)</td>
+                                                <td name="nutrientQuantity"
+                                                    data-original="@entry.Value.sum,2">@Math.Round(entry.Value.sum, 2)</td>
                                                 <td>@entry.Value.unit</td>
                                             </tr>
                                         }
@@ -468,12 +582,18 @@
 
 
 
-                <div id="RecipeSuggestions" class="carousel minWidth100 flexColumn align-items-lg-center slide grid-Carusel" data-bs-ride="carousel">
+                <div class="carousel minWidth100 flexColumn align-items-lg-center slide grid-Carusel"
+                     id="RecipeSuggestions"
+                     data-bs-ride="carousel">
+
                     <div class="w100 flex flexJustifyContendCenter m-2">
-                        <span style="text-align:center"><strong>Das könnte Ihnen auch schmecken</strong></span>
+                        <span style="text-align:center">
+                            <strong>Das könnte Ihnen auch schmecken</strong>
+                        </span>
                     </div>
 
-                    <div class="carousel-inner flexJustifyContendCenter" style="max-width:450px;">
+                    <div class="carousel-inner flexJustifyContendCenter"
+                         style="max-width:450px;">
                         @{
                             var first = true;
                         }
@@ -481,7 +601,7 @@
                         @foreach (var recipe in Model.RecipeSuggestions)
                         {
 
-                            var subPath1 = FrontendFunctions.CaseInsensitivePath(Model.FullRecipes.Recipes.ImagePath);
+                            var subPath1 = FrontendFunctions.CaseInsensitivePath(recipe.ImagePath);
 
                             var smallPath1 = subPath1?.Replace(Environment.GetEnvironmentVariable("BigPic"),
                             Environment.GetEnvironmentVariable("SmalPic"));
@@ -504,6 +624,7 @@
                                          decoding="async"
                                          style="aspect-ratio: 3 / 2; object-fit: cover;" />
                                 </picture>
+
                                 <span class="w-100 text-center d-block">@recipe.Name</span>
                             </a>
 
@@ -512,13 +633,31 @@
                         }
                     </div>
 
-                    <button class="carousel-control-prev" type="button" data-bs-target="#RecipeSuggestions" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Zurück</span>
+                    <button class="carousel-control-prev"
+                            type="button"
+                            data-bs-target="#RecipeSuggestions"
+                            data-bs-slide="prev">
+
+                        <span class="carousel-control-prev-icon"
+                              aria-hidden="true">
+                        </span>
+
+                        <span class="visually-hidden">
+                            Zurück
+                        </span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#RecipeSuggestions" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Weiter</span>
+                    <button class="carousel-control-next"
+                            type="button"
+                            data-bs-target="#RecipeSuggestions"
+                            data-bs-slide="next">
+
+                        <span class="carousel-control-next-icon"
+                              aria-hidden="true">
+                        </span>
+
+                        <span class="visually-hidden">
+                            Weiter
+                        </span>
                     </button>
                 </div>
 
@@ -531,26 +670,50 @@
 
     </div>
 
-
-
-
-
-
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade"
+         id="exampleModal"
+         tabindex="-1"
+         aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+
         <div class="modal-dialog">
             <div class="modal-content">
+
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Bewerten</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5"
+                        id="exampleModalLabel">
+                        Bewerten
+                    </h1>
+
+                    <button class="btn-close"
+                            type="button"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="w100 flex acenter jcenter ">
-                        <form class=" minWidth100 flex flexColumn acenter" asp-controller="SelectedRecipe" asp-action="SaveRecessionInDB">
-                            <input value="@Model.FullRecipes.Recipes.Id" id="id" name="id" hidden />
+                        <form class=" minWidth100 flex flexColumn acenter"
+                              asp-controller="SelectedRecipe"
+                              asp-action="SaveRecessionInDB">
 
-                            <textarea class="w100 " id="assessment" name="assessment" style="min-height:25vh"></textarea>
-                            <button type="submit" title="Rating Button" class="btn bgRed mb-2 grid-Button mt-1" style="width:max-content;margin-left:auto;color:#FFFDD0;">Bewerten</button>
+                            <input value="@Model.FullRecipeData.Recipes.Id"
+                                   id="id"
+                                   name="id" hidden />
+
+                            <textarea class="w100"
+                                      id="assessment"
+                                      name="assessment"
+                                      style="min-height:25vh">
+                            </textarea>
+
+                            <button class="btn bgRed mb-2 grid-Button mt-1"
+                                    type="submit"
+                                    title="Rating Button"
+                                    style="width:max-content;margin-left:auto;color:#FFFDD0;">
+                                Bewerten
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -562,7 +725,7 @@
 
 
     @{
-        var reverseList = Model.FullRecipes.Recession;
+        var reverseList = Model.FullRecipeData.Recession;
         reverseList.Reverse();
         foreach (var recessionFromDb in reverseList)
         {
@@ -571,7 +734,9 @@
             var createTime = DateOnly.FromDateTime(recessionFromDb.CreationDate);
             <div class="minWidth100 flex flexJustifyContendCenter">
                 <div class="card Border-Gold maxWidth80 minWidth80 mobieleWidth90 mb-3 ">
-                    <div class="card-header flex flexRowToColumn jspaceBetween flexWrap bgRedGardien" style="color:#FFFDD0">
+                    <div class="card-header flex flexRowToColumn jspaceBetween flexWrap bgRedGardien"
+                         style="color:#FFFDD0">
+
                         <div class="minWidth40">
                             @email
                         </div>
@@ -587,7 +752,9 @@
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <div class=" card-footer Bg-Cream minWidth100 flex ">
-                                <a class="btn bgRed mb-2 " href="#" onclick="MessageModalShowWrite('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
+                                <a class="btn bgRed mb-2 "
+                                   href="#"
+                                   onclick="MessageModalShowWrite('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
 
                             </div>
                         }

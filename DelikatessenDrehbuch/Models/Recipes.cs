@@ -15,6 +15,7 @@ namespace DelikatessenDrehbuch.Models
 
         public string? Calories { get; set; }
         public int? LikeCount { get; set; }
+        public int? RecipePersonCount { get; set; }
         [NotMapped]
         public IFormFile? FormFile { get; set; }
 

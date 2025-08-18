@@ -8,13 +8,12 @@
 
         public int UserCount { get; set; }
         public int PremiumUser { get; set; }
-        public List<Recipes> Recipes { get; set; }
+        public int RecipesCount { get; set; }
 
         public AdminControllerModel()
         {
-
             SupportMessage = new List<SupportMessage>();
-            Recipes = new List<Recipes>();
+          
         }
     }
 }
