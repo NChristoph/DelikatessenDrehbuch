@@ -168,12 +168,18 @@
                 @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Calories))
                 {
                     <div class="grid-Calories col minWidth50"
-                    style="margin-left:auto;">
+                         style="margin-left:auto;">
                         @{
                             var calories = _utilityService.GetCaloriesByIngredientHandlers(Model.FullRecipeData.IngredientHandler);
                         }
 
-                        <p>calories neu :@calories</p>
+                        <p id="calories"
+                           data-original="@calories">
+                            Kalorien gesamt : @calories
+                        </p>
+                        <p>
+                            Kalorien pro Portion : @calories
+                        </p>
                     </div>
                 }
 

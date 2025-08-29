@@ -6,7 +6,10 @@ namespace DelikatessenDrehbuch.Services.Interfaces
     {
         string[] SplitLinesToArray(string convertToArray);
 
+        List<string> GetListFromQueryString(string query);
+
         float? GetCaloriesByIngredientHandlers(List<IngredientHandlerModel> ingredientHandlerModels);
+
+        string[] SplitToArrayBySeperator(string convertToArray, char separator);
     }
 }
-    

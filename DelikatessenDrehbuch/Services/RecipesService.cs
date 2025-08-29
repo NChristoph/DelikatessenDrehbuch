@@ -127,6 +127,7 @@ namespace DelikatessenDrehbuch.Services
             recipeToChange.Preparation = newRecipesData.Preparation;
             recipeToChange.PreparationTime = newRecipesData.PreparationTime;
             recipeToChange.Calories = newRecipesData.Calories;
+            recipeToChange.RecipePersonCount = newRecipesData.RecipePersonCount;
             if (newRecipesData.FormFile != null)
                 recipeToChange.FormFile = newRecipesData.FormFile;
 
@@ -167,7 +168,7 @@ namespace DelikatessenDrehbuch.Services
 
         public async Task<FullRecipeData> GetFullRecipeDataByRecipesIdAsync(int id)
         {
-            var recipeFromDb= await GetRecipesFromDbByIdAsync(id);
+            var recipeFromDb = await GetRecipesFromDbByIdAsync(id);
             var recipeHandler = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(id);
             FullRecipeData fullRecipeData = new()
             {
@@ -176,10 +177,10 @@ namespace DelikatessenDrehbuch.Services
                 Likes = await _likeService.GetLikesByRecipeIdAsync(id),
                 Recession = await _recessionsService.GetRecessionsByRecipeIdFromDbAsync(id),
                 Measure = await _measureService.GetMeasureFromDbAsync(),
-               
+
             };
             return fullRecipeData;
-           
+
         }
 
         private List<IngredientHandlerModel> GetordetIngredientHandler(List<RecipesHandler> recipesHandler)
@@ -206,7 +207,7 @@ namespace DelikatessenDrehbuch.Services
                     decimal raw = baseValue / divisor;
 
 
-                    int decimals = (raw % 1m == 0m) ? 0 : 2;
+                    int decimals = (raw % 1m == 0m) ? 0 : 1;
 
                     if (ingredientQuantity.Quantity.Quantitys > 1 || ingredientQuantity.Measure.UnitOfMeasurement == "Stk.")
                     {

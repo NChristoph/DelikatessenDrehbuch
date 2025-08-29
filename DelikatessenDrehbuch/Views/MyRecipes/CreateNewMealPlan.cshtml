@@ -4,8 +4,6 @@
 
 <div class="flexRowToColumn minWidth100 mobieleWidth90 mobileItemCenter mt-5">
 
-
-
     <div class="flexcolumn maxWidth60 mobieleWidth90 flexJustifyContendCenter"
          style="min-width:55%">
 
@@ -14,8 +12,15 @@
             foreach (var recipes in Model.Recipes)
             {
                 index++;
-                <div name="RecipesContainer">
-                    <span class="m-2 p-2">Tag @index</span>
+                <div name="RecipesContainer" class="day-item" data-day="@index">
+
+                    <span class="m-2 p-2 day-label">Tag @index</span>
+                    <div class="ms-2 flexRow justify-content-center w-100 mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveDayUp(this)">
+                            ▲ Rezept nach oben verschieben
+                        </button>
+                    </div>
+
                     <ul class="flexColumn Bg-Cream p-1 mt-2"
                         style="list-style-type:none;min-width:49%">
 
@@ -23,16 +28,9 @@
                         {
                             <li class="mt-1 flexColumn">
                                 <div class="flexRow">
-                                    <div id="appetizer_@index"
-                                         style="max-width:fit-content">
-                                    </div>
-
-                                    <div class="flexColumn flexJustifyContendSpaceBetween w-100"
-                                         style="margin-left:1rem">
-
-                                        <div id="appetizerName_@index">
-                                        </div>
-
+                                    <div id="appetizer_@index" style="max-width:fit-content"></div>
+                                    <div class="flexColumn flexJustifyContendSpaceBetween w-100" style="margin-left:1rem">
+                                        <div id="appetizerName_@index"></div>
                                         <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendSpaceBetween">
                                             <div>
                                                 <a id="appetizerDeleteButton_@index"
@@ -40,77 +38,46 @@
                                                    hidden>
                                                     <i class="bi bi-trash3"></i> Löschen
                                                 </a>
-
                                             </div>
                                             <div id="appetizerPreperationTime_@index"></div>
                                         </div>
-
-
                                     </div>
-
-
                                 </div>
-
-                                <div class="flexRow w-100 mobieleWidth90"
-                                     id="appetizerDiscription_@index">
-                                </div>
-
-
+                                <div class="flexRow w-100 mobieleWidth90" id="appetizerDiscription_@index"></div>
                             </li>
                         }
+
                         <li class="flexColumn">
                             <div class="flexRow">
                                 <div name="recipesContainer"
                                      id="recipesContainer_@index"
                                      style="max-width:fit-content">
                                     @await Html.PartialAsync(
-                                         "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
-                                         recipes,
-                                         new ViewDataDictionary(ViewData) { { "Index", index }
-
-                            })
-                                </div>
-
-                                <div class="flexColumn flexJustifyContendSpaceBetween w-100"
-                                     style="margin-left:1rem">
-                                    <div id="recipesContainerName_@index">
-                                        @recipes.Name
-                                    </div>
-
-                                    <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendEnd"
-                                         id="recipesContainerPreperationTime_@index">
-                                        Zubereitungszeit  @recipes.PreparationTime min
-                                    </div>
-                                </div>
-
+                                    "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
+                                                        recipes,
+                                                        new ViewDataDictionary(ViewData) { { "Index", index } })
+                        </div>
+                        <div class="flexColumn flexJustifyContendSpaceBetween w-100" style="margin-left:1rem">
+                            <div id="recipesContainerName_@index">@recipes.Name</div>
+                            <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendEnd" id="recipesContainerPreperationTime_@index">
+                                Zubereitungszeit @recipes.PreparationTime min
                             </div>
+                        </div>
+                    </div>
+                    <div id="recipesContainerDiscription_@index">
+                        @await Html.PartialAsync(
+                                                "~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml",
+                                                new[] { recipes.Name, recipes.Description })
+                    </div>
+                </li>
 
-
-                            <div id="recipesContainerDiscription_@index">
-                                @await Html.PartialAsync(
-                                     "~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml",
-                                     new[] { recipes.Name, recipes.Description }
-                                     )
-                            </div>
-
-
-                        </li>
-
-                        @if (!FrontendFunctions.CheckCategory(recipes.Category))
+                @if (!FrontendFunctions.CheckCategory(recipes.Category))
                         {
-
                             <li class="mt-1 flexColumn">
                                 <div class="flexRow">
-                                    <div id="dessert_@index"
-                                         style="max-width:fit-content">
-                                    </div>
-
-                                    <div class="flexColumn flexJustifyContendSpaceBetween w-100"
-                                         style="margin-left:1rem">
-
-                                        <div id="dessertName_@index">
-                                        </div>
-
+                                    <div id="dessert_@index" style="max-width:fit-content"></div>
+                                    <div class="flexColumn flexJustifyContendSpaceBetween w-100" style="margin-left:1rem">
+                                        <div id="dessertName_@index"></div>
                                         <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendSpaceBetween">
                                             <div>
                                                 <a id="dessertDeleteButton_@index"
@@ -118,147 +85,97 @@
                                                    hidden>
                                                     <i class="bi bi-trash3"></i> Löschen
                                                 </a>
-
                                             </div>
                                             <div id="dessertPreperationTime_@index"></div>
                                         </div>
-
                                     </div>
-
                                 </div>
-
-
-                                <div class="flexRow w-100 mobieleWidth90"
-                                     id="dessertDiscription_@index">
-                                </div>
-
-
-
+                                <div class="flexRow w-100 mobieleWidth90" id="dessertDiscription_@index"></div>
                             </li>
                         }
-
-
-
-
                     </ul>
 
-
-                    <span class="w-100"
-                          style="text-align:center">
+                    <span class="w-100" style="text-align:center">
                         Hinzufügen oder ändern ?
                     </span>
                     <ul class="flexRow flexAlginItemCenter flexJustifyContendSpaceBetween w-100 m-0 p-0"
                         style="list-style-type:none">
-
-
                         <li>
-                            <button data-index="@index"
-                                    value="Vorspeise"
+                            <button data-index="@index" value="Vorspeise"
                                     onclick="AddAppetizerOrDessert(this)"
                                     class="bgRed Border-Gold"
                                     style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
                                 Vorspeise
                             </button>
                         </li>
-
                         <li>
-                            <button data-index="@index"
-                                    data-category="@recipes.Category"
-                                    value="@recipes.Id"
+                            <button data-index="@index" data-category="@recipes.Category" value="@recipes.Id"
                                     onclick="CangeRecipes(this)"
                                     class="bgRed Border-Gold"
                                     style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
                                 Hauptspeise
                             </button>
                         </li>
-
                         <li>
-                            <button data-index="@index"
-                                    value="Dessert"
+                            <button data-index="@index" value="Dessert"
                                     onclick="AddAppetizerOrDessert(this)"
                                     class="bgRed Border-Gold"
                                     style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
                                 Dessert
                             </button>
                         </li>
-
-
-
-
                     </ul>
-
+                    <div class="ms-2 flexRow justify-content-center w-100 mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveDayDown(this)">
+                            ▼ Rezept nach unten verschieben
+                        </button>
+                    </div>
                     <hr />
+
                 </div>
-
-
-
             }
         }
 
     </div>
 
     <div class="Bg-Cream flexColumn maxWidth30 minWidth30 mobieleWidth90 m-2 p-2">
-        <span class="w-100"
-              style="text-align:center">
+        <span class="w-100" style="text-align:center">
             <strong>Einkaufliste :</strong>
         </span>
-        <div id="ingredientPartialView"
-             class="w-100">
-            <partial model="@Model.Ingredients"
-                     name="~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml" />
+        <div id="ingredientPartialView" class="w-100">
+            <partial model="@Model.Ingredients" name="~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml" />
         </div>
-
     </div>
-
-
-
-
 </div>
-<a onclick="CreatedMealPlan()">
-    Fertig
-</a>
-<script>
 
-        function GetRecipeDictionaryByIndex() {
+<a onclick="CreatedMealPlan()">Fertig</a>
+
+<script>
+    function GetRecipeDictionaryByIndex() {
         const elements = document.querySelectorAll('[name="Recipes"]');
         const dict = {};
-
         elements.forEach(el => {
             const index = parseInt(el.getAttribute('data-index'));
             const id = parseInt(el.getAttribute('title'));
-
-            if (!dict[index]) {
-                dict[index] = [];
-            }
-
+            if (!dict[index]) { dict[index] = []; }
             dict[index].push(id);
         });
-
         return dict;
     }
 
-
-    function CreatedMealPlan(){
-
-        var ids=GetRecipeDictionaryByIndex();
-       let query = encodeURIComponent(JSON.stringify(ids));
-
+    function CreatedMealPlan() {
+        var ids = GetRecipeDictionaryByIndex();
+        let query = encodeURIComponent(JSON.stringify(ids));
         window.location.href = "/CreateNewMealPlan/CreatedMealPlan?indexAndIds=" + query;
     };
 
-
-
-       function RemoveItem(id,buttonId) {
-           var ids = id.split(",");
+    function RemoveItem(id,buttonId) {
+        var ids = id.split(",");
         ids.forEach(function(id) {
             var el = document.getElementById(id);
-            if (el) {
-                el.innerHTML = "";
-            }
+            if (el) { el.innerHTML = ""; }
         });
-
-       document.getElementById(buttonId).hidden = true;
-
+        document.getElementById(buttonId).hidden = true;
         ReloadIngredientList();
     }
 
@@ -266,12 +183,8 @@
         var recipeId = button.value;
         var index = button.getAttribute("data-index");
         var category = button.dataset.category;
-
-
         document.getElementById("ingredientPartialView").innerHTML = "";
-
         var recipesIds = GetRecipesIdsList().join(";");
-
         if (category !== "Hauptspeise") {
             CheckCategory(category, index);
         } else {
@@ -282,22 +195,17 @@
             }, function (html) {
                 $("#recipesContainer_" + index).html(html);
                 ReloadIngredientList();
-
                 var dataArray = getDataArray($("#recipesContainer_" + index).find("[name='Data']"));
                 document.getElementById("recipesContainerName_" + index).innerHTML = dataArray[0];
                 document.getElementById("recipesContainerPreperationTime_" + index).innerHTML ='<i class="bi bi-clock-history"></i> '+ dataArray[2]+"min";
-
                 $.get("/CreateNewMealPlan/GetNameAndDescription", {
-                    name: dataArray[0],
-                    description: dataArray[1]
+                    name: dataArray[0], description: dataArray[1]
                 }, function (html) {
                     $("#recipesContainerDiscription_" + index).html(html);
                 });
             });
         }
     }
-
-
 
     function getDataArray($element) {
         var name = $element.attr("data-Name");
@@ -308,41 +216,28 @@
 
     function CheckCategory(category, index) {
         if (category === "Dessert") {
-            $.get("/CreateNewMealPlan/LoadAppetizerOrDessertPartialView", {
-                category: category,
-                index: index
-            }, function (html) {
+            $.get("/CreateNewMealPlan/LoadAppetizerOrDessertPartialView", { category: category, index: index },
+            function (html) {
                 $("#dessert_" + index).html(html);
                 ReloadIngredientList();
-
-                    var dataArray = getDataArray($("#dessert_" + index).find("[name='Data']"));
-                    document.getElementById("dessertName_" + index).innerHTML = dataArray[0];
-                    document.getElementById("dessertPreperationTime_" + index).innerHTML = '<i class="bi bi-clock-history"></i> '+ dataArray[2]+"min";
-                     document.getElementById("dessertDeleteButton_"+index).hidden=false;
-                    $.get("/CreateNewMealPlan/GetNameAndDescription", {
-                        description: dataArray[1]
-                    }, function (html) {
-                        $("#dessertDiscription_" + index).html(html);
-                    });
-                });
+                var dataArray = getDataArray($("#dessert_" + index).find("[name='Data']"));
+                document.getElementById("dessertName_" + index).innerHTML = dataArray[0];
+                document.getElementById("dessertPreperationTime_" + index).innerHTML = '<i class="bi bi-clock-history"></i> '+ dataArray[2]+"min";
+                document.getElementById("dessertDeleteButton_"+index).hidden=false;
+                $.get("/CreateNewMealPlan/GetNameAndDescription", { description: dataArray[1] },
+                function (html) { $("#dessertDiscription_" + index).html(html); });
+            });
         } else {
-            $.get("/CreateNewMealPlan/LoadAppetizerOrDessertPartialView", {
-                category: category,
-                index: index
-            }, function (html) {
+            $.get("/CreateNewMealPlan/LoadAppetizerOrDessertPartialView", { category: category, index: index },
+            function (html) {
                 $("#appetizer_" + index).html(html);
                 ReloadIngredientList();
-
-                    var dataArray = getDataArray($("#appetizer_" + index).find("[name='Data']"));
-                    document.getElementById("appetizerName_" + index).innerHTML = dataArray[0];
-                    document.getElementById("appetizerPreperationTime_" + index).innerHTML = '<i class="bi bi-clock-history"></i> ' + dataArray[2] + " min";
-                    document.getElementById("appetizerDeleteButton_"+index).hidden=false;
-                    $.get("/CreateNewMealPlan/GetNameAndDescription", {
-                        name: dataArray[0],
-                        description: dataArray[1]
-                    }, function (html) {
-                        $("#appetizerDiscription_" + index).html(html);
-                });
+                var dataArray = getDataArray($("#appetizer_" + index).find("[name='Data']"));
+                document.getElementById("appetizerName_" + index).innerHTML = dataArray[0];
+                document.getElementById("appetizerPreperationTime_" + index).innerHTML = '<i class="bi bi-clock-history"></i> ' + dataArray[2] + " min";
+                document.getElementById("appetizerDeleteButton_"+index).hidden=false;
+                $.get("/CreateNewMealPlan/GetNameAndDescription", { name: dataArray[0], description: dataArray[1] },
+                function (html) { $("#appetizerDiscription_" + index).html(html); });
             });
         }
     }
@@ -353,4 +248,79 @@
         CheckCategory(category, index);
     }
 
+    // --- Verschiebe-Funktion ---
+    function moveDayUp(btn) {
+      const day = btn.closest('.day-item');
+      const prev = day?.previousElementSibling;
+      if (prev && prev.classList.contains('day-item')) {
+        day.parentNode.insertBefore(day, prev);
+        renumberDays();
+      }
+    }
+
+    function moveDayDown(btn) {
+      const day = btn.closest('.day-item');
+      const next = day?.nextElementSibling;
+      if (next && next.classList.contains('day-item')) {
+        day.parentNode.insertBefore(next, day);
+        renumberDays();
+      }
+    }
+
+    function renumberDays() {
+      const days = document.querySelectorAll('.day-item');
+      days.forEach((day, idx) => {
+        const newIndex = idx + 1;
+        const oldIndex = parseInt(day.getAttribute('data-day')) || newIndex;
+
+        const label = day.querySelector('.day-label');
+        if (label) label.textContent = `Tag ${newIndex}`;
+
+        day.setAttribute('data-day', newIndex);
+        day.querySelectorAll('[data-index]').forEach(el => {
+          el.setAttribute('data-index', newIndex);
+        });
+
+        const prefixes = [
+          'appetizer_', 'appetizerName_', 'appetizerPreperationTime_', 'appetizerDiscription_',
+          'dessert_', 'dessertName_', 'dessertPreperationTime_', 'dessertDiscription_',
+          'recipesContainer_', 'recipesContainerName_', 'recipesContainerPreperationTime_', 'recipesContainerDiscription_',
+          'appetizerDeleteButton_', 'dessertDeleteButton_'
+        ];
+
+        const idSuffixOld = `_${oldIndex}`;
+        const idSuffixNew = `_${newIndex}`;
+
+        day.querySelectorAll('[id]').forEach(el => {
+          let id = el.id;
+          prefixes.forEach(p => {
+            if (id.startsWith(p) && id.endsWith(idSuffixOld)) {
+              id = p + newIndex;
+            }
+          });
+          if (id.endsWith(idSuffixOld)) {
+            id = id.slice(0, -idSuffixOld.length) + idSuffixNew;
+          }
+          el.id = id;
+        });
+
+        day.querySelectorAll('label[for]').forEach(el => {
+          let f = el.htmlFor;
+          if (f && f.endsWith(idSuffixOld)) {
+            el.htmlFor = f.slice(0, -idSuffixOld.length) + idSuffixNew;
+          }
+        });
+
+        day.querySelectorAll('a[onclick], button[onclick]').forEach(el => {
+          let h = el.getAttribute('onclick');
+          if (!h) return;
+          prefixes.forEach(p => {
+            const find = new RegExp(p + oldIndex + '(?=[^0-9]|$)', 'g');
+            h = h.replace(find, p + newIndex);
+          });
+          h = h.replace(new RegExp('_' + oldIndex + '(?=[^0-9]|$)', 'g'), '_' + newIndex);
+          el.setAttribute('onclick', h);
+        });
+      });
+    }
 </script>

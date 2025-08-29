@@ -17,13 +17,13 @@ namespace DelikatessenDrehbuch.Controllers
     public class CreateNewMealPlanController : Controller
     {
 
-        
+
         private readonly IRecipesService _recipesService;
         private readonly IMealPlanService _mealPlanService;
         private readonly IIngredientService _ingredientService;
-    
 
-        public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService,IIngredientService ingredientService)
+
+        public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService, IIngredientService ingredientService)
         {
 
             _recipesService = recipesService;
@@ -31,7 +31,10 @@ namespace DelikatessenDrehbuch.Controllers
             _ingredientService = ingredientService;
         }
         [Authorize]
-        public ActionResult Index()
+        public ActionResult Index(bool vegan, bool vegetarisch,
+                                  bool cookingTimeOne, bool cookingTimeTwo,
+                                  int personCount, int dayCount,
+                                  string ingredientIds)
         {
 
             var querylist = _mealPlanService.GetMealPlanFilter();
@@ -70,7 +73,7 @@ namespace DelikatessenDrehbuch.Controllers
             var idsToList = _mealPlanService.GetIntListByString(recipesIds);
             var model = _ingredientService.GetIngredientsByRecipesIdsList(idsToList);
 
-            return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml",model);
+            return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml", model);
         }
 
 
@@ -81,8 +84,8 @@ namespace DelikatessenDrehbuch.Controllers
             var recipesToChange = _mealPlanService.GetIntListByString(recipesIds);
             var matchingRecipes = _mealPlanService.GetAlternativeRecipes(recipesToChange, recipeId);
 
-            var model=_recipesService.GetOneRendomRecipeFromIdList(matchingRecipes);
-            
+            var model = _recipesService.GetOneRendomRecipeFromIdList(matchingRecipes);
+
 
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", model);
         }
@@ -91,7 +94,7 @@ namespace DelikatessenDrehbuch.Controllers
         {
             ViewData["Index"] = int.Parse(index);
 
-            var matchingRecipes =_recipesService.GetRecipesIdsByCategory(category);
+            var matchingRecipes = _recipesService.GetRecipesIdsByCategory(category);
             var model = _recipesService.GetOneRendomRecipeFromIdList(matchingRecipes);
 
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", model);

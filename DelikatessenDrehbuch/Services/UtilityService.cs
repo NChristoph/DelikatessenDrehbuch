@@ -4,6 +4,10 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 {
     public class UtilityService : IUtilityService
     {
+        public List<string> GetListFromQueryString(string query)
+        {
+            return query.ToLower().Split(",").ToList();
+        }
         public float? GetCaloriesByIngredientHandlers(List<IngredientHandlerModel> ingredientHandlerModels)
         {
             float? result = 0f;
@@ -11,18 +15,19 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             {
                 if (ingredient.Measure.UnitOfMeasurement != "g." && ingredient.Measure.UnitOfMeasurement != "ml")
                 {
-                    if (ingredient.Ingredient.AverageWeight != null&&ingredient.Ingredient.Calories!=null)
+                    if (ingredient.Ingredient.AverageWeight != null && ingredient.Ingredient.Calories != null)
                         result += (ingredient.Ingredient.Calories / 100) * ingredient.Ingredient.AverageWeight;
                 }
                 else
                 {
-                    if (ingredient.Ingredient.Calories != null&&ingredient.Measure.UnitOfMeasurement!="Bund")
-                        result += (ingredient.Ingredient.Calories / 100 )* (float)ingredient.Quantity.Quantitys;
+                    if (ingredient.Ingredient.Calories != null && ingredient.Measure.UnitOfMeasurement != "Bund")
+                        result += (ingredient.Ingredient.Calories / 100) * (float)ingredient.Quantity.Quantitys;
                 }
-               
-            }
 
-            return result;
+
+            }
+            var fixedResult = (float?)System.Math.Round((decimal)result, 0);
+            return fixedResult;
         }
 
         public string[] SplitLinesToArray(string convertToArray)
@@ -32,6 +37,14 @@ namespace DelikatessenDrehbuch.Services.Interfaces
                                  .ToArray();
 
             return lines;
+        }
+
+        public string[] SplitToArrayBySeperator(string convertToArray, char separator)
+        {
+            var array = convertToArray.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+
+            return array;
         }
     }
 }

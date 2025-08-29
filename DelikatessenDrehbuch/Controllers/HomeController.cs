@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Controllers
 {
@@ -19,12 +20,16 @@ namespace DelikatessenDrehbuch.Controllers
 
         private readonly IRecipesService _recipesService;
         private readonly IIngredientService _ingredientService;
+        private readonly IUtilityService _utilityService;
 
         private readonly List<string> _importantKeyWordsList;
         private readonly List<string> _importantKeyWordsListToLower;
 
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext, HelpfulMethods helpfulMethods, IMemoryCache cache, IRecipesService recipesService, IIngredientService ingredientService)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext,
+                              HelpfulMethods helpfulMethods, IMemoryCache cache,
+                              IRecipesService recipesService, IIngredientService ingredientService,
+                              IUtilityService utilityService)
         {
             _logger = logger;
             _context = dbContext;
@@ -122,36 +127,45 @@ namespace DelikatessenDrehbuch.Controllers
             
         }
 
-        private List<string> GetListFromQueryString(string query)
-        {
-            return query.ToLower().Split(",").ToList();
-        }
-        private async Task<List<Recipes>> GetRecipeListByQuerys(List<string> querys)
-        {
-            return await _context.QueryHandler.Where(x => querys.Contains(x.Query.Query.ToLower())).Select(x => x.Recipe).ToListAsync();
-        }
-
         private async Task<List<Recipes>> GetRecipesByName(string query)
         {
-            return await _context.Recipes.Where(x => x.Name.Trim().ToLower() == query ||
-                                                x.Name.Contains(query)).ToListAsync();
+
+            var recipesFromDbByName = _context.Recipes.Where(x => EF.Functions.Like(x.Name, $"%{query}%"))
+                                              .AsNoTracking()
+                                              .AsEnumerable()
+                                              .Where(x => Regex.IsMatch(x.Name, @"\b" + Regex.Escape(query) + @"\b", RegexOptions.IgnoreCase)
+                                                       || Regex.Match(x.Name, query, RegexOptions.IgnoreCase).Success)
+                                              .ToList();
+
+            var splittQueryArray = _utilityService.SplitToArrayBySeperator(query, ' ');
+
+
+            var recipesFromDbByQuery = await _context.QueryHandler.Where(x => splittQueryArray.Any(t => t == x.Query.Query.ToLower()))
+                                              .AsNoTracking()
+                                              .Select(x => x.Recipe).ToListAsync();
+
+
+            var recipesFromDbByIngredient = await _context.RecipesHandlers.Where(x => splittQueryArray.Any(t => t == x.IngredientHandler.Ingredient.Name.ToLower()))
+                                              .AsNoTracking()
+                                              .Select(x => x.Recipe).ToListAsync();
+
+
+            var combined = recipesFromDbByName.Concat(recipesFromDbByQuery).Concat(recipesFromDbByIngredient)
+                                        .GroupBy(r => r.Id)
+                                        .Select(g => g.First())
+                                        .ToList();
+
+            return combined;
         }
         public async Task<IActionResult> SearchRecipes(string query)
         {
             List<Recipes> model = new();
-            var filterList = GetListFromQueryString(query);
-
-            var filtredRecipesByQuereys = await GetRecipeListByQuerys(filterList);
-            var filtredRecipesByName = await GetRecipesByName(query.Trim().ToLower());
+            var filterList = _utilityService.GetListFromQueryString(query);
 
 
-            model = filtredRecipesByName.Union(filtredRecipesByQuereys).ToList();
-           
-
+            model = await GetRecipesByName(query.Trim().ToLower());
             return PartialView("_recipesPartialView", model);
         }
-
-
 
         public IActionResult Privacy()
         {

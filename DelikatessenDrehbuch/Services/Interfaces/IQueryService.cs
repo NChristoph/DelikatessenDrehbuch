@@ -5,7 +5,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
     public interface IQueryService
     {
         Task<List<string>> GetQuerysFromDbByRecipeIdAsync(int id);
-        void DeleteQuerysByRecipesId(int id);
+        Task DeleteQuerysByRecipesId(int id);
         Task CreateQuaryHandlerAsync(int recipesId, List<string> queryHandlers);
 
     }

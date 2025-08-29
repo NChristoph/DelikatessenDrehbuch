@@ -3,26 +3,25 @@
 @* FormFile Not Worke *@
 <style>
     #fileInput {
-    display: none;
+        display: none;
     }
 
 </style>
 
 
-
 <div class="minWidth90 mobieleWidth90 flexColumn flexJustifyContendCenter Bg-Cream">
-    <form asp-controller="Admin" 
-          asp-action="EditRecipe" 
+    <form asp-controller="Admin"
+          asp-action="EditRecipe"
           method="post"
           enctype="multipart/form-data">
 
 
         @Html.AntiForgeryToken()
-        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" 
+        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem"
                asp-for="@Model.Recipes.Id"
                hidden />
-        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem"  
-               asp-for="@Model.Recipes.OwnerEmail" 
+        <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem"
+               asp-for="@Model.Recipes.OwnerEmail"
                hidden />
 
         <div class="flexRow minWidth90 flexJustifyContendCenter">
@@ -32,7 +31,7 @@
         </div>
 
         <div class="flexRow minWidth90 flexJustifyContendCenter">
-            <p style="margin-top:1rem;flex-basis:40%">Rezept Name :</p>
+            <p style="margin-top:1rem;flex-basis:40%">Personen anzahl :</p>
             <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem"
                    asp-for="@Model.Recipes.RecipePersonCount" />
         </div>
@@ -45,14 +44,14 @@
                 <img src="~/css/Logo/Schema Querys.png" style="width:100%" />
             </div>
         </div>
-       
+
 
         @{
 
 
             <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
                 <p style="margin-top:1rem">Querys :</p>
-                <textarea style="margin-top:1rem;margin-bottom:1rem;height:250px;margin-left:5px" 
+                <textarea style="margin-top:1rem;margin-bottom:1rem;height:250px;margin-left:5px"
                           asp-for="Querys"></textarea>
 
             </div>
@@ -60,24 +59,24 @@
 
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Rezept Kategory :</p>
-            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem" 
+            <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem"
                    asp-for=@Model.Recipes.Category" />
 
         </div>
         <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
             <p style="margin-top:1rem;"> Zubereitung :</p>
-            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px" 
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:500px;margin-left:5px"
                       asp-for="@Model.Recipes.Preparation"> </textarea>
 
         </div>
 
         <div class="flexColumn minWidth90 maxWidth90 flexJustifyContendCenter mobieleWidth90">
             <p style="margin-top:1rem">Beschreibung :</p>
-            <textarea style="margin-top:1rem;margin-bottom:1rem;height:350px;margin-left:5px" 
+            <textarea style="margin-top:1rem;margin-bottom:1rem;height:350px;margin-left:5px"
                       asp-for="@Model.Recipes.Description"> </textarea>
 
         </div>
-       
+
         <div class="flexRow minWidth90 flexJustifyContendCenter">
             <p style="margin-top:1rem;flex-basis:40%">Kalorien: </p>
             <input style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem"
@@ -94,30 +93,70 @@
 
         <div class="flexRow minWidth90 mobieleWidth90 flexJustifyContendCenter flexAlginItemCenter">
             <p style="margin-top:1rem;flex-basis:40%">Foto : </p>
-            <input id="fileInput" style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;" class="form-control-file" 
-                   type="file" 
+            <input id="fileInput"
+                   style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;"
+                   class="form-control-file"
+                   type="file"
                    asp-for="Recipes.FormFile" />
-            <label class="btn bgRed Border-Gold" style="color:white;text-align:center" id="fileLable" for="fileInput">Foto Auswählen</label>
+            <label class="btn bgRed Border-Gold"
+                   style="color:white;text-align:center"
+                   id="fileLable"
+                   for="fileInput">Foto Auswählen</label>
 
         </div>
 
 
         <div id="IngredientContainer">
-
-
             @{
                 for (int i = 0; i < Model.IngredientHandler.Count; i++)
                 {
-                    var dropdownModel = new DropdownModel
-                {
-                    IngredientHandler = Model.IngredientHandler[i],
-                    Measure = Model.Measure,
-                    Index = i
+                    <div Name="IndexValue" class=" flexRowToColumn flexJustifyContendSpaceBetween flex mt-1">
+                        <div class="flexColumn"
+                             style="min-width:50%">
+                            <input class="form-control"
+                                   type="text"
+                                   asp-for="IngredientHandler[i].Ingredient.Name"
+                                   placeholder="Zutat" />
 
-                };
+                        </div>
+                        <div class="flexColumn"
+                             style="max-width:20%">
+                            <input class="form-control"
+                                   step="any"
+                                   type="number"
+                                   asp-for="IngredientHandler[i].Quantity.Quantitys"
+                                   placeholder="Mänge" />
+                        </div>
+                        <input id="UnitOfMeasurement_@i"
+                               value="@Model.IngredientHandler[i].Measure.UnitOfMeasurement"
+                               asp-for="IngredientHandler[i].Measure.UnitOfMeasurement"
+                               hidden />
+                        <div class="flexColumn">
+                            <div class="btn bgRed dropdown-toggle"
+                                 id="dropdownUnit_@i"
+                                 type="button"
+                                 data-bs-toggle="dropdown"
+                                 style="color:#FFFDD0;width:max-content">
+                                @Model.IngredientHandler[i].Measure.UnitOfMeasurement
+                            </div>
+
+                            <ul class="dropdown-menu" style="height:200px;overflow-y:auto">
+                                @{
+                                    var unit = Model.Measure.Select(x => x.UnitOfMeasurement).ToList();
+                                    foreach (var measure in unit)
+                                    {
+                                        <li><a class="dropdown-item" onclick="ChangeValue(@i,this.text)">@measure</a></li>
+                                    }
+                                }
+
+                            </ul>
+
+                        </div>
 
 
-                    @Html.Partial("_IngredientPartialViewEditRecipes", dropdownModel, new ViewDataDictionary(ViewData) { { "Index", i } })
+                    </div>
+
+
                 }
 
             }
@@ -127,8 +166,8 @@
         <div class="minWidth100 flex flexJustifyContendEnd mt-4 ">
             <a href="#" type="button" class="btn Border-Gold bgRed m-1" style="color:white;min-width:138px" id="addRow">Neue Zutat</a>
             <button class="btn Border-Gold bgRed m-1" style="color:white;min-width:138px" type="submit">Speichern</button>
-        </div> 
-       
+        </div>
+
     </form>
 
 </div>
@@ -136,17 +175,22 @@
 @section Scripts {
     <script>
 
+        function ChangeValue(index,text) {
 
+            $("#UnitOfMeasurement_"+ index).val(text);
+            $("#dropdownUnit_"+ index).text(text);
+
+        }
 
 
         $("#addRow").click(function () {
-            var test = document.getElementsByName("partial").length;
+            var index = document.getElementsByName("IndexValue").length;
 
-           
+
             $.ajax({
                 url: "/Admin/AddIngredientRow",
                 type: 'GET',
-                data: { id: test },
+                data: { index : index },
                 cache: false,
                 success: function (html) {
                     $('#IngredientContainer').append(html);

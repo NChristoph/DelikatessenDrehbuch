@@ -26,9 +26,13 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult Index()
         {
-            var querylist = _context.MealplanFilter.Select(x => x.Filter).ToList();
+            MyRecipesModel model = new()
+            {
+                QueryFirstList = _context.MealplanFilter.Select(x => x.Filter).ToList(),
+                IngredientList = _context.Ingredients.ToList()
+            };
 
-            return View(querylist);
+            return View(model);
         }
 
 

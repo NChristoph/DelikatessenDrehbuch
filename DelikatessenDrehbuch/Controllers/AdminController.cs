@@ -88,7 +88,7 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 try
                 {
-                    var querys = recipe.Querys.Split(";").ToList();
+                    var querys = recipe.Querys.Split(",").ToList();
 
                     await _recipesService.EditRecipesAsync(recipe.Recipes.Id, recipe.Recipes);
                     await _recipesHandlerService.DeleteReciphandlerAsync(recipe.Recipes.Id);
@@ -157,6 +157,7 @@ namespace DelikatessenDrehbuch.Controllers
                 return BadRequest("Zu bearbeitendes Rezept nicht gefunden");
 
 
+
             EditRecipesModel editRecipesModel = new()
             {
                 Recipes = recipeFromDb,
@@ -169,19 +170,14 @@ namespace DelikatessenDrehbuch.Controllers
             ViewData.TemplateInfo.HtmlFieldPrefix = string.Empty;
             return View("EditRecipes", editRecipesModel);
         }
-        public async Task<IActionResult> AddIngredientRow(int id)
+
+        public async Task<IActionResult> AddIngredientRow(int index)
         {
-            DropdownModel dropdownModel = new()
-            {
-                IngredientHandler = new(),
-                Measure = await _measureService.GetMeasureFromDbAsync(),
-                Index = id
-            };
+            ViewData["index"] = index;
+            ViewData["unit"] = _context.Metrics.Select(x => x.UnitOfMeasurement).ToListAsync();
 
-
-            return PartialView("_IngredientPartialViewEditRecipes", dropdownModel);
+            return PartialView("_addRowIngredientPartialView", new IngredientHandlerModel());
         }
-
 
 
         public IActionResult AddNutrients()
@@ -215,16 +211,16 @@ namespace DelikatessenDrehbuch.Controllers
         public async Task<IActionResult> DeleteRecipes(int id)
         {
             await _recipesService.DeleteRecipesByIdAsync(id);
-          
+
             return RedirectToAction("Index");
 
         }
 
         public async Task<IActionResult> DeleteSupportTicket(int id)
         {
-           await _supportTicketService.DeleteSupportTicketByIdAsync(id);
+            await _supportTicketService.DeleteSupportTicketByIdAsync(id);
 
-           return RedirectToAction("Index");
+            return RedirectToAction("Index");
         }
     }
 

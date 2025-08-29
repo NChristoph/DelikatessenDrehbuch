@@ -10,11 +10,11 @@ namespace DelikatessenDrehbuch.Services
     public class QueryService : IQueryService
     {
         private readonly ApplicationDbContext _context;
-        
+
         public QueryService(ApplicationDbContext context)
         {
             _context = context;
-            
+
         }
         public async Task<List<string>> GetQuerysFromDbByRecipeIdAsync(int id)
         {
@@ -23,16 +23,16 @@ namespace DelikatessenDrehbuch.Services
                                         .ToListAsync();
         }
 
-        public void DeleteQuerysByRecipesId(int id)
+        public async Task DeleteQuerysByRecipesId(int id)
         {
             var queryhandlerFromDb = _context.QueryHandler.Where(x => x.Recipe.Id == id).ToList();
             _context.RemoveRange(queryhandlerFromDb);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         public async Task CreateQuerysAsync(List<string> querys)
         {
-            var querysFromDb = _context.Querys.Select(x=>x.Query.ToLower().Trim());
+            var querysFromDb = _context.Querys.Select(x => x.Query.ToLower().Trim());
             foreach (var query in querys)
             {
                 if (!querysFromDb.Contains(query.ToLower().Trim()))
@@ -51,26 +51,22 @@ namespace DelikatessenDrehbuch.Services
 
         public async Task CreateQuaryHandlerAsync(int recipesId, List<string> querys)
         {
+            await DeleteQuerysByRecipesId(recipesId);
             await CreateQuerysAsync(querys);
-            var querysFromDb = await _context.Querys.Select(x=>x.Query.ToLower().Trim()).ToListAsync();
 
             foreach (var query in querys)
             {
-                if (querysFromDb.Contains(query.ToLower().Trim()))
+                var quaryHandler = new QueryHandler()
                 {
-                    var quaryHandler = new QueryHandler()
-                    {
-                        Id = 0,
-                        Recipe = await _context.Recipes.SingleOrDefaultAsync(x=>x.Id==recipesId),
-                        Query = await _context.Querys.SingleOrDefaultAsync(x => x.Query.ToLower() == query.ToLower()),
-                    };
+                    Id = 0,
+                    Recipe = await _context.Recipes.SingleOrDefaultAsync(x => x.Id == recipesId),
+                    Query = await _context.Querys.SingleOrDefaultAsync(x => x.Query.ToLower() == query.ToLower()),
+                };
 
-                   await _context.QueryHandler.AddAsync(quaryHandler);
-                }
-
+                await _context.QueryHandler.AddAsync(quaryHandler);
             }
 
-           await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
     }
 }
