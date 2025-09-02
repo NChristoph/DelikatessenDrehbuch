@@ -4,9 +4,10 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 {
     public interface IMealPlanService
     {
-        MealModel GenerateMealPlan(List<string> queries, int dayCount);
+        Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount);
+        Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int id);
         List<int> GetAlternativeRecipes(List<int> usedIds, int excludeId);
-        Dictionary<int, List<Recipes>> MapToMealPlanDictionary(string json);
+        Dictionary<int, List<PersonalMealPlanRecipeModel>> MapToMealPlanDictionary(string json);
         List<int> GetIntListByString(string Ids);
         List<string> GetMealPlanFilter();
         public Task CreateMealPlanAsync(int recipesId, string mealPlanName);

@@ -14,64 +14,86 @@ namespace DelikatessenDrehbuch.Services
         private readonly HelpfulMethods _helper;
         private readonly IHttpContextAccessor _httpContext;
         private readonly IRecipesService _recipesService;
+        private readonly IRecipesHandlerService _recipesHandlerService;
         private readonly IIngredientService _ingredientService;
+        private readonly ISessionService _sessionService;
 
-        public MealPlanService(ApplicationDbContext context, HelpfulMethods helper, IHttpContextAccessor httpContext, IRecipesService recipesService, IIngredientService ingredientService)
+        public MealPlanService(ApplicationDbContext context, HelpfulMethods helper, IHttpContextAccessor httpContext,
+                               IRecipesService recipesService, IIngredientService ingredientService,
+                               ISessionService sessionService,IRecipesHandlerService recipesHandlerService)
         {
             _context = context;
             _helper = helper;
             _httpContext = httpContext;
             _recipesService = recipesService;
             _ingredientService = ingredientService;
+            _sessionService = sessionService;
+            _recipesHandlerService = recipesHandlerService;
         }
 
-        public MealModel GenerateMealPlan(List<string> queries, int dayCount)
+        public async Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount)
         {
-            var random = new Random();
 
-            var cleanedList = queries
-                .Where(q => !string.IsNullOrWhiteSpace(q))
-                .Select(q => q.Trim().ToLower())
-                .ToList();
+            var recipesIdsFromDb = _context.Recipes.Where(x => x.Category == "Hauptspeise" && recipesIds.Contains(x.Id))
+                                                .Select(x => x.Id)
+                                                .ToList();
 
-            var recipeIds = _context.QueryHandler
-                .Where(q => cleanedList.Contains(q.Query.Query.ToLower()) && q.Recipe.Category == "Hauptspeise")
-                .Select(q => q.Recipe.Id)
-                .ToList();
+            var randomRecipesIds = _recipesService.GetRendomRecipesIdsByCountFromIdList(recipesIdsFromDb, dayCount);
+            recipesIds.RemoveAll(x => randomRecipesIds.Contains(x));
+            _sessionService.SaveRecipesIdToSession(recipesIds);
 
-            var randomRecipesIds = recipeIds.OrderBy(_ => random.Next())
-                                            .Take(dayCount)
-                                            .ToList();
+            var model = await CreatePersonalMealPlanRecipeModelByIdsAsync(randomRecipesIds);
+           
 
-            // Session speichern
-            _httpContext.HttpContext?.Session.SetString("RecipesFromDbIds", string.Join(";", recipeIds));
+            return model;
+        }
 
-            var model = new MealModel
+        public async Task<List<PersonalMealPlanRecipeModel>> CreatePersonalMealPlanRecipeModelByIdsAsync(List<int> recipesIds)
+        {
+            List<PersonalMealPlanRecipeModel> modelList = new();
+            foreach (var recipeId in recipesIds)
             {
-                Recipes = _context.Recipes.Where(r => randomRecipesIds.Contains(r.Id)).ToList(),
-                Ingredients = _ingredientService.GetIngredientsByRecipesIdsList(randomRecipesIds)
+                var model = await CreatePersonalMealPlanRecipeModelByIdAsync(recipeId);
+
+                modelList.Add(model);
+            }
+            return modelList;
+        }
+
+        public async Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId)
+        {
+            var recipehandlers = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(recipeId);
+
+            PersonalMealPlanRecipeModel model = new()
+            {
+                Index = 0,
+                Id = recipeId,
+                Recipes = _context.Recipes.FirstOrDefault(x => x.Id == recipeId),
+                Ingredients = _recipesService.GetOrdetIngredientHandler(recipehandlers)
             };
 
             return model;
         }
 
-        public Dictionary<int, List<Recipes>> MapToMealPlanDictionary(string json)
+
+
+        public Dictionary<int, List<PersonalMealPlanRecipeModel>> MapToMealPlanDictionary(string json)
         {
-            var model = new Dictionary<int, List<Recipes>>();
+            var model = new Dictionary<int, List<PersonalMealPlanRecipeModel>>();
 
             var decoded = Uri.UnescapeDataString(json);
             var dictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(decoded);
 
             var allRecipeIds = dictionary.Values.SelectMany(list => list).Distinct().ToList();
+            var personalMealPlanFromSession=_sessionService.GetPersonalMealPlanFromSession();
 
-            var recipesFromDb = _context.Recipes.Where(x => allRecipeIds.Contains(x.Id)).ToList();
 
             foreach (var key in dictionary.Keys)
             {
                 var recipeIds = dictionary[key];
 
 
-                var matchingRecipes = recipesFromDb
+                var matchingRecipes = personalMealPlanFromSession
                     .Where(r => recipeIds.Contains(r.Id))
                     .OrderBy(r => recipeIds.IndexOf(r.Id))
                     .ToList();
@@ -133,7 +155,7 @@ namespace DelikatessenDrehbuch.Services
 
             if (mealPlan != null)
             {
-                
+
 
                 var exist = _context.MealPlan.FirstOrDefault(x => x.Name.ToLower() == mealPlan.Name.ToLower());
                 if (exist == null)

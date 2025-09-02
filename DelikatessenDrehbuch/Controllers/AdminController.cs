@@ -174,7 +174,8 @@ namespace DelikatessenDrehbuch.Controllers
         public async Task<IActionResult> AddIngredientRow(int index)
         {
             ViewData["index"] = index;
-            ViewData["unit"] = _context.Metrics.Select(x => x.UnitOfMeasurement).ToListAsync();
+            var listOfUnits=  await _context.Metrics.Select(x => x.UnitOfMeasurement).ToListAsync();
+            ViewData["unit"] = listOfUnits;
 
             return PartialView("_addRowIngredientPartialView", new IngredientHandlerModel());
         }

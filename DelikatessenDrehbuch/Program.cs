@@ -45,6 +45,7 @@ builder.Services.AddScoped<ISupportTicketService,  SupportTicketService>();
 builder.Services.AddScoped<IRecessionsService,  RecessionsService>();
 builder.Services.AddScoped<ILikeService,  LikeService>();
 builder.Services.AddScoped<IUtilityService,  UtilityService>();
+builder.Services.AddScoped<ISessionService,  SessionService>();
 
 builder.Services.AddHttpContextAccessor();
 

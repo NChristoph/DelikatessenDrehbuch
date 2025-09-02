@@ -11,5 +11,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         float? GetCaloriesByIngredientHandlers(List<IngredientHandlerModel> ingredientHandlerModels);
 
         string[] SplitToArrayBySeperator(string convertToArray, char separator);
+
+        public List<int> ConvertStringListToIntList(List<string>idsString);
+        public int GetRandomIntFromList(List<int> list);
     }
 }

@@ -1,20 +1,42 @@
 ﻿@model List<IngredientHandlerModel>
+@{
+    int personCount = 1;
+    if (ViewData["PersonCount"]!=null)
+    {
+         personCount = (int)ViewData["PersonCount"];
+    }
 
+}
 
 @{
 
     Model.RemoveAll(i => i.Ingredient.Name == "Salz" || i.Ingredient.Name == "Pfeffer");
-    var sortedList = Model.OrderBy(x => x.Quantity.Quantitys).Reverse();
+
+    var combined = Model.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
+                                                            .Select(g => new IngredientHandlerModel
+                                                            {
+                                                                Ingredient = g.First().Ingredient,
+                                                                Measure = g.First().Measure,
+                                                                Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
+                                                            }).ToList();
+
+
+   
+
+
+    var sortedList = combined.OrderBy(x => x.Quantity.Quantitys).Reverse();
 
     foreach (var ingredient in sortedList)
     {
+        var value = ingredient.Quantity.Quantitys * personCount;
+        var quantity = Math.Round(value, value < 1 ? 2 : 0);
         <div class="row mt-1 minWidth100">
             <div class="col minWidth30 mobieleFontSize"
                  style="white-space:normal;text-align:start">
                 @ingredient.Ingredient.Name
             </div>
             <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
-                @ingredient.Quantity.Quantitys
+                @quantity
                 @ingredient.Measure.UnitOfMeasurement
             </div>
 

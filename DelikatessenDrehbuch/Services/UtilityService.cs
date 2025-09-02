@@ -4,6 +4,12 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 {
     public class UtilityService : IUtilityService
     {
+        public int GetRandomIntFromList(List<int> list)
+        {
+            Random random = new Random();
+            int index = random.Next(list.Count);
+            return list[index];
+        }
         public List<string> GetListFromQueryString(string query)
         {
             return query.ToLower().Split(",").ToList();
@@ -45,6 +51,16 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 
 
             return array;
+        }
+
+        public List<int> ConvertStringListToIntList(List<string> idsString)
+        {
+            var ids = idsString.Select(s => int.TryParse(s, out var n) ? n : (int?)null)
+                               .Where(n => n.HasValue)
+                               .Select(n => n.Value)
+                               .ToList();
+
+            return ids;
         }
     }
 }

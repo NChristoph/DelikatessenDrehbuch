@@ -1,9 +1,12 @@
 ﻿@using DelikatessenDrehbuch.StaticScripts;
-@model Dictionary<int, List<Recipes>>
+@model Dictionary<int, List<PersonalMealPlanRecipeModel>>
 
 
+@{
+    var personCaount = (int)ViewData["personCount"];
 
-
+}
+<input type="number" id="personCount" value="@personCaount" hidden />
 <div class=" flexColumn w-100 flexAlginItemCenter">
     @{
         foreach (var key in Model.Keys)
@@ -17,15 +20,7 @@
             </span>
 
             var recipesList = Model[key];
-            Recipes container = new()
-            {
-                Id = key + 99998888,
-                Name = "Zutaten für den Tag",
-                Preparation = string.Join(";", recipesList.Select(x => x.Id)),
-                Description = "Zutaten"
-
-            };
-            recipesList.Add(container);
+           
             foreach (var recipes in recipesList)
             {
                 <button class="btn bgRed Border-Gold mb-2 w-50 mobieleWidth90 mobileCenter"
@@ -34,11 +29,11 @@
                         data-bs-toggle="offcanvas"
                         data-bs-target="#MealPlanCanvas_@key@recipes.Id"
                         aria-controls="navbarSupportedContent">
-                    @recipes.Name
+                    @recipes.Recipes.Name
 
                 </button>
 
-                if (recipes.Description != "Zutaten")
+                if (recipes.Recipes.Description != "Zutaten")
                 {
                     <div class="offcanvas offcanvas-start w-50 mobieleWidth100 tableteSize75"
                          tabindex="-1"
@@ -66,7 +61,7 @@
 
                             <span class="w-100 mt-2 mb-2"
                                   style="text-align:center;display:block">
-                                <strong>@recipes.Name</strong>
+                                <strong>@recipes.Recipes.Name</strong>
                             </span>
 
                             <div class=" flexRowToColumn flexAlginItemCenter Bg-Cream Border-Gold w-100 mobieleWidth90">
@@ -89,10 +84,10 @@
                                             @{
 
 
-                                                @if (!string.IsNullOrEmpty(recipes.ImagePath))
+                                                @if (!string.IsNullOrEmpty(recipes.Recipes.ImagePath))
                                                 {
 
-                                                    var subPath = FrontendFunctions.CaseInsensitivePath(recipes.ImagePath);
+                                                    var subPath = FrontendFunctions.CaseInsensitivePath(recipes.Recipes.ImagePath);
 
                                                     var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
                                                     Environment.GetEnvironmentVariable("SmalPic"));
@@ -105,8 +100,8 @@
 
                                                             <img class="img-fluid"
                                                                  src="@smallPath"
-                                                                 alt="@(!string.IsNullOrEmpty(recipes.Description) ? recipes.Description : recipes.Name)"
-                                                                 title="@recipes.Name"
+                                                                 alt="@(!string.IsNullOrEmpty(recipes.Recipes.Description) ? recipes.Recipes.Description : recipes.Recipes.Name)"
+                                                                 title="@recipes.Recipes.Name"
                                                                  width="450"
                                                                  height="450"
                                                                  decoding="async"
@@ -137,7 +132,7 @@
 
                                         <span class="p-2 mobieleWidth90"
                                               style="max-width:49%;white-space:pre-line">
-                                            @Html.Raw(@recipes.Preparation)
+                                            @Html.Raw(@recipes.Recipes.Preparation)
                                         </span>
 
                                     </div>
@@ -184,7 +179,7 @@
 
                             <span class="w-100 mt-2 mb-2"
                                   style="text-align:center;display:block">
-                                <strong>@recipes.Name</strong>
+                                <strong>@recipes.Recipes.Name</strong>
                             </span>
                             <div class="flexRowToColumn flexAlginItemCenter flexJustifyContendCenter mobileItemCenter">
 
@@ -203,7 +198,7 @@
                             </div>
                             <script>
                                 document.addEventListener("DOMContentLoaded", function () {
-                                ReloadIngredientList("ingredientPartialView_@recipes.Id","@recipes.Preparation");});
+                                ReloadIngredientList("ingredientPartialView_@recipes.Id","@recipes.Recipes.Preparation");});
                             </script>
                         </div>
                     </div>

@@ -39,6 +39,7 @@ namespace DelikatessenDrehbuch.Controllers
             _importantKeyWordsList = _helpfulMethods.GetQueryListFromDb(_context);
             _importantKeyWordsListToLower = _importantKeyWordsList.Select(x => x.ToLower().Trim()).ToList();
             _ingredientService = ingredientService;
+            _utilityService = utilityService;
         }
 
         public IActionResult GetRecipesPartialView(List<int> Ids = null)
@@ -50,7 +51,7 @@ namespace DelikatessenDrehbuch.Controllers
                 .Select(x => x.Id)
                 .ToList();
 
-            var randomRecipeIds = _recipesService.GetRendomRecipesIdsByCountFromIdListAsync(recipeIdsFromDb, 25);
+            var randomRecipeIds = _recipesService.GetRendomRecipesIdsByCountFromIdList(recipeIdsFromDb, 25);
 
 
             model = _context.Recipes.Where(x => randomRecipeIds.Contains(x.Id)).ToList();

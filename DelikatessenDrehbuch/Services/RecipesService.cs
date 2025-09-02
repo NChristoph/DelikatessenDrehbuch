@@ -2,6 +2,7 @@
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging.Signing;
 using Polly;
@@ -160,7 +161,7 @@ namespace DelikatessenDrehbuch.Services
             await _context.SaveChangesAsync();
         }
 
-        public List<int> GetRendomRecipesIdsByCountFromIdListAsync(List<int> recipesIds, int count)
+        public List<int> GetRendomRecipesIdsByCountFromIdList(List<int> recipesIds, int count)
         {
             var random = new Random();
             return recipesIds.OrderBy(x => random.Next()).Take(count).ToList();
@@ -172,8 +173,9 @@ namespace DelikatessenDrehbuch.Services
             var recipeHandler = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(id);
             FullRecipeData fullRecipeData = new()
             {
+                Id = recipeFromDb.Id,
                 Recipes = recipeFromDb,
-                IngredientHandler = GetordetIngredientHandler(recipeHandler),
+                IngredientHandler = GetOrdetIngredientHandler(recipeHandler),
                 Likes = await _likeService.GetLikesByRecipeIdAsync(id),
                 Recession = await _recessionsService.GetRecessionsByRecipeIdFromDbAsync(id),
                 Measure = await _measureService.GetMeasureFromDbAsync(),
@@ -183,7 +185,22 @@ namespace DelikatessenDrehbuch.Services
 
         }
 
-        private List<IngredientHandlerModel> GetordetIngredientHandler(List<RecipesHandler> recipesHandler)
+        public async Task<List<FullRecipeData>> GetFullRecipeDataListByRecipesIdsAsync(List<int> resipesIds)
+        {
+            var fullRecipesData = new List<FullRecipeData>();
+            
+            foreach(int id in resipesIds)
+            {
+                var data = await GetFullRecipeDataByRecipesIdAsync(id);
+               
+                fullRecipesData.Add(data);
+            }
+           
+            return fullRecipesData;
+
+        }
+
+        public List<IngredientHandlerModel> GetOrdetIngredientHandler(List<RecipesHandler> recipesHandler)
         {
             var ingredienthandler = recipesHandler.Select(x => x.IngredientHandler);
 

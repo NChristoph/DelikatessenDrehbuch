@@ -308,8 +308,16 @@
             let personCount = $("#personCount").val();
             let dayCount = $("#dayCount").val();
 
+            localStorage.setItem("MealPlanerSettings", JSON.stringify({
+                vegan: vegan,
+                vegetarisch: vegetarisch,
+                firstTime: first,
+                secondTime: second,
+                personCount: personCount,
+                dayCount: dayCount
 
-            debugger;
+            }));
+
             window.location.href = '/CreateNewMealPlan/Index?vegan=' + vegan +
                 '&vegetarisch=' + vegetarisch +
                 '&cookingTimeOne=' + first +

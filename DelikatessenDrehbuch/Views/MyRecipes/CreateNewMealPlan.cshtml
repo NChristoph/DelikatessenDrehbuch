@@ -1,17 +1,23 @@
 ﻿@using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
-@model MealModel
+@model List<PersonalMealPlanRecipeModel>
+@{
+    var personCount = (int)ViewData["PersonCount"];
+   
+}
 
 <div class="flexRowToColumn minWidth100 mobieleWidth90 mobileItemCenter mt-5">
-
+  
     <div class="flexcolumn maxWidth60 mobieleWidth90 flexJustifyContendCenter"
          style="min-width:55%">
-
+        <input type="number" id="personCount" value="@personCount" hidden/>
         @{
             int index = 0;
-            foreach (var recipes in Model.Recipes)
+            foreach (var recipes in Model)
             {
                 index++;
+                recipes.Index = index;
+                
                 <div name="RecipesContainer" class="day-item" data-day="@index">
 
                     <span class="m-2 p-2 day-label">Tag @index</span>
@@ -24,7 +30,7 @@
                     <ul class="flexColumn Bg-Cream p-1 mt-2"
                         style="list-style-type:none;min-width:49%">
 
-                        @if (!FrontendFunctions.CheckCategory(recipes.Category))
+                        @if (!FrontendFunctions.CheckCategory(recipes.Recipes.Category))
                         {
                             <li class="mt-1 flexColumn">
                                 <div class="flexRow">
@@ -45,6 +51,7 @@
                                 </div>
                                 <div class="flexRow w-100 mobieleWidth90" id="appetizerDiscription_@index"></div>
                             </li>
+                         
                         }
 
                         <li class="flexColumn">
@@ -54,24 +61,24 @@
                                      style="max-width:fit-content">
                                     @await Html.PartialAsync(
                                     "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
-                                                        recipes,
+                                                        recipes.Recipes,
                                                         new ViewDataDictionary(ViewData) { { "Index", index } })
                         </div>
                         <div class="flexColumn flexJustifyContendSpaceBetween w-100" style="margin-left:1rem">
-                            <div id="recipesContainerName_@index">@recipes.Name</div>
+                            <div id="recipesContainerName_@index">@recipes.Recipes.Name</div>
                             <div class="flexRow w-100 mt-1 mobieleWidth90 flexJustifyContendEnd" id="recipesContainerPreperationTime_@index">
-                                Zubereitungszeit @recipes.PreparationTime min
+                                Zubereitungszeit @recipes.Recipes.PreparationTime min
                             </div>
                         </div>
                     </div>
                     <div id="recipesContainerDiscription_@index">
                         @await Html.PartialAsync(
                                                 "~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml",
-                                                new[] { recipes.Name, recipes.Description })
+                                                new[] { recipes.Recipes.Name, recipes.Recipes.Description })
                     </div>
                 </li>
 
-                @if (!FrontendFunctions.CheckCategory(recipes.Category))
+                @if (!FrontendFunctions.CheckCategory(recipes.Recipes.Category))
                         {
                             <li class="mt-1 flexColumn">
                                 <div class="flexRow">
@@ -109,7 +116,7 @@
                             </button>
                         </li>
                         <li>
-                            <button data-index="@index" data-category="@recipes.Category" value="@recipes.Id"
+                            <button data-index="@index" data-category="@recipes.Recipes.Category" value="@recipes.Id"
                                     onclick="CangeRecipes(this)"
                                     class="bgRed Border-Gold"
                                     style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
@@ -143,7 +150,8 @@
             <strong>Einkaufliste :</strong>
         </span>
         <div id="ingredientPartialView" class="w-100">
-            <partial model="@Model.Ingredients" name="~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml" />
+            
+           
         </div>
     </div>
 </div>
@@ -151,6 +159,11 @@
 <a onclick="CreatedMealPlan()">Fertig</a>
 
 <script>
+     
+   window.onload = function() {
+        ReloadIngredientList();
+     };
+   
     function GetRecipeDictionaryByIndex() {
         const elements = document.querySelectorAll('[name="Recipes"]');
         const dict = {};
@@ -166,7 +179,9 @@
     function CreatedMealPlan() {
         var ids = GetRecipeDictionaryByIndex();
         let query = encodeURIComponent(JSON.stringify(ids));
-        window.location.href = "/CreateNewMealPlan/CreatedMealPlan?indexAndIds=" + query;
+         var personcount = document.getElementById("personCount").value;
+         debugger;
+        window.location.href = "/CreateNewMealPlan/CreatedMealPlan?indexAndIds=" + query+'&personCount='+personcount;
     };
 
     function RemoveItem(id,buttonId) {

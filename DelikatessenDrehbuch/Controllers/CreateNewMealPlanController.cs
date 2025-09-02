@@ -6,9 +6,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using NuGet.Packaging.Signing;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DelikatessenDrehbuch.Controllers
@@ -21,26 +26,87 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly IRecipesService _recipesService;
         private readonly IMealPlanService _mealPlanService;
         private readonly IIngredientService _ingredientService;
+        private readonly IUtilityService _utilityService;
+        private readonly ApplicationDbContext _context;
+        private readonly ISessionService _sessionService;
+        private readonly IHttpContextAccessor _httpContext;
 
 
-        public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService, IIngredientService ingredientService)
+        public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService,
+                                           IIngredientService ingredientService, IUtilityService utilityService,
+                                           ApplicationDbContext context, IHttpContextAccessor httpContext,
+                                           ISessionService sessionService)
         {
 
             _recipesService = recipesService;
             _mealPlanService = mealPlanService;
             _ingredientService = ingredientService;
+            _utilityService = utilityService;
+            _httpContext = httpContext;
+            _context = context;
+            _sessionService = sessionService;
         }
         [Authorize]
-        public ActionResult Index(bool vegan, bool vegetarisch,
+        public async Task<ActionResult> IndexAsync(bool vegan, bool vegetarisch,
                                   bool cookingTimeOne, bool cookingTimeTwo,
                                   int personCount, int dayCount,
                                   string ingredientIds)
         {
+            if (dayCount > 7)
+            {
+                return Ok("Maximal 7 Tage erlaubt");
+            }
 
-            var querylist = _mealPlanService.GetMealPlanFilter();
+            ViewData["PersonCount"] = personCount;
+            if (!string.IsNullOrEmpty(ingredientIds))
+            {
+                var ingredientIdsArray = _utilityService.SplitToArrayBySeperator(ingredientIds, ',');
+            }
 
-            return View(querylist);
+            IQueryable<QueryHandler> queryHandlers = _context.QueryHandler;
+
+            // Ernährungs-Filter
+            if (vegan && !vegetarisch)
+            {
+                queryHandlers = queryHandlers.Where(r => r.Query.Query.ToLower() == "vegan");
+            }
+            else if (!vegan && vegetarisch)
+            {
+                queryHandlers = queryHandlers.Where(r => r.Query.Query.ToLower() == "vegetarisch");
+            }
+            else if (vegan && vegetarisch)
+            {
+                // Wenn beides angehakt ist: vegan ODER vegetarisch zulassen
+                queryHandlers = queryHandlers.Where(r => r.Query.Query.ToLower() == "vegan"
+                                                  || r.Query.Query.ToLower() == "vegetarisch");
+            }
+
+            if (cookingTimeOne && !cookingTimeTwo)
+            {
+                queryHandlers = queryHandlers.Where(r => r.Recipe.PreparationTime <= 40);
+            }
+            else if (!cookingTimeOne && cookingTimeTwo)
+            {
+                queryHandlers = queryHandlers.Where(r => r.Recipe.PreparationTime > 40);
+            }
+            else if (cookingTimeOne && cookingTimeTwo)
+            {
+                queryHandlers = queryHandlers.Where(r => r.Recipe.PreparationTime < 1);
+            }
+            queryHandlers = queryHandlers.Where(x => x.Recipe.Category == "Hauptspeise");
+
+            var recipesIds = queryHandlers.Select(x => x.Recipe.Id).ToHashSet();
+
+
+            _sessionService.ClearSession();
+            var model = await _mealPlanService.GetPersonalMealPlanModelListByIds(recipesIds.ToList(), dayCount);
+            _sessionService.SavePersonalMealPlanToSession(model);
+            model = model.Where(x => x.Recipes.Category == "Hauptspeise").ToList();
+
+            return View("~/Views/MyRecipes/CreateNewMealPlan.cshtml", model);
         }
+
+
 
         public IActionResult GetNameAndDescription(string name, string description)
         {
@@ -49,55 +115,83 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml", model);
         }
 
-        public IActionResult CreatedMealPlan(string indexAndIds)
+        public IActionResult CreatedMealPlan(string indexAndIds,int personCount)
         {
-            Dictionary<int, List<Recipes>> model = _mealPlanService.MapToMealPlanDictionary(indexAndIds);
+            ViewData["PersonCount"] = personCount;
+            Dictionary<int, List<PersonalMealPlanRecipeModel>> model = _mealPlanService.MapToMealPlanDictionary(indexAndIds);
 
             return View("~/Views/MyRecipes/CreatedMealPlan.cshtml", model);
         }
 
-        public ActionResult CreateNewMealPlan(List<string> queryList, int dayCount)
+
+        public IActionResult LoadIngredientPartialView(string recipesIds = "", int personCount = 0)
         {
-            if (dayCount > 7)
+            ViewData["PersonCount"] = personCount;
+            var recipesFromSession = _sessionService.GetPersonalMealPlanFromSession();
+            if (!int.TryParse(recipesIds, out var id))
             {
-                return Ok("Maximal 7 Tage erlaubt");
+                var model = recipesFromSession.SelectMany(x => x.Ingredients)
+                                              .ToList();
+                return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml", model);
+
+            }
+            else
+            {
+                var model = recipesFromSession.Where(x=>x.Id==int.Parse(recipesIds)).SelectMany(x => x.Ingredients)
+                                              .ToList();
+                return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml", model);
+
             }
 
-            var mealplan = _mealPlanService.GenerateMealPlan(queryList, dayCount);
 
-            return View("~/Views/MyRecipes/CreateNewMealPlan.cshtml", mealplan);
+
+
+
         }
 
-        public IActionResult LoadIngredientPartialView(string recipesIds)
-        {
-            var idsToList = _mealPlanService.GetIntListByString(recipesIds);
-            var model = _ingredientService.GetIngredientsByRecipesIdsList(idsToList);
-
-            return PartialView("~/Views/MyRecipes/_createMealPlanIngredientPartialView.cshtml", model);
-        }
-
-
-        public IActionResult LoadRecipesPartialView(string recipesIds, int recipeId, string index)
+        public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId, string index)
         {
             ViewData["Index"] = int.Parse(index);
 
-            var recipesToChange = _mealPlanService.GetIntListByString(recipesIds);
-            var matchingRecipes = _mealPlanService.GetAlternativeRecipes(recipesToChange, recipeId);
+            var recipes = _sessionService.GetPersonalMealPlanFromSession();
+            recipes.RemoveAll(x => x.Id == recipeId);
 
-            var model = _recipesService.GetOneRendomRecipeFromIdList(matchingRecipes);
+            var recipesIds = _sessionService.GetRecipesIdsFromSession();
+            recipesIds.RemoveAll(x => x == recipeId);
+
+            var randomRecipeId = _utilityService.GetRandomIntFromList(recipesIds);
+            var newMealModel = await _mealPlanService.CreatePersonalMealPlanRecipeModelByIdAsync(randomRecipeId);
+
+            recipes.Add(newMealModel);
+            _sessionService.SavePersonalMealPlanToSession(recipes);
+
+            recipesIds.RemoveAll(x => x == randomRecipeId);
+            _sessionService.SaveRecipesIdToSession(recipesIds);
 
 
-            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", model);
+
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", newMealModel.Recipes);
         }
 
-        public IActionResult LoadAppetizerOrDessertPartialView(string category, string index)
+        //TODO das session und so weiter auslagern in extra metode und navh kategory filtern geht noch nicht
+
+        public async Task<IActionResult> LoadAppetizerOrDessertPartialViewAsync(string category, string index)
         {
             ViewData["Index"] = int.Parse(index);
+            var recipes = _sessionService.GetPersonalMealPlanFromSession();
+            var recipesIds = _sessionService.GetRecipesIdsFromSession();
+            var randomRecipeId = _utilityService.GetRandomIntFromList(recipesIds);
+            var newMealModel = await _mealPlanService.CreatePersonalMealPlanRecipeModelByIdAsync(randomRecipeId);
+            recipes.Add(newMealModel);
+            _sessionService.SavePersonalMealPlanToSession(recipes);
 
-            var matchingRecipes = _recipesService.GetRecipesIdsByCategory(category);
-            var model = _recipesService.GetOneRendomRecipeFromIdList(matchingRecipes);
+            recipesIds.RemoveAll(x => x == newMealModel.Recipes.Id);
+            _sessionService.SaveRecipesIdToSession(recipesIds);
 
-            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", model);
+
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", newMealModel.Recipes);
         }
 
 
