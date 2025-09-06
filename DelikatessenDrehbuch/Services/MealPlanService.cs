@@ -3,11 +3,16 @@ using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq.Expressions;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 namespace DelikatessenDrehbuch.Services
 {
+
     public class MealPlanService : IMealPlanService
     {
         private readonly ApplicationDbContext _context;
@@ -20,7 +25,7 @@ namespace DelikatessenDrehbuch.Services
 
         public MealPlanService(ApplicationDbContext context, HelpfulMethods helper, IHttpContextAccessor httpContext,
                                IRecipesService recipesService, IIngredientService ingredientService,
-                               ISessionService sessionService,IRecipesHandlerService recipesHandlerService)
+                               ISessionService sessionService, IRecipesHandlerService recipesHandlerService)
         {
             _context = context;
             _helper = helper;
@@ -31,6 +36,68 @@ namespace DelikatessenDrehbuch.Services
             _recipesHandlerService = recipesHandlerService;
         }
 
+        public async Task<List<PersonalMealPlanRecipeModel>> GetMealPlanModels(string category, int count)
+        {
+
+            var recipesIdsFromDb = _recipesService.GetRecipesIdsByCategory(category);
+            var sortedRecipesIds = SortRecipesIdsBySettings(recipesIdsFromDb);
+            var rendomRecipesIds = _recipesService.GetRendomRecipesIds(sortedRecipesIds, count);
+            var personalRecipes = await CreatePersonalMealPlanRecipeModelByIdsAsync(rendomRecipesIds);
+
+            return personalRecipes;
+
+        }
+
+        private List<int> SortRecipesIdsBySettings(List<int> recipeIdsFromDb)
+        {
+            var settings = _sessionService.GetMealPlanSettingsFromSession();
+
+            var queryable = _context.QueryHandler.Where(x => recipeIdsFromDb.Contains(x.Recipe.Id))
+                                                 .Include(x=>x.Recipe)
+                                                 .AsQueryable()
+                                                 .AsNoTracking();
+
+            var bools = typeof(PersonalMealPlanSettings)
+                        .GetProperties()
+                        .Where(p => p.PropertyType == typeof(bool));
+
+            foreach (var filter in bools)
+            {
+                var isChecked = (bool)filter.GetValue(settings);
+                if (isChecked)
+                {
+                    var name = filter.Name;
+                    
+                    if (name.StartsWith("No"))
+                    {
+                        var subName = name.Substring(2);
+                        if (subName == "Pork")
+                            subName = "Schweinefleisch";
+
+                        var removeIds = queryable.Where(r => r.Query.Query.ToLower() == subName.ToLower())
+                                                 .Select(x => x.Recipe.Id)
+                                                 .ToList();
+
+                        queryable = queryable.Where(r => !removeIds.Contains(r.Recipe.Id));
+
+                    }
+                    if (!name.StartsWith("No")&& name != "CookingTimeOne")
+                    {
+                        queryable = queryable.Where(r => r.Query.Query.ToLower() == name.ToLower()).Include(x => x.Query);
+                    }
+                    if (name == "CookingTimeOne")
+                    {
+                        
+                        queryable = queryable.Where(r => r.Recipe.PreparationTime < 45);
+                    }
+                }
+            }
+            return queryable.Select(x => x.Recipe.Id).ToHashSet().ToList();
+        }
+
+
+
+
         public async Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount)
         {
 
@@ -38,12 +105,12 @@ namespace DelikatessenDrehbuch.Services
                                                 .Select(x => x.Id)
                                                 .ToList();
 
-            var randomRecipesIds = _recipesService.GetRendomRecipesIdsByCountFromIdList(recipesIdsFromDb, dayCount);
+            var randomRecipesIds = _recipesService.GetRendomRecipesIds(recipesIdsFromDb, dayCount);
             recipesIds.RemoveAll(x => randomRecipesIds.Contains(x));
             _sessionService.SaveRecipesIdToSession(recipesIds);
 
             var model = await CreatePersonalMealPlanRecipeModelByIdsAsync(randomRecipesIds);
-           
+
 
             return model;
         }
@@ -85,7 +152,7 @@ namespace DelikatessenDrehbuch.Services
             var dictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(decoded);
 
             var allRecipeIds = dictionary.Values.SelectMany(list => list).Distinct().ToList();
-            var personalMealPlanFromSession=_sessionService.GetPersonalMealPlanFromSession();
+            var personalMealPlanFromSession = _sessionService.GetPersonalMealPlanFromSession();
 
 
             foreach (var key in dictionary.Keys)
@@ -143,7 +210,7 @@ namespace DelikatessenDrehbuch.Services
         {
             return _context.MealplanFilter.Select(x => x.Filter).ToList();
         }
-        //TODO:Mach das ordentlicher und in der vie ein dropdown zum auswählen des plans
+        //TODO:Mach das ordentlicher und in der view ein dropdown zum auswählen des plans
         public async Task CreateMealPlanAsync(int recipesId, string mealPlanName)
         {
             var melplanArry = mealPlanName.Split(";");

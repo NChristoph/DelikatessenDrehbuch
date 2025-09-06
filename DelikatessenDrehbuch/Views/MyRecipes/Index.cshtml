@@ -4,15 +4,50 @@
 @inject UserManager<IdentityUser> UserManager
 
 @{
-
     ViewData["Title"] = "Mein Bereich";
 }
 
+<style>
+    /* mobile Layout fix: Checkboxen & Flex-Container */
+    .filter-card {
+        border-radius: .5rem;
+    }
+
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+        .filter-row .form-check {
+            min-width: 140px;
+            margin-bottom: .25rem;
+        }
+
+
+
+    #IngredientTable td {
+        vertical-align: top;
+    }
+
+    .form-check-input {
+        transform: scale(1.2);
+        margin-right: .35rem;
+    }
+
+    /* Mobil: Tabs nicht umbrechen lassen */
+    @@media (max-width: 576px) {
+        .nav-tabs .nav-link {
+            font-size: 13px;
+            padding: .4rem .6rem;
+        }
+    }
+</style>
 
 <div class="col">
     <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white mt-5">
-
-
         <ul class="nav nav-tabs m-2" id="recipeTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link text-black active"
@@ -46,286 +81,327 @@
                     Wochenplan erstellen
                 </button>
             </li>
-
         </ul>
-
-
-        @*  
-
-
-
-        @{
-            if(User.IsInRole("Admin"))
-            {
-                <div class="flexColumn">
-                    <a typeof="button" class="btn" asp-controller="CreateMealPlan" asp-action="Index">
-                        Essensplan erstellen
-                    </a>
-                </div>
-            }
-
-            if (User.IsInRole("PremiumUser"))
-            {
-                <div class="flexColumn">
-                    <a typeof="button" class="btn" onclick="loadPremiumPartialView()">
-                        Premium Vorteile
-                    </a>
-                </div>
-            }
-
-            if (User.IsInRole("Admin") || !User.IsInRole("PremiumUser"))
-            {
-
-
-                <div class="flexColumn">
-                    <a typeof="button" class="btn" onclick="loadAboPage()">
-                        Premium Vorteile
-                    </a>
-                </div>
-            }
-
-
-
-
-        }
     </div>
-    <div class="flexRow justify-content-center mobieleWidth90 minWidth100">
-        <div class="flex flexJustifyContendCenter mt-5" id="PartailaView" style="min-width:100%;"></div>
-
-    </div> *@
-
-    </div>
-
-
 </div>
 
-<div class="tab-content mt-3" id="MyRecipesTabconted" style="height:min-content">
+<div class="tab-content mt-3 p-3" id="MyRecipesTabconted" style="height:min-content">
     <div class="tab-pane fade show active Bg-Cream" id="myRecipes" role="tabpanel" style="padding:2%">
-        <div id="Favoriten">
-        </div>
-
+        <div id="Favoriten"></div>
     </div>
+
     <div class="tab-pane fade Bg-Cream" id="Menue" role="tabpanel" style="padding:2%">
         <div id="Menue"></div>
-
     </div>
-    @if (User.IsInRole("PremiumUser") || User.Identity.Name.ToLower() == "free.88@mailxl.at")
+
+    @if (User.IsInRole("PremiumUser") || User.Identity.Name?.ToLower() == "free.88@mailxl.at")
     {
-        <div id="MenuePlan"
-             class="tab-pane fade shadow-sm"
-             role="tabpanel"
-             style="padding:2%">
-            <div class="flexColumn bg-white"
-                 style="min-width:100%">
+        <div id="MenuePlan" class="tab-pane fade shadow-sm flex justify-content-center" role="tabpanel" style="padding:2% ">
+            <form asp-controller="CreateNewMealPlan" asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
 
-                <div class=" flexColumn w-100">
-                    <div class="flexColumn flexAlginItemCenter border mb-2 shadow-sm"
-                         style="border-radius:0.5rem">
+                <div class="flexColumn bg-white" style="min-width:100%">
+
+                    <!-- VEG-Bereich -->
+                    <div class="flexColumn w-100 filter-card border mb-2 shadow-sm p-2">
                         <h3 class="mb-2">Ich möchte nur:</h3>
-                        <div class="flexRow flexJustifyContendSpaceAround w-100 p-2">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       value=""
-                                       id="checkVegan">
-                                <label class="form-check-label"
-                                       for="checkVegan">
-                                    Vegan
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       value=""
-                                       id="checkVegetarisch">
-                                <label class="form-check-label"
-                                       for="checkVegetarisch">
-                                    Vegetarisch
-                                </label>
+
+                        <div class="filter-row" aria-label="veg-only">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkVegan" name="Vegan" value="true">
+                                <input type="hidden" name="Vegan" value="false" />
+                                <label class="form-check-label" for="checkVegan">Vegan</label>
                             </div>
 
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkVegetarisch" name="Vegetarisch" value="true">
+                                <input type="hidden" name="Vegetarisch" value="false" />
+                                <label class="form-check-label" for="checkVegetarisch">Vegetarisch</label>
+                            </div>
+                        </div>
+
+                        <hr class="my-2" />
+
+                        <!-- No*-Filter -->
+                        <div class="filter-row" aria-label="veg-excludes">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkNoVegan" name="NoVegan" value="true">
+                                <input type="hidden" name="NoVegan" value="false" />
+                                <label class="form-check-label" for="checkNoVegan">Vegan ausschließen</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkNoVegetarisch" name="NoVegetarisch" value="true">
+                                <input type="hidden" name="NoVegetarisch" value="false" />
+                                <label class="form-check-label" for="checkNoVegetarisch">Vegetarisch ausschließen</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkNoPork" name="NoPork" value="true">
+                                <input type="hidden" name="NoPork" value="false" />
+                                <label class="form-check-label" for="checkNoPork">Kein Schwein</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkNoFish" name="NoFish" value="true">
+                                <input type="hidden" name="NoFish" value="false" />
+                                <label class="form-check-label" for="checkNoFish">Kein Fisch</label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flexColumn flexAlginItemCenter mb-2 border shadow-sm"
-                         style="border-radius:0.5rem">
-                        <h3 class="mb-2">Kochdauer von bis (optional):</h3>
-                        <div class="flexRow flexJustifyContendSpaceAround w-100 p-2">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       value=""
-                                       id="checkFirstTime">
-                                <label class="form-check-label"
-                                       for="checkFirstTime">
-                                    25-45 min
-                                </label>
+                    <!-- Kochdauer -->
+                    <div class="flexColumn flexAlginItemCenter mb-2 filter-card border shadow-sm p-2">
+                        <h3 class="mb-2">Kochdauer (optional):</h3>
+                        <div class="filter-row">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkFirstTime" name="CookingTimeOne" value="true">
+                                <input type="hidden" name="CookingTimeOne" value="false" />
+                                <label class="form-check-label" for="checkFirstTime">25–45 min</label>
                             </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       value=""
-                                       id="checkSecondTime">
-                                <label class="form-check-label"
-                                       for="checkSecondTime">
-                                    45 min +
-                                </label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkSecondTime" name="CookingTimeTwo" value="true">
+                                <input type="hidden" name="CookingTimeTwo" value="false" />
+                                <label class="form-check-label" for="checkSecondTime">45 min +</label>
                             </div>
-
                         </div>
                     </div>
-                </div>
 
+                    <!-- Tage / Personen -->
+                    <div class="flexRowToColumn flexJustifyContendCenter w-100 filter-card border shadow-sm p-2">
+                        <span class="flexRow flexAlginItemCenter w-100 m-2">
+                            Plan für :
+                            <input class="form-control form-control-sm m-2" type="number" id="dayCount" name="DayCount" style="width:80px" />
+                            Tage erstellen.
+                        </span>
+                        <span class="flexRow flexAlginItemCenter w-100 m-2">
+                            Plan für :
+                            <input class="form-control form-control-sm m-2" type="number" id="personCount" name="PersonCount" style="width:80px" />
+                            Personen erstellen.
+                        </span>
+                    </div>
 
+                    <!-- Zutaten-Tabelle -->
 
-                <div class="flexRowToColumn flexJustifyContendCenter w-100 border shadow-sm"
-                     style="border-radius:0.5rem">
-                    <span class="flexRow flexAlginItemCenter w-100 m-2">
-                        Plan für :
-                        <input class=" m-2"
-                               type="number"
-                               id="dayCount"
-                               style="width:55px" />
-                        Tage erstellen.
-
-                    </span>
-
-                    <span class="flexRow flexAlginItemCenter  w-100 m-2">
-                        Plan für :
-                        <input class=" m-2"
-                               type="number"
-                               id="personCount"
-                               style="width:55px" />
-                        Persone erstellen.
-
-                    </span>
-
-                </div>
-
-
-                <table id="IngredientTable"
-                       class="display nowrap bg-white"
-                       style="max-width:100%">
-                    <thead class="bg-white">
-                        <tr class="bg-white" style="max-width:100%">
-
-                            <th data-priority="1">Zutat</th>
-                            <th data-priority="2">Zutat ausschließen</th>
-
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @{
-                            foreach (var ingredient in Model.IngredientList)
+                    <table id="IngredientTable" class="display nowrap bg-white table table-sm" style="width:100%">
+                        <thead class="bg-white">
+                            <tr class="bg-white">
+                                <th data-priority="1">Zutat</th>
+                                <th data-priority="2">Optionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ingredient in Model.IngredientList)
                             {
-
                                 <tr>
-
                                     <td style="max-width:45%;text-wrap:auto">@ingredient.Name</td>
                                     <td>
-                                        <input class="form-check"
-                                               type="checkbox"
-                                               name="excludedIngredients"
-                                               id="@ingredient.Id"
-                                               onchange="AddIngredientIdtoList(this)" />
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   onchange="CreateIngredient(this)"
+                                                   value="@ingredient.Id"
+                                                   data-name="@ingredient.Name"
+                                                   id="Ingredient_@ingredient.Id" />
 
+                                            <label class="form-check-label">Zutat ausschließen</label>
+                                        </div>
 
+                                        <hr class="my-1" />
 
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   onchange="CreateHaveAtHome(this)"
+                                                   value="@ingredient.Id"
+                                                   data-name="@ingredient.Name"
+                                                   
+                                                   id="HaveAtHome_@ingredient.Id" />
+                                            <label class="form-check-label">Habe ich zuhause</label>
+                                        </div>
                                     </td>
                                 </tr>
                             }
-                        }
-                    </tbody>
+                        </tbody>
+                    </table>
 
-                </table>
+                    <div class="flexRowToColumn flexJustifyContendSpaceBetween flexAlginItemCenter flexJustifyContendCenter">
+                        <div class="flexColumn mt-2 mobieleWidth90 flexAlginItemCenter shadow-sm border-1"
+                             style="min-width:45%;background-color:#FFCACA;border:1px,solid;border-radius:0.5rem">
+                            <h3>Das mag ich nicht:</h3>
+                            <hr style="width:90%" />
+                            <div class="flexColumn flexAlginItemCenter"
+                                 id="Ingredients"></div>
+                        </div>
+                        <div class="flexColumn mt-2 mobieleWidth90 flexAlginItemCenter shadow-sm"
+                             style="min-width:45%;background-color:#CCEED5;border:1px,solid;border-radius:0.5rem">
+                            <h3>Hab ich Zuhause:</h3>
+                            <hr style="width:90%" />
+                            <div class="flexColumn flexAlginItemCenter"
+                                 id="HaveAtHome"></div>
+                        </div>
 
 
+                    </div>
 
 
-
-
-                <button class="btn bgRed Border-Gold"
-                        type="submit"
-                        onclick="CreateNewMealPlan()"
-                        style="max-width:fit-content;color:white;margin-left:auto">
-                    Essensplan Erstellen
-                </button>
-
-            </div>
+                    <button class="btn bgRed Border-Gold mt-2"
+                            type="submit"
+                            style="max-width:fit-content;color:white;margin-left:auto">
+                        Essensplan Erstellen
+                    </button>
+                </div>
+            </form>
         </div>
     }
-
-
 </div>
 
 @section Scripts {
     <script>
 
-        $(document).ready(function() {
-          let table = new DataTable('#IngredientTable');
-        });
 
-        $(function () {
+        $(document).ready(function () {
+            // Favoriten initial laden
             $("#Favoriten").load("/MyRecipes/LoadRecipesILike");
+
+            // DataTable init (responsive + no horizontal overflow)
+            new DataTable('#IngredientTable', {
+                responsive: true,
+                pageLength: 10,
+                lengthChange: false,
+                ordering: false
+            });
         });
 
-        function loadAboPage() {
-            $('#PartailaView').load("MyRecipes/PremiumUserPage")
+               function CreateIngredient(html) {
+            var checkbox = document.getElementById('HaveAtHome_' + html.value);
+            if (checkbox && checkbox.checked) {
+                checkbox.checked = false;
+                document.getElementById('divHaveAtHome_' + html.value)?.remove();
+            }
+
+
+                 const existingSpan = document.getElementById('spanIngredient_' + html.value);
+                 const existingHidden = document.getElementById('hiddenIngredient_' + html.value);
+                    if (existingSpan && existingHidden) {
+                        existingSpan.remove();
+                        existingHidden.remove();
+                        return;
+                    }
+
+            const element = document.createElement("span");
+            element.id = 'spanIngredient_' + html.value;
+
+            const dataName = html.getAttribute("data-name");
+
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "IngredientIds";
+            hidden.value = html.value;
+            hidden.id = 'hiddenIngredient_' + html.value;
+
+            element.innerText = dataName;
+
+            $("#Ingredients").append(element);
+            $("#Ingredients").append(hidden);
         }
 
+
+                let nextIngredientIndex = 0;
+
+        function CreateHaveAtHome(html) {
+
+
+            const chk = document.getElementById('Ingredient_' + html.value);
+            
+            if (chk && chk.checked) {
+                chk.checked = false;
+                document.getElementById('spanIngredient_' + html.value)?.remove();
+                document.getElementById('hiddenIngredient_' + html.value)?.remove();
+            }
+        const existingDiv = document.getElementById('divHaveAtHome_' + html.value);
+       
+           if (existingDiv) {
+               existingDiv.remove();
+               
+               return;
+           }
+           else{
+                 $.get('/MyRecipes/AddIngredientRow?index=' + nextIngredientIndex +
+              '&name=' + html.getAttribute("data-name"),
+              '&indexValue=' + html.value,
+              function (data) {
+                  $('#HaveAtHome').append(data);
+              });
+           }
+           nextIngredientIndex++;
+
+            // const idx = nextIngredientIndex++;
+            // const wrap = document.createElement("div");
+            // wrap.className = "flexRow flexAlginItemCenter";
+            // wrap.id = "divHaveAtHome_" + html.value;
+
+            // const dataName = html.getAttribute("data-name");
+
+
+            // const indexToken = document.createElement("input");
+            // indexToken.type = "hidden";
+            // indexToken.name = "Ingredients.index";
+            // indexToken.value = idx;
+
+            // const ingId = document.createElement("input");
+            // ingId.type = "hidden";
+            // ingId.name = `Ingredients[${idx}].Ingredient.Id`;
+            // ingId.value = html.value;
+
+
+            // const nameInput = document.createElement("input");
+            // nameInput.type = "text";
+            // nameInput.readOnly = true;
+            // nameInput.name = `Ingredients[${idx}].Ingredient.Name`+" "+":"+" ";
+            // nameInput.value = dataName;
+            // nameInput.id = "spanHaveAtHome_" + html.value;
+
+
+            // const qty = document.createElement("input");
+            // qty.type = "number";
+            // qty.step = "0.01";
+            // qty.style = "width:50px;margin-left:5px;margin-right:5px";
+            // qty.name = `Ingredients[${idx}].Quantity.Quantitys`;
+
+            //  const measure = document.createElement("input");
+            //  measure.type = "text";
+            //   nameInput.readOnly = true;
+              
+            //  measure.name = `Ingredients[${idx}].Measure.UnitOfMeasurement`;
+
+
+            // const idHidden = document.createElement("input");
+            // idHidden.type = "hidden";
+            // idHidden.name = "IngredientIds";
+            // idHidden.value = html.value;
+            // idHidden.id = "hiddenHaveAtHome_" + html.value;
+
+            // wrap.appendChild(indexToken);
+            // wrap.appendChild(ingId);
+            // wrap.appendChild(nameInput);
+            // wrap.appendChild(qty);
+            // wrap.appendChild(idHidden);
+            // wrap.appendChild(measure);
+
+            // document.getElementById("HaveAtHome").appendChild(wrap);
+        }
+
+
+
+
+
         function loadMealPlanView() {
-            $('#Menue').load("MyRecipes/MealPlanView")
+            $('#Menue').load("MyRecipes/MealPlanView");
         }
 
         function loadRecipesILike() {
-            $('#Favoriten').load("MyRecipes/LoadRecipesILike")
+            $('#Favoriten').load("MyRecipes/LoadRecipesILike");
         }
-
-        function loadPremiumPartialView() {
-            $('#PartailaView').load("MyRecipes/Premium")
-        }
-
-         var idList = [];
-
-            function AddIngredientIdtoList(html) {
-                const id = parseInt(html.id);
-
-                const index = idList.indexOf(id);
-                if (index === -1) {
-                    idList.push(id);
-                } else {
-                    idList.splice(index, 1);
-                }
-            }
-
-        function CreateNewMealPlan()
-        {
-            let vegan = $("#checkVegan").prop("checked");
-            let vegetarisch = $("#checkVegetarisch").prop("checked");
-            let first = $("#checkFirstTime").prop("checked");
-            let second = $("#checkSecondTime").prop("checked");
-            let personCount = $("#personCount").val();
-            let dayCount = $("#dayCount").val();
-
-            localStorage.setItem("MealPlanerSettings", JSON.stringify({
-                vegan: vegan,
-                vegetarisch: vegetarisch,
-                firstTime: first,
-                secondTime: second,
-                personCount: personCount,
-                dayCount: dayCount
-
-            }));
-
-            window.location.href = '/CreateNewMealPlan/Index?vegan=' + vegan +
-                '&vegetarisch=' + vegetarisch +
-                '&cookingTimeOne=' + first +
-                '&cookingTimeTwo=' + second +
-                '&dayCount=' + dayCount +
-                '&personCount=' + personCount +
-                '&ingredientIds=' + idList.join(',');
-        }
-
     </script>
 }

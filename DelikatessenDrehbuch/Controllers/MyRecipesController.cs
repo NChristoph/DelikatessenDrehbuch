@@ -5,6 +5,7 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Polly;
 
 namespace DelikatessenDrehbuch.Controllers
@@ -16,12 +17,14 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly HelpfulMethods _helpfulMethods;
         private readonly IIngredientService _ingredientService;
         private readonly ILikeService _likeService;
-        public MyRecipesController(ApplicationDbContext context, HelpfulMethods helpfulMethods, IIngredientService ingredientService, ILikeService likeService)
+        private readonly IMeasureService _measureService;
+        public MyRecipesController(ApplicationDbContext context, HelpfulMethods helpfulMethods, IIngredientService ingredientService, ILikeService likeService, IMeasureService measureService)
         {
             _context = context;
             _helpfulMethods = helpfulMethods;
             _ingredientService = ingredientService;
             _likeService = likeService;
+            _measureService = measureService;
         }
 
         public IActionResult Index()
@@ -33,6 +36,17 @@ namespace DelikatessenDrehbuch.Controllers
             };
 
             return View(model);
+        }
+
+        public async Task<IActionResult> AddIngredientRowAsync(int index,string name,int indexValue)
+        {
+            ViewData["index"] = index;
+            ViewData["indexValue"] = indexValue;
+            var measure = await _measureService.GetMeasureFromDbAsync();
+            var listOfUnits = measure.Select(x=>x.UnitOfMeasurement).ToList();
+            ViewData["unit"] = listOfUnits;
+
+            return PartialView("_addRowPartial", new IngredientHandlerModel() { Ingredient = new() { Name=name} });
         }
 
 

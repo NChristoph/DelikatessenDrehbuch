@@ -4,6 +4,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 {
     public interface IMealPlanService
     {
+        Task<List<PersonalMealPlanRecipeModel>> GetMealPlanModels(string category,int count);
+
         Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount);
         Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int id);
         List<int> GetAlternativeRecipes(List<int> usedIds, int excludeId);

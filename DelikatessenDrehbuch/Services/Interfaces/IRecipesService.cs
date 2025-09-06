@@ -6,7 +6,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
     {
         Task DeleteRecipesByIdAsync(int id);
         Recipes GetOneRendomRecipeFromIdList(List<int> ids);
-        List<int> GetRendomRecipesIdsByCountFromIdList(List<int> recipesIds,int count);
+        List<int> GetRendomRecipesIds(List<int> recipesIds,int count);
         List<int> GetRecipesIdsByCategory(string category);
         Task<Recipes> GetRecipesFromDbByIdAsync(int id);
         int GetRecipesCount();

@@ -105,8 +105,6 @@ namespace DelikatessenDrehbuch.Controllers
 
             }
 
-
-
             return RedirectToAction("Index");
         }
 

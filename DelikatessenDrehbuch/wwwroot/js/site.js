@@ -69,5 +69,7 @@ function ChangeNutrientQuantity(count) {
         li.textContent = formatted.replace('.', ',');
 
     });
+
+ 
 }
 

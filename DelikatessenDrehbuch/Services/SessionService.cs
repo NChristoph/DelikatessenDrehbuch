@@ -48,7 +48,13 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             var idsFromSession = GetRecipesIdsFromSession();
             idsFromSession.RemoveAll(x=>loadedRecipesIds.Contains(x));
         }
-        
+
+        public void SaveMealPlanSettingsToSession(PersonalMealPlanSettings model)
+        {
+            var json = JsonSerializer.Serialize(model, new JsonSerializerOptions());
+            _httpContext.HttpContext.Session.SetString("MealPlanSettings", json);
+        }
+
         public void SavePersonalMealPlanToSession(List<PersonalMealPlanRecipeModel> model)
         {
             var json = JsonSerializer.Serialize(model, new JsonSerializerOptions());
@@ -63,6 +69,16 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         public void RemoveFullRecipesFromSessions(int recipesIds)
         {
             throw new NotImplementedException();
+        }
+
+        public PersonalMealPlanSettings GetMealPlanSettingsFromSession()
+        {
+            var json = _httpContext.HttpContext?.Session.GetString("MealPlanSettings");
+
+            var items = string.IsNullOrEmpty(json)
+                ? new PersonalMealPlanSettings()
+                : JsonSerializer.Deserialize<PersonalMealPlanSettings>(json, new JsonSerializerOptions());
+            return items;
         }
     }
 }

@@ -161,7 +161,7 @@ namespace DelikatessenDrehbuch.Services
             await _context.SaveChangesAsync();
         }
 
-        public List<int> GetRendomRecipesIdsByCountFromIdList(List<int> recipesIds, int count)
+        public List<int> GetRendomRecipesIds(List<int> recipesIds, int count)
         {
             var random = new Random();
             return recipesIds.OrderBy(x => random.Next()).Take(count).ToList();

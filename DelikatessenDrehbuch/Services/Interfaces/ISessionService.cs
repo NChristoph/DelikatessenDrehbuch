@@ -6,6 +6,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
     {
         void ClearSession();
         void SavePersonalMealPlanToSession(List<PersonalMealPlanRecipeModel> model);
+        void SaveMealPlanSettingsToSession(PersonalMealPlanSettings model);
+        PersonalMealPlanSettings GetMealPlanSettingsFromSession();
         List<PersonalMealPlanRecipeModel> GetPersonalMealPlanFromSession();
         List<int> GetRecipesIdsFromSession();
         void SaveRecipesIdToSession(List<int> machingRecipes);

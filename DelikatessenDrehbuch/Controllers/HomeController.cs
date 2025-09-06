@@ -51,7 +51,7 @@ namespace DelikatessenDrehbuch.Controllers
                 .Select(x => x.Id)
                 .ToList();
 
-            var randomRecipeIds = _recipesService.GetRendomRecipesIdsByCountFromIdList(recipeIdsFromDb, 25);
+            var randomRecipeIds = _recipesService.GetRendomRecipesIds(recipeIdsFromDb, 25);
 
 
             model = _context.Recipes.Where(x => randomRecipeIds.Contains(x.Id)).ToList();

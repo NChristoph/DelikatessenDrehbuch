@@ -2,12 +2,13 @@
 @{
 
     var indexValue = (int)ViewData["index"];
+    var value = (int)ViewData["indexValue"];
     var unit = (List<string>)ViewData["unit"];
-    ViewData.TemplateInfo.HtmlFieldPrefix = $"IngredientHandler[{indexValue}]";
+    ViewData.TemplateInfo.HtmlFieldPrefix = $"Ingredients[{indexValue}]";
 }
 
-
-<div name="IndexValue" class=" flexRowToColumn flexJustifyContendSpaceBetween flex mt-1">
+<input type="hidden" name="Ingredients.index" value="@indexValue" />
+<div id="divHaveAtHome_@value" class=" flexRow flexJustifyContendSpaceBetween flex mt-1">
     <div class="flexColumn"
          style="min-width:50%">
         <input class="form-control"
@@ -50,7 +51,14 @@
 
     </div>
 
-    
-
 
 </div>
+<script>
+       function ChangeValue(index, text) {
+
+        $("#UnitOfMeasurement_" + index).val(text);
+        $("#dropdownUnit_" + index).text(text);
+
+    }
+</script>
+
