@@ -52,7 +52,7 @@ namespace DelikatessenDrehbuch.Services
         public List<int> GetRecipesIdsByCategory(string category)
         {
             return _context.Recipes.Where(x => x.Category.ToLower().Trim() == category.ToLower().Trim())
-                                                  .Select(x => x.Id).ToList();
+                                   .Select(x => x.Id).ToList();
         }
 
         public int GetRecipesCount()

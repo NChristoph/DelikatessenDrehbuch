@@ -14,5 +14,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds);
         void RemoveFullRecipesFromSessions(int recipesIds);
         Task<int> AddRandomFullRecipesToSessionsAsync();
+        void UpdateRecipesIdsInSession(int remove = 0, int add = 0);
+
+
     }
 }

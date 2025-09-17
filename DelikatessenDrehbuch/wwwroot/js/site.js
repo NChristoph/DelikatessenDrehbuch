@@ -2,22 +2,22 @@
 
     var personcount = document.getElementById("personCount").value;
 
-    
+
     if (!id) {
         var recipesIdsList = GetRecipesIdsList();
         $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesIdsList.join(";")
-                                                                                        + '&personCount=' + personcount);
+            + '&personCount=' + personcount);
     } else {
         $("#" + id).load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesId
-                                                                                    + '&personCount=' + personcount);
+            + '&personCount=' + personcount);
     }
 }
 
 function GetRecipesIdsList() {
     var recipesElements = document.getElementsByName("Recipes");
-    
+
     return Array.from(recipesElements).map(function (el) {
-        return el.title;
+        return el.getAttribute('data-id');
     });
 }
 
@@ -28,14 +28,23 @@ function parseNumberLocale(str) {
     return Number(m[0].replace(',', '.'));
 }
 
-function ChangeRecipesQuantity() {
+function UnCheckAllCheckboxes(checkboxes) {
+    checkboxes.forEach(cb => {
+        var checkbox = document.getElementById(cb);
+        if (checkbox.checked)
+            checkbox.checked = false;
+    });
+};
+
+function ChangeRecipesQuantity(person) {
+    // Wenn kein Parameter übergeben → Wert aus Input nehmen
     const count = parseNumberLocale(document.getElementById("personCount").value) || 1;
+    const multiplier = (typeof person !== "undefined") ? person : count;
 
     document.querySelectorAll('[name="IngredientContainer_SelectetRecipe"]').forEach(li => {
         const quantitySpan = li.querySelector('[name="quantity"]');
-        const unitSpan = li.querySelector('span:nth-of-type(2)'); // etwas robuster
+        const unitSpan = li.querySelector('span:nth-of-type(2)');
 
-        // Fallback: falls data-original fehlt, nimm Text
         let base = parseNumberLocale(quantitySpan.dataset.original ?? quantitySpan.textContent);
         if (Number.isNaN(base)) return;
 
@@ -44,17 +53,18 @@ function ChangeRecipesQuantity() {
             base = base / 3;
         }
 
-        const value = base * count;
+        const value = base * multiplier;
 
-        // Ganzzahlig → 0 Stellen, sonst 2
         const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2);
 
-        // Wenn du Anzeige mit Komma willst:
+        // Anzeige mit Komma statt Punkt
         quantitySpan.textContent = formatted.replace('.', ',');
     });
 
-    ChangeNutrientQuantity(count);
+    // Weitergabe des Multiplikators (Person oder Count) an die nächste Funktion
+    ChangeNutrientQuantity(multiplier);
 }
+
 
 function ChangeNutrientQuantity(count) {
     var quantitysToChange = document.getElementsByName("nutrientQuantity").forEach(li => {
@@ -63,13 +73,21 @@ function ChangeNutrientQuantity(count) {
         if (Number.isNaN(base)) return;
 
         const value = base * count;
-        
+
         const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2);
 
         li.textContent = formatted.replace('.', ',');
 
     });
 
- 
+    changeKalorien(count);
+}
+function changeKalorien(count) {
+    var kalorien = document.getElementById("calories");
+    let base = parseNumberLocale(kalorien.dataset.original ?? kalorien.textContent);
+    if (Number.isNaN(base)) return;
+    const value = base * count;
+    const formatted = value.toFixed(0);
+    kalorien.textContent = "Kalorien gesamt : " + formatted;
 }
 

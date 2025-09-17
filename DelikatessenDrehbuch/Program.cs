@@ -47,6 +47,7 @@ builder.Services.AddScoped<ILikeService,  LikeService>();
 builder.Services.AddScoped<IUtilityService,  UtilityService>();
 builder.Services.AddScoped<ISessionService,  SessionService>();
 
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>

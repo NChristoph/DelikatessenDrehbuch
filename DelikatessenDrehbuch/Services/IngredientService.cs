@@ -62,7 +62,7 @@ namespace DelikatessenDrehbuch.Services
             return _context.Ingredients.SingleOrDefault(x => x.Name.ToLower() == name.ToLower().Trim());
         }
 
-       
+
         public List<IngredientHandlerModel> GetIngredientHandlerListFromString(string mapToIngredientHandlers)
         {
             var ingredients = _utilityService.SplitLinesToArray(mapToIngredientHandlers);
@@ -84,7 +84,7 @@ namespace DelikatessenDrehbuch.Services
 
             }
 
-           return ingredientHandlerModels;
+            return ingredientHandlerModels;
         }
 
         public async Task<IngredientHandlerModel> GetOrCreateIngredientHandlerAsync(IngredientHandlerModel ingredientHandlerModel)
@@ -141,6 +141,42 @@ namespace DelikatessenDrehbuch.Services
             return await _context.RecipesHandlers.Where(x => x.Recipe.Id == id)
                                                  .Select(x => x.IngredientHandler.Ingredient.Name)
                                                  .ToListAsync();
+        }
+
+        public List<IngredientHandlerModel> CombineIngredienthanderModel(List<IngredientHandlerModel> listToSort)
+        {
+            var combined = listToSort.GroupBy(ih => new { ih.Ingredient.Id, Unit = ih.Measure.UnitOfMeasurement })
+                                     .Select(g =>
+                                     {
+                                         var first = g.First();
+                                         var unit = first.Measure.UnitOfMeasurement;
+
+                                         bool isG = unit.Equals("g.", StringComparison.OrdinalIgnoreCase);
+                                         bool isMl = unit.Equals("ml", StringComparison.OrdinalIgnoreCase);
+                                         bool isB = unit.Equals("Blatt", StringComparison.OrdinalIgnoreCase);
+                                         var avg = first.Ingredient?.AverageWeight ?? 0d; // ggf. AverageWeightGrams
+
+                                         // Wenn Einheit nicht g/ml und Ø-Gewicht vorhanden -> in g umrechnen
+                                         var sum = (!isG && !isMl && avg > 0d)
+                                             ? g.Sum(x => x.Quantity.Quantitys) * avg
+                                             : g.Sum(x => x.Quantity.Quantitys);
+
+                                         var outUnit = (!isG && !isMl && !isB && avg > 0d) ? "g." : unit;
+
+                                         return new IngredientHandlerModel
+                                         {
+                                             Ingredient = first.Ingredient,
+                                             Measure = new Measure { UnitOfMeasurement = outUnit },
+                                             Quantity = new Quantity { Quantitys = sum }
+                                         };
+                                     })
+                                     .ToList();
+
+            return combined;
+
+
+
+
         }
     }
 }

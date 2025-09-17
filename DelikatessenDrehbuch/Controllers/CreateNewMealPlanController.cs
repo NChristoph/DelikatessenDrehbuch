@@ -1,5 +1,6 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
@@ -30,12 +31,14 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ISessionService _sessionService;
         private readonly IHttpContextAccessor _httpContext;
+        private readonly IQueryService _queryService;
+        private readonly INutrientService _nutrientService;
 
 
         public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService,
                                            IIngredientService ingredientService, IUtilityService utilityService,
                                            ApplicationDbContext context, IHttpContextAccessor httpContext,
-                                           ISessionService sessionService)
+                                           ISessionService sessionService, IQueryService queryService, INutrientService nutrientService)
         {
 
             _recipesService = recipesService;
@@ -45,6 +48,8 @@ namespace DelikatessenDrehbuch.Controllers
             _httpContext = httpContext;
             _context = context;
             _sessionService = sessionService;
+            _queryService = queryService;
+            _nutrientService = nutrientService;
         }
         [Authorize]
         public async Task<ActionResult> IndexAsync(PersonalMealPlanSettings settings)
@@ -53,25 +58,41 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 return Ok("Maximal 7 Tage erlaubt");
             }
+
             _sessionService.ClearSession();
+            
             _sessionService.SaveMealPlanSettingsToSession(settings);
 
 
             ViewData["PersonCount"] = settings.PersonCount;
             var model = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
             _sessionService.SavePersonalMealPlanToSession(model);
+            _sessionService.SaveRecipesIdToSession(model.Select(x => x.Id).ToList());
 
             return View("~/Views/MyRecipes/CreateNewMealPlan.cshtml", model);
         }
 
-
-
-        public IActionResult GetNameAndDescription(string name, string description)
+        public async Task<IActionResult> GetRecipe(int recipeId)
         {
-            string[] model = new[] { name, description };
 
-            return PartialView("~/Views/MyRecipes/_nameAndDescriptionPartialMealPlaner.cshtml", model);
+            ViewData["index"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
+            var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeId);
+            
+            
+
+            SelectedRecipesModel model = new()
+            {
+                FullRecipeData = await _recipesService.GetFullRecipeDataByRecipesIdAsync(recipeId),
+                Querys = querys,
+                NutrienHandlers = await _nutrientService.GetNutrienHandlersByIngredientNamesAsync(
+                                       await _ingredientService.GetIngredientsNamesByRecipesId(recipeId)),
+
+            };
+
+            return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml",model);
         }
+
+
 
         public IActionResult CreatedMealPlan(string indexAndIds, int personCount)
         {
@@ -103,14 +124,16 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
-        public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId, string index)
+        public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId=0,string category="", string index= "")
         {
             ViewData["Index"] = int.Parse(index);
 
-            var model = await _mealPlanService.GetMealPlanModels("Hauptspeise", 1);
+            var model = await _mealPlanService.GetMealPlanModels(category, 1);
             var recipe = model.First().Recipes;
 
             EditeSession(model.First(), recipeId);
+
+            _sessionService.UpdateRecipesIdsInSession(remove: recipeId, add: recipe.Id);
 
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe);
         }
@@ -124,12 +147,17 @@ namespace DelikatessenDrehbuch.Controllers
             _sessionService.SavePersonalMealPlanToSession(session);
         }
 
-        public async Task<IActionResult> LoadAppetizerOrDessertPartialViewAsync(string category, string index)
+        public async Task<IActionResult> LoadAppetizerOrDessertPartialViewAsync(string category, string index,int id=0)
         {
             ViewData["Index"] = int.Parse(index);
             var model = await _mealPlanService.GetMealPlanModels(category, 1);
             var recipe=model.First().Recipes;
             EditeSession(model.First(), 0);
+            if(id!=0)
+            {
+                _sessionService.UpdateRecipesIdsInSession(remove: id);
+            }
+          
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",recipe);
         }
 

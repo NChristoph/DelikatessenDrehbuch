@@ -42,6 +42,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             return items;
         }
 
+      
+
 
         public void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds)
         {
@@ -66,6 +68,20 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             _httpContext.HttpContext.Session.SetString("RecipesFromDbIds", JsonSerializer.Serialize(machingRecipes, new JsonSerializerOptions()));
         }
 
+        public void UpdateRecipesIdsInSession(int remove = 0,int add=0)
+        {
+            var idsFromSession = GetRecipesIdsFromSession();
+
+            if (remove!=0){        
+                idsFromSession.Remove(remove);
+            }
+            if(add!=0) {
+                idsFromSession.Add(add);               
+            }
+
+            SaveRecipesIdToSession(idsFromSession);
+        }
+
         public void RemoveFullRecipesFromSessions(int recipesIds)
         {
             throw new NotImplementedException();
@@ -80,5 +96,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
                 : JsonSerializer.Deserialize<PersonalMealPlanSettings>(json, new JsonSerializerOptions());
             return items;
         }
+
+      
     }
 }

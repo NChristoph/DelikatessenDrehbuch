@@ -11,5 +11,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         Task<IngredientHandlerModel> GetOrCreateIngredientHandlerAsync(IngredientHandlerModel ingredientHandlerModel);
         public List<IngredientHandlerModel> GetIngredientHandlerListFromString(string mapToIngredientHandlers);
 
+        List<IngredientHandlerModel> CombineIngredienthanderModel(List<IngredientHandlerModel> listToSort);
+
+
     }
 }

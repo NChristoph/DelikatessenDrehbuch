@@ -20,189 +20,55 @@
             </span>
 
             var recipesList = Model[key];
-           
+
             foreach (var recipes in recipesList)
             {
+                
                 <button class="btn bgRed Border-Gold mb-2 w-50 mobieleWidth90 mobileCenter"
                         style="color:white;max-width:90%"
                         type="button"
                         data-bs-toggle="offcanvas"
                         data-bs-target="#MealPlanCanvas_@key@recipes.Id"
-                        aria-controls="navbarSupportedContent">
+                        aria-controls="navbarSupportedContent"
+                        >
                     @recipes.Recipes.Name
 
                 </button>
 
-                if (recipes.Recipes.Description != "Zutaten")
-                {
-                    <div class="offcanvas offcanvas-start w-50 mobieleWidth100 tableteSize75"
-                         tabindex="-1"
-                         id="MealPlanCanvas_@key@recipes.Id"
-                         aria-labelledby="offcanvasExampleLabel">
+                <div class="offcanvas offcanvas-start w-50 mobieleWidth100 tableteSize75"
+                     tabindex="-1"
+                     id="MealPlanCanvas_@key@recipes.Id"
+                     aria-labelledby="offcanvasExampleLabel">
 
-                        <div class="offcanvas-header ">
-                            <img class="grid-Logo"
-                                 src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png"
-                                 style=" max-height:100px;object-fit:contain" />
+                    <div class="offcanvas-header ">
+                        <img class="grid-Logo"
+                             src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png"
+                             style=" max-height:100px;object-fit:contain" />
 
-                            <div class="grid-Name"
-                                 style="color:#D4AF37;font-size:14px">
-                                Delikatessen Drehbuch
-                            </div>
-
-                            <button type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="offcanvas"
-                                    aria-label="Close">
-                            </button>
+                        <div class="grid-Name"
+                             style="color:#D4AF37;font-size:14px">
+                            Delikatessen Drehbuch
                         </div>
 
-                        <div class="offcanvas-body Bg-Cream w-100 ">
-
-                            <span class="w-100 mt-2 mb-2"
-                                  style="text-align:center;display:block">
-                                <strong>@recipes.Recipes.Name</strong>
-                            </span>
-
-                            <div class=" flexRowToColumn flexAlginItemCenter Bg-Cream Border-Gold w-100 mobieleWidth90">
-
-                                <div class=" mobieleWidth100 ">
-                                    <div name="Recipes"
-                                         title="@recipes.Id">
-                                    </div>
-
-                                    <div class="flexRowToColumn flexJustifyContendSpaceAround mobileItemCenter">
-
-                                        <div class="flexColumn mt-4 mobieleWidth90 mobileItemCenter"
-                                             style="max-width:40%">
-
-                                            <div id="ingredientPartialView_@recipes.Id@key"
-                                                 class="p-2 mobieleWidth80"
-                                                 style="min-width:40%">
-                                            </div>
-
-                                            @{
-
-
-                                                @if (!string.IsNullOrEmpty(recipes.Recipes.ImagePath))
-                                                {
-
-                                                    var subPath = FrontendFunctions.CaseInsensitivePath(recipes.Recipes.ImagePath);
-
-                                                    var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
-                                                    Environment.GetEnvironmentVariable("SmalPic"));
-
-                                                    <div class=" grid-Image w-100 flex flexJustifyContendCenter mt-3">
-
-                                                        <picture class="mobieleWidth90 " style="max-width:450px;max-height:450px">
-
-                                                            <source srcset="@($"{smallPath}_small.webp")">
-
-                                                            <img class="img-fluid"
-                                                                 src="@smallPath"
-                                                                 alt="@(!string.IsNullOrEmpty(recipes.Recipes.Description) ? recipes.Recipes.Description : recipes.Recipes.Name)"
-                                                                 title="@recipes.Recipes.Name"
-                                                                 width="450"
-                                                                 height="450"
-                                                                 decoding="async"
-                                                                 style="aspect-ratio: 3 / 2; object-fit: cover;" />
-                                                        </picture>
-
-                                                    </div>
-
-
-                                                }
-                                                else
-                                                {
-                                                    <img class="img-fluid" src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" />
-                                                }
-
-                                                <ins class="adsbygoogle"
-                                                     style="display:flex"
-                                                     data-ad-client="ca-pub-2332503983815482"
-                                                     data-ad-slot="6882535678"
-                                                     data-ad-format="auto"
-                                                     data-full-width-responsive="true"></ins>
-                                                <script>
-                                                    (adsbygoogle = window.adsbygoogle || []).push({});
-                                                </script>
-                                            }
-                                        </div>
-
-
-                                        <span class="p-2 mobieleWidth90"
-                                              style="max-width:49%;white-space:pre-line">
-                                            @Html.Raw(@recipes.Recipes.Preparation)
-                                        </span>
-
-                                    </div>
-                                    <script>
-
-                                        document.addEventListener("DOMContentLoaded", function () {
-                                        ReloadIngredientList("ingredientPartialView_@recipes.Id@key",@recipes.Id);
-
-                                        });
-                                    </script>
-                                </div>
-
-                            </div>
-
-                        </div>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="offcanvas"
+                                aria-label="Close">
+                        </button>
                     </div>
-                }
-                else
-                {
-                    <div class="offcanvas offcanvas-start w-50 mobieleWidth100 tableteSize75"
-                         tabindex="-1"
-                         id="MealPlanCanvas_@key@recipes.Id"
-                         aria-labelledby="offcanvasExampleLabel">
 
-                        <div class="offcanvas-header ">
-                            <img class="grid-Logo"
-                                 src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png"
-                                 style=" max-height:100px;object-fit:contain" />
+                    <div class="offcanvas-body Bg-Cream w-100 " id="MealPlaner_@recipes.Id">
+                        <script>
 
-                            <div class="grid-Name"
-                                 style="color:#D4AF37;font-size:14px">
-                                Delikatessen Drehbuch
-                            </div>
-
-                            <button type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="offcanvas"
-                                    aria-label="Close">
-                            </button>
-                        </div>
-
-                        <div class="offcanvas-body Bg-Cream Border-Gold w-100 ">
-
-
-                            <span class="w-100 mt-2 mb-2"
-                                  style="text-align:center;display:block">
-                                <strong>@recipes.Recipes.Name</strong>
-                            </span>
-                            <div class="flexRowToColumn flexAlginItemCenter flexJustifyContendCenter mobileItemCenter">
-
-                                <div class="flexColumn mt-4 mobieleWidth90 mobileItemCenter">
-
-                                    <div id="ingredientPartialView_@recipes.Id"
-                                         class="p-2 mobieleWidth80"
-                                         style="min-width:40%">
-                                    </div>
-
-                                </div>
-
-
-
-
-                            </div>
-                            <script>
                                 document.addEventListener("DOMContentLoaded", function () {
-                                ReloadIngredientList("ingredientPartialView_@recipes.Id","@recipes.Recipes.Preparation");});
-                            </script>
-                        </div>
+                                LoadRecipes(@recipes.Id);
+
+                            });
+                        </script>
                     </div>
-                }
+                </div>
+
+
 
 
 
@@ -276,3 +142,22 @@
     </div>
 </div>
 
+
+@section Scripts
+{
+
+    <script type="text/javascript">
+
+        function LoadRecipes(id)
+        {
+             $.get("/CreateNewMealPlan/GetRecipe", {
+            recipeId: id
+        })
+        .done(function (html) {
+            $("#MealPlaner_" + id).append(html);
+        });
+        }
+
+    </script>
+
+}

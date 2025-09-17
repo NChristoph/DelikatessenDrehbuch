@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿
+@using Microsoft.AspNetCore.Identity
 @using System.Web
 @using System.Linq;
 @using DelikatessenDrehbuch.StaticScripts;
@@ -13,88 +14,12 @@
 @{
     ViewData["Title"] = $"{Model.FullRecipeData.Recipes.Name} – Rezept & Anleitung | Delikatessen-Drehbuch";
     ViewData["Description"] = $"Entdecken Sie das Rezept für {Model.FullRecipeData.Recipes.Name} – eine exquisite Delikatesse mit detaillierter Anleitung. Perfekt für besondere Anlässe oder den puren Genuss. Jetzt entdecken & nachkochen!";
+    int index = (int)ViewData["index"];
 }
-<head>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Bundle mit Popper.js (JavaScript für interaktive Komponenten) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
-</head>
-
-<script type="application/ld+json">
-
-
-    {
-    "@@context": "https://schema.org",
-    "@@type": "Recipe",
-    "name": "@Model.FullRecipeData.Recipes.Name",
-    "author": {
-    "@@type": "Person",
-    "name": "Christoph Nitsch"
-    },
-    "description": "@Model.FullRecipeData.Recipes.Description",
-    "prepTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
-    "totalTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
-    "recipeCategory": "@Model.FullRecipeData.Recipes.Category",
-    "keywords": [
-   
-    ],
-    "recipeIngredient": [
-    @Html.Raw(string.Join(",", Model.FullRecipeData.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
-    ],
-    "recipeInstructions": [
-    {
-    "@@type": "HowToStep",
-    "text": "@Html.Raw(Model.FullRecipeData.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
-    }
-    ],
-    "image": "@Model.FullRecipeData.Recipes.ImagePath",
-    "publisher": {
-    "@@type": "Organization",
-    "name": "Delikatessen-Drehbuch",
-    "url": "https://www.delikateessen-drehbuch.com",
-    "logo": {
-    "@@type": "ImageObject",
-    "url": "[Logo-URL]",
-    "width": 250,
-    "height": 100
-    }
-    },
-    "sameAs": "https://www.facebook.com/profile.php?id=61563421617642"
-    }
-</script>
-
-
-<script>
-    function GoBack() {
-
-    if (window.history.length > 1) {
-    window.history.back();
-    }
-    else {
-    window.location.href = '../../Home/Index';
-    }
-    }
-
-</script>
-
-
-<body>
 
     <div class="minWidth100 flex flexJustifyContendCenter">
         <div class="maxWidth80 minWidth80 mobieleWidth90 mobileCenter ">
-
-            <a class="Border-Gold btn "
-               typeof="button"
-               onclick="GoBack()"
-               style="text-decoration:none;color:white;background:#770f05">
-                Zurück
-            </a>
 
             <div class="grid-Selected-Recipe minWidth100 flexJustifyContendSpaceAround ">
 
@@ -125,6 +50,7 @@
                                      width="450"
                                      height="450"
                                      decoding="async"
+                                     onload="ChangeRecipesQuantity(@index)"
                                      style="aspect-ratio: 3 / 2; object-fit: cover;" />
 
                             </picture>
@@ -140,14 +66,7 @@
                 }
 
 
-                @{
-                    <p class="grid-LikeCount mt-3 mb-3">
-                        @(Model.FullRecipeData.Recipes.LikeCount == 0
-                                            ? "Sei der Erste, dem das Rezept gefällt."
-                                            : $"Dieses Rezept gefällt {Model.FullRecipeData.Recipes.LikeCount} Benutzern.")
-                </p>
-
-                                }
+              
 
 
                 @if (Model.FullRecipeData.Recipes.PreparationTime > 0)
@@ -198,59 +117,7 @@
 
 
 
-                @if (SignInManager.IsSignedIn(User))
-                {
-                    <a class="btn bgRed mb-2 grid-Button"
-                       href="#"
-                       onclick="MessageModalShowWrite('@Model.FullRecipeData.Recipes.GetType().Name', @Model.FullRecipeData.Recipes.Id, '@User.Identity.Name')"
-                       style="color:#FFFDD0; width:max-content; margin-right:auto">
-                        Rezept melden
-                    </a>
-
-                    <div class="flexRow flexJustifyContendSpaceAround flexAlginItemCenter grid-Likebutton m-3">
-
-                        <a asp-controller="SelectedRecipe"
-                           asp-action="AddOrRemoveLike"
-                           asp-route-id="@Model.FullRecipeData.Recipes.Id"
-                           title="Like Button"
-                           style="width:100px; height:max-content; padding:0.35rem; margin-left:auto;">
-                            @{
-                                var like = Model.FullRecipeData.Likes.SingleOrDefault(x =>
-                                x.UserMail == User.Identity.Name &&
-                                x.Recipe == Model.FullRecipeData.Recipes);
-                            }
-
-                            @if (like != null)
-                            {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor"
-                                     class="bi bi-hand-thumbs-up" viewBox="0 0 16 16" style="color:black">
-                                    <path d="M6.956 1.745C7.021.81 7.908.087 8.864.325l.261.066c.463.116.874.456 1.012.965.22.816.533 2.511.062 4.51a10 10 0 0 1 .443-.051c.713-.065 1.669-.072 2.516.21.518.173.994.681 1.2 1.273.184.532.16 1.162-.234 1.733q.086.18.138.363c.077.27.113.567.113.856s-.036.586-.113.856c-.039.135-.09.273-.16.404.169.387.107.819-.003 1.148a3.2 3.2 0 0 1-.488.901c.054.152.076.312.076.465 0 .305-.089.625-.253.912C13.1 15.522 12.437 16 11.5 16H8c-.605 0-1.07-.081-1.466-.218a4.8 4.8 0 0 1-.97-.484l-.048-.03c-.504-.307-.999-.609-2.068-.722C2.682 14.464 2 13.846 2 13V9c0-.85.685-1.432 1.357-1.615.849-.232 1.574-.787 2.132-1.41.56-.627.914-1.28 1.039-1.639.199-.575.356-1.539.428-2.59z" />
-
-                                </svg>
-                            }
-                            else
-                            {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor"
-                                     class="bi bi-star-fill" viewBox="0 0 16 16" style="color:black">
-                                    <path d="M8.864.046C7.908-.193 7.02.53 6.956 1.466c-.072 1.051-.23 2.016-.428 2.59-.125.36-.479 1.013-1.04 1.639-.557.623-1.282 1.178-2.131 1.41C2.685 7.288 2 7.87 2 8.72v4.001c0 .845.682 1.464 1.448 1.545 1.07.114 1.564.415 2.068.723l.048.03c.272.165.578.348.97.484.397.136.861.217 1.466.217h3.5c.937 0 1.599-.477 1.934-1.064a1.86 1.86 0 0 0 .254-.912c0-.152-.023-.312-.077-.464.201-.263.38-.578.488-.901.11-.33.172-.762.004-1.149.069-.13.12-.269.159-.403.077-.27.113-.568.113-.857 0-.288-.036-.585-.113-.856a2 2 0 0 0-.138-.362 1.9 1.9 0 0 0 .234-1.734c-.206-.592-.682-1.1-1.2-1.272-.847-.282-1.803-.276-2.516-.211a10 10 0 0 0-.443.05 9.4 9.4 0 0 0-.062-4.509A1.38 1.38 0 0 0 9.125.111zM11.5 14.721H8c-.51 0-.863-.069-1.14-.164-.281-.097-.506-.228-.776-.393l-.04-.024c-.555-.339-1.198-.731-2.49-.868-.333-.036-.554-.29-.554-.55V8.72c0-.254.226-.543.62-.65 1.095-.3 1.977-.996 2.614-1.708.635-.71 1.064-1.475 1.238-1.978.243-.7.407-1.768.482-2.85.025-.362.36-.594.667-.518l.262.066c.16.04.258.143.288.255a8.34 8.34 0 0 1-.145 4.725.5.5 0 0 0 .595.644l.003-.001.014-.003.058-.014a9 9 0 0 1 1.036-.157c.663-.06 1.457-.054 2.11.164.175.058.45.3.57.65.107.308.087.67-.266 1.022l-.353.353.353.354c.043.043.105.141.154.315.048.167.075.37.075.581 0 .212-.027.414-.075.582-.05.174-.111.272-.154.315l-.353.353.353.354c.047.047.109.177.005.488a2.2 2.2 0 0 1-.505.805l-.353.353.353.354c.006.005.041.05.041.17a.9.9 0 0 1-.121.416c-.165.288-.503.56-1.066.56z" />
-                                </svg>
-
-                            }
-                        </a>
-
-
-                        <button type="button"
-                                data-bs-toggle="modal"
-                                data-bs-target="#exampleModal"
-                                title="Rating Button"
-                                class="btn"
-                                style="width:max-content; height:max-content; margin-left:auto; color:#FFFDD0; background:#770f05">
-                            Bewerten
-                        </button>
-
-                    </div>
-                }
-
+               
                 <hr class="grid-hr" style="opacity:1" />
 
                 <div class="grid-ingredient flex flexJustifyContendCenter">
@@ -259,12 +126,7 @@
                         <span class="m-2 mb-2"
                               style="text-align:center;display:block;width:90%">
                             Dieses Rezept ist für
-                            <input id="personCount"
-                                   value="1"
-                                   min="0"
-                                   type="number"
-                                   onchange="ChangeRecipesQuantity()"
-                                   style="width:55px;" />
+                           @index
                             Personen.
                         </span>
 
@@ -558,14 +420,7 @@
 
 
                             }
-                            else
-                            {
-                                //TODO:Premium user Abo noch ermoglichen
-                                <p>
-                                    Gesamte Nährstoffanzeige nur mit Premium-Abo möglich.<br />
-                                    Premium-Abo bald verfügbar.
-                                </p>
-                            }
+                           
                         </div>
 
                         @*
@@ -582,89 +437,6 @@
                 <!--#endRregion Tap: Preperation,Nutrient,Viedeo-->
 
 
-
-
-
-                <div class="carousel minWidth100 flexColumn align-items-lg-center slide grid-Carusel"
-                     id="RecipeSuggestions"
-                     data-bs-ride="carousel">
-
-                    <div class="w100 flex flexJustifyContendCenter m-2">
-                        <span style="text-align:center">
-                            <strong>Das könnte Ihnen auch schmecken</strong>
-                        </span>
-                    </div>
-
-                    <div class="carousel-inner flexJustifyContendCenter"
-                         style="max-width:450px;">
-                        @{
-                            var first = true;
-                        }
-
-                        @foreach (var recipe in Model.RecipeSuggestions)
-                        {
-
-                            var subPath1 = FrontendFunctions.CaseInsensitivePath(recipe.ImagePath);
-
-                            var smallPath1 = subPath1?.Replace(Environment.GetEnvironmentVariable("BigPic"),
-                            Environment.GetEnvironmentVariable("SmalPic"));
-
-                            <a class="carousel-item @(first ? "active" : "") mobieleWidth80"
-                               asp-controller="SelectedRecipe"
-                               asp-action="Index"
-                               asp-route-id="@recipe.Id"
-                               asp-route-name="@recipe.Name"
-                               style="text-decoration:none;color:black;">
-
-                                <picture class="mobieleWidth90 " style="max-width:450px;max-height:450px">
-                                    <source srcset="@($"{smallPath1}_small.webp")">
-                                    <img class="img-fluid"
-                                         src="@recipe.ImagePath"
-                                         alt="@(!string.IsNullOrEmpty(recipe.Description) ? recipe.Description : recipe.Name)"
-                                         title="@recipe.Name"
-                                         width="450"
-                                         height="450"
-                                         decoding="async"
-                                         style="aspect-ratio: 3 / 2; object-fit: cover;" />
-                                </picture>
-
-                                <span class="w-100 text-center d-block">@recipe.Name</span>
-                            </a>
-
-                            first = false;
-
-                        }
-                    </div>
-
-                    <button class="carousel-control-prev"
-                            type="button"
-                            data-bs-target="#RecipeSuggestions"
-                            data-bs-slide="prev">
-
-                        <span class="carousel-control-prev-icon"
-                              aria-hidden="true">
-                        </span>
-
-                        <span class="visually-hidden">
-                            Zurück
-                        </span>
-                    </button>
-                    <button class="carousel-control-next"
-                            type="button"
-                            data-bs-target="#RecipeSuggestions"
-                            data-bs-slide="next">
-
-                        <span class="carousel-control-next-icon"
-                              aria-hidden="true">
-                        </span>
-
-                        <span class="visually-hidden">
-                            Weiter
-                        </span>
-                    </button>
-                </div>
-
-
             </div>
 
 
@@ -673,102 +445,6 @@
 
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade"
-         id="exampleModal"
-         tabindex="-1"
-         aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-
-        <div class="modal-dialog">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5"
-                        id="exampleModalLabel">
-                        Bewerten
-                    </h1>
-
-                    <button class="btn-close"
-                            type="button"
-                            data-bs-dismiss="modal"
-                            aria-label="Close">
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="w100 flex acenter jcenter ">
-                        <form class=" minWidth100 flex flexColumn acenter"
-                              asp-controller="SelectedRecipe"
-                              asp-action="SaveRecessionInDB">
-
-                            <input value="@Model.FullRecipeData.Recipes.Id"
-                                   id="id"
-                                   name="id" hidden />
-
-                            <textarea class="w100"
-                                      id="assessment"
-                                      name="assessment"
-                                      style="min-height:25vh">
-                            </textarea>
-
-                            <button class="btn bgRed mb-2 grid-Button mt-1"
-                                    type="submit"
-                                    title="Rating Button"
-                                    style="width:max-content;margin-left:auto;color:#FFFDD0;">
-                                Bewerten
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-
-
-    @{
-        var reverseList = Model.FullRecipeData.Recession;
-        reverseList.Reverse();
-        foreach (var recessionFromDb in reverseList)
-        {
-
-            string email = recessionFromDb.UserEmail.Substring(0, 5) + "*******";
-            var createTime = DateOnly.FromDateTime(recessionFromDb.CreationDate);
-            <div class="minWidth100 flex flexJustifyContendCenter">
-                <div class="card Border-Gold maxWidth80 minWidth80 mobieleWidth90 mb-3 ">
-                    <div class="card-header flex flexRowToColumn jspaceBetween flexWrap bgRedGardien"
-                         style="color:#FFFDD0">
-
-                        <div class="minWidth40">
-                            @email
-                        </div>
-                        <div class="minWidth40 flex flexJustifyContendEnd">
-                            @createTime
-                        </div>
-
-                    </div>
-                    <div class="card-body  Bg-Cream">
-                        @recessionFromDb.Assessment
-                    </div>
-                    @{
-                        @if (SignInManager.IsSignedIn(User))
-                        {
-                            <div class=" card-footer Bg-Cream minWidth100 flex ">
-                                <a class="btn bgRed mb-2 "
-                                   href="#"
-                                   onclick="MessageModalShowWrite('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
-
-                            </div>
-                        }
-                    }
-
-                </div>
-            </div>
-
-        }
-    }
-</body>
 
 
 

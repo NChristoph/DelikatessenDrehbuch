@@ -1,4 +1,6 @@
-﻿@model List<IngredientHandlerModel>
+﻿@using DelikatessenDrehbuch.Services.Interfaces
+@inject IIngredientService IIngredientService
+@model List<IngredientHandlerModel>
 @{
     int personCount = 1;
     if (ViewData["PersonCount"]!=null)
@@ -9,21 +11,10 @@
 }
 
 @{
-
+    var _ingredientHandlerService = IIngredientService;
     Model.RemoveAll(i => i.Ingredient.Name == "Salz" || i.Ingredient.Name == "Pfeffer");
-
-    var combined = Model.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                                                            .Select(g => new IngredientHandlerModel
-                                                            {
-                                                                Ingredient = g.First().Ingredient,
-                                                                Measure = g.First().Measure,
-                                                                Quantity = new Quantity { Quantitys = g.Sum(ih => ih.Quantity.Quantitys) }
-                                                            }).ToList();
-
-
+    var combined = _ingredientHandlerService.CombineIngredienthanderModel(Model);
    
-
-
     var sortedList = combined.OrderBy(x => x.Quantity.Quantitys).Reverse();
 
     foreach (var ingredient in sortedList)

@@ -1,12 +1,15 @@
-﻿using DelikatessenDrehbuch.Data;
+﻿using Azure.Storage.Blobs.Models;
+using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
@@ -38,61 +41,169 @@ namespace DelikatessenDrehbuch.Services
 
         public async Task<List<PersonalMealPlanRecipeModel>> GetMealPlanModels(string category, int count)
         {
+            var settings = _sessionService.GetMealPlanSettingsFromSession();
 
             var recipesIdsFromDb = _recipesService.GetRecipesIdsByCategory(category);
-            var sortedRecipesIds = SortRecipesIdsBySettings(recipesIdsFromDb);
-            var rendomRecipesIds = _recipesService.GetRendomRecipesIds(sortedRecipesIds, count);
+            var sortRecipesByQuery = GetSortedListByQuerys(recipesIdsFromDb, settings, category);
+
+            var rendomRecipesIds = _recipesService.GetRendomRecipesIds(sortRecipesByQuery, count);
             var personalRecipes = await CreatePersonalMealPlanRecipeModelByIdsAsync(rendomRecipesIds);
 
             return personalRecipes;
 
         }
 
-        private List<int> SortRecipesIdsBySettings(List<int> recipeIdsFromDb)
+        private List<int> GetSortedListByQuerys(List<int> recipeIdsFromDb, PersonalMealPlanSettings settings, string category)
         {
-            var settings = _sessionService.GetMealPlanSettingsFromSession();
+            var filterBool = GetTrueBoolsFromSetting(settings).Select(x => x.Name);
+            bool ingredientsIdontLike = settings.IngredientIds != null;
 
-            var queryable = _context.QueryHandler.Where(x => recipeIdsFromDb.Contains(x.Recipe.Id))
-                                                 .Include(x=>x.Recipe)
-                                                 .AsQueryable()
+            HashSet<int> recipesToRemove = new();
+            HashSet<int> recipesToAdd = new();
+
+            bool cookingTimeOne = filterBool.Contains("CookingTimeOne");
+
+            var queryable = _context.QueryHandler.Where(x => recipeIdsFromDb.Contains(x.Recipe.Id)
+                                                  && x.Recipe.Category == category
+                                                  && (cookingTimeOne
+                                                      ? x.Recipe.PreparationTime < 45
+                                                      : x.Recipe.PreparationTime > 1))
+                                                 .Include(x => x.Recipe)
                                                  .AsNoTracking();
 
-            var bools = typeof(PersonalMealPlanSettings)
-                        .GetProperties()
-                        .Where(p => p.PropertyType == typeof(bool));
 
-            foreach (var filter in bools)
+            foreach (var filter in filterBool)
             {
-                var isChecked = (bool)filter.GetValue(settings);
-                if (isChecked)
+                if (filter.StartsWith("No"))
                 {
-                    var name = filter.Name;
-                    
-                    if (name.StartsWith("No"))
-                    {
-                        var subName = name.Substring(2);
-                        if (subName == "Pork")
-                            subName = "Schweinefleisch";
+                    var subName = filter.Substring(2);
+                    recipesToRemove.AddRange(queryable.Where(r => r.Query.Query.ToLower() == subName.ToLower())
+                                                       .Select(x => x.Recipe.Id)
+                                                       .ToHashSet()
+                    );
 
-                        var removeIds = queryable.Where(r => r.Query.Query.ToLower() == subName.ToLower())
-                                                 .Select(x => x.Recipe.Id)
-                                                 .ToList();
-
-                        queryable = queryable.Where(r => !removeIds.Contains(r.Recipe.Id));
-
-                    }
-                    if (!name.StartsWith("No")&& name != "CookingTimeOne")
-                    {
-                        queryable = queryable.Where(r => r.Query.Query.ToLower() == name.ToLower()).Include(x => x.Query);
-                    }
-                    if (name == "CookingTimeOne")
-                    {
-                        
-                        queryable = queryable.Where(r => r.Recipe.PreparationTime < 45);
-                    }
+                }
+                else
+                {
+                    recipesToAdd.AddRange(queryable.Where(r => r.Query.Query.ToLower() == filter.ToLower())
+                                                       .Select(x => x.Recipe.Id)
+                                                       .ToHashSet()
+                    );
                 }
             }
-            return queryable.Select(x => x.Recipe.Id).ToHashSet().ToList();
+
+            if (recipesToAdd.Any())
+            {
+                return  SortByIngredientIdontLike(settings,recipesToAdd.ToList());
+            }
+            else
+            {
+                return SortByIngredientIdontLike(settings,queryable.Where(x => !recipesToRemove.Contains(x.Recipe.Id))
+                                            .Select(x => x.Recipe.Id)
+                                            .ToHashSet()
+                                            .ToList());
+            }
+
+
+        }
+
+        private List<PropertyInfo> GetTrueBoolsFromSetting(PersonalMealPlanSettings settings)
+        {
+            var bools = typeof(PersonalMealPlanSettings)
+                       .GetProperties()
+                       .Where(p => p.PropertyType == typeof(bool));
+
+            return bools.Where(b => (bool)b.GetValue(settings) == true).ToList();
+        }
+
+        private List<int> SortByIngredientIdontLike(PersonalMealPlanSettings settings, List<int> sortedRecipes)
+        {
+            if (settings.IngredientIds == null)
+                return sortedRecipes;
+
+            var recipes = _context.RecipesHandlers.Where(x => sortedRecipes.Contains(x.Recipe.Id))
+                                                     .Include(x => x.IngredientHandler)
+                                                     .AsNoTracking()
+                                                     .AsQueryable();
+
+            var sort = recipes.Where(x => settings.IngredientIds.Contains(x.IngredientHandler.Ingredient.Id))
+                            .Select(x => x.Recipe.Id)
+                            .ToHashSet()
+                            .ToList();
+
+            return sortedRecipes.Except(sort).ToList();
+        }
+
+
+
+
+        private List<int> SortListByIngredient(List<int> sortedRecipesByQuery, PersonalMealPlanSettings settings)
+        {
+            var hasWithout = settings.IngredientIds?.Any() ?? false;
+            var hasAtHome = settings.IngredientsAtHome?.Any() ?? false;
+
+            return (hasWithout, hasAtHome) switch
+            {
+                (false, false) => sortedRecipesByQuery, // nichts gesetzt
+
+                (true, true) =>
+                    GetSortetListWhithIngredients(
+                        GetSortetListWhithOutIngredients(sortedRecipesByQuery, settings),
+                        settings),
+
+                (true, false) =>
+                    GetSortetListWhithOutIngredients(sortedRecipesByQuery, settings),
+
+                (false, true) => GetSortetListWhithIngredients(sortedRecipesByQuery, settings)
+
+
+            };
+
+        }
+
+        private List<int> GetSortetListWhithOutIngredients(List<int> sortedList, PersonalMealPlanSettings settings)
+        {
+
+            var ingredientsIdsIDontLike = settings.IngredientIds;
+
+            var idsFromRecipesIDontLike = _context.RecipesHandlers
+                                          .Where(x => sortedList.Contains(x.Recipe.Id) && ingredientsIdsIDontLike.Contains(x.IngredientHandler.Ingredient.Id))
+                                          .Select(x => x.Recipe.Id)
+                                          .Distinct()
+                                          .ToList();
+
+            var machedRecipes = _context.Recipes
+                                .Where(x => !idsFromRecipesIDontLike.Contains(x.Id))
+                                .Select(x => x.Id)
+                                .ToList();
+
+
+            return machedRecipes;
+
+        }
+        //ToDo:Noch so umschreiben das 1-2 rezepte mit den treffenden zutaten zurück kommen
+        //Nicht nur die dabei
+        //Todo:2 In der db Stehen 100 gerichte mit der category hauptgericht das auf hauptspeise ändern
+
+        private List<int> GetSortetListWhithIngredients(List<int> sortedList, PersonalMealPlanSettings settings)
+        {
+
+            var ingredientsIdsILike = settings.IngredientsAtHome;
+
+            var idsFromRecipesIDontLike = _context.RecipesHandlers
+                                          .Where(x => sortedList.Contains(x.Recipe.Id) && ingredientsIdsILike.Contains(x.IngredientHandler.Ingredient.Id))
+                                          .Select(x => x.Recipe.Id)
+                                          .Distinct()
+                                          .ToList();
+
+            var machedRecipes = _context.Recipes
+                                .Where(x => idsFromRecipesIDontLike.Contains(x.Id))
+                                .Select(x => x.Id)
+                                .ToList();
+
+
+            return machedRecipes;
+
         }
 
 

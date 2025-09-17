@@ -5,23 +5,16 @@
     
 }
 
-<div id="@Model.Id"
-     
-     style="max-width:fit-content">
-     <div name="Data"
-          data-Name="@Model.Name"
-          data-description="@Model.Description"
-          data-preperationTime="@Model.PreparationTime">
-          
-     </div>
+<div name="Recipes"
+     data-index="@index"
+     data-id="@Model.Id"
+     style="max-width:100%"
+     class="mt-1">
    
-    <div name="Recipes"
-         title="@Model.Id"
-         data-index="@index"
-         class="Bg-Cream">
+   
+    <div class="Bg-Cream flexRow w-100">
 
-        <div class="flexColumn flexJustifyContendCenter flexAlginItemCenter"
-             style="max-width:max-content">
+        <div class="flexColumn flexJustifyContendCenter">
             @{
                 var subPath = FrontendFunctions.CaseInsensitivePath(Model.ImagePath);
 
@@ -33,17 +26,49 @@
                      src="@($"{smallPath}_small.webp")" />
             }
 
+        </div>
+        <div class="flexColumn flexJustifyContendSpaceBetween w-100"
+             style="margin-left:10px">
+            <div class="flexRow" style="height:56%">
+                <span>@Model.Name</span>
+            </div>
+            <div class="flexRow flexAlginItemEnd">
+                <span>@Model.PreparationTime min</span>
+            </div>
+            <div class="flexRow flexAlginItemEnd mobile-hidden ">
+                <div class="dropdown mt-2 mb-2 w-100">
+                    <button class="btn btn-secondary bgRed dropdown-toggle w-100"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        Beschreibung
+                    </button>
+                    <ul class="dropdown-menu p-1">
+                        <li>@Model.Description</li>
 
-           
-           
+                    </ul>
+                </div>
+            </div>
 
         </div>
        
-
+      
     </div>
-    
+    <div class="flexRow mobile-aktive desktop-Hidden" style="height:max-content">
+        <div class="dropdown mt-2 mb-2 w-100">
+            <button class="btn btn-secondary bgRed dropdown-toggle w-100"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                Beschreibung
+            </button>
+            <ul class="dropdown-menu p-1">
+                <li>@Model.Description</li>
 
-
+            </ul>
+        </div>
+    </div>
+    <hr/>
 </div>
 
 

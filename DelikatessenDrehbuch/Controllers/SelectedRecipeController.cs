@@ -33,7 +33,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-        public async Task<IActionResult> Index(int id, string name)
+        public async Task<IActionResult> Index(int id)
         {
             var userIsLoggedIn = User.Identity.IsAuthenticated;
 
