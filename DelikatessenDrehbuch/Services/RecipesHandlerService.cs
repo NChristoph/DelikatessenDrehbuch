@@ -54,5 +54,13 @@ namespace DelikatessenDrehbuch.Services
                                                  .ToListAsync();
 
         }
+
+        public IQueryable<RecipesHandler> GetRecipesHandlerByRecipesIdsAsync(List<int> recipesIds)
+        {
+            return _context.RecipesHandlers.Where(x => recipesIds.Contains(x.Recipe.Id))
+                                                     .Include(x => x.IngredientHandler)
+                                                     .AsNoTracking()
+                                                     .AsQueryable();
+        }
     }
 }

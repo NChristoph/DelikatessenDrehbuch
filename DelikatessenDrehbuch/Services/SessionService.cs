@@ -63,9 +63,9 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             _httpContext.HttpContext.Session.SetString("MealPlanList", json);
         }
 
-        public void SaveRecipesIdToSession(List<int> machingRecipes)
+        public void SaveRecipesIdToSession(List<int> machingRecipes,string name)
         {
-            _httpContext.HttpContext.Session.SetString("RecipesFromDbIds", JsonSerializer.Serialize(machingRecipes, new JsonSerializerOptions()));
+            _httpContext.HttpContext.Session.SetString(name, JsonSerializer.Serialize(machingRecipes, new JsonSerializerOptions()));
         }
 
         public void UpdateRecipesIdsInSession(int remove = 0,int add=0)
@@ -79,7 +79,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
                 idsFromSession.Add(add);               
             }
 
-            SaveRecipesIdToSession(idsFromSession);
+            SaveRecipesIdToSession(idsFromSession,"RecipesFromDbIds");
         }
 
         public void RemoveFullRecipesFromSessions(int recipesIds)

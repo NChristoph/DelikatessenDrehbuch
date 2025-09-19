@@ -67,7 +67,7 @@ namespace DelikatessenDrehbuch.Controllers
             ViewData["PersonCount"] = settings.PersonCount;
             var model = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
             _sessionService.SavePersonalMealPlanToSession(model);
-            _sessionService.SaveRecipesIdToSession(model.Select(x => x.Id).ToList());
+            _sessionService.SaveRecipesIdToSession(model.Select(x => x.Id).ToList(), "RecipesFromDbIds");
 
             return View("~/Views/MyRecipes/CreateNewMealPlan.cshtml", model);
         }

@@ -68,5 +68,13 @@ namespace DelikatessenDrehbuch.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public Task<List<int>> GetRecipeIdsByQuerry(string query)
+        {
+            return _context.QueryHandler
+                           .Where(x => x.Query.Query.ToLower().Trim() == query.ToLower().Trim())
+                           .Select(x => x.Recipe.Id)
+                           .ToListAsync();
+        }
     }
 }

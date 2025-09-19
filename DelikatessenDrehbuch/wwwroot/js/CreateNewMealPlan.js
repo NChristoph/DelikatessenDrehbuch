@@ -3,20 +3,22 @@ window.onload = function () {
     ReloadIngredientList();
 };
 
-function ChangeMealPlanRecipes(html, spawnId) {
+function ChangeMealPlanRecipes(button, spawnId) {
     const ingredientList = document.getElementById("ingredientPartialView");
     ingredientList.innerHTML = "";
 
-    var category = html.getAttribute("data-category");
-    var recipeId = html.value || 0;
-    var index = html.getAttribute("data-index");
-
+    var category = button.getAttribute("data-category");
+    var recipeId = button.value || 0;
+    var index = button.getAttribute("data-index");
+ 
 
     $.get("/CreateNewMealPlan/LoadRecipesPartialView", {
         recipeId: recipeId,
         category: category,
         index: index
     }, function (html) {
+        var dataId = $(html).attr("data-id");
+        button.value = dataId;
         $("#" + spawnId + index).html(html)
         ReloadIngredientList();
     });

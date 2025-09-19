@@ -157,7 +157,7 @@ namespace DelikatessenDrehbuch.Services
                                          var avg = first.Ingredient?.AverageWeight ?? 0d; // ggf. AverageWeightGrams
 
                                          // Wenn Einheit nicht g/ml und Ø-Gewicht vorhanden -> in g umrechnen
-                                         var sum = (!isG && !isMl && avg > 0d)
+                                         var sum = (!isG && !isMl && !isB && avg > 0d)
                                              ? g.Sum(x => x.Quantity.Quantitys) * avg
                                              : g.Sum(x => x.Quantity.Quantitys);
 
@@ -173,10 +173,6 @@ namespace DelikatessenDrehbuch.Services
                                      .ToList();
 
             return combined;
-
-
-
-
         }
     }
 }

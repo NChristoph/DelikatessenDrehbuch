@@ -20,6 +20,7 @@ namespace DelikatessenDrehbuch.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helper;
+        private readonly IMealPlanUtilityService _helperUtility;
         private readonly IHttpContextAccessor _httpContext;
         private readonly IRecipesService _recipesService;
         private readonly IRecipesHandlerService _recipesHandlerService;
@@ -28,7 +29,7 @@ namespace DelikatessenDrehbuch.Services
 
         public MealPlanService(ApplicationDbContext context, HelpfulMethods helper, IHttpContextAccessor httpContext,
                                IRecipesService recipesService, IIngredientService ingredientService,
-                               ISessionService sessionService, IRecipesHandlerService recipesHandlerService)
+                               ISessionService sessionService, IRecipesHandlerService recipesHandlerService, IMealPlanUtilityService helperUtility)
         {
             _context = context;
             _helper = helper;
@@ -37,177 +38,59 @@ namespace DelikatessenDrehbuch.Services
             _ingredientService = ingredientService;
             _sessionService = sessionService;
             _recipesHandlerService = recipesHandlerService;
+            _helperUtility = helperUtility;
         }
 
         public async Task<List<PersonalMealPlanRecipeModel>> GetMealPlanModels(string category, int count)
         {
-            var settings = _sessionService.GetMealPlanSettingsFromSession();
-
+          
             var recipesIdsFromDb = _recipesService.GetRecipesIdsByCategory(category);
-            var sortRecipesByQuery = GetSortedListByQuerys(recipesIdsFromDb, settings, category);
+            var sortRecipesByQuery = await _helperUtility.SortRecipeIdsBySettingsAsync(recipesIdsFromDb);
 
             var rendomRecipesIds = _recipesService.GetRendomRecipesIds(sortRecipesByQuery, count);
+
             var personalRecipes = await CreatePersonalMealPlanRecipeModelByIdsAsync(rendomRecipesIds);
 
             return personalRecipes;
 
         }
 
-        private List<int> GetSortedListByQuerys(List<int> recipeIdsFromDb, PersonalMealPlanSettings settings, string category)
+
+        private List<int> SortByIngredientIdontLike(List<int> ingredientIds, List<int> sortedRecipes)
         {
-            var filterBool = GetTrueBoolsFromSetting(settings).Select(x => x.Name);
-            bool ingredientsIdontLike = settings.IngredientIds != null;
-
-            HashSet<int> recipesToRemove = new();
-            HashSet<int> recipesToAdd = new();
-
-            bool cookingTimeOne = filterBool.Contains("CookingTimeOne");
-
-            var queryable = _context.QueryHandler.Where(x => recipeIdsFromDb.Contains(x.Recipe.Id)
-                                                  && x.Recipe.Category == category
-                                                  && (cookingTimeOne
-                                                      ? x.Recipe.PreparationTime < 45
-                                                      : x.Recipe.PreparationTime > 1))
-                                                 .Include(x => x.Recipe)
-                                                 .AsNoTracking();
-
-
-            foreach (var filter in filterBool)
-            {
-                if (filter.StartsWith("No"))
-                {
-                    var subName = filter.Substring(2);
-                    recipesToRemove.AddRange(queryable.Where(r => r.Query.Query.ToLower() == subName.ToLower())
-                                                       .Select(x => x.Recipe.Id)
-                                                       .ToHashSet()
-                    );
-
-                }
-                else
-                {
-                    recipesToAdd.AddRange(queryable.Where(r => r.Query.Query.ToLower() == filter.ToLower())
-                                                       .Select(x => x.Recipe.Id)
-                                                       .ToHashSet()
-                    );
-                }
-            }
-
-            if (recipesToAdd.Any())
-            {
-                return  SortByIngredientIdontLike(settings,recipesToAdd.ToList());
-            }
-            else
-            {
-                return SortByIngredientIdontLike(settings,queryable.Where(x => !recipesToRemove.Contains(x.Recipe.Id))
-                                            .Select(x => x.Recipe.Id)
-                                            .ToHashSet()
-                                            .ToList());
-            }
-
-
-        }
-
-        private List<PropertyInfo> GetTrueBoolsFromSetting(PersonalMealPlanSettings settings)
-        {
-            var bools = typeof(PersonalMealPlanSettings)
-                       .GetProperties()
-                       .Where(p => p.PropertyType == typeof(bool));
-
-            return bools.Where(b => (bool)b.GetValue(settings) == true).ToList();
-        }
-
-        private List<int> SortByIngredientIdontLike(PersonalMealPlanSettings settings, List<int> sortedRecipes)
-        {
-            if (settings.IngredientIds == null)
+            if (ingredientIds == null)
                 return sortedRecipes;
 
-            var recipes = _context.RecipesHandlers.Where(x => sortedRecipes.Contains(x.Recipe.Id))
-                                                     .Include(x => x.IngredientHandler)
-                                                     .AsNoTracking()
-                                                     .AsQueryable();
+            var recipes = _recipesHandlerService.GetRecipesHandlerByRecipesIdsAsync(sortedRecipes);
 
-            var sort = recipes.Where(x => settings.IngredientIds.Contains(x.IngredientHandler.Ingredient.Id))
-                            .Select(x => x.Recipe.Id)
-                            .ToHashSet()
-                            .ToList();
+
+            var sort = recipes.Where(x => ingredientIds.Contains(x.IngredientHandler.Ingredient.Id))
+                              .Select(x => x.Recipe.Id)
+                              .ToHashSet()
+                              .ToList();
 
             return sortedRecipes.Except(sort).ToList();
         }
-
-
-
-
-        private List<int> SortListByIngredient(List<int> sortedRecipesByQuery, PersonalMealPlanSettings settings)
+        
+        private List<int> SortByIngredientILike(List<int> ingredientIds, List<int> sortedRecipes)
         {
-            var hasWithout = settings.IngredientIds?.Any() ?? false;
-            var hasAtHome = settings.IngredientsAtHome?.Any() ?? false;
+            if(ingredientIds==null)
+                return sortedRecipes;
 
-            return (hasWithout, hasAtHome) switch
-            {
-                (false, false) => sortedRecipesByQuery, // nichts gesetzt
+            var handler = _recipesHandlerService.GetRecipesHandlerByRecipesIdsAsync(sortedRecipes);
+            
 
-                (true, true) =>
-                    GetSortetListWhithIngredients(
-                        GetSortetListWhithOutIngredients(sortedRecipesByQuery, settings),
-                        settings),
+            var sort = handler.Where(x => ingredientIds.Contains(x.IngredientHandler.Ingredient.Id))
+                              .Select(x => x.Recipe.Id)
+                              .ToHashSet()
+                              .ToList();
 
-                (true, false) =>
-                    GetSortetListWhithOutIngredients(sortedRecipesByQuery, settings),
-
-                (false, true) => GetSortetListWhithIngredients(sortedRecipesByQuery, settings)
+            return _recipesService.GetRendomRecipesIds(sort, 2);
 
 
-            };
 
         }
-
-        private List<int> GetSortetListWhithOutIngredients(List<int> sortedList, PersonalMealPlanSettings settings)
-        {
-
-            var ingredientsIdsIDontLike = settings.IngredientIds;
-
-            var idsFromRecipesIDontLike = _context.RecipesHandlers
-                                          .Where(x => sortedList.Contains(x.Recipe.Id) && ingredientsIdsIDontLike.Contains(x.IngredientHandler.Ingredient.Id))
-                                          .Select(x => x.Recipe.Id)
-                                          .Distinct()
-                                          .ToList();
-
-            var machedRecipes = _context.Recipes
-                                .Where(x => !idsFromRecipesIDontLike.Contains(x.Id))
-                                .Select(x => x.Id)
-                                .ToList();
-
-
-            return machedRecipes;
-
-        }
-        //ToDo:Noch so umschreiben das 1-2 rezepte mit den treffenden zutaten zurück kommen
-        //Nicht nur die dabei
-        //Todo:2 In der db Stehen 100 gerichte mit der category hauptgericht das auf hauptspeise ändern
-
-        private List<int> GetSortetListWhithIngredients(List<int> sortedList, PersonalMealPlanSettings settings)
-        {
-
-            var ingredientsIdsILike = settings.IngredientsAtHome;
-
-            var idsFromRecipesIDontLike = _context.RecipesHandlers
-                                          .Where(x => sortedList.Contains(x.Recipe.Id) && ingredientsIdsILike.Contains(x.IngredientHandler.Ingredient.Id))
-                                          .Select(x => x.Recipe.Id)
-                                          .Distinct()
-                                          .ToList();
-
-            var machedRecipes = _context.Recipes
-                                .Where(x => idsFromRecipesIDontLike.Contains(x.Id))
-                                .Select(x => x.Id)
-                                .ToList();
-
-
-            return machedRecipes;
-
-        }
-
-
-
+        
 
         public async Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount)
         {
@@ -218,7 +101,7 @@ namespace DelikatessenDrehbuch.Services
 
             var randomRecipesIds = _recipesService.GetRendomRecipesIds(recipesIdsFromDb, dayCount);
             recipesIds.RemoveAll(x => randomRecipesIds.Contains(x));
-            _sessionService.SaveRecipesIdToSession(recipesIds);
+            _sessionService.SaveRecipesIdToSession(recipesIds, "RecipesFromDbIds");
 
             var model = await CreatePersonalMealPlanRecipeModelByIdsAsync(randomRecipesIds);
 
@@ -252,8 +135,6 @@ namespace DelikatessenDrehbuch.Services
 
             return model;
         }
-
-
 
         public Dictionary<int, List<PersonalMealPlanRecipeModel>> MapToMealPlanDictionary(string json)
         {
