@@ -40,7 +40,7 @@
 
 <body>
     @Html.AntiForgeryToken()
-    <div class="minWidth100 " style="position:fixed;background-color:white;z-index:100;min-height:110px">
+    <div class="minWidth100 mobilehigth60px " style="position:fixed;background-color:white;z-index:100;min-height:110px">
         <header>
             <nav class="navbar-expand-md navbar-toggleable-md navbar-light  flex bgRedGardien border-bottom box-shadow mb-3 mobilehigth60px ">
 
@@ -116,9 +116,7 @@
                 </div>
                 <div class="col flex flexAlginItemEnd flexJustifyContendCenter mobieleWidth100 maxWidth100">
                     <div class="minWidth50 maxWidth60 flexColumn flexAuto flexNoWrap mobieleWidth90">
-                        <div class="flexRowToColumn flexWrap">
-                        </div>
-
+                        
                         <div class="flexRow wrap">
                             <input id="searchQuery" class="minWidth70 flexAuto" placeholder="z.B. Vegan oder Spaghetti" style="border-radius:5px;flex-shrink:2" />
                             <button class="btn bgRed" onclick="LoadRecipesByQuery()" title="SearchButton" type="submit" typeof="button">
@@ -127,6 +125,25 @@
                                 </svg>
                             </button>
                         </div>
+                        @if(User.IsInRole("Admin"))
+                        {
+                            <div class="mt-2 bg-white w-100">
+                                @*  <p class="mb-2" style="font-size:.95rem">
+                                <!-- Deinen Text hier – kurzer Teaser/CTA -->
+                                Entdecke schnelle Alltags-Rezepte, Low-Carb-Ideen und Wochenpläne.
+                            </p> *@
+
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-sm btn-outline-danger" asp-controller="CreateNewMealPlan" asp-action="MealPlanSetting">Essensplan erstellen</a>
+                                    @*  <a class="btn btn-sm btn-outline-secondary" asp-controller="MealPlan" asp-action="Index">Wochenplan</a>
+                                <a class="btn btn-sm btn-outline-success" asp-controller="Collections" asp-action="Quick">Unter 30 Min</a>
+                                <a class="btn btn-sm btn-outline-warning" asp-controller="Collections" asp-action="LowCarb">Low-Carb</a> *@
+                                    <!-- weitere Buttons nach Bedarf -->
+                                </div>
+                            </div>
+                        }
+                        
+
                         @*  <div class="flexRow">
                         <div class="form-check form-switch">
                             <input name="vegan" class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" aria-checked="false" @(ViewBag.IsVegan != null && ViewBag.IsVegan == true ? "checked" : "")>

@@ -13,11 +13,12 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             _recipesService = recipesService;
         }
 
-        public Task<int> AddRandomFullRecipesToSessionsAsync()
-        {
-            throw new NotImplementedException();
-        }
 
+        public void SavePersonalMealPlanToSession(List<PersonalMealPlanRecipeModel> model)
+        {
+            var json = JsonSerializer.Serialize(model, new JsonSerializerOptions());
+            _httpContext.HttpContext.Session.SetString("MealPlanList", json);
+        }
         public List<PersonalMealPlanRecipeModel> GetPersonalMealPlanFromSession()
         {
             var json = _httpContext.HttpContext?.Session.GetString("MealPlanList");
@@ -28,27 +29,37 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             return items;
         }
 
-        public void ClearSession()
+        public void SaveRecipesIdToSession(List<int> machingRecipes, string name)
         {
-            _httpContext.HttpContext?.Session.Clear();
+            _httpContext.HttpContext.Session.SetString(name, JsonSerializer.Serialize(machingRecipes, new JsonSerializerOptions()));
         }
-
-        public List<int> GetRecipesIdsFromSession()
+        public List<int> GetRecipesIdsFromSession(string category)
         {
-            var json = _httpContext.HttpContext.Session.GetString("RecipesFromDbIds");
+            var json = _httpContext.HttpContext.Session.GetString(category);
             var items = string.IsNullOrEmpty(json)
                 ? new List<int>()
                 : JsonSerializer.Deserialize<List<int>>(json, new JsonSerializerOptions());
             return items;
         }
-
-      
-
-
-        public void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds)
+        public void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds, string category)
         {
-            var idsFromSession = GetRecipesIdsFromSession();
-            idsFromSession.RemoveAll(x=>loadedRecipesIds.Contains(x));
+            var idsFromSession = GetRecipesIdsFromSession(category);
+            idsFromSession.RemoveAll(x => loadedRecipesIds.Contains(x));
+        }
+        public void UpdateRecipesIdsInSession(int remove = 0, int add = 0, string category = "")
+        {
+            var idsFromSession = GetRecipesIdsFromSession(category);
+
+            if (remove != 0)
+            {
+                idsFromSession.Remove(remove);
+            }
+            if (add != 0)
+            {
+                idsFromSession.Add(add);
+            }
+
+            SaveRecipesIdToSession(idsFromSession, category);
         }
 
         public void SaveMealPlanSettingsToSession(PersonalMealPlanSettings model)
@@ -56,37 +67,6 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             var json = JsonSerializer.Serialize(model, new JsonSerializerOptions());
             _httpContext.HttpContext.Session.SetString("MealPlanSettings", json);
         }
-
-        public void SavePersonalMealPlanToSession(List<PersonalMealPlanRecipeModel> model)
-        {
-            var json = JsonSerializer.Serialize(model, new JsonSerializerOptions());
-            _httpContext.HttpContext.Session.SetString("MealPlanList", json);
-        }
-
-        public void SaveRecipesIdToSession(List<int> machingRecipes,string name)
-        {
-            _httpContext.HttpContext.Session.SetString(name, JsonSerializer.Serialize(machingRecipes, new JsonSerializerOptions()));
-        }
-
-        public void UpdateRecipesIdsInSession(int remove = 0,int add=0)
-        {
-            var idsFromSession = GetRecipesIdsFromSession();
-
-            if (remove!=0){        
-                idsFromSession.Remove(remove);
-            }
-            if(add!=0) {
-                idsFromSession.Add(add);               
-            }
-
-            SaveRecipesIdToSession(idsFromSession,"RecipesFromDbIds");
-        }
-
-        public void RemoveFullRecipesFromSessions(int recipesIds)
-        {
-            throw new NotImplementedException();
-        }
-
         public PersonalMealPlanSettings GetMealPlanSettingsFromSession()
         {
             var json = _httpContext.HttpContext?.Session.GetString("MealPlanSettings");
@@ -97,6 +77,19 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             return items;
         }
 
-      
+        public void ClearSession()
+        {
+            _httpContext.HttpContext?.Session.Clear();
+        }
+
+
+
+
+
+
+
+
+
+
     }
 }

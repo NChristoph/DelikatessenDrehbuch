@@ -9,12 +9,12 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         void SaveMealPlanSettingsToSession(PersonalMealPlanSettings model);
         PersonalMealPlanSettings GetMealPlanSettingsFromSession();
         List<PersonalMealPlanRecipeModel> GetPersonalMealPlanFromSession();
-        List<int> GetRecipesIdsFromSession();
-        void SaveRecipesIdToSession(List<int> machingRecipes,string name);
-        void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds);
-        void RemoveFullRecipesFromSessions(int recipesIds);
-        Task<int> AddRandomFullRecipesToSessionsAsync();
-        void UpdateRecipesIdsInSession(int remove = 0, int add = 0);
+        List<int> GetRecipesIdsFromSession(string category);
+        void SaveRecipesIdToSession(List<int> machingRecipes,string category);
+        void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds,string category);
+       
+
+        void UpdateRecipesIdsInSession(int remove = 0, int add = 0,string category="");
 
 
     }

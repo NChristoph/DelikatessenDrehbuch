@@ -1,6 +1,7 @@
 ﻿
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -19,21 +20,16 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             _context = context;
         }
 
-
-       
-        public async Task<List<int>> SortRecipeIdsBySettingsAsync(List<int> recipesIds)
+        public async Task<List<int>> SortRecipeIdsBySettingsAsync(List<int> recipesIds,string category)
         {
             var settings = _sessionService.GetMealPlanSettingsFromSession();
             var filterBool = GetTrueBoolNamesFromSetting(settings);
 
             RecipeIds = await GetFilteredRecipeIdsByQueriesAsync(recipesIds, filterBool);
             RecipeIds = await GetFilteredRecipeIdsByCookingTime(RecipeIds, filterBool);
-
-            RecipeIds = await GetFiltredRecipeIdsByIngredient(RecipeIds, settings);
+            RecipeIds = await GetFiltredRecipeIdsByIngredient(RecipeIds, settings,category);
 
             return RecipeIds;
-
-
         }
 
         #region QueriesFilter
@@ -87,48 +83,81 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         #region IngredientFilter
 
         //TODO:
-        //Ingredient at home filter speichere die Ids in einer seperaten Session.
-        //Entferne die Ids aus der Hauptsession.
-        //Beim erstellen des Essensplans wird eine Kombination der Ids aus der beiden Sessinos geladen.
-        //Wobei aus Ingrediets at home X geladen werden.
-        //Überprüfe beim Rezeptwechsel aus welcher Session das Rezept stammt und Lade aus dieser Session neu.
-        //Der SessionServise gehört auch überarbeitet.
-        //Dessert laden über den Button in der MenüPlan Ansicht funktionirt auch nicht.
-        public async Task<List<int>> GetFiltredRecipeIdsByIngredient(List<int> recipesIds, PersonalMealPlanSettings settings)
+       //Die Rezept anzeige funktionirt noch nicht ganz richtig also die ingredient anzeige
+        //"RecipesFromDbIds"
+        public async Task<List<int>> GetFiltredRecipeIdsByIngredient(List<int> recipesIds, PersonalMealPlanSettings settings,string category)
         {
             var ingredientIdontLike = settings.IngredientIds;
             var ingredientIHaveAtHome = settings.IngredientsAtHome;
 
-            var excludeIngredientsRecipeIds= await FilterRecipeIdsByIngredientAsync(ingredientIdontLike, recipesIds);
-            var includeIngredientsRecipeIds = await FilterRecipeIdsByIngredientAsync(ingredientIHaveAtHome, recipesIds);
+            var excludeIngredientsRecipeIds = await FilterRecipeIdsByIngredientIdontLikeAsync(ingredientIdontLike, recipesIds);
 
-            if(excludeIngredientsRecipeIds.Any())
-                return recipesIds.Except(excludeIngredientsRecipeIds).ToList();
-            else
-                return new List<int>();
+            var includeIngredientsRecipeIds = await FilterByIncludeIngredientAsync(
+                                                    ingredientIHaveAtHome.Except(ingredientIdontLike).ToList(), 
+                                                    recipesIds
+                                                    );
+
+           
+            var edidRecipeIds = recipesIds.Except(excludeIngredientsRecipeIds).ToList();
+           
+
+            SaveRecipesIdsToSession(edidRecipeIds.Except(includeIngredientsRecipeIds).ToList(), category);
+            SaveRecipesIdsToSession(includeIngredientsRecipeIds.Except(excludeIngredientsRecipeIds).ToList(), nameof(settings.IngredientIds)+"_"+category);
+
+            return edidRecipeIds;
+
         }
-
-        private async Task<List<int>> FilterRecipeIdsByIngredientAsync(List<int> ingredientIds,List<int> recipeIds)
+        private async Task<List<int>> FilterRecipeIdsByIngredientIdontLikeAsync(List<int> ingredientIds, List<int> recipeIds)
         {
-            if(!ingredientIds.Any())
-                return ingredientIds;
+            if (!ingredientIds.Any())
+                return new List<int>();
 
             var recipeHandler = await _context.RecipesHandlers.Where(x => recipeIds.Contains(x.Recipe.Id)
-                                                                     && ingredientIds.Contains(x.IngredientHandler.Ingredient.Id))
-                                                              .Distinct()
-                                                              .Select(x => x.Recipe.Id)
-                                                              .ToListAsync();
+                                                                    && ingredientIds.Contains(x.IngredientHandler.Ingredient.Id))
+                                                             .Distinct()
+                                                             .Select(x => x.Recipe.Id)
+                                                             .ToListAsync();
             return recipeHandler;
-                                                         
+
+
+        }
+        private async Task<List<int>> FilterByIncludeIngredientAsync(List<int> ingredientIds, List<int> recipeIds)
+        {
+            if (!ingredientIds.Any())
+                return new List<int>();
+
+            // Matches je Rezept zählen (distinct Ingredients, falls ein Rezept dieselbe Zutat mehrfach hat)
+            var matches = await _context.RecipesHandlers
+                .Where(x => recipeIds.Contains(x.Recipe.Id)
+                         && ingredientIds.Contains(x.IngredientHandler.Ingredient.Id))
+                .GroupBy(x => x.Recipe.Id)
+                .Select(g => new
+                {
+                    RecipeId = g.Key,
+                    MatchCount = g.Select(r => r.IngredientHandler.Ingredient.Id).Distinct().Count()
+                })
+                .ToListAsync();
+
+            if (matches.Count == 0)
+                return new List<int>(); // keine Übereinstimmung gefunden
+
+            // höchste Übereinstimmung ermitteln
+            var maxCount = matches.Max(m => m.MatchCount);
+           
+            // nur Rezepte mit maximaler Übereinstimmung zurückgeben
+            return matches
+                .Where(m => m.MatchCount == maxCount)
+                .Select(m => m.RecipeId)
+                .ToList();
+            
         }
 
         #endregion
 
-
-
-
-
-
+        private void SaveRecipesIdsToSession(List<int> recipesIds, string sessionName)
+        {
+            _sessionService.SaveRecipesIdToSession(recipesIds, sessionName);
+        }
         private List<string> GetTrueBoolNamesFromSetting(PersonalMealPlanSettings settings)
         {
             var bools = typeof(PersonalMealPlanSettings)

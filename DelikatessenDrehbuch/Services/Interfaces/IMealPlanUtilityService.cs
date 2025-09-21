@@ -2,6 +2,6 @@
 {
     public interface IMealPlanUtilityService
     {
-        Task<List<int>> SortRecipeIdsBySettingsAsync(List<int> recipesIds);
+        Task<List<int>> SortRecipeIdsBySettingsAsync(List<int> recipesIds,string category);
     }
 }

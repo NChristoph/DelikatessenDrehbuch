@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using NuGet.Packaging.Signing;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
@@ -54,22 +55,36 @@ namespace DelikatessenDrehbuch.Controllers
         [Authorize]
         public async Task<ActionResult> IndexAsync(PersonalMealPlanSettings settings)
         {
+            _sessionService.ClearSession();
+          
+           
             if (settings.DayCount > 7)
             {
                 return Ok("Maximal 7 Tage erlaubt");
             }
 
-            _sessionService.ClearSession();
-            
             _sessionService.SaveMealPlanSettingsToSession(settings);
 
-
             ViewData["PersonCount"] = settings.PersonCount;
-            var model = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
+            var mealPlanItems = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
+            var rnd = new Random();
+            var model= mealPlanItems.OrderBy(x => rnd.Next()).ToList();
+           
             _sessionService.SavePersonalMealPlanToSession(model);
-            _sessionService.SaveRecipesIdToSession(model.Select(x => x.Id).ToList(), "RecipesFromDbIds");
+
 
             return View("~/Views/MyRecipes/CreateNewMealPlan.cshtml", model);
+        }
+
+        public IActionResult MealPlanSetting()
+        {
+            var model = _context.Ingredients.ToList();
+            return View("~/Views/MealPlaner/MealPlanerUserSettings.cshtml",model);
+        }
+
+        private async Task<List<int>> CheckSessionExist(string name)
+        {
+            return new List<int>();
         }
 
         public async Task<IActionResult> GetRecipe(int recipeId)
@@ -77,8 +92,8 @@ namespace DelikatessenDrehbuch.Controllers
 
             ViewData["index"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
             var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeId);
-            
-            
+
+
 
             SelectedRecipesModel model = new()
             {
@@ -89,7 +104,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             };
 
-            return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml",model);
+            return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml", model);
         }
 
 
@@ -124,7 +139,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
-        public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId=0,string category="", string index= "")
+        public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId = 0, string category = "", string index = "")
         {
             ViewData["Index"] = int.Parse(index);
 
@@ -138,7 +153,7 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe);
         }
 
-        private void EditeSession(PersonalMealPlanRecipeModel model,int idToRemove)
+        private void EditeSession(PersonalMealPlanRecipeModel model, int idToRemove)
         {
             var session = _sessionService.GetPersonalMealPlanFromSession();
             session.RemoveAll(x => x.Id == idToRemove);
@@ -147,18 +162,18 @@ namespace DelikatessenDrehbuch.Controllers
             _sessionService.SavePersonalMealPlanToSession(session);
         }
 
-        public async Task<IActionResult> LoadAppetizerOrDessertPartialViewAsync(string category, string index,int id=0)
+        public async Task<IActionResult> LoadAppetizerOrDessertPartialViewAsync(string category, string index, int id = 0)
         {
             ViewData["Index"] = int.Parse(index);
             var model = await _mealPlanService.GetMealPlanModels(category, 1);
-            var recipe=model.First().Recipes;
+            var recipe = model.First().Recipes;
             EditeSession(model.First(), 0);
-            if(id!=0)
+            if (id != 0)
             {
                 _sessionService.UpdateRecipesIdsInSession(remove: id);
             }
-          
-            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",recipe);
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe);
         }
 
 

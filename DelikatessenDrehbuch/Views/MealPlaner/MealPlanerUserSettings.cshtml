@@ -1,0 +1,326 @@
+﻿@model List<Ingredient>
+
+<style>
+    /* mobile Layout fix: Checkboxen & Flex-Container */
+    .filter-card {
+        border-radius: .5rem;
+    }
+
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+        .filter-row .form-check {
+            min-width: 140px;
+            margin-bottom: .25rem;
+        }
+
+
+
+    #IngredientTable td {
+        vertical-align: top;
+    }
+
+    .form-check-input {
+        transform: scale(1.2);
+        margin-right: .35rem;
+    }
+
+    /* Mobil: Tabs nicht umbrechen lassen */
+    @@media (max-width: 576px) {
+        .nav-tabs .nav-link {
+            font-size: 13px;
+            padding: .4rem .6rem;
+        }
+    }
+</style>
+
+<style>
+    /* ====== Layout-Rahmen für die Filterseite ====== */
+    .planner-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        width: 100%;
+    }
+
+    .planner-card {
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: .75rem;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 1px 6px rgba(0,0,0,.04);
+    }
+
+        .planner-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 .5rem 0;
+            color: #2a3440;
+        }
+
+        .planner-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: .25rem 0 .5rem 0;
+            color: #2a3440;
+        }
+
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem 1rem;
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+        .filter-row .form-check {
+            min-width: 180px; /* etwas breiter für Lesbarkeit */
+            margin-bottom: .25rem;
+        }
+
+    .form-check-input {
+        transform: scale(1.15);
+        margin-right: .4rem;
+    }
+
+    /* Plan-Details Inputs in eine Zeile, bei schmalem Screen umbrechen */
+    .plan-details-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem 1rem;
+        align-items: center;
+    }
+
+        .plan-details-row .form-control {
+            width: 90px;
+        }
+
+    /* Zutaten-Boxen nebeneinander, mobil untereinander */
+    .ingredients-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .ingredients-box {
+        border-radius: .5rem;
+        padding: .75rem 1rem;
+        box-shadow: 0 1px 6px rgba(0,0,0,.05);
+    }
+
+    /* Farben wie in deinem Code angedeutet */
+    .box-dislike {
+        background-color: #FFCACA;
+    }
+
+    .box-home {
+        background-color: #CCEED5;
+    }
+
+    /* Mobile Breakpoint */
+    @@media (max-width: 992px) {
+        .planner-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ingredients-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-row .form-check {
+            min-width: 150px;
+        }
+    }
+</style>
+
+<div id="MenuePlan"  style="padding:2% ">
+    <form asp-controller="CreateNewMealPlan" asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="flexColumn bg-white" style="min-width:100%">
+            <div class="flexColumn bg-white" style="min-width:100%">
+
+                <div class="planner-grid">
+
+                    <!-- Linke Spalte: Ernährungsfilter -->
+                    <section class="planner-card">
+                        <h2>Ernährungsfilter</h2>
+
+                        <h3>Ich möchte nur:</h3>
+                        <div class="filter-row" aria-label="veg-only">
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkNoVegan'])" class="form-check-input" type="checkbox" id="checkVegan" name="Vegan" value="true">
+                                <input type="hidden" name="Vegan" value="false" />
+                                <label class="form-check-label" for="checkVegan">Vegan</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkNoVegetarisch'])" class="form-check-input" type="checkbox" id="checkVegetarisch" name="Vegetarisch" value="true">
+                                <input type="hidden" name="Vegetarisch" value="false" />
+                                <label class="form-check-label" for="checkVegetarisch">Vegetarisch</label>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <h3>Ich schließe aus:</h3>
+                        <div class="filter-row" aria-label="veg-excludes">
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkVegan'])" class="form-check-input" type="checkbox" id="checkNoVegan" name="NoVegan" value="true">
+                                <input type="hidden" name="NoVegan" value="false" />
+                                <label class="form-check-label" for="checkNoVegan">Vegan</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkVegetarisch'])" class="form-check-input" type="checkbox" id="checkNoVegetarisch" name="NoVegetarisch" value="true">
+                                <input type="hidden" name="NoVegetarisch" value="false" />
+                                <label class="form-check-label" for="checkNoVegetarisch">Vegetarisch</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkNoPork" name="NoSchweinefleisch" value="true">
+                                <input type="hidden" name="NoSchweinefleisch" value="false" />
+                                <label class="form-check-label" for="checkNoPork">Schwein</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="checkNoFish" name="NoFisch" value="true">
+                                <input type="hidden" name="NoFisch" value="false" />
+                                <label class="form-check-label" for="checkNoFicsh">Fisch</label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Rechte Spalte: Kochdauer + Spezielle Präferenzen -->
+                    <section class="planner-card">
+                        <h2>Kochdauer (optional)</h2>
+                        <div class="filter-row">
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkSecondTime'])" class="form-check-input" type="checkbox" id="checkFirstTime" name="CookingTimeOne" value="true">
+                                <input type="hidden" name="CookingTimeOne" value="false" />
+                                <label class="form-check-label" for="checkFirstTime">25–45 min</label>
+                            </div>
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkFirstTime'])" class="form-check-input" type="checkbox" id="checkSecondTime" name="CookingTimeTwo" value="true">
+                                <input type="hidden" name="CookingTimeTwo" value="false" />
+                                <label class="form-check-label" for="checkSecondTime">45 min +</label>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        @* <h2>Speziellen Präferenzen</h2>
+                        <div class="filter-row">
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkPreferablyVegetarian'])" class="form-check-input" type="checkbox" id="checkBalanced" name="BalancedDiet" value="true">
+                                <input type="hidden" name="BalancedDiet" value="false" />
+                                <label class="form-check-label" for="checkBalanced">Ausgewogene Ernährung</label>
+                            </div>
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkBalanced','checkPreferablyVegetarian'])" class="form-check-input" type="checkbox" id="checkPreferablyMeat" name="PreferablyMeat" value="true">
+                                <input type="hidden" name="PreferablyMeat" value="false" />
+                                <label class="form-check-label" for="checkPreferablyMeat">Bevorzugt Fleisch</label>
+                            </div>
+                            <div class="form-check">
+                                <input onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkBalanced'])" class="form-check-input" type="checkbox" id="checkPreferablyVegetarian" name="PreferablyVegetarian" value="true">
+                                <input type="hidden" name="PreferablyVegetarian" value="false" />
+                                <label class="form-check-label" for="checkPreferablyVegetarian">Bevorzugt Vegetarisch</label>
+                            </div>
+                        </div> *@
+                    </section>
+
+                    <!-- Untere Reihe: Plan-Details (spannt volle Breite) -->
+                    <section class="planner-card" style="grid-column: 1 / -1;">
+                        <h2>Plan-Details</h2>
+                        <div class="flexRowToColumn">
+                            <span>Plan für</span>
+                            <input class="form-control form-control-sm" type="number" id="dayCount" name="DayCount" style="max-width:70px" />
+                            <span>Tage erstellen.</span>
+
+                            <span style="margin-left:1rem">Plan für</span>
+                            <input class="form-control form-control-sm" type="number" id="personCount" name="PersonCount" style="max-width:70px" />
+                            <span>Personen erstellen.</span>
+                        </div>
+                    </section>
+
+                </div> <!-- /.planner-grid -->
+                <!-- Zutaten-Tabelle wie gehabt -->
+                <table id="IngredientTable" class="display nowrap bg-white table table-sm mt-3" style="width:100%">
+                    <thead class="bg-white">
+                        <tr class="bg-white">
+                            <th data-priority="1">Zutat</th>
+                            <th data-priority="2">Optionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ingredient in Model)
+                        {
+                            <tr>
+                                <td style="max-width:45%;text-wrap:auto">@ingredient.Name</td>
+                                <td>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               onchange="CreateIngredientChangeValue(this,'HaveAtHome_','Ingredients','IngredientIds')"
+                                               value="@ingredient.Id"
+                                               data-name="@ingredient.Name"
+                                               id="Ingredient_@ingredient.Id" />
+                                        <label class="form-check-label">Zutat ausschließen</label>
+                                    </div>
+
+                                    <hr class="my-1" />
+
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               onchange="CreateIngredientChangeValue(this,'Ingredient_','HaveAtHome','IngredientsAtHome')"
+                                               value="@ingredient.Id"
+                                               data-name="@ingredient.Name"
+                                               id="HaveAtHome_@ingredient.Id" />
+                                        <label class="form-check-label">Habe ich zuhause</label>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Zwei Boxen: "Das mag ich nicht" / "Hab ich Zuhause" -->
+                <div class="ingredients-grid mt-2">
+                    <div class="ingredients-box box-dislike">
+                        <h3>Das mag ich nicht:</h3>
+                        <hr>
+                        <div class="flexColumn flexAlginItemCenter" id="Ingredients"></div>
+                    </div>
+
+                    <div class="ingredients-box box-home">
+                        <h3>Hab ich Zuhause:</h3>
+                        <hr>
+                        <div class="flexColumn flexAlginItemCenter" id="HaveAtHome"></div>
+                    </div>
+                </div>
+
+                <button class="btn bgRed Border-Gold mt-3"
+                        type="submit"
+                        style="max-width:fit-content;color:white;margin-left:auto">
+                    Essensplan Erstellen
+                </button>
+
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="/js/MealPlanerFilter.js" defer asp-append-version="true">
+
+    </script>
+}
+
