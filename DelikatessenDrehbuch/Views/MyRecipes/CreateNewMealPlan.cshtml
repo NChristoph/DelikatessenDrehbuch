@@ -1,143 +1,325 @@
 ﻿@using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
 @model List<PersonalMealPlanRecipeModel>
+
 @{
     var personCount = (int)ViewData["PersonCount"];
-
 }
 
-<div class="flexRowToColumn minWidth100 mobieleWidth90 mobileItemCenter mt-5">
+<style>
+    /* ===== Grundlayout (unverändert, nur sichere Defaults) =================== */
+    .meal-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 22px;
+        box-sizing: border-box
+    }
 
-    <div class="flexcolumn maxWidth60 mobieleWidth90 flexJustifyContendCenter"
-         style="min-width:55%">
+    .meal-left {
+        flex: 1 1 650px;
+        min-width: 0
+    }
+
+    .meal-right {
+        flex: 0 0 320px;
+        min-width: 300px;
+        position: sticky;
+        top: 88px;
+        align-self: start
+    }
+
+    .day-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.05);
+        padding: 12px 14px;
+        margin-bottom: 18px;
+        max-width: 100%;
+        overflow: hidden
+    }
+
+    .day-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px
+    }
+
+    .day-title {
+        font-weight: 800;
+        font-size: 1.05rem
+    }
+
+    /* Spalten im Tag */
+    .slot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+        gap: 12px
+    }
+
+    .slot {
+        background: #FEFFF1;
+        border: 1px solid rgba(0,0,0,.05);
+        border-radius: 12px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .slot-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px
+    }
+
+    .slot-title {
+        font-weight: 700
+    }
+
+    .slot-actions {
+        display: flex;
+        gap: 6px
+    }
+
+    .slot-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #D4AF37;
+        background: #770f05;
+        color: #FFFDD0;
+        font-weight: 600;
+        font-size: .9rem
+    }
+
+        .slot-btn:hover {
+            filter: brightness(.98)
+        }
+
+    .slot-delete {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.12);
+        color: #770f05
+    }
+
+    /* ===== EINHEITLICHE VERTIKALE KARTEN - ÜBERALL GLEICH ===== */
+
+    /* Grundkarte: immer weißer Hintergrund, abgerundete Ecken */
+    .slot-target .Bg-Cream,
+    .slot .Bg-Cream {
+        background: #fff !important;
+        border: 1px solid rgba(0,0,0,.06) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 6px rgba(0,0,0,.04) !important;
+        padding: 8px !important;
+    }
+
+        /* IMMER vertikales Layout erzwingen - egal ob Desktop oder Mobil */
+        .slot-target .Bg-Cream.flexRow,
+        .slot .Bg-Cream.flexRow,
+        .slot-target .Bg-Cream,
+        .slot .Bg-Cream {
+            display: flex !important;
+            flex-direction: column !important; /* Bild → Text → Button */
+            align-items: stretch !important;
+            gap: .55rem !important;
+        }
+
+            /* Bild: immer vollbreit und richtig beschnitten */
+            .slot-target .Bg-Cream img,
+            .slot .Bg-Cream img {
+                width: 100% !important;
+                height: 170px !important;
+                object-fit: cover !important;
+                border-radius: 10px !important;
+                display: block !important;
+                margin: 0 !important; /* Alle margin entfernen */
+            }
+
+            /* Textbereich: volle Breite, kein seitlicher Abstand */
+            .slot-target .Bg-Cream .flexColumn,
+            .slot .Bg-Cream .flexColumn {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100% !important;
+                gap: .4rem !important;
+                flex: 1 !important;
+            }
+
+            /* Titel: lesbar, max. 2 Zeilen */
+            .slot-target .Bg-Cream .flexRow,
+            .slot .Bg-Cream .flexRow {
+                height: auto !important;
+                width: 100% !important;
+            }
+
+                .slot-target .Bg-Cream .flexRow span,
+                .slot .Bg-Cream .flexRow span {
+                    font-weight: 700 !important;
+                    line-height: 1.25 !important;
+                    display: -webkit-box !important;
+                    -webkit-box-orient: vertical !important;
+                    -webkit-line-clamp: 2 !important;
+                    overflow: hidden !important;
+                    width: 100% !important;
+                }
+
+    /* Button: volle Breite unter dem Text */
+    .slot-target .dropdown.mt-2.mb-2.w-100,
+    .slot .dropdown.mt-2.mb-2.w-100 {
+        width: 100% !important;
+        margin-top: .25rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    .slot-target .dropdown .btn,
+    .slot .dropdown .btn {
+        width: 100% !important;
+    }
+
+    /* Desktop/Mobile Sichtbarkeit - IMMER mobiles Layout zeigen */
+    .slot-target .desktop-Hidden,
+    .slot .desktop-Hidden {
+        display: none !important; /* Desktop-Version verstecken */
+    }
+
+    .slot-target .mobile-hidden,
+    .slot .mobile-hidden {
+        display: block !important; /* Mobile-Version überall zeigen */
+    }
+
+    /* ===== Responsive Layout für die Gesamtstruktur ===== */
+    @@media (min-width:1200px) {
+        .meal-wrap
+
+    {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px
+    }
+
+    .meal-left, .meal-right {
+        min-width: 0
+    }
+
+    }
+
+    @@media (max-width:992px) {
+        .slot-grid
+
+    {
+        grid-template-columns: 1fr
+    }
+
+    }
+</style>
+
+<div class="meal-wrap mobieleWidth90 mobileItemCenter">
+    <div class="meal-left">
         <input type="number" id="personCount" value="@personCount" hidden />
+
         @{
-            int index = 0;
+            var index = 0;
             foreach (var recipes in Model)
             {
                 index++;
                 recipes.Index = index;
-
-                <div name="RecipesContainer" class="day-item" data-day="@index">
-
-                    <span class="m-2 p-2 day-label">Tag @index</span>
-                    <div class="ms-2 flexRow justify-content-center w-100 mt-3">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveDayUp(this)">
-                            ▲ Rezept nach oben verschieben
-                        </button>
-                    </div>
-
-                    <ul class="flexColumn Bg-Cream p-1 mt-2"
-                        style="list-style-type:none;min-width:49%">
-
-                        @if (!FrontendFunctions.CheckCategory(recipes.Recipes.Category))
-                        {
-                            <li class="mt-1 flexColumn">
-                                <div class="flexRow w-100">
-                                    <div id="appetizer_@index" class="w-100"></div>
-                                    <a id="appetizerDeleteButton_@index"
-                                       onclick="RemoveItem('appetizer_@index,appetizerName_@index,appetizerPreperationTime_@index,appetizerDiscription_@index','appetizerDeleteButton_@index')"
-                                       hidden>
-                                        <i class="bi bi-trash3"></i> Löschen
-                                    </a>
-                                </div>
-
-                            </li>
-
-                        }
-
-                        <li class="flexColumn flexAlginItemStart w-100">
-                            <div class="flexRow w-100">
-                                <div name="recipesContainer"
-                                     id="recipesContainer_@index"
-                                     style="width:100%">
-                                    @await Html.PartialAsync(
-                                    "~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml",
-                                                        recipes.Recipes,
-                                                        new ViewDataDictionary(ViewData) { { "Index", index }
-                                                        })
+                <div class="day-card day-item" data-day="@index">
+                    <!-- Header bleibt fix -->
+                    <div class="day-header">
+                        <span class="day-title day-label">Tag @index</span>
+                        <div class="day-controls">
+                            <button type="button" class="icon-btn" title="Nach oben" onclick="moveDayUp(this)">
+                                <i class="bi bi-arrow-up-short"></i>
+                            </button>
+                            <button type="button" class="icon-btn" title="Nach unten" onclick="moveDayDown(this)">
+                                <i class="bi bi-arrow-down-short"></i>
+                            </button>
                         </div>
-
                     </div>
 
-                </li>
+                    <!-- Tauschbarer Inhalt -->
+                    <div class="day-content">
+                        <div class="slot-grid" data-day-index="@index">
 
-                @if (!FrontendFunctions.CheckCategory(recipes.Recipes.Category))
-                        {
-                            <li class="flexColumn">
-                                <div class="flexRow w-100">
-                                    <div id="dessert_@index" class="w-100"></div>
-                                    <a id="dessertDeleteButton_@index"
-                                       onclick="RemoveItem('dessert_@index,dessertName_@index,dessertPreperationTime_@index,dessertDiscription_@index','dessertDeleteButton_@index')"
-                                       hidden>
-                                        <i class="bi bi-trash3"></i> Löschen
-                                    </a>
+                            <!-- Vorspeise -->
+                            <section class="slot">
+                                <div class="slot-head">
+                                    <span class="slot-title">Vorspeise</span>
+                                    <div class="slot-actions">
+                                        <button class="slot-btn add-recipe" data-category="Vorspeise">
+                                            <i class="bi bi-plus-lg"></i> Hinzufügen
+                                        </button>
+                                        <button class="slot-btn slot-delete remove-recipe" hidden>
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flexRow w-100 mobieleWidth90" id="dessertDiscription_@index"></div>
-                            </li>
-                        }
-                    </ul>
+                                <div class="slot-target" data-slot="appetizer"></div>
+                            </section>
 
-                    <span class="w-100" style="text-align:center">
-                        Hinzufügen oder ändern ?
-                    </span>
-                    <ul class="flexRow flexAlginItemCenter flexJustifyContendSpaceBetween w-100 m-0 p-0"
-                        style="list-style-type:none">
-                        <li>
-                            <button data-index="@index"
-                                    data-category="Vorspeise"
-                                    onclick="ChangeMealPlanRecipes(this,'appetizer_')"
-                                    class="bgRed Border-Gold"
-                                    style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
-                                Vorspeise
-                            </button>
-                        </li>
-                        <li>
-                            <button data-index="@index"
-                                    data-category="@recipes.Recipes.Category"
-                                    value="@recipes.Id"
-                                    onclick="ChangeMealPlanRecipes(this,'recipesContainer_')"
-                                    class="bgRed Border-Gold"
-                                    style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
-                                Hauptspeise
-                            </button>
-                        </li>
-                        <li>
-                            <button data-index="@index"
-                                    data-category="Dessert"
-                                    onclick="ChangeMealPlanRecipes(this,'dessert_')"
-                                    class="bgRed Border-Gold"
-                                    style="margin-left:auto;max-width:max-content;color:white;border-radius:0.5rem;border-color:white">
-                                Dessert
-                            </button>
-                        </li>
-                    </ul>
-                    <div class="ms-2 flexRow justify-content-center w-100 mt-3">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveDayDown(this)">
-                            ▼ Rezept nach unten verschieben
-                        </button>
+                            <!-- Hauptspeise -->
+                            <section class="slot">
+                                <div class="slot-head">
+                                    <span class="slot-title">Hauptspeise</span>
+                                    <div class="slot-actions">
+                                        <button class="slot-btn add-recipe" data-category="@recipes.Recipes.Category" data-recipe-id="@recipes.Id">
+                                            <i class="bi bi-arrow-repeat"></i> Ändern
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="slot-target" data-slot="main">
+                                    @await Html.PartialAsync("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipes.Recipes, new ViewDataDictionary(ViewData) { { "Index", index } })
+                                </div>
+                            </section>
+
+                            <!-- Dessert -->
+                            <section class="slot">
+                                <div class="slot-head">
+                                    <span class="slot-title">Dessert</span>
+                                    <div class="slot-actions">
+                                        <button class="slot-btn add-recipe" data-category="Dessert">
+                                            <i class="bi bi-plus-lg"></i> Hinzufügen
+                                        </button>
+                                        <button class="slot-btn slot-delete remove-recipe" hidden>
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="slot-target" data-slot="dessert"></div>
+                            </section>
+
+                        </div>
                     </div>
-                    <hr />
-
                 </div>
             }
         }
-
     </div>
 
-    <div class="Bg-Cream flexColumn maxWidth30 minWidth30 mobieleWidth90 m-2 p-2">
-        <span class="w-100" style="text-align:center">
-            <strong>Einkaufliste :</strong>
-        </span>
-        <div id="ingredientPartialView" class="w-100">
+    <!-- Sidebar bleibt unverändert -->
+    <aside class="meal-right">
+        <div class="sidebar-card">
+            <span class="w-100 d-block text-center mb-2"><strong>Einkaufsliste:</strong></span>
+            <div id="ingredientPartialView" class="w-100"></div>
         </div>
-    </div>
+    </aside>
 </div>
 
-<a typeof="button" 
-    class="btn bgRed" 
-    style="color:white" 
-    onclick="CreatedMealPlan()">Hier Essensplan Erstellen !</a>
+<div class="mt-3">
+    <button class="btn bgRed Border-Gold" style="color:white" onclick="createMealPlan()">
+        Essensplan Erstellen!
+    </button>
+</div>
+
+
 
 @section Scripts {
     <script src="/js/CreateNewMealPlan.js" asp-append-version="true"></script>

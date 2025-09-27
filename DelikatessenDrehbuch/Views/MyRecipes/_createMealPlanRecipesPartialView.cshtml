@@ -2,75 +2,161 @@
 @model Recipes
 @{
     var index = (int)ViewData["Index"];
-    
+
+    var subPath = FrontendFunctions.CaseInsensitivePath(Model.ImagePath);
+    var smallImg = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                    Environment.GetEnvironmentVariable("SmalPic")) + "_small.webp";
 }
 
-<div name="Recipes"
+<style>
+    /* ===== Mini-Recipe-Card (scoped by class prefix mrc-) ===== */
+    .mrc-card {
+        --radius: 14px;
+        --shadow: 0 4px 14px rgba(0,0,0,.10);
+        --border: 1px solid rgba(0,0,0,.06);
+        background: #fff;
+        border: var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        width: 100%;
+    }
 
+    .mrc-row {
+        display: flex;
+        gap: 1rem;
+        align-items: stretch;
+        flex-direction:column!important;
+    }
+
+    .mrc-media {
+        width: 100%;
+        min-width: auto;
+        background: #f5f5f5;
+        position: relative;
+    }
+
+        .mrc-media img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            aspect-ratio: 3/2;
+        }
+
+    .mrc-badges {
+        position: absolute;
+        left: .6rem;
+        bottom: .6rem;
+        display: flex;
+        gap: .4rem;
+    }
+
+    .mrc-chip {
+        background: rgba(0,0,0,.65);
+        color: #fff;
+        font-size: .8rem;
+        padding: .22rem .5rem;
+        border-radius: 999px;
+    }
+
+    .mrc-body {
+        flex: 1;
+        padding: .85rem .9rem .95rem .25rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mrc-title {
+        font-weight: 800;
+        line-height: 1.25;
+        margin: 0 0 .35rem 0;
+    }
+
+    .mrc-actions {
+        margin-top: auto;
+        display: flex;
+        gap: .5rem;
+    }
+
+    .mrc-btn {
+        background: #770f0f;
+        color: #fff;
+        border: 1px solid #D4AF37;
+        border-radius: .6rem;
+        padding: .45rem .75rem;
+        font-weight: 600;
+    }
+
+        .mrc-btn:hover {
+            background: #5e0c0c;
+            color: #fff;
+        }
+
+    .mrc-desc {
+        padding-top: .5rem;
+        color: #444;
+    }
+
+    /* Mobile: Bild oben, Text unten */
+    @@media (max-width: 768px) {
+      
+
+    .mrc-media {
+        width: 100%;
+        min-width: auto;
+    }
+
+    }
+</style>
+
+<div name="Recipes"
      data-index="@index"
      data-id="@Model.Id"
-     style="max-width:100%"
-     class="mt-1">
-   
-   
-    <div class="Bg-Cream flexRow w-100">
+     class="mrc-card mt-2">
 
-        <div class="flexColumn flexJustifyContendCenter">
-            @{
-                var subPath = FrontendFunctions.CaseInsensitivePath(Model.ImagePath);
-
-                var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
-                Environment.GetEnvironmentVariable("SmalPic"));
-
-                <img style="width:180px;"
-                     onload="if (window.innerWidth < 768) this.style.width='100px';"
-                     src="@($"{smallPath}_small.webp")" />
+    <div class="mrc-row">
+        <!-- Bild -->
+        <div class="mrc-media">
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@smallImg" alt="@Model.Name" title="@Model.Name" />
+            }
+            else
+            {
+                <img src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" alt="" />
             }
 
+            <div class="mrc-badges">
+                @if ((Model.PreparationTime ?? 0) > 0)
+                {
+                    <span class="mrc-chip">@Model.PreparationTime min</span>
+                }
+            </div>
         </div>
-        <div class="flexColumn flexJustifyContendSpaceBetween w-100"
-             style="margin-left:10px">
-            <div class="flexRow" style="height:56%">
-                <span>@Model.Name</span>
-            </div>
-            <div class="flexRow flexAlginItemEnd">
-                <span>@Model.PreparationTime min</span>
-            </div>
-            <div class="flexRow flexAlginItemEnd mobile-hidden ">
-                <div class="dropdown mt-2 mb-2 w-100">
-                    <button class="btn btn-secondary bgRed dropdown-toggle w-100"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                        Beschreibung
-                    </button>
-                    <ul class="dropdown-menu p-1">
-                        <li>@Model.Description</li>
 
-                    </ul>
-                </div>
+        <!-- Text/Buttons -->
+        <div class="mrc-body">
+            <div class="mrc-title">@Model.Name</div>
+
+            <!-- Toggle-Beschreibung (eine Instanz für Desktop & Mobile) -->
+            @{
+                var descId = $"desc_{Model.Id}_{index}";
+            }
+            <div class="mrc-actions">
+                <button class="mrc-btn"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#@descId"
+                        aria-expanded="false"
+                        aria-controls="@descId">
+                    Beschreibung
+                </button>
             </div>
 
-        </div>
-       
-      
-    </div>
-    <div class="flexRow mobile-aktive desktop-Hidden" style="height:max-content">
-        <div class="dropdown mt-2 mb-2 w-100">
-            <button class="btn btn-secondary bgRed dropdown-toggle w-100"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                Beschreibung
-            </button>
-            <ul class="dropdown-menu p-1">
-                <li>@Model.Description</li>
-
-            </ul>
+            <div id="@descId" class="collapse mrc-desc">
+                @Html.Raw(Model.Description)
+            </div>
         </div>
     </div>
-    <hr/>
 </div>
-
-
-

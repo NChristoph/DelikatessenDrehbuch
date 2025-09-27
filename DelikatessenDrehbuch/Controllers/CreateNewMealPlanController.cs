@@ -56,8 +56,8 @@ namespace DelikatessenDrehbuch.Controllers
         public async Task<ActionResult> IndexAsync(PersonalMealPlanSettings settings)
         {
             _sessionService.ClearSession();
-          
-           
+
+
             if (settings.DayCount > 7)
             {
                 return Ok("Maximal 7 Tage erlaubt");
@@ -68,8 +68,8 @@ namespace DelikatessenDrehbuch.Controllers
             ViewData["PersonCount"] = settings.PersonCount;
             var mealPlanItems = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
             var rnd = new Random();
-            var model= mealPlanItems.OrderBy(x => rnd.Next()).ToList();
-           
+            var model = mealPlanItems.OrderBy(x => rnd.Next()).ToList();
+
             _sessionService.SavePersonalMealPlanToSession(model);
 
 
@@ -78,14 +78,16 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult MealPlanSetting()
         {
-            var model = _context.Ingredients.ToList();
-            return View("~/Views/MealPlaner/MealPlanerUserSettings.cshtml",model);
+
+            ModelForMealPlanSettingView model = new()
+            {
+                Ingredients = _context.Ingredients.ToList(),
+                PersonalMealPlanSettings = _sessionService.GetMealPlanSettingsFromSession() ?? new PersonalMealPlanSettings()
+            };
+            return View("~/Views/MealPlaner/MealPlanerUserSettings.cshtml", model);
         }
 
-        private async Task<List<int>> CheckSessionExist(string name)
-        {
-            return new List<int>();
-        }
+      
 
         public async Task<IActionResult> GetRecipe(int recipeId)
         {
@@ -142,15 +144,30 @@ namespace DelikatessenDrehbuch.Controllers
         public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId = 0, string category = "", string index = "")
         {
             ViewData["Index"] = int.Parse(index);
+            var recipeIdsFromSession = _sessionService.GetRecipesIdsFromSession(category);
 
-            var model = await _mealPlanService.GetMealPlanModels(category, 1);
-            var recipe = model.First().Recipes;
+            if (!recipeIdsFromSession.Any())
+            {
+                var model = await _mealPlanService.GetMealPlanModels(category, 1);
+                var recipe = model.First().Recipes;
+                EditeSession(model.First(), recipeId);
 
-            EditeSession(model.First(), recipeId);
+                return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe);
+            }
+            if (recipeId != 0)
+                _sessionService.UpdateRecipesIdsInSession(remove: recipeId, category: category);
 
-            _sessionService.UpdateRecipesIdsInSession(remove: recipeId, add: recipe.Id);
+            var ran = _recipesService.GetRendomRecipesIds(recipeIdsFromSession, 1);
 
-            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe);
+            var model2 = await _mealPlanService.CreatePersonalMealPlanRecipeModelByIdAsync(ran.First());
+            var recipe2 = model2.Recipes;
+            _sessionService.UpdateRecipesIdsInSession(remove: recipe2.Id, category: category);
+            EditeSession(model2, recipeId);
+
+            return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe2);
+
+
+
         }
 
         private void EditeSession(PersonalMealPlanRecipeModel model, int idToRemove)
@@ -170,7 +187,7 @@ namespace DelikatessenDrehbuch.Controllers
             EditeSession(model.First(), 0);
             if (id != 0)
             {
-                _sessionService.UpdateRecipesIdsInSession(remove: id);
+                _sessionService.UpdateRecipesIdsInSession(remove: id, category: category);
             }
 
             return PartialView("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipe);

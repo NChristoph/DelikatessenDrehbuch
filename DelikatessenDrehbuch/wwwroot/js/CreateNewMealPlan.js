@@ -1,128 +1,152 @@
-﻿
-window.onload = function () {
+﻿// DOM Ready
+document.addEventListener('DOMContentLoaded', () => {
+    initMealPlan();
     ReloadIngredientList();
-};
+});
 
-function ChangeMealPlanRecipes(button, spawnId) {
-    const ingredientList = document.getElementById("ingredientPartialView");
-    ingredientList.innerHTML = "";
+function initMealPlan() {
+    // Event Delegation für alle Buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.add-recipe')) {
+            handleAddRecipe(e.target.closest('.add-recipe'));
+        }
+        if (e.target.closest('.remove-recipe')) {
+            handleRemoveRecipe(e.target.closest('.remove-recipe'));
+        }
+    });
+}
 
-    var category = button.getAttribute("data-category");
-    var recipeId = button.value || 0;
-    var index = button.getAttribute("data-index");
- 
+// Rezept hinzufügen/ändern
+function handleAddRecipe(btn) {
+    const slot = btn.closest('.slot');
+    const grid = slot.closest('.slot-grid');
+    const dayIndex = grid.dataset.dayIndex;
+    const category = btn.dataset.category;
+    const recipeId = btn.dataset.recipeId || 0;
+    const slotType = slot.querySelector('.slot-target').dataset.slot;
 
     $.get("/CreateNewMealPlan/LoadRecipesPartialView", {
         recipeId: recipeId,
         category: category,
-        index: index
-    }, function (html) {
-        var dataId = $(html).attr("data-id");
-        button.value = dataId;
-        $("#" + spawnId + index).html(html)
-        ReloadIngredientList();
-    });
+        index: dayIndex
+    })
+        .done(function (html) {
+            // Slot-Content aktualisieren
+            const target = slot.querySelector('.slot-target');
+            target.innerHTML = html;
 
+            // Button state ändern: "Hinzufügen" → "Ändern"
+            const addBtn = slot.querySelector('.add-recipe');
+            const removeBtn = slot.querySelector('.remove-recipe');
+
+            if (addBtn && html.trim()) {
+                const $html = $(html);
+                const dataId = $html.attr('data-id') || $html.find('[name="Recipes"]').attr('data-id');
+
+                addBtn.dataset.recipeId = dataId || recipeId;
+                addBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Ändern';
+
+                if (removeBtn) removeBtn.hidden = false;
+            }
+
+            ReloadIngredientList();
+        });
 }
 
-function GetRecipeDictionaryByIndex() {
-    const elements = document.querySelectorAll('[name="Recipes"]');
-    const dict = {};
-    elements.forEach(el => {
-        const index = parseInt(el.getAttribute('data-index'));
-        const id = parseInt(el.getAttribute('data-id'));
-        if (!dict[index]) { dict[index] = []; }
-        dict[index].push(id);
+// Rezept entfernen
+function handleRemoveRecipe(btn) {
+    const slot = btn.closest('.slot');
+    const target = slot.querySelector('.slot-target');
+    const addBtn = slot.querySelector('.add-recipe');
+
+    // Slot leeren
+    target.innerHTML = '';
+
+    // Button state zurücksetzen
+    if (addBtn) {
+        delete addBtn.dataset.recipeId;
+        addBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Hinzufügen';
+    }
+    btn.hidden = true;
+
+    ReloadIngredientList();
+}
+
+// Tag nach oben verschieben
+function moveDayUp(btn) {
+    const currentDay = btn.closest('.day-item');
+    const prevDay = currentDay.previousElementSibling;
+
+    if (prevDay && prevDay.classList.contains('day-item')) {
+        swapDayContents(currentDay, prevDay);
+        scrollToDay(prevDay);
+    }
+}
+
+// Tag nach unten verschieben  
+function moveDayDown(btn) {
+    const currentDay = btn.closest('.day-item');
+    const nextDay = currentDay.nextElementSibling;
+
+    if (nextDay && nextDay.classList.contains('day-item')) {
+        swapDayContents(currentDay, nextDay);
+        scrollToDay(nextDay);
+    }
+}
+
+// Tage-Inhalte tauschen (nur day-content, Header bleiben)
+function swapDayContents(dayA, dayB) {
+    const contentA = dayA.querySelector('.day-content');
+    const contentB = dayB.querySelector('.day-content');
+    const indexA = dayA.dataset.day;
+    const indexB = dayB.dataset.day;
+
+    // Inhalte tauschen
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(contentA.cloneNode(true));
+    contentA.innerHTML = contentB.innerHTML;
+    contentB.innerHTML = tempDiv.firstChild.innerHTML;
+
+    // data-day-index in den slot-grids korrigieren
+    contentA.querySelector('.slot-grid').dataset.dayIndex = indexA;
+    contentB.querySelector('.slot-grid').dataset.dayIndex = indexB;
+}
+
+// Zu einem Tag scrollen
+function scrollToDay(dayEl) {
+    const header = dayEl.querySelector('.day-header');
+    header.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
     });
+}
+
+// Rezept-Dictionary für Finalaufruf erstellen
+function getRecipeDictionary() {
+    const dict = {};
+
+    document.querySelectorAll('.day-item').forEach(day => {
+        const dayIndex = parseInt(day.dataset.day);
+        const recipes = [];
+
+        // Alle Rezepte des Tages sammeln
+        day.querySelectorAll('[name="Recipes"]').forEach(recipe => {
+            const id = parseInt(recipe.dataset.id);
+            if (!isNaN(id)) recipes.push(id);
+        });
+
+        dict[dayIndex] = recipes;
+    });
+
     return dict;
 }
 
-function CreatedMealPlan() {
-    var ids = GetRecipeDictionaryByIndex();
-    let query = encodeURIComponent(JSON.stringify(ids));
-    var personcount = document.getElementById("personCount").value;
+// Finaler Aufruf
+function createMealPlan() {
+    const dict = getRecipeDictionary();
+    const query = encodeURIComponent(JSON.stringify(dict));
+    const personCount = document.getElementById('personCount')?.value || 1;
 
-    window.location.href = "/CreateNewMealPlan/CreatedMealPlan?indexAndIds=" + query + '&personCount=' + personcount;
-};
-
-
-
-
-
-
-// --- Verschiebe-Funktion ---
-function moveDayUp(btn) {
-    const day = btn.closest('.day-item');
-    const prev = day?.previousElementSibling;
-    if (prev && prev.classList.contains('day-item')) {
-        day.parentNode.insertBefore(day, prev);
-        renumberDays();
-    }
+    window.location.href = `/CreateNewMealPlan/CreatedMealPlan?indexAndIds=${query}&personCount=${personCount}`;
 }
-
-function moveDayDown(btn) {
-    const day = btn.closest('.day-item');
-    const next = day?.nextElementSibling;
-    if (next && next.classList.contains('day-item')) {
-        day.parentNode.insertBefore(next, day);
-        renumberDays();
-    }
-}
-
-function renumberDays() {
-    const days = document.querySelectorAll('.day-item');
-    days.forEach((day, idx) => {
-        const newIndex = idx + 1;
-        const oldIndex = parseInt(day.getAttribute('data-day')) || newIndex;
-
-        const label = day.querySelector('.day-label');
-        if (label) label.textContent = `Tag ${newIndex}`;
-
-        day.setAttribute('data-day', newIndex);
-        day.querySelectorAll('[data-index]').forEach(el => {
-            el.setAttribute('data-index', newIndex);
-        });
-
-        const prefixes = [
-            'appetizer_', 'appetizerName_', 'appetizerPreperationTime_', 'appetizerDiscription_',
-            'dessert_', 'dessertName_', 'dessertPreperationTime_', 'dessertDiscription_',
-            'recipesContainer_', 'recipesContainerName_', 'recipesContainerPreperationTime_', 'recipesContainerDiscription_',
-            'appetizerDeleteButton_', 'dessertDeleteButton_'
-        ];
-
-        const idSuffixOld = `_${oldIndex}`;
-        const idSuffixNew = `_${newIndex}`;
-
-        day.querySelectorAll('[id]').forEach(el => {
-            let id = el.id;
-            prefixes.forEach(p => {
-                if (id.startsWith(p) && id.endsWith(idSuffixOld)) {
-                    id = p + newIndex;
-                }
-            });
-            if (id.endsWith(idSuffixOld)) {
-                id = id.slice(0, -idSuffixOld.length) + idSuffixNew;
-            }
-            el.id = id;
-        });
-
-        day.querySelectorAll('label[for]').forEach(el => {
-            let f = el.htmlFor;
-            if (f && f.endsWith(idSuffixOld)) {
-                el.htmlFor = f.slice(0, -idSuffixOld.length) + idSuffixNew;
-            }
-        });
-
-        day.querySelectorAll('a[onclick], button[onclick]').forEach(el => {
-            let h = el.getAttribute('onclick');
-            if (!h) return;
-            prefixes.forEach(p => {
-                const find = new RegExp(p + oldIndex + '(?=[^0-9]|$)', 'g');
-                h = h.replace(find, p + newIndex);
-            });
-            h = h.replace(new RegExp('_' + oldIndex + '(?=[^0-9]|$)', 'g'), '_' + newIndex);
-            el.setAttribute('onclick', h);
-        });
-    });
-}
-

@@ -44,6 +44,7 @@ function ChangeRecipesQuantity(person) {
     document.querySelectorAll('[name="IngredientContainer_SelectetRecipe"]').forEach(li => {
         const quantitySpan = li.querySelector('[name="quantity"]');
         const unitSpan = li.querySelector('span:nth-of-type(2)');
+        
 
         let base = parseNumberLocale(quantitySpan.dataset.original ?? quantitySpan.textContent);
         if (Number.isNaN(base)) return;
