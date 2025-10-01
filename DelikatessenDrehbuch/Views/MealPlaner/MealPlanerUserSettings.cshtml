@@ -139,7 +139,7 @@
     }
 </style>
 
-<div id="MenuePlan"  style="padding:2% ">
+<div id="MenuePlan" style="padding:2% ">
     <form asp-controller="CreateNewMealPlan" asp-action="Index" method="post">
         @Html.AntiForgeryToken()
 
@@ -147,6 +147,16 @@
             <div class="flexColumn bg-white" style="min-width:100%">
 
                 <div class="planner-grid">
+
+                    @if (Model.HaveCatchContent)
+                    {
+                        <a class="btn bgRed Border-Gold mt-3"
+                           asp-controller="CreateNewMealPlan"
+                           asp-action="MealPlanFromSession"
+                           style="max-width:fit-content;color:white;margin-left:auto">
+                            Letzten Essensplan fortsetzen
+                        </a>
+                    }
 
                     <!-- Linke Spalte: Ernährungsfilter -->
                     <section class="planner-card">
@@ -240,7 +250,7 @@
                         <h2>Plan-Details</h2>
                         <div class="flexRowToColumn">
                             <span>Plan für</span>
-                            <input asp-for="@Model.PersonalMealPlanSettings.DayCount" class="form-control form-control-sm" type="number" id="dayCount" name="DayCount" style="max-width:70px" value="7"/>
+                            <input asp-for="@Model.PersonalMealPlanSettings.DayCount" class="form-control form-control-sm" type="number" id="dayCount" name="DayCount" style="max-width:70px" value="7" />
                             <span>Tage erstellen.</span>
 
                             <span style="margin-left:1rem">Plan für</span>
@@ -266,7 +276,6 @@
                                 <td>
                                     <div class="form-check mb-2">
                                         <input class="form-check-input"
-                                               
                                                type="checkbox"
                                                onchange="CreateIngredientChangeValue(this,'HaveAtHome_','Ingredients','IngredientIds')"
                                                value="@ingredient.Id"

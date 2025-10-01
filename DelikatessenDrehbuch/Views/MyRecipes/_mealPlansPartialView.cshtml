@@ -22,7 +22,7 @@
 
         foreach (var mealplan in model)
         {
-            var test = mealplan.Recipes.Select(x => x.Name);
+           
             var names = string.Join(" <br>", mealplan.Recipes.Select(x => x.Name + ".").ToList());
             <a class=" m-1 mobieleWidth90" asp-route-id="@mealplan.MealPlan.Id" asp-controller="MyRecipes" asp-action="GetMeal" style="text-decoration:none;flex-basis:30%">
                 <div class="flexColumn Border-Gold mobieleWidth90 mobileCenter p-1 m-1 " style="max-width:300px;height:100%;width:100%">

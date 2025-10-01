@@ -1,6 +1,6 @@
-﻿main {
+﻿/*main {
     margin-top: 250px;
-}
+}*/
 
 .textColoreCream {
     text-decoration-color: #FFFDD0;
@@ -618,12 +618,12 @@ tr:nth-child(odd) {
 
 
 
-@media(max-width: 459px) {
+/*@media(max-width: 459px) {
 
     main {
         margin-top: 160px;
     }
-}
+}*/
 
 
 

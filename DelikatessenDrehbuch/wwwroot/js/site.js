@@ -1,13 +1,17 @@
-﻿function ReloadIngredientList(id, recipesId) {
+﻿function ReloadIngredientList(id, recipesId,ids) {
 
     var personcount = document.getElementById("personCount").value;
 
 
     if (!id) {
+      
         var recipesIdsList = GetRecipesIdsList();
         $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesIdsList.join(";")
             + '&personCount=' + personcount);
     } else {
+        if (ids)
+            recipesId = ids;
+            
         $("#" + id).load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesId
             + '&personCount=' + personcount);
     }

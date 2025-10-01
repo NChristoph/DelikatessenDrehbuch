@@ -23,53 +23,57 @@ function handleAddRecipe(btn) {
     const dayIndex = grid.dataset.dayIndex;
     const category = btn.dataset.category;
     const recipeId = btn.dataset.recipeId || 0;
-    const slotType = slot.querySelector('.slot-target').dataset.slot;
 
     $.get("/CreateNewMealPlan/LoadRecipesPartialView", {
         recipeId: recipeId,
         category: category,
         index: dayIndex
-    })
-        .done(function (html) {
-            // Slot-Content aktualisieren
-            const target = slot.querySelector('.slot-target');
-            target.innerHTML = html;
+    }).done(function (html) {
+        const target = slot.querySelector('.slot-target');
+        target.innerHTML = html;
 
-            // Button state ändern: "Hinzufügen" → "Ändern"
-            const addBtn = slot.querySelector('.add-recipe');
-            const removeBtn = slot.querySelector('.remove-recipe');
+        // data-id aus dem zurückgegebenen HTML holen (funktioniert auch bei mehreren Root-Knoten)
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const dataId =
+            doc.body.firstElementChild?.getAttribute("data-id") ||
+            doc.body.querySelector('[data-id]')?.getAttribute("data-id") ||
+            recipeId;
 
-            if (addBtn && html.trim()) {
-                const $html = $(html);
-                const dataId = $html.attr('data-id') || $html.find('[name="Recipes"]').attr('data-id');
+        // Button-Status aktualisieren
+        const addBtn = slot.querySelector('.add-recipe');
+        if (addBtn) {
+            addBtn.dataset.recipeId = dataId || 0;
+            addBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Ändern';
+        }
+        const removeBtn = slot.querySelector('.remove-recipe');
+        if (removeBtn) removeBtn.hidden = false;
 
-                addBtn.dataset.recipeId = dataId || recipeId;
-                addBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Ändern';
-
-                if (removeBtn) removeBtn.hidden = false;
-            }
-
-            ReloadIngredientList();
-        });
+        // Zutatenliste refresh
+        if (typeof ReloadIngredientList === 'function') {
+            ReloadIngredientList(null, dataId);
+        }
+    });
 }
+
 
 // Rezept entfernen
 function handleRemoveRecipe(btn) {
     const slot = btn.closest('.slot');
     const target = slot.querySelector('.slot-target');
     const addBtn = slot.querySelector('.add-recipe');
+    const recipeId = addBtn.dataset.recipeId || 0;
 
     // Slot leeren
     target.innerHTML = '';
-
+   
     // Button state zurücksetzen
     if (addBtn) {
         delete addBtn.dataset.recipeId;
         addBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Hinzufügen';
     }
     btn.hidden = true;
-
-    ReloadIngredientList();
+    ReloadIngredientList(null,recipeId);
+   
 }
 
 // Tag nach oben verschieben

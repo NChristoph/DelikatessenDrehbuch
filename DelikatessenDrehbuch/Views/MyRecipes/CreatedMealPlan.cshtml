@@ -1,10 +1,15 @@
 ﻿@using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
 @model Dictionary<int, List<PersonalMealPlanRecipeModel>>
+@using DelikatessenDrehbuch.Services.Interfaces
+@inject ISessionService _sessionService
 
 @{
     var personCount = (int)ViewData["personCount"];
+   
 }
+
+
 <input type="number" id="personCount" value="@personCount" hidden />
 
 <style>
@@ -74,6 +79,7 @@
 
     .carousel-wrap {
         max-width: 90%;
+        min-width: 90%;
         margin: 0 auto
     }
 
@@ -150,7 +156,7 @@
 
     @@media (max-width:992px) {
         .desktopHidden {
-            display:none;
+            display: none;
         }
     }
 
@@ -262,7 +268,8 @@
                  tabindex="-1"
                  id="@unifiedOffId"
                  aria-labelledby="offcanvasLabel_@unifiedOffId"
-                 data-recipe-id="@item.Id">
+                 name="Recipes"
+                 data-id="@item.Id">
                 <div class="offcanvas-header">
                     <img class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style="max-height:80px;object-fit:contain" />
                     <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
@@ -278,7 +285,48 @@
             </div>
         }
 
-        <!-- Rest bleibt gleich... -->
+       
+            var idsCsv = string.Join(";", Model[dayKey].Select(x => x.Id));
+            var ingOffId = $"Ingredients_Day_{dayKey}";
+       
+
+        <input type="hidden" id="Ingredient_@dayKey" value="@idsCsv" />
+
+        <div class="day-actions">
+            <button class="btn bgRed Border-Gold"
+                    style="color:white"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#@ingOffId"
+                    aria-controls="@ingOffId">
+                Zutaten für Tag @dayKey
+            </button>
+        </div>
+
+        <div class="offcanvas offcanvas-start meal-offcanvas mobieleWidth100 tableteSize75"
+             tabindex="-1"
+             id="@ingOffId"
+             aria-labelledby="offcanvasLabel_@ingOffId"
+             data-day="@dayKey">
+            <div class="offcanvas-header">
+                <img class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png"
+                     style="max-height:80px;object-fit:contain" />
+                <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body Border-Gold w-100">
+                <span class="w-100 mt-2 mb-3 text-center d-block">
+                    <strong>Einkaufsliste – Tag @dayKey</strong>
+                </span>
+                <div id="ingredient_@dayKey"></div>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                          ReloadIngredientList('ingredient_@dayKey',null,'@idsCsv');
+                    });
+                </script>
+            </div>
+        </div>
+
     }
     <hr class="w-75" />
 

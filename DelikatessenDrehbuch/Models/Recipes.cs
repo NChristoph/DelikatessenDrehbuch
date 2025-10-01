@@ -12,7 +12,6 @@ namespace DelikatessenDrehbuch.Models
         public string? ImagePath { get; set; }
         public int? PreparationTime { get; set; }
         public string? Description { get; set; }
-
         public string? Calories { get; set; }
         public int? LikeCount { get; set; }
         public int? RecipePersonCount { get; set; }

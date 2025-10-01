@@ -130,7 +130,11 @@ namespace DelikatessenDrehbuch.Services
             recipeToChange.Calories = newRecipesData.Calories;
             recipeToChange.RecipePersonCount = newRecipesData.RecipePersonCount;
             if (newRecipesData.FormFile != null)
-                recipeToChange.FormFile = newRecipesData.FormFile;
+            {
+                await _blobAzureService.UploadImageToAzureBlop(newRecipesData.FormFile);
+                recipeToChange.ImagePath = _blobAzureService.GetImagePathFromAzure(newRecipesData.FormFile);
+            }
+              
 
 
 
