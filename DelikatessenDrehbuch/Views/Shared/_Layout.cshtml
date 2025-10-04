@@ -136,12 +136,10 @@
                             else
                             {
                                 <a class="btn btn-sm btn-outline-danger" asp-area="Identity" asp-page="/Account/Login">
-                                    <i class="bi bi-box-arrow-in-right d-lg-none"></i>
-                                    <span class="d-none d-lg-inline">Anmelden</span>
+                                    <span>Anmelden</span>
                                 </a>
                                 <a class="btn btn-sm btn-outline-danger" asp-area="Identity" asp-page="/Account/Register">
-                                    <i class="bi bi-person-plus d-lg-none"></i>
-                                    <span class="d-none d-lg-inline">Registrieren</span>
+                                    <span>Registrieren</span>
                                 </a>
                             }
                         </div>
@@ -183,6 +181,9 @@
                                     <span class="ms-1">Admin Control</span>
                                 </a>
                             }
+                           @*  <a class="btn btn-sm btn-outline-danger" asp-controller="CreateNewMealPlan" asp-action="MealPlanSetting" style="max-width:fit-content">
+                                <span class="ms-1">Essensplan erstellen</span>
+                            </a> *@
                             <button class="btn btn-sm btn-outline-danger" onclick="RemoveCachedContent()" style="max-width:fit-content">
                                 <span class="ms-1">Alle Rezepte</span>
                             </button>

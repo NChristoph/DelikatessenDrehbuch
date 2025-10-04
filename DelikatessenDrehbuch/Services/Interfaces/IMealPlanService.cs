@@ -7,7 +7,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         Task<List<PersonalMealPlanRecipeModel>> GetMealPlanModels(string category,int count);
 
         Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount);
-        Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int id);
+        Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int id,int index);
         List<int> GetAlternativeRecipes(List<int> usedIds, int excludeId);
         Dictionary<int, List<PersonalMealPlanRecipeModel>> MapToMealPlanDictionary(string json);
         List<int> GetIntListByString(string Ids);

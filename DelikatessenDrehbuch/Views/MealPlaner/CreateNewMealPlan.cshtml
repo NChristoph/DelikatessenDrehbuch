@@ -198,27 +198,21 @@
 
     /* ===== Responsive Layout für die Gesamtstruktur ===== */
     @@media (min-width:1200px) {
-        .meal-wrap
+        .meal-wrap {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px
+        }
 
-    {
-        display: grid;
-        grid-template-columns: 1fr 320px;
-        gap: 24px
-    }
-
-    .meal-left, .meal-right {
-        min-width: 0
-    }
-
+        .meal-left, .meal-right {
+            min-width: 0
+        }
     }
 
     @@media (max-width:992px) {
-        .slot-grid
-
-    {
-        grid-template-columns: 1fr
-    }
-
+        .slot-grid {
+            grid-template-columns: 1fr
+        }
     }
 </style>
 
@@ -228,12 +222,31 @@
 
         @{
             var index = 0;
-            foreach (var recipes in Model)
+            var modelgroup = Model.GroupBy(x => x.Index);
+
+            foreach (var dayGroup in modelgroup)
             {
                 index++;
-                recipes.Index = index;
+
+                // Alle Rezepte dieses Tages einmal sammeln
+                var dayRecipes = dayGroup
+                .Select(g => g.Recipes)
+                .Where(r => r != null)
+                .ToList();
+
+                // Pro Slot das erste passende Rezept holen (falls vorhanden)
+                var appetizer = dayRecipes.FirstOrDefault(r =>
+                string.Equals(r.Category.Trim(), "Vorspeise", StringComparison.OrdinalIgnoreCase));
+                                                 
+                var main = dayRecipes.FirstOrDefault(r =>
+                string.Equals(r.Category.Trim(), "Hauptspeise", StringComparison.OrdinalIgnoreCase));
+
+                var dessert = dayRecipes.FirstOrDefault(r =>
+                string.Equals(r.Category.Trim(), "Dessert", StringComparison.OrdinalIgnoreCase));
+
+               
+
                 <div class="day-card day-item" data-day="@index">
-                    <!-- Header bleibt fix -->
                     <div class="day-header">
                         <span class="day-title day-label">Tag @index</span>
                         <div class="day-controls">
@@ -246,7 +259,6 @@
                         </div>
                     </div>
 
-                    <!-- Tauschbarer Inhalt -->
                     <div class="day-content">
                         <div class="slot-grid" data-day-index="@index">
 
@@ -263,7 +275,15 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="slot-target" data-slot="appetizer"></div>
+                                <div class="slot-target" data-slot="appetizer">
+                                    @if (appetizer != null)
+                                    {
+                                        @await Html.PartialAsync(
+                                        "~/Views/MealPlaner/_createMealPlanRecipesPartialView.cshtml",
+                                                        appetizer,
+                                                        new ViewDataDictionary(ViewData) { { "Index", index } })
+                                                        }
+                                </div>
                             </section>
 
                             <!-- Hauptspeise -->
@@ -271,13 +291,19 @@
                                 <div class="slot-head">
                                     <span class="slot-title">Hauptspeise</span>
                                     <div class="slot-actions">
-                                        <button class="slot-btn add-recipe" data-category="@recipes.Recipes.Category" data-recipe-id="@recipes.Id">
+                                        <button class="slot-btn add-recipe" data-category="Hauptspeise">
                                             <i class="bi bi-arrow-repeat"></i> Ändern
                                         </button>
                                     </div>
                                 </div>
                                 <div class="slot-target" data-slot="main">
-                                    @await Html.PartialAsync("~/Views/MyRecipes/_createMealPlanRecipesPartialView.cshtml", recipes.Recipes, new ViewDataDictionary(ViewData) { { "Index", index } })
+                                    @if (main != null)
+                                    {
+                                        @await Html.PartialAsync(
+                                        "~/Views/MealPlaner/_createMealPlanRecipesPartialView.cshtml",
+                                                        main,
+                                                        new ViewDataDictionary(ViewData) { { "Index", index } })
+                                                        }
                                 </div>
                             </section>
 
@@ -294,20 +320,31 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="slot-target" data-slot="dessert"></div>
+                                <div class="slot-target" data-slot="dessert">
+                                    @if (dessert != null)
+                                    {
+                                        @await Html.PartialAsync(
+                                        "~/Views/MealPlaner/_createMealPlanRecipesPartialView.cshtml",
+                                                        dessert,
+                                                        new ViewDataDictionary(ViewData) { { "Index", index } })
+                                                        }
+                                </div>
                             </section>
 
                         </div>
                     </div>
                 </div>
             }
+
         }
+
+
     </div>
 
     <!-- Sidebar bleibt unverändert -->
     <aside class="meal-right">
         <div class="sidebar-card">
-            <span class="w-100 d-block text-center mb-2"><strong>Einkaufsliste:</strong></span>
+            <span class="w-100 d-block text-center mb-2"><strong>Zutaten Überblick:</strong></span>
             <div id="ingredientPartialView" class="w-100"></div>
         </div>
     </aside>

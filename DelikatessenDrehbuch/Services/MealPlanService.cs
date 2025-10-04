@@ -106,22 +106,23 @@ namespace DelikatessenDrehbuch.Services
         public async Task<List<PersonalMealPlanRecipeModel>> CreatePersonalMealPlanRecipeModelByIdsAsync(List<int> recipesIds)
         {
             List<PersonalMealPlanRecipeModel> modelList = new();
+            int index = 1;
             foreach (var recipeId in recipesIds)
             {
-                var model = await CreatePersonalMealPlanRecipeModelByIdAsync(recipeId);
-
+                var model = await CreatePersonalMealPlanRecipeModelByIdAsync(recipeId,index);
+                index++;
                 modelList.Add(model);
             }
             return modelList;
         }
 
-        public async Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId)
+        public async Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId,int index)
         {
             var recipehandlers = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(recipeId);
 
             PersonalMealPlanRecipeModel model = new()
             {
-                Index = 0,
+                Index = index,
                 Id = recipeId,
                 Recipes = _context.Recipes.FirstOrDefault(x => x.Id == recipeId),
                 Ingredients = _recipesService.GetOrdetIngredientHandler(recipehandlers)

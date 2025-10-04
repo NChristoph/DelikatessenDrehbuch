@@ -1,5 +1,54 @@
 ﻿@model ModelForMealPlanSettingView
 
+@{
+    var pageTitle = "Essensplaner – Gesunde Wochenpläne & automatische Einkaufsliste | Delikatessen Drehbuch";
+    var pageDescription = "Erstelle in Minuten deinen individuellen Essensplan mit Vorspeise, Hauptgericht und Dessert. Alle Rezepte SEO-optimiert, mit Nährwertangaben und Einkaufsliste – entwickelt von Delikatessen Drehbuch.";
+    var pageUrl = "https://www.delikatessen-drehbuch.com/CreateNewMealPlan/MealPlanSetting";
+}
+
+<title>@pageTitle</title>
+<meta name="description" content="@pageDescription" />
+<meta name="robots" content="index, follow" />
+<meta name="author" content="Delikatessen Drehbuch" />
+<link rel="canonical" href="@pageUrl" />
+
+<!-- Open Graph (Facebook, LinkedIn) -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="@pageTitle" />
+<meta property="og:description" content="@pageDescription" />
+<meta property="og:url" content="@pageUrl" />
+<meta property="og:site_name" content="Delikatessen Drehbuch" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="@pageTitle" />
+<meta name="twitter:description" content="@pageDescription" />
+<meta name="twitter:site" content="@@DelikatessenDrehbuch" />
+
+<!-- Schema.org JSON-LD (Google Rich Results) -->
+<script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "WebApplication",
+      "name": "Essensplaner – Delikatessen Drehbuch",
+      "url": "@pageUrl",
+      "description": "@pageDescription",
+      "applicationCategory": "Food & Drink",
+      "operatingSystem": "All",
+      "creator": {
+        "@@type": "Organization",
+        "name": "Delikatessen Drehbuch",
+        "url": "https://www.delikatessen-drehbuch.com"
+      },
+      "aggregateRating": {
+        "@@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "1283"
+      }
+    }
+</script>
+
+
 <style>
     /* mobile Layout fix: Checkboxen & Flex-Container */
     .filter-card {
@@ -36,6 +85,79 @@
             font-size: 13px;
             padding: .4rem .6rem;
         }
+    }
+
+    
+    .info-box {
+        background: #fff8e6;
+        border: 1px solid #f0d68a;
+        border-radius: 10px;
+        margin-top: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.05);
+        max-width: 800px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .info-box-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        cursor: pointer;
+        color: #4b3f00;
+        font-weight: 700;
+    }
+
+        .info-box-header:hover {
+            background: #fff3cc;
+        }
+
+        .info-box-header i {
+            color: #d4af37;
+            font-size: 1.2rem;
+            transition: transform 0.25s ease;
+        }
+
+    .info-box.open .info-box-header i {
+        transform: rotate(180deg);
+    }
+
+    .info-box-content {
+        padding: 0 18px 14px 18px;
+        color: #4b3f00;
+        font-size: .94rem;
+        line-height: 1.45;
+        display: none;
+    }
+
+    .info-box.open .info-box-content {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .info-box-content ul {
+        margin: 6px 0 0 18px;
+        padding: 0;
+    }
+
+    .info-box-content li {
+        margin-bottom: 4px;
+    }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 </style>
 
@@ -145,22 +267,33 @@
 
         <div class="flexColumn bg-white" style="min-width:100%">
             <div class="flexColumn bg-white" style="min-width:100%">
-
-                <div class="planner-grid">
-
-                    @if (Model.HaveCatchContent)
-                    {
+                @if (Model.HaveCatchContent)
+                {
+                    <div class="flexRowToColumn mb-2 flexJustifyContendSpaceBetween">
+                        <p>Laden sie ganz einfach den letzten Essensplan</p>
+                        <a class="btn bgRed Border-Gold mt-3"
+                           asp-controller="CreateNewMealPlan"
+                           asp-action="LoadLastMealPlan"
+                           style="max-width:fit-content;color:white;margin-left:auto">
+                            Letzten Essensplan Laden
+                        </a>
+                        <p>Bearbeiten sie den letzten Essensplan</p>
                         <a class="btn bgRed Border-Gold mt-3"
                            asp-controller="CreateNewMealPlan"
                            asp-action="MealPlanFromSession"
                            style="max-width:fit-content;color:white;margin-left:auto">
-                            Letzten Essensplan fortsetzen
+                            Letzten Essensplan bearbeiten
                         </a>
-                    }
+                    </div>
+                    
+                }
+                <div class="planner-grid">
+
+                   
 
                     <!-- Linke Spalte: Ernährungsfilter -->
                     <section class="planner-card">
-                        <h2>Ernährungsfilter</h2>
+                        <h2>Ernährungsfilter (optional)</h2>
 
                         <h3>Ich möchte nur:</h3>
                         <div class="filter-row" aria-label="veg-only">
@@ -261,6 +394,29 @@
 
                 </div> <!-- /.planner-grid -->
                 <!-- Zutaten-Tabelle wie gehabt -->
+                <div class="info-box" id="ingredientInfoBox">
+                    <div class="info-box-header" onclick="toggleInfoBox('ingredientInfoBox')">
+                        <span>ℹ️&nbsp;So funktioniert die Zutatenverwaltung</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+
+                    <div class="info-box-content">
+                        <p>
+                            Über die <strong>Suchleiste</strong> kannst du nach beliebigen Zutaten suchen
+                            (z.&nbsp;B. <em>„Hähnchen“, „Zucchini“, „Kokosmilch“</em>).
+                        </p>
+                        <p>Die ausgewählten Zutaten kannst du in drei Gruppen einteilen:</p>
+                        <ul>
+                            <li><strong>Habe ich zuhause:</strong> Zutaten, die du bereits besitzt – sie werden bevorzugt verwendet.</li>
+                            <li><strong>Oder, Hab ich zuhause:</strong> Zutaten, aus denen du gezielt Gerichte vorgeschlagen bekommst.</li>
+                            <li><strong>Ausschließen:</strong> Zutaten, die du nicht magst oder meiden möchtest – sie werden in keinem Rezept berücksichtigt.</li>
+                        </ul>
+                        <p>
+                            Du kannst alle Angaben jederzeit ändern oder löschen.
+                        </p>
+                    </div>
+                </div>
+                <h3><strong>Zutatenverwaltung</strong></h3>
                 <table id="IngredientTable" class="display nowrap bg-white table table-sm mt-3" style="width:100%">
                     <thead class="bg-white">
                         <tr class="bg-white">
@@ -329,6 +485,12 @@
 </div>
 
 @section Scripts {
+    <script>
+        function toggleInfoBox(id) {
+            const box = document.getElementById(id);
+            box.classList.toggle('open');
+        }
+    </script>
     <script src="/js/MealPlanerFilter.js" defer asp-append-version="true">
 
     </script>

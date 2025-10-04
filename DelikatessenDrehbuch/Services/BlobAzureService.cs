@@ -45,7 +45,7 @@ namespace DelikatessenDrehbuch.Services
                 Position = 0
             };
 
-            imageStream.Save(memoryStream, new WebpEncoder { Quality = 80 });
+            imageStream.Save(memoryStream, new WebpEncoder { Quality = 100 });
 
             return new MemoryStream(memoryStream.ToArray());
         }

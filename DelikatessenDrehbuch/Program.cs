@@ -1,5 +1,7 @@
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
+using Microsoft.Extensions.Caching.StackExchangeRedis; 
+using Microsoft.Extensions.DependencyInjection;
 using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
@@ -77,14 +79,18 @@ builder.Services.AddControllersWithViews(options =>
 });
 
 
+
 // Füge den Session-Service hinzu
-builder.Services.AddDistributedMemoryCache(); // Für die Nutzung von Sessions im Speicher
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(60); // Zeit, bis die Session abläuft
+    options.IdleTimeout = TimeSpan.FromDays(365*10); // Zeit, bis die Session abläuft
+    options.Cookie.MaxAge = TimeSpan.FromDays(365*10); // Lebensdauer des Session-Cookies
     options.Cookie.HttpOnly = true; // Sicherheitseinstellungen
     options.Cookie.IsEssential = true; // Erforderlich für EU-Cookie-Richtlinien
 });
+
+
 
 
 
