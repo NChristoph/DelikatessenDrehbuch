@@ -11,10 +11,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         List<PersonalMealPlanRecipeModel> GetPersonalMealPlanFromSession();
         List<int> GetRecipesIdsFromSession(string category);
         void SaveRecipesIdToSession(List<int> machingRecipes,string category);
-        void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds,string category);
-       
-
-        void UpdateRecipesIdsInSession(int remove = 0, int add = 0,string category="");
+        void ExceptRecipeIdsFromSession(List<int> exceptIds, string category);
+        void UpdateRecipeIdInSession(int remove = 0, int add = 0,string category="");
 
 
     }

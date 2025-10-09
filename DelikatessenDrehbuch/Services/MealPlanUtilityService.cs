@@ -13,6 +13,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         private readonly ApplicationDbContext _context;
         private readonly string[] _staticFilter = { "vegan", "vegetarisch" };
         private readonly string _cookingTimeFilter = "cookingtimeone";
+
+
         private List<int> RecipeIds { get; set; } = new();
         public MealPlanUtilityService(ISessionService sessionService, ApplicationDbContext context)
         {
@@ -20,17 +22,21 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             _context = context;
         }
 
-        public async Task<List<int>> SortRecipeIdsBySettingsAsync(List<int> recipesIds,string category)
+        public async Task<List<int>> SortRecipeIdsBySettingsAsync(List<int> recipesIds, string category)
         {
             var settings = _sessionService.GetMealPlanSettingsFromSession();
             var filterBool = GetTrueBoolNamesFromSetting(settings);
 
             RecipeIds = await GetFilteredRecipeIdsByQueriesAsync(recipesIds, filterBool);
             RecipeIds = await GetFilteredRecipeIdsByCookingTime(RecipeIds, filterBool);
-            RecipeIds = await GetFiltredRecipeIdsByIngredient(RecipeIds, settings,category);
+            RecipeIds = await GetFiltredRecipeIdsByIngredient(RecipeIds, settings, category);
+
+            if (category == "Hauptspeise")
+                await FilterByPreference(RecipeIds, filterBool, category);
 
             return RecipeIds;
         }
+
 
         #region QueriesFilter
         private async Task<List<int>> GetFilteredRecipeIdsByQueriesAsync(List<int> recipesIds, List<string> filterBool)
@@ -82,10 +88,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 
         #region IngredientFilter
 
-        //TODO:
-       //Die Rezept anzeige funktionirt noch nicht ganz richtig also die ingredient anzeige
-        //"RecipesFromDbIds"
-        public async Task<List<int>> GetFiltredRecipeIdsByIngredient(List<int> recipesIds, PersonalMealPlanSettings settings,string category)
+        public async Task<List<int>> GetFiltredRecipeIdsByIngredient(List<int> recipesIds, PersonalMealPlanSettings settings, string category)
         {
             var ingredientIdontLike = settings.IngredientIds;
             var ingredientIHaveAtHome = settings.IngredientsAtHome;
@@ -93,16 +96,17 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             var excludeIngredientsRecipeIds = await FilterRecipeIdsByIngredientIdontLikeAsync(ingredientIdontLike, recipesIds);
 
             var includeIngredientsRecipeIds = await FilterByIncludeIngredientAsync(
-                                                    ingredientIHaveAtHome.Except(ingredientIdontLike).ToList(), 
+                                                    ingredientIHaveAtHome.Except(ingredientIdontLike).ToList(),
                                                     recipesIds
                                                     );
 
-           
-            var edidRecipeIds = recipesIds.Except(excludeIngredientsRecipeIds).ToList();
-           
 
+            var edidRecipeIds = recipesIds.Except(excludeIngredientsRecipeIds).ToList();
+
+            var name = nameof(settings.IngredientsAtHome);
             SaveRecipesIdsToSession(edidRecipeIds.Except(includeIngredientsRecipeIds).ToList(), category);
-            SaveRecipesIdsToSession(includeIngredientsRecipeIds.Except(excludeIngredientsRecipeIds).ToList(), nameof(settings.IngredientIds)+"_"+category);
+            SaveRecipesIdsToSession(includeIngredientsRecipeIds.Except(excludeIngredientsRecipeIds).ToList(), name.ToLower() + "_" + category);
+
 
             return edidRecipeIds;
 
@@ -143,23 +147,58 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 
             // höchste Übereinstimmung ermitteln
             var maxCount = matches.Max(m => m.MatchCount);
-           
+
             // nur Rezepte mit maximaler Übereinstimmung zurückgeben
             return matches
                 .Where(m => m.MatchCount == maxCount)
                 .Select(m => m.RecipeId)
                 .ToList();
-            
+
         }
 
         #endregion
+
+        #region PrefereceFilter
+        public async Task FilterByPreference(List<int> recipeIds, List<string> filterBool, string category)
+        {
+            string preference = filterBool.FirstOrDefault(x => x.StartsWith("preferably") || x.StartsWith("balanced")) ?? string.Empty;
+
+            var vegetarianIds = await FilterRecipeIdsByQueriesAsync(recipeIds, new List<string> { "Vegetarisch" });
+            var veganIds = await FilterRecipeIdsByQueriesAsync(recipeIds, new List<string> { "Vegan" });
+            var meatIds = recipeIds.Except(vegetarianIds).Except(veganIds).ToList();
+
+            switch (preference)
+            {
+                case "balanceddiet":
+                    break;
+                case "preferablymeat":
+                    if (meatIds.Any())
+                    {
+                        SaveRecipesIdsToSession(meatIds, "preferablymeat");
+                        _sessionService.ExceptRecipeIdsFromSession(meatIds, category);
+                    }
+                    break;
+                case "preferablyvegetarian":
+                    if (vegetarianIds.Any())
+                    {
+                        SaveRecipesIdsToSession(vegetarianIds, "preferablyvegetarian");
+                        _sessionService.ExceptRecipeIdsFromSession(vegetarianIds, category);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        #endregion
+
 
         private void SaveRecipesIdsToSession(List<int> recipesIds, string sessionName)
         {
             _sessionService.SaveRecipesIdToSession(recipesIds, sessionName);
         }
-        private List<string> GetTrueBoolNamesFromSetting(PersonalMealPlanSettings settings)
+        public static List<string> GetTrueBoolNamesFromSetting(PersonalMealPlanSettings settings)
         {
+           
             var bools = typeof(PersonalMealPlanSettings)
                        .GetProperties()
                        .Where(p => p.PropertyType == typeof(bool));

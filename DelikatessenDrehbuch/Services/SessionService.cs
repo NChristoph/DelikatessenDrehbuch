@@ -41,12 +41,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
                 : JsonSerializer.Deserialize<List<int>>(json, new JsonSerializerOptions());
             return items;
         }
-        public void RemoveLoadedRecipesIdsFromSessions(List<int> loadedRecipesIds, string category)
-        {
-            var idsFromSession = GetRecipesIdsFromSession(category);
-            idsFromSession.RemoveAll(x => loadedRecipesIds.Contains(x));
-        }
-        public void UpdateRecipesIdsInSession(int remove = 0, int add = 0, string category = "")
+        public void UpdateRecipeIdInSession(int remove = 0, int add = 0, string category = "")
         {
             var idsFromSession = GetRecipesIdsFromSession(category);
 
@@ -59,6 +54,13 @@ namespace DelikatessenDrehbuch.Services.Interfaces
                 idsFromSession.Add(add);
             }
 
+            SaveRecipesIdToSession(idsFromSession, category);
+        }
+
+        public void ExceptRecipeIdsFromSession(List<int> exceptIds, string category)
+        {
+            var idsFromSession = GetRecipesIdsFromSession(category);
+            idsFromSession = idsFromSession.Except(exceptIds).ToList();
             SaveRecipesIdToSession(idsFromSession, category);
         }
 

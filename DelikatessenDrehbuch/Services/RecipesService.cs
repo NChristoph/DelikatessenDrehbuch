@@ -55,6 +55,8 @@ namespace DelikatessenDrehbuch.Services
                                    .Select(x => x.Id).ToList();
         }
 
+
+
         public int GetRecipesCount()
         {
             return _context.Recipes.Count();
@@ -169,6 +171,17 @@ namespace DelikatessenDrehbuch.Services
         {
             var random = new Random();
             return recipesIds.OrderBy(x => random.Next()).Take(count).ToList();
+        }
+
+        public List<int> GetRendomRecipesbyCategory(List<int> recipesIds,string category, int count)
+        {
+            var random = new Random();
+            return _context.Recipes.Where(x=>x.Category.ToLower().Trim()==category.ToLower().Trim()
+                                             &&recipesIds.Contains(x.Id))
+                                             .AsEnumerable()
+                                             .OrderBy(x => random.Next()).Take(count)
+                                             .Select(x => x.Id)
+                                             .ToList();
         }
 
         public async Task<FullRecipeData> GetFullRecipeDataByRecipesIdAsync(int id)

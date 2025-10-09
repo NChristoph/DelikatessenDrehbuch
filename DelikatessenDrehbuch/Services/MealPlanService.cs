@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace DelikatessenDrehbuch.Services
 {
@@ -20,7 +21,7 @@ namespace DelikatessenDrehbuch.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly HelpfulMethods _helper;
-        private readonly IMealPlanUtilityService _helperUtility;
+        private readonly IMealPlanUtilityService _mealPlanUtilityService;
         private readonly IHttpContextAccessor _httpContext;
         private readonly IRecipesService _recipesService;
         private readonly IRecipesHandlerService _recipesHandlerService;
@@ -38,7 +39,7 @@ namespace DelikatessenDrehbuch.Services
             _ingredientService = ingredientService;
             _sessionService = sessionService;
             _recipesHandlerService = recipesHandlerService;
-            _helperUtility = helperUtility;
+            _mealPlanUtilityService = helperUtility;
         }
 
         public async Task<List<PersonalMealPlanRecipeModel>> GetMealPlanModels(string category, int count)
@@ -46,45 +47,55 @@ namespace DelikatessenDrehbuch.Services
             List<int> recipeIds = new();
 
             recipeIds = _recipesService.GetRecipesIdsByCategory(category);
-            recipeIds = await _helperUtility.SortRecipeIdsBySettingsAsync(recipeIds, category);
+            recipeIds = await _mealPlanUtilityService.SortRecipeIdsBySettingsAsync(recipeIds, category);
 
-            recipeIds = GetFinalRecipeIds(category, count);
+            if (count>1)
+                recipeIds = GetFinalRecipeIds(category, count);
+            else
+                recipeIds = _recipesService.GetRendomRecipesIds(recipeIds, count);
 
-            var personalRecipes = await CreatePersonalMealPlanRecipeModelByIdsAsync(recipeIds);
+                var personalRecipes = await CreatePersonalMealPlanRecipeModelByIdsAsync(recipeIds);
 
             return personalRecipes;
 
         }
 
+        public string GetRecipeIdsByPreference()
+        {
+            var filter = MealPlanUtilityService.GetTrueBoolNamesFromSetting(_sessionService.GetMealPlanSettingsFromSession());
+            var preference= filter.FirstOrDefault(x => x.StartsWith("preferably")) ?? string.Empty;
+            return preference;
+           
+        }
+
         private List<int> GetFinalRecipeIds(string category, int count)
         {
-            var recipeIdsByIngredient = _sessionService.GetRecipesIdsFromSession("IngredientIds_"+category);
-            var recipeIdsFromSession = _sessionService.GetRecipesIdsFromSession(category);
+            var preference = GetRecipeIdsByPreference();
             List<int> currentUsedIds = new();
+            List<int> recipeIds = _sessionService.GetRecipesIdsFromSession(preference);
+            var recipeIdsByIngredient = _sessionService.GetRecipesIdsFromSession("IngredientsAtHome_" + category);
+            var recipeIdsFromSession = _sessionService.GetRecipesIdsFromSession(category);
 
-            if (!recipeIdsByIngredient.Any())
+            if (recipeIds.Any())
             {
-                currentUsedIds = _recipesService.GetRendomRecipesIds(recipeIdsFromSession, count);
-                UpdateSession(recipeIdsFromSession, currentUsedIds, category);
-                return currentUsedIds;
+                currentUsedIds = _recipesService.GetRendomRecipesIds(recipeIds, count > 2 ? count-2 : count -1);
+                _sessionService.ExceptRecipeIdsFromSession(currentUsedIds, preference);
             }
-            else
+            if(recipeIdsByIngredient.Any())
             {
-                var recipesByIngredient = _recipesService.GetRendomRecipesIds(recipeIdsByIngredient, count / 3);
-                currentUsedIds = _recipesService.GetRendomRecipesIds(recipeIdsFromSession, count - recipesByIngredient.Count());
-                UpdateSession(recipesByIngredient, recipeIdsByIngredient, "IngredientIds_"+category);
-                UpdateSession(recipeIdsFromSession, currentUsedIds, category);
-                return currentUsedIds.Concat(recipesByIngredient).ToList();
+                currentUsedIds.AddRange(_recipesService.GetRendomRecipesIds(recipeIdsByIngredient, count - currentUsedIds.Count));
+                _sessionService.ExceptRecipeIdsFromSession(currentUsedIds, "IngredientsAtHome_" + category);
             }
+            if(!recipeIdsByIngredient.Any()||!recipeIds.Any())
+            {
+                currentUsedIds.AddRange(_recipesService.GetRendomRecipesIds(recipeIdsFromSession, count-currentUsedIds.Count));
+                _sessionService.ExceptRecipeIdsFromSession(currentUsedIds, category);
+                
+            }
+
+            return currentUsedIds;
 
         }
-
-        private void UpdateSession(List<int> recipeIds, List<int> recipeIdsToRemove, string category)
-        {
-            _sessionService.SaveRecipesIdToSession(recipeIds.Except(recipeIdsToRemove).ToList(), category);
-        }
-
-    
 
         public async Task<List<PersonalMealPlanRecipeModel>> GetPersonalMealPlanModelListByIds(List<int> recipesIds, int dayCount)
         {
@@ -109,14 +120,14 @@ namespace DelikatessenDrehbuch.Services
             int index = 1;
             foreach (var recipeId in recipesIds)
             {
-                var model = await CreatePersonalMealPlanRecipeModelByIdAsync(recipeId,index);
+                var model = await CreatePersonalMealPlanRecipeModelByIdAsync(recipeId, index);
                 index++;
                 modelList.Add(model);
             }
             return modelList;
         }
 
-        public async Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId,int index)
+        public async Task<PersonalMealPlanRecipeModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId, int index)
         {
             var recipehandlers = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(recipeId);
 

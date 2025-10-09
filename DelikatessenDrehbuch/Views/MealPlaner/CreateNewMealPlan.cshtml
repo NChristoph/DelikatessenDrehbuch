@@ -214,6 +214,10 @@
             grid-template-columns: 1fr
         }
     }
+
+    @@media (max-width:480px) {
+        
+    }
 </style>
 
 <div class="meal-wrap mobieleWidth90 mobileItemCenter">
@@ -291,7 +295,7 @@
                                 <div class="slot-head">
                                     <span class="slot-title">Hauptspeise</span>
                                     <div class="slot-actions">
-                                        <button class="slot-btn add-recipe" data-category="Hauptspeise">
+                                        <button class="slot-btn add-recipe" data-recipe-id="@main.Id" data-category="Hauptspeise">
                                             <i class="bi bi-arrow-repeat"></i> Ändern
                                         </button>
                                     </div>
@@ -345,7 +349,7 @@
     <aside class="meal-right">
         <div class="sidebar-card">
             <span class="w-100 d-block text-center mb-2"><strong>Zutaten Überblick:</strong></span>
-            <div id="ingredientPartialView" class="w-100"></div>
+            <div id="ingredientPartialView" class="w-100 flexColumn"></div>
         </div>
     </aside>
 </div>

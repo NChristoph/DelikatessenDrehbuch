@@ -308,20 +308,45 @@
 
 </script>
 <script>
-        document.addEventListener('DOMContentLoaded', function () {
+     9
+    document.addEventListener('DOMContentLoaded', function () {
         var bottom = document.getElementById('bottomActions');
         var arrow = document.getElementById('collapseArrow');
 
+        // 1️⃣  Zustand aus dem localStorage holen
+        var isExpanded = localStorage.getItem('bottomActionsExpanded') === 'true';
+
+        // 2️⃣  Collapse initial setzen
+        var collapse = new bootstrap.Collapse(bottom, {
+            toggle: false
+        });
+
+        if (isExpanded) {
+            collapse.show();
+            arrow.classList.remove('bi-chevron-down');
+            arrow.classList.add('bi-chevron-up');
+        } else {
+            collapse.hide();
+            arrow.classList.remove('bi-chevron-up');
+            arrow.classList.add('bi-chevron-down');
+        }
+
+        // 3️⃣  Beim Einklappen Zustand speichern
         bottom.addEventListener('hidden.bs.collapse', function () {
             arrow.classList.remove('bi-chevron-up');
             arrow.classList.add('bi-chevron-down');
+            localStorage.setItem('bottomActionsExpanded', 'false');
         });
 
+        // 4️⃣  Beim Ausklappen Zustand speichern
         bottom.addEventListener('shown.bs.collapse', function () {
             arrow.classList.remove('bi-chevron-down');
             arrow.classList.add('bi-chevron-up');
+            localStorage.setItem('bottomActionsExpanded', 'true');
         });
     });
+
+
     function RemoveCachedContent()
     {
           var cachedContent = localStorage.getItem("cachedRecipesPartialView");

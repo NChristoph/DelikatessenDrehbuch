@@ -270,14 +270,14 @@
                 @if (Model.HaveCatchContent)
                 {
                     <div class="flexRowToColumn mb-2 flexJustifyContendSpaceBetween">
-                        <p>Laden sie ganz einfach den letzten Essensplan</p>
+                        <span>Laden sie ganz einfach den letzten Essensplan</span>
                         <a class="btn bgRed Border-Gold mt-3"
                            asp-controller="CreateNewMealPlan"
                            asp-action="LoadLastMealPlan"
                            style="max-width:fit-content;color:white;margin-left:auto">
                             Letzten Essensplan Laden
                         </a>
-                        <p>Bearbeiten sie den letzten Essensplan</p>
+                        <span>Bearbeiten sie den letzten Essensplan</span>
                         <a class="btn bgRed Border-Gold mt-3"
                            asp-controller="CreateNewMealPlan"
                            asp-action="MealPlanFromSession"
@@ -289,8 +289,6 @@
                 }
                 <div class="planner-grid">
 
-                   
-
                     <!-- Linke Spalte: Ernährungsfilter -->
                     <section class="planner-card">
                         <h2>Ernährungsfilter (optional)</h2>
@@ -298,7 +296,7 @@
                         <h3>Ich möchte nur:</h3>
                         <div class="filter-row" aria-label="veg-only">
                             <div class="form-check">
-                                <input asp-for="@Model.PersonalMealPlanSettings.Vegan" onchange="UnCheckAllCheckboxes(['checkNoVegan'])" class="form-check-input" type="checkbox" id="checkVegan" name="Vegan" value="true">
+                                <input asp-for="@Model.PersonalMealPlanSettings.Vegan" onchange="UnCheckAllCheckboxes(['checkNoVegan','checkPreferablyMeat','checkPreferablyVegetarian'])" class="form-check-input" type="checkbox" id="checkVegan" name="Vegan" value="true">
                                 <input type="hidden" name="Vegan" value="false" />
                                 <label class="form-check-label" for="checkVegan">Vegan</label>
                             </div>
@@ -321,7 +319,7 @@
                             </div>
 
                             <div class="form-check">
-                                <input asp-for="@Model.PersonalMealPlanSettings.NoVegetarisch" onchange="UnCheckAllCheckboxes(['checkVegetarisch'])" class="form-check-input" type="checkbox" id="checkNoVegetarisch" name="NoVegetarisch" value="true">
+                                <input asp-for="@Model.PersonalMealPlanSettings.NoVegetarisch" onchange="UnCheckAllCheckboxes(['checkVegetarisch','checkPreferablyVegetarian'])" class="form-check-input" type="checkbox" id="checkNoVegetarisch" name="NoVegetarisch" value="true">
                                 <input type="hidden" name="NoVegetarisch" value="false" />
                                 <label class="form-check-label" for="checkNoVegetarisch">Vegetarisch</label>
                             </div>
@@ -358,7 +356,7 @@
 
                         <hr class="my-3">
 
-                        @* <h2>Speziellen Präferenzen</h2>
+                        <h2>Speziellen Präferenzen (optional)</h2>
                         <div class="filter-row">
                             <div class="form-check">
                                 <input asp-for="@Model.PersonalMealPlanSettings.BalancedDiet" onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkPreferablyVegetarian'])" class="form-check-input" type="checkbox" id="checkBalanced" name="BalancedDiet" value="true">
@@ -366,16 +364,16 @@
                                 <label class="form-check-label" for="checkBalanced">Ausgewogene Ernährung</label>
                             </div>
                             <div class="form-check">
-                                <input asp-for="@Model.PersonalMealPlanSettings.PreferablyMeat" onchange="UnCheckAllCheckboxes(['checkBalanced','checkPreferablyVegetarian'])" class="form-check-input" type="checkbox" id="checkPreferablyMeat" name="PreferablyMeat" value="true">
+                                <input asp-for="@Model.PersonalMealPlanSettings.PreferablyMeat" onchange="UnCheckAllCheckboxes(['checkBalanced','checkPreferablyVegetarian','checkVegan'])" class="form-check-input" type="checkbox" id="checkPreferablyMeat" name="PreferablyMeat" value="true">
                                 <input type="hidden" name="PreferablyMeat" value="false" />
-                                <label class="form-check-label" for="checkPreferablyMeat">Bevorzugt Fleisch</label>
+                                <label class="form-check-label" for="checkPreferablyMeat">Bevorzugt Fleisch </label>
                             </div>
                             <div class="form-check">
-                                <input asp-for="@Model.PersonalMealPlanSettings.PreferablyVegetarian" onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkBalanced'])" class="form-check-input" type="checkbox" id="checkPreferablyVegetarian" name="PreferablyVegetarian" value="true">
+                                <input asp-for="@Model.PersonalMealPlanSettings.PreferablyVegetarian" onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkBalanced','checkVegan','checkNoVegetarisch'])" class="form-check-input" type="checkbox" id="checkPreferablyVegetarian" name="PreferablyVegetarian" value="true">
                                 <input type="hidden" name="PreferablyVegetarian" value="false" />
                                 <label class="form-check-label" for="checkPreferablyVegetarian">Bevorzugt Vegetarisch</label>
                             </div>
-                        </div> *@
+                        </div>
                     </section>
 
                     <!-- Untere Reihe: Plan-Details (spannt volle Breite) -->

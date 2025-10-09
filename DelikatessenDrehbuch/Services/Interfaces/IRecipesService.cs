@@ -16,6 +16,6 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         List<IngredientHandlerModel> GetOrdetIngredientHandler(List<RecipesHandler> recipesHandler);
         Task<FullRecipeData> GetFullRecipeDataByRecipesIdAsync(int id);
         public Task<List<FullRecipeData>> GetFullRecipeDataListByRecipesIdsAsync(List<int> resipesIds);
-
+        List<int> GetRendomRecipesbyCategory(List<int> recipesIds, string category, int count);
     }
 }
