@@ -215,12 +215,11 @@
                 @{
                     if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.ImagePath))
                     {
-                        var subPath = FrontendFunctions.CaseInsensitivePath(Model.FullRecipeData.Recipes.ImagePath);
-                        var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
-                        Environment.GetEnvironmentVariable("SmalPic"));
+
+                        var smallPath = FrontendFunctions.GetSmallImagePath(Model.FullRecipeData.Recipes.ImagePath);
                         <div class="grid-Image w-100 flex flexJustifyContendCenter mt-3">
                             <picture class="mobieleWidth90" style="max-width:450px;max-height:450px">
-                                <source srcset="@($"{smallPath}_small.webp")">
+                                <source srcset="@smallPath">
                                 <img class="img-fluid"
                                      src="@smallPath"
                                      alt="@(!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Description) ? Model.FullRecipeData.Recipes.Description : Model.FullRecipeData.Recipes.Name)"

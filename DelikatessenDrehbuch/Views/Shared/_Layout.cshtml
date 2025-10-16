@@ -135,10 +135,10 @@
                             }
                             else
                             {
-                                <a class="btn btn-sm btn-outline-danger" asp-area="Identity" asp-page="/Account/Login">
+                                <a class="btn btn-sm btn-outline-danger d-flex align-items-center" asp-area="Identity" asp-page="/Account/Login">
                                     <span>Anmelden</span>
                                 </a>
-                                <a class="btn btn-sm btn-outline-danger" asp-area="Identity" asp-page="/Account/Register">
+                                <a class="btn btn-sm btn-outline-danger d-flex align-items-center" asp-area="Identity" asp-page="/Account/Register">
                                     <span>Registrieren</span>
                                 </a>
                             }
@@ -174,16 +174,15 @@
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             @if (User.IsInRole("Admin") || User.Identity?.Name == "free.88@mailxl.at")
                             {
-                                <a class="btn btn-sm btn-outline-danger" asp-controller="CreateNewMealPlan" asp-action="MealPlanSetting" style="max-width:fit-content">
-                                    <span class="ms-1">Essensplan erstellen</span>
-                                </a>
+                               
                                 <a class="btn btn-sm btn-outline-dark" asp-controller="Admin" asp-action="Index" style="max-width:fit-content">
                                     <span class="ms-1">Admin Control</span>
                                 </a>
-                            }
-                           @*  <a class="btn btn-sm btn-outline-danger" asp-controller="CreateNewMealPlan" asp-action="MealPlanSetting" style="max-width:fit-content">
+                                 <a class="btn btn-sm btn-outline-danger" asp-controller="CreateNewMealPlan" asp-action="MealPlanSetting" style="max-width:fit-content">
                                 <span class="ms-1">Essensplan erstellen</span>
-                            </a> *@
+                            </a> 
+                            }
+                           
                             <button class="btn btn-sm btn-outline-danger" onclick="RemoveCachedContent()" style="max-width:fit-content">
                                 <span class="ms-1">Alle Rezepte</span>
                             </button>
@@ -204,31 +203,6 @@
         </div>
     </header>
 
-    <div class="offcanvas offcanvas-start " tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
-        <div class="offcanvas-header ">
-            <img class="grid-Logo" src="/css/Logo/DelikatessenDrehbuch_Logo_Ohne hintergrund.png" style=" max-height:100px;object-fit:contain" />
-            <div class="grid-Name" style="color:#D4AF37;font-size:14px">Delikatessen Drehbuch</div>
-
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body bgRedGardien">
-            <div>
-                <ul class="navbar-nav flex-grow-1" style="max-width:max-content;">
-                    <li class="nav-item ">
-                        <a href="#" class="nav-link" onclick="RemoveCachedContent()" style="color:#FFFDD0">Rezepte</a>
-                    </li>
-                    <li class="nav-item ">
-                        <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Impressum" style="color:#FFFDD0">Impressum & AGB'S</a>
-                    </li>
-                    <li class="nav-item">
-                        <partial class="grid-Partial" name="_LoginPartial" />
-                    </li>
-
-                </ul>
-            </div>
-
-        </div>
-    </div>
 
     <!-- Modal -->
     <div class="modal fade mobieleWidth100" id="MessageModal" tabindex="-1" aria-labelledby="MessageModal" aria-hidden="true">
@@ -308,43 +282,8 @@
 
 </script>
 <script>
-     9
-    document.addEventListener('DOMContentLoaded', function () {
-        var bottom = document.getElementById('bottomActions');
-        var arrow = document.getElementById('collapseArrow');
-
-        // 1️⃣  Zustand aus dem localStorage holen
-        var isExpanded = localStorage.getItem('bottomActionsExpanded') === 'true';
-
-        // 2️⃣  Collapse initial setzen
-        var collapse = new bootstrap.Collapse(bottom, {
-            toggle: false
-        });
-
-        if (isExpanded) {
-            collapse.show();
-            arrow.classList.remove('bi-chevron-down');
-            arrow.classList.add('bi-chevron-up');
-        } else {
-            collapse.hide();
-            arrow.classList.remove('bi-chevron-up');
-            arrow.classList.add('bi-chevron-down');
-        }
-
-        // 3️⃣  Beim Einklappen Zustand speichern
-        bottom.addEventListener('hidden.bs.collapse', function () {
-            arrow.classList.remove('bi-chevron-up');
-            arrow.classList.add('bi-chevron-down');
-            localStorage.setItem('bottomActionsExpanded', 'false');
-        });
-
-        // 4️⃣  Beim Ausklappen Zustand speichern
-        bottom.addEventListener('shown.bs.collapse', function () {
-            arrow.classList.remove('bi-chevron-down');
-            arrow.classList.add('bi-chevron-up');
-            localStorage.setItem('bottomActionsExpanded', 'true');
-        });
-    });
+     
+   
 
 
     function RemoveCachedContent()

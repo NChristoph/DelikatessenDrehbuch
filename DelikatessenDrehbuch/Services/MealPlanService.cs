@@ -142,28 +142,26 @@ namespace DelikatessenDrehbuch.Services
             return model;
         }
 
-        public Dictionary<int, List<PersonalMealPlanRecipeModel>> MapToMealPlanDictionary(string json)
+        public async Task< Dictionary<int, List<PersonalMealPlanRecipeModel>>> MapToMealPlanDictionaryAsync(Dictionary<int,List<int>> indexAndIds)
         {
             var model = new Dictionary<int, List<PersonalMealPlanRecipeModel>>();
 
-            var decoded = Uri.UnescapeDataString(json);
-            var dictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(decoded);
-
-            var allRecipeIds = dictionary.Values.SelectMany(list => list).Distinct().ToList();
-            var personalMealPlanFromSession = _sessionService.GetPersonalMealPlanFromSession();
-
-
-            foreach (var key in dictionary.Keys)
+            foreach (var key in indexAndIds.Keys)
             {
-                var recipeIds = dictionary[key];
-
-
-                var matchingRecipes = personalMealPlanFromSession
-                    .Where(r => recipeIds.Contains(r.Id))
-                    .OrderBy(r => recipeIds.IndexOf(r.Id))
-                    .ToList();
-
-                model.Add(key, matchingRecipes);
+                var recipeIds = indexAndIds[key];
+                foreach (var id in recipeIds)
+                {
+                    PersonalMealPlanRecipeModel personalMealPlanRecipeModel = new()
+                    {
+                        Index = key,
+                        Id = id,
+                        Recipes = await _recipesService.GetRecipesFromDbByIdAsync(id),
+                        Ingredients = await _ingredientService.GetIngredientsByRecipesIdFromDbAsync(id)
+                    };
+                    model.TryAdd(key, new List<PersonalMealPlanRecipeModel>());
+                    model[key].Add(personalMealPlanRecipeModel);
+                }
+               
             }
 
             return model;

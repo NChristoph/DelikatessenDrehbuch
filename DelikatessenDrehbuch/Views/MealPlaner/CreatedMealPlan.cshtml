@@ -6,7 +6,7 @@
 
 @{
     var personCount = (int)ViewData["personCount"];
-   
+
 }
 
 
@@ -178,13 +178,15 @@
         <hr class="w-75" style="height:2px" />
         <span class="day-title">Rezepte für Tag @dayKey</span>
 
+       
+
         <!-- Desktop: 3 Spalten Grid -->
         <div class="meal-grid w-100">
             @foreach (var item in list)
             {
                 var r = item.Recipes;
                 var unifiedOffId = $"MealPlanCanvas_{item.Id}"; // EINHEITLICHE ID
-                var img = string.IsNullOrWhiteSpace(r?.ImagePath) ? "/images/placeholder_recipe.webp" : r.ImagePath;
+                var img = FrontendFunctions.GetSmallImagePath(item.Recipes.ImagePath);
 
                 <div class="meal-card"
                      role="button"
@@ -211,9 +213,10 @@
                         var first = true;
                         foreach (var item in list)
                         {
-                            var r = item.Recipes;
+
+
+                            var smallPath = FrontendFunctions.GetSmallImagePath(item.Recipes.ImagePath);
                             var unifiedOffId = $"MealPlanCanvas_{item.Id}"; // GLEICHE ID WIE DESKTOP
-                            var img = string.IsNullOrWhiteSpace(r?.ImagePath) ? "/images/placeholder_recipe.webp" : r.ImagePath;
 
                             <div class="carousel-item @(first ? "active" : "")">
                                 <div class="k-hero"
@@ -221,9 +224,9 @@
                                      data-bs-toggle="offcanvas"
                                      data-bs-target="#@unifiedOffId"
                                      aria-controls="@unifiedOffId">
-                                    <img src="@img" alt="@r?.Name" />
+                                    <img src="@smallPath" alt="@item.Recipes.Name" />
                                     <div class="k-body">
-                                        <h6>@r?.Name</h6>
+                                        <h6>@item.Recipes.Name</h6>
                                     </div>
                                 </div>
                             </div>
@@ -249,7 +252,7 @@
                     var idx = 0;
                     foreach (var item in list)
                     {
-                        var img = string.IsNullOrWhiteSpace(item.Recipes?.ImagePath) ? "/images/placeholder_recipe.webp" : item.Recipes.ImagePath;
+                        var img = FrontendFunctions.GetSmallImagePath(item.Recipes.ImagePath);
                         <div class="thumb @(idx == 0 ? "active" : "")" data-slide-to="@idx" data-bs-target="#@carouselId">
                             <img src="@img" alt="@item.Recipes?.Name" />
                         </div>
@@ -285,10 +288,9 @@
             </div>
         }
 
-       
-            var idsCsv = string.Join(";", Model[dayKey].Select(x => x.Id));
-            var ingOffId = $"Ingredients_Day_{dayKey}";
-       
+        var idsCsv = string.Join(";", Model[dayKey].Select(x => x.Id));
+        var ingOffId = $"Ingredients_Day_{dayKey}";
+
 
         <input type="hidden" id="Ingredient_@dayKey" value="@idsCsv" />
 

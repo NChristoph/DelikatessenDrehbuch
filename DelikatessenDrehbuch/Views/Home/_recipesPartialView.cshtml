@@ -119,12 +119,9 @@
 
     if (firstRecipe != null && !string.IsNullOrEmpty(firstRecipe.ImagePath))
     {
-        var basePath = FrontendFunctions.CaseInsensitivePath(firstRecipe.ImagePath);
-    
-        var smallPath = basePath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
-                                    Environment.GetEnvironmentVariable("SmalPic"));
-        preloadSmall = basePath + "_small.webp";
-       
+     ;
+        preloadSmall = FrontendFunctions.GetSmallImagePath(firstRecipe.ImagePath);
+
     }
 }
 

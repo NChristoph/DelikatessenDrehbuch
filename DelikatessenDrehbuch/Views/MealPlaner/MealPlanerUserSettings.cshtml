@@ -50,6 +50,13 @@
 
 
 <style>
+    /* Klasse für Premium-Bereiche, die noch gesperrt sind */
+    .premium-disabled {
+        opacity: 0.5; /* halbtransparent */
+        pointer-events: none; /* blockiert Klicks, Hover etc. */
+        user-select: none; /* verhindert Textauswahl */
+        filter: grayscale(100%); /* leichtes Grau – optisch "ausgegraut" */
+    }
     /* mobile Layout fix: Checkboxen & Flex-Container */
     .filter-card {
         border-radius: .5rem;
@@ -270,20 +277,27 @@
                 @if (Model.HaveCatchContent)
                 {
                     <div class="flexRowToColumn mb-2 flexJustifyContendSpaceBetween">
-                        <span>Laden sie ganz einfach den letzten Essensplan</span>
-                        <a class="btn bgRed Border-Gold mt-3"
-                           asp-controller="CreateNewMealPlan"
-                           asp-action="LoadLastMealPlan"
-                           style="max-width:fit-content;color:white;margin-left:auto">
-                            Letzten Essensplan Laden
-                        </a>
-                        <span>Bearbeiten sie den letzten Essensplan</span>
-                        <a class="btn bgRed Border-Gold mt-3"
-                           asp-controller="CreateNewMealPlan"
-                           asp-action="MealPlanFromSession"
-                           style="max-width:fit-content;color:white;margin-left:auto">
-                            Letzten Essensplan bearbeiten
-                        </a>
+                        <div class="flexRowToColumn mobileCenter flexAlginItemCenter flexJustifyContendSpaceBetween">
+                            <span>Laden sie ganz einfach den letzten Essensplan</span>
+                            <a class="btn bgRed Border-Gold m-3"
+                               asp-controller="CreateNewMealPlan"
+                               asp-action="LoadLastMealPlan"
+                               style="max-width:fit-content;color:white">
+                                Letzten Essensplan Laden
+                            </a>
+                        </div>
+                        <hr class="desktop-Hidden w-75"/>
+                        <div class="flexRowToColumn mobileCenter flexAlginItemCenter flexJustifyContendSpaceBetween">
+                            <span>Bearbeiten sie den letzten Essensplan</span>
+                            <a class="btn bgRed Border-Gold m-3 "
+                               asp-controller="CreateNewMealPlan"
+                               asp-action="MealPlanFromSession"
+                               style="max-width:fit-content;color:white">
+                                Letzten Essensplan bearbeiten
+                            </a>
+                        </div>
+                       
+                        
                     </div>
                     
                 }
@@ -374,6 +388,50 @@
                                 <label class="form-check-label" for="checkPreferablyVegetarian">Bevorzugt Vegetarisch</label>
                             </div>
                         </div>
+
+
+                        <hr class="my-3">
+
+                        <h2>Premium Funktionen (Premium)</h2>
+                        <p class="mb-1 mt-1">Premium bald verfügbar</p>
+                        <div class="premium-disabled">
+                            <div class="filter-row">
+                                <!-- Diätplan -->
+                                <div class="form-check">
+                                    <input @* asp-for="@Model.PersonalMealPlanSettings.DietPlan" *@
+                                           class="form-check-input"
+                                           type="checkbox"
+                                           id="checkDietPlan"
+                                           value="true"
+                                    <input type="hidden" name="DietPlan" value="false" />
+                                    <label class="form-check-label" for="checkDietPlan">Diätplan</label>
+                                </div>
+
+                                <!-- Muskelaufbau -->
+                                <div class="form-check">
+                                    <input @* asp-for="@Model.PersonalMealPlanSettings.MuscleGain" *@
+                                           class="form-check-input"
+                                           type="checkbox"
+                                           id="checkMuscleGain"
+                                           value="true"
+                                    <input type="hidden" name="MuscleGain" value="false" />
+                                    <label class="form-check-label" for="checkMuscleGain">Muskelaufbau (High Protein)</label>
+                                </div>
+
+                                <!-- Low Carb -->
+                                <div class="form-check">
+                                    <input @* asp-for="@Model.PersonalMealPlanSettings.LowCarb" *@
+                                           class="form-check-input"
+                                           type="checkbox"
+                                           id="checkLowCarb"
+                                           value="true"
+                                           +                                <input type="hidden" name="LowCarb" value="false" />
+                                    <label class="form-check-label" for="checkLowCarb">Low Carb</label>
+                                </div>
+                            </div>
+                            </div>
+                       
+
                     </section>
 
                     <!-- Untere Reihe: Plan-Details (spannt volle Breite) -->

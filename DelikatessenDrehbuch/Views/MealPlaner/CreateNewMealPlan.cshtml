@@ -22,11 +22,13 @@
     }
 
     .meal-right {
-        flex: 0 0 320px;
-        min-width: 300px;
         position: sticky;
-        top: 88px;
-        align-self: start
+        top: 260px;
+        min-width: 320px;
+        align-self: start;
+        overflow-y:auto;
+        max-height: 70vh;
+        
     }
 
     .day-card {
@@ -215,9 +217,7 @@
         }
     }
 
-    @@media (max-width:480px) {
-        
-    }
+   
 </style>
 
 <div class="meal-wrap mobieleWidth90 mobileItemCenter">
@@ -248,22 +248,14 @@
                 var dessert = dayRecipes.FirstOrDefault(r =>
                 string.Equals(r.Category.Trim(), "Dessert", StringComparison.OrdinalIgnoreCase));
 
-               
 
-                <div class="day-card day-item" data-day="@index">
-                    <div class="day-header">
-                        <span class="day-title day-label">Tag @index</span>
-                        <div class="day-controls">
-                            <button type="button" class="icon-btn" title="Nach oben" onclick="moveDayUp(this)">
-                                <i class="bi bi-arrow-up-short"></i>
-                            </button>
-                            <button type="button" class="icon-btn" title="Nach unten" onclick="moveDayDown(this)">
-                                <i class="bi bi-arrow-down-short"></i>
-                            </button>
-                        </div>
-                    </div>
+                <div class="day-header">
+                    <span class="day-title day-label">Tag @index</span>
+                </div>
+                <div class="day-card day-item" id="day_@index" data-day="@index">
+                    
 
-                    <div class="day-content">
+                    <div class="day-content" data-day="@index">
                         <div class="slot-grid" data-day-index="@index">
 
                             <!-- Vorspeise -->
@@ -345,13 +337,43 @@
 
     </div>
 
-    <!-- Sidebar bleibt unverändert -->
-    <aside class="meal-right">
+    <aside class="meal-right mobieleWidth100">
         <div class="sidebar-card">
-            <span class="w-100 d-block text-center mb-2"><strong>Zutaten Überblick:</strong></span>
-            <div id="ingredientPartialView" class="w-100 flexColumn"></div>
+            <!-- Bootstrap Nav-Tabs -->
+            <ul class="nav nav-tabs" id="mealPlanTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab"
+                            data-bs-toggle="tab" data-bs-target="#tab-overview"
+                            type="button" role="tab" aria-controls="tab-overview" aria-selected="true">
+                        Überblick
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="ingredients-tab"
+                            data-bs-toggle="tab" data-bs-target="#tab-ingredients"
+                            type="button" role="tab" aria-controls="tab-ingredients" aria-selected="false">
+                        Zutaten
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Inhalt der Tabs -->
+            <div class="tab-content p-2" id="mealPlanTabsContent" style="overflow-x:auto; max-height:100%">
+                <!-- Überblick -->
+                <div class="tab-pane fade show active" id="tab-overview" role="tabpanel" aria-labelledby="overview-tab">
+                    <span class="w-100 d-block text-center mb-2"><strong>Essensplan Überblick:</strong></span>
+                    <div id="overView" class="w-100 flexColumn"></div>
+                </div>
+
+                <!-- Zutaten -->
+                <div class="tab-pane fade" id="tab-ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
+                    <span class="w-100 d-block text-center mb-2"><strong>Zutatenliste:</strong></span>
+                    <div id="ingredientPartialView" class="w-100 flexColumn"></div>
+                </div>
+            </div>
         </div>
     </aside>
+
 </div>
 
 <div class="mt-3">

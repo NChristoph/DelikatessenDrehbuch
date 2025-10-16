@@ -44,5 +44,15 @@
 
             return caseSensetivePath;
         }
+
+        public static string GetSmallImagePath(string path)
+        {
+            var basePath = FrontendFunctions.CaseInsensitivePath(path);
+
+            var smallPath = basePath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                        Environment.GetEnvironmentVariable("SmalPic"));
+           return smallPath + "_small.webp";
+
+        }
     }
 }

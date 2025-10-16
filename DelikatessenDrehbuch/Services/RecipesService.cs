@@ -42,11 +42,9 @@ namespace DelikatessenDrehbuch.Services
 
 
 
-        public Recipes GetOneRendomRecipeFromIdList(List<int> ids)
+        public async Task<List<Recipes>> GetRecipesListByIdsAsync(List<int> ids)
         {
-            Random rand = new Random();
-            var randomId = ids.OrderBy(x => rand.Next()).Take(1).FirstOrDefault();
-            return _context.Recipes.Single(x => x.Id == randomId);
+           return await _context.Recipes.Where(x=>ids.Contains(x.Id)).AsNoTracking().ToListAsync();
         }
 
         public List<int> GetRecipesIdsByCategory(string category)

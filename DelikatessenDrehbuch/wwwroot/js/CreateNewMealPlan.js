@@ -2,7 +2,61 @@
 document.addEventListener('DOMContentLoaded', () => {
     initMealPlan();
     ReloadIngredientList();
+    LoadOverView();
 });
+
+function LoadOverView() {
+    const overview = document.getElementById('overView');
+    var dic = getRecipeDictionary();
+    const query = encodeURIComponent(JSON.stringify(dic));
+    if (overview) {
+        $.get('/CreateNewMealPlan/LoadMealPlanOverviewPartialView?IndexAndIds='+query)
+            .done(function (html) {
+                overview.innerHTML = html;
+
+            })
+    }
+};
+
+function ChangeRecipeDay(button) {
+    
+    var currentIndex = button.getAttribute("data-day");
+    var indexToMove = button.value;
+
+    var otherButton = document.getElementById("changeIndex_" + indexToMove)
+    otherButton.dataset.day= currentIndex;
+    button.dataset.day = indexToMove;
+
+    var currentPlace = document.getElementById("RecipeSlot_" + currentIndex);
+    var placeToMove = document.getElementById("RecipeSlot_" + indexToMove);
+
+    var currentPlace2 = document.getElementById("day_" + currentIndex);
+    var placeToMove2 = document.getElementById("day_" + indexToMove);
+   
+
+    var htmlCurrent = document.getElementById("RecipeSlot_" + currentIndex).innerHTML;
+    var htmlToMove = document.getElementById("RecipeSlot_" + indexToMove).innerHTML;
+   
+    var htmlCurrent2 = document.getElementById("day_" + currentIndex).innerHTML;
+    var htmlToMove2 = document.getElementById("day_" + indexToMove).innerHTML;
+
+    currentPlace.innerHTML = htmlToMove;
+    placeToMove.innerHTML = htmlCurrent;
+    currentPlace2.innerHTML = htmlToMove2;
+    placeToMove2.innerHTML = htmlCurrent2;
+
+    const dict = getRecipeDictionaryFinaly();
+    const query = encodeURIComponent(JSON.stringify(dict));
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    fetch(`/CreateNewMealPlan/SaveDayInSession?indexAndIds=${query}`, {
+        method: 'POST',
+        headers: {
+            ...(token ? { 'RequestVerificationToken': token } : {})
+        }
+
+    });
+
+}
 
 function initMealPlan() {
     // Event Delegation für alle Buttons
@@ -29,6 +83,7 @@ function handleAddRecipe(btn) {
         category: category,
         index: dayIndex
     }).done(function (html) {
+
         const target = slot.querySelector('.slot-target');
         target.innerHTML = html;
 
@@ -38,6 +93,15 @@ function handleAddRecipe(btn) {
             doc.body.firstElementChild?.getAttribute("data-id") ||
             doc.body.querySelector('[data-id]')?.getAttribute("data-id") ||
             recipeId;
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        fetch(`/CreateNewMealPlan/EditeSession?recipeId=${dataId}&dayIndex=${dayIndex}&idToRemove=0`, {
+            method: 'POST',
+            headers: {
+                ...(token ? { 'RequestVerificationToken': token } : {})
+            }
+
+        });
 
         // Button-Status aktualisieren
         const addBtn = slot.querySelector('.add-recipe');
@@ -51,7 +115,9 @@ function handleAddRecipe(btn) {
         // Zutatenliste refresh
         if (typeof ReloadIngredientList === 'function') {
             ReloadIngredientList(null, dataId);
+           
         }
+        LoadOverView();
     });
 }
 
@@ -62,69 +128,28 @@ function handleRemoveRecipe(btn) {
     const target = slot.querySelector('.slot-target');
     const addBtn = slot.querySelector('.add-recipe');
     const recipeId = addBtn.dataset.recipeId || 0;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    fetch(`/CreateNewMealPlan/EditeSession?idToRemove=${encodeURIComponent(recipeId)}&dayIndex=0&idToSave=0`, {
+        method: 'POST',
+        headers: {
+            ...(token ? { 'RequestVerificationToken': token } : {})
+        }
 
+    });
     // Slot leeren
     target.innerHTML = '';
-   
+
     // Button state zurücksetzen
     if (addBtn) {
         delete addBtn.dataset.recipeId;
         addBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Hinzufügen';
     }
     btn.hidden = true;
-    ReloadIngredientList(null,recipeId);
-   
+    ReloadIngredientList(null, recipeId);
+    LoadOverView();
 }
 
-// Tag nach oben verschieben
-function moveDayUp(btn) {
-    const currentDay = btn.closest('.day-item');
-    const prevDay = currentDay.previousElementSibling;
 
-    if (prevDay && prevDay.classList.contains('day-item')) {
-        swapDayContents(currentDay, prevDay);
-        scrollToDay(prevDay);
-    }
-}
-
-// Tag nach unten verschieben  
-function moveDayDown(btn) {
-    const currentDay = btn.closest('.day-item');
-    const nextDay = currentDay.nextElementSibling;
-
-    if (nextDay && nextDay.classList.contains('day-item')) {
-        swapDayContents(currentDay, nextDay);
-        scrollToDay(nextDay);
-    }
-}
-
-// Tage-Inhalte tauschen (nur day-content, Header bleiben)
-function swapDayContents(dayA, dayB) {
-    const contentA = dayA.querySelector('.day-content');
-    const contentB = dayB.querySelector('.day-content');
-    const indexA = dayA.dataset.day;
-    const indexB = dayB.dataset.day;
-
-    // Inhalte tauschen
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(contentA.cloneNode(true));
-    contentA.innerHTML = contentB.innerHTML;
-    contentB.innerHTML = tempDiv.firstChild.innerHTML;
-
-    // data-day-index in den slot-grids korrigieren
-    contentA.querySelector('.slot-grid').dataset.dayIndex = indexA;
-    contentB.querySelector('.slot-grid').dataset.dayIndex = indexB;
-}
-
-// Zu einem Tag scrollen
-function scrollToDay(dayEl) {
-    const header = dayEl.querySelector('.day-header');
-    header.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest'
-    });
-}
 
 // Rezept-Dictionary für Finalaufruf erstellen
 function getRecipeDictionary() {
@@ -145,12 +170,35 @@ function getRecipeDictionary() {
 
     return dict;
 }
+function getRecipeDictionaryFinaly() {
+
+    // alle Tages-Container durchgehen
+    const dict = {};
+   
+    document.querySelectorAll('[name="day-item"]').forEach(day => {
+        const dayIndex = parseInt(day.dataset.day);
+        const recipes = [];
+
+        // Alle Rezepte des Tages sammeln
+        day.querySelectorAll('input[name="Recipe"]').forEach(input => {
+            const id = parseInt(input.value, 10);
+            if (!isNaN(id)) recipes.push(id);
+        });
+
+        dict[dayIndex] = recipes;
+    });
+
+    return dict;
+
+
+}
 
 // Finaler Aufruf
 function createMealPlan() {
-    const dict = getRecipeDictionary();
+
+    const dict = getRecipeDictionaryFinaly();
     const query = encodeURIComponent(JSON.stringify(dict));
     const personCount = document.getElementById('personCount')?.value || 1;
 
     window.location.href = `/CreateNewMealPlan/CreatedMealPlan?indexAndIds=${query}&personCount=${personCount}`;
-}
+} 

@@ -1,0 +1,60 @@
+﻿@using DelikatessenDrehbuch.StaticScripts
+@model Dictionary<int,List<Recipes>>
+
+@foreach (var key in Model.Keys)
+{
+    <div data-day="@key" name="day-item">
+        @{
+            var recipesList = Model[key];
+            <h6>Rezepte für Tag @key</h6>
+            <div id="RecipeSlot_@key">
+                <span>
+                    Tauschen mit Tag :
+                    <input type="number"
+                           id="changeIndex_@key"
+                           style=" max-width:55px"
+                           
+                           data-day="@key"
+                           onchange="ChangeRecipeDay(this)" />
+                </span>
+                <div class="flexRow justify-content-between mb-2 mt-1">
+                    @{
+                        var names = new List<string>();
+
+                        foreach (var recipes in recipesList)
+                        {
+                            <div class="flexColumn justify-content-between" style="max-width:30%">
+                                <input type="hidden" value="@recipes.Id" name="Recipe" />
+                                @{
+                                    var imaPath = FrontendFunctions.GetSmallImagePath(recipes.ImagePath);
+                                    <img src="@imaPath" title="@recipes.Name" />
+                                    names.Add(recipes.Name);
+
+                                }
+                            </div>
+
+
+                        }
+                    }
+                </div>
+                <div class="flexColumn">
+                    @foreach (var name in names)
+                    {
+                        <h6 style="font-size:14px">@name</h6>
+
+                    }
+                </div>
+                
+
+            </div>
+
+
+        }
+    </div>
+
+    <hr class="maxWidth80" />
+
+}
+    
+
+

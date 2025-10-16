@@ -14,20 +14,27 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         }
 
 
-        public void SavePersonalMealPlanToSession(List<PersonalMealPlanRecipeModel> model)
-        {
-            var json = JsonSerializer.Serialize(model, new JsonSerializerOptions());
-            _httpContext.HttpContext.Session.SetString("MealPlanList", json);
-        }
-        public List<PersonalMealPlanRecipeModel> GetPersonalMealPlanFromSession()
-        {
-            var json = _httpContext.HttpContext?.Session.GetString("MealPlanList");
      
-            var items = string.IsNullOrEmpty(json)
-                ? new List<PersonalMealPlanRecipeModel>()
-                : JsonSerializer.Deserialize<List<PersonalMealPlanRecipeModel>>(json, new JsonSerializerOptions());
-            return items;
+        public void SavePersonalMealPlanDictionaryToSession(string indexAndIds)
+        {
+            var decoded = Uri.UnescapeDataString(indexAndIds);
+            var dictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(decoded);
+
+            var json = JsonSerializer.Serialize(dictionary, new JsonSerializerOptions());
+            _httpContext.HttpContext.Session.SetString("MealPlandictionary", json);
         }
+
+        public Dictionary<int, List<int>> GetPersonalMealPlanDictionaryFromSession()
+        {
+            var json = _httpContext.HttpContext?.Session.GetString("MealPlandictionary");
+
+            var items = string.IsNullOrEmpty(json)
+                ? new Dictionary<int, List<int>>()
+                : JsonSerializer.Deserialize<Dictionary<int, List<int>>> (json, new JsonSerializerOptions());
+            return items;
+           
+        }
+
 
         public void SaveRecipesIdToSession(List<int> machingRecipes, string name)
         {
