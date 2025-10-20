@@ -1,20 +1,11 @@
-﻿function ReloadIngredientList(id, recipesId,ids) {
+﻿function ReloadIngredientList() {
 
-    var personcount = document.getElementById("personCount").value;
+    $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView"); 
 
+}
 
-    if (!id) {
-      
-        var recipesIdsList = GetRecipesIdsList();
-        $("#ingredientPartialView").load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesIdsList.join(";")
-            + '&personCount=' + personcount);
-    } else {
-        if (ids)
-            recipesId = ids;
-            
-        $("#" + id).load("/CreateNewMealPlan/LoadIngredientPartialView?recipesIds=" + recipesId
-            + '&personCount=' + personcount);
-    }
+function LoadIngredientPerDay(id,ids) {
+    $("#" + id).load("/CreateNewMealPlan/GetIngredientPerDayPartialView?recipeIds="+ids);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

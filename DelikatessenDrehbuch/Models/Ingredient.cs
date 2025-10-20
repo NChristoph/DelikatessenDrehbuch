@@ -6,6 +6,7 @@
         public string Name { get; set; }
         public float? AverageWeight { get; set; }
         public float? Calories { get; set; }
+        public Group Group { get; set; }
 
     }
 }

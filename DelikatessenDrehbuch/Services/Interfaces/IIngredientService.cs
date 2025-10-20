@@ -12,7 +12,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         public List<IngredientHandlerModel> GetIngredientHandlerListFromString(string mapToIngredientHandlers);
 
         List<IngredientHandlerModel> CombineIngredienthanderModel(List<IngredientHandlerModel> listToSort);
-
+        List<IngredientHandlerModel> GetScaledIngredienthandler(List<IngredientHandlerModel> ingredients,
+                                                                int currentPersonCount, int targetPersonCount);
 
     }
 }

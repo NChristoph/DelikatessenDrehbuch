@@ -1,6 +1,118 @@
 ﻿@using DelikatessenDrehbuch.StaticScripts
 @model Dictionary<int,List<Recipes>>
 
+<style>
+    /* ====== Tages-Container ====== */
+    [name="day-item"] {
+        background: #fffaf4;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        [name="day-item"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* ====== Titelzeile ====== */
+        [name="day-item"] h6 {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #770f05;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #D4AF37;
+            display: inline-block;
+            padding-bottom: 3px;
+        }
+
+        /* ====== Steuerzeile ("Tauschen mit Tag") ====== */
+        [name="day-item"] span {
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        [name="day-item"] input[type="number"] {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 0.9rem;
+            width: 65px;
+            margin-left: 4px;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+            [name="day-item"] input[type="number"]:focus {
+                border-color: #D4AF37;
+                outline: none;
+                box-shadow: 0 0 3px rgba(212,175,55,0.4);
+            }
+
+    /* ====== Rezeptkarten ====== */
+    .flexRow {
+        display: flex;
+      
+        gap: 18px;
+    }
+
+    .flexColumn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .flexColumn img {
+            width: 100%;
+            max-width: 220px;
+           
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .flexColumn img:hover {
+                transform: scale(1.03);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            }
+
+        .flexColumn h6 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+    /* ====== Trenner ====== */
+    hr.maxWidth80 {
+        border: none;
+        border-top: 1px solid rgba(0,0,0,0.08);
+        margin: 16px 0;
+    }
+
+    /* ====== Responsive ====== */
+    @@media (max-width: 768px) {
+        .flexColumn img
+
+    {
+        max-width: 100%;
+        height: auto;
+    }
+
+    [name="day-item"] {
+        padding: 14px;
+    }
+
+    }
+</style>
+
 @foreach (var key in Model.Keys)
 {
     <div data-day="@key" name="day-item">
@@ -13,9 +125,10 @@
                     <input type="number"
                            id="changeIndex_@key"
                            style=" max-width:55px"
-                           
+                           value="@key"
                            data-day="@key"
-                           onchange="ChangeRecipeDay(this)" />
+                           onchange="ChangeRecipeDay(this)"
+                           />
                 </span>
                 <div class="flexRow justify-content-between mb-2 mt-1">
                     @{

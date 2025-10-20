@@ -54,6 +54,7 @@ namespace DelikatessenDrehbuch.Services
                                            .Select(x => x.IngredientHandler)
                                            .ToListAsync();
 
+
             return ingredientHandlers ?? throw new KeyNotFoundException($"Ingredienthandler vom Rezept mit RezeptId: {id} nicht gefunden");
         }
 
@@ -141,6 +142,19 @@ namespace DelikatessenDrehbuch.Services
             return await _context.RecipesHandlers.Where(x => x.Recipe.Id == id)
                                                  .Select(x => x.IngredientHandler.Ingredient.Name)
                                                  .ToListAsync();
+        }
+
+        public List<IngredientHandlerModel> GetScaledIngredienthandler(List<IngredientHandlerModel> ingredients,
+                                                                       int currentPersonCount, int targetPersonCount)
+        {
+            foreach (var ing in ingredients)
+            {
+                ing.Quantity.Quantitys = ing.Quantity.Quantitys / currentPersonCount * targetPersonCount;
+            }
+
+            ingredients = CombineIngredienthanderModel(ingredients);
+
+            return ingredients;
         }
 
         public List<IngredientHandlerModel> CombineIngredienthanderModel(List<IngredientHandlerModel> listToSort)

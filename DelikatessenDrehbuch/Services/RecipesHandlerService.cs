@@ -51,7 +51,13 @@ namespace DelikatessenDrehbuch.Services
                                                  .Include(x => x.IngredientHandler.Ingredient)
                                                  .Include(x => x.IngredientHandler.Measure)
                                                  .Include(x => x.IngredientHandler.Quantity)
+                                                 .Include(x=>x.IngredientHandler.Ingredient)
+                                                 .Include(x=>x.IngredientHandler.Ingredient.Group)
+                                                 .Include(x=>x.Recipe)
+                                                 .AsNoTracking()
                                                  .ToListAsync();
+
+            
 
         }
 
@@ -59,6 +65,7 @@ namespace DelikatessenDrehbuch.Services
         {
             return _context.RecipesHandlers.Where(x => recipesIds.Contains(x.Recipe.Id))
                                                      .Include(x => x.IngredientHandler)
+                                                     .Include(x=>x.Recipe)
                                                      .AsNoTracking()
                                                      .AsQueryable();
         }

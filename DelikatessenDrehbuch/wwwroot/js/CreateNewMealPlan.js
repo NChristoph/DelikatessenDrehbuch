@@ -112,11 +112,7 @@ function handleAddRecipe(btn) {
         const removeBtn = slot.querySelector('.remove-recipe');
         if (removeBtn) removeBtn.hidden = false;
 
-        // Zutatenliste refresh
-        if (typeof ReloadIngredientList === 'function') {
-            ReloadIngredientList(null, dataId);
-           
-        }
+        ReloadIngredientList();
         LoadOverView();
     });
 }
@@ -145,7 +141,7 @@ function handleRemoveRecipe(btn) {
         addBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Hinzufügen';
     }
     btn.hidden = true;
-    ReloadIngredientList(null, recipeId);
+    ReloadIngredientList();
     LoadOverView();
 }
 

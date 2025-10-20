@@ -323,7 +323,7 @@
                 <div id="ingredient_@dayKey"></div>
                 <script>
                     document.addEventListener("DOMContentLoaded", function () {
-                          ReloadIngredientList('ingredient_@dayKey',null,'@idsCsv');
+                          LoadIngredientPerDay('ingredient_@dayKey','@idsCsv');
                     });
                 </script>
             </div>
@@ -381,6 +381,7 @@
 
     <script>
 
+        ReloadIngredientList();
 
                // Thumbnails steuern das zugehörige Carousel
         document.addEventListener('click', function(e){

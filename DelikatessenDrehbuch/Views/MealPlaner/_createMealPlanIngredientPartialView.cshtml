@@ -14,25 +14,50 @@
     var _ingredientHandlerService = IIngredientService;
     Model.RemoveAll(i => i.Ingredient.Name == "Salz" || i.Ingredient.Name == "Pfeffer");
     var combined = _ingredientHandlerService.CombineIngredienthanderModel(Model);
-   
+
     var sortedList = combined.OrderBy(x => x.Quantity.Quantitys).Reverse();
 
-    foreach (var ingredient in sortedList)
-    {
-        var value = ingredient.Quantity.Quantitys * personCount;
-        var quantity = Math.Round(value, value < 1 ? 2 : 0);
-        <div class="row mt-1 minWidth100">
-            <div class="col minWidth30 mobieleFontSize"
-                 style="white-space:normal;text-align:start">
-                @ingredient.Ingredient.Name
-            </div>
-            <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
-                @quantity
-                @ingredient.Measure.UnitOfMeasurement
-            </div>
+    var test = sortedList.GroupBy(x => x.Ingredient.Group.Name).OrderBy(x=>x.Key);
 
-        </div>
+    foreach(var group in test)
+    {
+        <hr />
+        <span><strong>@group.Key</strong></span>
+        <hr />
+        foreach(var ing in group)
+        {
+            var value = ing.Quantity.Quantitys * personCount;
+            var quantity = Math.Round(value, value < 1 ? 2 : 0);
+            <div class="row mt-1 minWidth100">
+                <div class="col minWidth30 mobieleFontSize"
+                     style="white-space:normal;text-align:start">
+                    @ing.Ingredient.Name
+                </div>
+                <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
+                    @quantity
+                    @ing.Measure.UnitOfMeasurement
+                </div>
+
+            </div>
+        }
     }
+
+    // foreach (var ingredient in sortedList)
+    // {
+    //     var value = ingredient.Quantity.Quantitys * personCount;
+    //     var quantity = Math.Round(value, value < 1 ? 2 : 0);
+    //     <div class="row mt-1 minWidth100">
+    //         <div class="col minWidth30 mobieleFontSize"
+    //              style="white-space:normal;text-align:start">
+    //             @ingredient.Ingredient.Name
+    //         </div>
+    //         <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
+    //             @quantity
+    //             @ingredient.Measure.UnitOfMeasurement
+    //         </div>
+
+    //     </div>
+    // }
 
 
 

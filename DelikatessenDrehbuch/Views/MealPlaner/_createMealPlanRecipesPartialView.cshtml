@@ -22,11 +22,16 @@
         width: 100%;
     }
 
+    .mobile {
+        display: none !important;
+    }
+
+
     .mrc-row {
         display: flex;
         gap: 1rem;
         align-items: stretch;
-        flex-direction:column!important;
+        flex-direction: column !important;
     }
 
     .mrc-media {
@@ -100,13 +105,32 @@
 
     /* Mobile: Bild oben, Text unten */
     @@media (max-width: 768px) {
-      
 
-    .mrc-media {
-        width: 100%;
-        min-width: auto;
-    }
+        .mrc-title {
+            overflow-x: scroll;
+        }
 
+
+        .mrc-media {
+            width: 45%;
+            
+        }
+
+        .mrc-row {
+            display: flex;
+            gap: 1rem;
+            align-items: stretch;
+            flex-direction: row !important;
+            height: 18vh;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .mobile {
+            display: block !important;
+        }
     }
 </style>
 
@@ -143,20 +167,23 @@
             @{
                 var descId = $"desc_{Model.Id}_{index}";
             }
-            <div class="mrc-actions">
-                <button class="mrc-btn"
+
+            <div class="mrc-actions hidden">
+                <button class="mrc-btn mt-1"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#@descId"
                         aria-expanded="false"
-                        aria-controls="@descId">
+                        aria-controls="@descId"
+                        style="margin-left:auto">
                     Beschreibung
                 </button>
             </div>
 
-            <div id="@descId" class="collapse mrc-desc">
+            <div id="@descId" class="collapse mrc-desc bg-white p-1">
                 @Html.Raw(Model.Description)
             </div>
         </div>
     </div>
 </div>
+

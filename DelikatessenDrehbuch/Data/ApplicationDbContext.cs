@@ -26,6 +26,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<MealplanFilter> MealplanFilter { get; set; }
         public DbSet<Nutrients> Nutrients { get; set; }
         public DbSet<NutrienHandler> NutrienHandler { get; set; }
+        public DbSet<Group> Group { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

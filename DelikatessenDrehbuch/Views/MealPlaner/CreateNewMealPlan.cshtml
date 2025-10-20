@@ -220,10 +220,40 @@
    
 </style>
 
+<div id="mealStepsCarousel" class="carousel slide mb-4" data-bs-ride="carousel" style="min-height:150px">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <div class="card p-3">
+                <h6 class="fw-bold text-danger">Gerichtsauswahl</h6>
+                <p>Wähle für jeden Tag deine Vorspeise, Hauptspeise und Dessert aus.</p>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="card p-3">
+                <h6 class="fw-bold text-danger">Überblick</h6>
+                <p>Sortiere deine Tage, ändere die Reihenfolge oder überprüfe dein Menü visuell.</p>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="card p-3">
+                <h6 class="fw-bold text-danger">Zutaten</h6>
+                <p>Sieh alle benötigten Zutaten auf einen Blick – perfekt zur Vorbereitung.</p>
+            </div>
+        </div>
+       @*  <div class="carousel-item">
+            <div class="card p-3">
+                <h6 class="fw-bold text-danger">Schritt 4: Einkaufsliste</h6>
+                <p>Nach dem Erstellen des Plans bekommst du deine Einkaufsliste automatisch.</p>
+            </div>
+        </div> *@
+    </div>
+</div>
+
+
 <div class="meal-wrap mobieleWidth90 mobileItemCenter">
     <div class="meal-left">
         <input type="number" id="personCount" value="@personCount" hidden />
-
+        <h3>Gerichtsauswahl</h3>
         @{
             var index = 0;
             var modelgroup = Model.GroupBy(x => x.Index);
