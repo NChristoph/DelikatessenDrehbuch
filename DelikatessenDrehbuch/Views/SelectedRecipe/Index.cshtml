@@ -421,9 +421,10 @@
                         ingredientList.Remove(ingredientList.Find(x => x.Ingredient.Name == "Pfeffer"));
                     }
 
+                   var sorted= ingredientList.OrderByDescending(x => x.Quantity.Quantitys).ToList();
                     <ul style="list-style-type:none; padding-left:0">
 
-                        @foreach (var ingredient in ingredientList)
+                        @foreach (var ingredient in sorted)
                         {
                             <li name="IngredientContainer_SelectetRecipe" class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter"
                                 style="border-radius:0.25rem;">
@@ -431,7 +432,7 @@
                                 <span name="quantity"
                                       data-original="@ingredient.Quantity.Quantitys"
                                       style="text-align:right; width:20%; margin-right:10px;">
-                                    @ingredient.Quantity.Quantitys
+                                    @Math.Round(ingredient.Quantity.Quantitys,1)
                                 </span>
                                 <span style="width:20%;">
                                     @ingredient.Measure.UnitOfMeasurement

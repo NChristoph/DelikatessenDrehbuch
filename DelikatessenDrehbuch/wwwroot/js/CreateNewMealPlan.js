@@ -77,6 +77,7 @@ function handleAddRecipe(btn) {
     const dayIndex = grid.dataset.dayIndex;
     const category = btn.dataset.category;
     const recipeId = btn.dataset.recipeId || 0;
+    btn.hidden=true;
 
     $.get("/CreateNewMealPlan/LoadRecipesPartialView", {
         recipeId: recipeId,
@@ -94,14 +95,7 @@ function handleAddRecipe(btn) {
             doc.body.querySelector('[data-id]')?.getAttribute("data-id") ||
             recipeId;
 
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-        fetch(`/CreateNewMealPlan/EditeSession?recipeId=${dataId}&dayIndex=${dayIndex}&idToRemove=0`, {
-            method: 'POST',
-            headers: {
-                ...(token ? { 'RequestVerificationToken': token } : {})
-            }
-
-        });
+        
 
         // Button-Status aktualisieren
         const addBtn = slot.querySelector('.add-recipe');
@@ -114,6 +108,7 @@ function handleAddRecipe(btn) {
 
         ReloadIngredientList();
         LoadOverView();
+        btn.hidden = false;
     });
 }
 
@@ -122,10 +117,12 @@ function handleAddRecipe(btn) {
 function handleRemoveRecipe(btn) {
     const slot = btn.closest('.slot');
     const target = slot.querySelector('.slot-target');
+    const grid = slot.closest('.slot-grid');
+    const dayIndex = grid.dataset.dayIndex;
     const addBtn = slot.querySelector('.add-recipe');
     const recipeId = addBtn.dataset.recipeId || 0;
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-    fetch(`/CreateNewMealPlan/EditeSession?idToRemove=${encodeURIComponent(recipeId)}&dayIndex=0&idToSave=0`, {
+    fetch(`/CreateNewMealPlan/EditeSession?recipeId=${encodeURIComponent(recipeId)}&dayIndex=${encodeURIComponent(dayIndex)}&idToSave=0`, {
         method: 'POST',
         headers: {
             ...(token ? { 'RequestVerificationToken': token } : {})

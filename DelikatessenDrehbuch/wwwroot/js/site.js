@@ -4,8 +4,8 @@
 
 }
 
-function LoadIngredientPerDay(id,ids) {
-    $("#" + id).load("/CreateNewMealPlan/GetIngredientPerDayPartialView?recipeIds="+ids);
+function LoadIngredientPerDay(id,index) {
+    $("#" + id).load("/CreateNewMealPlan/GetIngredientPerDayPartialView?index="+index);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

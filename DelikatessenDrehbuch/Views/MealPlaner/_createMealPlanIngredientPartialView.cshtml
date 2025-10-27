@@ -3,38 +3,52 @@
 @model List<IngredientHandlerModel>
 @{
     int personCount = 1;
-    if (ViewData["PersonCount"]!=null)
+    if (ViewData["PersonCount"] != null)
     {
-         personCount = (int)ViewData["PersonCount"];
+        personCount = (int)ViewData["PersonCount"];
     }
 
 }
 
 @{
-    var _ingredientHandlerService = IIngredientService;
+
     Model.RemoveAll(i => i.Ingredient.Name == "Salz" || i.Ingredient.Name == "Pfeffer");
-    var combined = _ingredientHandlerService.CombineIngredienthanderModel(Model);
+    var sum = Model.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
+                    .Select(g => new IngredientHandlerModel
+                    {
 
-    var sortedList = combined.OrderBy(x => x.Quantity.Quantitys).Reverse();
+                        Ingredient = g.First().Ingredient,
+                        Measure = g.First().Measure,
+                        Quantity = new Quantity
+                        {
 
-    var test = sortedList.GroupBy(x => x.Ingredient.Group.Name).OrderBy(x=>x.Key);
+                            Quantitys = g.Sum(ih => ih.Quantity.Quantitys)
 
-    foreach(var group in test)
+                        }
+                    })
+                    .ToList();
+
+
+
+    var test = sum.GroupBy(x => x.Ingredient.Group.Name).OrderBy(x => x.Key);
+
+    foreach (var group in test)
     {
         <hr />
         <span><strong>@group.Key</strong></span>
         <hr />
-        foreach(var ing in group)
+        foreach (var ing in group)
         {
-            var value = ing.Quantity.Quantitys * personCount;
-            var quantity = Math.Round(value, value < 1 ? 2 : 0);
+            
+            bool bigger= ing.Quantity.Quantitys > 0.99d;
+            var totalQuantity = Math.Round(ing.Quantity.Quantitys);
             <div class="row mt-1 minWidth100">
                 <div class="col minWidth30 mobieleFontSize"
                      style="white-space:normal;text-align:start">
                     @ing.Ingredient.Name
                 </div>
                 <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
-                    @quantity
+                    @(bigger? totalQuantity:ing.Quantity.Quantitys)
                     @ing.Measure.UnitOfMeasurement
                 </div>
 
@@ -42,7 +56,7 @@
         }
     }
 
-   
+
 
 
 

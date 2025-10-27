@@ -51,10 +51,8 @@ namespace DelikatessenDrehbuch.Services
                                                  .Include(x => x.IngredientHandler.Ingredient)
                                                  .Include(x => x.IngredientHandler.Measure)
                                                  .Include(x => x.IngredientHandler.Quantity)
-                                                 .Include(x=>x.IngredientHandler.Ingredient)
                                                  .Include(x=>x.IngredientHandler.Ingredient.Group)
                                                  .Include(x=>x.Recipe)
-                                                 .AsNoTracking()
                                                  .ToListAsync();
 
             

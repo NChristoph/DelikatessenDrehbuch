@@ -27,6 +27,7 @@ namespace DelikatessenDrehbuch.Services
         private readonly IRecipesHandlerService _recipesHandlerService;
         private readonly IIngredientService _ingredientService;
         private readonly ISessionService _sessionService;
+       
 
         public MealPlanService(ApplicationDbContext context, HelpfulMethods helper, IHttpContextAccessor httpContext,
                                IRecipesService recipesService, IIngredientService ingredientService,
@@ -131,13 +132,15 @@ namespace DelikatessenDrehbuch.Services
         {
             var recipehandlers = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(recipeId);
 
-            PersonalMealPlanRecipeModel model = new()
+            PersonalMealPlanRecipeModel model = new(_ingredientService)
             {
                 Index = index,
                 Id = recipeId,
                 Recipes = _context.Recipes.FirstOrDefault(x => x.Id == recipeId),
                 Ingredients = _recipesService.GetOrdetIngredientHandler(recipehandlers)
             };
+
+            model.ScaleIngredients(_sessionService.GetMealPlanSettingsFromSession().PersonCount);
 
             return model;
         }
@@ -151,13 +154,14 @@ namespace DelikatessenDrehbuch.Services
                 var recipeIds = indexAndIds[key];
                 foreach (var id in recipeIds)
                 {
-                    PersonalMealPlanRecipeModel personalMealPlanRecipeModel = new()
+                    PersonalMealPlanRecipeModel personalMealPlanRecipeModel = new(_ingredientService)
                     {
                         Index = key,
                         Id = id,
                         Recipes = await _recipesService.GetRecipesFromDbByIdAsync(id),
                         Ingredients = await _ingredientService.GetIngredientsByRecipesIdFromDbAsync(id)
                     };
+                    personalMealPlanRecipeModel.ScaleIngredients(_sessionService.GetMealPlanSettingsFromSession().PersonCount);
                     model.TryAdd(key, new List<PersonalMealPlanRecipeModel>());
                     model[key].Add(personalMealPlanRecipeModel);
                 }

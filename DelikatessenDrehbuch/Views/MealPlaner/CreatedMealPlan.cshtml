@@ -288,11 +288,11 @@
             </div>
         }
 
-        var idsCsv = string.Join(";", Model[dayKey].Select(x => x.Id));
+ 
         var ingOffId = $"Ingredients_Day_{dayKey}";
 
 
-        <input type="hidden" id="Ingredient_@dayKey" value="@idsCsv" />
+        <input type="hidden" id="Ingredient_@dayKey" value="@dayKey" />
 
         <div class="day-actions">
             <button class="btn bgRed Border-Gold"
@@ -323,7 +323,7 @@
                 <div id="ingredient_@dayKey"></div>
                 <script>
                     document.addEventListener("DOMContentLoaded", function () {
-                          LoadIngredientPerDay('ingredient_@dayKey','@idsCsv');
+                          LoadIngredientPerDay('ingredient_@dayKey','@dayKey');
                     });
                 </script>
             </div>

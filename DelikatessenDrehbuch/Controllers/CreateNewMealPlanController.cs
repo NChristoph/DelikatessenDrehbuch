@@ -156,49 +156,18 @@ namespace DelikatessenDrehbuch.Controllers
             _sessionService.SavePersonalMealPlanDictionaryToSession(indexAndIds);
         }
 
-        private async Task<List<IngredientHandlerModel>> SumIngredientQuantity(List<IngredientHandlerModel> ingredientHandlers)
-        {
-            return await Task.Run(() =>
-            {
-                var sortedIngredientHandler = ingredientHandlers
-                    .GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                    .Select(g => new IngredientHandlerModel
-                    {
-                        Ingredient = g.First().Ingredient,
-                        Measure = g.First().Measure,
-                        Quantity = new Quantity
-                        {
-                            Quantitys = g.Sum(ih => ih.Quantity.Quantitys)
-                        }
-                    })
-                    .ToList();
-
-                return sortedIngredientHandler;
-            });
-        }
 
 
-        private async Task<List<IngredientHandlerModel>> GetIngredientHanderModelAsync(List<int> recipesIds)
-        {
-            List<IngredientHandlerModel> ing = new();
-            foreach (var item in recipesIds)
-            {
-                var recipeHandlers = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(item);
-                var ingredient = _recipesService.GetOrdetIngredientHandler(recipeHandlers);
-                ing.AddRange(ingredient);
-            }
 
-            var newIng = await SumIngredientQuantity(ing);
-
-            return newIng;
-        }
-
-        public async Task<IActionResult> GetIngredientPerDayPartialView(string recipeIds)
+        public async Task<IActionResult> GetIngredientPerDayPartialView(string index)
         {
 
             ViewData["PersonCount"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
-            var splitedIds = recipeIds.Split(';').Select(int.Parse).ToList();
-            var model = await GetIngredientHanderModelAsync(splitedIds);
+            var indexAndIds = _sessionService.GetPersonalMealPlanDictionaryFromSession();
+            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds);
+            var mealplans = mealPlanDic[int.Parse(index)];
+            var model = mealplans.SelectMany(x => x.Ingredients).ToList();
+        
 
             return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
         }
@@ -209,8 +178,8 @@ namespace DelikatessenDrehbuch.Controllers
             var indexAndIds = _sessionService.GetPersonalMealPlanDictionaryFromSession();
             var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds);
             var recipesFromSession = mealPlanDic.SelectMany(x => x.Value).ToList();
+            var model=recipesFromSession.SelectMany(x => x.Ingredients).ToList();
 
-            var model = await GetIngredientHanderModelAsync(recipesFromSession.Select(x => x.Id).ToList());
             return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
 
         }
@@ -257,14 +226,18 @@ namespace DelikatessenDrehbuch.Controllers
             return "";
         }
 
-
         public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId = 0, string category = "", string index = "")
         {
+            if(recipeId!=0)
+            {
+                EditeSession(recipeId, int.Parse(index));
+            }
+           
             var recipeIdsFromSession = new List<int>();
             var parsedIndex = int.Parse(index);
             string? sessionName = "";
             Recipes model = new();
-            PersonalMealPlanRecipeModel personal = new();
+            PersonalMealPlanRecipeModel personal = new(_ingredientService);
             recipeIdsFromSession = _sessionService.GetRecipesIdsFromSession(category);
 
            
@@ -297,7 +270,7 @@ namespace DelikatessenDrehbuch.Controllers
             }
 
 
-
+            EditeSession(model.Id, int.Parse(index));
             _sessionService.UpdateRecipeIdInSession(remove: personal.Id, category: sessionName);
 
             return PartialView("~/Views/MealPlaner/_createMealPlanRecipesPartialView.cshtml", model);
@@ -315,8 +288,15 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 if (recipes.Category.Trim() == "Vorspeise")
                     sessionDic[dayIndex].Insert(0,recipeId);
-                else 
-                    sessionDic[dayIndex].Add(recipeId);
+                else if (recipes.Category.Trim() == "Hauptspeise")
+                {
+                    if (sessionDic[dayIndex].Count > 1)
+                        sessionDic[dayIndex].Insert(1, recipeId);
+                    else
+                        sessionDic[dayIndex].Add(recipeId);
+                }
+                else
+                sessionDic[dayIndex].Add(recipeId);
                
 
             }

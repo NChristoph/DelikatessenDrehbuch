@@ -19,6 +19,7 @@ namespace DelikatessenDrehbuch.Services
         private readonly IMeasureService _measureService;
         private readonly IQueryService _queryService;
         private readonly ILikeService _likeService;
+        private readonly IIngredientService _ingredientService;
 
         private readonly HelpfulMethods _helpfulMethods;
 
@@ -26,7 +27,7 @@ namespace DelikatessenDrehbuch.Services
         public RecipesService(ApplicationDbContext context, IBlobAzureService blobAzureService,
                              IRecipesHandlerService recipesHandlerService, IRecessionsService recessionsService,
                              IMeasureService measureService, IQueryService queryService,
-                             ILikeService likeService, HelpfulMethods helpfulMethods)
+                             ILikeService likeService,IIngredientService ingredientService, HelpfulMethods helpfulMethods)
         {
             _context = context;
             _blobAzureService = blobAzureService;
@@ -35,6 +36,7 @@ namespace DelikatessenDrehbuch.Services
             _measureService = measureService;
             _queryService = queryService;
             _likeService = likeService;
+            _ingredientService = ingredientService;
             _helpfulMethods = helpfulMethods;
 
 
@@ -185,12 +187,12 @@ namespace DelikatessenDrehbuch.Services
         public async Task<FullRecipeData> GetFullRecipeDataByRecipesIdAsync(int id)
         {
             var recipeFromDb = await GetRecipesFromDbByIdAsync(id);
-            var recipeHandler = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(id);
+            var ingredienthandlers = await _ingredientService.GetIngredientsByRecipesIdFromDbAsync(id);
             FullRecipeData fullRecipeData = new()
             {
                 Id = recipeFromDb.Id,
                 Recipes = recipeFromDb,
-                IngredientHandler = GetOrdetIngredientHandler(recipeHandler),
+                IngredientHandler = _ingredientService.GetScaledIngredienthandler(ingredienthandlers,(int)recipeFromDb.RecipePersonCount,1),
                 Likes = await _likeService.GetLikesByRecipeIdAsync(id),
                 Recession = await _recessionsService.GetRecessionsByRecipeIdFromDbAsync(id),
                 Measure = await _measureService.GetMeasureFromDbAsync(),

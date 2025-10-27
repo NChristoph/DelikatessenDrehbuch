@@ -4,6 +4,7 @@ using DelikatessenDrehbuch.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Polly;
+using Stripe;
 using System.Security.Policy;
 
 namespace DelikatessenDrehbuch.Services
@@ -50,6 +51,7 @@ namespace DelikatessenDrehbuch.Services
             var ingredientHandlers = await _context.RecipesHandlers.Where(x => x.Recipe.Id == id)
                                            .Include(x => x.IngredientHandler.Ingredient)
                                            .Include(x => x.IngredientHandler.Measure)
+                                           .Include(x => x.IngredientHandler.Ingredient.Group)
                                            .Include(x => x.IngredientHandler.Quantity)
                                            .Select(x => x.IngredientHandler)
                                            .ToListAsync();
@@ -91,7 +93,7 @@ namespace DelikatessenDrehbuch.Services
         public async Task<IngredientHandlerModel> GetOrCreateIngredientHandlerAsync(IngredientHandlerModel ingredientHandlerModel)
         {
             var handler = await _context.IngredientHandlers
-                          .SingleOrDefaultAsync(x => x.Ingredient.Name.ToLower().Trim() == ingredientHandlerModel.Ingredient.Name.ToLower().Trim()
+                          .FirstOrDefaultAsync(x => x.Ingredient.Name.ToLower().Trim() == ingredientHandlerModel.Ingredient.Name.ToLower().Trim()
                           &&
                              (
                                  x.Measure.UnitOfMeasurement.Trim().ToLower() == ingredientHandlerModel.Measure.UnitOfMeasurement.Trim().ToLower()
@@ -147,35 +149,104 @@ namespace DelikatessenDrehbuch.Services
         public List<IngredientHandlerModel> GetScaledIngredienthandler(List<IngredientHandlerModel> ingredients,
                                                                        int currentPersonCount, int targetPersonCount)
         {
+            var ingredientHandlers = new List<IngredientHandlerModel>();
+
             foreach (var ing in ingredients)
             {
-                ing.Quantity.Quantitys = ing.Quantity.Quantitys / currentPersonCount * targetPersonCount;
+
+
+                if (ing.Quantity.Quantitys > 0.4d)
+                {
+                    IngredientHandlerModel model = new()
+                    {
+                        Ingredient = ing.Ingredient,
+                        Measure = ing.Measure,
+                        Quantity = new Quantity()
+                        {
+                            Id = ing.Quantity.Id,
+                            Quantitys = Math.Round((((ing.Quantity.Quantitys) / currentPersonCount) * targetPersonCount * 2), MidpointRounding.AwayFromZero) / 2
+                        }
+                    };
+                    ingredientHandlers.Add(model);
+                }
+                else
+                    ingredientHandlers.Add(ing);
+
             }
 
-            ingredients = CombineIngredienthanderModel(ingredients);
+            ingredients = CombineIngredienthanderModel(ingredientHandlers);
 
             return ingredients;
         }
 
         public List<IngredientHandlerModel> CombineIngredienthanderModel(List<IngredientHandlerModel> listToSort)
         {
+
             var combined = listToSort.GroupBy(ih => new { ih.Ingredient.Id, Unit = ih.Measure.UnitOfMeasurement })
                                      .Select(g =>
                                      {
+
                                          var first = g.First();
                                          var unit = first.Measure.UnitOfMeasurement;
 
                                          bool isG = unit.Equals("g.", StringComparison.OrdinalIgnoreCase);
                                          bool isMl = unit.Equals("ml", StringComparison.OrdinalIgnoreCase);
                                          bool isB = unit.Equals("Blatt", StringComparison.OrdinalIgnoreCase);
-                                         var avg = first.Ingredient?.AverageWeight ?? 0d; // ggf. AverageWeightGrams
+                                         bool isTL = unit.Equals("TL.", StringComparison.OrdinalIgnoreCase);
+                                         bool isEL = unit.Equals("EL.", StringComparison.OrdinalIgnoreCase);
+                                         bool isPr = unit.Equals("Prise", StringComparison.OrdinalIgnoreCase);
+                                         bool isStk = unit.Equals("Stk.", StringComparison.OrdinalIgnoreCase);
 
-                                         // Wenn Einheit nicht g/ml und Ø-Gewicht vorhanden -> in g umrechnen
-                                         var sum = (!isG && !isMl && !isB && avg > 0d)
-                                             ? g.Sum(x => x.Quantity.Quantitys) * avg
+                                         var avg = first.Ingredient?.AverageWeight ?? 0d; // ggf. AverageWeightGrams
+                                         double sum = 0.0;
+                                         string outUnit = "";
+
+
+
+
+                                         if (g.First().Ingredient.Group.Name == "Gemüse" ||
+                                             g.First().Ingredient.Group.Name == "Obst")
+                                         {
+
+                                             bool check = (isG && avg != 0d && g.First().Ingredient.GrammOnly == false);
+                                             sum = check
+                                             ? g.Sum(x => x.Quantity.Quantitys) / avg
                                              : g.Sum(x => x.Quantity.Quantitys);
 
-                                         var outUnit = (!isG && !isMl && !isB && avg > 0d) ? "g." : unit;
+                                             outUnit = check ? $"Stk" : unit;
+
+                                         }
+                                         else if (g.First().Ingredient.Group.Name == "Gewürze")
+                                         {
+                                             bool check = (isEL);
+                                             sum = check
+                                             ? g.Sum(x => x.Quantity.Quantitys) * 2
+                                             : g.Sum(x => x.Quantity.Quantitys);
+                                             outUnit = check ? "TL." : unit;
+
+                                         }
+                                         else if (g.First().Ingredient.Group.Name == "Grundnahrungsmittel")
+                                         {
+                                             bool check = (isEL || isTL && avg > 0d);
+                                             sum = check
+                                             ? g.Sum(x => x.Quantity.Quantitys) * avg
+                                             : g.Sum(x => x.Quantity.Quantitys);
+                                             outUnit = check ? "g." : unit;
+                                         }
+
+                                         else
+                                         {
+                                             bool check = (isEL && avg > 0d);
+
+
+                                             sum = check
+                                                 ? g.Sum(x => x.Quantity.Quantitys) * avg
+                                                 : g.Sum(x => x.Quantity.Quantitys);
+                                             outUnit = check ? "ml" : unit;
+                                         }
+
+
+
 
                                          return new IngredientHandlerModel
                                          {
