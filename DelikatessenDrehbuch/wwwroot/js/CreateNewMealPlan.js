@@ -32,7 +32,13 @@ function ChangeRecipeDay(button) {
 
     var currentPlace2 = document.getElementById("day_" + currentIndex);
     var placeToMove2 = document.getElementById("day_" + indexToMove);
-   
+
+    const current = currentPlace2.querySelector('.slot-grid');
+    const toMove = placeToMove2.querySelector('.slot-grid');
+
+    current.dataset.dayIndex = indexToMove;
+    toMove.dataset.dayIndex = currentIndex;
+
 
     var htmlCurrent = document.getElementById("RecipeSlot_" + currentIndex).innerHTML;
     var htmlToMove = document.getElementById("RecipeSlot_" + indexToMove).innerHTML;

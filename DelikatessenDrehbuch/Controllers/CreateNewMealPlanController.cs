@@ -23,7 +23,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DelikatessenDrehbuch.Controllers
 {
-
+    [Authorize]
     public class CreateNewMealPlanController : Controller
     {
 
@@ -61,7 +61,7 @@ namespace DelikatessenDrehbuch.Controllers
         {
 
             _sessionService.ClearSession();
-
+            int personCount = settings.PersonCount;
 
             if (settings.DayCount > 7)
             {
@@ -70,47 +70,53 @@ namespace DelikatessenDrehbuch.Controllers
 
             _sessionService.SaveMealPlanSettingsToSession(settings);
 
-            ViewData["PersonCount"] = settings.PersonCount;
+            ViewData["PersonCount"] = personCount;
             var model = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
 
-            _sessionService.SavePersonalMealPlanDictionaryToSession(JsonSerializer.Serialize(
-                model.GroupBy(x => x.Index)
-                     .ToDictionary(g => g.Key, g => g.Select(r => r.Id).ToList())
-                ));
+            var dict = model
+                .Select((value, index) => new { index, value })
+                .ToDictionary(
+                    x => x.index+1,                     // Key = Position
+                    x => new List<int> { x.value.Id } // Value = Liste mit einer ID
+                );
 
+            SaveMealPlanToDb(JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true }), personCount);
 
+         
 
             return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
         }
 
         public IActionResult MealPlanSetting()
         {
-            var haveCatchetContent = _sessionService.GetPersonalMealPlanDictionaryFromSession().Any();
-
+            var catche = _context.SavedMealPlan.Where(x => x.UserMail == User.Identity.Name).First();
             ModelForMealPlanSettingView model = new()
             {
                 Ingredients = _context.Ingredients.ToList(),
                 PersonalMealPlanSettings = _sessionService.GetMealPlanSettingsFromSession() ?? new PersonalMealPlanSettings(),
-                HaveCatchContent = haveCatchetContent
+                HaveCatchContent = catche != null
             };
             return View("~/Views/MealPlaner/MealPlanerUserSettings.cshtml", model);
         }
 
         public async Task<IActionResult> MealPlanFromSession()
         {
-            var indexAndIds = _sessionService.GetPersonalMealPlanDictionaryFromSession();
-            var modelFromCache = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds);
+            var mealPlan = GetSavedMealPlanFromDb();
+
+            var indexAndIds = mealPlan.MealPlanDictionary;
+            var modelFromCache = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds, mealPlan.PersonCount);
             var model = modelFromCache.SelectMany(x => x.Value).ToList();
-            ViewData["PersonCount"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
+            ViewData["PersonCount"] = mealPlan.PersonCount;
             return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
 
         }
 
         public async Task<IActionResult> LoadLastMealPlanAsync()
         {
-            ViewData["PersonCount"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
-            var indexAndIds = _sessionService.GetPersonalMealPlanDictionaryFromSession();
-            var model = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds);
+
+            var mealPlan = GetSavedMealPlanFromDb();
+            ViewData["personCount"] = mealPlan.PersonCount;
+            var model = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
 
             return View("~/Views/MealPlaner/CreatedMealPlan.cshtml", model);
 
@@ -120,8 +126,8 @@ namespace DelikatessenDrehbuch.Controllers
 
         public async Task<IActionResult> GetRecipe(int recipeId)
         {
-
-            ViewData["index"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
+            var mealPlan = GetSavedMealPlanFromDb();
+            ViewData["index"] = mealPlan.PersonCount;
             var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeId);
 
 
@@ -143,42 +149,80 @@ namespace DelikatessenDrehbuch.Controllers
         public async Task<IActionResult> CreatedMealPlanAsync(string indexAndIds, int personCount)
         {
             ViewData["PersonCount"] = personCount;
-            var indexAndId = _sessionService.GetPersonalMealPlanDictionaryFromSession();
-            var model = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndId);
+
+            var mealPlan = GetSavedMealPlanFromDb();
+            var model = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
+
+            SaveMealPlanToDb(indexAndIds, personCount);
 
             return View("~/Views/MealPlaner/CreatedMealPlan.cshtml", model);
+        }
+
+        private void SaveMealPlanToDb(string indexAndIds, int personCount)
+        {
+            var savedMealPlan = _context.SavedMealPlan.Where(x => x.UserMail == User.Identity.Name).First();
+            if (savedMealPlan != null)
+            {
+                savedMealPlan.MealPlanJson = indexAndIds;
+               
+                savedMealPlan.CreationTime= DateTime.Now;
+                _context.SavedMealPlan.Update(savedMealPlan);
+                _context.SaveChanges();
+
+            }
+            else
+            {
+                savedMealPlan = new SavedMealPlans
+                {
+                    UserMail = User.Identity.Name,
+                    PersonCount = personCount,
+                    MealPlanJson = indexAndIds
+                };
+                _context.SavedMealPlan.Add(savedMealPlan);
+                _context.SaveChanges();
+            }
+
+
         }
 
         [HttpPost]
         public void SaveDayInSession(string indexAndIds)
         {
-
-            _sessionService.SavePersonalMealPlanDictionaryToSession(indexAndIds);
+            SaveMealPlanToDb(indexAndIds, _sessionService.GetMealPlanSettingsFromSession().PersonCount);
+           
         }
 
+        public SavedMealPlans GetSavedMealPlanFromDb()
+        {
+            var savedMealPlan = _context.SavedMealPlan.Where(x => x.UserMail == User.Identity.Name).First();
+            savedMealPlan.MealPlanDictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(savedMealPlan.MealPlanJson, new JsonSerializerOptions());
+
+            return savedMealPlan;
+        }
 
 
 
         public async Task<IActionResult> GetIngredientPerDayPartialView(string index)
         {
+            var mealPlan = GetSavedMealPlanFromDb();
+            ViewData["PersonCount"] = mealPlan.PersonCount;
 
-            ViewData["PersonCount"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
-            var indexAndIds = _sessionService.GetPersonalMealPlanDictionaryFromSession();
-            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds);
+            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
             var mealplans = mealPlanDic[int.Parse(index)];
             var model = mealplans.SelectMany(x => x.Ingredients).ToList();
-        
+
 
             return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
         }
         public async Task<IActionResult> LoadIngredientPartialViewAsync()
         {
-            ViewData["PersonCount"] = _sessionService.GetMealPlanSettingsFromSession().PersonCount;
+            var mealPlan = GetSavedMealPlanFromDb();
+            ViewData["PersonCount"] = mealPlan.PersonCount;
 
-            var indexAndIds = _sessionService.GetPersonalMealPlanDictionaryFromSession();
-            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds);
+            var indexAndIds = mealPlan.MealPlanDictionary;
+            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds, _sessionService.GetMealPlanSettingsFromSession().PersonCount);
             var recipesFromSession = mealPlanDic.SelectMany(x => x.Value).ToList();
-            var model=recipesFromSession.SelectMany(x => x.Ingredients).ToList();
+            var model = recipesFromSession.SelectMany(x => x.Ingredients).ToList();
 
             return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
 
@@ -228,11 +272,11 @@ namespace DelikatessenDrehbuch.Controllers
 
         public async Task<IActionResult> LoadRecipesPartialViewAsync(int recipeId = 0, string category = "", string index = "")
         {
-            if(recipeId!=0)
+            if (recipeId != 0)
             {
                 EditeSession(recipeId, int.Parse(index));
             }
-           
+
             var recipeIdsFromSession = new List<int>();
             var parsedIndex = int.Parse(index);
             string? sessionName = "";
@@ -240,7 +284,7 @@ namespace DelikatessenDrehbuch.Controllers
             PersonalMealPlanRecipeModel personal = new(_ingredientService);
             recipeIdsFromSession = _sessionService.GetRecipesIdsFromSession(category);
 
-           
+
             ViewData["Index"] = parsedIndex;
 
 
@@ -254,7 +298,7 @@ namespace DelikatessenDrehbuch.Controllers
             }
             else
             {
-                if (recipeId != 0 &&!recipeIdsFromSession.Any())
+                if (recipeId != 0 && !recipeIdsFromSession.Any())
                     sessionName = GetSessionNameByRecipeId(recipeId);
 
                 if (!string.IsNullOrEmpty(sessionName))
@@ -279,7 +323,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         public void EditeSession(int recipeId, int dayIndex)
         {
-            var sessionDic = _sessionService.GetPersonalMealPlanDictionaryFromSession();
+            var sessionDic =GetSavedMealPlanFromDb().MealPlanDictionary;
             var recipes = _recipesService.GetRecipesFromDbByIdAsync(recipeId).Result;
 
             if (sessionDic[dayIndex].Contains(recipeId))
@@ -287,7 +331,7 @@ namespace DelikatessenDrehbuch.Controllers
             else
             {
                 if (recipes.Category.Trim() == "Vorspeise")
-                    sessionDic[dayIndex].Insert(0,recipeId);
+                    sessionDic[dayIndex].Insert(0, recipeId);
                 else if (recipes.Category.Trim() == "Hauptspeise")
                 {
                     if (sessionDic[dayIndex].Count > 1)
@@ -296,14 +340,13 @@ namespace DelikatessenDrehbuch.Controllers
                         sessionDic[dayIndex].Add(recipeId);
                 }
                 else
-                sessionDic[dayIndex].Add(recipeId);
-               
+                    sessionDic[dayIndex].Add(recipeId);
+
 
             }
 
 
-            _sessionService.SavePersonalMealPlanDictionaryToSession(JsonSerializer.Serialize(sessionDic));
-
+            SaveMealPlanToDb(JsonSerializer.Serialize(sessionDic, new JsonSerializerOptions { WriteIndented = true }), _sessionService.GetMealPlanSettingsFromSession().PersonCount);
         }
 
 

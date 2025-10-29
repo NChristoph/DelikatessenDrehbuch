@@ -233,6 +233,15 @@ namespace DelikatessenDrehbuch.Services
                                              : g.Sum(x => x.Quantity.Quantitys);
                                              outUnit = check ? "g." : unit;
                                          }
+                                         else if (g.First().Ingredient.Group.Name == "Milchprodukte")
+                                         {
+                                            
+                                             bool check = (isEL || isTL && avg > 0d);
+                                             sum = check
+                                             ? g.Sum(x => x.Quantity.Quantitys) * avg
+                                             : g.Sum(x => x.Quantity.Quantitys);
+                                             outUnit = check ? "g." : unit;
+                                         }
 
                                          else
                                          {

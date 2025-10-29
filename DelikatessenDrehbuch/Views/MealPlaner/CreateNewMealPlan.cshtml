@@ -26,9 +26,8 @@
         top: 260px;
         min-width: 320px;
         align-self: start;
-        overflow-y:auto;
+        overflow-y: auto;
         max-height: 70vh;
-        
     }
 
     .day-card {
@@ -217,7 +216,6 @@
         }
     }
 
-   
 </style>
 
 <div id="mealStepsCarousel" class="carousel slide mb-4" data-bs-ride="carousel" style="min-height:150px">
@@ -240,7 +238,7 @@
                 <p>Sieh alle benötigten Zutaten auf einen Blick – perfekt zur Vorbereitung.</p>
             </div>
         </div>
-       @*  <div class="carousel-item">
+        @*  <div class="carousel-item">
             <div class="card p-3">
                 <h6 class="fw-bold text-danger">Schritt 4: Einkaufsliste</h6>
                 <p>Nach dem Erstellen des Plans bekommst du deine Einkaufsliste automatisch.</p>
@@ -271,7 +269,7 @@
                 // Pro Slot das erste passende Rezept holen (falls vorhanden)
                 var appetizer = dayRecipes.FirstOrDefault(r =>
                 string.Equals(r.Category.Trim(), "Vorspeise", StringComparison.OrdinalIgnoreCase));
-                                                 
+
                 var main = dayRecipes.FirstOrDefault(r =>
                 string.Equals(r.Category.Trim(), "Hauptspeise", StringComparison.OrdinalIgnoreCase));
 
@@ -283,20 +281,20 @@
                     <span class="day-title day-label">Tag @index</span>
                 </div>
                 <div class="day-card day-item" id="day_@index" data-day="@index">
-                    
+
 
                     <div class="day-content" data-day="@index">
-                        <div class="slot-grid" data-day-index="@index">
+                        <div  class="slot-grid" data-day-index="@index">
 
                             <!-- Vorspeise -->
                             <section class="slot">
                                 <div class="slot-head">
                                     <span class="slot-title">Vorspeise</span>
                                     <div class="slot-actions">
-                                        <button class="slot-btn add-recipe" data-category="Vorspeise">
+                                        <button class="slot-btn add-recipe" data-recipe-id="@(appetizer?.Id ?? 0)" data-category="Vorspeise">
                                             <i class="bi bi-plus-lg"></i> Hinzufügen
                                         </button>
-                                        <button class="slot-btn slot-delete remove-recipe" hidden>
+                                        <button class="slot-btn slot-delete remove-recipe" data-recipe-id="@(appetizer?.Id ?? 0)" hidden>
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
@@ -338,10 +336,10 @@
                                 <div class="slot-head">
                                     <span class="slot-title">Dessert</span>
                                     <div class="slot-actions">
-                                        <button class="slot-btn add-recipe" data-category="Dessert">
+                                        <button class="slot-btn add-recipe" data-recipe-id="@(dessert?.Id ?? 0)" data-category="Dessert">
                                             <i class="bi bi-plus-lg"></i> Hinzufügen
                                         </button>
-                                        <button class="slot-btn slot-delete remove-recipe" hidden>
+                                        <button class="slot-btn slot-delete remove-recipe" data-recipe-id="@(dessert?.Id ?? 0)" hidden>
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>

@@ -145,7 +145,7 @@ namespace DelikatessenDrehbuch.Services
             return model;
         }
 
-        public async Task< Dictionary<int, List<PersonalMealPlanRecipeModel>>> MapToMealPlanDictionaryAsync(Dictionary<int,List<int>> indexAndIds)
+        public async Task< Dictionary<int, List<PersonalMealPlanRecipeModel>>> MapToMealPlanDictionaryAsync(Dictionary<int,List<int>> indexAndIds,int personCount)
         {
             var model = new Dictionary<int, List<PersonalMealPlanRecipeModel>>();
 
@@ -161,7 +161,7 @@ namespace DelikatessenDrehbuch.Services
                         Recipes = await _recipesService.GetRecipesFromDbByIdAsync(id),
                         Ingredients = await _ingredientService.GetIngredientsByRecipesIdFromDbAsync(id)
                     };
-                    personalMealPlanRecipeModel.ScaleIngredients(_sessionService.GetMealPlanSettingsFromSession().PersonCount);
+                    personalMealPlanRecipeModel.ScaleIngredients(personCount);
                     model.TryAdd(key, new List<PersonalMealPlanRecipeModel>());
                     model[key].Add(personalMealPlanRecipeModel);
                 }
