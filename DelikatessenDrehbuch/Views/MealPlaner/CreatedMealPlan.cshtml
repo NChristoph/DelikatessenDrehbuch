@@ -178,7 +178,7 @@
         <hr class="w-75" style="height:2px" />
         <span class="day-title">Rezepte für Tag @dayKey</span>
 
-       
+
 
         <!-- Desktop: 3 Spalten Grid -->
         <div class="meal-grid w-100">
@@ -288,7 +288,7 @@
             </div>
         }
 
- 
+
         var ingOffId = $"Ingredients_Day_{dayKey}";
 
 
@@ -354,10 +354,60 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body Border-Gold w-100">
-        <span class="w-100 mt-2 mb-3 text-center d-block"><strong>Einkaufsliste – gesamt</strong></span>
-        <div class="d-flex flex-wrap justify-content-center">
-            <div id="ingredientPartialView" class="p-2 mobieleWidth80" style="min-width:40%"></div>
+        <span class="w-100 mt-2 mb-3 text-center d-block"><strong>Zutaten – gesamt</strong></span>
+        <div class="d-flex flex-wrap justify-content-center flexColumn">
+            <ul class="nav nav-tabs"  role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            data-bs-toggle="tab"
+                            data-bs-target="#zutatenGesamt"
+                            type="button"
+                            role="tab"
+                            aria-selected="true"
+                            style="font-size:14px;">
+                        Zutaten – gesamt
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            data-bs-toggle="tab"
+                            data-bs-target="#einkaufsliste"
+                            type="button"
+                            role="tab"
+                            aria-selected="false"
+                            style="font-size:14px;">
+                       Einkaufsliste erstellen!
+                    </button>
+                </li>
+            </ul>
+
+
         </div>
+
+        <div class="tab-content mt-3">
+
+            <div class="tab-pane fade show active"
+                 id="zutatenGesamt"
+                 role="tabpanel"
+                 style="padding:2%;">
+                <div id="ingredientPartialView"
+                     class="p-2 mobieleWidth80"
+                     style="min-width:40%;">
+                </div>
+            </div>
+
+            <div class="tab-pane fade"
+                 id="einkaufsliste"
+                 role="tabpanel"
+                 style="padding:2%;">
+                <div id="ShoppingList"
+                     class="p-2 mobieleWidth80"
+                     style="min-width:40%;">
+                </div>
+            </div>
+
+        </div>
+    </div>
     </div>
 </div>
 
@@ -464,6 +514,9 @@
           ?.addEventListener('shown.bs.offcanvas', function(){
             if (typeof ReloadIngredientList === 'function') ReloadIngredientList();
           });
+
+          
+          $('#ShoppingList').load("/CreateNewMealPlan/GetShoppingList")
     </script>
 }
 

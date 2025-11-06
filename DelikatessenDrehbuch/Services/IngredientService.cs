@@ -53,6 +53,7 @@ namespace DelikatessenDrehbuch.Services
                                            .Include(x => x.IngredientHandler.Measure)
                                            .Include(x => x.IngredientHandler.Ingredient.Group)
                                            .Include(x => x.IngredientHandler.Quantity)
+                                           .Include(x => x.IngredientHandler)
                                            .Select(x => x.IngredientHandler)
                                            .ToListAsync();
 
@@ -259,6 +260,7 @@ namespace DelikatessenDrehbuch.Services
 
                                          return new IngredientHandlerModel
                                          {
+                                             
                                              Ingredient = first.Ingredient,
                                              Measure = new Measure { UnitOfMeasurement = outUnit },
                                              Quantity = new Quantity { Quantitys = sum }

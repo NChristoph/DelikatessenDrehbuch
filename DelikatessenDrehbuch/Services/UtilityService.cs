@@ -1,4 +1,5 @@
 ﻿using DelikatessenDrehbuch.Models;
+using System.Security.Cryptography;
 
 namespace DelikatessenDrehbuch.Services.Interfaces
 {
@@ -61,6 +62,35 @@ namespace DelikatessenDrehbuch.Services.Interfaces
                                .ToList();
 
             return ids;
+        }
+
+        public Task<List<IngredientHandlerModel>> SumIngredients(List<IngredientHandlerModel> ingredients)
+        {
+            return Task.Run(() =>
+            {
+                var sum = ingredients.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
+                     .Select(g => new IngredientHandlerModel
+                     {
+
+                         Ingredient = g.First().Ingredient,
+                         Measure = g.First().Measure,
+                         Quantity = new Quantity
+                         {
+
+                             Quantitys = g.Sum(ih => ih.Quantity.Quantitys)
+
+                         }
+                     })
+                     .ToList();
+                return sum;
+            });
+        }
+
+        public string GenerateRandomToken(int length)
+        {
+            var buf = new byte[length];
+            RandomNumberGenerator.Fill(buf);
+            return Convert.ToBase64String(buf).Replace('+', '-').Replace('/', '_').TrimEnd('=');
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿@using DelikatessenDrehbuch.Services.Interfaces
 @inject IIngredientService IIngredientService
+@inject IUtilityService utilityService
 @model List<IngredientHandlerModel>
 @{
     int personCount = 1;
@@ -13,22 +14,9 @@
 @{
 
     Model.RemoveAll(i => i.Ingredient.Name == "Salz" || i.Ingredient.Name == "Pfeffer");
-    var sum = Model.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                    .Select(g => new IngredientHandlerModel
-                    {
-
-                        Ingredient = g.First().Ingredient,
-                        Measure = g.First().Measure,
-                        Quantity = new Quantity
-                        {
-
-                            Quantitys = g.Sum(ih => ih.Quantity.Quantitys)
-
-                        }
-                    })
-                    .ToList();
-
-
+    
+    
+    var sum = await utilityService.SumIngredients(Model);
 
     var test = sum.GroupBy(x => x.Ingredient.Group.Name).OrderBy(x => x.Key);
 
@@ -42,7 +30,7 @@
             
             bool bigger= ing.Quantity.Quantitys > 0.99d;
             var totalQuantity = Math.Round(ing.Quantity.Quantitys);
-            <div class="row mt-1 minWidth100">
+            <div name="totalIngredientList" class="row mt-1 minWidth100">
                 <div class="col minWidth30 mobieleFontSize"
                      style="white-space:normal;text-align:start">
                     @ing.Ingredient.Name

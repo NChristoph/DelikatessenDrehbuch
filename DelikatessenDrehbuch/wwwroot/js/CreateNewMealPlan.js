@@ -128,7 +128,7 @@ function handleRemoveRecipe(btn) {
     const addBtn = slot.querySelector('.add-recipe');
     const recipeId = addBtn.dataset.recipeId || 0;
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-    fetch(`/CreateNewMealPlan/EditeSession?recipeId=${encodeURIComponent(recipeId)}&dayIndex=${encodeURIComponent(dayIndex)}&idToSave=0`, {
+    fetch(`/CreateNewMealPlan/UpdateRecipeDictInDB?recipeId=${encodeURIComponent(recipeId)}&dayIndex=${encodeURIComponent(dayIndex)}`, {
         method: 'POST',
         headers: {
             ...(token ? { 'RequestVerificationToken': token } : {})

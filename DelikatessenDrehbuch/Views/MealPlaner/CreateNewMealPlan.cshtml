@@ -292,11 +292,14 @@
                                     <span class="slot-title">Vorspeise</span>
                                     <div class="slot-actions">
                                         <button class="slot-btn add-recipe" data-recipe-id="@(appetizer?.Id ?? 0)" data-category="Vorspeise">
-                                            <i class="bi bi-plus-lg"></i> Hinzufügen
+                                            <i class="bi bi-plus-lg"></i>  @(appetizer != null ? "Ändern" : "Hinzufügen")
                                         </button>
-                                        <button class="slot-btn slot-delete remove-recipe" data-recipe-id="@(appetizer?.Id ?? 0)" hidden>
+                                        <button class="slot-btn slot-delete remove-recipe"
+                                                data-recipe-id="@(appetizer?.Id ?? 0)"
+                                                @(appetizer != null ? "" : "hidden")>
                                             <i class="bi bi-trash3"></i>
                                         </button>
+
                                     </div>
                                 </div>
                                 <div class="slot-target" data-slot="appetizer">
@@ -337,9 +340,11 @@
                                     <span class="slot-title">Dessert</span>
                                     <div class="slot-actions">
                                         <button class="slot-btn add-recipe" data-recipe-id="@(dessert?.Id ?? 0)" data-category="Dessert">
-                                            <i class="bi bi-plus-lg"></i> Hinzufügen
+                                            <i class="bi bi-plus-lg"></i>  @(dessert != null ? "Ändern" : "Hinzufügen")
                                         </button>
-                                        <button class="slot-btn slot-delete remove-recipe" data-recipe-id="@(dessert?.Id ?? 0)" hidden>
+                                        <button class="slot-btn slot-delete remove-recipe" 
+                                                data-recipe-id="@(dessert?.Id ?? 0)"
+                                                @(dessert != null ? "" : "hidden")>
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>

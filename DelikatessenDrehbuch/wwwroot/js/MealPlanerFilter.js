@@ -68,3 +68,8 @@ function loadMealPlanView() {
 function loadRecipesILike() {
     $('#Favoriten').load("MyRecipes/LoadRecipesILike");
 }
+
+function loadShoppingList() {
+    window.location.href ="/CreateNewMealPlan/LoadShoppingList"
+  
+}

@@ -1,0 +1,151 @@
+﻿@model IngredientHandlerModel
+
+@{
+    var index = (int)ViewData["index"];
+    var ingredientId = Model;
+    var tet = ingredientId;
+}
+
+
+<div name="IngredientRowShoppingList" class="ingredient-row mb-2 p-2">
+    <input type="hidden" class="Id" asp-for="@Model.Id" />
+
+    <div class="ingredient-header Name" name="">
+        <strong>@Model.Ingredient.Name</strong>
+    </div>
+
+    <div class="ingredient-inputs">
+        <input id="Ingredient_@index"  name="Ingredient_@index" class="form-control Ingredient" type="text" asp-for="Ingredient.Name" hidden />
+        <input   name="Group_@index" class="form-control Group" type="text" asp-for="Ingredient.Group.Name" hidden />
+
+        <div class="quantity-wrap">
+            <input id="quantity_@index" name="quantity_@index" class="form-control text-center qty-input Quantity"
+                   step="0.1"
+                   lang="de-at"
+                   asp-for="Quantity.Quantitys"
+                   placeholder="Menge" />
+            <span class="unit-label">@Model.Measure.UnitOfMeasurement</span>
+            <input name="Measure_@index" asp-for="Measure.UnitOfMeasurement" class="Measure" hidden />
+        </div>
+
+        <div class="form-check mt-2">
+            <input class="form-check-input own-check"
+                   type="checkbox"
+                   id="CheckBoxFor_@Model.Ingredient.Id"
+                   value="@Model.Ingredient.Id" />
+            <label class="form-check-label" for="CheckBoxFor_@Model.Ingredient.Id">Hab ich Zuhause</label>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ingredient-row {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(0,0,0,.1);
+        border-radius: 10px;
+        background: #FEFFF1;
+        box-shadow: 0 1px 6px rgba(0,0,0,.05)
+    }
+
+    .ingredient-header {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        text-align: left
+    }
+
+    .ingredient-inputs {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap
+    }
+
+    .quantity-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    .unit-label {
+        font-weight: 600;
+        white-space: nowrap;
+        color: #333
+    }
+
+    /* Zustand „zu Hause“ */
+    .ingredient-row.is-owned {
+        opacity: .6;
+        transition: opacity .15s ease
+    }
+
+        .ingredient-row.is-owned .ingredient-header strong {
+            text-decoration: line-through
+        }
+
+    .qty-input.readonly {
+        background: #f1f1f1;
+        color: #777
+    }
+
+    /* Mobile */
+    @@media (max-width:768px) {
+        .ingredient-inputs
+
+    {
+        flex-direction: column;
+        align-items: stretch
+    }
+
+    .quantity-wrap {
+        justify-content: flex-start
+    }
+
+    }
+
+    /* Farbschema (optional) */
+    .form-check-input:checked {
+        background-color: #770f05;
+        border-color: #D4AF37
+    }
+</style>
+
+<script>
+    // Event-Delegation: funktioniert auch bei dynamisch eingefügten Zeilen
+    document.addEventListener('change', function (e) {
+      const chk = e.target.closest('.own-check');
+      if (!chk) return;
+
+      const row = chk.closest('.ingredient-row');
+      var selector=row.querySelector('.Name');
+      selector.setAttribute("name","Have");
+      const qty = row?.querySelector('.qty-input');
+      const apply = (checked) => {
+        if (!row || !qty) return;
+        if (checked) {
+          row.classList.add('is-owned');
+          qty.setAttribute('readonly', 'readonly');
+          qty.setAttribute('aria-disabled', 'true');
+          qty.classList.add('readonly');
+        } else {
+          row.classList.remove('is-owned');
+          qty.removeAttribute('readonly');
+          qty.removeAttribute('aria-disabled');
+          qty.classList.remove('readonly');
+        }
+      };
+      apply(chk.checked);
+    });
+
+    // Initialzustand anwenden (falls Checkbox serverseitig vorbefüllt ist)
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.ingredient-row').forEach(row => {
+        const chk = row.querySelector('.own-check');
+        if (!chk) return;
+        const event = new Event('change');
+        chk.dispatchEvent(event);
+      });
+    });
+</script>

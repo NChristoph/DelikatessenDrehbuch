@@ -15,25 +15,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 
 
      
-        public void SavePersonalMealPlanDictionaryToSession(string indexAndIds)
-        {
-            var decoded = Uri.UnescapeDataString(indexAndIds);
-            var dictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(decoded);
-
-            var json = JsonSerializer.Serialize(dictionary, new JsonSerializerOptions());
-            _httpContext.HttpContext.Session.SetString("MealPlandictionary", json);
-        }
-
-        public Dictionary<int, List<int>> GetPersonalMealPlanDictionaryFromSession()
-        {
-            var json = _httpContext.HttpContext?.Session.GetString("MealPlandictionary");
-
-            var items = string.IsNullOrEmpty(json)
-                ? new Dictionary<int, List<int>>()
-                : JsonSerializer.Deserialize<Dictionary<int, List<int>>> (json, new JsonSerializerOptions());
-            return items;
-           
-        }
+      
 
 
         public void SaveRecipesIdToSession(List<int> machingRecipes, string name)
