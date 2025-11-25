@@ -68,33 +68,26 @@ function UnCheckAllCheckboxes(checkboxes) {
     });
 };
 
-function ChangeRecipesQuantity(person) {
-    // Wenn kein Parameter übergeben → Wert aus Input nehmen
-    const count = parseNumberLocale(document.getElementById("personCount").value) || 1;
-    const multiplier = (typeof person !== "undefined") ? person : count;
+function ChangeRecipesQuantity(input) {
 
-    document.querySelectorAll('[name="IngredientContainer_SelectetRecipe"]').forEach(li => {
-        const quantitySpan = li.querySelector('[name="quantity"]');
-        const unitSpan = li.querySelector('span:nth-of-type(2)');
-        
+    var multipler = input.value;
+    var quantity = document.getElementsByName("quantity").forEach(x => {
+        var base = parseNumberLocale(x.dataset.original);
+        var value = base * multipler;
+        let formatted;
 
-        let base = parseNumberLocale(quantitySpan.dataset.original ?? quantitySpan.textContent);
-        if (Number.isNaN(base)) return;
-
-        // Sonderregel Bund
-        if (unitSpan && unitSpan.textContent.trim().toLowerCase() === "bund") {
-            base = base / 3;
+        if (value % 1 === 0) {
+            // Ganze Zahl → ohne Nachkommastellen
+            formatted = value.toString();
+        } else {
+            // Hat Nachkommastellen → auf 2 begrenzen
+            formatted = value.toFixed(2).replace('.', ',');
         }
 
-        const value = base * multiplier;
-
-        const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2);
-
-        // Anzeige mit Komma statt Punkt
-        quantitySpan.textContent = formatted.replace('.', ',');
+        x.textContent = formatted;
     });
+ 
 
-    // Weitergabe des Multiplikators (Person oder Count) an die nächste Funktion
     ChangeNutrientQuantity(multiplier);
 }
 

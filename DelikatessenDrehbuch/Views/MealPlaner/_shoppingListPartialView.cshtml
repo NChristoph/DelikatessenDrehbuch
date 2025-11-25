@@ -1,14 +1,13 @@
 ﻿@using DelikatessenDrehbuch.Services.Interfaces
-@inject IUtilityService UtilityService
+@using DelikatessenDrehbuch.Models;
+
 @model List<IngredientHandlerModel>
 @{
     bool haveShoppingList = (bool)ViewData["HaveShoppingList"];
 }
-
+@* 
 @{
-    var test = Model;
-    var sum = await UtilityService.SumIngredients(Model);
-    var group = sum.GroupBy(x => x.Ingredient.Group.Name).OrderBy(x => x.Key);
+  
     <div class="col">
         @{
             var index = 0;
@@ -34,18 +33,21 @@
             }
         }
     </div>
-    <div class="w-100">
+    
+    <div class="w-100 row mt-2">
         <button class="btn btn-outline-danger"
                  onclick="CreateShoppingList()">Einkaufsliste erstellen!</button>
 
-    </div>
-
-    <button id="shareBtn"
-            class="btn btn-primary"
+                  <button id="shareBtn"
+            class="btn btn-outline-danger mt-2"
             @(haveShoppingList? "": "hidden")>
         Einkaufsliste teilen
     </button>
 
-}
+    </div>
+
+   
+
+} *@
 
 <script src="/js/ShoppingList.js" defer asp-append-version="true"></script>

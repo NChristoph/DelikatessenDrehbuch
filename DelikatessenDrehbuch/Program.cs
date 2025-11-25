@@ -1,6 +1,6 @@
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
-using Microsoft.Extensions.Caching.StackExchangeRedis; 
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;
 using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.Services;
@@ -13,6 +13,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Stripe;
+using DelikatessenDrehbuch.MealPlaner.MealPlanerServices;
+using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +36,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<IMealPlanService, MealPlanService>();
-builder.Services.AddScoped<IMealPlanUtilityService, MealPlanUtilityService>();
 builder.Services.AddScoped<IRecipesService, RecipesService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IAdminControllerModelService, AdminControllerModelService>();
@@ -42,13 +43,17 @@ builder.Services.AddScoped<IBlobAzureService, BlobAzureService>();
 builder.Services.AddScoped<IQueryService, QueryService>();
 builder.Services.AddScoped<IRecipesHandlerService, RecipesHandlerService>();
 builder.Services.AddScoped<IQuantityService, QuantityService>();
-builder.Services.AddScoped<IMeasureService,  MeasureService>();
-builder.Services.AddScoped<INutrientService,  NutrientService>();
-builder.Services.AddScoped<ISupportTicketService,  SupportTicketService>();
-builder.Services.AddScoped<IRecessionsService,  RecessionsService>();
-builder.Services.AddScoped<ILikeService,  LikeService>();
-builder.Services.AddScoped<IUtilityService,  UtilityService>();
-builder.Services.AddScoped<ISessionService,  SessionService>();
+builder.Services.AddScoped<IMeasureService, MeasureService>();
+builder.Services.AddScoped<INutrientService, NutrientService>();
+builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
+builder.Services.AddScoped<IRecessionsService, RecessionsService>();
+builder.Services.AddScoped<ILikeService, LikeService>();
+builder.Services.AddScoped<IUtilityService, UtilityService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<IMealPlanSortByFilters, MealPlanSortByFilters>();
+builder.Services.AddScoped<IFullRecipeDataService, FullRecipeDataService>();
+builder.Services.AddScoped<IIngredientScaleService, IngredientScaleService>();
+builder.Services.AddScoped<IMealPlanEditorService, MealPlanEditorService>();
 
 
 builder.Services.AddHttpContextAccessor();
@@ -84,8 +89,8 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromDays(365*10); // Zeit, bis die Session abläuft
-    options.Cookie.MaxAge = TimeSpan.FromDays(365*10); // Lebensdauer des Session-Cookies
+    options.IdleTimeout = TimeSpan.FromDays(365 * 10); // Zeit, bis die Session abläuft
+    options.Cookie.MaxAge = TimeSpan.FromDays(365 * 10); // Lebensdauer des Session-Cookies
     options.Cookie.HttpOnly = true; // Sicherheitseinstellungen
     options.Cookie.IsEssential = true; // Erforderlich für EU-Cookie-Richtlinien
 });
@@ -111,6 +116,12 @@ StripeConfiguration.ApiKey = stripeApiKey;
 builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await StaticData.LoadInternal(db);   // deine Methode
+}
 app.UseSession();
 
 #region Coop xxs CSP schutz

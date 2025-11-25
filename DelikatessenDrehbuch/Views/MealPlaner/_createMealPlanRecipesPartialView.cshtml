@@ -1,9 +1,10 @@
 ﻿@using DelikatessenDrehbuch.StaticScripts
-@model Recipes
+@using DelikatessenDrehbuch.Models
+@model (int id,int index,string name,string description,string imagePath,int preparationTime)
 @{
-    var index = (int)ViewData["Index"];
+   
 
-    var subPath = FrontendFunctions.CaseInsensitivePath(Model.ImagePath);
+    var subPath = FrontendFunctions.CaseInsensitivePath(Model.imagePath);
     var smallImg = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
                                     Environment.GetEnvironmentVariable("SmalPic")) + "_small.webp";
 }
@@ -135,16 +136,16 @@
 </style>
 
 <div name="Recipes"
-     data-index="@index"
-     data-id="@Model.Id"
+     data-index="@Model.index"
+     data-id="@Model.id"
      class="mrc-card mt-2">
 
     <div class="mrc-row">
         <!-- Bild -->
         <div class="mrc-media">
-            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            @if (!string.IsNullOrEmpty(Model.imagePath))
             {
-                <img src="@smallImg" alt="@Model.Name" title="@Model.Name" />
+                <img src="@smallImg" alt="@Model.name" title="@Model.name" />
             }
             else
             {
@@ -152,20 +153,18 @@
             }
 
             <div class="mrc-badges">
-                @if ((Model.PreparationTime ?? 0) > 0)
-                {
-                    <span class="mrc-chip">@Model.PreparationTime min</span>
+                <span class="mrc-chip">@Model.preparationTime min</span>
                 }
             </div>
         </div>
 
         <!-- Text/Buttons -->
         <div class="mrc-body">
-            <div class="mrc-title">@Model.Name</div>
+            <div class="mrc-title">@Model.name</div>
 
             <!-- Toggle-Beschreibung (eine Instanz für Desktop & Mobile) -->
             @{
-                var descId = $"desc_{Model.Id}_{index}";
+                var descId = $"desc_{Model.id}_{@Model.index}";
             }
 
             <div class="mrc-actions hidden">
@@ -181,7 +180,7 @@
             </div>
 
             <div id="@descId" class="collapse mrc-desc bg-white p-1">
-                @Html.Raw(Model.Description)
+                @Html.Raw(Model.description)
             </div>
         </div>
     </div>

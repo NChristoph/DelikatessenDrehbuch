@@ -11,6 +11,12 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             int index = random.Next(list.Count);
             return list[index];
         }
+
+        public List<int> GetRandomIntsFromList(List<int> list, int count)
+        {
+            Random random = new Random();
+            return list.OrderBy(x => random.Next()).Take(count).ToList();
+        }
         public List<string> GetListFromQueryString(string query)
         {
             return query.ToLower().Split(",").ToList();
@@ -64,27 +70,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             return ids;
         }
 
-        public Task<List<IngredientHandlerModel>> SumIngredients(List<IngredientHandlerModel> ingredients)
-        {
-            return Task.Run(() =>
-            {
-                var sum = ingredients.GroupBy(ih => new { ih.Ingredient.Id, ih.Measure.UnitOfMeasurement })
-                     .Select(g => new IngredientHandlerModel
-                     {
-
-                         Ingredient = g.First().Ingredient,
-                         Measure = g.First().Measure,
-                         Quantity = new Quantity
-                         {
-
-                             Quantitys = g.Sum(ih => ih.Quantity.Quantitys)
-
-                         }
-                     })
-                     .ToList();
-                return sum;
-            });
-        }
+      
 
         public string GenerateRandomToken(int length)
         {
@@ -92,5 +78,17 @@ namespace DelikatessenDrehbuch.Services.Interfaces
             RandomNumberGenerator.Fill(buf);
             return Convert.ToBase64String(buf).Replace('+', '-').Replace('/', '_').TrimEnd('=');
         }
+
+        public List<string> GetTrueBoolNamesFromModel(PersonalMealPlanSettings settings)
+        {
+
+            var bools = typeof(PersonalMealPlanSettings)
+                       .GetProperties()
+                       .Where(p => p.PropertyType == typeof(bool));
+
+            return bools.Where(b => (bool)b.GetValue(settings) == true).Select(x => x.Name.ToLower()).ToList();
+        }
+
+
     }
 }

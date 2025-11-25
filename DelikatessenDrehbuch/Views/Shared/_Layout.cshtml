@@ -1,34 +1,111 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
-
 <!DOCTYPE html>
-
-
 <html lang="de-at">
 <head>
+    <!-- ========= META & PRELOAD ========= -->
+    @await RenderSectionAsync("PreloadLinks", required: false)
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- ========= SEO / ADS / VERIFICATION ========= -->
+    @{
+    #if (!DEBUG)
+        if (!User.IsInRole("PremiumUser"))
+        {
+            <!-- Google AdSense nur für Nicht-Premium-User in Release -->
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
+                    crossorigin="anonymous"></script>
+        }
+    #endif
+    }
+    <meta name="google-adsense-account" content="ca-pub-2332503983815482">
+    <meta name="google-site-verification" content="R_edf408xfCW8GF8MnQ62aQJ9MUfSvp9jhhjxmyGs3U">
+
+    <!-- ========= TITEL & BESCHREIBUNG ========= -->
+    <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
+    <meta name="description" content="@ViewData["Description"]">
+
+    <!-- ========= ICONS / FAVICON ========= -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- ========= CSS LIBS ========= -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- DataTables (neue Version) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css" />
+    <!-- Projekt-CSS -->
+    <link rel="stylesheet" href="~/css/StyleSheet.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
+
+    <!-- ========= SEITENSPEZIFISCHES CSS ========= -->
     <style>
+        /* -------------------------
+                           Buttons / Farben
+                        --------------------------*/
         .btn-outline-danger {
             color: #770f05 !important;
             border-color: #770f05 !important;
         }
 
+            .btn-outline-danger:hover {
+                color: #770f05 !important;
+                background-color: rgba(119, 15, 5, 0.05) !important;
+                border-color: #770f05 !important;
+            }
 
+        .btn-danger,
+        .btn-secondary {
+            font-weight: 600;
+        }
 
+        /* -------------------------
+                           Header (sticky)
+                        --------------------------*/
         .site-header {
             position: sticky;
             top: 0;
             z-index: 1040; /* über Content, unter Offcanvas/Modal */
-            background: #fff; /* damit nichts durchscheint */
+            background: #fff; /* verhindert Durchscheinen */
         }
 
-        .btn-outline-danger:hover {
-            color: #770f05 !important;
-            background-color: rgba(119, 15, 5, 0.05) !important; /* leichter transparenter Hintergrund */
-            border-color: #770f05 !important;
+            /* Navbar gleitet beim Scrollen ein/aus */
+            .site-header.hide {
+                transform: translateY(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+        .site-header {
+            transition: transform 0.3s ease-in-out;
         }
 
-        /* Zusätzliche Anpassungen für mobile Ansicht */
+
+        /* -------------------------
+                           Footer (immer unten)
+                        --------------------------*/
+        .Myfooter {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #8b1e3f; /* Burgunderrot */
+            color: #fff;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 5px 0;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        /* Platz für Footer schaffen, damit Inhalt nicht verdeckt wird */
+        body {
+            padding-bottom: 50px;
+        }
+
+        /* -------------------------
+                           Responsive (in Razor: @@media ausgeben)
+                        --------------------------*/
         @@media (max-width: 991.98px) {
             .btn-sm {
                 padding: 0.35rem 0.5rem;
@@ -37,64 +114,46 @@
                 .btn-sm i {
                     font-size: 1.2rem;
                 }
+
+           
+            
         }
 
-        /* Buttons in der unteren Reihe etwas größer */
-        .btn-danger,
-        .btn-secondary {
-            font-weight: 600;
-        }
+        
 
         @@media (max-width: 575.98px) {
             .btn-danger,
             .btn-secondary {
                 width: 100%;
             }
+
+            .mobieleWidth90 {
+                width: 90% !important;
+            }
+        }
+
+        @@media (max-width: 600px) {
+            .Myfooter {
+                font-size: 0.8rem;
+                padding: 8px 0;
+            }
         }
     </style>
-    @await RenderSectionAsync("PreloadLinks", required: false)
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
-
-
-    @{
-    #if (!DEBUG)
-
-        if (!User.IsInRole("PremiumUser"))
-        {
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2332503983815482"
-                    crossorigin="anonymous"></script>
-
-        }
-
-    #endif
-
-    }
-    <meta name="google-adsense-account" content="ca-pub-2332503983815482">
-    <meta name="google-site-verification" content="R_edf408xfCW8GF8MnQ62aQJ9MUfSvp9jhhjxmyGs3U">
-
-    <title>@ViewData["Title"] - DelikatessenDrehbuch</title>
-    <meta name="description" content="@ViewData["Description"]">
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.4/css/dataTables.dataTables.min.css" />
-    <link rel="stylesheet" href="~/css/StyleSheet.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/DelikatessenDrehbuch.styles.css" asp-append-version="true" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 
 <body>
+    @* Anti-Forgery Token für AJAX *@
     @Html.AntiForgeryToken()
 
-    <header class="site-header container-fluid border-bottom shadow-sm py-3  mb-4" style="border-radius:0.25rem">
+    <!-- =========================================================
+         HEADER: Logo / Suche / Aktionen / Sticky
+    ========================================================== -->
+    <header class="site-header container-fluid border-bottom shadow-sm py-3 mb-4" style="border-radius:0.25rem">
         <div class="m-0 p-0 w-100">
             <div class="col g-3 w-100">
 
-
-                <!-- Hauptbereich mit Buttons -->
-                <div class="row align-items-center">
+                <!-- Oberer Bereich: Logo (Desktop) + Auth/Links -->
+                <div class="flexRow align-items-center justify-content-between">
                     <!-- Logo Bereich (nur Desktop) -->
                     <div class="col-lg-4 d-none d-lg-flex align-items-center">
                         <div class="d-flex align-items-center gap-2">
@@ -104,22 +163,30 @@
                                  style="max-height: 80px;" />
                             <div>
                                 <div class="fw-bold" style="color:#770f05; font-size:0.95rem;">Delikatessen Drehbuch</div>
-                                <div class="small" style="color:#770f05; font-size:0.7rem;">Kulinarische Genüsse,<br />von Herzen geschrieben.</div>
+                                <div class="small" style="color:#770f05; font-size:0.7rem;">
+                                    Kulinarische Genüsse,<br />von Herzen geschrieben.
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Button-Bereich -->
-                    <div class="minWidth60 maxWidth60 mobieleWidth100 mb-2">
+                    <!-- GIF-Animation – bleibt vorhanden -->
+                    <img class="d-none d-md-block"
+                         src="~/css/Logo/Schön das Sie bei uns sind ! Ihr Delikatessen Drehbuch. (4).gif"
+                         alt="Aimation"
+                         style="max-width:260px;max-height:79px" />
+
+                    <!-- Rechts: Auth-Buttons -->
+                    <div class="flex justify-content-center mobieleWidth100 mb-2" style="max-width:fit-content">
                         <div class="d-flex flex-wrap justify-content-center justify-content-lg-end gap-2">
                             <a class="btn btn-sm btn-outline-danger" asp-controller="Home" asp-action="Impressum">
                                 <i class="bi bi-info-circle d-lg-none"></i>
                                 <span class="d-none d-lg-inline">Impressum</span>
                             </a>
 
+
                             @if (SignInManager.IsSignedIn(User))
                             {
-                               
                                 <a class="btn btn-sm btn-outline-danger w-auto d-flex align-items-center"
                                    asp-controller="MyRecipes" asp-action="Index">
                                     <span>Mein Bereich</span>
@@ -147,8 +214,8 @@
                     </div>
                 </div>
 
-                <div class="row flex bgRed w-100 m-0 justify-content-around align-content-center">
-                    <!-- Suchleiste -->
+                <!-- Mittlerer Bereich: Suche -->
+                <div class="flexRow bgRed w-100 m-0 justify-content-around flexAlginItemCenter">
                     <div class="mb-3 mt-3 bgRed w-75 mobieleWidth90">
                         <div class="input-group flexRow bgRed">
                             <input id="searchQuery"
@@ -156,42 +223,35 @@
                                    class="form-control"
                                    placeholder="z.B. Vegan oder Spaghetti"
                                    aria-label="Suche" />
-                            <button class="btn btn-danger "
-                                    style="max-width:fit-content"
-                                    onclick="LoadRecipesByQuery()"
-                                    type="button">
+                            <button class="btn btn-danger" style="max-width:fit-content"
+                                    onclick="LoadRecipesByQuery()" type="button">
                                 <i class="bi bi-search"></i>
                             </button>
-
                         </div>
                     </div>
-                  
-
                 </div>
-               
-                <div class="row justify-content-center mt-2 ">
-                    <!-- Untere Button-Reihe: Essensplan, Alle Rezepte -->
+
+                <!-- Untere Button-Reihe: Admin / Essensplan / Alle Rezepte -->
+                <div class="row justify-content-center mt-2">
                     <div id="bottomActions" class="collapse show mt-2">
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             @if (User.IsInRole("Admin") || User.Identity?.Name == "free.88@mailxl.at")
                             {
-                               
                                 <a class="btn btn-sm btn-outline-dark" asp-controller="Admin" asp-action="Index" style="max-width:fit-content">
                                     <span class="ms-1">Admin Control</span>
                                 </a>
                                 <a class="btn btn-sm btn-outline-danger" asp-controller="CreateNewMealPlan" asp-action="MealPlanSetting" style="max-width:fit-content">
                                     <span class="ms-1">Essensplan erstellen</span>
                                 </a>
-                                
                             }
-                          
                             <button class="btn btn-sm btn-outline-danger" onclick="RemoveCachedContent()" style="max-width:fit-content">
                                 <span class="ms-1">Alle Rezepte</span>
                             </button>
                         </div>
                     </div>
-
                 </div>
+
+                <!-- Ein-/Ausklappen -->
                 <div class="text-center" style="height:fit-content">
                     <button class="btn btn-link text-danger" type="button"
                             data-bs-toggle="collapse"
@@ -201,12 +261,14 @@
                         <i class="bi bi-chevron-up" id="collapseArrow"></i>
                     </button>
                 </div>
+
             </div>
         </div>
     </header>
 
-
-    <!-- Modal -->
+    <!-- =========================================================
+         MODALS
+    ========================================================== -->
     <div class="modal fade mobieleWidth100" id="MessageModal" tabindex="-1" aria-labelledby="MessageModal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -215,18 +277,14 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body minWidth100">
-                    <textarea id="SupportMessage" name="message" rows="7" class="minWidth100" onclick="MoveCursor()">
-
-                   </textarea>
+                    <textarea id="SupportMessage" name="message" rows="7" class="minWidth100" onclick="MoveCursor()"></textarea>
                 </div>
                 <div class="modal-footer">
-
                     <button type="button" class="btn btn-primary" onclick="SendSupportMessage()">Senden</button>
                 </div>
             </div>
         </div>
     </div>
-
 
     <div class="modal fade mobieleWidth100" id="ShowMessage" tabindex="-1" aria-labelledby="MessageModal" aria-hidden="true">
         <div class="modal-dialog">
@@ -236,147 +294,151 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body minWidth100">
-                    <textarea id="AdminSupportMessage" name="message" rows="7" class="minWidth100" onclick="MoveCursor()">
-
-                   </textarea>
+                    <textarea id="AdminSupportMessage" name="message" rows="7" class="minWidth100" onclick="MoveCursor()"></textarea>
                 </div>
-
             </div>
         </div>
     </div>
 
-
-    <div class=" flexRow flexJustifyContendCenter">
-    </div>
+    <!-- =========================================================
+         MAIN CONTENT
+    ========================================================== -->
     <div class="m-3">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
+    <!-- =========================================================
+         FOOTER (fixiert, immer unten)
+    ========================================================== -->
+    <footer class="Myfooter">
+        <p style="margin-bottom:0">© <span id="year"></span> Delikatessen Drehbuch</p>
+    </footer>
 
-
-
+    <!-- =========================================================
+         SCRIPTS (LIBS zuerst, dann Projekt, dann Seiten-Scripts)
+    ========================================================== -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css" />
+    <!-- DataTables (neue Version) -->
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
 
+    <!-- Projekt-Skripte -->
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Seiten-spezifische Scripts -->
     @await RenderSectionAsync("Scripts", required: false)
 
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MSMG2FFJ1J"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-MSMG2FFJ1J');
+    </script>
+
+    <!-- =========================================================
+         INLINE LOGIK (Jahr, AJAX-Setup, Helpers)
+    ========================================================== -->
+    <script>
+        // aktuelles Jahr automatisch einfügen
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        // CSRF-Token in jQuery-AJAX-Header setzen
+        $(document).ready(function () {
+            var token = $("input[name='__RequestVerificationToken']").val();
+            $.ajaxSetup({ headers: { 'RequestVerificationToken': token } });
+        });
+
+        // LocalStorage leeren + Seite neu laden
+        function RemoveCachedContent() {
+            var cachedContent = localStorage.getItem("cachedRecipesPartialView");
+            if (cachedContent) {
+                localStorage.removeItem("cachedRecipesPartialView");
+            }
+            location.reload(true);
+            window.location.href = "/Home/Index";
+        }
+
+        // Suche ausführen und Query merken
+        window.LoadRecipesByQuery = function () {
+            var searchWord = $('#searchQuery').val();
+            sessionStorage.setItem("searchQuery", searchWord);
+            window.location.href = "/Home/Index";
+        }
+
+        // Checkbox Toggle (bestehende Logik beibehalten)
+        function CangeValue(checkbox) {
+            var box = checkbox;
+            if (box.value == false) {
+                box.value = true;
+            } else {
+                box.value = false;
+            }
+        }
+
+        // Modal-Steuerung: öffnen & Nachricht senden
+        var modalData = {};
+        function MessageModalShowWrite(typeName, id, email) {
+            modalData.id = id;
+            modalData.typeName = typeName;
+            modalData.email = email;
+            $('#MessageModal').modal('show');
+        }
+
+        function SendSupportMessage() {
+            var message = document.getElementById("SupportMessage").value;
+            var postData = {
+                Id: 0,
+                Type: modalData.typeName,
+                TypeId: modalData.id,
+                SenderEmail: modalData.email,
+                Message: message
+            };
+
+            $.ajax({
+                method: 'post',
+                url: "/Support/CreatSupportMessage",
+                contentType: "application/json",
+                data: JSON.stringify(postData),
+                success: function () {
+                    var message = document.getElementById("SupportMessage");
+                    message.value = "";
+                    $('#MessageModal').modal('hide');
+                }
+            });
+        }
+
+        // Cursor im Textfeld bewegen
+        function MoveCursor() {
+            var textArea = document.getElementById("SupportMessage");
+            textArea.focus();
+            textArea.setSelectionRange(0, 0);
+        }
+    </script>
+    <script>
+        // Header beim Scrollen ein-/ausblenden
+        let lastScrollTop = 0;
+        const header = document.querySelector('.site-header');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+            // Nur ab leichtem Scrollen aktiv
+            if (currentScroll > lastScrollTop && currentScroll > 50) {
+                // Nach unten → Header ausblenden
+                header.classList.add('hide');
+            } else {
+                // Nach oben → Header einblenden
+                header.classList.remove('hide');
+            }
+
+            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // negativen Wert verhindern
+        });
+    </script>
 
 </body>
 </html>
-
-
-
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MSMG2FFJ1J"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-MSMG2FFJ1J');
-
-
-
-</script>
-<script>
-     
-   
-
-
-    function RemoveCachedContent()
-    {
-          var cachedContent = localStorage.getItem("cachedRecipesPartialView");
-          if(cachedContent)
-          {
-              localStorage.removeItem("cachedRecipesPartialView");
-
-          }
-           location.reload(true);
-           window.location.href="/Home/Index"
-    }
-
-
-     window.LoadRecipesByQuery = function() {
-
-            var searchWord=$('#searchQuery').val();
-            sessionStorage.setItem("searchQuery",searchWord);
-            window.location.href="/Home/Index";
-
-     }
-
-    $(document).ready(function () {
-        var token = $("input[name='__RequestVerificationToken']").val();
-
-        $.ajaxSetup({
-            headers: {
-                'RequestVerificationToken': token
-            }
-        });
-    });
-
-    function CangeValue(checkbox) {
-
-        var box = checkbox;
-        if (box.value == false) {
-            box.value = true;
-
-        }
-        else {
-            box.value = false;
-        }
-    }
-
-    var modalData = {};
-    function MessageModalShowWrite(typeName, id, email) {
-
-        modalData.id = id;
-        modalData.typeName = typeName;
-        modalData.email = email;
-
-        $('#MessageModal').modal('show');
-    }
-
-    function SendSupportMessage() {
-        var message = document.getElementById("SupportMessage").value;
-
-        var postData = {
-            Id: 0,
-            Type: modalData.typeName,
-            TypeId: modalData.id,
-            SenderEmail: modalData.email,
-            Message: message
-
-        };
-
-        $.ajax({
-            method: 'post',
-            url: "/Support/CreatSupportMessage",
-            contentType: "application/json",
-            data: JSON.stringify(postData),
-            success: function () {
-                var message = document.getElementById("SupportMessage");
-                message.value = "";
-                $('#MessageModal').modal('hide');
-
-            }
-        });
-
-
-    }
-
-    function MoveCursor() {
-        var textArea = document.getElementById("SupportMessage");
-        textArea.focus();
-        textArea.setSelectionRange(0, 0);
-    }
-</script>
-
-
-
-
-

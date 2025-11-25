@@ -20,6 +20,7 @@ namespace DelikatessenDrehbuch.Services
         private readonly IQueryService _queryService;
         private readonly ILikeService _likeService;
         private readonly IIngredientService _ingredientService;
+        private readonly INutrientService _nutrientService;
 
         private readonly HelpfulMethods _helpfulMethods;
 
@@ -27,7 +28,8 @@ namespace DelikatessenDrehbuch.Services
         public RecipesService(ApplicationDbContext context, IBlobAzureService blobAzureService,
                              IRecipesHandlerService recipesHandlerService, IRecessionsService recessionsService,
                              IMeasureService measureService, IQueryService queryService,
-                             ILikeService likeService,IIngredientService ingredientService, HelpfulMethods helpfulMethods)
+                             ILikeService likeService,IIngredientService ingredientService,
+                             HelpfulMethods helpfulMethods,INutrientService nutrientService)
         {
             _context = context;
             _blobAzureService = blobAzureService;
@@ -38,7 +40,7 @@ namespace DelikatessenDrehbuch.Services
             _likeService = likeService;
             _ingredientService = ingredientService;
             _helpfulMethods = helpfulMethods;
-
+            _nutrientService = nutrientService;
 
         }
 
@@ -188,14 +190,24 @@ namespace DelikatessenDrehbuch.Services
         {
             var recipeFromDb = await GetRecipesFromDbByIdAsync(id);
             var ingredienthandlers = await _ingredientService.GetIngredientsByRecipesIdFromDbAsync(id);
+            var random= new Random();
+            var randomRecipesIds= StaticData.RecipeAndIngredHandlers.Keys.Where(x=>x!=id).OrderBy(x=> random.Next()).Take(7).ToList();
+            var ingredientIds = StaticData.RecipeAndIngredients[id];
+            var ingredientNames = _context.Ingredients.Where(x=>ingredientIds.Contains(x.Id)).Select(x=>x.Name).ToList() ;
             FullRecipeData fullRecipeData = new()
             {
                 Id = recipeFromDb.Id,
                 Recipes = recipeFromDb,
-                IngredientHandler = _ingredientService.GetScaledIngredienthandler(ingredienthandlers,(int)recipeFromDb.RecipePersonCount,1),
+                //TODO: Scale Ingredients in IngredientScaleService auslagern
+                //IngredientHandler = _ingredientService.GetScaledIngredienthandler(ingredienthandlers,(int)recipeFromDb.RecipePersonCount,1),
                 Likes = await _likeService.GetLikesByRecipeIdAsync(id),
                 Recession = await _recessionsService.GetRecessionsByRecipeIdFromDbAsync(id),
                 Measure = await _measureService.GetMeasureFromDbAsync(),
+                NutrientHandler = await _nutrientService.GetNutrienHandlersByIngredientNamesAsync(ingredientNames),
+                                      
+                RecipeSuggestions = await _context.Recipes.Where(x => randomRecipesIds.Contains(x.Id))
+                                                          .ToListAsync()
+
 
             };
             return fullRecipeData;

@@ -15,9 +15,12 @@
         public bool BalancedDiet { get; set; }
         public bool PreferablyMeat { get; set; }
         public bool PreferablyVegetarian { get; set; }
+        public bool GentlyIngredients { get; set; }
 
         public List<int> IngredientIds { get; set; } = new();
         public List<int> IngredientsAtHome { get; set; } = new();
+
+      
 
     }
 }

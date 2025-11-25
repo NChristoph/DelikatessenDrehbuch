@@ -11,6 +11,7 @@ namespace DelikatessenDrehbuch.Models
         public int PersonCount { get; set; }
         public string? ShoppingList { get; set; } 
         public string? Token { get; set; }
+        public string? UserSettingJson { get; set; }
         [NotMapped]
         public Dictionary<int, List<int>> MealPlanDictionary { get; set; }
         

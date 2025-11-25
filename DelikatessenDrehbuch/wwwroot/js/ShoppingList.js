@@ -46,9 +46,10 @@ function CreateShoppingList() {
             console.error(error);
             alert("Fehler beim Erstellen der Einkaufsliste!");
     });
-        
+
+    alert("Einkaufsliste wurde erstellt! Sie finden sie in meinem Bereich Einkaufsliste, Klicke auf den Teilen-Button, um den Link zu teilen.");
     localStorage.setItem("lastShareUrl", shareUrl);
-    localStorage.setItem("lastShopping", true);
+   
 
 }
 

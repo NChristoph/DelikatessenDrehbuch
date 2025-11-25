@@ -37,23 +37,16 @@ namespace DelikatessenDrehbuch.Controllers
         {
             var userIsLoggedIn = User.Identity.IsAuthenticated;
 
-            var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(id);
-            var recipesIds = await _context.QueryHandler.Where(x => x.Query.Query.ToLower().Trim() == querys.First().ToLower().Trim())
-                                                        .Select(x => x.Recipe.Id)
-                                                        .ToListAsync();
+            var model= await _recipesService.GetFullRecipeDataByRecipesIdAsync(id);
 
-            var randomRecipesIds = _recipesService.GetRendomRecipesIds(recipesIds, 7);
+            //Todo:Gegebenenfals noch in full recipDate Einbinden
 
-            SelectedRecipesModel model = new()
-            {
-                FullRecipeData = await _recipesService.GetFullRecipeDataByRecipesIdAsync(id),
-                Querys = querys,
-                NutrienHandlers = await _nutrientService.GetNutrienHandlersByIngredientNamesAsync(
-                                       await _ingredientService.GetIngredientsNamesByRecipesId(id)),
+            //var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(id);
+            //var recipesIds = await _context.QueryHandler.Where(x => x.Query.Query.ToLower().Trim() == querys.First().ToLower().Trim())
+            //                                            .Select(x => x.Recipe.Id)
+            //                                            .ToListAsync();
 
-                RecipeSuggestions = await _context.Recipes.Where(x => randomRecipesIds.Contains(x.Id))
-                                                          .ToListAsync()
-            };
+           
 
             return View(model);
         }

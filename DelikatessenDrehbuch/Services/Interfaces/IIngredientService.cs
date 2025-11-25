@@ -10,10 +10,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         Ingredient GetIngredientByNameFromDb(string name);
         Task<IngredientHandlerModel> GetOrCreateIngredientHandlerAsync(IngredientHandlerModel ingredientHandlerModel);
         public List<IngredientHandlerModel> GetIngredientHandlerListFromString(string mapToIngredientHandlers);
-
-        List<IngredientHandlerModel> CombineIngredienthanderModel(List<IngredientHandlerModel> listToSort);
-        List<IngredientHandlerModel> GetScaledIngredienthandler(List<IngredientHandlerModel> ingredients,
-                                                                int currentPersonCount, int targetPersonCount);
+        public List<IngredientHandlerModel> GetIngredientHandlerModels(List<int> ids);
+        public List<IngredientHandlerModel> GetIngredientHandlerByRecipesId(int recipesId);
 
     }
 }

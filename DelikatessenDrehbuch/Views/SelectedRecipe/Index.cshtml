@@ -7,11 +7,11 @@
 @inject UserManager<IdentityUser> UserManager
 @inject IJsonHelper Json
 @inject IUtilityService _utilityService
-@model SelectedRecipesModel
+@model FullRecipeData
 
 @{
-    ViewData["Title"] = $"{Model.FullRecipeData.Recipes.Name} – Rezept & Anleitung | Delikatessen-Drehbuch";
-    ViewData["Description"] = $"Entdecken Sie das Rezept für {Model.FullRecipeData.Recipes.Name} – eine exquisite Delikatesse mit detaillierter Anleitung. Perfekt für besondere Anlässe oder den puren Genuss. Jetzt entdecken & nachkochen!";
+    ViewData["Title"] = $"{Model.Recipes.Name} – Rezept & Anleitung | Delikatessen-Drehbuch";
+    ViewData["Description"] = $"Entdecken Sie das Rezept für {Model.Recipes.Name} – eine exquisite Delikatesse mit detaillierter Anleitung. Perfekt für besondere Anlässe oder den puren Genuss. Jetzt entdecken & nachkochen!";
 }
 
 
@@ -21,28 +21,28 @@
     {
     "@@context": "https://schema.org",
     "@@type": "Recipe",
-    "name": "@Model.FullRecipeData.Recipes.Name",
+    "name": "@Model.Recipes.Name",
     "author": {
     "@@type": "Person",
     "name": "Christoph Nitsch"
     },
-    "description": "@Model.FullRecipeData.Recipes.Description",
+    "description": "@Model.Recipes.Description",
     "prepTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
     "totalTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
-    "recipeCategory": "@Model.FullRecipeData.Recipes.Category",
+    "recipeCategory": "@Model.Recipes.Category",
     "keywords": [
 
     ],
     "recipeIngredient": [
-    @Html.Raw(string.Join(",", Model.FullRecipeData.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
+    @Html.Raw(string.Join(",", Model.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
     ],
     "recipeInstructions": [
     {
     "@@type": "HowToStep",
-    "text": "@Html.Raw(Model.FullRecipeData.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
+    "text": "@Html.Raw(Model.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
     }
     ],
-    "image": "@Model.FullRecipeData.Recipes.ImagePath",
+    "image": "@Model.Recipes.ImagePath",
     "publisher": {
     "@@type": "Organization",
     "name": "Delikatessen-Drehbuch",
@@ -253,21 +253,21 @@
     <div class="grid-Selected-Recipe">
 
         <h3 class="grid-KeyWords mt-4" style="font-family:Century;margin-bottom:1rem;text-align:center">
-            @Model.FullRecipeData.Recipes.Name
+            @Model.Recipes.Name
         </h3>
 
         @{
-            @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.ImagePath))
+            @if (!string.IsNullOrEmpty(Model.Recipes.ImagePath))
             {
 
-                var smallPath = FrontendFunctions.GetSmallImagePath(Model.FullRecipeData.Recipes.ImagePath);
+                var smallPath = FrontendFunctions.GetSmallImagePath(Model.Recipes.ImagePath);
                 <div class="grid-Image maxWidth90 mt-3">
                     <picture>
                         <source srcset="@smallPath">
                         <img class="img-fluid"
                              src="@smallPath"
-                             alt="@(!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Description) ? Model.FullRecipeData.Recipes.Description : Model.FullRecipeData.Recipes.Name)"
-                             title="@Model.FullRecipeData.Recipes.Name"
+                             alt="@(!string.IsNullOrEmpty(Model.Recipes.Description) ? Model.Recipes.Description : Model.Recipes.Name)"
+                             title="@Model.Recipes.Name"
                              decoding="async"
                              style="aspect-ratio:2/2;" />
                     </picture>
@@ -283,7 +283,7 @@
         }
 
 
-        @if (Model.FullRecipeData.Recipes.PreparationTime > 0)
+        @if (Model.Recipes.PreparationTime > 0)
         {
             <div class="col minWidth50 grid-PreparationTime mobieleWidth80 p-2" style="margin-left:auto">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
@@ -291,20 +291,20 @@
                     <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
                     <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
                 </svg>
-                @Model.FullRecipeData.Recipes.PreparationTime min.
+                @Model.Recipes.PreparationTime min.
             </div>
         }
 
         @{
             <p class="grid-LikeCount maxWidth80 minWidth80 p-1 mt-3 mb-3" style="font-size:12px">
-                @(Model.FullRecipeData.Recipes.LikeCount == 0
+                @(Model.Recipes.LikeCount == 0
                             ? "Sei der Erste, dem das Rezept gefällt."
-                            : $"Dieses Rezept gefällt {Model.FullRecipeData.Recipes.LikeCount} Benutzern.")
+                            : $"Dieses Rezept gefällt {Model.Recipes.LikeCount} Benutzern.")
         </p>
 
                 }
 
-        @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Calories))
+        @if (!string.IsNullOrEmpty(Model.Recipes.Calories))
         {
 
             <div class="grid-Calories col p-2 mobieleWidth80 minWidth80"
@@ -314,7 +314,7 @@
                 </p>
                 <hr />
                 @{
-                    var calories = _utilityService.GetCaloriesByIngredientHandlers(Model.FullRecipeData.IngredientHandler);
+                    var calories = _utilityService.GetCaloriesByIngredientHandlers(Model.IngredientHandler);
                 }
 
                 <p id="calories"
@@ -327,11 +327,11 @@
             </div>
         }
 
-        @if (!string.IsNullOrEmpty(Model.FullRecipeData.Recipes.Description))
+        @if (!string.IsNullOrEmpty(Model.Recipes.Description))
         {
             <div class="grid-Discription maxWidth90 minWidth90" style="padding:5%">
                 <h4 class="mb-4">Rezept Beschreibung</h4>
-                <p>@Html.Raw(Model.FullRecipeData.Recipes.Description)</p>
+                <p>@Html.Raw(Model.Recipes.Description)</p>
             </div>
         }
 
@@ -339,7 +339,7 @@
         {
             <a class="btn bgRed mb-2 grid-Button"
                href="#"
-               onclick="MessageModalShowWrite('@Model.FullRecipeData.Recipes.GetType().Name', @Model.FullRecipeData.Recipes.Id, '@User.Identity.Name')"
+               onclick="MessageModalShowWrite('@Model.Recipes.GetType().Name', @Model.Recipes.Id, '@User.Identity.Name')"
                style="color:#FFFDD0; width:max-content; margin-right:auto">
                 Rezept melden
             </a>
@@ -348,13 +348,13 @@
 
                 <a asp-controller="SelectedRecipe"
                    asp-action="AddOrRemoveLike"
-                   asp-route-id="@Model.FullRecipeData.Recipes.Id"
+                   asp-route-id="@Model.Recipes.Id"
                    title="Like Button"
                    style="width:100px; height:max-content; padding:0.35rem; margin-left:auto;">
                     @{
-                        var like = Model.FullRecipeData.Likes.SingleOrDefault(x =>
+                        var like = Model.Likes.SingleOrDefault(x =>
                         x.UserMail == User.Identity.Name &&
-                        x.Recipe == Model.FullRecipeData.Recipes);
+                        x.Recipe == Model.Recipes);
                     }
 
                     @if (like != null)
@@ -400,66 +400,40 @@
                            value="1"
                            min="0"
                            type="number"
-                           onchange="ChangeRecipesQuantity()"
+                           onchange="ChangeRecipesQuantity(this)"
                            style="width:55px;" />
                     Personen.
                 </span>
 
-                @{
-                    bool salt = false;
-                    bool pepper = false;
-                    var ingredientList = Model.FullRecipeData.IngredientHandler.ToList();
-
-                    if (ingredientList.Select(x => x.Ingredient.Name).Contains("Salz"))
-                    {
-                        salt = true;
-                        ingredientList.Remove(ingredientList.Find(x => x.Ingredient.Name == "Salz"));
-                    }
-                    if (ingredientList.Select(x => x.Ingredient.Name).Contains("Pfeffer"))
-                    {
-                        pepper = true;
-                        ingredientList.Remove(ingredientList.Find(x => x.Ingredient.Name == "Pfeffer"));
-                    }
-
-                   var sorted= ingredientList.OrderByDescending(x => x.Quantity.Quantitys).ToList();
-                    <ul style="list-style-type:none; padding-left:0">
-
-                        @foreach (var ingredient in sorted)
-                        {
-                            <li name="IngredientContainer_SelectetRecipe" class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter"
-                                style="border-radius:0.25rem;">
-
-                                <span name="quantity"
-                                      data-original="@ingredient.Quantity.Quantitys"
-                                      style="text-align:right; width:20%; margin-right:10px;">
-                                    @Math.Round(ingredient.Quantity.Quantitys,1)
-                                </span>
-                                <span style="width:20%;">
-                                    @ingredient.Measure.UnitOfMeasurement
-                                </span>
-                                <span style="width:55%;">
-                                    @ingredient.Ingredient.Name
-                                </span>
-
-                            </li>
-
-
-                        }
-                        @if (salt || pepper)
-                        {
-                            <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter">
-                                @{
+              @*   @{
+//                    <ul class="mobieleWidth90 minWidth50" style="list-style-type:none; padding-left:0;">
+                        @{
+                            foreach (var ingGroup in groupIng)
+                            {
+                                <li><strong>@ingGroup.Key :</strong></li>
+                                foreach (var ing in ingGroup)
+                                {
+                                    <li name="IngredientContainer_SelectetRecipe" class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem;">
+                                        <span name="quantity" data-original="@ing.Quantity.Quantitys" style="text-align:right; width:50px; margin-right:10px;">
+                                            @(ing.Quantity.Quantitys == 0 ? "" : ing.Quantity.Quantitys)
+                                        </span>
+                                        <span style="width:105px;">@ing.Measure.UnitOfMeasurement</span>
+                                        <span style="width:150px;">@ing.Ingredient.Name</span>
+                                    </li>
+                                }
+                            }
+                            if (salt || pepper)
+                            {
+                                <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter">
                                     <span style="width:90%;display:block;text-align:center">
-                                        @(salt && pepper ? "Salz und Pfeffer nach Geschmack"
-                                                                    : salt ? "Salz nach Geschmack"
-                                                                    : "Pfeffer nach Geschmack")
-                        </span>
-                                                }
-                            </li>
-
+                                        @(salt && pepper ? "Salz und Pfeffer nach Geschmack" : salt ? "Salz nach Geschmack" : "Pfeffer nach Geschmack")
+                                    </span>
+                                </li>
+                            }
                         }
                     </ul>
-                }
+
+                } *@
 
             </div>
 
@@ -506,15 +480,15 @@
 
         <!-- Korrigierte Tab-Struktur für Nährstoffe -->
         <div class="grid-Preparation col maxWidth90 minWidth90 " style="padding:2%">
-            <ul class="nav nav-tabs" id="recipeTabs_@Model.FullRecipeData.Recipes.Id" role="tablist">
+            <ul class="nav nav-tabs" id="recipeTabs_@Model.Recipes.Id" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active"
-                            id="prep-tab-@Model.FullRecipeData.Recipes.Id"
+                            id="prep-tab-@Model.Recipes.Id"
                             data-bs-toggle="tab"
-                            data-bs-target="#prep_@Model.FullRecipeData.Recipes.Id"
+                            data-bs-target="#prep_@Model.Recipes.Id"
                             type="button"
                             role="tab"
-                            aria-controls="prep_@Model.FullRecipeData.Recipes.Id"
+                            aria-controls="prep_@Model.Recipes.Id"
                             aria-selected="true"
                             style="font-size:14px;">
                         Zubereitung
@@ -522,12 +496,12 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link"
-                            id="nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                            id="nutrition-tab-@Model.Recipes.Id"
                             data-bs-toggle="tab"
-                            data-bs-target="#nutrition_@Model.FullRecipeData.Recipes.Id"
+                            data-bs-target="#nutrition_@Model.Recipes.Id"
                             type="button"
                             role="tab"
-                            aria-controls="nutrition_@Model.FullRecipeData.Recipes.Id"
+                            aria-controls="nutrition_@Model.Recipes.Id"
                             aria-selected="false"
                             style="font-size:14px;">
                         Nährstoffe je Zutat
@@ -535,12 +509,12 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link"
-                            id="total-nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                            id="total-nutrition-tab-@Model.Recipes.Id"
                             data-bs-toggle="tab"
-                            data-bs-target="#gesamtZutaten_@Model.FullRecipeData.Recipes.Id"
+                            data-bs-target="#gesamtZutaten_@Model.Recipes.Id"
                             type="button"
                             role="tab"
-                            aria-controls="gesamtZutaten_@Model.FullRecipeData.Recipes.Id"
+                            aria-controls="gesamtZutaten_@Model.Recipes.Id"
                             aria-selected="false"
                             style="font-size:14px;">
                         Nährstoffe gesamt
@@ -548,28 +522,28 @@
                 </li>
             </ul>
 
-            <div class="tab-content mt-3" id="recipeTabsContent_@Model.FullRecipeData.Recipes.Id">
+            <div class="tab-content mt-3" id="recipeTabsContent_@Model.Recipes.Id">
                 <!-- Zubereitung Tab -->
                 <div class="tab-pane fade show active Bg-Cream"
-                     id="prep_@Model.FullRecipeData.Recipes.Id"
+                     id="prep_@Model.Recipes.Id"
                      role="tabpanel"
-                     aria-labelledby="prep-tab-@Model.FullRecipeData.Recipes.Id"
+                     aria-labelledby="prep-tab-@Model.Recipes.Id"
                      style="padding:2%">
                     <h4 class="mb-3">Zubereitung:</h4>
-                    <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipeData.Recipes.Preparation)</p>
+                    <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.Recipes.Preparation)</p>
                 </div>
 
                 <!-- Nährstoffe je Zutat Tab -->
                 <div class="tab-pane fade Bg-Cream"
-                     id="nutrition_@Model.FullRecipeData.Recipes.Id"
+                     id="nutrition_@Model.Recipes.Id"
                      role="tabpanel"
-                     aria-labelledby="nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                     aria-labelledby="nutrition-tab-@Model.Recipes.Id"
                      style="padding:2%">
                     <h4 class="mb-3">Nährstoffe je Zutat:</h4>
 
                     @{
                         double Result(double grammMenge, double nutrient) => Math.Round(grammMenge * nutrient / 100, 2);
-                        var sortedList = Model.NutrienHandlers.GroupBy(x => x.Ingredient.Name).ToList();
+                        var sortedList = Model.NutrientHandler.GroupBy(x => x.Ingredient.Name).ToList();
                         var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
                     }
 
@@ -577,7 +551,7 @@
                         @foreach (var nutrients in sortedList)
                         {
                             var ingredientName = nutrients.Key.ToLower();
-                            var handler = Model.FullRecipeData.IngredientHandler.SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
+                            var handler = Model.IngredientHandler.SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
                             if (handler == null) continue;
 
                             <div class="col-md-6 col-lg-4">
@@ -634,9 +608,9 @@
 
                 <!-- Gesamte Nährstoffe Tab -->
                 <div class="tab-pane fade Bg-Cream"
-                     id="gesamtZutaten_@Model.FullRecipeData.Recipes.Id"
+                     id="gesamtZutaten_@Model.Recipes.Id"
                      role="tabpanel"
-                     aria-labelledby="total-nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                     aria-labelledby="total-nutrition-tab-@Model.Recipes.Id"
                      style="padding:2%">
                     <h4 class="mb-3">Gesamtnährwerte:</h4>
 
@@ -803,7 +777,7 @@
                           asp-controller="SelectedRecipe"
                           asp-action="SaveRecessionInDB">
 
-                        <input value="@Model.FullRecipeData.Recipes.Id"
+                        <input value="@Model.Recipes.Id"
                                id="id"
                                name="id" hidden />
 
@@ -830,7 +804,7 @@
 
 
 @{
-    var reverseList = Model.FullRecipeData.Recession;
+    var reverseList = Model.Recession;
     reverseList.Reverse();
     foreach (var recessionFromDb in reverseList)
     {

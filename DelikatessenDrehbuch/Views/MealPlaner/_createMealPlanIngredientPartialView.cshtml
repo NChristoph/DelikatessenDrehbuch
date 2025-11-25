@@ -1,52 +1,49 @@
 ﻿@using DelikatessenDrehbuch.Services.Interfaces
-@inject IIngredientService IIngredientService
-@inject IUtilityService utilityService
+@using DelikatessenDrehbuch.Models
+
+
 @model List<IngredientHandlerModel>
 @{
     int personCount = 1;
     if (ViewData["PersonCount"] != null)
     {
         personCount = (int)ViewData["PersonCount"];
+        var x = personCount;
     }
 
 }
 
 @{
 
-    Model.RemoveAll(i => i.Ingredient.Name == "Salz" || i.Ingredient.Name == "Pfeffer");
-    
-    
-    var sum = await utilityService.SumIngredients(Model);
 
-    var test = sum.GroupBy(x => x.Ingredient.Group.Name).OrderBy(x => x.Key);
 
-    foreach (var group in test)
-    {
-        <hr />
-        <span><strong>@group.Key</strong></span>
-        <hr />
-        foreach (var ing in group)
-        {
+
+
+
+
+    // foreach (var group in Model)
+    // {
+    //   // var orderGroup= group.OrderBy(x => x.Quantity.Quantitys);
+    //     <hr />
+    //    <span><strong>@group.Key</strong></span>
+    //     <hr />
+    //     foreach (var ing in orderGroup)
+    //     {
             
-            bool bigger= ing.Quantity.Quantitys > 0.99d;
-            var totalQuantity = Math.Round(ing.Quantity.Quantitys);
-            <div name="totalIngredientList" class="row mt-1 minWidth100">
-                <div class="col minWidth30 mobieleFontSize"
-                     style="white-space:normal;text-align:start">
-                    @ing.Ingredient.Name
-                </div>
-                <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
-                    @(bigger? totalQuantity:ing.Quantity.Quantitys)
-                    @ing.Measure.UnitOfMeasurement
-                </div>
+    //         bool bigger= ing.Quantity.Quantitys > 0.99d;
+    //         var totalQuantity = Math.Round(ing.Quantity.Quantitys);
+    //         <div name="totalIngredientList" class="row mt-1 minWidth100">
+    //             <div class="col minWidth30 mobieleFontSize"
+    //                  style="white-space:normal;text-align:start">
+    //                 @ing.Ingredient.Name
+    //             </div>
+    //             <div class="col p-0 minWidth30 maxWidth30 mobieleFontSize">
+    //                 @(bigger? totalQuantity:(ing.Quantity.Quantitys > 0 ? ing.Quantity.Quantitys : ""))
+    //                 @ing.Measure.UnitOfMeasurement
+    //             </div>
 
-            </div>
-        }
-    }
+    //         </div>
+    //     }
+    // }
 
-
-
-
-
-    <span class="mt-1">Salz und Pfeffer</span>
 }

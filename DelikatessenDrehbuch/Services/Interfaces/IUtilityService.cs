@@ -16,6 +16,8 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 
         public List<int> ConvertStringListToIntList(List<string>idsString);
         public int GetRandomIntFromList(List<int> list);
-        public Task<List<IngredientHandlerModel>> SumIngredients(List<IngredientHandlerModel> ingredients);
+        public List<int> GetRandomIntsFromList(List<int> list, int count);
+
+        public List<string> GetTrueBoolNamesFromModel(PersonalMealPlanSettings settings);
     }
 }

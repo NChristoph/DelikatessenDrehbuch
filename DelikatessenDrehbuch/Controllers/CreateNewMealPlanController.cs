@@ -1,4 +1,5 @@
 ﻿using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
@@ -36,14 +37,16 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly ISessionService _sessionService;
         private readonly IQueryService _queryService;
         private readonly INutrientService _nutrientService;
-        private readonly IRecipesHandlerService _recipesHandlerService;
+        private readonly IMealPlanEditorService _mealPlanEditorService;
+        private readonly IIngredientScaleService _ingredientScaleService;
 
 
         public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService,
                                            IIngredientService ingredientService, IUtilityService utilityService,
                                            ApplicationDbContext context,
                                            ISessionService sessionService, IQueryService queryService,
-                                           INutrientService nutrientService, IRecipesHandlerService recipesHandlerService)
+                                           INutrientService nutrientService, IMealPlanEditorService mealPlanEditorService,
+                                           IIngredientScaleService ingredientScaleService)
         {
 
             _recipesService = recipesService;
@@ -54,8 +57,10 @@ namespace DelikatessenDrehbuch.Controllers
             _sessionService = sessionService;
             _queryService = queryService;
             _nutrientService = nutrientService;
-            _recipesHandlerService = recipesHandlerService;
+            _mealPlanEditorService = mealPlanEditorService;
+            _ingredientScaleService = ingredientScaleService;
         }
+
 
         public async Task<ActionResult> IndexAsync(PersonalMealPlanSettings settings)
         {
@@ -64,61 +69,74 @@ namespace DelikatessenDrehbuch.Controllers
             int personCount = settings.PersonCount;
 
             if (settings.DayCount > 7)
-            {
                 return Ok("Maximal 7 Tage erlaubt");
-            }
-
-            _sessionService.SaveMealPlanSettingsToSession(settings);
 
             ViewData["PersonCount"] = personCount;
-            var model = await _mealPlanService.GetMealPlanModels("Hauptspeise", settings.DayCount);
 
-            var dict = model
-                .Select((value, index) => new { index, value })
-                .ToDictionary(
-                    x => x.index+1,                     // Key = Position
-                    x => new List<int> { x.value.Id } // Value = Liste mit einer ID
-                );
 
-            SaveMealPlanToDb(JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true }), personCount);
 
-         
+            var model = await _mealPlanService.CreateMealPlanModels("Hauptspeise", settings.DayCount, User.Identity.Name, settings);
+
+            //var dict = model
+            //    .Select((value, index) => new { index, value })
+            //    .ToDictionary(
+            //        x => x.index + 1,                     // Key = Position
+            //       // Value = Liste mit einer ID
+            //    );
+
+            //SaveMealPlanToDb(JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true }), personCount,
+            //                 JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true })
+            //);
+
 
             return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
+        }
+
+        private PersonalMealPlanSettings GetPersonalMealPlanSettingsFromDb()
+        {
+            var catche = _context.SavedMealPlan.FirstOrDefault(x => x.UserMail == User.Identity.Name);
+            PersonalMealPlanSettings? perso = new();
+            if (!string.IsNullOrEmpty(catche.UserSettingJson))
+            {
+                perso = JsonSerializer.Deserialize<PersonalMealPlanSettings?>(catche.UserSettingJson);
+            }
+
+            return perso;
         }
 
         public IActionResult MealPlanSetting()
         {
-            var catche = _context.SavedMealPlan.FirstOrDefault(x => x.UserMail == User.Identity.Name);
+
+            var perso = GetPersonalMealPlanSettingsFromDb();
+//TODO:das mit have catchconrtent könnte probleme machen
             ModelForMealPlanSettingView model = new()
             {
                 Ingredients = _context.Ingredients.ToList(),
-                PersonalMealPlanSettings = _sessionService.GetMealPlanSettingsFromSession() ?? new PersonalMealPlanSettings(),
-                HaveCatchContent = catche != null
+                PersonalMealPlanSettings = perso,
+                HaveCatchContent = perso != null
             };
             return View("~/Views/MealPlaner/MealPlanerUserSettings.cshtml", model);
         }
 
-        public async Task<IActionResult> EditeLastMealPlan()
-        {
-            var mealPlan = GetSavedMealPlanFromDb();
-            var modelFromCache = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
-            var model = modelFromCache.SelectMany(x => x.Value).ToList();
-            ViewData["PersonCount"] = mealPlan.PersonCount;
-            return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
+        //TODO: Hier noch anpassen damit die Einstellungen aus der Session geladen werden
 
-        }
+        //public async Task<IActionResult> EditeLastMealPlan()
+        //{
+        //  //  ViewData["PersonCount"] = mealPlan.PersonCount;
+        //  //  return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
 
-        public async Task<IActionResult> LoadLastMealPlanAsync()
-        {
+        //}
+        //TODO: Hier noch anpassen damit die Einstellungen aus der Session geladen werden
 
-            var mealPlan = GetSavedMealPlanFromDb();
-            ViewData["personCount"] = mealPlan.PersonCount;
-            var model = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
+        //public async Task<IActionResult> LoadLastMealPlanAsync()
+        //{
 
-            return View("~/Views/MealPlaner/CreatedMealPlan.cshtml", model);
 
-        }
+        //  //  ViewData["personCount"] = mealPlan.PersonCount;
+
+        //   // return View("~/Views/MealPlaner/CreatedMealPlan.cshtml", model);
+
+        //}
 
 
 
@@ -148,15 +166,27 @@ namespace DelikatessenDrehbuch.Controllers
         {
             ViewData["PersonCount"] = personCount;
 
-            var mealPlan = GetSavedMealPlanFromDb();
-            var model = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
-
+            var model = await _mealPlanService.CreateMealPlanModelsByIdsAsync(indexAndIds, personCount);
             SaveMealPlanToDb(indexAndIds, personCount);
 
             return View("~/Views/MealPlaner/CreatedMealPlan.cshtml", model);
         }
 
-        private void SaveMealPlanToDb(string indexAndIds, int personCount)
+        public async Task<IActionResult> LoadMealPlanRecipesPartialView(int id, int personCount)
+        {
+            ViewData["PersonCount"] = personCount;
+            var model = await _recipesService.GetRecipesFromDbByIdAsync(id);
+
+            return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml", model);
+        }
+
+        public IActionResult LoadMealPlanerIngredients(int id, int personCount)
+        {
+            var model = _ingredientScaleService.GetScaledIngredienthandlerAsync(id, personCount);
+            return PartialView("~/Views/MealPlaner/_mealPlanerIngredientsPartial.cshtml", model);
+        }
+
+        private void SaveMealPlanToDb(string indexAndIds = "", int personCount = 0, string settingsJson = "")
         {
             var userMail = User?.Identity?.Name;
             if (string.IsNullOrWhiteSpace(userMail))
@@ -176,7 +206,8 @@ namespace DelikatessenDrehbuch.Controllers
                     MealPlanJson = indexAndIds,
                     Token = _utilityService.GenerateRandomToken(20),
                     CreationTime = DateTime.UtcNow,
-                    
+                    UserSettingJson = settingsJson
+
                 };
 
                 _context.SavedMealPlan.Add(savedMealPlan);
@@ -187,6 +218,9 @@ namespace DelikatessenDrehbuch.Controllers
             // Update
             savedMealPlan.MealPlanJson = indexAndIds;
             savedMealPlan.PersonCount = personCount;
+            savedMealPlan.UserSettingJson = savedMealPlan.UserSettingJson = !string.IsNullOrEmpty(settingsJson)
+                                                                            ? settingsJson
+                                                                            : savedMealPlan.UserSettingJson;
 
             // Token nur erzeugen, wenn noch keiner existiert
             savedMealPlan.Token = string.IsNullOrEmpty(savedMealPlan.Token)
@@ -205,28 +239,25 @@ namespace DelikatessenDrehbuch.Controllers
         public void SaveDayInSession(string indexAndIds)
         {
             SaveMealPlanToDb(indexAndIds, _sessionService.GetMealPlanSettingsFromSession().PersonCount);
-           
+
         }
 
         public SavedMealPlans GetSavedMealPlanFromDb()
         {
             var savedMealPlan = _context.SavedMealPlan.Where(x => x.UserMail == User.Identity.Name).First();
             savedMealPlan.MealPlanDictionary = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(savedMealPlan.MealPlanJson, new JsonSerializerOptions());
-          
+
 
             return savedMealPlan;
         }
 
-
-
-        public async Task<IActionResult> GetIngredientPerDayPartialView(string index)
+        public IActionResult GetIngredientPerDayPartialView(string index)
         {
             var mealPlan = GetSavedMealPlanFromDb();
             ViewData["PersonCount"] = mealPlan.PersonCount;
-
-            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount);
-            var mealplans = mealPlanDic[int.Parse(index)];
-            var model = mealplans.SelectMany(x => x.Ingredients).ToList();
+            int id = int.Parse(index);
+            //TODO: Hier noch anpassen das alle Zutaten geladen werden und nicht nur von einem Rezept
+            var model = new List<IngredientHandlerModel>();// _mealPlanService.GetScalIngredientsById(id, mealPlan.PersonCount);
 
 
             return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
@@ -237,9 +268,9 @@ namespace DelikatessenDrehbuch.Controllers
             ViewData["PersonCount"] = mealPlan.PersonCount;
 
             var indexAndIds = mealPlan.MealPlanDictionary;
-            var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds, mealPlan.PersonCount);
-            var recipesFromSession = mealPlanDic.SelectMany(x => x.Value).ToList();
-            var model = recipesFromSession.SelectMany(x => x.Ingredients).ToList();
+            //var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds, mealPlan.PersonCount);
+            //var recipesFromSession = mealPlanDic.SelectMany(x => x.Value).ToList();
+            var model = new List<IngredientHandlerModel>();//recipesFromSession.SelectMany(x => x.Ingredients).ToList();
 
             return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
 
@@ -294,12 +325,15 @@ namespace DelikatessenDrehbuch.Controllers
                 UpdateRecipeDictInDB(recipeId, int.Parse(index));
             }
 
+            var settings = JsonSerializer.Deserialize<PersonalMealPlanSettings>(GetSavedMealPlanFromDb().UserSettingJson);
+
             var recipeIdsFromSession = new List<int>();
             var parsedIndex = int.Parse(index);
             string? sessionName = "";
             Recipes model = new();
-            PersonalMealPlanRecipeModel personal = new(_ingredientService);
+            CreateNewMealPlanModel personal = new();
             recipeIdsFromSession = _sessionService.GetRecipesIdsFromSession(category);
+            var userMail = User.Identity.Name;
 
 
             ViewData["Index"] = parsedIndex;
@@ -307,7 +341,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             if (recipeId == 0 || !recipeIdsFromSession.Any())
             {
-                var personalList = await _mealPlanService.GetMealPlanModels(category, 1);
+                var personalList = await _mealPlanService.CreateMealPlanModels(category, 1, userMail, settings);
                 personalList.First().Index = parsedIndex;
                 personal = personalList.First();
                 model = personal.Recipes;
@@ -334,7 +368,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
             UpdateRecipeDictInDB(model.Id, int.Parse(index));
-            _sessionService.UpdateRecipeIdInSession(remove: personal.Id, category: sessionName);
+            _sessionService.UpdateRecipeIdInSession(remove: personal.Recipes.Id, category: sessionName);
 
             return PartialView("~/Views/MealPlaner/_createMealPlanRecipesPartialView.cshtml", model);
 
@@ -342,7 +376,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         public void UpdateRecipeDictInDB(int recipeId, int dayIndex)
         {
-            var sessionDic =GetSavedMealPlanFromDb().MealPlanDictionary;
+            var sessionDic = GetSavedMealPlanFromDb().MealPlanDictionary;
             var recipes = _recipesService.GetRecipesFromDbByIdAsync(recipeId).Result;
 
             if (sessionDic[dayIndex].Contains(recipeId))
@@ -369,15 +403,15 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-        public IActionResult GetShoppingList()
-        {
-            var mealPlan= GetSavedMealPlanFromDb();
-            ViewData["HaveShoppingList"]=mealPlan.ShoppingList!=null;
-               
-            var dictionary =  _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount).Result;
-            var ingredients=dictionary.SelectMany(x=>x.Value).SelectMany(x=>x.Ingredients).ToList();
-            return PartialView("~/Views/MealPlaner/_shoppingListPartialView.cshtml",ingredients);
-        }
+        //public IActionResult GetShoppingList()
+        //{
+        //    var mealPlan = GetSavedMealPlanFromDb();
+        //    ViewData["HaveShoppingList"] = mealPlan.ShoppingList != null;
+
+        //    var dictionary = _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount).Result;
+        //    var ingredients = dictionary.SelectMany(x => x.Value).SelectMany(x => x.Ingredients).ToList();
+        //    return PartialView("~/Views/MealPlaner/_shoppingListPartialView.cshtml", ingredients);
+        //}
 
         [AllowAnonymous]
         [HttpGet("/ShoppingList/{token?}", Name = "ShoppingList")]
@@ -406,17 +440,62 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
 
-
         [Authorize]
-        public IActionResult CreateNewShoppingList([FromBody]List<string> listToParse)
+        public IActionResult CreateNewShoppingList([FromBody] List<string> listToParse)
         {
             var mealPlan = GetSavedMealPlanFromDb();
-            mealPlan.ShoppingList = string.Join("|", listToParse);
+            if (mealPlan == null)
+                return BadRequest("Kein MealPlan gefunden.");
+
+            var cleanedList = new List<string>();
+
+            foreach (var item in listToParse)
+            {
+                if (string.IsNullOrWhiteSpace(item))
+                    continue;
+
+                // Einzelne Werte trennen: "Name;Menge;Einheit;Kategorie"
+                var parts = item.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(p => p.Trim())
+                                 .ToArray();
+
+                var name = parts.ElementAtOrDefault(0) ?? "";
+                var category = parts.Length > 0 ? parts[^1] : "Sonstiges";
+
+                // Wenn Kategorie "Gewürze" → nur Name + Kategorie speichern
+                if (category.Equals("Gewürze", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (parts[2] != "Bund")
+                        cleanedList.Add($"{name};{category}");
+                    else
+                        cleanedList.Add(item);
+                }
+                else
+                {
+                    cleanedList.Add(item);
+                }
+            }
+
+            mealPlan.ShoppingList = string.Join("|", cleanedList);
             _context.SavedMealPlan.Update(mealPlan);
             _context.SaveChanges();
+
             return Ok(mealPlan.Token);
         }
+        [HttpGet]
+        public async Task<IActionResult> LoadRecipeInMealPlaner(List<int> usedIds,string category)
+        {
+            
+            var settings=GetPersonalMealPlanSettingsFromDb();
+           
+            var model = await _mealPlanEditorService.GetOrChangeRecipe(category, settings,usedIds.ToList());
+
+            return Ok(model);
+        }
+
     }
 
-   
+    
+
+
 }
