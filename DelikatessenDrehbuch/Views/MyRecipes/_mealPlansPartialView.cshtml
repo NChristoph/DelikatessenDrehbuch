@@ -1,12 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@model List<MealPlanModel>
+@model List<PreMadeMenuesModel>
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
 
 <div class="mt-3 minWidth100 mobieleWidth90 flexRow flexWrap flexJustifyContendSpaceAround ">
     @{
-        List<MealPlanModel> model = new();
+        List<PreMadeMenuesModel> model = new();
         if (!User.IsInRole("PremiumUser"))
         {
             model = Model.Take(10).ToList();

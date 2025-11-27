@@ -1,13 +1,4 @@
-﻿const { data } = require("jquery");
-
-// DOM Ready
-document.addEventListener('DOMContentLoaded', () => {
-    initMealPlan();
-    ReloadIngredientList();
-    LoadOverView();
-});
-
-async function ChangeOrAddRecipe(button) {
+﻿async function ChangeOrAddRecipe(button) {
     const elements= document.getElementsByName("RecipeId");
     const ids = Array.from(elements).map(el => parseInt(el.value));
     const name = button.getAttribute("data-name");
@@ -54,7 +45,7 @@ async function ChangeOrAddRecipe(button) {
         const recipe = await response.json();
 
         // HTML erstellen und einfügen
-        const html = createMealCard(recipe);
+        const html = createMealCard(recipe,index);
         slot.innerHTML = html;
 
         // Bootstrap Dropdown initialisieren
@@ -82,10 +73,7 @@ async function ChangeOrAddRecipe(button) {
     }
 }
 
-
-
-
-function createMealCard(recipes) {
+function createMealCard(recipes, index) {
     // Bild-HTML vorbereiten
     let imageHtml;
     if (recipes.imagePath) {
@@ -118,6 +106,13 @@ function createMealCard(recipes) {
 
     // Komplettes HTML zusammenbauen
     return `
+        <input type="hidden" 
+               class="meal-plan-input" 
+               name="RecipeId" 
+               value="${recipes.id}" 
+               data-day-index="${index}" 
+               data-category="${recipes.category || ''}" />
+
         <div class="recipe-media">
             ${imageHtml}
             <div class="recipe-chip">
@@ -189,140 +184,37 @@ function ChangeRecipeDay(button) {
 
 }
 
-function initMealPlan() {
-    // Event Delegation für alle Buttons
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.add-recipe')) {
-            handleAddRecipe(e.target.closest('.add-recipe'));
-        }
-        if (e.target.closest('.remove-recipe')) {
-            handleRemoveRecipe(e.target.closest('.remove-recipe'));
-        }
-    });
-}
-
-// Rezept hinzufügen/ändern
-function handleAddRecipe(btn) {
-    const slot = btn.closest('.slot');
-    const grid = slot.closest('.slot-grid');
-    const dayIndex = grid.dataset.dayIndex;
-    const category = btn.dataset.category;
-    const recipeId = btn.dataset.recipeId || 0;
-    btn.hidden = true;
-
-    $.get("/CreateNewMealPlan/LoadRecipesPartialView", {
-        recipeId: recipeId,
-        category: category,
-        index: dayIndex
-    }).done(function (html) {
-
-        const target = slot.querySelector('.slot-target');
-        target.innerHTML = html;
-
-        // data-id aus dem zurückgegebenen HTML holen (funktioniert auch bei mehreren Root-Knoten)
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const dataId =
-            doc.body.firstElementChild?.getAttribute("data-id") ||
-            doc.body.querySelector('[data-id]')?.getAttribute("data-id") ||
-            recipeId;
-
-
-
-        // Button-Status aktualisieren
-        const addBtn = slot.querySelector('.add-recipe');
-        if (addBtn) {
-            addBtn.dataset.recipeId = dataId || 0;
-            addBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Ändern';
-        }
-        const removeBtn = slot.querySelector('.remove-recipe');
-        if (removeBtn) removeBtn.hidden = false;
-
-        ReloadIngredientList();
-        LoadOverView();
-        btn.hidden = false;
-    });
-}
-
-
-// Rezept entfernen
-function handleRemoveRecipe(btn) {
-    const slot = btn.closest('.slot');
-    const target = slot.querySelector('.slot-target');
-    const grid = slot.closest('.slot-grid');
-    const dayIndex = grid.dataset.dayIndex;
-    const addBtn = slot.querySelector('.add-recipe');
-    const recipeId = addBtn.dataset.recipeId || 0;
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-    fetch(`/CreateNewMealPlan/UpdateRecipeDictInDB?recipeId=${encodeURIComponent(recipeId)}&dayIndex=${encodeURIComponent(dayIndex)}`, {
-        method: 'POST',
-        headers: {
-            ...(token ? { 'RequestVerificationToken': token } : {})
-        }
-
-    });
-    // Slot leeren
-    target.innerHTML = '';
-
-    // Button state zurücksetzen
-    if (addBtn) {
-        delete addBtn.dataset.recipeId;
-        addBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Hinzufügen';
-    }
-    btn.hidden = true;
-    ReloadIngredientList();
-    LoadOverView();
-}
-
-
-
-// Rezept-Dictionary für Finalaufruf erstellen
-function getRecipeDictionary() {
-    const dict = {};
-
-    document.querySelectorAll('.day-item').forEach(day => {
-        const dayIndex = parseInt(day.dataset.day);
-        const recipes = [];
-
-        // Alle Rezepte des Tages sammeln
-        day.querySelectorAll('[name="Recipes"]').forEach(recipe => {
-            const id = parseInt(recipe.dataset.id);
-            if (!isNaN(id)) recipes.push(id);
-        });
-
-        dict[dayIndex] = recipes;
-    });
-
-    return dict;
-}
-function getRecipeDictionaryFinaly() {
-
-    // alle Tages-Container durchgehen
-    const dict = {};
-
-    document.querySelectorAll('[name="day-item"]').forEach(day => {
-        const dayIndex = parseInt(day.dataset.day);
-        const recipes = [];
-
-        // Alle Rezepte des Tages sammeln
-        day.querySelectorAll('input[name="Recipe"]').forEach(input => {
-            const id = parseInt(input.value, 10);
-            if (!isNaN(id)) recipes.push(id);
-        });
-
-        dict[dayIndex] = recipes;
-    });
-
-    return dict;
-
-
-}
-
-// Finaler Aufruf
 function createMealPlan() {
+    // 1. Alle versteckten Inputs sammeln
+    const inputs = document.querySelectorAll('.meal-plan-input');
+    const planData = [];
 
-    const dict = getRecipeDictionaryFinaly();
-    const query = encodeURIComponent(JSON.stringify(dict));
-    const personCount = document.getElementById('personCount')?.value || 1;
+    // 2. Daten auslesen
+    inputs.forEach(input => {
+        // Nur hinzufügen, wenn auch wirklich eine ID da ist (Validierung)
+        if (input.value && input.value !== "0") {
+            planData.push({
+                Index: parseInt(input.getAttribute('data-day-index')),
+                RecipeId: parseInt(input.value),
+                
+            });
+        }
+    });
 
-    window.location.href = `/CreateNewMealPlan/CreatedMealPlan?indexAndIds=${query}&personCount=${personCount}`;
-} 
+    // 3. Prüfen ob Daten da sind
+    if (planData.length === 0) return alert("Bitte auswählen.");
+
+    // 2. WICHTIG: In String umwandeln und encodieren!
+    // JSON macht daraus: '[{"Index":1,"RecipeId":5},...]'
+    const jsonString = JSON.stringify(planData);
+
+    // Encode macht daraus: '%5B%7B%22Index%22%3A1...' (Sicher für URL)
+    const encodedData = encodeURIComponent(jsonString);
+
+    // 3. Aufrufen (GET Request)
+    // Hier schickst du alles in einem Parameter namens "data"
+    const personCount = document.getElementById("personCount").value;
+    window.location.href = `/CreateNewMealPlan/CreateMealPlan?data=${encodedData}&personCount=${personCount}`;
+
+   
+}

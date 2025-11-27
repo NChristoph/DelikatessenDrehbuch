@@ -85,7 +85,18 @@ namespace DelikatessenDrehbuch.Services.Interfaces
            return _context.NutrienHandler.Where(x => ingredientNames.Contains(x.Ingredient.Name.ToLower()))
                                                            .Include(x => x.Ingredient)
                                                            .Include(x => x.Quantity)
+                                                           .Include(x=>x.Metrics)
                                                            .Include(x => x.Nutrients).ToListAsync();
+        }
+
+        public async Task<List<NutrienHandler>> GetNutrienHandlersByIngredientIdsAsync(List<int> ingredientIds)
+        {
+            return await _context.NutrienHandler.AsNoTracking().Where(x => ingredientIds.Contains(x.Ingredient.Id))
+                                 .Include(x => x.Ingredient)
+                                 .Include(x => x.Quantity)
+                                 .Include(x => x.Metrics)
+                                 .Include(x => x.Nutrients).ToListAsync();
+                                 
         }
     }
 }

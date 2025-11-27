@@ -2,7 +2,7 @@
 
 namespace DelikatessenDrehbuch.Models
 {
-    public class CreateNewMealPlanModel
+    public class MealPlanerModel
     {
        
         public int Index { get; set; }

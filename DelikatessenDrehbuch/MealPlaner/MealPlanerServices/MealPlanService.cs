@@ -1,7 +1,7 @@
 ﻿using Azure.Storage.Blobs.Models;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
-using DelikatessenDrehbuch.MealPlaner.Models;
+using DelikatessenDrehbuch.MealPlaner;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
@@ -46,7 +46,7 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
             _mealPlanSortByFilters = mealPlanSortByFilters;
         }
 
-        public async Task<List<CreateNewMealPlanModel>> CreateMealPlanModels(string category, int count, string email, PersonalMealPlanSettings settings)
+        public async Task<List<MealPlanerModel>> CreateMealPlanModels(string category, int count, string email, PersonalMealPlanSettings settings)
         {
 
             var filterBool = _utilityService.GetTrueBoolNamesFromModel(settings);
@@ -59,9 +59,9 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
       
 
 
-        public async Task<List<CreateNewMealPlanModel>> CreatePersonalMealPlanRecipeModelByIdsAsync(List<int> recipesIds)
+        public async Task<List<MealPlanerModel>> CreatePersonalMealPlanRecipeModelByIdsAsync(List<int> recipesIds)
         {
-            List<CreateNewMealPlanModel> modelList = new();
+            List<MealPlanerModel> modelList = new();
             int index = 1;
             foreach (var recipeId in recipesIds)
             {
@@ -75,11 +75,13 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
 
 
 
-        public async Task<CreateNewMealPlanModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId, int index)
+
+
+        public async Task<MealPlanerModel> CreatePersonalMealPlanRecipeModelByIdAsync(int recipeId, int index)
         {
             var recipehandlers = await _recipesHandlerService.GetRecipesHandlerByRecipesIdAsync(recipeId);
 
-            CreateNewMealPlanModel model = new()
+            MealPlanerModel model = new()
             {
                 Index = index,
                 Recipes = _context.Recipes.FirstOrDefault(x => x.Id == recipeId),
@@ -145,46 +147,6 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
 
             }
 
-        }
-
-        public async Task<Dictionary<int, List<CreatedMealPlanModel>>> CreateMealPlanModelsByIdsAsync(
-                                                                                 string indexAndIds,
-                                                                                 int personCount)
-        {
-            // Eingehendes JSON → Dictionary<int, List<int>>
-            var ids = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(indexAndIds);
-
-            // Ergebnis-Dictionary vorbereiten
-            var result = new Dictionary<int, List<CreatedMealPlanModel>>();
-
-            foreach (var key in ids.Keys)
-            {
-                // Liste für diesen Tag vorbereiten
-                var dayList = new List<CreatedMealPlanModel>();
-
-                foreach (var id in ids[key])
-                {
-                    var recipe = await _recipesService.GetRecipesFromDbByIdAsync(id);
-
-                    // Model zusammenbauen
-                    dayList.Add(new CreatedMealPlanModel
-                    {
-
-                        DayIndex = key,
-                        PersonCount = personCount,
-                        ImagePath = recipe.ImagePath,
-                        Name = recipe.Name,
-                        RecipeId = recipe.Id
-
-
-                    });
-                }
-
-                // Tag hinzufügen
-                result[key] = dayList;
-            }
-
-            return result;
         }
 
 

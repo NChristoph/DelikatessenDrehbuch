@@ -1,0 +1,145 @@
+﻿@model List<NutrienHandler>
+
+<style>
+    /* =========================================
+           Delikatessen Styles - Zutaten Chips
+           ========================================= */
+
+    /* Container: Zutaten fließen nebeneinander */
+    .ingredients-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem; /* Abstand zwischen den Chips */
+        margin-bottom: 1.5rem;
+    }
+
+    /* Der Button (Chip-Look) */
+    .btn-deli-chip {
+        background-color: #fff;
+        border: 1px solid #D4AF37; /* Gold */
+        color: #2a3440; /* Dunkles Grau */
+        border-radius: 50rem; /* Pillenform */
+        padding: 0.3rem 0.9rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        /* Hover & Active State (Wenn Dropdown offen ist) */
+        .btn-deli-chip:hover,
+        .btn-deli-chip[aria-expanded="true"] {
+            background-color: #FEFFF2; /* Creme */
+            color: #770f0f; /* Dunkelrot */
+            border-color: #770f0f;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+
+    /* Dropdown Menü Styling */
+    .deli-dropdown-menu {
+        border: none;
+        border-radius: 0.8rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        padding: 0; /* Padding weg für saubere Header */
+        overflow: hidden;
+        min-width: 260px;
+    }
+
+    /* Kopfzeile im Dropdown */
+    .deli-dropdown-header {
+        background-color: #FEFFF2;
+        padding: 0.6rem 1rem;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        color: #770f0f;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    /* Listen-Elemente */
+    .deli-list-item {
+        padding: 0.4rem 1rem;
+        display: flex;
+        justify-content: space-between; /* Text links, Zahl rechts */
+        align-items: center;
+        font-size: 0.9rem;
+        color: #4a4a4a;
+        border-bottom: 1px dotted #eee;
+    }
+
+        .deli-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .deli-list-item strong {
+            color: #2a3440;
+        }
+
+    /* Kalorien Zeile hervorheben */
+    .deli-calories {
+        background-color: rgba(212, 175, 55, 0.1); /* Helles Gold */
+        font-weight: bold;
+        color: #770f0f;
+    }
+</style>
+
+<div class="ingredients-container">
+    @{
+        var group = Model.GroupBy(x => x.Ingredient.Name);
+    }
+
+    @foreach (var item in group)
+    {
+        <div class="dropdown">
+            <button class="btn btn-deli-chip dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                @item.Key
+            </button>
+
+            <ul class="dropdown-menu deli-dropdown-menu">
+
+                <div class="deli-dropdown-header">
+                    Nährwerte für @item.Key
+                </div>
+
+                @{
+                    float? calories = 0;
+
+                    foreach (var nutri in item)
+                    {
+                        // Kalorien merken (deine Logik)
+                        if (calories == 0)
+                        {
+                            calories = nutri.Ingredient.Calories;
+                        }
+
+                        // Einzelne Nährwert-Zeile
+                        <li class="deli-list-item">
+                            <span>@nutri.Nutrients.Nutrient</span>
+                            <span>
+                                <strong>@nutri.Quantity.Quantitys</strong>
+                                <small class="text-muted">@nutri.Metrics.UnitOfMeasurement</small>
+                            </span>
+                        </li>
+                    }
+
+                    // Kalorien Zeile ganz unten (Hervorgehoben)
+                    <li class="deli-list-item deli-calories">
+                        <span><i class="bi bi-fire"></i> Kalorien</span> <span id="caloies" data-calories="@calories">
+                            @Math.Round((double)(calories ?? 0), 0) kcal
+                        </span>
+                    </li>
+
+                    // Reset
+                    calories = 0;
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+

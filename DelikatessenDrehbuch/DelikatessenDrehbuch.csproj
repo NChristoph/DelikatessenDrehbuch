@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
+    <Folder Include="MealPlaner\Models\" />
   </ItemGroup>
 
 </Project>

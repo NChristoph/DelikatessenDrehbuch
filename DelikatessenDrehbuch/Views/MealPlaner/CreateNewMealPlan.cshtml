@@ -1,7 +1,7 @@
 ﻿@using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
 
-@model List<CreateNewMealPlanModel>
+@model List<MealPlanerModel>
 
 @{
     var personCount = (int)ViewData["PersonCount"];
@@ -176,7 +176,9 @@
 </div>
 
 
+
 @{
+    <input id="personCount" value="@personCount" hidden/>
     var groupedPerDays = Model.GroupBy(x => x.Index).OrderBy(x => x.Key).ToList();
     foreach (var dayGroupe in groupedPerDays)
     {
@@ -201,7 +203,12 @@
                     <div id="apperetizer_@slot.Index">
                         @if (slot.Recipes.Category.Trim() == "Vorspeise")
                         {
-                            <input name="RecipeId" hidden value="@slot.Recipes.Id" type="number"/>
+                            <input name="RecipeId"
+                                   class="meal-plan-input"
+                                   value="@slot.Recipes.Id"
+                                   data-day-index="@slot.Index"
+                                   type="number"
+                                   hidden />
                             
 
                             <div class="recipe-media">
@@ -260,7 +267,12 @@
                     </div>
                     @if (slot.Recipes.Category.Trim() == "Hauptspeise")
                     {
-                        <input name="RecipeId" hidden value="@slot.Recipes.Id" type="number" />
+                        <input name="RecipeId"
+                               class="meal-plan-input"
+                               value="@slot.Recipes.Id"
+                               data-day-index="@slot.Index"
+                               type="number"
+                               hidden />
                        <div id="main_@slot.Index">
                             <div class="recipe-media">
                                 @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
@@ -317,7 +329,12 @@
                     <div id="dessert_@slot.Index">
                         @if (slot.Recipes.Category.Trim() == "Dessert")
                         {
-                            <input name="RecipeId" hidden value="@slot.Recipes.Id" type="number" />
+                            <input name="RecipeId"
+                                   class="meal-plan-input"
+                                   value="@slot.Recipes.Id"
+                                   data-day-index="@slot.Index"
+                                   type="number"
+                                   hidden />
                             <div class="recipe-media">
                                 @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
                                 {

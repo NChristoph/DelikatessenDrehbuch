@@ -64,7 +64,7 @@ namespace DelikatessenDrehbuch.Controllers
         //TODO: Mach das ordentlich
         public IActionResult FilterMenues([FromBody] List<string> categories)
         {
-            List<MealPlanModel> model = new();
+            List<PreMadeMenuesModel> model = new();
 
             if (!User.IsInRole("PremiumUser"))
             {
@@ -78,7 +78,7 @@ namespace DelikatessenDrehbuch.Controllers
 
                 foreach (var mealPlan in groupedPlans)
                 {
-                    MealPlanModel mealPlanModel = new();
+                    PreMadeMenuesModel mealPlanModel = new();
                     mealPlanModel.MealPlan = mealPlan.Key;
                     foreach (var recipes in mealPlan)
                     {
@@ -100,7 +100,7 @@ namespace DelikatessenDrehbuch.Controllers
             var groupedMealPlans = mealPlanHandlerFromDb.GroupBy(x => x.MealPlan);
             foreach (var mealpan in groupedMealPlans)
             {
-                MealPlanModel mealPlanModel = new();
+                PreMadeMenuesModel mealPlanModel = new();
                 mealPlanModel.MealPlan = mealpan.Key;
 
                 foreach (var recipes in mealpan)

@@ -1,0 +1,33 @@
+﻿@model (IEnumerable<IGrouping<string, IngredientHandlerModel>> group, bool salt, bool pepper)
+
+
+@{
+    var (groupIng, salt, pepper) = Model;
+    <ul class="mobieleWidth90 minWidth50" style="list-style-type:none; padding-left:0;">
+        @{
+            foreach (var ingGroup in groupIng)
+            {
+                <li><strong>@ingGroup.Key :</strong></li>
+                foreach (var ing in ingGroup)
+                {
+                    <li name="IngredientContainer_SelectetRecipe" class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter" style="border-radius:0.25rem;">
+                        <span name="quantity" data-original="@ing.Quantity.Quantitys" style="text-align:right; width:50px; margin-right:10px;">
+                            @(ing.Quantity.Quantitys == 0 ? "" : ing.Quantity.Quantitys)
+                        </span>
+                        <span style="width:105px;">@ing.Measure.UnitOfMeasurement</span>
+                        <span style="width:150px;">@ing.Ingredient.Name</span>
+                    </li>
+                }
+            }
+            if (salt || pepper)
+            {
+                <li class="Bg-Cream Border-Gold mb-1 flex flexJustifyContendCenter">
+                    <span style="width:90%;display:block;text-align:center">
+                        @(salt && pepper ? "Salz und Pfeffer nach Geschmack" : salt ? "Salz nach Geschmack" : "Pfeffer nach Geschmack")
+                    </span>
+                </li>
+            }
+        }
+    </ul>
+
+}

@@ -1,4 +1,4 @@
-﻿@using DelikatessenDrehbuch.MealPlaner.Models
+﻿@using DelikatessenDrehbuch.MealPlaner
 @using Microsoft.AspNetCore.Identity
 @using System.Web
 @using System.Linq;
@@ -8,7 +8,7 @@
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-@inject IJsonHelper Json
+
 
 @model Recipes
 
@@ -278,7 +278,7 @@
                             Dieses Rezept ist für @index Personen.
                         </span>
 
-                        <div id="Ingredient_@Model.Id"></div>
+                        <vc:ingredient recipe-id="@Model.Id" person-count="@index"></vc:ingredient>
 
                     </div>
                 </div>
@@ -306,17 +306,17 @@
                     }
                 }
 
-               @*  <!-- Korrigierte Tab-Struktur für Nährstoffe -->
+                <!-- Korrigierte Tab-Struktur für Nährstoffe -->
                 <div class="grid-Preparation col" style="padding:2%">
-                    <ul class="nav nav-tabs" id="recipeTabs_@Model.FullRecipeData.Recipes.Id" role="tablist">
+                    <ul class="nav nav-tabs" id="recipeTabs_@Model.Id" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active"
-                                    id="prep-tab-@Model.FullRecipeData.Recipes.Id"
+                                    id="prep-tab-@Model.Id"
                                     data-bs-toggle="tab"
-                                    data-bs-target="#prep_@Model.FullRecipeData.Recipes.Id"
+                                    data-bs-target="#prep_@Model.Id"
                                     type="button"
                                     role="tab"
-                                    aria-controls="prep_@Model.FullRecipeData.Recipes.Id"
+                                    aria-controls="prep_@Model.Id"
                                     aria-selected="true"
                                     style="font-size:14px;">
                                 Zubereitung
@@ -324,12 +324,12 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link"
-                                    id="nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                                    id="nutrition-tab-@Model.Id"
                                     data-bs-toggle="tab"
-                                    data-bs-target="#nutrition_@Model.FullRecipeData.Recipes.Id"
+                                    data-bs-target="#nutrition_@Model.Id"
                                     type="button"
                                     role="tab"
-                                    aria-controls="nutrition_@Model.FullRecipeData.Recipes.Id"
+                                    aria-controls="nutrition_@Model.Id"
                                     aria-selected="false"
                                     style="font-size:14px;">
                                 Nährstoffe je Zutat
@@ -337,12 +337,12 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link"
-                                    id="total-nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                                    id="total-nutrition-tab-@Model.Id"
                                     data-bs-toggle="tab"
-                                    data-bs-target="#gesamtZutaten_@Model.FullRecipeData.Recipes.Id"
+                                    data-bs-target="#gesamtZutaten_@Model.Id"
                                     type="button"
                                     role="tab"
-                                    aria-controls="gesamtZutaten_@Model.FullRecipeData.Recipes.Id"
+                                    aria-controls="gesamtZutaten_@Model.Id"
                                     aria-selected="false"
                                     style="font-size:14px;">
                                 Nährstoffe gesamt
@@ -350,135 +350,39 @@
                         </li>
                     </ul>
 
-                    <div class="tab-content mt-3" id="recipeTabsContent_@Model.FullRecipeData.Recipes.Id">
+                    <div class="tab-content mt-3" id="recipeTabsContent_@Model.Id">
                         <!-- Zubereitung Tab -->
                         <div class="tab-pane fade show active Bg-Cream"
-                             id="prep_@Model.FullRecipeData.Recipes.Id"
+                             id="prep_@Model.Id"
                              role="tabpanel"
-                             aria-labelledby="prep-tab-@Model.FullRecipeData.Recipes.Id"
+                             aria-labelledby="prep-tab-@Model.Id"
                              style="padding:2%">
                             <h4 class="mb-3">Zubereitung:</h4>
-                            <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.FullRecipeData.Recipes.Preparation)</p>
+                            <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.Preparation)</p>
                         </div>
 
-                         <!-- Nährstoffe je Zutat Tab -->
+                        <!-- Nährstoffe je Zutat Tab -->
                         <div class="tab-pane fade Bg-Cream"
-                             id="nutrition_@Model.FullRecipeData.Recipes.Id"
+                             id="nutrition_@Model.Id"
                              role="tabpanel"
-                             aria-labelledby="nutrition-tab-@Model.FullRecipeData.Recipes.Id"
+                             aria-labelledby="nutrition-tab-@Model.Id"
                              style="padding:2%">
                             <h4 class="mb-3">Nährstoffe je Zutat:</h4>
+                            <vc:nutrien-ingredient recipe-id="@Model.Id"></vc:nutrien-ingredient>
 
-                            @{
-                                double Result(double grammMenge, double nutrient) => Math.Round(grammMenge * nutrient / 100, 2);
-                                var sortedList = Model.FullRecipeData.NutrientHandler.GroupBy(x => x.Ingredient.Name).ToList();
-                                var nutrientTotals = new Dictionary<string, (double sum, string unit)>();
-                            }
-
-                            <div class="row g-3">
-                                @foreach (var nutrients in sortedList)
-                                {
-                                    var ingredientName = nutrients.Key.ToLower();
-                                    var handler = Model.FullRecipeData.IngredientHandler.SingleOrDefault(x => x.Ingredient.Name.ToLower() == ingredientName);
-                                    if (handler == null) continue;
-
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="dropdown w-100">
-                                            <button class="btn btn-secondary dropdown-toggle w-100 bgRedGardien Border-Gold"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                                    style="color:white">
-                                                @nutrients.Key
-                                            </button>
-
-                                            <div class="dropdown-menu w-100 p-3" style="min-width: 300px;">
-                                                @foreach (var nutrient in nutrients)
-                                                {
-                                                    double grammMenge;
-                                                    if ((handler.Measure.UnitOfMeasurement == "Stk." || handler.Measure.UnitOfMeasurement == "EL." || handler.Measure.UnitOfMeasurement == "TL.")
-                                                    && nutrient.Ingredient.AverageWeight != null)
-                                                    {
-                                                        grammMenge = handler.Quantity.Quantitys * (nutrient.Ingredient.AverageWeight ?? 100);
-                                                    }
-                                                    else
-                                                    {
-                                                        grammMenge = handler.Quantity.Quantitys;
-                                                    }
-
-                                                    double einzelWert = Result(grammMenge, nutrient.Quantity.Quantitys);
-
-                                                    // Für Gesamtsumme sammeln
-                                                    if (nutrientTotals.ContainsKey(nutrient.Nutrients.Nutrient))
-                                                    {
-                                                        var current = nutrientTotals[nutrient.Nutrients.Nutrient];
-                                                        nutrientTotals[nutrient.Nutrients.Nutrient] = (current.sum + einzelWert, current.unit);
-                                                    }
-                                                    else
-                                                    {
-                                                        nutrientTotals[nutrient.Nutrients.Nutrient] = (einzelWert, nutrient.Metrics.UnitOfMeasurement);
-                                                    }
-
-                                                    <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-light">
-                                                        <span class="fw-bold">@nutrient.Nutrients.Nutrient:</span>
-                                                        <span>
-                                                            <span name="nutrientQuantity" data-original="@einzelWert">@einzelWert</span>
-                                                            <small class="text-muted">@nutrient.Metrics.UnitOfMeasurement</small>
-                                                        </span>
-                                                    </div>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
                         </div>
 
                         <!-- Gesamte Nährstoffe Tab -->
                         <div class="tab-pane fade Bg-Cream"
-                             id="gesamtZutaten_@Model.FullRecipeData.Id"
+                             id="gesamtZutaten_@Model.Id"
                              role="tabpanel"
-                             aria-labelledby="total-nutrition-tab-@Model.FullRecipeData.Id"
+                             aria-labelledby="total-nutrition-tab-@Model.Id"
                              style="padding:2%">
                             <h4 class="mb-3">Gesamtnährwerte:</h4>
 
                             @if (User.IsInRole("PremiumUser"))
                             {
-                                @if (nutrientTotals.Any())
-                                {
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Nährstoff</th>
-                                                    <th class="text-end">Menge</th>
-                                                    <th>Einheit</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var entry in nutrientTotals.OrderBy(x => x.Key))
-                                                {
-                                                    <tr>
-                                                        <td>@entry.Key</td>
-                                                        <td class="text-end">
-                                                            <span name="nutrientQuantity" data-original="@entry.Value.sum">
-                                                                @Math.Round(entry.Value.sum, 2)
-                                                            </span>
-                                                        </td>
-                                                        <td>@entry.Value.unit</td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-info-circle me-2"></i>
-                                        Keine Nährstoffdaten verfügbar für dieses Rezept.
-                                    </div>
-                                }
+                                <vc:nutrient-sum recipe-id="@Model.Id"></vc:nutrient-sum>
                             }
                             else
                             {
@@ -490,7 +394,7 @@
                             }
                         </div>
                     </div>
-                </div> *@
+                </div>
             </div>
         </div>
     </div>

@@ -1,26 +1,37 @@
-﻿@using DelikatessenDrehbuch.MealPlaner.Models
+﻿@using DelikatessenDrehbuch.MealPlaner
 @using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
-@model Dictionary<int, List<CreatedMealPlanModel>>
+@model List<MealPlanerModel>
 
 @{
-    var personCount = (int)ViewData["personCount"];
+    var personCount = (int?)ViewData["PersonCount"] ?? 1; // Fallback, falls null
+
+    // 1. Gruppieren nach Tag (Index), damit wir "Tag 1", "Tag 2" etc. haben
+    var groupedDays = Model
+        .Where(x => x.Recipes != null) // Sicherheitshalber leere Slots filtern
+        .GroupBy(x => x.Index)
+        .OrderBy(x => x.Key)
+        .ToList();
 }
 
-<input type="number" id="personCount" value="@personCount" hidden />
-
 <style>
-    /* ===== Grid/Karten (Desktop) ===== */
+    /* ... Deine bestehenden Styles (unverändert) ... */
+    /* ===========================
+           Hier habe ich nichts geändert,
+           damit das Layout exakt gleich bleibt
+           =========================== */
     .meal-grid {
         display: grid;
         grid-template-columns: repeat(3,1fr);
         gap: 1rem;
     }
-
     @@media (max-width: 991.98px) {
-        .meal-grid {
-            display: none;
-        }
+        .meal-grid
+
+    {
+        display: none;
+    }
+
     }
 
     .meal-card {
@@ -61,7 +72,6 @@
             line-height: 1.2;
         }
 
-    /* ===== Mobile: Tages-Karussell ===== */
     .day-wrap {
         margin: 1.25rem auto;
         max-width: 1100px;
@@ -79,11 +89,13 @@
         min-width: 90%;
         margin: 0 auto;
     }
-
     @@media (min-width: 992px) {
-        .carousel-wrap {
-            display: none;
-        }
+        .carousel-wrap
+
+    {
+        display: none;
+    }
+
     }
 
     .carousel-item .k-hero {
@@ -140,21 +152,24 @@
             border-color: #D4AF37;
         }
 
-    /* ===== Offcanvas Breite ===== */
     .offcanvas.meal-offcanvas {
         width: min(720px,90vw);
     }
-
     @@media (min-width:992px) {
-        .offcanvas.meal-offcanvas {
-            width: 50vw;
-        }
+        .offcanvas.meal-offcanvas
+
+    {
+        width: 50vw;
     }
 
+    }
     @@media (max-width:992px) {
-        .desktopHidden {
-            display: none;
-        }
+        .desktopHidden
+
+    {
+        display: none;
+    }
+
     }
 
     .day-actions {
@@ -166,10 +181,11 @@
 
 <div class="flexColumn w-100 flexAlginItemCenter">
 
-    @* ==== Tages-Schleife ==== *@
-    @foreach (var dayKey in Model.Keys.OrderBy(k => k))
+    @* ==== Tages-Schleife über die gruppierten Daten ==== *@
+    @foreach (var dayGroup in groupedDays)
     {
-        var list = Model[dayKey];
+        var dayKey = dayGroup.Key; // Der Index (Tag 1, 2, 3...)
+        var list = dayGroup.ToList(); // Die Liste der Rezepte an diesem Tag
 
         <hr class="w-75" style="height:2px" />
         <span class="day-title">Rezepte für Tag @dayKey</span>
@@ -178,19 +194,22 @@
         <div class="meal-grid w-100">
             @foreach (var item in list)
             {
-                var r = item.RecipeId;
-                var n = item.Name;
-                var unifiedOffId = $"MealPlanCanvas_{r}";
-                var img = FrontendFunctions.GetSmallImagePath(item.ImagePath);
+                // ZUGRIFF ÜBER .Recipe
+                var r = item.Recipes.Id;
+                var n = item.Recipes.Name;
+                var imgPath = item.Recipes.ImagePath;
+
+                var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}"; // ID + DayKey für Eindeutigkeit falls Rezept doppelt vorkommt
+                var img = FrontendFunctions.GetSmallImagePath(imgPath);
 
                 <div class="meal-card"
                      role="button"
                      data-bs-toggle="offcanvas"
                      data-bs-target="#@unifiedOffId"
                      aria-controls="@unifiedOffId">
-                    <img src="@img" alt="@n?" loading="lazy" />
+                    <img src="@img" alt="@n" loading="lazy" />
                     <div class="body">
-                        <h5 title="@n?">@n?</h5>
+                        <h5 title="@n">@n</h5>
                         <button type="button" class="btn btn-sm bgRed Border-Gold" style="color:white">
                             Öffnen
                         </button>
@@ -210,10 +229,12 @@
                         var first = true;
                         foreach (var item in list)
                         {
-                            var r = item.RecipeId;
-                            var n = item.Name;
-                            var smallPath = FrontendFunctions.GetSmallImagePath(item.ImagePath);
-                            var unifiedOffId = $"MealPlanCanvas_{r}";
+                            var r = item.Recipes.Id;
+                            var n = item.Recipes.Name;
+                            var imgPath = item.Recipes.ImagePath;
+
+                            var smallPath = FrontendFunctions.GetSmallImagePath(imgPath);
+                            var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
 
                             <div class="carousel-item @(first ? "active" : "")">
                                 <div class="k-hero"
@@ -248,9 +269,10 @@
                     var idx = 0;
                     foreach (var item in list)
                     {
-                        var r = item.RecipeId;
-                        var n = item.Name;
-                        var img = FrontendFunctions.GetSmallImagePath(item.ImagePath);
+                        var n = item.Recipes.Name;
+                        var imgPath = item.Recipes.ImagePath;
+                        var img = FrontendFunctions.GetSmallImagePath(imgPath);
+
                         <div class="thumb @(idx == 0 ? "active" : "")"
                              data-slide-to="@idx"
                              data-bs-target="#@carouselId">
@@ -262,12 +284,11 @@
             </div>
         </div>
 
-        @* ===== Offcanvas pro Rezept (Details – direkt aus Model) ===== *@
+        @* ===== Offcanvas pro Rezept (Details) ===== *@
         @foreach (var item in list)
         {
-            var r = item.RecipeId;
-            var unifiedOffId = $"MealPlanCanvas_{r}";
-            @*  var bigImg = FrontendFunctions.GetSmallImagePath(r.Recipes.ImagePath); // oder MediumPath, falls vorhanden *@
+            var r = item.Recipes.Id;
+            var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
 
             <div class="offcanvas offcanvas-start meal-offcanvas mobieleWidth100 tableteSize75"
                  tabindex="-1"
@@ -284,19 +305,20 @@
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
 
-                <div  class="offcanvas-body w-100" id="recipeContainer_@r">
+                @* Container wird per AJAX befüllt *@
+                <div class="offcanvas-body w-100" id="recipeContainer_@r">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         }
 
 
-        // ===== Zutaten – Tag @dayKey (direkt aus Model.Ingredients) =====
+        @* ===== Zutaten – Tag (Button) ===== *@
         var ingOffId = $"Ingredients_Day_{dayKey}";
-        @*   var dayIngredients = Model[dayKey]
-        .SelectMany(m => m.FullRecipeData.IngredientHandler)
-        .ToList(); *@
-
-
 
         <div class="day-actions">
             <button class="btn bgRed Border-Gold"
@@ -309,6 +331,7 @@
             </button>
         </div>
 
+        @* ===== Zutaten Offcanvas ===== *@
         <div class="offcanvas offcanvas-start meal-offcanvas mobieleWidth100 tableteSize75"
              tabindex="-1"
              id="@ingOffId"
@@ -329,14 +352,7 @@
                 <div id="ingredientPartialView_Day_@dayKey"
                      class="p-2 mobieleWidth80"
                      style="min-width:40%;">
-                    @* Zutaten direkt rendern (du kannst hier deine bestehende Ingredient-Partial nutzen) *@
-                    @{
-                        var vd = new ViewDataDictionary(ViewData);
-                        vd["PersonCount"] = personCount;
-                    }
-                    @*  <partial name="~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml"
-                             model="dayIngredients"
-                             view-data="vd" /> *@
+
                 </div>
             </div>
         </div>
@@ -355,15 +371,15 @@
     </button>
 </div>
 
-@* ===== Offcanvas: Gesamte Zutatenliste ===== *@
-@* @{
-    var allIngredients = Model.Values
-        .SelectMany(dayList => dayList)
-        .SelectMany(m => m.Ingredients)
-        .ToList();
-} *@
+@* ===== Berechnung aller Zutaten für den Gesamt-Button ===== *@
+@{
+    // var allIngredients = Model
+    //     .Where(x => x.Recipes != null && x.Recipes.Ingredients != null)
+    //     .SelectMany(x => x.Recipe.Ingredients)
+    //     .ToList();
+}
 
-@* <div class="offcanvas offcanvas-start meal-offcanvas mobieleWidth100 tableteSize75"
+<div class="offcanvas offcanvas-start meal-offcanvas mobieleWidth100 tableteSize75"
      tabindex="-1"
      id="Gesamte_ZutatenListe"
      aria-labelledby="offcanvasExampleLabel">
@@ -407,7 +423,7 @@
         </div>
 
         <div class="tab-content mt-3">
-            <div class="tab-pane fade show active"
+           @*  <div class="tab-pane fade show active"
                  id="zutatenGesamt"
                  role="tabpanel"
                  style="padding:2%;">
@@ -416,7 +432,7 @@
                      style="min-width:40%;">
                     @Html.Partial("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", allIngredients)
                 </div>
-            </div>
+            </div> *@
 
             <div class="tab-pane fade"
                  id="einkaufsliste"
@@ -425,19 +441,25 @@
                 <div id="ShoppingList"
                      class="p-2 mobieleWidth80"
                      style="min-width:40%;">
+                    <div class="text-center p-3">
+                        <div class="spinner-border text-danger" role="status"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div> *@
+</div>
 
 @section Scripts {
-
     <script>
-
-          
-
+        // Funktion zum Laden des Rezepts via AJAX
         function loadRecipe(id) {
+            // Prüfen ob schon Inhalt da ist, um unnötige Requests zu vermeiden
+            var container = $("#recipeContainer_" + id);
+
+            // Lade-Animation anzeigen
+            container.html('<div class="d-flex justify-content-center p-3"><div class="spinner-border text-danger"></div></div>');
+
             $.ajax({
                 url: "/CreateNewMealPlan/LoadMealPlanRecipesPartialView",
                 type: "GET",
@@ -446,18 +468,21 @@
                     personCount: @personCount
                 },
                 success: function (html) {
-                    $("#recipeContainer_"+id).html(html);
-                    loadMealPlanerIngredients(id)
+                    container.html(html);
+                    // Falls Zutaten separat geladen werden müssen:
+                    loadMealPlanerIngredients(id);
                 },
                 error: function () {
-                    $("#recipeContainer_"+id).html(
-                        "<div class='text-danger'>Fehler beim Laden des Rezepts.</div>"
-                    );
+                    container.html("<div class='text-danger p-3'>Fehler beim Laden des Rezepts.</div>");
                 }
             });
         }
 
-                function loadMealPlanerIngredients(recipeId) {
+        // Optional: Falls Zutaten separat geladen werden
+        function loadMealPlanerIngredients(recipeId) {
+            var target = $("#Ingredient_" + recipeId);
+            if(target.length === 0) return;
+
             $.ajax({
                 url: "/CreateNewMealPlan/LoadMealPlanerIngredients",
                 type: "GET",
@@ -466,36 +491,39 @@
                     personCount: @personCount
                 },
                 success: function (html) {
-                    $("#Ingredient_" + recipeId).html(html);
+                    target.html(html);
                 },
                 error: function () {
-                    $("#Ingredient_" + recipeId).html(
-                        "<div class='text-danger'>Fehler beim Laden der Zutaten.</div>"
-                    );
+                    target.html("<div class='text-danger'>Fehler beim Laden.</div>");
                 }
             });
         }
 
-         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('div[name="Recipes"]').forEach(function (off) {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Event Listener für alle Offcanvas mit name="Recipes"
+            var offcanvasList = document.querySelectorAll('div[name="Recipes"]');
+
+            offcanvasList.forEach(function (off) {
                 off.addEventListener('shown.bs.offcanvas', function () {
                     var id = off.getAttribute('data-id');
-                   
                     if (!id) return;
 
-                    // Nur laden, wenn noch leer
                     var container = document.getElementById('recipeContainer_' + id);
-                         if (container && container.innerHTML.trim() === "") {
-                                 loadRecipe(id);
-                           }
+
+                    // Nur laden, wenn noch kein "echter" Inhalt da ist (z.B. nur Spinner oder leer)
+                    // Wir prüfen grob auf Länge oder Inhalt
+                    if (container && (!container.innerHTML.includes('recipe-detail-wrapper'))) {
+                        // 'recipe-detail-wrapper' ist ein Beispiel, nimm eine Klasse die deine PartialView sicher hat
+                        // Oder einfacher:
+                        loadRecipe(id);
+                    }
                 });
             });
         });
-
-
     </script>
+
     <script>
-        // Thumbnails steuern das zugehörige Carousel
+        // Thumbnails Logic (Mobile Carousel)
         document.addEventListener('click', function (e) {
             const t = e.target.closest('.thumb');
             if (!t) return;
@@ -517,7 +545,7 @@
             bsCarousel.to(idx);
         });
 
-        // Beim Slide aktive Thumbnail synchronisieren
+        // Sync Thumbnail beim Sliden
         document.querySelectorAll('.carousel').forEach(c => {
             c.addEventListener('slid.bs.carousel', function (ev) {
                 const carouselId = c.id;
@@ -531,9 +559,23 @@
             });
         });
 
-        // Einkaufsliste per AJAX laden (falls du das beibehalten willst)
-        $('#einkaufsliste').on('shown.bs.tab', function () {
-            $('#ShoppingList').load("/CreateNewMealPlan/GetShoppingList");
-        });
+        // Einkaufsliste Tab Logic
+        var shoppingListLoaded = false;
+        var shoppingTab = document.querySelector('button[data-bs-target="#einkaufsliste"]');
+
+        if(shoppingTab){
+            shoppingTab.addEventListener('shown.bs.tab', function (event) {
+                // Nur einmal laden
+                if(!shoppingListLoaded){
+                     $('#ShoppingList').load("/CreateNewMealPlan/GetShoppingList", function(response, status, xhr){
+                         if(status == "error") {
+                             $('#ShoppingList').html("Fehler beim Laden der Einkaufsliste.");
+                         } else {
+                             shoppingListLoaded = true;
+                         }
+                     });
+                }
+            });
+        }
     </script>
 }
