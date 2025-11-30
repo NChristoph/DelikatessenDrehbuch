@@ -19,7 +19,7 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly HelpfulMethods _helpfulMethods;
 
         private readonly IRecipesService _recipesService;
-        private readonly IIngredientService _ingredientService;
+        private readonly IIngredientScaleService _ingredientService;
         private readonly IUtilityService _utilityService;
 
         private readonly List<string> _importantKeyWordsList;
@@ -28,7 +28,7 @@ namespace DelikatessenDrehbuch.Controllers
 
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext dbContext,
                               HelpfulMethods helpfulMethods, IMemoryCache cache,
-                              IRecipesService recipesService, IIngredientService ingredientService,
+                              IRecipesService recipesService, IIngredientScaleService ingredientService,
                               IUtilityService utilityService)
         {
             _logger = logger;

@@ -7,389 +7,330 @@
     var personCount = (int)ViewData["PersonCount"];
 }
 
+<input id="personCount" value="@personCount" hidden />
+
 <style>
     /* ===========================
-                   MealPlan Übersicht – Styles
-                   =========================== */
+           Delikatessen Tab Styles
+           =========================== */
 
-    .meal-slot-row {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    .meal-plan-card {
-        min-width: 260px;
+    /* Container für einen Tag */
+    .day-container {
         background: #fff;
-        border: 1px solid rgba(0,0,0,.08);
-        border-radius: .75rem;
-        overflow: visible;
-        box-shadow: 0 1px 6px rgba(0,0,0,.06);
-        transition: transform .15s, box-shadow .15s;
-        position: relative;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 3rem;
     }
 
-        /* Header */
-        .meal-plan-card .card-header {
-            background: #FEFFF2;
-            border-bottom: 1px solid rgba(0,0,0,.07);
-            padding: .75rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .day-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #FEFFF2;
+        padding-bottom: 0.5rem;
+    }
 
-    /* Buttons */
-    .meal-plan-btn {
-        background: #770f0f;
-        color: white;
-        border: 1px solid #D4AF37;
-        padding: .35rem .75rem;
-        border-radius: .45rem;
-        font-size: .85rem;
+    .day-title {
+        font-family: 'Playfair Display', serif;
+        color: #770f0f; /* Dunkelrot */
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+    /* Tabs Styling */
+    .nav-pills .nav-link {
+        color: #666;
+        background: #fff;
+        border: 1px solid #eee;
+        margin: 0 5px 10px 5px; /* Abstand auch nach unten für Mobile */
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-size: 0.9rem;
         font-weight: 600;
-        transition: .2s;
+        transition: all 0.2s;
     }
 
-        .meal-plan-btn:hover {
-            background: #5e0c0c;
+        .nav-pills .nav-link.active {
+            background-color: #770f0f; /* Dunkelrot */
             color: #fff;
+            border-color: #770f0f;
+            box-shadow: 0 4px 10px rgba(119, 15, 15, 0.3);
         }
 
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: #fcfcfc;
+            border-color: #D4AF37; /* Gold */
+            color: #D4AF37;
+        }
 
-
-    .recipe-card {
-        border: 1px solid rgba(0,0,0,.08);
-        border-radius: .9rem;
-        overflow: hidden;
+    /* Karten Design innerhalb der Tabs */
+    .meal-tab-card {
+        border: none;
+        max-width: 500px; /* Begrenzte Breite für Desktop */
+        margin: 0 auto; /* Zentrieren */
         background: #fff;
-        transition: transform .15s, box-shadow .15s
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
     }
 
-        .recipe-card:hover {
+        .meal-tab-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(0,0,0,.08)
         }
 
-    /* Bild + Overlay */
-    .recipe-media {
-        position: relative
+    /* Bild */
+    .meal-img-wrapper {
+        position: relative;
+        height: 280px; /* Schön groß */
+        overflow: hidden;
+        background-color: #f8f9fa;
     }
 
-        .recipe-media img {
+        .meal-img-wrapper img {
             width: 100%;
-            height: 240px;
+            height: 100%;
             object-fit: cover;
-            display: block
+            transition: transform 0.5s;
         }
 
-    .recipe-chip {
-        position: absolute;
-        left: .6rem;
-        bottom: .6rem;
-        display: flex;
-        gap: .4rem;
-        flex-wrap: wrap
+    .meal-tab-card:hover .meal-img-wrapper img {
+        transform: scale(1.03);
     }
 
-    .chip {
-        background: rgba(0,0,0,.65);
+    /* Chips (Zeit, Likes) über dem Bild */
+    .meal-chips {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        display: flex;
+        gap: 5px;
+    }
+
+    .meal-badge {
+        background: rgba(0, 0, 0, 0.7);
         color: #fff;
-        padding: .25rem .5rem;
-        border-radius: .5rem;
-        font-size: .8rem
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        backdrop-filter: blur(4px);
     }
 
     /* Body */
-    .recipe-body {
-        padding: .8rem .9rem
+    .meal-body {
+        padding: 1.5rem;
+        text-align: center;
     }
 
-    .recipe-title {
-        margin: 0 0 .35rem;
+    .meal-title {
         font-weight: 800;
-        font-size: 1rem;
-        color: #1f2a37;
-        line-height: 1.25
+        color: #2a3440;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
     }
 
-    .recipe-meta {
-        display: flex;
-        gap: .6rem;
-        align-items: center;
-        color: #556;
-        opacity: .9;
-        font-size: .9rem
+    .meal-actions {
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
     }
 
-    /* Platzhalterbild */
-    .ph {
-        background: #f4f4f4;
+    .btn-change {
+        background-color: #fff;
+        color: #770f0f;
+        border: 1px solid #770f0f;
+        padding: 0.4rem 1.2rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+        .btn-change:hover {
+            background-color: #770f0f;
+            color: #fff;
+        }
+
+    /* Leerer Zustand */
+    .empty-state {
+        height: 280px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #888
-    }
-
-   
-    /* Mobile Anpassung */
-    @@media (max-width: 768px) {
-        .meal-slot-row {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .meal-plan-card {
-            width: 100% !important;
-        }
+        color: #999;
+        background-color: #f9f9f9;
     }
 </style>
 
-
-
-<div id="mealStepsCarousel" class="carousel slide mb-4" data-bs-ride="carousel" style="min-height:150px">
+<div id="mealStepsCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
     <div class="carousel-inner">
         <div class="carousel-item active">
-            <div class="card p-3">
-                <h6 class="fw-bold text-danger">Gerichtsauswahl</h6>
-                <p>Wähle für jeden Tag deine Vorspeise, Hauptspeise und Dessert aus.</p>
+            <div class="card p-4 border-0 shadow-sm text-center bg-light">
+                <h5 class="fw-bold text-danger mb-2">Schritt 2: Dein Plan</h5>
+                <p class="text-muted m-0">Hier kannst du jeden Gang einzeln anpassen. Klicke einfach auf die Tabs.</p>
             </div>
         </div>
-        <div class="carousel-item">
-            <div class="card p-3">
-                <h6 class="fw-bold text-danger">Überblick</h6>
-                <p>Sortiere deine Tage, ändere die Reihenfolge oder überprüfe dein Menü visuell.</p>
-            </div>
-        </div>
-        <div class="carousel-item">
-            <div class="card p-3">
-                <h6 class="fw-bold text-danger">Zutaten</h6>
-                <p>Sieh alle benötigten Zutaten auf einen Blick – perfekt zur Vorbereitung.</p>
-            </div>
-        </div>
-        @*  <div class="carousel-item">
-            <div class="card p-3">
-                <h6 class="fw-bold text-danger">Schritt 4: Einkaufsliste</h6>
-                <p>Nach dem Erstellen des Plans bekommst du deine Einkaufsliste automatisch.</p>
-            </div>
-        </div> *@
     </div>
 </div>
 
-
-
 @{
-    <input id="personCount" value="@personCount" hidden/>
     var groupedPerDays = Model.GroupBy(x => x.Index).OrderBy(x => x.Key).ToList();
+
     foreach (var dayGroupe in groupedPerDays)
     {
-        <hr />
-        <h4 class="mt-4 mb-2 w-100" style="text-align:center">Tag @dayGroupe.Key</h4>
-        <div class="meal-slot-row m-1">
-            @foreach (var slot in dayGroupe)
-            {
-                <div class="card meal-plan-card w-25 m-1">
-                    <div class="card-header row">
-                        <button class="meal-plan-btn"
-                                data-name="apperetizer_"
-                                data-index="@slot.Index"
-                                data-id="@(slot.Recipes.Category=="Vorspeise"?@slot.Recipes.Id:0)"
-                                data-category="Vorspeise"
-                                onclick="ChangeOrAddRecipe(this)"
-                                style="max-width:max-content;margin-left:auto;">
-                            Hinzufügen
-                        </button>
-                    </div>
+        var dayId = dayGroupe.Key;
 
-                    <div id="apperetizer_@slot.Index">
-                        @if (slot.Recipes.Category.Trim() == "Vorspeise")
-                        {
-                            <input name="RecipeId"
-                                   class="meal-plan-input"
-                                   value="@slot.Recipes.Id"
-                                   data-day-index="@slot.Index"
-                                   type="number"
-                                   hidden />
-                            
+        // Rezepte für diesen Tag isolieren
+        var vorspeise = dayGroupe.FirstOrDefault(x => x.Recipes?.Category?.Trim() == "Vorspeise");
+        var hauptspeise = dayGroupe.FirstOrDefault(x => x.Recipes?.Category?.Trim() == "Hauptspeise");
+        var dessert = dayGroupe.FirstOrDefault(x => x.Recipes?.Category?.Trim() == "Dessert");
 
-                            <div class="recipe-media">
-                                @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
-                                {
-                                    <div class="dropdown">
-                                        <picture data-bs-toggle="dropdown">
-                                            <img class=""
-                                                 src="@slot.Recipes.ImagePath" />
-                                        </picture>
-                                        <ul class="dropdown-menu w-100">
-                                            <li>@Html.Raw(slot.Recipes.Description)</li>
-                                        </ul>
-                                    </div>
+        <div class="container day-container">
 
-                                }
-                                else
-                                {
-                                    <div class="ph" style="aspect-ratio:3/2">Kein Bild</div>
-                                }
+            <div class="day-header">
+                <h3 class="day-title">Tag @dayId</h3>
+            </div>
 
-                                <div class="recipe-chip">
-                                    @if (slot.Recipes.PreparationTime != null)
-                                    {
-                                        <span class="chip">@slot.Recipes.PreparationTime&nbsp;min</span>
-                                    }
+            <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab-@dayId" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-vor-@dayId-tab" data-bs-toggle="pill" data-bs-target="#pills-vor-@dayId" type="button" role="tab" aria-selected="false">
+                        <i class="bi bi-egg-fill me-1"></i> Vorspeise
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-main-@dayId-tab" data-bs-toggle="pill" data-bs-target="#pills-main-@dayId" type="button" role="tab" aria-selected="true">
+                        <i class="bi bi-basket2-fill me-1"></i> Hauptspeise
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-dessert-@dayId-tab" data-bs-toggle="pill" data-bs-target="#pills-dessert-@dayId" type="button" role="tab" aria-selected="false">
+                        <i class="bi bi-cupcake-fill me-1"></i> Dessert
+                    </button>
+                </li>
+            </ul>
 
-                                    @if (slot.Recipes.LikeCount > 0)
-                                    {
-                                        <span class="chip">❤ @slot.Recipes.LikeCount</span>
-                                    }
-                                    <span class="chip">Beschreibung öffnen</span>
-                                </div>
-                            </div>
+            <div class="tab-content" id="pills-tabContent-@dayId">
 
-                            <div class="recipe-body">
-                                <h3 class="recipe-title">@slot.Recipes.Name</h3>
-                            </div>
-
-                        }
-                    </div>
-                   
-                    
-                </div>
-                <div class="card meal-plan-card w-25 m-1">
-                    <div class="card-header row">
-                        <button class="meal-plan-btn"
-                                data-name="main_"
-                                data-index="@slot.Index"
-                                data-id="@slot.Recipes.Id"
-                                data-category="Hauptspeise"
-                                onclick="ChangeOrAddRecipe(this)"
-                                style="max-width:max-content;margin-left:auto;">
-                            Ändern
-                        </button>
-                    </div>
-                    @if (slot.Recipes.Category.Trim() == "Hauptspeise")
-                    {
-                        <input name="RecipeId"
-                               class="meal-plan-input"
-                               value="@slot.Recipes.Id"
-                               data-day-index="@slot.Index"
-                               type="number"
-                               hidden />
-                       <div id="main_@slot.Index">
-                            <div class="recipe-media">
-                                @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
-                                {
-                                    <div class="dropdown">
-                                        <picture data-bs-toggle="dropdown">
-                                            <img class=""
-                                                 src="@slot.Recipes.ImagePath" />
-                                        </picture>
-                                        <ul class="dropdown-menu w-100">
-                                            <li>@Html.Raw(slot.Recipes.Description)</li>
-                                        </ul>
-                                    </div>
-
-                                }
-                                else
-                                {
-                                    <div class="ph" style="aspect-ratio:3/2">Kein Bild</div>
-                                }
-
-                                <div class="recipe-chip">
-                                    @if (slot.Recipes.PreparationTime != null)
-                                    {
-                                        <span class="chip">@slot.Recipes.PreparationTime&nbsp;min</span>
-                                    }
-
-                                    @if (slot.Recipes.LikeCount > 0)
-                                    {
-                                        <span class="chip">❤ @slot.Recipes.LikeCount</span>
-                                    }
-                                    <span class="chip">Beschreibung öffnen</span>
-                                </div>
-                            </div>
-
-                            <div class="recipe-body">
-                                <h3 class="recipe-title">@slot.Recipes.Name</h3>
-                            </div>
-                       </div>
-                  
+                <div class="tab-pane fade" id="pills-vor-@dayId" role="tabpanel">
+                    @{
+                        RenderRecipeCard(dayId, vorspeise, "Vorspeise", "apperetizer_");
                     }
                 </div>
-                <div class="card meal-plan-card w-25 m-1">
-                    <div class="card-header row">
-                        <button class="meal-plan-btn"
-                                data-name="dessert_"
-                                data-index="@slot.Index"
-                                data-id="@(slot.Recipes.Category == "Dessert" ? @slot.Recipes.Id : 0)"
-                                data-category="Dessert"
-                                onclick="ChangeOrAddRecipe(this)"
-                                style="max-width:max-content;margin-left:auto;">
-                            Hinzufügen
-                        </button>
-                    </div>
-                    <div id="dessert_@slot.Index">
-                        @if (slot.Recipes.Category.Trim() == "Dessert")
-                        {
-                            <input name="RecipeId"
-                                   class="meal-plan-input"
-                                   value="@slot.Recipes.Id"
-                                   data-day-index="@slot.Index"
-                                   type="number"
-                                   hidden />
-                            <div class="recipe-media">
-                                @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
-                                {
-                                    <div class="dropdown">
-                                        <picture data-bs-toggle="dropdown">
-                                            <img class=""
-                                                 src="@slot.Recipes.ImagePath" />
-                                        </picture>
-                                        <ul class="dropdown-menu w-100">
-                                            <li>@Html.Raw(slot.Recipes.Description)</li>
-                                        </ul>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="ph" style="aspect-ratio:3/2">Kein Bild</div>
-                                }
 
-                                <div class="recipe-chip">
-                                    @if (slot.Recipes.PreparationTime != null)
-                                    {
-                                        <span class="chip">@slot.Recipes.PreparationTime&nbsp;min</span>
-                                    }
-
-                                    @if (slot.Recipes.LikeCount > 0)
-                                    {
-                                        <span class="chip">❤ @slot.Recipes.LikeCount</span>
-                                    }
-                                    <span class="chip">Beschreibung öffnen</span>
-                                </div>
-                            </div>
-
-                            <div class="recipe-body">
-                                <h3 class="recipe-title">@slot.Recipes.Name</h3>
-                            </div>
-
-                        }
-                    </div>
-                   
+                <div class="tab-pane fade show active" id="pills-main-@dayId" role="tabpanel">
+                    @{
+                        RenderRecipeCard(dayId, hauptspeise, "Hauptspeise", "main_");
+                    }
                 </div>
 
-            }
+                <div class="tab-pane fade" id="pills-dessert-@dayId" role="tabpanel">
+                    @{
+                        RenderRecipeCard(dayId, dessert, "Dessert", "dessert_");
+                    }
+                </div>
+
+            </div>
         </div>
-
-
     }
 }
 
-<div class="mt-3">
-    <button class="btn bgRed Border-Gold" style="color:white" onclick="createMealPlan()">
-        Essensplan Erstellen!
+<div class="text-center mb-5 mt-4">
+    <button class="btn btn-lg bgRed Border-Gold shadow px-5 py-3" style="color:white; border-radius:3rem; font-weight:700;" onclick="createMealPlan()">
+        <i class="bi bi-check-circle-fill me-2"></i> Essensplan Fertigstellen!
     </button>
 </div>
 
 
+@* ========================================================== 
+   HELPER FUNKTION: Rendert EINE Karte (damit wir keinen Code kopieren müssen)
+   ========================================================== *@
+@functions {
+    // WICHTIG: Das muss 'void' sein, nicht 'async Task', damit es im HTML-Flow gerendert wird.
+    public void RenderRecipeCard(int dayIndex, MealPlanerModel slot, string category, string namePrefix)
+    {
+        var hasRecipe = slot != null;
+        var recipeId = hasRecipe ? slot.Recipes.Id : 0;
+        var divId = $"{namePrefix}{dayIndex}"; // z.B. main_1
+
+        <div class="meal-tab-card">
+            <div id="@divId">
+
+                @if (hasRecipe)
+                {
+                    <input name="RecipeId" class="meal-plan-input" value="@recipeId" data-day-index="@dayIndex" type="number" hidden />
+
+                    <div class="meal-img-wrapper">
+                        @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
+                        {
+                            <img src="@slot.Recipes.ImagePath" alt="@slot.Recipes.Name" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="bi bi-image fs-1 mb-2"></i> Kein Bild
+                            </div>
+                        }
+
+                        <div class="meal-chips">
+                            @if (slot.Recipes.PreparationTime != null)
+                            {
+                                <span class="meal-badge"><i class="bi bi-clock"></i> @slot.Recipes.PreparationTime min</span>
+                            }
+                            @if (slot.Recipes.LikeCount > 0)
+                            {
+                                <span class="meal-badge"><i class="bi bi-heart-fill text-danger"></i> @slot.Recipes.LikeCount</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="meal-body">
+                        <h5 class="meal-title">@slot.Recipes.Name</h5>
+
+                        @if (!string.IsNullOrEmpty(slot.Recipes.Description))
+                        {
+                            <p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">
+                                @Html.Raw(slot.Recipes.Description)
+                            </p>
+                        }
+
+                        <div class="meal-actions">
+                            <button class="btn btn-change"
+                                    data-name="@namePrefix"
+                                    data-index="@dayIndex"
+                                    data-id="@recipeId"
+                                    data-category="@category"
+                                    onclick="ChangeOrAddRecipe(this)">
+                                <i class="bi bi-arrow-repeat me-1"></i> Ändern
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-plus-circle display-1 mb-3 text-secondary opacity-25"></i>
+                        <h5 class="text-muted">Kein Gericht ausgewählt</h5>
+
+                        <div class="mt-3">
+                            <button class="btn btn-lg btn-primary shadow-sm"
+                                    style="border-radius:2rem; background-color:#D4AF37; border:none;"
+                                    data-name="@namePrefix"
+                                    data-index="@dayIndex"
+                                    data-id="0"
+                                    data-category="@category"
+                                    onclick="ChangeOrAddRecipe(this)">
+                                <i class="bi bi-plus-lg me-1"></i> @category hinzufügen
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
 
 @section Scripts {
     <script src="/js/CreateNewMealPlan.js" asp-append-version="true"></script>

@@ -6,12 +6,12 @@ namespace DelikatessenDrehbuch.Services.Interfaces
 {
     public class FullRecipeDataService : IFullRecipeDataService
     {
-        private readonly IIngredientService _ingredientService;
+        private readonly IIngredientScaleService _ingredientService;
         private readonly IRecipesService _recipesService;
         private readonly INutrientService _nutrientService;
 
         private readonly ApplicationDbContext _context;
-        public FullRecipeDataService(IIngredientService ingredientService,IRecipesService recipesService,
+        public FullRecipeDataService(IIngredientScaleService ingredientService,IRecipesService recipesService,
                                      ApplicationDbContext context,INutrientService nutrientService)
         {
             _ingredientService = ingredientService;

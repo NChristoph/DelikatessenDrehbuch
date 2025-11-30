@@ -40,6 +40,7 @@
                     .Replace(".webp", "")
                     .Replace(".jpg", "")
                     .Replace(".png", "")
+                    .Replace("_small", "")
                     .Replace(" ", "%20");
 
             return caseSensetivePath;

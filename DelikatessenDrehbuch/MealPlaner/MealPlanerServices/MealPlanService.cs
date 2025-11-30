@@ -24,7 +24,7 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
         private readonly IHttpContextAccessor _httpContext;
         private readonly IRecipesService _recipesService;
         private readonly IRecipesHandlerService _recipesHandlerService;
-        private readonly IIngredientService _ingredientService;
+        private readonly IIngredientScaleService _ingredientService;
         private readonly ISessionService _sessionService;
         private readonly IMealPlanSortByFilters _mealPlanSortByFilters;
         private readonly IIngredientScaleService _ingredientScaleService;
@@ -56,7 +56,7 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
             return await CreatePersonalMealPlanRecipeModelByIdsAsync(RecipeIds);
         }
 
-      
+
 
 
         public async Task<List<MealPlanerModel>> CreatePersonalMealPlanRecipeModelByIdsAsync(List<int> recipesIds)
@@ -72,7 +72,32 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
             return modelList;
         }
 
+        public async Task CreateSavedMealPlanAsync(string email, PersonalMealPlanSettings settings, Dictionary<int, List<int>> indexAndIds)
+        {
+            var savedMealPlan = _context.SavedMealPlan.FirstOrDefault(x => x.UserMail == email);
 
+            if (savedMealPlan == null)
+            {
+                SavedMealPlans plans = new()
+                {
+                    UserMail = email,
+                    UserSettingJson = JsonSerializer.Serialize(settings),
+                    MealPlanJson = JsonSerializer.Serialize(indexAndIds)
+
+                };
+
+                _context.SavedMealPlan.Add(plans);
+            }
+            else
+            {
+                
+                savedMealPlan.UserSettingJson = JsonSerializer.Serialize(settings);
+                savedMealPlan.MealPlanJson = JsonSerializer.Serialize(indexAndIds);
+
+            }
+
+            await _context.SaveChangesAsync();
+        }
 
 
 
@@ -88,7 +113,7 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
 
             };
 
-            model.Recipes.ImagePath=FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
+            model.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
 
 
             return model;

@@ -121,20 +121,22 @@
                         <li class="deli-list-item">
                             <span>@nutri.Nutrients.Nutrient</span>
                             <span>
-                                <strong>@nutri.Quantity.Quantitys</strong>
+                                <strong name="nutriData" data-baseData="@nutri.Quantity.Quantitys">@nutri.Quantity.Quantitys</strong>
                                 <small class="text-muted">@nutri.Metrics.UnitOfMeasurement</small>
                             </span>
                         </li>
                     }
 
-                    // Kalorien Zeile ganz unten (Hervorgehoben)
                     <li class="deli-list-item deli-calories">
-                        <span><i class="bi bi-fire"></i> Kalorien</span> <span id="caloies" data-calories="@calories">
+                        <span><i class="bi bi-fire"></i> Kalorien</span>
+
+                        <span name="nutriData" data-baseData="@calories" class="calories-source"
+                              data-calories="@(calories?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0")">
                             @Math.Round((double)(calories ?? 0), 0) kcal
                         </span>
                     </li>
 
-                    // Reset
+                    
                     calories = 0;
                 }
             </ul>

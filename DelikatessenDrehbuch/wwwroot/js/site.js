@@ -70,25 +70,25 @@ function UnCheckAllCheckboxes(checkboxes) {
 
 function ChangeRecipesQuantity(input) {
 
-    var multipler = input.value;
-    var quantity = document.getElementsByName("quantity").forEach(x => {
-        var base = parseNumberLocale(x.dataset.original);
-        var value = base * multipler;
-        let formatted;
+    //var multipler = input.value;
+    //var quantity = document.getElementsByName("quantity").forEach(x => {
+    //    var base = parseNumberLocale(x.dataset.original);
+    //    var value = base * multipler;
+    //    let formatted;
 
-        if (value % 1 === 0) {
-            // Ganze Zahl → ohne Nachkommastellen
-            formatted = value.toString();
-        } else {
-            // Hat Nachkommastellen → auf 2 begrenzen
-            formatted = value.toFixed(2).replace('.', ',');
-        }
+    //    if (value % 1 === 0) {
+    //        // Ganze Zahl → ohne Nachkommastellen
+    //        formatted = value.toString();
+    //    } else {
+    //        // Hat Nachkommastellen → auf 2 begrenzen
+    //        formatted = value.toFixed(2).replace('.', ',');
+    //    }
 
-        x.textContent = formatted;
-    });
+    //    x.textContent = formatted;
+    //});
  
 
-    ChangeNutrientQuantity(multiplier);
+   // ChangeNutrientQuantity(multiplier);
 }
 
 

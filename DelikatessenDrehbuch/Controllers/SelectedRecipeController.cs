@@ -14,13 +14,13 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly IRecipesService _recipesService;
         private readonly IQueryService _queryService;
         private readonly INutrientService _nutrientService;
-        private readonly IIngredientService _ingredientService;
+        private readonly IIngredientScaleService _ingredientService;
         private readonly ILikeService _likeService;
         private readonly IRecessionsService _recessionsService;
 
         public SelectedRecipeController(ApplicationDbContext dbContext, IRecipesService recipesService,
                                         IQueryService queryService, INutrientService nutrientService,
-                                        IIngredientService ingredientService, ILikeService likeService,
+                                        IIngredientScaleService ingredientService, ILikeService likeService,
                                         IRecessionsService recessionsService)
         {
             _context = dbContext;

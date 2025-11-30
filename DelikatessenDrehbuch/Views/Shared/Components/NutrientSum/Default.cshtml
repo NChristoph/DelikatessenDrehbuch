@@ -128,12 +128,12 @@
     </div>
 
       <div class="deli-hero-section">
-        <span class="hero-number">@calories</span>
+        <span id="caloriesIdSum" data-baseData="@calories" class="hero-number">@calories</span>
         <span class="hero-label"><i class="bi bi-fire"></i> Kalorien (kcal)</span>
     </div> 
 
     @{
-        float? caloies = 0.0f;
+        
         <div class="deli-nutrient-grid">
             @foreach (var item in Model.OrderBy(x => x.Nutrients.Nutrient))
             {
@@ -141,7 +141,7 @@
                 var nameLower = item.Nutrients.Nutrient.ToLower();
                 var colorClass = "";
                 if (nameLower.Contains("protein") || nameLower.Contains("eiweiß")) colorClass = "val-protein";
-                else if (nameLower.Contains("fett")) colorClass = "val-fat";
+                else if (nameLower.Contains("fat")) colorClass = "val-fat";
                 else if (nameLower.Contains("kohlenhydrat")) colorClass = "val-carbs";
 
                 <div class="deli-nutrient-item">

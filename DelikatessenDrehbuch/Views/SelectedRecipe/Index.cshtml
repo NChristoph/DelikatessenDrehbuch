@@ -5,415 +5,406 @@
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
-@inject IJsonHelper Json
-@inject IUtilityService _utilityService
 @model FullRecipeData
 
 @{
-    ViewData["Title"] = $"{Model.Recipes.Name} – Rezept & Anleitung | Delikatessen-Drehbuch";
-    ViewData["Description"] = $"Entdecken Sie das Rezept für {Model.Recipes.Name} – eine exquisite Delikatesse mit detaillierter Anleitung. Perfekt für besondere Anlässe oder den puren Genuss. Jetzt entdecken & nachkochen!";
+    ViewData["Title"] = $"{Model.Recipes.Name} – Rezept | Delikatessen-Drehbuch";
+    double totalCalories = ViewBag.TotalCalories ?? 0;
 }
 
-
 <script type="application/ld+json">
-
-
     {
     "@@context": "https://schema.org",
     "@@type": "Recipe",
     "name": "@Model.Recipes.Name",
-    "author": {
-    "@@type": "Person",
-    "name": "Christoph Nitsch"
-    },
+    "author": { "@@type": "Person", "name": "Christoph Nitsch" },
     "description": "@Model.Recipes.Description",
-    "prepTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
-    "totalTime": "PT@Model.FullRecipeData.Recipes.PreparationTimeMins@M",
-    "recipeCategory": "@Model.Recipes.Category",
-    "keywords": [
-
-    ],
-    "recipeIngredient": [
-    @Html.Raw(string.Join(",", Model.IngredientHandler.Select(i => "\"" + i.Ingredient.Name.Replace("ä", "\\u00e4").Replace("ö", "\\u00f6").Replace("ü", "\\u00fc").Replace("ß", "\\u00df") + "\"")))
-    ],
-    "recipeInstructions": [
-    {
-    "@@type": "HowToStep",
-    "text": "@Html.Raw(Model.Recipes.Preparation.Replace("\"", "\\\"").Replace("\n", "\\n"))"
-    }
-    ],
     "image": "@Model.Recipes.ImagePath",
-    "publisher": {
-    "@@type": "Organization",
-    "name": "Delikatessen-Drehbuch",
-    "url": "https://www.delikateessen-drehbuch.com",
-    "logo": {
-    "@@type": "ImageObject",
-    "url": "[Logo-URL]",
-    "width": 250,
-    "height": 100
-    }
-    },
-    "sameAs": "https://www.facebook.com/profile.php?id=61563421617642"
+    "recipeCategory": "@Model.Recipes.Category"
     }
 </script>
 
-
-
-
 <style>
-    /* ===== Design-Token (nur für diese Seite) ===== */
-    .recipe-modern {
-        --clr-bg: #ffffff; /* Seitenhintergrund */
-        --clr-card: #FEFFF1; /* Beige für Cards */
-        --clr-text: #2a3440; /* Anthrazit */
-        --clr-brand: #770f0f; /* dein Rot */
-        --clr-gold: #D4AF37; /* dein Gold */
-        --bd: 1px solid rgba(0,0,0,.06);
-        --radius: .75rem;
-        --shadow: 0 1px 6px rgba(0,0,0,.06);
-        --gap: 1rem;
+    /* =========================================
+                       Delikatessen Styles - Update
+                       ========================================= */
+
+    :root {
+        --deli-red: #770f0f;
+        --deli-gold: #D4AF37;
+        --deli-cream: #FEFFF2;
+        --deli-dark: #2a3440;
     }
 
-    /* Seiten-Rahmen */
-    .recipe-modern {
-        background: var(--clr-bg);
-        color: var(--clr-text);
-        padding: 1rem 0;
+    .recipe-page-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+        color: var(--deli-dark);
     }
 
-        .recipe-modern .maxWidth80,
-        .recipe-modern .minWidth80,
-        .recipe-modern .mobieleWidth90 {
-            color: var(--clr-text);
+    /* --- Navigation --- */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--deli-red);
+        font-weight: 600;
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        transition: color 0.2s;
+    }
+
+        .back-link:hover {
+            color: var(--deli-gold);
         }
 
-        /* Überschrift */
-        .recipe-modern .grid-KeyWords {
-            color: var(--clr-text);
-            font-weight: 800;
-            letter-spacing: .2px;
+        .back-link i {
+            margin-right: 0.5rem;
         }
 
-        /* Bild als Card */
-        .recipe-modern .grid-Image picture {
-            background: var(--clr-card);
-            border: var(--bd);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            margin-bottom: var(--gap);
-            padding: .3rem;
-        }
+    /* --- Hero Section --- */
+    .recipe-title {
+        font-family: 'Playfair Display', 'Century', serif;
+        color: var(--deli-red);
+        font-weight: 700;
+        text-align: center;
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 
-        .recipe-modern .grid-Image img {
+    .recipe-hero-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem; /* Abstand zur Zutatenliste verringert */
+    }
+
+    @@media(min - width: 992px) {
+        .recipe-hero-grid {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+        }
+    }
+
+    .recipe-image-card {
+        background: #fff;
+        padding: 0.5rem;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+        .recipe-image-card img {
+            width: 50%;
+            border-radius: 0.75rem;
             display: block;
             object-fit: cover;
-            transition: transform .25s ease;
+            aspect-ratio: 4/3;
+            margin-left: 25%;
         }
 
-            .recipe-modern .grid-Image img:hover {
-                transform: scale(1.02);
+    /* --- Meta Box (Rechts) --- */
+    .recipe-meta-box {
+        background-color: var(--deli-cream);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        border-bottom: 1px dotted #ccc;
+        padding-bottom: 0.5rem;
+    }
+
+        .meta-row:last-child {
+            border-bottom: none;
+        }
+
+    .meta-label {
+        font-weight: 600;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .meta-value {
+        font-weight: 700;
+        color: var(--deli-dark);
+    }
+
+    .description-text {
+        margin-top: 1.5rem;
+        font-style: italic;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    /* --- Action Toolbar --- */
+    .action-toolbar {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-deli-action {
+        flex: 1;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.6rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-like {
+        background: #fff;
+        border: 1px solid var(--deli-gold);
+        color: var(--deli-dark);
+    }
+
+        .btn-like:hover {
+            background: var(--deli-cream);
+        }
+
+    .btn-report {
+        background: transparent;
+        border: 1px dashed #ccc;
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+        .btn-report:hover {
+            border-color: var(--deli-red);
+            color: var(--deli-red);
+        }
+
+    /* --- NEU: Zutaten Box Styling --- */
+    .ingredients-box {
+        background-color: #fff;
+        border: 1px solid var(--deli-gold);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        position: relative;
+    }
+
+        .ingredients-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--deli-gold), var(--deli-red));
+            border-radius: 1rem 1rem 0 0;
+        }
+
+    /* Person Input */
+    .person-input-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: var(--deli-cream);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem; /* Pill shape */
+        border: 1px solid var(--deli-gold);
+        width: fit-content;
+        margin: 0 auto 1.5rem auto;
+    }
+
+    .person-input {
+        width: 50px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 2px;
+        font-weight: bold;
+        color: var(--deli-red);
+        background: #fff;
+    }
+
+    /* --- Tabs Styling --- */
+    .deli-tabs {
+        border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+        margin-bottom: 2rem;
+    }
+
+        .deli-tabs .nav-link {
+            color: #666;
+            border: none;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            background: transparent;
+        }
+
+            .deli-tabs .nav-link.active {
+                color: var(--deli-red);
+                border-bottom: 3px solid var(--deli-gold);
+                background: transparent;
             }
 
-        /* Mini-Cards: Zeit + Kalorien nebeneinander, mit Abstand */
-        .recipe-modern .grid-PreparationTime,
-        .recipe-modern .grid-Calories {
-            align-items: start;
-            align-self: start;
-            gap: .5rem;
-            background: var(--clr-card);
-            border: var(--bd);
-            border-radius: .6rem;
-            box-shadow: var(--shadow);
-            padding: .55rem .8rem;
-            margin: .5rem .5rem .5rem 0; /* Abstand zwischen den beiden Cards */
-        }
-
-            .recipe-modern .grid-Calories p {
-                margin: 1rem;
+            .deli-tabs .nav-link:hover {
+                color: var(--deli-red);
             }
 
-        /* Beschreibung als Card */
-        .recipe-modern .grid-Discription {
-            background: var(--clr-card) !important;
-            border: var(--bd);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1.25rem !important;
-            margin-bottom: var(--gap);
-        }
+    .tab-content-wrapper {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        margin-bottom: 3rem;
+        border: 1px solid #f0f0f0;
+    }
 
-            .recipe-modern .grid-Discription h4 {
-                font-weight: 800;
-            }
+    /* --- Zubereitung Text --- */
+    .prep-text {
+        font-size: 1.05rem;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        color: var(--deli-dark);
+    }
 
-        /* Zutatenliste als kleine Cards */
-        .recipe-modern .grid-ingredient ul {
-            margin: 0;
-            padding-left: 0;
-        }
+    /* --- Bewertungen --- */
+    .review-card {
+        background: #fff;
+        border-left: 4px solid var(--deli-gold);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
 
-        .recipe-modern .grid-ingredient li {
-            background: var(--clr-card) !important;
-            border: var(--bd);
-            border-radius: .55rem !important;
-            box-shadow: var(--shadow);
-            padding: .45rem .6rem !important;
-            margin-bottom: .5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 0.5rem;
+    }
 
-            .recipe-modern .grid-ingredient li span[name="quantity"] {
-                font-variant-numeric: tabular-nums;
-                font-weight: 700;
-            }
+    .review-body {
+        font-style: italic;
+        color: #444;
+    }
 
-        /* Tabs auf Marke getrimmt, Pane als Card */
-        .recipe-modern .nav-tabs {
-            border-bottom: 1px solid rgba(0,0,0,.08);
-        }
-
-            .recipe-modern .nav-tabs .nav-link {
-                color: var(--clr-text);
-                font-weight: 600;
-                border: none;
-            }
-
-                .recipe-modern .nav-tabs .nav-link:hover {
-                    color: var(--clr-brand);
-                }
-
-                .recipe-modern .nav-tabs .nav-link.active {
-                    color: var(--clr-brand);
-                    background: transparent;
-                    border-bottom: 2px solid var(--clr-gold);
-                }
-
-        .recipe-modern #recipeTabsContent .tab-pane {
-            background: var(--clr-card) !important;
-            border: var(--bd);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1rem 1.25rem !important;
-            margin-bottom: var(--gap);
-        }
-
-        /* Dropdowns */
-        .recipe-modern .dropdown .btn.bgRedGardien {
-            border: 1px solid rgba(255,255,255,.25);
-            box-shadow: var(--shadow);
-        }
-
-        .recipe-modern .dropdown-menu {
-            background: #fff;
-            border: var(--bd);
-            border-radius: .6rem;
-            box-shadow: 0 8px 24px rgba(0,0,0,.1);
-        }
-
-        /* Ads als Cards (falls sichtbar) */
-        .recipe-modern .grid-Adds1,
-        .recipe-modern .grid-Adds2,
-        .recipe-modern .grid-Adds3 {
-            background: var(--clr-card);
-            border: var(--bd);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: .5rem;
-            margin-bottom: var(--gap);
-        }
-
-        /* Trenner dezent & Abstand */
-        .recipe-modern .grid-hr {
-            border: 0;
-            height: 1px;
-            background: #eee;
-            margin: 1.2rem 0;
-        }
-
-    /* Mobile Feinschliff */
-    @@media (max-width:576px) {
-
-
-        .recipe-modern .grid-Discription {
-            padding: 1rem !important;
+    /* Mobile Anpassung */
+    @@media (max-width: 400px) {
+        .recipe-image-card img {
+            width: 100%!important;
+            margin-left: 0!important;
         }
     }
 </style>
-<a class="Border-Gold btn "
-   typeof="button"
-   onclick="GoBack()"
-   style="text-decoration:none;color:white;background:#770f05">
-    Zurück
-</a>
-<div class="recipe-modern">
-    <div class="grid-Selected-Recipe">
 
-        <h3 class="grid-KeyWords mt-4" style="font-family:Century;margin-bottom:1rem;text-align:center">
-            @Model.Recipes.Name
-        </h3>
+<div class="recipe-page-wrapper">
 
-        @{
+    <a href="javascript:void(0);" onclick="GoBack()" class="back-link">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+
+    <h1 class="recipe-title">@Model.Recipes.Name</h1>
+
+    <div class="recipe-hero-grid">
+        <div class="recipe-image-card">
             @if (!string.IsNullOrEmpty(Model.Recipes.ImagePath))
             {
-
                 var smallPath = FrontendFunctions.GetSmallImagePath(Model.Recipes.ImagePath);
-                <div class="grid-Image maxWidth90 mt-3">
-                    <picture>
-                        <source srcset="@smallPath">
-                        <img class="img-fluid"
-                             src="@smallPath"
-                             alt="@(!string.IsNullOrEmpty(Model.Recipes.Description) ? Model.Recipes.Description : Model.Recipes.Name)"
-                             title="@Model.Recipes.Name"
-                             decoding="async"
-                             style="aspect-ratio:2/2;" />
-                    </picture>
-                </div>
-
-
+                <img src="@smallPath" alt="@Model.Recipes.Name" loading="lazy" style="width:50%; margin-left:25%; aspect-ratio:4/3; object-fit:cover;" />
             }
             else
             {
-                <img class="img-fluid"
-                     src="https://cdn.pixabay.com/photo/2020/04/22/18/22/excuse-me-5079442_640.jpg" />
+                <img src="https://cdn.pixabay.com/photo/2014/12/21/23/28/recipe-575434_640.png" alt="Placeholder" style="width:100%; margin:0;" />
             }
-        }
-
-
-        @if (Model.Recipes.PreparationTime > 0)
-        {
-            <div class="col minWidth50 grid-PreparationTime mobieleWidth80 p-2" style="margin-left:auto">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                    <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
-                    <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
-                    <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
-                </svg>
-                @Model.Recipes.PreparationTime min.
-            </div>
-        }
-
-        @{
-            <p class="grid-LikeCount maxWidth80 minWidth80 p-1 mt-3 mb-3" style="font-size:12px">
-                @(Model.Recipes.LikeCount == 0
-                            ? "Sei der Erste, dem das Rezept gefällt."
-                            : $"Dieses Rezept gefällt {Model.Recipes.LikeCount} Benutzern.")
-        </p>
-
-                }
-
-        @if (!string.IsNullOrEmpty(Model.Recipes.Calories))
-        {
-
-            <div class="grid-Calories col p-2 mobieleWidth80 minWidth80"
-                 style="margin-left:auto;">
-                <p>
-                    Kolorien
-                </p>
-                <hr />
-                @{
-                    var calories = _utilityService.GetCaloriesByIngredientHandlers(Model.IngredientHandler);
-                }
-
-                <p id="calories"
-                   data-original="@calories">
-                    Gesamt : @calories
-                </p>
-                <p>
-                    pro Portion : @calories
-                </p>
-            </div>
-        }
-
-        @if (!string.IsNullOrEmpty(Model.Recipes.Description))
-        {
-            <div class="grid-Discription maxWidth90 minWidth90" style="padding:5%">
-                <h4 class="mb-4">Rezept Beschreibung</h4>
-                <p>@Html.Raw(Model.Recipes.Description)</p>
-            </div>
-        }
-
-        @if (SignInManager.IsSignedIn(User))
-        {
-            <a class="btn bgRed mb-2 grid-Button"
-               href="#"
-               onclick="MessageModalShowWrite('@Model.Recipes.GetType().Name', @Model.Recipes.Id, '@User.Identity.Name')"
-               style="color:#FFFDD0; width:max-content; margin-right:auto">
-                Rezept melden
-            </a>
-
-            <div class="row maxWidth90 minWidth90 p-1 grid-Likebutton mt-3">
-
-                <a asp-controller="SelectedRecipe"
-                   asp-action="AddOrRemoveLike"
-                   asp-route-id="@Model.Recipes.Id"
-                   title="Like Button"
-                   style="width:100px; height:max-content; padding:0.35rem; margin-left:auto;">
-                    @{
-                        var like = Model.Likes.SingleOrDefault(x =>
-                        x.UserMail == User.Identity.Name &&
-                        x.Recipe == Model.Recipes);
-                    }
-
-                    @if (like != null)
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor"
-                             class="bi bi-hand-thumbs-up" viewBox="0 0 16 16" style="color:black">
-                            <path d="M6.956 1.745C7.021.81 7.908.087 8.864.325l.261.066c.463.116.874.456 1.012.965.22.816.533 2.511.062 4.51a10 10 0 0 1 .443-.051c.713-.065 1.669-.072 2.516.21.518.173.994.681 1.2 1.273.184.532.16 1.162-.234 1.733q.086.18.138.363c.077.27.113.567.113.856s-.036.586-.113.856c-.039.135-.09.273-.16.404.169.387.107.819-.003 1.148a3.2 3.2 0 0 1-.488.901c.054.152.076.312.076.465 0 .305-.089.625-.253.912C13.1 15.522 12.437 16 11.5 16H8c-.605 0-1.07-.081-1.466-.218a4.8 4.8 0 0 1-.97-.484l-.048-.03c-.504-.307-.999-.609-2.068-.722C2.682 14.464 2 13.846 2 13V9c0-.85.685-1.432 1.357-1.615.849-.232 1.574-.787 2.132-1.41.56-.627.914-1.28 1.039-1.639.199-.575.356-1.539.428-2.59z" />
-
-                        </svg>
-                    }
-                    else
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" fill="currentColor"
-                             class="bi bi-star-fill" viewBox="0 0 16 16" style="color:black">
-                            <path d="M8.864.046C7.908-.193 7.02.53 6.956 1.466c-.072 1.051-.23 2.016-.428 2.59-.125.36-.479 1.013-1.04 1.639-.557.623-1.282 1.178-2.131 1.41C2.685 7.288 2 7.87 2 8.72v4.001c0 .845.682 1.464 1.448 1.545 1.07.114 1.564.415 2.068.723l.048.03c.272.165.578.348.97.484.397.136.861.217 1.466.217h3.5c.937 0 1.599-.477 1.934-1.064a1.86 1.86 0 0 0 .254-.912c0-.152-.023-.312-.077-.464.201-.263.38-.578.488-.901.11-.33.172-.762.004-1.149.069-.13.12-.269.159-.403.077-.27.113-.568.113-.857 0-.288-.036-.585-.113-.856a2 2 0 0 0-.138-.362 1.9 1.9 0 0 0 .234-1.734c-.206-.592-.682-1.1-1.2-1.272-.847-.282-1.803-.276-2.516-.211a10 10 0 0 0-.443.05 9.4 9.4 0 0 0-.062-4.509A1.38 1.38 0 0 0 9.125.111zM11.5 14.721H8c-.51 0-.863-.069-1.14-.164-.281-.097-.506-.228-.776-.393l-.04-.024c-.555-.339-1.198-.731-2.49-.868-.333-.036-.554-.29-.554-.55V8.72c0-.254.226-.543.62-.65 1.095-.3 1.977-.996 2.614-1.708.635-.71 1.064-1.475 1.238-1.978.243-.7.407-1.768.482-2.85.025-.362.36-.594.667-.518l.262.066c.16.04.258.143.288.255a8.34 8.34 0 0 1-.145 4.725.5.5 0 0 0 .595.644l.003-.001.014-.003.058-.014a9 9 0 0 1 1.036-.157c.663-.06 1.457-.054 2.11.164.175.058.45.3.57.65.107.308.087.67-.266 1.022l-.353.353.353.354c.043.043.105.141.154.315.048.167.075.37.075.581 0 .212-.027.414-.075.582-.05.174-.111.272-.154.315l-.353.353.353.354c.047.047.109.177.005.488a2.2 2.2 0 0 1-.505.805l-.353.353.353.354c.006.005.041.05.041.17a.9.9 0 0 1-.121.416c-.165.288-.503.56-1.066.56z" />
-                        </svg>
-
-                    }
-                </a>
-
-
-                <button type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
-                        title="Rating Button"
-                        class="btn"
-                        style="width:max-content; height:max-content; margin-left:auto; color:#FFFDD0; background:#770f05">
-                    Bewerten
-                </button>
-
-            </div>
-        }
-
-        <hr class="grid-hr" style="opacity:1" />
-
-        <div class="grid-ingredient maxWidth90 minWidth90">
-            <div class="col">
-
-                <span class="mt-2 mb-2"
-                      style="text-align:center;display:block">
-                    Dieses Rezept ist für
-                    <input id="personCount"
-                           value="1"
-                           min="0"
-                           type="number"
-                           onchange="ChangeRecipesQuantity(this)"
-                           style="width:55px;" />
-                    Personen.
-                </span>
-
-                <vc:ingredient recipe-id="@Model.Recipes.Id" person-count="1"></vc:ingredient>
-
-            </div>
-
         </div>
 
-        @if (!User.IsInRole("PremiumUser"))
-        {
-            <div class="grid-Adds1 maxWidth90 minWidth90 mb-1 mt-1">
+        <div class="recipe-meta-box">
+            <h4 class="mb-4 text-center" style="color:var(--deli-gold)">Rezept Details</h4>
+
+            <div class="meta-row">
+                <span class="meta-label"><i class="bi bi-clock"></i> Zubereitung</span>
+                <span class="meta-value">@Model.Recipes.PreparationTime Min.</span>
+            </div>
+
+            <div class="meta-row">
+                <span class="meta-label"><i class="bi bi-fire"></i> Kalorien</span>
+                <span class="meta-value">
+                    <span id="caloriesDisplay">@ViewBag.SumCalories</span> kcal
+                    <small class="text-muted fw-normal">(pro Portion)</small>
+                </span>
+            </div>
+
+            <div class="meta-row">
+                <span class="meta-label"><i class="bi bi-heart"></i> Beliebtheit</span>
+                <span class="meta-value">@Model.Recipes.LikeCount Likes</span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Recipes.Description))
+            {
+                <div class="description-text">
+                    "@Html.Raw(Model.Recipes.Description)"
+                </div>
+            }
+
+            <div class="action-toolbar">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a asp-controller="SelectedRecipe"
+                       asp-action="AddOrRemoveLike"
+                       asp-route-id="@Model.Recipes.Id"
+                       class="btn-deli-action btn-like">
+                        @{
+                            var userLike = Model.Likes.SingleOrDefault(x => x.UserMail == User.Identity.Name && x.Recipe == Model.Recipes);
+                        }
+                        @if (userLike != null)
+                        {
+                            <i class="bi bi-hand-thumbs-up-fill text-primary"></i>
+                            <span>Gefällt mir</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-hand-thumbs-up"></i>
+                            <span>Gefällt mir</span>
+                        }
+                    </a>
+
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#ratingModal"
+                            class="btn-deli-action" style="background:var(--deli-red); color:#fff">
+                        <i class="bi bi-star-fill"></i> Bewerten
+                    </button>
+
+                    <a href="#" onclick="MessageModalShowWrite('@Model.Recipes.GetType().Name', @Model.Recipes.Id, '@User.Identity.Name')"
+                       class="btn-deli-action btn-report">
+                        <i class="bi bi-flag"></i> Melden
+                    </a>
+                }
+                else
+                {
+                    <div class="alert alert-light w-100 text-center border">
+                        <small><a href="/Identity/Account/Login">Anmelden</a> um zu bewerten.</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    @if (!User.IsInRole("PremiumUser"))
+    {
+        <div class="row justify-content-center mb-5">
+            <div class="col-12 text-center text-muted small">Anzeige</div>
+            <div class="col-md-8 bg-light p-3 border rounded text-center">
                 <ins class="adsbygoogle"
                      style="display:block"
                      data-ad-client="ca-pub-2332503983815482"
@@ -424,8 +415,28 @@
                     (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
             </div>
+        </div>
+    }
 
-            <div class="grid-Adds2 maxWidth90 minWidth90 mb-1 mt-1">
+
+    <div class="ingredients-box">
+        <h3 class="text-center mb-4" style="color:var(--deli-dark); font-family:'Century', serif;">Zutaten</h3>
+
+        <div class="person-input-wrapper">
+            <span>Zutaten für</span>
+            <input id="personCount" type="number" value="1" min="1" class="person-input" onchange="UpdatePortions(this)">
+            <span>Personen</span>
+        </div>
+
+        <div id="ingredientsContainer">
+            <vc:ingredient recipe-id="@Model.Recipes.Id" person-count="1"></vc:ingredient>
+        </div>
+    </div>
+    @if (!User.IsInRole("PremiumUser"))
+    {
+        <div class="row justify-content-center mb-5">
+            <div class="col-12 text-center text-muted small">Anzeige</div>
+            <div class="col-md-8 bg-light p-3 border rounded text-center">
                 <ins class="adsbygoogle"
                      style="display:block"
                      data-ad-client="ca-pub-2332503983815482"
@@ -436,8 +447,67 @@
                     (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
             </div>
+        </div>
+    }
 
-            <div class="grid-Adds3 maxWidth90 minWidth90 mb-1 mt-1">
+    <ul class="nav nav-tabs deli-tabs justify-content-center" id="recipeTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="prep-tab" data-bs-toggle="tab" data-bs-target="#prep-content" type="button">
+                Schritt-für-Schritt Anleitung
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="nut-tab" data-bs-toggle="tab" data-bs-target="#nut-content" type="button">
+                Nährwerte & Analyse
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content tab-content-wrapper" id="recipeTabsContent">
+
+        <div class="tab-pane fade show active" id="prep-content" role="tabpanel">
+            <h4 class="mb-4" style="color:var(--deli-red)">Zubereitung</h4>
+            <div class="prep-text">@Html.Raw(Model.Recipes.Preparation)</div>
+        </div>
+
+        <div class="tab-pane fade" id="nut-content" role="tabpanel">
+            @if (User.IsInRole("PremiumUser"))
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3 text-center">Details je Zutat</h5>
+                        <vc:nutrien-ingredient recipe-id="@Model.Recipes.Id"></vc:nutrien-ingredient>
+                    </div>
+                    <div class="col-md-6 mt-4 mt-md-0">
+                        <vc:nutrient-sum recipe-id="@Model.Recipes.Id"></vc:nutrient-sum>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3 text-center">Details je Zutat</h5>
+                        <vc:nutrien-ingredient recipe-id="@Model.Recipes.Id"></vc:nutrien-ingredient>
+                    </div>
+                    <div class="col-md-6 mt-4 mt-md-0">
+                        <div class="alert alert-warning text-center p-4">
+                            <i class="bi bi-gem display-4 text-warning"></i>
+                            <h5 class="mt-3">Premium Feature</h5>
+                            <p>Detaillierte Nährwertanalysen sind unseren Premium-Mitgliedern vorbehalten.</p>
+                            <a href="/Premium" class="btn btn-primary mt-2">Jetzt upgraden</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (!User.IsInRole("PremiumUser"))
+    {
+        <div class="row justify-content-center mb-5">
+            <div class="col-12 text-center text-muted small">Anzeige</div>
+            <div class="col-md-8 bg-light p-3 border rounded text-center">
                 <ins class="adsbygoogle"
                      style="display:block"
                      data-ad-client="ca-pub-2332503983815482"
@@ -448,292 +518,185 @@
                     (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
             </div>
-        }
-
-        <!-- Korrigierte Tab-Struktur für Nährstoffe -->
-        <div class="grid-Preparation col maxWidth90 minWidth90 " style="padding:2%">
-            <ul class="nav nav-tabs" id="recipeTabs_@Model.Recipes.Id" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active"
-                            id="prep-tab-@Model.Recipes.Id"
-                            data-bs-toggle="tab"
-                            data-bs-target="#prep_@Model.Recipes.Id"
-                            type="button"
-                            role="tab"
-                            aria-controls="prep_@Model.Recipes.Id"
-                            aria-selected="true"
-                            style="font-size:14px;">
-                        Zubereitung
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="nutrition-tab-@Model.Recipes.Id"
-                            data-bs-toggle="tab"
-                            data-bs-target="#nutrition_@Model.Recipes.Id"
-                            type="button"
-                            role="tab"
-                            aria-controls="nutrition_@Model.Recipes.Id"
-                            aria-selected="false"
-                            style="font-size:14px;">
-                        Nährstoffe je Zutat
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="total-nutrition-tab-@Model.Recipes.Id"
-                            data-bs-toggle="tab"
-                            data-bs-target="#gesamtZutaten_@Model.Recipes.Id"
-                            type="button"
-                            role="tab"
-                            aria-controls="gesamtZutaten_@Model.Recipes.Id"
-                            aria-selected="false"
-                            style="font-size:14px;">
-                        Nährstoffe gesamt
-                    </button>
-                </li>
-            </ul>
-
-            <div class="tab-content mt-3" id="recipeTabsContent_@Model.Recipes.Id">
-                <!-- Zubereitung Tab -->
-                <div class="tab-pane fade show active Bg-Cream"
-                     id="prep_@Model.Recipes.Id"
-                     role="tabpanel"
-                     aria-labelledby="prep-tab-@Model.Recipes.Id"
-                     style="padding:2%">
-                    <h4 class="mb-3">Zubereitung:</h4>
-                    <p style="font-family: var(--bs-body-font-family);white-space:pre-wrap">@Html.Raw(@Model.Recipes.Preparation)</p>
-                </div>
-
-                <!-- Nährstoffe je Zutat Tab -->
-                <div class="tab-pane fade Bg-Cream"
-                     id="nutrition_@Model.Recipes.Id"
-                     role="tabpanel"
-                     aria-labelledby="nutrition-tab-@Model.Recipes.Id"
-                     style="padding:2%">
-                    <h4 class="mb-3">Nährstoffe je Zutat:</h4>
-                    <vc:nutrien-ingredient recipe-id="@Model.Recipes.Id"></vc:nutrien-ingredient>
-                  
-                </div>
-
-                <!-- Gesamte Nährstoffe Tab -->
-                <div class="tab-pane fade Bg-Cream"
-                     id="gesamtZutaten_@Model.Recipes.Id"
-                     role="tabpanel"
-                     aria-labelledby="total-nutrition-tab-@Model.Recipes.Id"
-                     style="padding:2%">
-                    <h4 class="mb-3">Gesamtnährwerte:</h4>
-
-                    @if (User.IsInRole("PremiumUser"))
-                    {
-                        <vc:nutrient-sum recipe-id="@Model.Recipes.Id"></vc:nutrient-sum>
-                    }
-                    else
-                    {
-                        <div class="alert alert-warning">
-                            <i class="bi bi-star mt-2"></i>
-                            Diese Funktion ist nur für Premium-Nutzer verfügbar.
-                            <a href="/Premium" class="btn btn-sm btn-primary ms-2">Jetzt upgraden</a>
-                        </div>
-                    }
-                </div>
-            </div>
         </div>
+    }
 
-
-        <div class="carousel maxWidth90 flexColumn align-items-lg-center slide grid-Carusel"
-             id="RecipeSuggestions"
-             data-bs-ride="carousel">
-
-            <div class="w-100 flex flexJustifyContendCenter mt-2">
-                <span style="text-align:center">
-                    <strong>Das könnte Ihnen auch schmecken</strong>
-                </span>
-            </div>
-
-            <div class="carousel-inner flexJustifyContendCenter"
-                 style="max-width:450px;">
+    @if (Model.RecipeSuggestions != null && Model.RecipeSuggestions.Any())
+    {
+        <h4 class="text-center mb-4 mt-5" style="color:var(--deli-dark)">Das könnte Ihnen auch schmecken</h4>
+        <div id="suggestionsCarousel" class="carousel slide mx-auto" data-bs-ride="carousel" style="max-width: 500px;">
+            <div class="carousel-inner rounded shadow-sm">
                 @{
                     var first = true;
                 }
-
                 @foreach (var recipe in Model.RecipeSuggestions)
                 {
-
-                    var subPath1 = FrontendFunctions.CaseInsensitivePath(recipe.ImagePath);
-
-                    var smallPath1 = subPath1?.Replace(Environment.GetEnvironmentVariable("BigPic"),
-                    Environment.GetEnvironmentVariable("SmalPic"));
-
-                    <a class="carousel-item @(first ? "active" : "") mobieleWidth80"
-                       asp-controller="SelectedRecipe"
-                       asp-action="Index"
-                       asp-route-id="@recipe.Id"
-                       asp-route-name="@recipe.Name"
-                       style="text-decoration:none;color:black;">
-
-                        <picture style="max-width:450px;max-height:450px">
-                            <source srcset="@($"{smallPath1}_small.webp")">
-                            <img class="img-fluid"
-                                 src="@recipe.ImagePath"
-                                 alt="@(!string.IsNullOrEmpty(recipe.Description) ? recipe.Description : recipe.Name)"
-                                 title="@recipe.Name"
-                                 width="450"
-                                 height="450"
-                                 decoding="async"
-                                 style="aspect-ratio: 3 / 2; object-fit: cover;" />
-                        </picture>
-
-                        <span class="w-100 text-center d-block">@recipe.Name</span>
-                    </a>
-
+                    <div class="carousel-item @(first ? "active" : "")">
+                        <a asp-controller="SelectedRecipe" asp-action="Index" asp-route-id="@recipe.Id" asp-route-name="@recipe.Name">
+                            <img src="@recipe.ImagePath" class="d-block w-100" style="height:300px; object-fit:cover;" alt="@recipe.Name">
+                            <div class="carousel-caption  bg-dark bg-opacity-50 rounded">
+                                <h5>@recipe.Name</h5>
+                            </div>
+                        </a>
+                    </div>
                     first = false;
-
                 }
             </div>
-
-            <button class="carousel-control-prev"
-                    type="button"
-                    data-bs-target="#RecipeSuggestions"
-                    data-bs-slide="prev">
-
-                <span class="carousel-control-prev-icon"
-                      aria-hidden="true">
-                </span>
-
-                <span class="visually-hidden">
-                    Zurück
-                </span>
+            <button class="carousel-control-prev" type="button" data-bs-target="#suggestionsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             </button>
-            <button class="carousel-control-next"
-                    type="button"
-                    data-bs-target="#RecipeSuggestions"
-                    data-bs-slide="next">
-
-                <span class="carousel-control-next-icon"
-                      aria-hidden="true">
-                </span>
-
-                <span class="visually-hidden">
-                    Weiter
-                </span>
+            <button class="carousel-control-next" type="button" data-bs-target="#suggestionsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
             </button>
         </div>
+    }
+
+    <div class="mt-5 max-width-800 mx-auto">
+        <h4 class="mb-4 border-bottom pb-2">Bewertungen (@Model.Recession.Count)</h4>
+
+        @{
+            var reverseList = Model.Recession.AsEnumerable().Reverse();
+        }
+        @foreach (var review in reverseList)
+        {
+            var date = DateOnly.FromDateTime(review.CreationDate);
+            var maskedMail = review.UserEmail.Length > 3 ? review.UserEmail.Substring(0, 3) + "***" : "***";
+
+            <div class="review-card">
+                <div class="review-header">
+                    <span><i class="bi bi-person-circle"></i> @maskedMail</span>
+                    <span>@date</span>
+                </div>
+                <div class="review-body">"@review.Assessment"</div>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <div class="text-end mt-2">
+                        <small>
+                            <a href="#" class="text-muted text-decoration-none" onclick="MessageModalShowWrite('Recession', @review.Id, '@User.Identity.Name')">
+                                <i class="bi bi-flag"></i> Melden
+                            </a>
+                        </small>
+                    </div>
+                }
+            </div>
+        }
     </div>
+
 </div>
 
-
-
-
-<!-- Modal -->
-<div class="modal fade"
-     id="exampleModal"
-     tabindex="-1"
-     aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-
-            <div class="modal-header">
-                <h1 class="modal-title fs-5"
-                    id="exampleModalLabel">
-                    Bewerten
-                </h1>
-
-                <button class="btn-close"
-                        type="button"
-                        data-bs-dismiss="modal"
-                        aria-label="Close">
-                </button>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">Rezept bewerten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="w100 flex acenter jcenter ">
-                    <form class=" minWidth100 flex flexColumn acenter"
-                          asp-controller="SelectedRecipe"
-                          asp-action="SaveRecessionInDB">
-
-                        <input value="@Model.Recipes.Id"
-                               id="id"
-                               name="id" hidden />
-
-                        <textarea class="w100"
-                                  id="assessment"
-                                  name="assessment"
-                                  style="min-height:25vh">
-                            </textarea>
-
-                        <button class="btn bgRed mb-2 grid-Button mt-1"
-                                type="submit"
-                                title="Rating Button"
-                                style="width:max-content;margin-left:auto;color:#FFFDD0;">
-                            Bewerten
-                        </button>
-                    </form>
-                </div>
+                <form asp-controller="SelectedRecipe" asp-action="SaveRecessionInDB">
+                    <input value="@Model.Recipes.Id" name="id" hidden />
+                    <div class="mb-3">
+                        <label class="form-label">Ihre Meinung:</label>
+                        <textarea class="form-control" name="assessment" rows="5" placeholder="Wie hat es Ihnen geschmeckt?"></textarea>
+                    </div>
+                    <button type="submit" class="btn w-100" style="background:var(--deli-red); color:white;">Bewertung absenden</button>
+                </form>
             </div>
-
         </div>
     </div>
 </div>
 
-
-
-@{
-    var reverseList = Model.Recession;
-    reverseList.Reverse();
-    foreach (var recessionFromDb in reverseList)
-    {
-
-        string email = recessionFromDb.UserEmail.Substring(0, 5) + "*******";
-        var createTime = DateOnly.FromDateTime(recessionFromDb.CreationDate);
-        <div class="minWidth100 flex flexJustifyContendCenter">
-            <div class="card Border-Gold maxWidth80 minWidth80 mobieleWidth90 mb-3 ">
-                <div class="card-header flex flexRowToColumn jspaceBetween flexWrap bgRedGardien"
-                     style="color:#FFFDD0">
-
-                    <div class="minWidth40">
-                        @email
-                    </div>
-                    <div class="minWidth40 flex flexJustifyContendEnd">
-                        @createTime
-                    </div>
-
-                </div>
-                <div class="card-body  Bg-Cream">
-                    @recessionFromDb.Assessment
-                </div>
-                @{
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <div class=" card-footer Bg-Cream minWidth100 flex ">
-                            <a class="btn bgRed mb-2 "
-                               href="#"
-                               onclick="MessageModalShowWrite('@recessionFromDb.GetType().Name',@recessionFromDb.Id,'@User.Identity.Name')" style="color:#FFFDD0;width:max-content;margin-left:auto">Bewertung melden</a>
-
-                        </div>
-                    }
-                }
-
-            </div>
-        </div>
-
-    }
-}
-
-
 <script>
+    // 1. Initialisierung beim Laden der Seite
+    document.addEventListener("DOMContentLoaded", function() {
+        // Berechnet die Gesamtkalorien (für 1 Person/Portion) und schreibt sie in den Header
+        CalculateAndTeleportCalories();
+    });
+
+    // ---------------------------------------------------------
+    // Funktion: Kalorien summieren und in den Header kopieren
+    // ---------------------------------------------------------
+    function CalculateAndTeleportCalories() {
+        var calorieElements = document.querySelectorAll('.calories-source');
+        var totalSum = 0;
+
+        calorieElements.forEach(function(el) {
+            // Wert aus dem data-Attribut holen
+            // .replace(',', '.') sorgt dafür, dass "12,5" zu "12.5" wird (für JS lesbar)
+            var attrVal = el.getAttribute('data-calories');
+            if (attrVal) {
+                var val = parseFloat(attrVal.replace(',', '.'));
+                if (!isNaN(val)) {
+                    totalSum += val;
+                }
+            }
+        });
+
+        // Das Ziel im Header finden (id="caloriesDisplay")
+        var target = document.getElementById('caloriesDisplay');
+
+
+
+        // Wert schreiben (gerundet)
+        if (target) {
+            target.innerText = Math.round(totalSum);
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Funktion: Zutatenmengen basierend auf Personenanzahl ändern
+    // ---------------------------------------------------------
+    function UpdatePortions(input) {
+        // Neue Anzahl holen
+        var count = parseFloat(input.value);
+        //Gesamte Calorien anpassen
+            var sumTarget = document.getElementById('caloriesIdSum');
+            var baseCalories = parseFloat(sumTarget.getAttribute('data-baseData'));
+            sumTarget.innerText = Math.round(baseCalories * count);
+
+            document.getElementsByName('nutriData').forEach(function(el) {
+                var originalCal = parseFloat(el.getAttribute('data-baseData'));
+                var newCal = Math.round(originalCal * count);
+                el.innerText = newCal;
+            });
+        // Sicherheitscheck: Keine negativen Zahlen oder ungültige Werte
+        if (isNaN(count) || count < 0.1) return;
+
+        // Alle Zutaten-Mengen finden (die das Attribut data-original haben)
+        var ingredients = document.querySelectorAll('.ing-qty[data-original]');
+
+        ingredients.forEach(function(el) {
+            // Originalwert für 1 Person holen
+            var originalString = el.getAttribute('data-original');
+
+            if (originalString) {
+                // Komma durch Punkt ersetzen für Berechnung
+                var original = parseFloat(originalString.replace(',', '.'));
+
+                if (!isNaN(original) && original > 0) {
+                    // Berechnung: Original * Personenanzahl
+                    var newValue = original * count;
+
+                    // Formatierung für die Anzeige:
+                    // 1. Runden auf 2 Stellen (Math.round * 100 / 100)
+                    // 2. Punkt wieder durch Komma ersetzen (für deutsche Optik)
+                    var formattedValue = (Math.round(newValue * 100) / 100).toString().replace('.', ',');
+
+                    el.innerText = formattedValue;
+                }
+            }
+        });
+    }
+
+    // ---------------------------------------------------------
+    // Funktion: Zurück-Button Logik
+    // ---------------------------------------------------------
     function GoBack() {
-
-    if (window.history.length > 1) {
-    window.history.back();
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // Fallback, falls kein Verlauf da ist
+            window.location.href = '/Home/Index';
+        }
     }
-    else {
-    window.location.href = '../../Home/Index';
-    }
-    }
-
 </script>
-<script src="/js/site.js" defer asp-append-version="true">
-
-</script>
+<script src="/js/site.js" defer asp-append-version="true"></script>

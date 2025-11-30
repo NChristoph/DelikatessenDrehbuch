@@ -11,7 +11,8 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces
         Task<MealPlanerModel> CreatePersonalMealPlanRecipeModelByIdAsync(int id,int index);
         public Task CreateMealPlanAsync(int recipesId, string mealPlanName);
 
-      
+        public Task CreateSavedMealPlanAsync(string email, PersonalMealPlanSettings settings, Dictionary<int, List<int>> indexAndIds);
+
 
 
 

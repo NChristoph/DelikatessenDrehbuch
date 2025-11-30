@@ -63,7 +63,7 @@
                 <span>Rezept konnte nicht geladen werden</span>
                 <button class="btn btn-sm btn-outline-danger" 
                         onclick="ChangeOrAddRecipe(this)"
-                        data-id="${id}"
+                        data-id="${recipe.id}"
                         data-name="${name}"
                         data-index="${index}">
                     Erneut versuchen
@@ -71,40 +71,98 @@
             </div>
         `;
     }
+
+    SaveMealPlanToDb();
+}
+
+async function SaveMealPlanToDb() {
+    // 1. Alle Inputs mit der Klasse 'meal-plan-input' sammeln
+    const inputs = document.querySelectorAll('.meal-plan-input');
+
+    // Das Objekt, das später zum Dictionary<int, List<int>> wird
+    // Struktur: { "1": [10, 12, 15], "2": [99, 100] }
+    const groupedData = {};
+
+    // 2. Durch die Inputs iterieren
+    inputs.forEach(input => {
+        const recipeId = parseInt(input.value);
+        const dayIndex = parseInt(input.getAttribute('data-day-index'));
+
+        // Nur echte Rezept-IDs aufnehmen (ID > 0)
+        if (recipeId && recipeId > 0) {
+
+            // Falls der Key (Tag) noch nicht existiert, erstelle leeres Array
+            if (!groupedData[dayIndex]) {
+                groupedData[dayIndex] = [];
+            }
+
+            // Rezept-ID zum Array des jeweiligen Tages hinzufügen
+            groupedData[dayIndex].push(recipeId);
+        }
+    });
+
+    // 3. Prüfen, ob Daten vorhanden sind
+    if (Object.keys(groupedData).length === 0) {
+        alert("Der Plan ist leer. Bitte wähle Gerichte aus.");
+        return;
+    }
+
+    try {
+        // 4. Senden an den Controller
+        const response = await fetch('/CreateNewMealPlan/SaveMealPlanInDb', { // Passe den Controller-Namen an
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Falls du Anti-Forgery nutzt (empfohlen):
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            },
+            body: JSON.stringify(groupedData)
+        });
+
+      
+    } catch (error) {
+        console.error('Error:', error);
+        alert("Ein Netzwerkfehler ist aufgetreten.");
+    }
 }
 
 function createMealCard(recipes, index) {
-    // Bild-HTML vorbereiten
+    // 1. Prefix ermitteln (damit der "Ändern" Button weiß, wer er ist)
+    // Das Mapping muss zu deinen IDs im HTML passen (apperetizer_, main_, dessert_)
+    let namePrefix = "main_";
+    if (recipes.category === "Vorspeise") namePrefix = "apperetizer_";
+    else if (recipes.category === "Dessert") namePrefix = "dessert_";
+
+    // 2. Bild-HTML vorbereiten (Mit Fallback, falls kein Bild da ist)
     let imageHtml;
     if (recipes.imagePath) {
-        imageHtml = `
-            <div class="dropdown">
-                <picture data-bs-toggle="dropdown">
-                    <img src="${recipes.imagePath}" alt="${recipes.name}" />
-                </picture>
-                <ul class="dropdown-menu w-100">
-                    <li>${recipes.description || ''}</li>
-                </ul>
-            </div>
-        `;
+        imageHtml = `<img src="${recipes.imagePath}" alt="${recipes.name}" loading="lazy" />`;
     } else {
-        imageHtml = `<div class="ph" style="aspect-ratio:3/2">Kein Bild</div>`;
+        // Leerer Zustand Icon
+        imageHtml = `
+            <div class="empty-state" style="height:100%; display:flex; align-items:center; justify-content:center; background:#f9f9f9; color:#999;">
+                <i class="bi bi-image fs-1"></i>
+            </div>`;
     }
 
-    // Chips sammeln
+    // 3. Chips sammeln (Zeit & Likes)
     let chipsHtml = '';
-
     if (recipes.preparationTime) {
-        chipsHtml += `<span class="chip">${recipes.preparationTime}&nbsp;min</span>`;
+        chipsHtml += `<span class="meal-badge"><i class="bi bi-clock"></i> ${recipes.preparationTime} min</span>`;
     }
-
     if (recipes.likeCount > 0) {
-        chipsHtml += `<span class="chip">❤ ${recipes.likeCount}</span>`;
+        chipsHtml += `<span class="meal-badge ms-1"><i class="bi bi-heart-fill text-danger"></i> ${recipes.likeCount}</span>`;
     }
 
-    chipsHtml += `<span class="chip">Beschreibung öffnen</span>`;
+    // 4. Beschreibung kürzen (optional, falls vorhanden)
+    let descHtml = '';
+    if (recipes.description) {
+        // Einfache Methode um HTML Tags zu entfernen für Vorschau, oder roh lassen
+        descHtml = `<p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">${recipes.description}</p>`;
+    }
 
-    // Komplettes HTML zusammenbauen
+    // 5. Das neue HTML zusammenbauen (Passend zum Tab-Design!)
+    // Wir bauen hier das Innere von <div id="main_1"> nach
     return `
         <input type="hidden" 
                class="meal-plan-input" 
@@ -113,14 +171,28 @@ function createMealCard(recipes, index) {
                data-day-index="${index}" 
                data-category="${recipes.category || ''}" />
 
-        <div class="recipe-media">
+        <div class="meal-img-wrapper">
             ${imageHtml}
-            <div class="recipe-chip">
+            
+            <div class="meal-chips">
                 ${chipsHtml}
             </div>
         </div>
-        <div class="recipe-body">
-            <h3 class="recipe-title">${recipes.name}</h3>
+
+        <div class="meal-body">
+            <h5 class="meal-title">${recipes.name}</h5>
+            ${descHtml}
+
+            <div class="meal-actions">
+                <button class="btn btn-change"
+                        data-name="${namePrefix}"
+                        data-index="${index}"
+                        data-id="${recipes.id}"
+                        data-category="${recipes.category || ''}"
+                        onclick="ChangeOrAddRecipe(this)">
+                    <i class="bi bi-arrow-repeat me-1"></i> Ändern
+                </button>
+            </div>
         </div>
     `;
 }

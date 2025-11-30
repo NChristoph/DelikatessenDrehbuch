@@ -11,7 +11,7 @@ namespace DelikatessenDrehbuch.ViewComponents
         }
         public async Task<IViewComponentResult> InvokeAsync(int recipeId,int personCount)
         {
-            var model = _ingredientScaleService.GetScaledIngredienthandlerAsync(recipeId, personCount);
+            var model = _ingredientScaleService.GetScaledIngredienthandler(recipeId, personCount);
             return View(model);
         }
     }

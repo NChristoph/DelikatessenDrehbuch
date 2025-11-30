@@ -4,6 +4,9 @@
 @model List<MealPlanerModel>
 
 @{
+    //TODO:Einkaufsliste noch machen esensplan speichern und laden noch machen settings speichern noch 
+        //Settings Binding und auswahl logik überarbeiten
+
     var personCount = (int?)ViewData["PersonCount"] ?? 1; // Fallback, falls null
 
     // 1. Gruppieren nach Tag (Index), damit wir "Tag 1", "Tag 2" etc. haben
@@ -12,6 +15,12 @@
         .GroupBy(x => x.Index)
         .OrderBy(x => x.Key)
         .ToList();
+
+      var allRecipeIds = Model
+        .Where(x => x.Recipes != null)
+        .Select(x => x.Recipes.Id)
+        .Distinct()
+      .ToList();
 }
 
 <style>
@@ -285,8 +294,10 @@
         </div>
 
         @* ===== Offcanvas pro Rezept (Details) ===== *@
+        List<int> recipeIds = new List<int>();
         @foreach (var item in list)
         {
+            recipeIds.Add(item.Recipes.Id);
             var r = item.Recipes.Id;
             var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
 
@@ -346,14 +357,14 @@
             </div>
             <div class="offcanvas-body Border-Gold w-100">
                 <span class="w-100 mt-2 mb-3 text-center d-block">
-                    <strong>Einkaufsliste – Tag @dayKey</strong>
+                    <strong>Zutaten für – Tag @dayKey</strong>
                 </span>
 
-                <div id="ingredientPartialView_Day_@dayKey"
-                     class="p-2 mobieleWidth80"
-                     style="min-width:40%;">
-
-                </div>
+                <vc:ingredient-sum reciepe-ids="recipeIds" person-count="@personCount"></vc:ingredient-sum>
+                @{
+                    recipeIds.Clear();
+                }
+               
             </div>
         </div>
     }
@@ -371,13 +382,7 @@
     </button>
 </div>
 
-@* ===== Berechnung aller Zutaten für den Gesamt-Button ===== *@
-@{
-    // var allIngredients = Model
-    //     .Where(x => x.Recipes != null && x.Recipes.Ingredients != null)
-    //     .SelectMany(x => x.Recipe.Ingredients)
-    //     .ToList();
-}
+
 
 <div class="offcanvas offcanvas-start meal-offcanvas mobieleWidth100 tableteSize75"
      tabindex="-1"
@@ -423,16 +428,14 @@
         </div>
 
         <div class="tab-content mt-3">
-           @*  <div class="tab-pane fade show active"
+          <div class="tab-pane fade show active"
                  id="zutatenGesamt"
                  role="tabpanel"
                  style="padding:2%;">
-                <div id="ingredientPartialView"
-                     class="p-2 mobieleWidth80"
-                     style="min-width:40%;">
-                    @Html.Partial("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", allIngredients)
+                <div>
+                     <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount"></vc:ingredient-sum>
                 </div>
-            </div> *@
+            </div> 
 
             <div class="tab-pane fade"
                  id="einkaufsliste"

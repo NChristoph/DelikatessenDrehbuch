@@ -79,12 +79,12 @@ namespace DelikatessenDrehbuch.Controllers
 
             var model = await _mealPlanService.CreateMealPlanModels("Hauptspeise", settings.DayCount, User.Identity.Name, settings);
 
-            //var dict = model
-            //    .Select((value, index) => new { index, value })
-            //    .ToDictionary(
-            //        x => x.index + 1,                     // Key = Position
-            //       // Value = Liste mit einer ID
-            //    );
+            var dict = model.ToDictionary(
+               m => m.Index,
+               m => new List<int> { m.Recipes.Id }
+           );
+            await _mealPlanService.CreateSavedMealPlanAsync(User.Identity.Name,settings,dict);
+          
 
             //SaveMealPlanToDb(JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true }), personCount,
             //                 JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true })
@@ -93,6 +93,8 @@ namespace DelikatessenDrehbuch.Controllers
 
             return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
         }
+
+     
 
         private PersonalMealPlanSettings GetPersonalMealPlanSettingsFromDb()
         {
@@ -110,7 +112,7 @@ namespace DelikatessenDrehbuch.Controllers
         {
 
             var perso = GetPersonalMealPlanSettingsFromDb();
-//TODO:das mit have catchconrtent könnte probleme machen
+
             ModelForMealPlanSettingView model = new()
             {
                 Ingredients = _context.Ingredients.ToList(),
@@ -120,30 +122,6 @@ namespace DelikatessenDrehbuch.Controllers
             return View("~/Views/MealPlaner/MealPlanerUserSettings.cshtml", model);
         }
 
-    
-
-
-        public async Task<IActionResult> GetRecipe(int recipeId)
-        {
-            var mealPlan = GetSavedMealPlanFromDb();
-            ViewData["index"] =  mealPlan.PersonCount;
-            var querys = await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeId);
-
-
-
-            SelectedRecipesModel model = new()
-            {
-                FullRecipeData = await _recipesService.GetFullRecipeDataByRecipesIdAsync(recipeId),
-                Querys = querys,
-                NutrienHandlers = await _nutrientService.GetNutrienHandlersByIngredientNamesAsync(
-                                       await _ingredientService.GetIngredientsNamesByRecipesId(recipeId)),
-
-            };
-
-            return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml", model);
-        }
-
-
         public class MealPlanHelper
         {
             public int Index { get; set; }      // Der Tag (1, 2, 3...)
@@ -151,10 +129,10 @@ namespace DelikatessenDrehbuch.Controllers
            
         }
         [HttpGet]
-        public async Task<IActionResult> CreateMealPlanAsync(string data)
+        public async Task<IActionResult> CreateMealPlanAsync(string data,int personCount)
         {
-            var mealPlan = GetSavedMealPlanFromDb();
-            ViewData["PersonCount"] = mealPlan.PersonCount;
+           
+            ViewData["PersonCount"] = personCount;
             var indexIds = JsonConvert.DeserializeObject<List<MealPlanHelper>>(data);
             List<MealPlanerModel> model = new();
 
@@ -179,62 +157,8 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml", model);
         }
 
-        public IActionResult LoadMealPlanerIngredients(int id, int personCount)
-        {
-            var model = _ingredientScaleService.GetScaledIngredienthandlerAsync(id, personCount);
-            return PartialView("~/Views/MealPlaner/_mealPlanerIngredientsPartial.cshtml", model);
-        }
+      
 
-        private void SaveMealPlanToDb(string indexAndIds = "", int personCount = 0, string settingsJson = "")
-        {
-            var userMail = User?.Identity?.Name;
-            if (string.IsNullOrWhiteSpace(userMail))
-                throw new InvalidOperationException("Kein Benutzerkontext (User.Identity.Name ist null).");
-
-            // Bestehenden Plan laden (ohne Exception bei 'kein Treffer')
-            var savedMealPlan = _context.SavedMealPlan
-                                        .FirstOrDefault(x => x.UserMail == userMail);
-
-            if (savedMealPlan is null)
-            {
-                // Neu anlegen
-                savedMealPlan = new SavedMealPlans
-                {
-                    UserMail = userMail,
-                    PersonCount = personCount,
-                    MealPlanJson = indexAndIds,
-                    Token = _utilityService.GenerateRandomToken(20),
-                    CreationTime = DateTime.UtcNow,
-                    UserSettingJson = settingsJson
-
-                };
-
-                _context.SavedMealPlan.Add(savedMealPlan);
-                _context.SaveChanges();
-                return;
-            }
-
-            // Update
-            savedMealPlan.MealPlanJson = indexAndIds;
-            savedMealPlan.PersonCount = personCount;
-            savedMealPlan.UserSettingJson = savedMealPlan.UserSettingJson = !string.IsNullOrEmpty(settingsJson)
-                                                                            ? settingsJson
-                                                                            : savedMealPlan.UserSettingJson;
-
-            // Token nur erzeugen, wenn noch keiner existiert
-            savedMealPlan.Token = string.IsNullOrEmpty(savedMealPlan.Token)
-                ? _utilityService.GenerateRandomToken(20)
-                : savedMealPlan.Token;
-
-            // Beim Update kein CreationTime überschreiben
-            savedMealPlan.CreationTime = DateTime.UtcNow;
-
-            // Kein .Update(...) nötig, Entity ist getrackt
-            _context.SaveChanges();
-        }
-
-
-     
 
         public SavedMealPlans GetSavedMealPlanFromDb()
         {
@@ -245,30 +169,7 @@ namespace DelikatessenDrehbuch.Controllers
             return savedMealPlan;
         }
 
-        public IActionResult GetIngredientPerDayPartialView(string index)
-        {
-            var mealPlan = GetSavedMealPlanFromDb();
-            ViewData["PersonCount"] = mealPlan.PersonCount;
-            int id = int.Parse(index);
-            //TODO: Hier noch anpassen das alle Zutaten geladen werden und nicht nur von einem Rezept
-            var model = new List<IngredientHandlerModel>();// _mealPlanService.GetScalIngredientsById(id, mealPlan.PersonCount);
-
-
-            return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
-        }
-        public async Task<IActionResult> LoadIngredientPartialViewAsync()
-        {
-            var mealPlan = GetSavedMealPlanFromDb();
-            ViewData["PersonCount"] = mealPlan.PersonCount;
-
-            var indexAndIds = mealPlan.MealPlanDictionary;
-            //var mealPlanDic = await _mealPlanService.MapToMealPlanDictionaryAsync(indexAndIds, mealPlan.PersonCount);
-            //var recipesFromSession = mealPlanDic.SelectMany(x => x.Value).ToList();
-            var model = new List<IngredientHandlerModel>();//recipesFromSession.SelectMany(x => x.Ingredients).ToList();
-
-            return PartialView("~/Views/MealPlaner/_createMealPlanIngredientPartialView.cshtml", model);
-
-        }
+      
 
 
         public async Task<IActionResult> LoadMealPlanOverviewPartialViewAsync(string IndexAndIds)
@@ -296,44 +197,7 @@ namespace DelikatessenDrehbuch.Controllers
 
 
 
-        public void UpdateRecipeDictInDB(int recipeId, int dayIndex)
-        {
-            var sessionDic = GetSavedMealPlanFromDb().MealPlanDictionary;
-            var recipes = _recipesService.GetRecipesFromDbByIdAsync(recipeId).Result;
-
-            if (sessionDic[dayIndex].Contains(recipeId))
-                sessionDic[dayIndex].Remove(recipeId);
-            else
-            {
-                if (recipes.Category.Trim() == "Vorspeise")
-                    sessionDic[dayIndex].Insert(0, recipeId);
-                else if (recipes.Category.Trim() == "Hauptspeise")
-                {
-                    if (sessionDic[dayIndex].Count > 1)
-                        sessionDic[dayIndex].Insert(1, recipeId);
-                    else
-                        sessionDic[dayIndex].Add(recipeId);
-                }
-                else
-                    sessionDic[dayIndex].Add(recipeId);
-
-
-            }
-
-
-            SaveMealPlanToDb(JsonSerializer.Serialize(sessionDic, new JsonSerializerOptions { WriteIndented = true }), _sessionService.GetMealPlanSettingsFromSession().PersonCount);
-        }
-
-
-        //public IActionResult GetShoppingList()
-        //{
-        //    var mealPlan = GetSavedMealPlanFromDb();
-        //    ViewData["HaveShoppingList"] = mealPlan.ShoppingList != null;
-
-        //    var dictionary = _mealPlanService.MapToMealPlanDictionaryAsync(mealPlan.MealPlanDictionary, mealPlan.PersonCount).Result;
-        //    var ingredients = dictionary.SelectMany(x => x.Value).SelectMany(x => x.Ingredients).ToList();
-        //    return PartialView("~/Views/MealPlaner/_shoppingListPartialView.cshtml", ingredients);
-        //}
+ 
 
         [AllowAnonymous]
         [HttpGet("/ShoppingList/{token?}", Name = "ShoppingList")]
@@ -359,6 +223,56 @@ namespace DelikatessenDrehbuch.Controllers
             }
 
             return View("~/Views/MealPlaner/ShoppingList.cshtml", shoppingList);
+        }
+
+        public async Task<IActionResult> LoadLastMealPlanAsync()
+        {
+            var mealPlan=GetSavedMealPlanFromDb();
+            ViewData["PersonCount"] = mealPlan.PersonCount;
+            var dict = mealPlan.MealPlanDictionary;
+            List<MealPlanerModel> model = new();
+
+            foreach(var key in dict.Keys)
+            {
+                var listInt = dict[key];
+                foreach (var item in listInt)
+                {
+                    MealPlanerModel plan = new()
+                    {
+                        Index = key,
+                        Recipes = await _recipesService.GetRecipesFromDbByIdAsync(item)
+                    };
+                    plan.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(plan.Recipes.ImagePath);
+                    model.Add(plan);
+                }
+            }
+           
+            return View("~/Views/MealPlaner/CreatedMealPlan.cshtml", model);
+            
+        }
+
+        public async Task<IActionResult> LoadMealPlanForEditAsync()
+        {
+            var mealPlan = GetSavedMealPlanFromDb();
+            ViewData["PersonCount"] = mealPlan.PersonCount;
+            var dict = mealPlan.MealPlanDictionary;
+            List<MealPlanerModel> model = new();
+            foreach (var key in dict.Keys)
+            {
+                var listInt = dict[key];
+                foreach (var item in listInt)
+                {
+                    MealPlanerModel plan = new()
+                    {
+                        Index = key,
+                        Recipes = await _recipesService.GetRecipesFromDbByIdAsync(item)
+                        
+                    };
+                    plan.Recipes.ImagePath=FrontendFunctions.GetSmallImagePath(plan.Recipes.ImagePath);
+                    model.Add(plan);
+                }
+            }
+            return View("~/Views/MealPlaner/CreateNewMealPlan.cshtml", model);
         }
 
 
@@ -411,8 +325,18 @@ namespace DelikatessenDrehbuch.Controllers
             var settings=GetPersonalMealPlanSettingsFromDb();
            
             var model = await _mealPlanEditorService.GetOrChangeRecipe(category, settings,usedIds.ToList());
+            model.ImagePath=FrontendFunctions.GetSmallImagePath(model.ImagePath);
 
             return Ok(model);
+        }
+
+        public async Task<IActionResult> SaveMealPlanInDb([FromBody]Dictionary<int,List<int>> indexAndIds)
+        {
+            var mealPlan = GetSavedMealPlanFromDb();
+            string jsonString = JsonSerializer.Serialize(indexAndIds);
+            mealPlan.MealPlanJson= jsonString;
+            _context.SaveChanges();
+            return Ok(new { success = true, message = "Gespeichert" });
         }
 
     }

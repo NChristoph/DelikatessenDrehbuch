@@ -53,7 +53,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         }
 
         public (IEnumerable<IGrouping<string, IngredientHandlerModel>>, bool, bool)
-            GetScaledIngredienthandlerAsync(int recipeId,int targetPersonCount)
+            GetScaledIngredienthandler(int recipeId,int targetPersonCount)
         {
             int currentPersonCount = GetRecipePersonCount(recipeId);
             var currentIngredienHandler =  GetIngredientHandlerModelsAsync(recipeId);
