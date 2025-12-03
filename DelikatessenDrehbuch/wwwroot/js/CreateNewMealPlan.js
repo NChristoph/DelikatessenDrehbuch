@@ -1,13 +1,23 @@
-﻿async function ChangeOrAddRecipe(button) {
-    const elements= document.getElementsByName("RecipeId");
+﻿/* ===========================================================
+   CreateNewMealPlan.js
+   Logik für das Laden, Ändern und Speichern von Rezepten
+   =========================================================== */
+
+async function ChangeOrAddRecipe(button) {
+    const elements = document.getElementsByName("RecipeId");
     const ids = Array.from(elements).map(el => parseInt(el.value));
-    const name = button.getAttribute("data-name");
-    const index = button.getAttribute("data-index");
-    const category=button.getAttribute("data-category")
+
+    const name = button.getAttribute("data-name");     // z.B. "main_"
+    const index = button.getAttribute("data-index");   // z.B. "1" (Tag)
+    const category = button.getAttribute("data-category"); // z.B. "Hauptspeise"
+
     const slotId = name + index;
     const slot = document.getElementById(slotId);
 
-    button.innerHTML = "Ändern";
+    // Loading State im Button
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    button.disabled = true;
 
     if (!slot) {
         console.error(`Slot mit ID "${slotId}" nicht gefunden`);
@@ -15,137 +25,51 @@
     }
 
     try {
-        // Loading-Indikator anzeigen
-        slot.innerHTML = `
-            <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Lädt...</span>
-                </div>
-            </div>
-        `;
         const params = new URLSearchParams();
-
-        // Füge jede ID als separates usedIds=X hinzu
-        ids.forEach(id => {
-            params.append('usedIds', id.toString());
-        });
-
-        // Füge die Kategorie hinzu
+        ids.forEach(id => params.append('usedIds', id.toString()));
         params.append('category', category);
 
-        // Der resultierende Query String ist nun: usedIds=100&usedIds=200&usedIds=300&category=Hauptgericht
-        const queryString = params.toString();
-        // Rezept laden
-        const response = await fetch(`/CreateNewMealPlan/LoadRecipeInMealPlaner?${queryString}`);
+        const response = await fetch(`/CreateNewMealPlan/LoadRecipeInMealPlaner?${params.toString()}`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const recipe = await response.json();
 
-        // HTML erstellen und einfügen
-        const html = createMealCard(recipe,index);
+        // 1. GROSSE KARTE AKTUALISIEREN
+        // Wir nutzen jetzt exakt das gleiche Layout wie im C# Helper
+        const html = createMealCard(recipe, index);
         slot.innerHTML = html;
 
-        // Bootstrap Dropdown initialisieren
-        const dropdown = slot.querySelector('[data-bs-toggle="dropdown"]');
-        if (dropdown && typeof bootstrap !== 'undefined') {
-            new bootstrap.Dropdown(dropdown);
-        }
+        // 2. MINI KARTE (SIDEBAR) AKTUALISIEREN
+        updateMiniCard(index, category, recipe);
 
     } catch (error) {
-        console.error('Fehler beim Laden des Rezepts:', error);
-
-        // Benutzerfreundliche Fehlermeldung
-        slot.innerHTML = `
-            <div class="alert alert-danger d-flex justify-content-between align-items-center">
-                <span>Rezept konnte nicht geladen werden</span>
-                <button class="btn btn-sm btn-outline-danger" 
-                        onclick="ChangeOrAddRecipe(this)"
-                        data-id="${recipe.id}"
-                        data-name="${name}"
-                        data-index="${index}">
-                    Erneut versuchen
-                </button>
-            </div>
-        `;
-    }
-
-    SaveMealPlanToDb();
-}
-
-async function SaveMealPlanToDb() {
-    // 1. Alle Inputs mit der Klasse 'meal-plan-input' sammeln
-    const inputs = document.querySelectorAll('.meal-plan-input');
-
-    // Das Objekt, das später zum Dictionary<int, List<int>> wird
-    // Struktur: { "1": [10, 12, 15], "2": [99, 100] }
-    const groupedData = {};
-
-    // 2. Durch die Inputs iterieren
-    inputs.forEach(input => {
-        const recipeId = parseInt(input.value);
-        const dayIndex = parseInt(input.getAttribute('data-day-index'));
-
-        // Nur echte Rezept-IDs aufnehmen (ID > 0)
-        if (recipeId && recipeId > 0) {
-
-            // Falls der Key (Tag) noch nicht existiert, erstelle leeres Array
-            if (!groupedData[dayIndex]) {
-                groupedData[dayIndex] = [];
-            }
-
-            // Rezept-ID zum Array des jeweiligen Tages hinzufügen
-            groupedData[dayIndex].push(recipeId);
-        }
-    });
-
-    // 3. Prüfen, ob Daten vorhanden sind
-    if (Object.keys(groupedData).length === 0) {
-        alert("Der Plan ist leer. Bitte wähle Gerichte aus.");
-        return;
-    }
-
-    try {
-        // 4. Senden an den Controller
-        const response = await fetch('/CreateNewMealPlan/SaveMealPlanInDb', { // Passe den Controller-Namen an
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // Falls du Anti-Forgery nutzt (empfohlen):
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-            },
-            body: JSON.stringify(groupedData)
-        });
-
-      
-    } catch (error) {
-        console.error('Error:', error);
-        alert("Ein Netzwerkfehler ist aufgetreten.");
+        console.error('Fehler:', error);
+        alert("Fehler beim Laden des Rezepts.");
+        button.innerHTML = originalText; // Reset bei Fehler
+        button.disabled = false;
+    } finally {
+        // Auto-Save
+        SaveMealPlanToDb();
     }
 }
 
+// --- 1. HTML Generator für die große Karte (Muss 1:1 wie C# RenderRecipeCard aussehen) ---
+// --- 1. HTML Generator für die große Karte ---
 function createMealCard(recipes, index) {
-    // 1. Prefix ermitteln (damit der "Ändern" Button weiß, wer er ist)
-    // Das Mapping muss zu deinen IDs im HTML passen (apperetizer_, main_, dessert_)
     let namePrefix = "main_";
     if (recipes.category === "Vorspeise") namePrefix = "apperetizer_";
     else if (recipes.category === "Dessert") namePrefix = "dessert_";
 
-    // 2. Bild-HTML vorbereiten (Mit Fallback, falls kein Bild da ist)
+    // Bild Logik
     let imageHtml;
     if (recipes.imagePath) {
-        imageHtml = `<img src="${recipes.imagePath}" alt="${recipes.name}" loading="lazy" />`;
+        imageHtml = `<img src="${recipes.imagePath}" alt="${recipes.name}" loading="lazy" style="width:100%; height:100%; object-fit:cover;" />`;
     } else {
-        // Leerer Zustand Icon
-        imageHtml = `
-            <div class="empty-state" style="height:100%; display:flex; align-items:center; justify-content:center; background:#f9f9f9; color:#999;">
-                <i class="bi bi-image fs-1"></i>
-            </div>`;
+        imageHtml = `<div class="empty-state"><i class="bi bi-image fs-1 mb-2"></i> Kein Bild</div>`;
     }
 
-    // 3. Chips sammeln (Zeit & Likes)
+    // Chips
     let chipsHtml = '';
     if (recipes.preparationTime) {
         chipsHtml += `<span class="meal-badge"><i class="bi bi-clock"></i> ${recipes.preparationTime} min</span>`;
@@ -154,23 +78,15 @@ function createMealCard(recipes, index) {
         chipsHtml += `<span class="meal-badge ms-1"><i class="bi bi-heart-fill text-danger"></i> ${recipes.likeCount}</span>`;
     }
 
-    // 4. Beschreibung kürzen (optional, falls vorhanden)
     let descHtml = '';
     if (recipes.description) {
-        // Einfache Methode um HTML Tags zu entfernen für Vorschau, oder roh lassen
         descHtml = `<p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">${recipes.description}</p>`;
     }
 
-    // 5. Das neue HTML zusammenbauen (Passend zum Tab-Design!)
-    // Wir bauen hier das Innere von <div id="main_1"> nach
+    // WICHTIG: KEIN äusseres <div id="..."> mehr! Nur der Inhalt.
     return `
-        <input type="hidden" 
-               class="meal-plan-input" 
-               name="RecipeId" 
-               value="${recipes.id}" 
-               data-day-index="${index}" 
-               data-category="${recipes.category || ''}" />
-
+        <input type="hidden" class="meal-plan-input" name="RecipeId" value="${recipes.id}" data-day-index="${index}" data-category="${recipes.category || ''}" />
+        
         <div class="meal-img-wrapper">
             ${imageHtml}
             
@@ -180,7 +96,7 @@ function createMealCard(recipes, index) {
         </div>
 
         <div class="meal-body">
-            <h5 class="meal-title">${recipes.name}</h5>
+            <h5 class="meal-title text-truncate">${recipes.name}</h5>
             ${descHtml}
 
             <div class="meal-actions">
@@ -197,96 +113,182 @@ function createMealCard(recipes, index) {
     `;
 }
 
-function LoadOverView() {
-    const overview = document.getElementById('overView');
-    var dic = getRecipeDictionary();
-    const query = encodeURIComponent(JSON.stringify(dic));
-    if (overview) {
-        $.get('/CreateNewMealPlan/LoadMealPlanOverviewPartialView?IndexAndIds=' + query)
-            .done(function (html) {
-                overview.innerHTML = html;
+// --- 2. Update Logik für die Sidebar (Mini Items) ---
+// --- 2. Update Logik für BEIDE Sidebars (Desktop & Mobile) ---
+function updateMiniCard(dayIndex, category, recipe) {
+    // Wir definieren die IDs für beide Orte
+    // (Stelle sicher, dass du im HTML unterschiedliche IDs vergibst, siehe Schritt 2 unten)
+    const desktopId = `mini_${dayIndex}_${category}`;       // z.B. mini_1_Hauptspeise
+    const mobileId = `mini_mobile_${dayIndex}_${category}`; // z.B. mini_mobile_1_Hauptspeise
 
-            })
-    }
-};
+    // Array mit beiden IDs, um durchzuloopen
+    const targetIds = [desktopId, mobileId];
 
-function ChangeRecipeDay(button) {
+    targetIds.forEach(id => {
+        const item = document.getElementById(id);
 
-    var currentIndex = button.getAttribute("data-day");
-    var indexToMove = button.value;
+        if (item) {
+            // Bild aktualisieren
+            const imgEl = item.querySelector('.ov-img');
+            if (imgEl) {
+                if (imgEl.tagName === 'IMG') {
+                    // Wenn schon ein Bild da war -> src tauschen
+                    imgEl.src = recipe.imagePath || '';
+                } else {
+                    // Wenn vorher ein Platzhalter-Div da war -> wir müssen es durch ein IMG ersetzen
+                    if (recipe.imagePath) {
+                        const newImg = document.createElement('img');
+                        newImg.src = recipe.imagePath;
+                        newImg.className = 'ov-img';
+                        imgEl.replaceWith(newImg);
+                    }
+                }
+            }
 
-    var otherButton = document.getElementById("changeIndex_" + indexToMove)
-    otherButton.dataset.day = currentIndex;
-    button.dataset.day = indexToMove;
-
-    var currentPlace = document.getElementById("RecipeSlot_" + currentIndex);
-    var placeToMove = document.getElementById("RecipeSlot_" + indexToMove);
-
-    var currentPlace2 = document.getElementById("day_" + currentIndex);
-    var placeToMove2 = document.getElementById("day_" + indexToMove);
-
-    const current = currentPlace2.querySelector('.slot-grid');
-    const toMove = placeToMove2.querySelector('.slot-grid');
-
-    current.dataset.dayIndex = indexToMove;
-    toMove.dataset.dayIndex = currentIndex;
-
-
-    var htmlCurrent = document.getElementById("RecipeSlot_" + currentIndex).innerHTML;
-    var htmlToMove = document.getElementById("RecipeSlot_" + indexToMove).innerHTML;
-
-    var htmlCurrent2 = document.getElementById("day_" + currentIndex).innerHTML;
-    var htmlToMove2 = document.getElementById("day_" + indexToMove).innerHTML;
-
-    currentPlace.innerHTML = htmlToMove;
-    placeToMove.innerHTML = htmlCurrent;
-    currentPlace2.innerHTML = htmlToMove2;
-    placeToMove2.innerHTML = htmlCurrent2;
-
-    const dict = getRecipeDictionaryFinaly();
-    const query = encodeURIComponent(JSON.stringify(dict));
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-    fetch(`/CreateNewMealPlan/SaveDayInSession?indexAndIds=${query}`, {
-        method: 'POST',
-        headers: {
-            ...(token ? { 'RequestVerificationToken': token } : {})
+            // Titel aktualisieren
+            const titleEl = item.querySelector('.ov-title');
+            if (titleEl) {
+                titleEl.innerText = recipe.name;
+                // Styles anpassen (von "Leer" zu "Gefüllt")
+                titleEl.classList.remove('text-muted', 'fst-italic', 'small');
+                titleEl.classList.add('text-truncate', 'd-block');
+            }
         }
-
     });
-
 }
 
+// --- Speichern ---
+async function SaveMealPlanToDb() {
+    const inputs = document.querySelectorAll('.meal-plan-input');
+    const groupedData = {};
+
+    inputs.forEach(input => {
+        const recipeId = parseInt(input.value);
+        const dayIndex = parseInt(input.getAttribute('data-day-index'));
+        if (recipeId && recipeId > 0) {
+            if (!groupedData[dayIndex]) groupedData[dayIndex] = [];
+            groupedData[dayIndex].push(recipeId);
+        }
+    });
+
+    if (Object.keys(groupedData).length === 0) return;
+
+    try {
+        await fetch('/CreateNewMealPlan/SaveMealPlanInDb', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            },
+            body: JSON.stringify(groupedData)
+        });
+    } catch (error) {
+        console.error('Auto-Save Error:', error);
+    }
+}
+
+// --- Submit Button am Ende der Seite ---
 function createMealPlan() {
-    // 1. Alle versteckten Inputs sammeln
     const inputs = document.querySelectorAll('.meal-plan-input');
     const planData = [];
 
-    // 2. Daten auslesen
     inputs.forEach(input => {
-        // Nur hinzufügen, wenn auch wirklich eine ID da ist (Validierung)
         if (input.value && input.value !== "0") {
             planData.push({
                 Index: parseInt(input.getAttribute('data-day-index')),
-                RecipeId: parseInt(input.value),
-                
+                RecipeId: parseInt(input.value)
             });
         }
     });
 
-    // 3. Prüfen ob Daten da sind
-    if (planData.length === 0) return alert("Bitte auswählen.");
+    if (planData.length === 0) return alert("Bitte wähle mindestens ein Gericht aus.");
 
-    // 2. WICHTIG: In String umwandeln und encodieren!
-    // JSON macht daraus: '[{"Index":1,"RecipeId":5},...]'
     const jsonString = JSON.stringify(planData);
-
-    // Encode macht daraus: '%5B%7B%22Index%22%3A1...' (Sicher für URL)
     const encodedData = encodeURIComponent(jsonString);
-
-    // 3. Aufrufen (GET Request)
-    // Hier schickst du alles in einem Parameter namens "data"
     const personCount = document.getElementById("personCount").value;
-    window.location.href = `/CreateNewMealPlan/CreateMealPlan?data=${encodedData}&personCount=${personCount}`;
 
-   
+    window.location.href = `/CreateNewMealPlan/CreateMealPlan?data=${encodedData}&personCount=${personCount}`;
 }
+
+
+/**
+* Tauscht den Inhalt von zwei Tagen komplett Client-seitig (ohne Reload)
+*/
+function swapDay(currentDayIndex, direction) {
+    const targetDayIndex = currentDayIndex + direction;
+
+    const categories = ["apperetizer_", "main_", "dessert_"];
+
+    // Auch die Sidebar-Elemente müssen getauscht werden
+    const sidebarPrefixes = ["mini_", "mini_mobile_"];
+    const sidebarCats = ["Vorspeise", "Hauptspeise", "Dessert"];
+
+    // 1. Haupt-Inhalt tauschen (Die großen Karten)
+    categories.forEach(prefix => {
+        let idA = prefix + currentDayIndex;
+        let idB = prefix + targetDayIndex;
+        swapHtmlContent(idA, idB);
+    });
+
+    // 2. Sidebar / Offcanvas tauschen (Die kleinen Listen)
+    sidebarPrefixes.forEach(prefix => {
+        sidebarCats.forEach(cat => {
+            let idA = `${prefix}${currentDayIndex}_${cat}`;
+            let idB = `${prefix}${targetDayIndex}_${cat}`;
+            swapHtmlContent(idA, idB);
+        });
+    });
+
+    // 3. WICHTIG: Attribute aktualisieren!
+    // Da wir das HTML verschoben haben, steht im Input von Tag 1 jetzt "data-day-index=2" (vom alten Ort).
+    // Das müssen wir korrigieren.
+    updateDayAttributes(currentDayIndex);
+    updateDayAttributes(targetDayIndex);
+
+    // 4. Speichern im Hintergrund (damit es beim Reload bleibt)
+    SaveMealPlanToDb();
+}
+
+/**
+ * Tauscht das innerHTML von zwei Elementen anhand ihrer IDs
+ */
+function swapHtmlContent(idA, idB) {
+    const elA = document.getElementById(idA);
+    const elB = document.getElementById(idB);
+
+    if (elA && elB) {
+        const temp = elA.innerHTML;
+        elA.innerHTML = elB.innerHTML;
+        elB.innerHTML = temp;
+    }
+}
+
+/**
+ * Repariert die IDs und Data-Attribute nach dem Tausch
+ */
+function updateDayAttributes(dayIndex) {
+    // Wir suchen in allen 3 Slots des betroffenen Tages
+    const prefixes = ["apperetizer_", "main_", "dessert_"];
+
+    prefixes.forEach(prefix => {
+        const containerId = prefix + dayIndex;
+        const container = document.getElementById(containerId);
+
+        if (container) {
+            // A) Hidden Inputs korrigieren
+            const inputs = container.querySelectorAll('.meal-plan-input');
+            inputs.forEach(input => {
+                input.setAttribute('data-day-index', dayIndex);
+            });
+
+            // B) Buttons korrigieren ("Ändern" oder "Hinzufügen")
+            // Diese haben data-index="..." Attribute, die für das Modal wichtig sind
+            const buttons = container.querySelectorAll('button[data-index]');
+            buttons.forEach(btn => {
+                btn.setAttribute('data-index', dayIndex);
+            });
+        }
+    });
+}
+
+
