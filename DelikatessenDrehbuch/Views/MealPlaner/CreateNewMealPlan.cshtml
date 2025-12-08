@@ -1,5 +1,7 @@
 ﻿@using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
 
 @model List<MealPlanerModel>
 
@@ -13,8 +15,8 @@
 
 <style>
     /* ===========================
-           Delikatessen Styles - Final
-           =========================== */
+               Delikatessen Styles - Final
+               =========================== */
 
     /* --- Hauptbereich (Links) --- */
     .day-container {
@@ -240,18 +242,51 @@
 
     /* Responsive Switch */
     @@media (max-width: 992px) {
-        .desktop-sidebar
+        .desktop-sidebar {
+            display: none !important;
+        }
 
-    {
-        display: none !important;
-    }
-
-    .mobile-overview-btn {
-        display: block !important;
-    }
-
+        .mobile-overview-btn {
+            display: block !important;
+        }
     }
 </style>
+
+<div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100"  tabindex="-1" style="min-width:50%" id="offcanvasDay_Hauptspeise">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Hauptspeise</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);" >
+        
+    </div>
+
+</div>
+
+<div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100" tabindex="-1" style="min-width:50%" id="offcanvasDay_Dessert">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Dessert</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);">
+    </div>
+
+</div>
+
+<div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100" tabindex="-1" style="min-width:50%" id="offcanvasDay_Vorspeise">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Vorspeise</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);">
+        Test
+    </div>
+
+</div>
+
 
 <div class="container mb-4">
     <div class="card p-4 border-0 shadow-sm text-center bg-light">
@@ -266,11 +301,17 @@
         <div class="col-lg-8">
             @foreach (var dayGroupe in groupedPerDays)
             {
+
                 var dayId = dayGroupe.Key;
                 // Rezepte suchen
-                var vorspeise = dayGroupe.FirstOrDefault(x => x.Recipes?.Category?.Trim() == "Vorspeise");
-                var hauptspeise = dayGroupe.FirstOrDefault(x => x.Recipes?.Category?.Trim() == "Hauptspeise");
-                var dessert = dayGroupe.FirstOrDefault(x => x.Recipes?.Category?.Trim() == "Dessert");
+                var vorspeise = dayGroupe.FirstOrDefault(x =>
+                (x.Recipes?.Category ?? "").Trim().ToLower() == "vorspeise");
+
+                var hauptspeise = dayGroupe.FirstOrDefault(x =>
+                (x.Recipes?.Category ?? "").Trim().ToLower() == "hauptspeise");
+
+                var dessert = dayGroupe.FirstOrDefault(x => 
+                (x.Recipes?.Category ?? "").Trim().ToLower() == "dessert");
 
                 <div class="day-container" id="day-anchor-@dayId">
 
@@ -301,12 +342,12 @@
                         </div>
                         <div class="tab-pane fade show active" id="pills-main-@dayId">
                             @{
-                                RenderRecipeCard(dayId, hauptspeise, "Hauptspeise", "main_");
+                                 RenderRecipeCard(dayId, hauptspeise, "Hauptspeise", "main_");
                             }
                         </div>
                         <div class="tab-pane fade" id="pills-dessert-@dayId">
                             @{
-                                RenderRecipeCard(dayId, dessert, "Dessert", "dessert_");
+                                 RenderRecipeCard(dayId, dessert, "Dessert", "dessert_");
                             }
                         </div>
                     </div>
@@ -364,7 +405,7 @@
 </div>
 
 <button class="mobile-overview-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#overviewOffcanvas">
-    <i class="bi bi-list-check"></i> Plan prüfen
+    <i class="bi bi-list-check"></i> Plan sortieren & prüfen 
 </button>
 
 <div class="offcanvas offcanvas-end offcanvas-overview" tabindex="-1" id="overviewOffcanvas">
@@ -458,11 +499,27 @@
                             <p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">@Html.Raw(slot.Recipes.Description)</p>
                         }
                         <div class="meal-actions">
-                            <button class="btn btn-change"
+                            <button class="btn btn-change mb-1"
                                     data-name="@namePrefix" data-index="@dayIndex" data-id="@recipeId" data-category="@category"
                                     onclick="ChangeOrAddRecipe(this)">
                                 <i class="bi bi-arrow-repeat me-1"></i> Ändern
                             </button>
+
+                             <button class="btn btn-change"
+                                    data-name="@namePrefix"
+                                    data-bs-toggle="offcanvas"
+                                    data-bs-target="#offcanvasDay_@category" 
+                                    data-index="@dayIndex" 
+                                    data-id="@recipeId" 
+                                    data-category="@category"
+                                    onclick="GetOptionalRecipe(this)">
+
+                                <i class="bi bi-search me-1"></i> Ersetzen durch...
+                            </button>
+
+                           
+
+
                         </div>
                     </div>
                 }
@@ -480,6 +537,9 @@
                 }
             </div>
         </div>
+
+      
+      
     }
 
     // 2. Mini Item Desktop (ID: mini_1_Hauptspeise)
@@ -524,5 +584,6 @@
 
 @section Scripts {
     <script src="/js/CreateNewMealPlan.js" asp-append-version="true"></script>
+
    
 }

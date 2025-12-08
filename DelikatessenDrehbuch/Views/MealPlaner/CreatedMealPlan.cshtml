@@ -338,14 +338,14 @@
             </div>
 
             <ul class="nav nav-tabs offcanvas-tabs justify-content-center" role="tablist">
-                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ing-@dayKey">Einkaufsliste</button></li>
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ing-@dayKey">Zutaten für Tag @dayKey</button></li>
                 <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nut-@dayKey">Nährwerte</button></li>
             </ul>
 
             <div class="offcanvas-body" style="background-color:var(--deli-cream);">
                 <div class="tab-content offcanvas-content">
                     <div class="tab-pane fade show active" id="ing-@dayKey">
-                        <vc:ingredient-sum reciepe-ids="@dayRecipeIds" person-count="@personCount"></vc:ingredient-sum>
+                        <vc:ingredient-sum reciepe-ids="@dayRecipeIds" person-count="@personCount" view-name="Default"></vc:ingredient-sum>
                     </div>
                     <div class="tab-pane fade" id="nut-@dayKey">
                         @foreach (var rId in dayRecipeIds)
@@ -381,7 +381,7 @@
         <button class="btn btn-lg text-white shadow px-5 py-3 rounded-pill"
                 style="background-color:var(--deli-red); border:2px solid var(--deli-gold);"
                 data-bs-toggle="offcanvas" data-bs-target="#Gesamte_ZutatenListe">
-            <i class="bi bi-cart-check-fill me-2"></i> Gesamte Einkaufsliste
+            <i class="bi bi-cart-check-fill me-2"></i> Einkaufsliste erstellen
         </button>
     </div>
 </div>
@@ -392,16 +392,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <ul class="nav nav-tabs offcanvas-tabs justify-content-center" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#total-ing">Einkauf</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#total-shop">Liste Laden</button></li>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#total-ing">Zutaten Übersicht</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#total-shop">Einkaufsliste erstellen</button></li>
     </ul>
     <div class="offcanvas-body" style="background-color:var(--deli-cream);">
         <div class="tab-content offcanvas-content">
             <div class="tab-pane fade show active" id="total-ing">
-                <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount"></vc:ingredient-sum>
+                <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-Name="ShoppingList"></vc:ingredient-sum>
             </div>
             <div class="tab-pane fade" id="total-shop">
-                <div id="ShoppingList" class="text-center p-5"><div class="spinner-border text-danger"></div></div>
+                <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-name="Default"></vc:ingredient-sum>
             </div>
         </div>
     </div>

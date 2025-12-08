@@ -3,6 +3,54 @@
    Logik für das Laden, Ändern und Speichern von Rezepten
    =========================================================== */
 
+async function GetOptionalRecipe(button) {
+    
+    const index = button.getAttribute("data-index");   // z.B. "1" (Tag)
+    const category = button.getAttribute("data-category"); // z.B. "Hauptspeise"
+
+    const id = "offcanvasDay_" + category;
+    var canvas = document.getElementById(id);
+    var body = canvas.querySelector('.offcanvas-body');
+
+    if (body.innerHTML.trim() != "")
+        return;
+    else {
+        try {
+            
+            
+            let url = `/CreateNewMealPlan/LoadSearchImput`;
+
+            const response = await fetch(url);
+
+            if (response.ok) {
+                // Wir bekommen jetzt HTML text zurück, kein JSON!
+                const html = await response.text();
+                body.innerHTML = html;
+            } else {
+                body.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
+            }
+
+            var second = body.querySelector("#SearchOutPut");
+            let url2 = `/CreateNewMealPlan/LoadRecipesSearch?category=${encodeURIComponent(category)}&dayIndex=${index}`;
+            const res = await fetch(url2);
+
+            if (res.ok) {
+                // Wir bekommen jetzt HTML text zurück, kein JSON!
+                const html2 = await res.text();
+                second.innerHTML = html2;
+            } else {
+                second.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
+            }
+
+        } catch (error) {
+            console.error(error);
+            body.innerHTML = '<div class="text-danger text-center mt-3">Netzwerkfehler.</div>';
+        }
+    
+    }
+   
+}
+
 async function ChangeOrAddRecipe(button) {
     const elements = document.getElementsByName("RecipeId");
     const ids = Array.from(elements).map(el => parseInt(el.value));
@@ -83,13 +131,15 @@ function createMealCard(recipes, index) {
         descHtml = `<p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">${recipes.description}</p>`;
     }
 
-    // WICHTIG: KEIN äusseres <div id="..."> mehr! Nur der Inhalt.
+    // Eindeutige ID für den Offcanvas-Trigger
+    // Wichtig: Diese ID muss mit dem existierenden Offcanvas übereinstimmen!
+    const offcanvasId = `offcanvasDay_${recipes.category}`;
+
     return `
         <input type="hidden" class="meal-plan-input" name="RecipeId" value="${recipes.id}" data-day-index="${index}" data-category="${recipes.category || ''}" />
         
         <div class="meal-img-wrapper">
             ${imageHtml}
-            
             <div class="meal-chips">
                 ${chipsHtml}
             </div>
@@ -99,15 +149,29 @@ function createMealCard(recipes, index) {
             <h5 class="meal-title text-truncate">${recipes.name}</h5>
             ${descHtml}
 
-            <div class="meal-actions">
+            <div class="meal-actions d-flex justify-content-center gap-2">
+                
                 <button class="btn btn-change"
+                        type="button"
                         data-name="${namePrefix}"
                         data-index="${index}"
                         data-id="${recipes.id}"
                         data-category="${recipes.category || ''}"
-                        onclick="ChangeOrAddRecipe(this)">
-                    <i class="bi bi-arrow-repeat me-1"></i> Ändern
+                        onclick="ChangeOrAddRecipe(this)"
+                        title="Zufälliges anderes Gericht">
+                    <i class="bi bi-arrow-repeat"></i> Ändern
                 </button>
+
+                <button class="btn btn-change"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#${offcanvasId}"
+                        aria-controls="${offcanvasId}"
+                        title="Gezielt suchen"
+                        onclick="GetOptionalRecipe(this)>
+                    <i class="bi bi-search"></i> Ersetzen durch...
+                </button>
+
             </div>
         </div>
     `;

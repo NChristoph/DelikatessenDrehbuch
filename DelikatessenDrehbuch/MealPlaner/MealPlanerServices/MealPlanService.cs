@@ -25,26 +25,40 @@ namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
         private readonly IRecipesService _recipesService;
         private readonly IRecipesHandlerService _recipesHandlerService;
         private readonly IIngredientScaleService _ingredientService;
-        private readonly ISessionService _sessionService;
+       
         private readonly IMealPlanSortByFilters _mealPlanSortByFilters;
-        private readonly IIngredientScaleService _ingredientScaleService;
+        
 
         private List<int> RecipeIds { get; set; } = new();
 
         public MealPlanService(ApplicationDbContext context, IUtilityService utilityService, IHttpContextAccessor httpContext,
-                               IRecipesService recipesService, IIngredientScaleService ingredientScaleService,
-                               ISessionService sessionService, IRecipesHandlerService recipesHandlerService,
+                               IRecipesService recipesService,
+                                IRecipesHandlerService recipesHandlerService,
                                 IMealPlanSortByFilters mealPlanSortByFilters)
         {
             _context = context;
             _httpContext = httpContext;
             _recipesService = recipesService;
-            _ingredientScaleService = ingredientScaleService;
-            _sessionService = sessionService;
             _recipesHandlerService = recipesHandlerService;
             _utilityService = utilityService;
             _mealPlanSortByFilters = mealPlanSortByFilters;
         }
+
+        //public PersonalMealPlanSettings GetPersonalMealPlanSettingsFromDb()
+        //{
+        //    var catche = _context.SavedMealPlan.FirstOrDefault(x => x.UserMail == User.Identity.Name);
+        //    PersonalMealPlanSettings? perso = new();
+        //    if (catche != null)
+        //    {
+        //        if (!string.IsNullOrEmpty(catche.UserSettingJson))
+        //            perso = JsonSerializer.Deserialize<PersonalMealPlanSettings?>(catche.UserSettingJson);
+
+        //    }
+
+
+
+        //    return perso;
+        //}
 
         public async Task<List<MealPlanerModel>> CreateMealPlanModels(string category, int count, string email, PersonalMealPlanSettings settings)
         {

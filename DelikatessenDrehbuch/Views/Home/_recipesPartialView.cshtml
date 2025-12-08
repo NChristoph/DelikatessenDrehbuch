@@ -234,6 +234,10 @@
                                 <span class="chip">@recipes.PreparationTime&nbsp;min</span>
                             }
                             <span class="chip">@recipes.Category</span>
+                            @if(User.IsInRole("Admin"))
+                            {
+                                <span class="chip">@recipes.Id</span>
+                            }
                             @if (recipes.LikeCount > 0)
                             {
                                 <span class="chip">❤ @recipes.LikeCount</span>

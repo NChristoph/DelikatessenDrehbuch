@@ -1,0 +1,65 @@
+﻿@model List<Recipes>
+@using DelikatessenDrehbuch.StaticScripts
+
+
+
+<div class="results-container">
+    
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center text-muted py-5 opacity-50">
+            <i class="bi bi-journal-x display-1"></i>
+            <p class="mt-3">Keine Rezepte gefunden.</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-group list-group-flush">
+            @foreach (var recipe in Model)
+            {
+                var imgPath = !string.IsNullOrEmpty(recipe.ImagePath) 
+                              ? FrontendFunctions.GetSmallImagePath(recipe.ImagePath) 
+                              : "";
+
+                <button type="button" 
+                        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 border-0 border-bottom bg-transparent"
+                   
+                        data-bs-dismiss="offcanvas"
+                        style="transition: background 0.2s;">
+                    
+                    <div style="width:60px; height:60px; flex-shrink:0;">
+                        @if (!string.IsNullOrEmpty(imgPath))
+                        {
+                            <img src="@imgPath" 
+                                 style="width:100%; height:100%; object-fit:cover; border-radius:10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" 
+                                 loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="bg-white d-flex align-items-center justify-content-center h-100 w-100 rounded-3 border text-muted">
+                                <i class="bi bi-egg-fried fs-4"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="flex-grow-1 text-start overflow-hidden">
+                        <h6 class="mb-1 text-truncate fw-bold text-dark" style="font-family: 'Segoe UI', sans-serif;">
+                            @recipe.Name
+                        </h6>
+                        <div class="d-flex align-items-center gap-3 small text-muted">
+                            <span><i class="bi bi-clock me-1"></i> @(recipe.PreparationTime ?? 0) Min.</span>
+                            @if(recipe.LikeCount > 0) 
+                            { 
+                                <span><i class="bi bi-heart-fill text-danger me-1"></i> @recipe.LikeCount</span> 
+                            }
+                        </div>
+                    </div>
+
+                    <div class="text-success">
+                        <i class="bi bi-plus-circle-fill fs-3 shadow-sm rounded-circle"></i>
+                    </div>
+                </button>
+            }
+        </div>
+    }
+</div>

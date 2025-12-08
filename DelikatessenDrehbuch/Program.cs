@@ -1,20 +1,21 @@
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.Extensions.DependencyInjection;
+using DelikatessenDrehbuch.MealPlaner.MealPlanerServices;
+using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
 using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
+using DelikatessenDrehbuch.ShoppingList.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Stripe;
-using DelikatessenDrehbuch.MealPlaner.MealPlanerServices;
-using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,8 @@ builder.Services.AddScoped<IMealPlanSortByFilters, MealPlanSortByFilters>();
 builder.Services.AddScoped<IFullRecipeDataService, FullRecipeDataService>();
 builder.Services.AddScoped<IIngredientScaleService, IngredientScaleService>();
 builder.Services.AddScoped<IMealPlanEditorService, MealPlanEditorService>();
+builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
+builder.Services.AddScoped<ISearchRecipeService, SearchRecipeService>();
 
 
 builder.Services.AddHttpContextAccessor();

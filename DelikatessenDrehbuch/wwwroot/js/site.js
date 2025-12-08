@@ -117,3 +117,55 @@ function changeKalorien(count) {
     kalorien.textContent = "Kalorien gesamt : " + formatted;
 }
 
+async function saveAndShareList() {
+    // 1. Daten sammeln (wie in deiner generateShareLink Funktion)
+    let items = [];
+    const checkboxes = document.querySelectorAll('.big-checkbox');
+
+    checkboxes.forEach(cb => {
+        if (!cb.checked) { // Nur was wir noch brauchen
+            const uniqueId = cb.id.replace('cb_', '');
+            const qtyInput = document.getElementById('qty_' + uniqueId);
+
+            items.push({
+                Id: parseInt(cb.getAttribute('data-id')),
+                Name: cb.getAttribute('data-name'),
+                Quantity: parseFloat(qtyInput.value.replace(',', '.')),
+                UnitOfMeasurement: cb.getAttribute('data-unit'),
+                IsBought: false,
+                Category:cb.getAttribute('data-category')
+            });
+        }
+    });
+
+    if (items.length === 0) return alert("Nichts zu speichern!");
+
+    var test = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    try {
+        // 2. Der saubere POST Request
+        const response = await fetch('/ShoppingList/CreateShoppingList', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Wichtig für Sicherheit in ASP.NET Core: "
+                'RequestVerificationToken': test
+            },
+            body: JSON.stringify(items) 
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            // 3. Jetzt WhatsApp öffnen mit dem Link vom Server
+            if (result.shareUrl) {
+                const waText = `Hier ist die Einkaufsliste: 🛒\n${result.shareUrl}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, '_blank');
+            }
+        } else {
+            alert("Fehler beim Speichern der Liste.");
+        }
+    } catch (error) {
+        console.error("Fehler:", error);
+    }
+}
+

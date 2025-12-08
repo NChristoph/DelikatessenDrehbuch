@@ -1,0 +1,37 @@
+﻿@{
+    // Diese Daten müssen vom Controller via ViewBag kommen,
+    // damit der Klick weiß, welchen Slot er updaten soll.
+    var dayIndex = ViewBag.DayIndex ?? 0;
+    var category = ViewBag.Category as string ?? "";
+
+    // Eindeutige ID für das Suchfeld erzeugen (gegen Konflikte)
+    var searchId = $"search_{category}_{dayIndex}";
+}
+
+<div class="sticky-top pt-2 pb-3 mb-2" style="background-color:var(--deli-cream); z-index: 10; top: -1rem;">
+    <div class="input-group shadow-sm border rounded overflow-hidden">
+        <span class="input-group-text bg-white border-0 text-warning ps-3">
+            <i class="bi bi-search"></i>
+        </span>
+
+        <input type="text"
+               id="@searchId"
+               class="form-control border-0 py-2"
+               placeholder="Suche @category..."
+               autocomplete="off" />
+    </div>
+</div>
+
+
+
+
+<div id="SearchOutPut">
+    <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status"></div>
+    </div>
+</div>
+
+
+
+
+

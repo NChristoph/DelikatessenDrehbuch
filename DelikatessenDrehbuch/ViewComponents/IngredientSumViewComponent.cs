@@ -13,8 +13,13 @@ namespace DelikatessenDrehbuch.ViewComponents
             _ingredientScaleService= ingredientScaleService;
         }
 
-        public async Task<IViewComponentResult> InvokeAsync(List<int> reciepeIds, int personCount)
+        public async Task<IViewComponentResult> InvokeAsync(List<int> reciepeIds, int personCount,string viewName)
         {
+            if(string.IsNullOrEmpty(viewName))
+            {
+                viewName = "Default";
+            }
+
             var allHandlers = new List<IngredientHandlerModel>();
 
             bool totalSalt = false;
@@ -58,7 +63,7 @@ namespace DelikatessenDrehbuch.ViewComponents
 
             var model = (finalGrouped, totalSalt, totalPepper);
 
-            return View(model);
+            return View(viewName,model);
         }
     }
 }
