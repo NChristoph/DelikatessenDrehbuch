@@ -1,4 +1,5 @@
 ﻿using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<NutrienHandler> NutrienHandler { get; set; }
         public DbSet<Group> Group { get; set; }
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
+        public DbSet<WorldAppUser> WorldAppUser { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

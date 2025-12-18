@@ -2,9 +2,44 @@
    CreateNewMealPlan.js
    Logik für das Laden, Ändern und Speichern von Rezepten
    =========================================================== */
+function AddRecipe(button, index) {
+
+    var jsonString = button.getAttribute("data-json");
+    var recipe = JSON.parse(jsonString);
+    var html = createMealCard(recipe, index);
+    let namePrefix = "main_";
+
+    if (recipe.category === "Vorspeise") namePrefix = "apperetizer_";
+    else if (recipe.category === "Dessert") namePrefix = "dessert_";
+
+    updateMiniCard(index, recipe.category, recipe);
+
+    var slot = document.getElementById(namePrefix + index);
+    slot.innerHTML = html;
+
+    SaveMealPlanToDb();
+}
+
+async function triggerSearch(category) {
+    var content = document.getElementById("SearchOutPut_" + category);
+    var query = document.getElementById(category).value;
+    var dayIndex = document.getElementById("dayIndex_" + category).value;
+    var categoryInput = document.getElementById("category_" + category).value;
+    let url = `/CreateNewMealPlan/GetRecipesByQuery?query=${encodeURIComponent(query)}&dayIndex=${dayIndex}&category=${categoryInput}`
+
+    const response = await fetch(url);
+
+    if (response.ok) {
+        const html = await response.text();
+        content.innerHTML = html;
+    }
+    else {
+        content.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
+    }
+}
 
 async function GetOptionalRecipe(button) {
-    
+
     const index = button.getAttribute("data-index");   // z.B. "1" (Tag)
     const category = button.getAttribute("data-category"); // z.B. "Hauptspeise"
 
@@ -12,43 +47,40 @@ async function GetOptionalRecipe(button) {
     var canvas = document.getElementById(id);
     var body = canvas.querySelector('.offcanvas-body');
 
-    if (body.innerHTML.trim() != "")
-        return;
-    else {
-        try {
-            
-            
-            let url = `/CreateNewMealPlan/LoadSearchImput`;
+    try {
 
-            const response = await fetch(url);
 
-            if (response.ok) {
-                // Wir bekommen jetzt HTML text zurück, kein JSON!
-                const html = await response.text();
-                body.innerHTML = html;
-            } else {
-                body.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
-            }
+        let url = `/CreateNewMealPlan/LoadSearchImput?category=${encodeURIComponent(category)}&dayIndex=${index}`;
 
-            var second = body.querySelector("#SearchOutPut");
-            let url2 = `/CreateNewMealPlan/LoadRecipesSearch?category=${encodeURIComponent(category)}&dayIndex=${index}`;
-            const res = await fetch(url2);
+        const response = await fetch(url);
 
-            if (res.ok) {
-                // Wir bekommen jetzt HTML text zurück, kein JSON!
-                const html2 = await res.text();
-                second.innerHTML = html2;
-            } else {
-                second.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
-            }
-
-        } catch (error) {
-            console.error(error);
-            body.innerHTML = '<div class="text-danger text-center mt-3">Netzwerkfehler.</div>';
+        if (response.ok) {
+            // Wir bekommen jetzt HTML text zurück, kein JSON!
+            const html = await response.text();
+            body.innerHTML = html;
+            var indexToChange = body.querySelector("#dayIndex_"+category);
+            indexToChange.value = index;
+        } else {
+            body.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
         }
-    
+
+        var second = body.querySelector("#SearchOutPut_" + category);
+        let url2 = `/CreateNewMealPlan/LoadRecipesSearch?category=${encodeURIComponent(category)}&dayIndex=${index}`;
+        const res = await fetch(url2);
+
+        if (res.ok) {
+            // Wir bekommen jetzt HTML text zurück, kein JSON!
+            const html2 = await res.text();
+            second.innerHTML = html2;
+        } else {
+            second.innerHTML = '<div class="text-danger text-center mt-3">Fehler beim Laden.</div>';
+        }
+
+    } catch (error) {
+        console.error(error);
+        body.innerHTML = '<div class="text-danger text-center mt-3">Netzwerkfehler.</div>';
     }
-   
+
 }
 
 async function ChangeOrAddRecipe(button) {
@@ -162,13 +194,19 @@ function createMealCard(recipes, index) {
                     <i class="bi bi-arrow-repeat"></i> Ändern
                 </button>
 
+              
+
                 <button class="btn btn-change"
                         type="button"
                         data-bs-toggle="offcanvas"
                         data-bs-target="#${offcanvasId}"
+                        data-name="${namePrefix}"
+                        data-index="${index}"
+                        data-id="${recipes.id}"
+                        data-category="${recipes.category || ''}"
                         aria-controls="${offcanvasId}"
                         title="Gezielt suchen"
-                        onclick="GetOptionalRecipe(this)>
+                        onclick="GetOptionalRecipe(this)">
                     <i class="bi bi-search"></i> Ersetzen durch...
                 </button>
 

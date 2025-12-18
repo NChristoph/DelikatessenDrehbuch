@@ -149,12 +149,6 @@ namespace DelikatessenDrehbuch.StaticScripts
                 .ToList();
         }
 
-        public static int GetIdForMealPlaner(string category)
-        {
-            var categoryIds = StaticData.GetRecipesByCategory(category);
-            return 1;
-        
-        }
 
         public static IReadOnlyList<int> GetRecipesByType(string type)
         {

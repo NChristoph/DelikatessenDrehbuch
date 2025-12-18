@@ -36,11 +36,12 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly IMealPlanService _mealPlanService;
         private readonly ISessionService _sessionService;
         private readonly IMealPlanEditorService _mealPlanEditorService;
+        private readonly ISearchRecipeService _searchRecipeService;
 
 
 
         public CreateNewMealPlanController(IRecipesService recipesService, IMealPlanService mealPlanService,
-                                           ApplicationDbContext context,
+                                           ApplicationDbContext context, ISearchRecipeService searchRecipeService,
                                            ISessionService sessionService,
                                            IMealPlanEditorService mealPlanEditorService)
         {
@@ -50,6 +51,7 @@ namespace DelikatessenDrehbuch.Controllers
             _context = context;
             _sessionService = sessionService;
             _mealPlanEditorService = mealPlanEditorService;
+            _searchRecipeService = searchRecipeService;
 
         }
 
@@ -145,14 +147,59 @@ namespace DelikatessenDrehbuch.Controllers
             return PartialView("~/Views/MealPlaner/_mealPlanerRecipesPartialView.cshtml", model);
         }
 
-        public IActionResult LoadSearchImput()
-        {     
+        public async Task<IActionResult> GetRecipesByQueryAsync(string query, string dayIndex, string category)
+        {
+            var ids = GetFiltretRecipesIds(category);
+
+            ViewBag.DayIndex = dayIndex;
+            var recipes = await _searchRecipeService.GetRecipesByQuery(query);
+            var model = recipes.Where(r => ids.Contains(r.Id)).ToList();
+
+
+
+            return PartialView("~/Views/MealPlaner/_SearchRecipe.cshtml", model);
+        }
+
+        public IActionResult LoadSearchImput(string category, string dayIndex)
+        {
+            ViewBag.DayIndex = dayIndex;
+            ViewBag.Category = category;
             return PartialView("~/Views/MealPlaner/_SearchImput.cshtml");
+        }
+
+        private List<int> GetFiltretRecipesIds(string category)
+        {
+            var includeIds = new List<int>();
+            var excludeIds = new List<int>();
+            var ids = StaticData.GetRecipesByCategory(category);
+            var settings = GetPersonalMealPlanSettingsFromDb();
+
+            if (settings.Vegan)
+                includeIds.AddRange(StaticData.VeganRecipeIds);
+            else if (settings.Vegetarisch)
+                includeIds.AddRange(StaticData.VegetarianRecipeIds);
+            else if (settings.NoSchweinefleisch)
+                excludeIds.AddRange(StaticData.PorkRecipeIds);
+            else if (settings.NoFisch)
+                excludeIds.AddRange(StaticData.FishRecipeIds);
+            else if (settings.NoVegan)
+                excludeIds.AddRange(StaticData.VeganRecipeIds);
+            else if (settings.NoVegetarisch)
+                excludeIds.AddRange(StaticData.VegetarianRecipeIds);
+
+            if (includeIds.Any())
+                ids = ids.Intersect(includeIds).ToList();
+            else
+                ids = ids.Except(excludeIds).ToList();
+
+            return ids.ToList();
         }
 
         public async Task<IActionResult> LoadRecipesSearch(string category, string dayIndex)
         {
-            var ids = StaticData.GetRecipesByCategory(category);
+            ViewBag.DayIndex = dayIndex;
+            ViewBag.Category = category;
+            var ids = GetFiltretRecipesIds(category);
             var recipesIds = _recipesService.GetRendomRecipesIds(ids.ToList(), 10);
 
             var model = await _recipesService.GetRecipesListByIdsAsync(recipesIds);

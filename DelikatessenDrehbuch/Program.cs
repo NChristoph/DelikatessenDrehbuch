@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices;
@@ -57,6 +58,8 @@ builder.Services.AddScoped<IIngredientScaleService, IngredientScaleService>();
 builder.Services.AddScoped<IMealPlanEditorService, MealPlanEditorService>();
 builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 builder.Services.AddScoped<ISearchRecipeService, SearchRecipeService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserManager, UserManager>();
 
 
 builder.Services.AddHttpContextAccessor();
@@ -193,6 +196,10 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "Recipes",

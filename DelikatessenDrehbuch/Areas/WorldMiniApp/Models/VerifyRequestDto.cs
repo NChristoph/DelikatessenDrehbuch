@@ -1,0 +1,89 @@
+﻿using System.Text.Json.Serialization; // Standard .NET
+using Newtonsoft.Json;                // Newtonsoft (oft in älteren/komplexen Projekten)
+
+namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+{
+    // === 1. EMPFANG: Daten vom Frontend (MiniKit JS) ===
+    public class VerifyRequestDto
+    {
+        [JsonPropertyName("payload")]
+        [JsonProperty("payload")]
+        public VerifyPayloadDto Payload { get; set; }
+
+        [JsonPropertyName("action")]
+        [JsonProperty("action")]
+        public string Action { get; set; }
+
+        [JsonPropertyName("signal")]
+        [JsonProperty("signal")]
+        public string Signal { get; set; }
+    }
+
+    public class VerifyPayloadDto
+    {
+        [JsonPropertyName("status")]
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonPropertyName("proof")]
+        [JsonProperty("proof")]
+        public string Proof { get; set; }
+
+        // HIER WAR DAS PROBLEM (Unterstrich): Jetzt doppelt abgesichert!
+        [JsonPropertyName("merkle_root")]
+        [JsonProperty("merkle_root")]
+        public string MerkleRoot { get; set; }
+
+        [JsonPropertyName("nullifier_hash")]
+        [JsonProperty("nullifier_hash")]
+        public string NullifierHash { get; set; }
+
+        [JsonPropertyName("verification_level")]
+        [JsonProperty("verification_level")]
+        public string VerificationLevel { get; set; }
+    }
+
+    // === 2. VERSAND: Daten an die Worldcoin Developer API ===
+    public class WorldcoinVerifyRequest
+    {
+        [JsonPropertyName("merkle_root")]
+        [JsonProperty("merkle_root")]
+        public string MerkleRoot { get; set; }
+
+        [JsonPropertyName("nullifier_hash")]
+        [JsonProperty("nullifier_hash")]
+        public string NullifierHash { get; set; }
+
+        [JsonPropertyName("proof")]
+        [JsonProperty("proof")]
+        public string Proof { get; set; }
+
+        [JsonPropertyName("verification_level")]
+        [JsonProperty("verification_level")]
+        public string VerificationLevel { get; set; }
+
+        [JsonPropertyName("action")]
+        [JsonProperty("action")]
+        public string Action { get; set; }
+
+        [JsonPropertyName("signal_hash")]
+        [JsonProperty("signal_hash")]
+        public string Signal { get; set; }
+    }
+
+    // === 3. ANTWORT: Das Ergebnis von der Worldcoin API ===
+    public class WorldcoinVerifyResponse
+    {
+        [JsonPropertyName("success")]
+        [JsonProperty("success")]
+        public bool Success { get; set; }
+
+        [JsonPropertyName("code")]
+        [JsonProperty("code")]
+        public string Code { get; set; }
+
+        [JsonPropertyName("detail")]
+        [JsonProperty("detail")]
+        public string Detail { get; set; }
+    }
+}

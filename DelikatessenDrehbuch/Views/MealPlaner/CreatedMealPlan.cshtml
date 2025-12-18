@@ -392,17 +392,18 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <ul class="nav nav-tabs offcanvas-tabs justify-content-center" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#total-ing">Zutaten Übersicht</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#total-shop">Einkaufsliste erstellen</button></li>
-    </ul>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#total-ing">Einkaufliste erstellen</button></li>
+@*         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#total-shop">Nährwert übersicht</button></li>
+ *@    </ul>
     <div class="offcanvas-body" style="background-color:var(--deli-cream);">
         <div class="tab-content offcanvas-content">
             <div class="tab-pane fade show active" id="total-ing">
                 <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-Name="ShoppingList"></vc:ingredient-sum>
             </div>
-            <div class="tab-pane fade" id="total-shop">
+          @*   <div class="tab-pane fade" id="total-shop">
+                GesamtNärwerte bald verfügbar
                 <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-name="Default"></vc:ingredient-sum>
-            </div>
+            </div> *@
         </div>
     </div>
 </div>
