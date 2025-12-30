@@ -19,17 +19,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             if(user != null)
             {
                 user.Lastlogin = DateTime.Now;
+                user.IsVerified = request.Payload.VerificationLevel;
             }
             else
             {
-                user = new WorldAppUser();
-
-                user.UserHash = request.Payload.NullifierHash;
-                user.IsVerified = request.Payload.VerificationLevel;
-                user.Lastlogin= DateTime.Now;
+                user = new WorldAppUser
+                {
+                    UserHash = request.Payload.NullifierHash,
+                    IsVerified = request.Payload.VerificationLevel,
+                    Lastlogin = DateTime.Now
+                };
+                _context.WorldAppUser.Add(user);
             }
 
-            _context.WorldAppUser.Add(user);
+           
             _context.SaveChangesAsync();
 
             return Task.CompletedTask;

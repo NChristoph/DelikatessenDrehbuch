@@ -10,10 +10,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserManager _userManager;
-        public AuthController(IAuthService authService, IUserManager userManager)
+        private readonly IWorldAppMealPlanService _worldAppMealPlanService;
+        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService)
         {
             _authService = authService;
             _userManager = userManager;
+            _worldAppMealPlanService = worldAppMealPlanService;
         }
 
         [HttpPost]
@@ -33,6 +35,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 if (isValid.Success)
                 {
                     await _userManager.CreateNewUser(request);
+                   
 
                     return Ok(new { status = 200, message = "Erfolg!" });
                 }

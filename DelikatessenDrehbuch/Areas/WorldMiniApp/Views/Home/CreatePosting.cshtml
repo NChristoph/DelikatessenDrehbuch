@@ -1,0 +1,122 @@
+﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+@{
+    ViewData["Title"] = "Rezept Upload";
+    Layout = "_MiniAppLayout";
+}
+
+<div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+
+    <div class="px-4 pt-4 pb-2">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
+            <i class="bi bi-arrow-left"></i> Zurück zum Feed
+        </a>
+        <h2 class="fw-bold mb-1" style="color: #2c3e50;">Neues Rezept 🥑</h2>
+        <p class="text-muted small">Lade dein Video direkt hoch.</p>
+    </div>
+
+    <div class="container px-4">
+        <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" class="pb-5">
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);">
+
+                <div class="mb-4">
+                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
+                        Titel des Gerichts
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-white rounded-start-4 ps-3 text-muted">
+                            <i class="bi bi-fonts"></i>
+                        </span>
+                        <input asp-for="Title" class="form-control border-0 bg-white rounded-end-4 py-3 shadow-sm custom-input" placeholder="z.B. Spaghetti Eis" required />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
+                        Video Datei
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-white rounded-start-4 ps-3 text-muted">
+                            <i class="bi bi-cloud-upload"></i>
+                        </span>
+                        <input asp-for="Content" type="file" accept="video/*" class="form-control border-0 bg-white rounded-end-4 py-3 shadow-sm custom-input" style="padding-top: 15px;" required />
+                    </div>
+                    <div class="form-text small mt-2">
+                        <i class="bi bi-info-circle me-1"></i> Max. 50 MB (MP4 empfohlen)
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <div class="mb-3">
+                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
+                        Dein Name (Test)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light rounded-start-4 ps-3 text-muted">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input asp-for="CreatorName" class="form-control border-0 bg-light rounded-end-4 py-2 custom-input" placeholder="Chefkoch..." />
+                    </div>
+                </div>
+
+                <div class="mb-1">
+                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
+                        World ID Hash (Test)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light rounded-start-4 ps-3 text-muted">
+                            <i class="bi bi-fingerprint"></i>
+                        </span>
+                        <input asp-for="CreatorId" class="form-control border-0 bg-light rounded-end-4 py-2 custom-input" placeholder="0x123..." />
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%); pointer-events: none;">
+                <div style="pointer-events: auto;">
+                    <button type="submit" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
+                            style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
+                        <span class="fs-5">Video Hochladen</span>
+                        <i class="bi bi-cloud-arrow-up-fill ms-2"></i>
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Styling für das File Input, damit es hübscher aussieht */
+    input[type=file]::file-selector-button {
+        margin-right: 15px;
+        border: none;
+        background: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 10px;
+        color: #555;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background .2s ease-in-out;
+    }
+
+        input[type=file]::file-selector-button:hover {
+            background: #e0e0e0;
+        }
+
+    .custom-input:focus {
+        box-shadow: none;
+        border: 2px solid #FF9966 !important;
+        background: #fff;
+    }
+
+    .btn-hover-effect:active {
+        transform: scale(0.97);
+    }
+
+    .input-group-text {
+        font-size: 1.2rem;
+    }
+</style>

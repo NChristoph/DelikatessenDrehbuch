@@ -18,7 +18,7 @@
     </div>
 
     <form method="get" action="@Url.Action("Generated", "Home", new { area = "WorldMiniApp" })" class="pb-5">
-
+        <input type="hidden"  name="userHash" id="hiddenUserHash" value="" />
         <div class="container px-4">
 
             <div class="mb-5">
@@ -118,6 +118,30 @@
                 </div>
             </div>
 
+            <div class="mt-4 mb-5">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">
+                    Name des Plans *
+                </label>
+
+                <div class="card border-0 shadow-sm p-1 rounded-4 position-relative overflow-hidden bg-white">
+                    <div class="d-flex align-items-center px-3">
+                        <div class="icon-box rounded-3 me-3 text-muted" style="font-size: 1.2rem;">
+                            <i class="bi bi-pencil-fill"></i>
+                        </div>
+
+                        <input name="title"
+                               class="form-control border-0 bg-transparent py-3 fw-bold text-dark shadow-none"
+                               placeholder="z.B. Sommer-Diät"
+                               required
+                               style="outline: none; box-shadow: none;" />
+                    </div>
+                </div>
+                <span  class="text-danger small ms-2 mt-1 d-block fw-bold"></span>
+            </div>
+
+        
+
+       
         </div>
 
         <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%);">
@@ -133,6 +157,8 @@
 
 @section Scripts {
     <script>
+
+        document.getElementById("hiddenUserHash").value = localStorage.getItem("UserToken");
         // Logik für Counter (+/-) bleibt wie gehabt
         function changeVal(id, delta) {
             const input = document.getElementById(id);

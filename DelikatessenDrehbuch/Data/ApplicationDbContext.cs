@@ -30,6 +30,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<Group> Group { get; set; }
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
+        public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
+        public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

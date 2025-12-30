@@ -3,9 +3,13 @@
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const ACTION = "login-delikatessendrehbuch";
 
-// Hier speichern wir temporär, wo der User hin will und wie er sich verifizieren muss
+// === DEIN TEST-SCHALTER ===
+// Setze das auf TRUE, um überall (auch am PC) den Mock-Login zu erzwingen.
+// Setze das auf FALSE, wenn du live gehst (damit nur World App User reinkommen).
+const ALLOW_MOCK_EVERYWHERE = true;
+
 let currentConfig = {
-    level: 'orb', // Standard
+    level: 'orb',
     redirectUrl: '/WorldMiniApp/Home/Setup'
 };
 
@@ -17,20 +21,18 @@ function log(msg, error = false) {
     }
 }
 
-// === DIAGNOSE ===
 async function diagnoseEnvironment() {
     const miniKitExists = typeof MiniKit !== 'undefined';
+    // Wir prüfen auch auf 127.0.0.1 und localhost
     const isLocalhost = window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1';
     return { miniKitExists, isLocalhost };
 }
 
-// === HAUPT-FUNKTION FÜR DEN LOGIN START ===
 async function startLoginProcess() {
     try {
         const env = await diagnoseEnvironment();
 
-        // Modal Text anpassen je nach Level
         log(currentConfig.level === 'orb'
             ? "🔐 Orb-Verifizierung wird gestartet..."
             : "📱 Device-Verifizierung wird gestartet...");
@@ -39,28 +41,31 @@ async function startLoginProcess() {
 
         // CHECK: MiniKit vorhanden?
         if (!env.miniKitExists) {
-            if (env.isLocalhost) {
-                await useMockLogin(); // Mock nutzen
+
+            // === HIER IST DIE ÄNDERUNG ===
+            // Wenn wir auf Localhost sind ODER der Test-Schalter an ist:
+            if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
+                console.warn("⚠️ Nutze Mock-Login (Test Modus aktiv)");
+                await useMockLogin(); // Fake Login starten
                 return;
             }
+
             log("❌ MiniKit nicht verfügbar. Bitte in World App öffnen!", true);
             return;
         }
 
-        // MiniKit vorhanden
+        // ... Ab hier läuft der echte World App Login weiter ...
         try {
             MiniKit.install({ appId: APP_ID });
         } catch (e) { console.warn("Install Note:", e); }
 
         await new Promise(r => setTimeout(r, 800));
-
         log("Bitte bestätigen...");
 
-        // === DYNAMISCHER VERIFY AUFRUF ===
         const res = await MiniKit.commandsAsync.verify({
             action: ACTION,
-            signal: "",
-            verification_level: currentConfig.level // Hier nutzen wir das dynamische Level!
+            signal: "", // WICHTIG: Dein Backend ersetzt das leere Signal automatisch durch den Hash
+            verification_level: currentConfig.level
         });
 
         if (res.finalPayload && res.finalPayload.status === 'success') {
@@ -79,21 +84,23 @@ async function startLoginProcess() {
 
 // === MOCK (SIMULATION) ===
 async function useMockLogin() {
-    log(`🎭 Mock Login (${currentConfig.level})`);
+    log(`🎭 Mock Login (${currentConfig.level}) - TEST MODUS`);
     await new Promise(r => setTimeout(r, 1000));
 
+    // Wir generieren Fake-Daten, damit das Backend zufrieden ist
     const mockPayload = {
         status: 'success',
         verification_level: currentConfig.level,
         proof: "mock-proof-" + Date.now(),
         merkle_root: "mock-root",
-        nullifier_hash: "mock-hash-" + Date.now()
+        nullifier_hash: "mock-user-" + Date.now() // Jedes Mal ein neuer Fake-User
     };
 
     await verifyBackend(mockPayload);
 }
 
-// === BACKEND VERIFICATION ===
+// ... (Der Rest bleibt gleich: verifyBackend, openModal, closeModal, triggerLogin) ...
+
 async function verifyBackend(payload) {
     try {
         log("📤 Prüfe Server...");
@@ -110,25 +117,21 @@ async function verifyBackend(payload) {
 
         if (response.ok) {
             log("🎉 Erfolgreich!");
-
-            // Optional: Merken, dass wir eingeloggt sind (Session Storage ist hier besser als LocalStorage)
             sessionStorage.setItem("user_verified", "true");
-
             await new Promise(r => setTimeout(r, 800));
+            localStorage.setItem("UserToken", payload.nullifier_hash);
+          
 
-            // WEITERLEITUNG ZUR GEWÜNSCHTEN URL
             window.location.href = currentConfig.redirectUrl;
         } else {
             const errorText = await response.text();
             log(`❌ Server Fehler: ${errorText.substring(0, 50)}`, true);
         }
-
     } catch (error) {
         log("❌ Netzwerkfehler", true);
     }
 }
 
-// === HELPER ===
 function openModal() {
     const el = document.getElementById('loginModal');
     if (el) {
@@ -143,11 +146,19 @@ function closeModal() {
     if (modal) modal.hide();
 }
 
-// === PUBLIC FUNCTIONS (Vom HTML aufrufbar) ===
 
-// Diese Funktion wird jetzt von deinen Buttons aufgerufen!
 window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
+
+    // AUTOMATISCH HOLEN: Wir schauen hier im JS nach dem Token
+    const storedHash = localStorage.getItem("UserToken");
+
+    if (storedHash) {
+        console.log("Hash automatisch gefunden:", storedHash);
+        // URL erweitern
+        const separator = redirectUrl.includes('?') ? '&' : '?';
+        redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
+    }
 
     // Config setzen
     currentConfig.level = level;
@@ -155,13 +166,10 @@ window.triggerLogin = (level, redirectUrl) => {
 
     // Modal öffnen & Starten
     openModal();
-
-    // Kleines Delay für die Animation
     setTimeout(startLoginProcess, 500);
 };
 
 window.retryVerification = () => {
-    // Einfach mit den letzten Werten nochmal starten
     openModal();
     setTimeout(startLoginProcess, 500);
 };

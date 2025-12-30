@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
@@ -60,6 +61,8 @@ builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 builder.Services.AddScoped<ISearchRecipeService, SearchRecipeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManager, UserManager>();
+builder.Services.AddScoped<IBlobUploadService, BlobUploadService>();
+builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 
 
 builder.Services.AddHttpContextAccessor();

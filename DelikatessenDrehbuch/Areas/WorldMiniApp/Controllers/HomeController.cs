@@ -1,11 +1,17 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
+using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
+using Stripe;
+using System.Configuration;
 using System.Data;
+using System.Threading.Tasks;
 
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -14,10 +20,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     public class HomeController : Controller
     {
         private readonly IRecipesService _recipesService;
+        private readonly IWorldAppMealPlanService _worldAppMealPlanService;
+        private readonly IBlobUploadService _blobUpload;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(IRecipesService recipesService)
+
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context)
         {
             _recipesService = recipesService;
+            _worldAppMealPlanService = worldUserMealPlanService;
+            _blobUpload = blobUpload;
+            _context = context;
         }
 
         // Die Startseite (Das Menü von oben)
@@ -32,9 +45,33 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(new MiniAppSetupModel());
         }
 
-        public async Task<IActionResult> Generated(MiniAppSetupModel model)
+        //TODO:Mach den upload fertig und erstelle die rezept eingabe maske
+        public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting)
         {
-            ViewData["PersonCount"] = model.PersonCount;
+            var url = await _blobUpload.UploadContentToBlob(posting.Content);
+            var recipe = await _recipesService.GetRecipesFromDbByIdAsync(84);
+            posting.CreationTime = DateTime.Now;
+            posting.CreatorName = "Avocado";
+            posting.CreatorId = "xxxxxxx";
+            posting.Source = url;
+            posting.Recipe = recipe; // Fehler behoben: await hinzugefügt und Semikolon ergänzt
+
+            await _context.WorldUserPosting.AddAsync(posting);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Upload()
+        {
+            return View("CreatePosting", new WorldUserPosting());
+        }
+
+        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufslisste teilen
+        //lagere das in einen eigenen controller aus
+
+        private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)
+        {
             var ids = new List<int>();
             if (model.DietType == "Alles")
                 ids = StaticData.MainMeals;
@@ -49,7 +86,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ids = ids.Intersect(StaticData.MainMeals).ToList();
 
             var ran = _recipesService.GetRendomRecipesIds(ids, model.DayCount);
-            var recipes = await _recipesService.GetRecipesListByIdsAsync(ran);
+
+            return await _recipesService.GetRecipesListByIdsAsync(ran);
+        }
+
+        public async Task<IActionResult> Generated(MiniAppSetupModel model, string userHash, string title)
+        {
+            ViewData["PersonCount"] = model.PersonCount;
+            ViewData["Title"] = title;
+            await _worldAppMealPlanService.CheckVerifie(model, userHash, title);
+
+            var recipes = await GetFiltredRecipes(model);
 
             List<MealPlanerModel> mealPlan = new();
 
@@ -62,15 +109,81 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 });
             }
 
+            await _worldAppMealPlanService.SaveNewMealPlan(userHash, mealPlan, title);
 
             return View(mealPlan);
         }
 
-        // Action für "Entdecken"
+        private async Task<List<MealPlanerModel>> GetMelplanerModel(WorldUserMealPlan plan)
+        {
+
+            var indexIds = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(plan.MealPlan);
+
+            List<MealPlanerModel> model = new();
+            foreach (var entry in indexIds) // Gehe jeden Tag durch (Key = Tag, Value = Liste IDs)
+            {
+                int dayIndex = entry.Key;
+
+                foreach (var recipeId in entry.Value) // Gehe jedes Rezept an diesem Tag durch
+                {
+                    // Finde das passende Rezept-Objekt in der geladenen Liste
+                    var recipe = await _recipesService.GetRecipesFromDbByIdAsync(recipeId);
+
+                    if (recipe != null)
+                    {
+                        model.Add(new MealPlanerModel
+                        {
+                            Index = dayIndex,
+                            Recipes = recipe
+                        });
+                    }
+                }
+            }
+
+            return model;
+        }
+
+        public async Task<IActionResult> EditPlan(string userHash, int id)
+        {
+
+            var plan = _worldAppMealPlanService.GetMealPlanById(id);
+            var settings = JsonConvert.DeserializeObject<MiniAppSetupModel>(plan.Settings);
+
+            List<MealPlanerModel> model = await GetMelplanerModel(plan);
+
+            ViewData["PersonCount"] = settings.PersonCount;
+            ViewData["Title"] = plan.Title;
+
+            return View("Generated", model);
+
+        }
+
         public IActionResult Discover()
         {
-            // Später kommt hier der Feed rein
             return View("MiniAppFeed");
+        }
+
+        public async Task<IActionResult> PersonalityAsync(string userHash)
+        {
+            ViewData["UserHash"] = userHash;
+            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
+            return View(mealPlans);
+        }
+
+        public async Task<IActionResult> ViewPlanAsync(int id)
+        {
+            var plan = _worldAppMealPlanService.GetMealPlanById(id);
+
+            List<MealPlanerModel> model = await GetMelplanerModel(plan);
+
+            return View("Finaly", model);
+        }
+
+        public async Task<IActionResult> DeletePlanAsync(string userHash, int id)
+        {
+            _worldAppMealPlanService.DeleteMealPlan(id);
+            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
+            return View("Personality", mealPlans);
         }
 
         private async Task<List<Recipes>> GetRandomRecipesByCategory(string category, int count)
@@ -149,10 +262,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         }
         [HttpGet]
-        public async Task<IActionResult> SaveMealPlan(string mealPlanJson,int personCount)
+        public async Task<IActionResult> SaveMealPlan(string mealPlanJson, int personCount, string userHash, string title)
         {
             ViewData["PersonCount"] = personCount;
             var indexIds = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(mealPlanJson.ToString());
+
             List<MealPlanerModel> model = new();
 
             foreach (var item in indexIds)
@@ -165,7 +279,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 model.Add(plan);
             }
-
+            await _worldAppMealPlanService.SaveNewMealPlan(userHash, model, title);
             return View("Finaly", model);
         }
     }

@@ -117,11 +117,6 @@ namespace DelikatessenDrehbuch.StaticScripts
             return context.Querys.Select(x => x.Query).ToList();
         }
 
-
-
-
-
-
     }
 
 
