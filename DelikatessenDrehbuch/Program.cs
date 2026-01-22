@@ -18,8 +18,17 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Stripe;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var defaultCulture = new CultureInfo("de-AT");
+
+// Optional, aber hilfreich (setzt auch Server-Default)
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
 
 var retryPolicy = Policy
     .Handle<SqlException>()
@@ -125,6 +134,9 @@ StripeConfiguration.ApiKey = stripeApiKey;
 builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 var app = builder.Build();
+
+
+
 
 using (var scope = app.Services.CreateScope())
 {

@@ -1,0 +1,176 @@
+﻿@model DelikatessenDrehbuch.Models.RecipeBaseData
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = Model.Title;
+
+    // Berechnung der Gesamtnährwerte mit Stück-Logik
+    decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
+
+    foreach (var item in Model.Ingredients)
+    {
+        var nutri = item.Ingredient.IngredientsAndNutrients;
+        var quantity = (decimal)item.Ingredient.Quantity.Quantitys;
+        var unit = item.Ingredient.Measure.UnitOfMeasurement.ToLower();
+
+        // Faktor berechnen: Wenn Stück, dann Gewicht pro Stück nutzen, sonst Menge/100
+        decimal factor = (unit == "stk" || unit == "stück")
+            ? (quantity * nutri.Weight_per_piece) / 100m
+            : quantity / 100m;
+
+        totalCalories += nutri.Calories_a_100g * factor;
+        totalProtein += nutri.Protein_a_100g * factor;
+        totalFat += nutri.Fat_a_100g * factor;
+        totalCarbs += nutri.Carbohydrates_a_100g * factor;
+        totalSugar += nutri.Sugar_a_100g * factor;
+        totalFiber += nutri.Fiber_a_100g * factor;
+    }
+}
+
+<div class="min-vh-100 pb-5" style="background: #F7FAF7; font-family: 'Outfit', sans-serif;">
+
+    <div class="d-flex justify-content-between align-items-center p-3 sticky-top backdrop-blur-md" style="z-index: 1000;">
+        <a href="javascript:history.back()" class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center text-success" style="width: 42px; height: 42px; text-decoration: none;">
+            <i class="bi bi-chevron-left fs-5"></i>
+        </a>
+
+        <div class="dropdown">
+            <button class="btn btn-white bg-white rounded-pill shadow-sm px-3 fw-bold border-0 text-success" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-translate me-1"></i> <span id="currentLangLabel">DE</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 mt-2">
+                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('DE')">🇩🇪 Deutsch</a></li>
+                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('EN')">🇺🇸 English</a></li>
+                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('ESP')">🇪🇸 Español</a></li>
+                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('PRT')">🇵🇹 Português</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="position-relative" style="margin-top: -60px;">
+        @if (Model.Images != null && Model.Images.Any())
+        {
+            <img src="@Model.Images.First().Image" class="w-100 shadow" style="height: 280px; object-fit: cover; border-radius: 0 0 40px 40px;" />
+        }
+    </div>
+
+    <div class="container px-4" style="margin-top: -30px; position: relative; z-index: 10;">
+        <div class="bg-white p-4 rounded-5 shadow-sm border-0 text-center">
+            <h1 class="fw-bold mb-1" style="color: #2D4F1E;">@Model.Title</h1>
+            <div class="d-flex justify-content-center gap-3 mt-2 small text-muted">
+                <span><i class="bi bi-clock"></i> @Model.PreperationTime Min.</span>
+                <span><i class="bi bi-people"></i> @Model.PersonCount Port.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container px-4 mt-4">
+
+        <h5 class="fw-bold mb-3" style="color: #2D4F1E;">Einkaufsliste</h5>
+
+        @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "Sonstiges"))
+        {
+            <div class="mb-4">
+                <h6 class="text-success fw-bold small text-uppercase mb-2" style="letter-spacing: 1px;">@group.Key</h6>
+                @foreach (var item in group)
+                {
+                    <div class="ingredient-row bg-white p-3 rounded-4 mb-2 shadow-sm d-flex align-items-center cursor-pointer" onclick="toggleCheck(this)">
+                        <div class="custom-check me-3">
+                            <i class="bi bi-check-circle-fill text-success d-none"></i>
+                            <i class="bi bi-circle text-muted"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <span class="fw-bold">@item.Ingredient.Quantity.Quantitys @item.Ingredient.Measure.UnitOfMeasurement</span>
+                            <span class="ms-1 text-secondary lang-content lang-de">@item.Ingredient.IngredientsAndNutrients.Name_DE</span>
+                            <span class="ms-1 text-secondary lang-content lang-en d-none">@item.Ingredient.IngredientsAndNutrients.Name_EN</span>
+                            <span class="ms-1 text-secondary lang-content lang-esp d-none">@item.Ingredient.IngredientsAndNutrients.Name_ESP</span>
+                            <span class="ms-1 text-secondary lang-content lang-prt d-none">@item.Ingredient.IngredientsAndNutrients.Name_PRT</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <h5 class="fw-bold mb-3 mt-5" style="color: #2D4F1E;">Zubereitung</h5>
+        <div class="mb-5">
+            @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
+            {
+                <div class="step-box bg-white p-4 rounded-4 shadow-sm mb-3 border-0">
+                    <p class="mb-0 fs-6 lang-content lang-de">@step.RecipePreperationStep.Step_DE</p>
+                    <p class="mb-0 fs-6 lang-content lang-en d-none">@step.RecipePreperationStep.Step_EN</p>
+                    <p class="mb-0 fs-6 lang-content lang-esp d-none">@step.RecipePreperationStep.Step_ESP</p>
+                    <p class="mb-0 fs-6 lang-content lang-prt d-none">@step.RecipePreperationStep.Step_PRT</p>
+                </div>
+            }
+        </div>
+
+        <div class="p-4 rounded-5 shadow-lg border-0 mb-5 text-white" style="background: linear-gradient(135deg, #2D4F1E 0%, #4CAF50 100%);">
+            <h6 class="text-center text-uppercase fw-bold mb-4" style="letter-spacing: 2px; opacity: 0.8;">Gesamt-Nährwerte</h6>
+
+            <div class="row g-3 text-center">
+                <div class="col-4">
+                    <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-10">
+                        <span class="d-block fw-bold fs-5">@Math.Round(totalCarbs)g</span>
+                        <small class="opacity-75">Carbs</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-10">
+                        <span class="d-block fw-bold fs-5">@Math.Round(totalProtein)g</span>
+                        <small class="opacity-75">Protein</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-10">
+                        <span class="d-block fw-bold fs-5">@Math.Round(totalFat)g</span>
+                        <small class="opacity-75">Fett</small>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="bg-warning text-dark p-3 rounded-4 fw-bold fs-4 shadow-sm">
+                        @Math.Round(totalCalories) <span class="fs-6">kcal</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-around mt-4 small opacity-75">
+                <span>Zucker: @Math.Round(totalSugar, 1)g</span>
+                <span>Fasern: @Math.Round(totalFiber, 1)g</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ingredient-row {
+        transition: all 0.2s ease;
+    }
+
+        .ingredient-row.checked {
+            background: #E8F5E9 !important;
+            opacity: 0.6;
+        }
+
+            .ingredient-row.checked span {
+                text-decoration: line-through;
+            }
+
+    .backdrop-blur-md {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background: rgba(247, 250, 247, 0.7);
+    }
+</style>
+
+<script>
+    function toggleCheck(element) {
+        element.classList.toggle('checked');
+        element.querySelector('.bi-check-circle-fill').classList.toggle('d-none');
+        element.querySelector('.bi-circle').classList.toggle('d-none');
+    }
+
+    function setAppLanguage(lang) {
+        document.getElementById('currentLangLabel').innerText = lang;
+        document.querySelectorAll('.lang-content').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.lang-' + lang.toLowerCase()).forEach(el => el.classList.remove('d-none'));
+    }
+</script>

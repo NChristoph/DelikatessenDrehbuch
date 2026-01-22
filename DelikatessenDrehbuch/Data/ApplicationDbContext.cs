@@ -28,6 +28,13 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<Nutrients> Nutrients { get; set; }
         public DbSet<NutrienHandler> NutrienHandler { get; set; }
         public DbSet<Group> Group { get; set; }
+        public DbSet<IngredientMeasureQuantity> IngredientMeasureQuantity { get; set; }
+        public DbSet<RecipeBaseData> RecipeBaseData { get; set; }
+        public DbSet<RecipeBaseDataImage> RecipeBaseDataImage { get; set; }
+        public DbSet<RecipeJoinIngredientMeasureQuantity> RecipeJoinIngredientMeasureQuantity { get; set; }
+        public DbSet<RecipeJoyinPreperationSteps> RecipeJoinPreperationSteps { get; set; }
+        public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
+        public DbSet<RecipePreperationSteps> RecipePreperationSteps { get; set; }
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }

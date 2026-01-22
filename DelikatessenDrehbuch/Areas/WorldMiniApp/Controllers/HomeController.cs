@@ -7,6 +7,7 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Stripe;
 using System.Configuration;
@@ -143,6 +144,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return model;
         }
 
+        public async Task<IActionResult> ShowRecipe(int id)
+        {
+            var model = _context.RecipeBaseData
+                .Include(r => r.Images)
+                .Include(r => r.Steps)
+                    .ThenInclude(s => s.RecipePreperationStep)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Quantity)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.IngredientsAndNutrients)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Measure)
+                 .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.IngredientsAndNutrients.Group)
+                .FirstOrDefault(r => r.Id == id);
+            return View(model);
+        }
         public async Task<IActionResult> EditPlan(string userHash, int id)
         {
 
@@ -158,9 +180,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         }
 
+        private string ChangePath(string path)
+        {
+            
+            if (string.IsNullOrEmpty(path)) return path;
+
+            // Ihre Konstanten (am besten oben in der Klasse definieren, aber hier geht es auch)
+            string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
+            string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
+
+            
+            if (path.Contains(oldDomain))
+            {
+                return path.Replace(oldDomain, newCdnDomain);
+            }
+
+            return path;
+        }
         public IActionResult Discover()
         {
-            return View("MiniAppFeed");
+            var model=_context.RecipeBaseDataImage.AsNoTracking().Include(x=>x.Recipe).OrderByDescending(x=>x.Id).Take(20).ToList();
+            foreach(var item in model)
+            {
+                item.Image = ChangePath(item.Image);
+            }
+            return View("MiniAppFeed",model);
         }
 
         public async Task<IActionResult> PersonalityAsync(string userHash)

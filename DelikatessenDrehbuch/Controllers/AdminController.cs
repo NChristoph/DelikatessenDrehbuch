@@ -7,6 +7,7 @@ using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
@@ -80,15 +81,148 @@ namespace DelikatessenDrehbuch.Controllers
             return View(new AddNewRecipesModel());
         }
 
+        public IActionResult CreatePreperationStep()
+        {
+
+            return View(new RecipePreperationSteps());
+        }
+
+        public IActionResult SavePreperationStep(RecipePreperationSteps step)
+        {
+            _context.RecipePreperationSteps.Add(step);
+            _context.SaveChanges();
+
+
+            return RedirectToAction("Index");
+        }
+
+       
+        //TODO:Doppel speicherung verhindern
+
+ 
+        public void SaveNew(EditRecipesModel recipesModel)
+        {
+            RecipeBaseData recipeBaseData;
+
+            // 1. Rezept suchen oder erstellen
+            var existingRecipeBaseData = _context.RecipeBaseData
+                   .FirstOrDefault(r => r.Title == recipesModel.Recipes.Name);
+
+            if (existingRecipeBaseData == null)
+            {
+                // --- NEUES REZEPT ---
+                recipeBaseData = new RecipeBaseData
+                {
+                    Title = recipesModel.Recipes.Name,
+                    PersonCount = (int)recipesModel.Recipes.RecipePersonCount,
+                    Preferences = recipesModel.Querys,
+                    Category = recipesModel.Recipes.Category,
+                    PreperationTime = (int)recipesModel.Recipes.PreparationTime
+                };
+               
+                _context.RecipeBaseData.Add(recipeBaseData);
+                 _context.SaveChanges();
+            }
+            else
+            {
+                // --- EXISTIERENDES REZEPT ---
+                recipeBaseData = existingRecipeBaseData;
+
+                // Werte aktualisieren (Beispiel)
+                recipeBaseData.PersonCount = (int)recipesModel.Recipes.RecipePersonCount;
+                // EF Core weiß durch das Laden schon, dass dieses Objekt existiert (State = Modified/Unchanged)
+            }
+
+            // --- ZUTATEN VERARBEITEN ---
+            foreach (var ingredien in recipesModel.IngredientMeasureQuantity)
+            {
+                IngredientMeasureQuantity ingredientToUseForJoin;
+
+                // Prüfen ob Zutat in DB existiert
+                var exist = _context.IngredientMeasureQuantity
+                     .FirstOrDefault(x => x.IngredientsAndNutrients.Name_DE == ingredien.IngredientsAndNutrients.Name_DE
+                                          && x.Measure.UnitOfMeasurement == ingredien.Measure.UnitOfMeasurement
+                                          && x.Quantity.Quantitys == ingredien.Quantity.Quantitys);
+
+                if (exist == null)
+                {
+                    // Neue Zutat erstellen
+                    if (ingredien.Measure.UnitOfMeasurement == "Gramm")
+                        ingredien.Measure.UnitOfMeasurement = "g.";
+
+                    var newIng = new IngredientMeasureQuantity
+                    {
+                        // Hier müssen wir aufpassen: Die Referenzen müssen aus dem Context kommen, 
+                        // sonst versucht er die auch neu anzulegen!
+                        IngredientsAndNutrients = _context.IngredientsAndNutrients.FirstOrDefault(x => x.Id == ingredien.IngredientsAndNutrients.Id),
+                        Measure = _context.Metrics.FirstOrDefault(x => x.UnitOfMeasurement.ToLower() == ingredien.Measure.UnitOfMeasurement.ToLower()),
+                        Quantity = _context.Quantities.FirstOrDefault(x => x.Quantitys == ingredien.Quantity.Quantitys)
+                    };
+
+                    // Validate that the related lookups were found to avoid FK violations
+                    if (newIng.IngredientsAndNutrients == null)
+                        throw new InvalidOperationException($"IngredientsAndNutrients with Id={ingredien.IngredientsAndNutrients.Id} not found.");
+                    if (newIng.Measure == null)
+                        throw new InvalidOperationException($"Measure '{ingredien.Measure.UnitOfMeasurement}' not found.");
+                    if (newIng.Quantity == null)
+                        throw new InvalidOperationException($"Quantity '{ingredien.Quantity.Quantitys}' not found.");
+
+                    _context.IngredientMeasureQuantity.Add(newIng); // Zum Speichern vormerken
+                    ingredientToUseForJoin = newIng;
+                }
+                else
+                {
+                    ingredientToUseForJoin = exist;
+                }
+
+               
+                var recipeJoynIng = new RecipeJoinIngredientMeasureQuantity()
+                {
+                    Recipe = recipeBaseData,
+                    Ingredient = ingredientToUseForJoin
+                };
+
+                _context.RecipeJoinIngredientMeasureQuantity.Add(recipeJoynIng);
+            }
+
+          
+
+            _context.SaveChanges();
+          
+
+            // --- SCHRITTE HINZUFÜGEN ---
+            foreach (var step in recipesModel.RecipeJoyinPreperationSteps)
+            {
+                
+                step.Recipe = recipeBaseData; // Auch hier einfach das Objekt verknüpfen
+                step.RecipePreperationStep = _context.RecipePreperationSteps.First(x=>x.Id==step.PreperationStepId);
+                _context.RecipeJoinPreperationSteps.Add(step);
+            }
+
+            RecipeBaseDataImage recipeBaseDataImage = new RecipeBaseDataImage
+            {
+                Recipe = recipeBaseData,
+                Image = _context.Recipes.Where(x=>x.Preparation==recipesModel.Recipes.Preparation).Select(x=>x.ImagePath).First()
+            };
+            _context.RecipeBaseDataImage.Add(recipeBaseDataImage);
+
+            // --- DAS GROSSE FINALE ---
+            // Hier wird ALLES in der richtigen Reihenfolge gespeichert.
+            // Erst Rezept -> bekommt ID -> dann Joins und Schritte mit dieser ID.
+            _context.SaveChanges();
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditRecipeAsync(EditRecipesModel recipe)
         {
-
+            SaveNew(recipe);
+            return RedirectToAction("Index");
             using (var transAction = _context.Database.BeginTransaction())
             {
                 try
                 {
+
+
                     var querys = recipe.Querys.Split(",").ToList();
 
                     await _recipesService.EditRecipesAsync(recipe.Recipes.Id, recipe.Recipes);
@@ -163,6 +297,10 @@ namespace DelikatessenDrehbuch.Controllers
                 IngredientHandler = await _ingredientService.GetIngredientsByRecipesIdFromDbAsync(recipeFromDb.Id),
                 Measure = await _measureService.GetMeasureFromDbAsync(),
                 Querys = string.Join(",", await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeFromDb.Id)),
+                IngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
+                RecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
+                RecipeJoyinPreperationSteps = new(),
+                IngredientMeasureQuantity = new()
 
             };
 
@@ -173,17 +311,42 @@ namespace DelikatessenDrehbuch.Controllers
         public async Task<IActionResult> AddIngredientRow(int index)
         {
             ViewData["index"] = index;
-            var listOfUnits=  await _context.Metrics.Select(x => x.UnitOfMeasurement).ToListAsync();
+            var listOfUnits = await _context.Metrics.Select(x => x.UnitOfMeasurement).ToListAsync();
             ViewData["unit"] = listOfUnits;
 
             return PartialView("_addRowIngredientPartialView", new IngredientHandlerModel());
         }
 
 
-        public IActionResult AddNutrients()
+        public IActionResult AddIngredient()
         {
-            return View();
+            var ingredient = new IngredientsAndNutrients();
+            ViewData["GroupList"] = new SelectList(_context.Group, "Id", "Name");
+            return View(ingredient);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(IngredientsAndNutrients model)
+        {
+            var exist = _context.IngredientsAndNutrients.FirstOrDefault(x => x.Name_DE.ToLower().Trim() == model.Name_DE.ToLower().Trim());
+            if (ModelState.IsValid && exist == null)
+            {
+                model.Group = _context.Group.First(x => x.Id == int.Parse(model.Groupe));
+
+                _context.IngredientsAndNutrients.Add(model);
+                _context.SaveChanges();
+
+                // Nach erfolgreichem Speichern weiterleiten
+                return RedirectToAction("Index");
+            }
+
+
+            return View("AddIngredient");
+        }
+
+
+
 
         public async Task<IActionResult> CreateNutriernHandlers(string nutrients, string ingredient)
         {
