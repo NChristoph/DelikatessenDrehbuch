@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
 using DelikatessenDrehbuch.Models;
@@ -39,7 +40,7 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly IMealPlanService _mealPlanService;
         private readonly INutrientService _nutrientService;
         private readonly ISupportTicketService _supportTicketService;
-
+        private readonly ISaveNewRecipeService _saveNewRecipeService;
 
 
         public AdminController(ApplicationDbContext context, AddRecipeException myExceptions,
@@ -48,7 +49,7 @@ namespace DelikatessenDrehbuch.Controllers
                                IQueryService queryService, IRecipesHandlerService recipesHandlerService,
                                IMeasureService measureService, IQuantityService quantityService,
                                IMealPlanService mealPlanService, INutrientService nutrientService,
-                               ISupportTicketService supportTicketService)
+                               ISupportTicketService supportTicketService,ISaveNewRecipeService saveNewRecipeService)
         {
 
 
@@ -64,6 +65,7 @@ namespace DelikatessenDrehbuch.Controllers
             _mealPlanService = mealPlanService;
             _nutrientService = nutrientService;
             _supportTicketService = supportTicketService;
+            _saveNewRecipeService = saveNewRecipeService;
             _context = context;
 
 
@@ -83,8 +85,8 @@ namespace DelikatessenDrehbuch.Controllers
 
         public IActionResult CreatePreperationStep()
         {
-
-            return View(new RecipePreperationSteps());
+            var model=_context.RecipePreperationSteps.ToList();
+            return View(model);
         }
 
         public IActionResult SavePreperationStep(RecipePreperationSteps step)
@@ -96,127 +98,20 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction("Index");
         }
 
-       
-        //TODO:Doppel speicherung verhindern
-
- 
-        public void SaveNew(EditRecipesModel recipesModel)
-        {
-            RecipeBaseData recipeBaseData;
-
-            // 1. Rezept suchen oder erstellen
-            var existingRecipeBaseData = _context.RecipeBaseData
-                   .FirstOrDefault(r => r.Title == recipesModel.Recipes.Name);
-
-            if (existingRecipeBaseData == null)
-            {
-                // --- NEUES REZEPT ---
-                recipeBaseData = new RecipeBaseData
-                {
-                    Title = recipesModel.Recipes.Name,
-                    PersonCount = (int)recipesModel.Recipes.RecipePersonCount,
-                    Preferences = recipesModel.Querys,
-                    Category = recipesModel.Recipes.Category,
-                    PreperationTime = (int)recipesModel.Recipes.PreparationTime
-                };
-               
-                _context.RecipeBaseData.Add(recipeBaseData);
-                 _context.SaveChanges();
-            }
-            else
-            {
-                // --- EXISTIERENDES REZEPT ---
-                recipeBaseData = existingRecipeBaseData;
-
-                // Werte aktualisieren (Beispiel)
-                recipeBaseData.PersonCount = (int)recipesModel.Recipes.RecipePersonCount;
-                // EF Core weiß durch das Laden schon, dass dieses Objekt existiert (State = Modified/Unchanged)
-            }
-
-            // --- ZUTATEN VERARBEITEN ---
-            foreach (var ingredien in recipesModel.IngredientMeasureQuantity)
-            {
-                IngredientMeasureQuantity ingredientToUseForJoin;
-
-                // Prüfen ob Zutat in DB existiert
-                var exist = _context.IngredientMeasureQuantity
-                     .FirstOrDefault(x => x.IngredientsAndNutrients.Name_DE == ingredien.IngredientsAndNutrients.Name_DE
-                                          && x.Measure.UnitOfMeasurement == ingredien.Measure.UnitOfMeasurement
-                                          && x.Quantity.Quantitys == ingredien.Quantity.Quantitys);
-
-                if (exist == null)
-                {
-                    // Neue Zutat erstellen
-                    if (ingredien.Measure.UnitOfMeasurement == "Gramm")
-                        ingredien.Measure.UnitOfMeasurement = "g.";
-
-                    var newIng = new IngredientMeasureQuantity
-                    {
-                        // Hier müssen wir aufpassen: Die Referenzen müssen aus dem Context kommen, 
-                        // sonst versucht er die auch neu anzulegen!
-                        IngredientsAndNutrients = _context.IngredientsAndNutrients.FirstOrDefault(x => x.Id == ingredien.IngredientsAndNutrients.Id),
-                        Measure = _context.Metrics.FirstOrDefault(x => x.UnitOfMeasurement.ToLower() == ingredien.Measure.UnitOfMeasurement.ToLower()),
-                        Quantity = _context.Quantities.FirstOrDefault(x => x.Quantitys == ingredien.Quantity.Quantitys)
-                    };
-
-                    // Validate that the related lookups were found to avoid FK violations
-                    if (newIng.IngredientsAndNutrients == null)
-                        throw new InvalidOperationException($"IngredientsAndNutrients with Id={ingredien.IngredientsAndNutrients.Id} not found.");
-                    if (newIng.Measure == null)
-                        throw new InvalidOperationException($"Measure '{ingredien.Measure.UnitOfMeasurement}' not found.");
-                    if (newIng.Quantity == null)
-                        throw new InvalidOperationException($"Quantity '{ingredien.Quantity.Quantitys}' not found.");
-
-                    _context.IngredientMeasureQuantity.Add(newIng); // Zum Speichern vormerken
-                    ingredientToUseForJoin = newIng;
-                }
-                else
-                {
-                    ingredientToUseForJoin = exist;
-                }
-
-               
-                var recipeJoynIng = new RecipeJoinIngredientMeasureQuantity()
-                {
-                    Recipe = recipeBaseData,
-                    Ingredient = ingredientToUseForJoin
-                };
-
-                _context.RecipeJoinIngredientMeasureQuantity.Add(recipeJoynIng);
-            }
-
-          
-
-            _context.SaveChanges();
-          
-
-            // --- SCHRITTE HINZUFÜGEN ---
-            foreach (var step in recipesModel.RecipeJoyinPreperationSteps)
-            {
-                
-                step.Recipe = recipeBaseData; // Auch hier einfach das Objekt verknüpfen
-                step.RecipePreperationStep = _context.RecipePreperationSteps.First(x=>x.Id==step.PreperationStepId);
-                _context.RecipeJoinPreperationSteps.Add(step);
-            }
-
-            RecipeBaseDataImage recipeBaseDataImage = new RecipeBaseDataImage
-            {
-                Recipe = recipeBaseData,
-                Image = _context.Recipes.Where(x=>x.Preparation==recipesModel.Recipes.Preparation).Select(x=>x.ImagePath).First()
-            };
-            _context.RecipeBaseDataImage.Add(recipeBaseDataImage);
-
-            // --- DAS GROSSE FINALE ---
-            // Hier wird ALLES in der richtigen Reihenfolge gespeichert.
-            // Erst Rezept -> bekommt ID -> dann Joins und Schritte mit dieser ID.
-            _context.SaveChanges();
-        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditRecipeAsync(EditRecipesModel recipe)
         {
-            SaveNew(recipe);
+            SaveNewRecipeModel saveNewRecipeModel = new()
+            {
+                Recipes = recipe.Recipes,
+                IngredientMeasureQuantity = recipe.IngredientMeasureQuantity,
+                RecipeJoyinPreperationSteps = recipe.RecipeJoyinPreperationSteps,
+                Querys = recipe.Querys
+            };
+            await _saveNewRecipeService.SaveNewAsync(saveNewRecipeModel,false);
             return RedirectToAction("Index");
+
             using (var transAction = _context.Database.BeginTransaction())
             {
                 try

@@ -1,122 +1,347 @@
 ﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+@using Newtonsoft.Json
 @{
-    ViewData["Title"] = "Rezept Upload";
+    ViewData["Title"] = "Rezept Erstellen";
     Layout = "_MiniAppLayout";
 }
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
 <div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
 
-    <div class="px-4 pt-4 pb-2">
-        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
-            <i class="bi bi-arrow-left"></i> Zurück zum Feed
-        </a>
-        <h2 class="fw-bold mb-1" style="color: #2c3e50;">Neues Rezept 🥑</h2>
-        <p class="text-muted small">Lade dein Video direkt hoch.</p>
+    <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-start">
+        <div>
+            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+            <h2 class="fw-bold mb-1" style="color: #2c3e50;">Creator Studio 🥑</h2>
+        </div>
+
+        <div class="btn-group shadow-sm rounded-pill bg-white p-1">
+            <button type="button" class="btn btn-sm btn-dark rounded-pill lang-btn active" onclick="switchLanguage('DE', this)">DE</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill lang-btn" onclick="switchLanguage('EN', this)">EN</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill lang-btn" onclick="switchLanguage('ESP', this)">ES</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill lang-btn" onclick="switchLanguage('PRT', this)">PT</button>
+        </div>
     </div>
 
-    <div class="container px-4">
-        <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" class="pb-5">
+    <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()" class="pb-5">
+        <div class="container px-4">
+            <input type="hidden" name="userHash" id="hiddenUserTokenField" />
+            <div class="mb-4">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Basis Informationen" data-en="Basic Info" data-esp="Información básica" data-prt="Informação básica">Basis Informationen</label>
 
-            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);">
-
-                <div class="mb-4">
-                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
-                        Titel des Gerichts
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-white rounded-start-4 ps-3 text-muted">
-                            <i class="bi bi-fonts"></i>
-                        </span>
-                        <input asp-for="Title" class="form-control border-0 bg-white rounded-end-4 py-3 shadow-sm custom-input" placeholder="z.B. Spaghetti Eis" required />
+                <div class="card border-0 shadow-sm p-1 rounded-4 bg-white mb-3">
+                    <div class="d-flex align-items-center px-3">
+                        <div class="icon-box-small text-muted"><i class="bi bi-fonts"></i></div>
+                        <input asp-for="Title" class="form-control border-0 bg-transparent py-3 fw-bold text-dark shadow-none lang-ph"
+                               placeholder="Titel"
+                               data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título" required />
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
-                        Video Datei
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-white rounded-start-4 ps-3 text-muted">
-                            <i class="bi bi-cloud-upload"></i>
-                        </span>
-                        <input asp-for="Content" type="file" accept="video/*" class="form-control border-0 bg-white rounded-end-4 py-3 shadow-sm custom-input" style="padding-top: 15px;" required />
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white h-100 d-flex justify-content-center">
+                            <select asp-for="Recipe.Category" class="form-select border-0 bg-transparent text-center small fw-bold shadow-none cursor-pointer">
+                                <option value="" selected disabled class="lang-opt" data-txt-de="Kategorie" data-txt-en="Category" data-txt-esp="Categoría" data-txt-prt="Categoria">Kategorie</option>
+                                <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer" data-txt-esp="Entrada" data-txt-prt="Entrada">Vorspeise</option>
+                                <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course" data-txt-esp="Plato principal" data-txt-prt="Prato principal">Hauptspeise</option>
+                                <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert" data-txt-esp="Postre" data-txt-prt="Sobremesa">Dessert</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-text small mt-2">
-                        <i class="bi bi-info-circle me-1"></i> Max. 50 MB (MP4 empfohlen)
-                    </div>
-                </div>
-
-                <hr class="my-4 opacity-10">
-
-                <div class="mb-3">
-                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
-                        Dein Name (Test)
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-light rounded-start-4 ps-3 text-muted">
-                            <i class="bi bi-person"></i>
-                        </span>
-                        <input asp-for="CreatorName" class="form-control border-0 bg-light rounded-end-4 py-2 custom-input" placeholder="Chefkoch..." />
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white h-100 d-flex justify-content-center">
+                            <select asp-for="Recipe.Preferences" class="form-select border-0 bg-transparent text-center small fw-bold shadow-none cursor-pointer">
+                                <option value="" selected disabled class="lang-opt" data-txt-de="Präferenz" data-txt-en="Preference" data-txt-esp="Preferencia" data-txt-prt="Preferência">Präferenz</option>
+                                <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan" data-txt-esp="Vegano" data-txt-prt="Vegano">Vegan</option>
+                                <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian" data-txt-esp="Vegetariano" data-txt-prt="Vegetariano">Vegetarisch</option>
+                                <option value="Fish" class="lang-opt" data-txt-de="Fisch" data-txt-en="Fish" data-txt-esp="Pescado" data-txt-prt="Peixe">Fisch</option>
+                                <option value="Pork" class="lang-opt" data-txt-de="Schwein" data-txt-en="Pork" data-txt-esp="Cerdo" data-txt-prt="Porco">Schwein</option>
+                                <option value="Beef" class="lang-opt" data-txt-de="Rind" data-txt-en="Beef" data-txt-esp="Res" data-txt-prt="Carne">Rind</option>
+                                <option value="OtherMeat" class="lang-opt" data-txt-de="Anderes Fleisch" data-txt-en="Other Meat" data-txt-esp="Otra carne" data-txt-prt="Outra carne">Anderes Fleisch</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mb-1">
-                    <label class="fw-bold text-uppercase text-muted small mb-2 opacity-50" style="font-size: 0.7rem; letter-spacing: 1px;">
-                        World ID Hash (Test)
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-light rounded-start-4 ps-3 text-muted">
-                            <i class="bi bi-fingerprint"></i>
-                        </span>
-                        <input asp-for="CreatorId" class="form-control border-0 bg-light rounded-end-4 py-2 custom-input" placeholder="0x123..." />
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white">
+                            <input asp-for="Recipe.PersonCount" type="number" class="form-control border-0 bg-transparent py-2 text-center small fw-bold shadow-none lang-ph"
+                                   placeholder="Personen"
+                                   data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" />
+                        </div>
                     </div>
-                </div>
-
-            </div>
-
-            <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%); pointer-events: none;">
-                <div style="pointer-events: auto;">
-                    <button type="submit" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
-                            style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
-                        <span class="fs-5">Video Hochladen</span>
-                        <i class="bi bi-cloud-arrow-up-fill ms-2"></i>
-                    </button>
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <input asp-for="Recipe.PreperationTime" type="number" class="form-control border-0 bg-transparent py-2 text-center small fw-bold shadow-none lang-ph"
+                                       placeholder="Minuten"
+                                       data-ph-de="Minuten" data-ph-en="Minutes" data-ph-esp="Minutos" data-ph-prt="Minutos" />
+                                <span class="small text-muted me-3 opacity-50"><i class="bi bi-clock"></i></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-        </form>
-    </div>
+            <div class="mb-4">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Video Drehbuch" data-en="Video Script" data-esp="Guion de video" data-prt="Roteiro de vídeo">Video Drehbuch</label>
+                <div id="videoPreviewContainer" class="d-none mb-3">
+                    <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative bg-dark">
+                        <video id="videoPreview" class="w-100" style="max-height: 250px; object-fit: cover;" controls></video>
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle" onclick="resetVideo()"><i class="bi bi-x"></i></button>
+                    </div>
+                </div>
+                <label id="uploadLabel" class="diet-card-upload card border-0 shadow-sm p-4 rounded-4 cursor-pointer text-center w-100" for="videoInput">
+                    <div class="icon-box mx-auto mb-2 rounded-circle candy-blue" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary"></i>
+                    </div>
+                    <span class="fw-bold label-lang" data-de="Video wählen" data-en="Select Video" data-esp="Seleccionar video" data-prt="Selecionar vídeo">Video wählen</span>
+                    <input asp-for="Content" type="file" accept="video/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
+                </label>
+            </div>
+
+            <div class="mb-4">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Zutaten wählen" data-en="Select Ingredients" data-esp="Seleccionar ingredientes" data-prt="Selecionar ingredientes">Zutaten wählen</label>
+                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
+                    <div class="table-responsive">
+                        <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
+                            <thead><tr class="d-none"><th>Name</th><th>Add</th></tr></thead>
+                            <tbody>
+                                @if (Model.ToSelectIngredientsAndNutrients != null)
+                                {
+                                    foreach (var item in Model.ToSelectIngredientsAndNutrients)
+                                    {
+                                        <tr class="ingredient-db-row" data-name-de="@item.Name_DE" data-name-en="@item.Name_EN" data-name-esp="@item.Name_ESP" data-name-prt="@item.Name_PRT">
+                                            <td class="fw-bold display-name">@item.Name_DE</td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)"><i class="bi bi-plus"></i></button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="selectedIngredients" class="mt-3"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</label>
+                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
+                    <div class="table-responsive">
+                        <table id="stepsDbTable" class="table table-hover align-middle small border-0 w-100">
+                            <thead><tr class="d-none"><th>Text</th><th>Add</th></tr></thead>
+                            <tbody>
+                                @if (Model.ToSelectRecipePreperationSteps != null)
+                                {
+                                    foreach (var step in Model.ToSelectRecipePreperationSteps)
+                                    {
+                                        <tr class="step-db-row" data-step-de="@step.Step_DE" data-step-en="@step.Step_EN" data-step-esp="@step.Step_ESP" data-step-prt="@step.Step_PRT">
+                                            <td class="small display-step text-muted">@step.Step_DE</td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-sm candy-pink rounded-circle shadow-sm" onclick="addStep('@step.Id', this)"><i class="bi bi-arrow-down"></i></button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="selectedSteps" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%); pointer-events: none;">
+            <div style="pointer-events: auto;">
+                <button type="submit" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg text-white" style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
+                    <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
+                    <i class="bi bi-send-fill ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 <style>
-    /* Styling für das File Input, damit es hübscher aussieht */
-    input[type=file]::file-selector-button {
-        margin-right: 15px;
+    .bg-white-glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+    }
+
+    .candy-blue {
+        background-color: #e3f2fd !important;
+    }
+
+    .candy-green {
+        background-color: #f0fdf4 !important;
+        color: #22c55e !important;
         border: none;
-        background: #f0f0f0;
-        padding: 5px 10px;
-        border-radius: 10px;
-        color: #555;
-        font-weight: bold;
+    }
+
+    .candy-pink {
+        background-color: #fdf2f8 !important;
+        color: #ec4899 !important;
+        border: none;
+    }
+
+    .candy-purple {
+        background-color: #f5f3ff !important;
+        color: #8b5cf6 !important;
+    }
+
+    .dynamic-item {
+        background: white;
+        border-radius: 18px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(0,0,0,0.03);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .lang-btn.active {
+        background-color: #2c3e50 !important;
+        color: white !important;
+    }
+
+    .cursor-pointer {
         cursor: pointer;
-        transition: background .2s ease-in-out;
     }
-
-        input[type=file]::file-selector-button:hover {
-            background: #e0e0e0;
-        }
-
-    .custom-input:focus {
+    /* Verhindert den blauen Fokus-Rahmen bei Inputs für cleaneres Design */
+    .form-control:focus, .form-select:focus {
         box-shadow: none;
-        border: 2px solid #FF9966 !important;
-        background: #fff;
-    }
-
-    .btn-hover-effect:active {
-        transform: scale(0.97);
-    }
-
-    .input-group-text {
-        font-size: 1.2rem;
+        border-color: transparent;
     }
 </style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        // Einheiten aus der DB laden
+        var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
+        let currentLang = 'DE';
+
+        $(document).ready(function() {
+            // DataTables initialisieren
+            $('#ingredientsDbTable, #stepsDbTable').DataTable({
+                pageLength: 9, lengthChange: false, info: false, searching: true,
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' }
+            });
+        });
+
+        // Sprachwechsel Funktion
+        function switchLanguage(lang, btn) {
+            currentLang = lang;
+            const langKey = lang.toLowerCase();
+
+            // 1. Buttons optisch umschalten
+            $('.lang-btn').removeClass('active btn-dark').addClass('btn-light');
+            $(btn).addClass('active btn-dark').removeClass('btn-light');
+
+            // 2. Statische Labels (h2, labels, button text)
+            $('.label-lang').each(function() {
+                $(this).text($(this).data(langKey));
+            });
+
+            // 3. Input Placeholders
+            $('.lang-ph').each(function() {
+                $(this).attr('placeholder', $(this).data('ph-' + langKey));
+            });
+
+            // 4. Dropdown Optionen (nur der angezeigte Text, nicht der Value!)
+            $('.lang-opt').each(function() {
+                $(this).text($(this).data('txt-' + langKey));
+            });
+
+            // 5. DB Listen Items (Ingredients/Steps in der Tabelle)
+            $('.ingredient-db-row').each(function() { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
+            $('.step-db-row').each(function() { $(this).find('.display-step').text($(this).data('step-' + langKey)); });
+        }
+
+        // Video Preview Logic
+        function handleVideoUpload(input) {
+            if (input.files && input.files[0]) {
+                $('#videoPreview').attr('src', URL.createObjectURL(input.files[0]));
+                $('#videoPreviewContainer').removeClass('d-none');
+                $('#uploadLabel').addClass('d-none');
+            }
+        }
+
+        function resetVideo() {
+            $('#videoInput').val('');
+            $('#videoPreviewContainer').addClass('d-none');
+            $('#uploadLabel').removeClass('d-none');
+        }
+
+        // Zutat hinzufügen
+        function addIngredient(id, btn) {
+            const name = $(btn).closest('tr').data('name-' + currentLang.toLowerCase());
+            let unitOptions = dbUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+
+            const html = `<div class="dynamic-item ingredient-row">
+                <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 small fw-bold display-name-selected text-dark">${name}</div>
+                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="$(this).closest('.ingredient-row').remove()"><i class="bi bi-trash3"></i></button>
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <input type="number" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="form-control form-control-sm border-0 candy-purple rounded-3 fw-bold text-center" style="width:70px" placeholder="0" />
+                    <select name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement" class="form-select form-select-sm border-0 candy-purple rounded-3 fw-bold">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>`;
+            $('#selectedIngredients').append(html);
+        }
+
+        // Schritt hinzufügen
+        function addStep(id, btn) {
+            const text = $(btn).closest('tr').data('step-' + currentLang.toLowerCase());
+
+            const html = `<div class="dynamic-item d-flex align-items-center step-row">
+                <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${id}" />
+                <input type="hidden" name="RecipePreperationSteps[INDEX].StepIndex" value="${text}" />
+                <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
+                <div class="small flex-grow-1 display-step-selected text-muted">${text}</div>
+                <button type="button" class="btn btn-sm text-danger opacity-50" onclick="$(this).closest('.step-row').remove(); updateStepIndices();"><i class="bi bi-trash3"></i></button>
+            </div>`;
+            $('#selectedSteps').append(html);
+            updateStepIndices();
+        }
+
+        // Schritt-Nummern aktualisieren
+        function updateStepIndices() {
+            $('#selectedSteps .step-row').each(function(i) { $(this).find('.step-badge').text(i + 1); });
+        }
+
+        // Model Binding Vorbereitung (Indices korrigieren)
+        function prepareBinding() {
+            $('.ingredient-row').each(function(i) {
+                $(this).find('input, select').each(function() {
+                    if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+                });
+            });
+            $('.step-row').each(function(i) {
+                $(this).find('input, select').each(function() {
+                    if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+                });
+            });
+            return true;
+        }
+
+            document.addEventListener("DOMContentLoaded", function() {
+            var token = localStorage.getItem("UserToken");
+            if (token) {
+                document.getElementById("hiddenUserTokenField").value = token;
+            }
+        });
+    </script>
+}

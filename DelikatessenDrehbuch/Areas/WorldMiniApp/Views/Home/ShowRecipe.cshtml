@@ -1,9 +1,11 @@
 ﻿@model DelikatessenDrehbuch.Models.RecipeBaseData
+@using System.Globalization
+
 @{
     Layout = "_MiniAppLayout";
     ViewData["Title"] = Model.Title;
 
-    // Berechnung der Gesamtnährwerte mit Stück-Logik
+    // --- C# Berechnung der Initial-Werte (Basis) ---
     decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
 
     foreach (var item in Model.Ingredients)
@@ -12,7 +14,6 @@
         var quantity = (decimal)item.Ingredient.Quantity.Quantitys;
         var unit = item.Ingredient.Measure.UnitOfMeasurement.ToLower();
 
-        // Faktor berechnen: Wenn Stück, dann Gewicht pro Stück nutzen, sonst Menge/100
         decimal factor = (unit == "stk" || unit == "stück")
             ? (quantity * nutri.Weight_per_piece) / 100m
             : quantity / 100m;
@@ -24,18 +25,195 @@
         totalSugar += nutri.Sugar_a_100g * factor;
         totalFiber += nutri.Fiber_a_100g * factor;
     }
+
+    // Basis-Portionen für JavaScript-Berechnung speichern
+    var basePortions = Model.PersonCount;
 }
 
-<div class="min-vh-100 pb-5" style="background: #F7FAF7; font-family: 'Outfit', sans-serif;">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 
-    <div class="d-flex justify-content-between align-items-center p-3 sticky-top backdrop-blur-md" style="z-index: 1000;">
-        <a href="javascript:history.back()" class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center text-success" style="width: 42px; height: 42px; text-decoration: none;">
-            <i class="bi bi-chevron-left fs-5"></i>
+<style>
+    /* =========================================
+           Delikatessen "MiniApp" Premium Styles
+           ========================================= */
+    :root {
+        /* Wir behalten das Grün als Primärfarbe, mixen aber Gold/Creme dazu */
+        --deli-primary: #2D4F1E;
+        --deli-gold: #D4AF37;
+        --deli-cream: #FEFFF2;
+        --deli-dark: #2a3440;
+        --deli-bg: #F7FAF7;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background-color: var(--deli-bg);
+        color: var(--deli-dark);
+    }
+
+    h1, h2, h3, h4, h5, .serif-font {
+        font-family: 'Playfair Display', serif;
+    }
+
+    /* --- Header & Navigation --- */
+    .sticky-nav {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .nav-btn {
+        width: 42px;
+        height: 42px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+    /* --- Hero Section --- */
+    .hero-image-wrapper {
+        border-radius: 0 0 2rem 2rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(45, 79, 30, 0.15);
+        border-bottom: 4px solid var(--deli-gold);
+        position: relative;
+    }
+
+    .recipe-card {
+        background: #fff;
+        border-radius: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        position: relative;
+        z-index: 10;
+        margin-top: -40px;
+    }
+
+    .meta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 2rem;
+        background: var(--deli-cream);
+        color: var(--deli-primary);
+        font-weight: 600;
+        border: 1px solid var(--deli-gold);
+        font-size: 0.85rem;
+    }
+
+    /* --- Tabs --- */
+    .deli-tabs {
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        margin-bottom: 1.5rem;
+    }
+
+        .deli-tabs .nav-link {
+            color: #888;
+            border: none;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            background: transparent;
+            padding-bottom: 0.8rem;
+        }
+
+            .deli-tabs .nav-link.active {
+                color: var(--deli-primary);
+                border-bottom: 3px solid var(--deli-gold);
+            }
+
+    /* --- Zutaten & Checkboxen --- */
+    .ingredient-row {
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+
+        .ingredient-row:hover {
+            background-color: var(--deli-cream) !important;
+        }
+
+        .ingredient-row.checked {
+            background: #f0f0f0 !important;
+            opacity: 0.6;
+            border-left-color: #aaa;
+        }
+
+            .ingredient-row.checked span {
+                text-decoration: line-through;
+                color: #999;
+            }
+
+        .ingredient-row:not(.checked) {
+            border-left-color: var(--deli-gold);
+        }
+
+    /* --- Input für Portionen --- */
+    .person-input-wrapper {
+        display: inline-flex;
+        align-items: center;
+        background: var(--deli-cream);
+        padding: 0.3rem 0.8rem;
+        border-radius: 2rem;
+        border: 1px solid var(--deli-gold);
+        font-size: 0.9rem;
+    }
+
+    .person-input {
+        width: 40px;
+        text-align: center;
+        border: none;
+        background: transparent;
+        font-weight: bold;
+        color: var(--deli-primary);
+        font-size: 1rem;
+    }
+
+        .person-input:focus {
+            outline: none;
+        }
+
+    /* --- Zubereitung Schritte --- */
+    .step-number {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        color: rgba(212, 175, 55, 0.2);
+        line-height: 1;
+        position: absolute;
+        top: 0.5rem;
+        right: 1rem;
+    }
+
+    .step-box {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* --- Nährwert Box --- */
+    .nutrition-card {
+        background: linear-gradient(135deg, var(--deli-primary) 0%, #1a3312 100%);
+        color: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 20px rgba(45, 79, 30, 0.3);
+        border: 1px solid var(--deli-gold);
+    }
+</style>
+
+<div class="min-vh-100 pb-5">
+
+    <div class="d-flex justify-content-between align-items-center p-3 sticky-top sticky-nav" style="z-index: 1000;">
+        <a href="javascript:history.back()" class="nav-btn bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center text-dark text-decoration-none">
+            <i class="bi bi-arrow-left fs-5"></i>
         </a>
 
         <div class="dropdown">
-            <button class="btn btn-white bg-white rounded-pill shadow-sm px-3 fw-bold border-0 text-success" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-translate me-1"></i> <span id="currentLangLabel">DE</span>
+            <button class="btn bg-white rounded-pill shadow-sm px-3 fw-bold border-0 text-dark d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-translate text-warning"></i> <span id="currentLangLabel">DE</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 mt-2">
                 <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('DE')">🇩🇪 Deutsch</a></li>
@@ -47,121 +225,162 @@
     </div>
 
     <div class="position-relative" style="margin-top: -60px;">
-        @if (Model.Images != null && Model.Images.Any())
-        {
-            <img src="@Model.Images.First().Image" class="w-100 shadow" style="height: 280px; object-fit: cover; border-radius: 0 0 40px 40px;" />
-        }
+        <div class="hero-image-wrapper">
+            @if (Model.Images != null && Model.Images.Any())
+            {
+                <img src="@Model.Images.First().Image" class="w-100" style="height: 320px; object-fit: cover;" />
+            }
+            else
+            {
+                <img src="https://cdn.pixabay.com/photo/2014/12/21/23/28/recipe-575434_640.png" class="w-100" style="height: 320px; object-fit: cover;" />
+            }
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 100px; background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);"></div>
+        </div>
     </div>
 
-    <div class="container px-4" style="margin-top: -30px; position: relative; z-index: 10;">
-        <div class="bg-white p-4 rounded-5 shadow-sm border-0 text-center">
-            <h1 class="fw-bold mb-1" style="color: #2D4F1E;">@Model.Title</h1>
-            <div class="d-flex justify-content-center gap-3 mt-2 small text-muted">
-                <span><i class="bi bi-clock"></i> @Model.PreperationTime Min.</span>
-                <span><i class="bi bi-people"></i> @Model.PersonCount Port.</span>
+    <div class="container px-3">
+        <div class="recipe-card p-4 text-center">
+            <h1 class="fw-bold mb-2 text-uppercase" style="color: var(--deli-primary); letter-spacing: 1px;">@Model.Title</h1>
+
+            <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
+                <span class="meta-badge">
+                    <i class="bi bi-clock"></i> @Model.PreperationTime Min.
+                </span>
+                <span class="meta-badge">
+                    <i class="bi bi-fire"></i>
+                    <span id="headerCalories" data-base="@(totalCalories / Model.PersonCount)">@Math.Round(totalCalories / Model.PersonCount)</span> kcal
+                </span>
             </div>
         </div>
     </div>
 
-    <div class="container px-4 mt-4">
+    <div class="container px-3 mt-4">
 
-        <h5 class="fw-bold mb-3" style="color: #2D4F1E;">Einkaufsliste</h5>
+        <ul class="nav nav-tabs deli-tabs justify-content-center" id="recipeTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab">Einkauf</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="prep-tab" data-bs-toggle="tab" data-bs-target="#preparation" type="button" role="tab">Zubereitung</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nutri-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab">Nährwerte</button>
+            </li>
+        </ul>
 
-        @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "Sonstiges"))
-        {
-            <div class="mb-4">
-                <h6 class="text-success fw-bold small text-uppercase mb-2" style="letter-spacing: 1px;">@group.Key</h6>
-                @foreach (var item in group)
+        <div class="tab-content" id="recipeTabContent">
+
+            <div class="tab-pane fade show active" id="ingredients" role="tabpanel">
+
+                <div class="text-center mb-4">
+                    <div class="person-input-wrapper shadow-sm">
+                        <span>Zutaten für</span>
+                        <input type="number" id="portionInput" class="person-input" value="@Model.PersonCount" min="1" onchange="updatePortions()">
+                        <span>Personen</span>
+                    </div>
+                </div>
+
+                @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "Allgemein"))
                 {
-                    <div class="ingredient-row bg-white p-3 rounded-4 mb-2 shadow-sm d-flex align-items-center cursor-pointer" onclick="toggleCheck(this)">
-                        <div class="custom-check me-3">
-                            <i class="bi bi-check-circle-fill text-success d-none"></i>
-                            <i class="bi bi-circle text-muted"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <span class="fw-bold">@item.Ingredient.Quantity.Quantitys @item.Ingredient.Measure.UnitOfMeasurement</span>
-                            <span class="ms-1 text-secondary lang-content lang-de">@item.Ingredient.IngredientsAndNutrients.Name_DE</span>
-                            <span class="ms-1 text-secondary lang-content lang-en d-none">@item.Ingredient.IngredientsAndNutrients.Name_EN</span>
-                            <span class="ms-1 text-secondary lang-content lang-esp d-none">@item.Ingredient.IngredientsAndNutrients.Name_ESP</span>
-                            <span class="ms-1 text-secondary lang-content lang-prt d-none">@item.Ingredient.IngredientsAndNutrients.Name_PRT</span>
-                        </div>
+                    <div class="mb-4">
+                        <h6 class="serif-font text-muted small text-uppercase mb-2 ps-2" style="letter-spacing: 1px; color: var(--deli-gold) !important;">@group.Key</h6>
+                        @foreach (var item in group)
+                        {
+                            <div class="ingredient-row bg-white p-3 rounded-4 mb-2 shadow-sm d-flex align-items-center cursor-pointer" onclick="toggleCheck(this)">
+                                <div class="custom-check me-3">
+                                    <i class="bi bi-check-circle-fill text-success d-none fs-5"></i>
+                                    <i class="bi bi-circle text-muted fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="fw-bold fs-5 dyn-qty"
+                                          data-base-qty="@item.Ingredient.Quantity.Quantitys"
+                                          style="color: var(--deli-primary);">
+                                        @item.Ingredient.Quantity.Quantitys
+                                    </span>
+                                    <span class="small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">
+                                        @item.Ingredient.Measure.UnitOfMeasurement
+                                    </span>
+
+                                    <div class="lh-1">
+                                        <span class="lang-content lang-de">@item.Ingredient.IngredientsAndNutrients.Name_DE</span>
+                                        <span class="lang-content lang-en d-none">@item.Ingredient.IngredientsAndNutrients.Name_EN</span>
+                                        <span class="lang-content lang-esp d-none">@item.Ingredient.IngredientsAndNutrients.Name_ESP</span>
+                                        <span class="lang-content lang-prt d-none">@item.Ingredient.IngredientsAndNutrients.Name_PRT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
             </div>
-        }
 
-        <h5 class="fw-bold mb-3 mt-5" style="color: #2D4F1E;">Zubereitung</h5>
-        <div class="mb-5">
-            @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
-            {
-                <div class="step-box bg-white p-4 rounded-4 shadow-sm mb-3 border-0">
-                    <p class="mb-0 fs-6 lang-content lang-de">@step.RecipePreperationStep.Step_DE</p>
-                    <p class="mb-0 fs-6 lang-content lang-en d-none">@step.RecipePreperationStep.Step_EN</p>
-                    <p class="mb-0 fs-6 lang-content lang-esp d-none">@step.RecipePreperationStep.Step_ESP</p>
-                    <p class="mb-0 fs-6 lang-content lang-prt d-none">@step.RecipePreperationStep.Step_PRT</p>
-                </div>
-            }
-        </div>
-
-        <div class="p-4 rounded-5 shadow-lg border-0 mb-5 text-white" style="background: linear-gradient(135deg, #2D4F1E 0%, #4CAF50 100%);">
-            <h6 class="text-center text-uppercase fw-bold mb-4" style="letter-spacing: 2px; opacity: 0.8;">Gesamt-Nährwerte</h6>
-
-            <div class="row g-3 text-center">
-                <div class="col-4">
-                    <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-10">
-                        <span class="d-block fw-bold fs-5">@Math.Round(totalCarbs)g</span>
-                        <small class="opacity-75">Carbs</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-10">
-                        <span class="d-block fw-bold fs-5">@Math.Round(totalProtein)g</span>
-                        <small class="opacity-75">Protein</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-10">
-                        <span class="d-block fw-bold fs-5">@Math.Round(totalFat)g</span>
-                        <small class="opacity-75">Fett</small>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="bg-warning text-dark p-3 rounded-4 fw-bold fs-4 shadow-sm">
-                        @Math.Round(totalCalories) <span class="fs-6">kcal</span>
-                    </div>
+            <div class="tab-pane fade" id="preparation" role="tabpanel">
+                <div class="mb-5">
+                    @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
+                    {
+                        <div class="step-box bg-white p-4 rounded-4 shadow-sm mb-3">
+                            <span class="step-number">@step.StepIndex</span>
+                            <div class="pe-4" style="position:relative; z-index:2;">
+                                <p class="mb-0 fs-6 lang-content lang-de" style="line-height: 1.6;">@step.RecipePreperationStep.Step_DE</p>
+                                <p class="mb-0 fs-6 lang-content lang-en d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_EN</p>
+                                <p class="mb-0 fs-6 lang-content lang-esp d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_ESP</p>
+                                <p class="mb-0 fs-6 lang-content lang-prt d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_PRT</p>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
-            <div class="d-flex justify-content-around mt-4 small opacity-75">
-                <span>Zucker: @Math.Round(totalSugar, 1)g</span>
-                <span>Fasern: @Math.Round(totalFiber, 1)g</span>
+            <div class="tab-pane fade" id="nutrition" role="tabpanel">
+                <div class="nutrition-card p-4 mb-4 text-center">
+                    <h6 class="text-uppercase mb-4" style="letter-spacing: 2px; opacity: 0.8; font-family:'Outfit', sans-serif;">Gesamt-Nährwerte</h6>
+
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-white border-opacity-10">
+                                <span class="d-block fw-bold fs-5 dyn-nutri" data-base="@totalCarbs">@Math.Round(totalCarbs)</span>
+                                <small class="opacity-75" style="font-size:0.7rem">KH (g)</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-white border-opacity-10">
+                                <span class="d-block fw-bold fs-5 dyn-nutri" data-base="@totalProtein">@Math.Round(totalProtein)</span>
+                                <small class="opacity-75" style="font-size:0.7rem">Protein (g)</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-white border-opacity-10">
+                                <span class="d-block fw-bold fs-5 dyn-nutri" data-base="@totalFat">@Math.Round(totalFat)</span>
+                                <small class="opacity-75" style="font-size:0.7rem">Fett (g)</small>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="bg-warning text-dark p-3 rounded-4 shadow-sm d-inline-block px-5">
+                                <span class="fs-1 fw-bold serif-font dyn-nutri" data-base="@totalCalories">@Math.Round(totalCalories)</span>
+                                <span class="fs-6 fw-bold text-uppercase">kcal</span>
+                                <div class="small opacity-75 mt-1">(Gesamtes Rezept)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-4 mt-4 small opacity-75">
+                        <span>Zucker: <span class="dyn-nutri" data-base="@totalSugar">@Math.Round(totalSugar, 1)</span>g</span>
+                        <span>Fasern: <span class="dyn-nutri" data-base="@totalFiber">@Math.Round(totalFiber, 1)</span>g</span>
+                    </div>
+                </div>
+
+                <div class="text-center text-muted small fst-italic px-4">
+                    Hinweis: Nährwerte sind Berechnungen basierend auf Standardwerten und können je nach Produkt variieren.
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .ingredient-row {
-        transition: all 0.2s ease;
-    }
-
-        .ingredient-row.checked {
-            background: #E8F5E9 !important;
-            opacity: 0.6;
-        }
-
-            .ingredient-row.checked span {
-                text-decoration: line-through;
-            }
-
-    .backdrop-blur-md {
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        background: rgba(247, 250, 247, 0.7);
-    }
-</style>
-
 <script>
+    const basePortionCount = @basePortions; 
+
     function toggleCheck(element) {
         element.classList.toggle('checked');
         element.querySelector('.bi-check-circle-fill').classList.toggle('d-none');
@@ -172,5 +391,34 @@
         document.getElementById('currentLangLabel').innerText = lang;
         document.querySelectorAll('.lang-content').forEach(el => el.classList.add('d-none'));
         document.querySelectorAll('.lang-' + lang.toLowerCase()).forEach(el => el.classList.remove('d-none'));
+    }
+
+    function updatePortions() {
+        const input = document.getElementById('portionInput');
+        let newCount = parseFloat(input.value);
+        if (isNaN(newCount) || newCount < 0.1) newCount = 1;
+
+        const ratio = newCount / basePortionCount;
+
+        // 1. Update Zutaten Mengen
+        document.querySelectorAll('.dyn-qty').forEach(el => {
+            const baseQty = parseFloat(el.getAttribute('data-base-qty').replace(',', '.'));
+            if(!isNaN(baseQty)) {
+                // Berechnen und formatieren (Komma statt Punkt für DE)
+                let newVal = (baseQty * ratio);
+                // Schöne Formatierung: Keine Nachkommastellen wenn ganzzahlig, sonst max 2
+                el.innerText = (Math.round(newVal * 100) / 100).toString().replace('.', ',');
+            }
+        });
+
+        // 2. Update Gesamt-Nährwerte (Tab 3)
+        document.querySelectorAll('.dyn-nutri').forEach(el => {
+            const baseNutri = parseFloat(el.getAttribute('data-base').replace(',', '.'));
+            if(!isNaN(baseNutri)) {
+                el.innerText = Math.round(baseNutri * ratio).toString();
+            }
+        });
+
+        
     }
 </script>

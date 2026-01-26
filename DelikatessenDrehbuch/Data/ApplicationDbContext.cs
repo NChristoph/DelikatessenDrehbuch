@@ -39,6 +39,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
         public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
+        public DbSet<WorldUserLike> WorldUserLike { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

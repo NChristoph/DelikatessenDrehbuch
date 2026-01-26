@@ -17,21 +17,24 @@ using System.Threading.Tasks;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
+
     [Area("WorldMiniApp")]
     public class HomeController : Controller
     {
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly IBlobUploadService _blobUpload;
+        private readonly ISaveNewRecipeService _saveNewRecipeService;
         private readonly ApplicationDbContext _context;
 
 
-        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context)
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService)
         {
             _recipesService = recipesService;
             _worldAppMealPlanService = worldUserMealPlanService;
             _blobUpload = blobUpload;
             _context = context;
+            _saveNewRecipeService = saveNewRecipeService;
         }
 
         // Die Startseite (Das Menü von oben)
@@ -46,16 +49,34 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(new MiniAppSetupModel());
         }
 
-        //TODO:Mach den upload fertig und erstelle die rezept eingabe maske
-        public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting)
+        //TODO:Splitte das auf hole dir die Creator id un den Namen des posters 
+
+        public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
             var url = await _blobUpload.UploadContentToBlob(posting.Content);
-            var recipe = await _recipesService.GetRecipesFromDbByIdAsync(84);
+            SaveNewRecipeModel recipeModel = new()
+            {
+                Recipes = new Recipes()
+                {
+                    Name = posting.Title,
+                    Category = posting.Recipe.Category,
+                    PreparationTime = posting.Recipe.PreperationTime,
+                    RecipePersonCount = posting.Recipe.PersonCount,
+                    ImagePath = url
+
+                },
+                Querys = posting.Recipe.Preferences,
+                IngredientMeasureQuantity = posting.IngredientMeasureQuantity,
+                RecipeJoyinPreperationSteps = posting.RecipePreperationSteps,
+
+            };
+            await _saveNewRecipeService.SaveNewAsync(recipeModel, true);
+            var recipe = _context.RecipeBaseData.FirstOrDefault(r => r.Title == posting.Title);
             posting.CreationTime = DateTime.Now;
             posting.CreatorName = "Avocado";
-            posting.CreatorId = "xxxxxxx";
+            posting.CreatorId = userHash;
             posting.Source = url;
-            posting.Recipe = recipe; // Fehler behoben: await hinzugefügt und Semikolon ergänzt
+            posting.Recipe = recipe;
 
             await _context.WorldUserPosting.AddAsync(posting);
             await _context.SaveChangesAsync();
@@ -65,7 +86,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> Upload()
         {
-            return View("CreatePosting", new WorldUserPosting());
+            var model = new WorldUserPosting()
+            {
+                ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
+                ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
+                Measure = await _context.Metrics.ToListAsync(),
+            };
+
+            return View("CreatePosting", model);
         }
 
         //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufslisste teilen
@@ -182,14 +210,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ChangePath(string path)
         {
-            
+
             if (string.IsNullOrEmpty(path)) return path;
 
             // Ihre Konstanten (am besten oben in der Klasse definieren, aber hier geht es auch)
             string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
             string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
 
-            
+
             if (path.Contains(oldDomain))
             {
                 return path.Replace(oldDomain, newCdnDomain);
@@ -199,12 +227,59 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
         public IActionResult Discover()
         {
-            var model=_context.RecipeBaseDataImage.AsNoTracking().Include(x=>x.Recipe).OrderByDescending(x=>x.Id).Take(20).ToList();
-            foreach(var item in model)
+            var model = _context.RecipeBaseDataImage.AsNoTracking().Include(x => x.Recipe).OrderByDescending(x => x.Id).Take(20).ToList();
+            foreach (var item in model)
             {
                 item.Image = ChangePath(item.Image);
             }
-            return View("MiniAppFeed",model);
+            return View("MiniAppFeed", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleLike([FromForm] string userHash, int recipeId)
+        {
+            await AddOrRemoveLike(userHash, recipeId);
+
+            return Ok();
+        }
+
+
+        private async Task AddOrRemoveLike(string userHash, int recipeId)
+        {
+            try
+            {
+                var like = await _context.WorldUserLike
+                               .FirstOrDefaultAsync(x => x.WorldAppUser.UserHash == userHash && x.Recipe.Id == recipeId);
+
+                if (like != null)
+                {
+                    _context.WorldUserLike.Remove(like);
+                }
+                else
+                {
+                    var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
+                    var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(x => x.Id == recipeId);
+
+                    if (user != null && recipe != null)
+                    {
+                        WorldUserLike newLike = new WorldUserLike()
+                        {
+                            Recipe = recipe,
+                            WorldAppUser = user
+                        };
+                        await _context.WorldUserLike.AddAsync(newLike);
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+
+           
         }
 
         public async Task<IActionResult> PersonalityAsync(string userHash)

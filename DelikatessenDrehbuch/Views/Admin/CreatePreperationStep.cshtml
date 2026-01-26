@@ -1,4 +1,7 @@
-﻿<div class="recipe-card minWidth90 mobieleWidth90 mx-auto" style="border-left-color: #0d6efd;">
+﻿@using DelikatessenDrehbuch.Models
+@model List<RecipePreperationSteps>
+
+<div class="recipe-card minWidth90 mobieleWidth90 mx-auto" style="border-left-color: #0d6efd;">
     <h3 class="section-title" style="color: #0d6efd;">
         <i class="fa-solid fa-list-check me-2"></i>Neuen Arbeitsschritt anlegen
     </h3>
@@ -66,4 +69,44 @@
             </div>
         </div>
     </form>
+
+
+    <div class="mb-4">
+        <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</label>
+        <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
+            <div class="table-responsive">
+                <table id="stepsDbTable" class="table table-hover align-middle small border-0 w-100">
+                    <thead><tr class="d-none"><th>Text</th><th>Add</th></tr></thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var step in Model)
+                            {
+                                <tr class="step-db-row" data-step-de="@step.Step_DE" data-step-en="@step.Step_EN" data-step-esp="@step.Step_ESP" data-step-prt="@step.Step_PRT">
+                                    <td class="small display-step text-muted">@step.Step_DE</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm candy-pink rounded-circle shadow-sm" onclick="addStep('@step.Id', this)"><i class="bi bi-arrow-down"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+           
+        </div>
+    </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+         // DataTables initialisieren
+         $('#stepsDbTable').DataTable({
+             pageLength: 9, lengthChange: false, info: false, searching: true,
+             language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' }
+         });
+     });
+</script>
