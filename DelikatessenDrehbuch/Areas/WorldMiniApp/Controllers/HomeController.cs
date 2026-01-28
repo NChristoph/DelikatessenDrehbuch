@@ -208,79 +208,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         }
 
-        private string ChangePath(string path)
-        {
-
-            if (string.IsNullOrEmpty(path)) return path;
-
-            // Ihre Konstanten (am besten oben in der Klasse definieren, aber hier geht es auch)
-            string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
-            string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
+   
 
 
-            if (path.Contains(oldDomain))
-            {
-                return path.Replace(oldDomain, newCdnDomain);
-            }
-
-            return path;
-        }
-        public IActionResult Discover()
-        {
-            var model = _context.RecipeBaseDataImage.AsNoTracking().Include(x => x.Recipe).OrderByDescending(x => x.Id).Take(20).ToList();
-            foreach (var item in model)
-            {
-                item.Image = ChangePath(item.Image);
-            }
-            return View("MiniAppFeed", model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleLike([FromForm] string userHash, int recipeId)
-        {
-            await AddOrRemoveLike(userHash, recipeId);
-
-            return Ok();
-        }
 
 
-        private async Task AddOrRemoveLike(string userHash, int recipeId)
-        {
-            try
-            {
-                var like = await _context.WorldUserLike
-                               .FirstOrDefaultAsync(x => x.WorldAppUser.UserHash == userHash && x.Recipe.Id == recipeId);
-
-                if (like != null)
-                {
-                    _context.WorldUserLike.Remove(like);
-                }
-                else
-                {
-                    var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
-                    var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(x => x.Id == recipeId);
-
-                    if (user != null && recipe != null)
-                    {
-                        WorldUserLike newLike = new WorldUserLike()
-                        {
-                            Recipe = recipe,
-                            WorldAppUser = user
-                        };
-                        await _context.WorldUserLike.AddAsync(newLike);
-                    }
-                }
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
-
-           
-        }
 
         public async Task<IActionResult> PersonalityAsync(string userHash)
         {

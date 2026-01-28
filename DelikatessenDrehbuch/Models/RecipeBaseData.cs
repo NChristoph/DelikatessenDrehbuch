@@ -1,4 +1,6 @@
-﻿namespace DelikatessenDrehbuch.Models
+﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+
+namespace DelikatessenDrehbuch.Models
 {
     public class RecipeBaseData
     {
@@ -8,10 +10,12 @@
         public string Category { get; set; }
         public string Preferences { get; set; }
         public int PreperationTime { get; set; }
+        public int LikeCount { get; set; }
 
 
         public virtual ICollection<RecipeJoinIngredientMeasureQuantity> Ingredients { get; set; }
         public virtual ICollection<RecipeJoyinPreperationSteps> Steps { get; set; }
         public virtual ICollection<RecipeBaseDataImage> Images { get; set; }
+        
     }
 }

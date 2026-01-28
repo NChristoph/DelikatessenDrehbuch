@@ -1,0 +1,296 @@
+﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+
+@model UserProfileViewModel
+@{
+    ViewData["Title"] = "Mein Profil";
+    Layout = null;
+    // Check Variable für sauberen Code
+    bool isOrb = Model.User.IsVerified == "orb" || Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+}
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        /* ... Dein CSS von vorhin (hier gekürzt) ... */
+        body {
+            background-color: #000;
+            color: white;
+            font-family: -apple-system, sans-serif;
+            padding-bottom: 80px;
+        }
+
+        .profile-header {
+            padding: 30px 20px 20px;
+            text-align: center;
+            background: linear-gradient(to bottom, #1a1a1a, #000);
+        }
+
+        .profile-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #FF9966;
+            margin-bottom: 10px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid #333;
+            margin-top: 20px;
+        }
+
+        .nav-link {
+            color: #888;
+            background: transparent;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+        }
+
+            .nav-link.active {
+                color: #FF9966;
+                border-bottom: 2px solid #FF9966;
+                font-weight: bold;
+            }
+
+        /* Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+        }
+
+        .grid-item {
+            position: relative;
+            aspect-ratio: 2/3;
+            background: #222;
+            overflow: hidden;
+        }
+
+        .grid-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Abo Liste */
+        .abo-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #222;
+        }
+
+        .abo-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(20,20,20,0.95);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #333;
+        }
+
+        .nav-item {
+            color: #bdc3c7;
+            font-size: 1.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-header">
+        <img src="https://ui-avatars.com/api/?name=@Model.User.UserName&background=random" class="profile-img">
+        <h1 class="profile-name">@Model.User.UserName</h1>
+
+        @if (isOrb)
+        {
+            <div class="badge bg-warning text-dark mb-2">Verifiziert</div>
+        }
+
+        <div class="profile-hash">@@@Model.User.UserHash.Substring(0, 8)...</div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <span class="stat-val">@Model.Following.Count</span>
+                <span class="stat-label">Folge ich</span>
+            </div>
+
+            <div class="stat-item">
+                <span class="stat-val">@Model.LikedRecipes.Count</span>
+                <span class="stat-label">Likes</span>
+            </div>
+
+            @if (isOrb)
+            {
+                <div class="stat-item">
+                    <span class="stat-val">@Model.FollowerCount</span>
+                    <span class="stat-label">Follower</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs d-flex" role="tablist">
+        <li class="nav-item flex-fill text-center" role="presentation">
+            <button class="nav-link w-100 active" data-bs-toggle="tab" data-bs-target="#likes" type="button"><i class="bi bi-heart-fill"></i> Likes</button>
+        </li>
+
+        <li class="nav-item flex-fill text-center" role="presentation">
+            <button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#abos" type="button"><i class="bi bi-people-fill"></i> Abos</button>
+        </li>
+
+        @if (isOrb)
+        {
+            <li class="nav-item flex-fill text-center" role="presentation">
+                <button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#myvideos" type="button"><i class="bi bi-camera-video-fill"></i> Videos</button>
+            </li>
+        }
+    </ul>
+
+    <div class="tab-content">
+
+        <div class="tab-pane fade show active" id="likes">
+            <div class="video-grid">
+                @foreach (var recipe in Model.LikedRecipes)
+                {
+                    // WICHTIG: Die Source holen wir jetzt aus dem Posting im Rezept
+                    var videoSource = recipe.Images.First().Image ;
+
+                    // Onclick: Öffnet Feed im "likes" Modus und scrollt zu diesem Rezept
+                    <div class="grid-item" onclick="openFeed('likes', @recipe.Id)">
+
+                        @if (!string.IsNullOrEmpty(videoSource))
+                        {
+                            <video class="grid-img" muted playsinline preload="metadata" onloadeddata="this.currentTime=0.1">
+                                <source src="@videoSource#t=0.1" type="video/mp4">
+                            </video>
+                        }
+                    </div>
+                }
+            </div>
+            @if (Model.LikedRecipes.Count == 0)
+            {
+                <p class="text-center text-secondary p-4">Keine Likes.</p>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="abos">
+            <div class="p-2">
+                @foreach (var creator in Model.Following)
+                {
+                    // Onclick: Öffnet Feed im "creator" Modus für DIESEN Creator
+                    // Wir übergeben 0 als ID (scrollt nach oben) und den Hash des Creators
+                    <div class="abo-item" onclick="openFeed('creator', 0, '@creator.UserHash')" style="cursor: pointer;">
+
+                        <img src="https://ui-avatars.com/api/?name=@creator.UserName" class="abo-img">
+                        <span class="fw-bold">@creator.UserName</span>
+
+                        <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+                    </div>
+                }
+            </div>
+            @if (Model.Following.Count == 0)
+            {
+                <p class="text-center text-secondary p-4">Niemand abonniert.</p>
+            }
+        </div>
+
+        @if (isOrb)
+        {
+            <div class="tab-pane fade" id="myvideos">
+                <div class="video-grid">
+                    @foreach (var posting in Model.MyVideos)
+                    {
+                        var videoSource = posting.Source; // Hier ist es direkt im Posting
+
+                        // Onclick: Öffnet Feed im "myvideos" Modus
+                        <div class="grid-item" onclick="openFeed('myvideos', @posting.Recipe.Id)">
+
+                            <video class="grid-img" muted playsinline preload="metadata" onloadeddata="this.currentTime=0.1">
+                                <source src="@videoSource#t=0.1" type="video/mp4">
+                            </video>
+
+                            <div style="position:absolute; top:5px; right:5px; color:white; font-size:0.8rem;">
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <script>
+        function openFeed(filterMode, scrollToId, targetUserHash = "") {
+            // 1. Meinen eigenen Token holen (für Berechtigung/Likes laden)
+            const myUserHash = localStorage.getItem("UserToken");
+
+            // 2. URL zusammenbauen
+            // Wir übergeben 'filter', 'scrollToId' und meinen 'userHash'
+            let url = `/WorldMiniApp/Feed/Index?filter=${filterMode}&scrollToId=${scrollToId}&userHash=${myUserHash}`;
+
+            // 3. Wenn ich auf ein Abo klicke, muss ich wissen, WESSEN Videos ich sehen will
+            if (filterMode === 'creator' && targetUserHash !== "") {
+                url += `&targetUserHash=${targetUserHash}`;
+            }
+
+            // 4. Weiterleiten
+            window.location.href = url;
+        }
+    </script>
+
+    <div class="bottom-nav">
+        <a href="@Url.Action("Index", "Home")" class="nav-item"><i class="bi bi-house-door"></i></a>
+        <div class="nav-item"><i class="bi bi-calendar-week"></i></div>
+        <div style="position:relative; top:-25px;">
+            <a href="@Url.Action("Upload", "Home")" style="background: linear-gradient(135deg, #FF9966, #FF5E62); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 5px solid white;">
+                <i class="bi bi-plus" style="font-size: 2.2rem;"></i>
+            </a>
+        </div>
+        <div class="nav-item"><i class="bi bi-search"></i></div>
+        <div class="nav-item" style="color: #FF9966;"><i class="bi bi-person-fill"></i></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

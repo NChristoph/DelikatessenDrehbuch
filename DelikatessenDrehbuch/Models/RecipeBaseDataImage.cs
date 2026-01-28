@@ -6,5 +6,6 @@
         public RecipeBaseData Recipe { get; set; }
         public string Image { get; set; }
         public bool WorldAppImage { get; set; }
+
     }
 }

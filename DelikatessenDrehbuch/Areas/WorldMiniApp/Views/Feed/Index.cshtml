@@ -1,4 +1,5 @@
-﻿@model List<RecipeBaseDataImage>
+﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@model List<WorldUserPosting>
 @{
     ViewData["Title"] = "Feed";
     Layout = null;
@@ -13,8 +14,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
-        /* ... (Füge hier den Style-Code von vorhin ein, ich kürze es ab für Übersichtlichkeit) ... */
-        /* === FEED BASIS === */
+        /* ... DEIN CSS CODE BLEIBT IDENTISCH ... */
+        /* (Ich lasse den CSS Teil hier gekürzt, damit du nicht scrollen musst.
+                   Kopiere einfach deinen existierenden Style-Block hier rein.) */
         body, html {
             margin: 0;
             padding: 0;
@@ -195,7 +197,12 @@
             display: flex;
             align-items: center;
             cursor: pointer;
+            transition: transform 0.2s;
         }
+
+            .follow-btn:active {
+                transform: scale(0.9);
+            }
 
         .recipe-title {
             font-size: 1.8rem;
@@ -367,7 +374,7 @@
             gap: 10px;
         }
 
-        @@media(min - width: 350px) {
+        @@media(min-width: 350px) {
             .slot-container {
                 grid-template-columns: 1fr 1fr 1fr;
             }
@@ -505,7 +512,7 @@
                 <div class="chef-badge">
                     <span class="chef-icon">🥑</span><span class="chef-name">Delikatessen</span>
                     <div class="separator"></div>
-                    <button class="follow-btn"><i class="bi bi-person-plus-fill"></i></button>
+                    <button class="follow-btn" onclick="toggleFollow(this, '999')"><i class="bi bi-person-plus-fill"></i></button>
                 </div>
                 <h2 class="recipe-title">Willkommen im Feed 👋</h2>
                 <div class="recipe-meta">Info • ⏱️ 0:30</div>
@@ -530,8 +537,8 @@
         @foreach (var item in Model)
         {
             <div class="feed-item" data-id="@item.Recipe.Id">
-                <video class="feed-media" playsinline loop muted preload="metadata" poster="@item.Image">
-                    <source src="@item.Image" type="video/mp4">
+                <video class="feed-media" playsinline loop muted preload="metadata" poster="@item.Source">
+                    <source src="@item.Source" type="video/mp4">
                 </video>
                 <div class="overlay-gradient"></div>
                 <i class="bi bi-play-fill play-icon-overlay"></i>
@@ -540,9 +547,13 @@
 
                 <div class="info-container">
                     <div class="chef-badge">
-                        <span class="chef-icon">🥑</span><span class="chef-name">Delikatessen</span>
+                        <span class="chef-icon">🥑</span>
+                        <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
                         <div class="separator"></div>
-                        <button class="follow-btn"><i class="bi bi-person-plus-fill"></i></button>
+
+                        <button class="follow-btn" onclick="toggleFollow(this, '@item?.CreatorId')">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </button>
                     </div>
                     <h2 class="recipe-title">@item.Recipe.Title</h2>
                     <div class="recipe-meta">⏱️ @item.Recipe.PreperationTime Min</div>
@@ -553,7 +564,7 @@
                         <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                         <span class="action-label">124</span>
                     </div>
-                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@item.Image')">
+                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@item.Source')">
                         <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                         <span class="action-label">Planen</span>
                     </div>
@@ -580,7 +591,7 @@
                     <img src="https://ui-avatars.com/api/?name=Chef+Mario&background=random">
                     <span class="chef-name">ChefMario</span>
                     <div class="separator"></div>
-                    <button class="follow-btn"><i class="bi bi-person-plus-fill"></i></button>
+                    <button class="follow-btn" onclick="toggleFollow(this, '998')"><i class="bi bi-person-plus-fill"></i></button>
                 </div>
                 <h2 class="recipe-title">Echte Carbonara 🍝</h2>
                 <div class="recipe-meta">Mittel • ⏱️ 20 Min</div>
@@ -617,8 +628,12 @@
                 <i class="bi bi-plus"></i>
             </a>
         </div>
-        <div class="nav-item"><i class="bi bi-search"></i></div>
-        <div class="nav-item"><i class="bi bi-person-fill"></i></div>
+        <div class="nav-item">  <i class="bi bi-search"></i></div>
+        <div class="nav-item" onclick="goToProfile()" style="cursor: pointer;">
+            <i class="bi bi-person-fill"></i>
+        </div>
+
+
     </div>
 
     <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
@@ -629,7 +644,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-
                     <div id="addingModeHeader" style="display:none;">
                         <div class="adding-mode-info">
                             <img id="addingPreviewImg" class="adding-thumb" src="">
@@ -640,14 +654,10 @@
                         </div>
                         <p class="text-white-50 small mb-4 text-center">Tippe auf einen freien Slot 👇</p>
                     </div>
-
                     <div id="viewModeHeader" class="text-white-50 small mb-4 text-center">
                         Dein aktueller Plan für die Woche
                     </div>
-
-                    <div id="planContainer">
-                    </div>
-
+                    <div id="planContainer"></div>
                 </div>
             </div>
         </div>
@@ -656,63 +666,107 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        /* === JS LOGIK === */
 
+                function goToProfile() {
+            // 1. Token aus dem Browser holen
+            const userHash = localStorage.getItem("UserToken");
+
+            // 2. Prüfen ob eingeloggt
+            if (userHash) {
+                // 3. Per Javascript weiterleiten und Hash anhängen
+                // Achtung: Der Pfad muss exakt stimmen. Prüfe ob "/WorldMiniApp/Home/..." bei dir passt.
+                window.location.href = '/WorldMiniApp/Feed/MyProfile?userHash=' + userHash;
+            } else {
+                alert("Bitte erst einloggen!");
+                // Optional: window.location.href = '/WorldMiniApp/Home/Login';
+            }
+        }
+        /* === JS LOGIK === */
         let isGlobalMuted = true;
         let hasUserInteracted = false;
         let weeklyPlanData = {};
         let pendingRecipe = null;
 
-        // --- HIER IST DIE NEUE AJAX FUNKTION FÜR LIKES ---
-        async function sendLikeToBackend(recipeId) {
-            // Token aus LocalStorage holen
-            const userHash = localStorage.getItem("UserToken");
+        // --- TOGGLE FOLLOW FUNCTION ---
+        async function toggleFollow(btn, creatorId) {
+            // Bubbling verhindern (damit Video nicht liked/pausiert)
+            if(event) event.stopPropagation();
 
-            // Wenn kein Token da ist, abbrechen (oder Login-Popup zeigen)
+            const userHash = localStorage.getItem("UserToken");
             if(!userHash) {
-                console.warn("Kein UserToken gefunden! Like nicht gesendet.");
+                console.warn("Nicht eingeloggt!");
                 // alert("Bitte einloggen!");
                 return;
             }
+
+            // UI Update (Sofort)
+            const icon = btn.querySelector('i');
+            const isFollowing = icon.classList.contains('bi-check-lg');
+
+            if (isFollowing) {
+                // Unfollow
+                icon.classList.remove('bi-check-lg');
+                icon.classList.add('bi-person-plus-fill');
+                btn.style.color = "white";
+            } else {
+                // Follow
+                icon.classList.remove('bi-person-plus-fill');
+                icon.classList.add('bi-check-lg');
+                btn.style.color = "#4cd137"; // Grüner Haken
+            }
+
+            // Daten vorbereiten
+            const formData = new FormData();
+            formData.append('userHash', userHash);
+            formData.append('creatorId', creatorId);
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            // Senden
+            try {
+                const response = await fetch('/WorldMiniApp/Feed/ToggleFollow', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    console.error("Fehler beim Folgen:", response.statusText);
+                } else {
+                    console.log("Follow Status geändert für " + creatorId);
+                }
+            } catch (error) {
+                console.error("Netzwerkfehler:", error);
+            }
+        }
+
+        // --- LIKE FUNCTION ---
+        async function sendLikeToBackend(recipeId) {
+            const userHash = localStorage.getItem("UserToken");
+            if(!userHash) return;
+
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             const token = tokenInput ? tokenInput.value : null;
 
             const formData = new FormData();
             formData.append('userHash', userHash);
             formData.append('recipeId', recipeId);
-
-                if (token) {
-                    formData.append('__RequestVerificationToken', token);
-                } else {
-                    console.error("Antiforgery Token nicht auf der Seite gefunden!");
-                }
+            if (token) formData.append('__RequestVerificationToken', token);
 
             try {
-                // Den Controller aufrufen (Pfad anpassen falls nötig)
-                const response = await fetch('/WorldMiniApp/Home/ToggleLike', {
+                const response = await fetch('/WorldMiniApp/Feed/ToggleLike', {
                     method: 'POST',
                     body: formData
                 });
-
-                if (!response.ok) {
-                    console.error("Fehler beim Liken:", response.statusText);
-                } else {
-                    console.log("Like erfolgreich gesendet für Rezept " + recipeId);
-                }
-            } catch (error) {
-                console.error("Netzwerkfehler beim Liken:", error);
-            }
+            } catch (error) { console.error(error); }
         }
-        // -------------------------------------------------
 
-
+        // --- WOCHENPLAN LOGIK ---
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
 
         function openPlanModal(title, img) {
             const modalEl = document.getElementById('planModal');
             const modal = new bootstrap.Modal(modalEl);
-
             if (title && img) {
                 pendingRecipe = { title: title, img: img };
                 document.getElementById('addingModeHeader').style.display = 'block';
@@ -724,7 +778,6 @@
                 document.getElementById('addingModeHeader').style.display = 'none';
                 document.getElementById('viewModeHeader').style.display = 'block';
             }
-
             renderPlan();
             modal.show();
         }
@@ -732,34 +785,24 @@
         function renderPlan() {
             const container = document.getElementById('planContainer');
             container.innerHTML = '';
-
             days.forEach((day, dayIndex) => {
                 let dayHtml = `<div class="plan-day-row"><span class="day-label">${day}</span><div class="slot-container">`;
-
                 slots.forEach((slotName, slotIndex) => {
                     const key = `${dayIndex}-${slotIndex}`;
                     const item = weeklyPlanData[key];
-
                     if (item) {
                         dayHtml += `
                             <div class="filled-slot">
                                 <img src="${item.img}" class="mini-img">
-                                <div class="mini-content">
-                                    <div class="mini-title">${item.title}</div>
-                                    <div class="mini-type">${slotName}</div>
-                                </div>
-                                <div class="delete-slot-btn" onclick="removeFromSlot('${key}')">
-                                    <i class="bi bi-x-lg"></i>
-                                </div>
-                            </div>
-                        `;
+                                <div class="mini-content"><div class="mini-title">${item.title}</div><div class="mini-type">${slotName}</div></div>
+                                <div class="delete-slot-btn" onclick="removeFromSlot('${key}')"><i class="bi bi-x-lg"></i></div>
+                            </div>`;
                     } else {
                         const action = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
                         const opacity = pendingRecipe ? '1' : '0.4';
                         dayHtml += `<div class="meal-slot-btn" style="opacity:${opacity}" ${action}>${slotName}</div>`;
                     }
                 });
-
                 dayHtml += `</div></div>`;
                 container.innerHTML += dayHtml;
             });
@@ -770,14 +813,9 @@
             weeklyPlanData[key] = pendingRecipe;
             renderPlan();
         }
+        function removeFromSlot(key) { delete weeklyPlanData[key]; renderPlan(); }
 
-        function removeFromSlot(key) {
-            delete weeklyPlanData[key];
-            renderPlan();
-        }
-
-        /* === FEED LOGIK === */
-
+        /* === FEED BASIS LOGIK === */
         function unlockAudio() {
             if (hasUserInteracted) return;
             hasUserInteracted = true;
@@ -799,9 +837,7 @@
                         video.muted = isGlobalMuted;
                         updateSoundIcon(container, isGlobalMuted);
                         video.play().then(() => container.classList.remove('paused')).catch(e=>{});
-                    } else {
-                        video.pause();
-                    }
+                    } else { video.pause(); }
                 }
             });
         }, { threshold: 0.6 });
@@ -825,7 +861,6 @@
             else { icon.classList.remove('bi-volume-mute-fill'); icon.classList.add('bi-volume-up-fill'); }
         }
 
-        // Klick Events (Play, Double Tap, Like)
         document.querySelectorAll('.feed-item').forEach(item => {
             let lastTap = 0; let tapTimeout;
             item.addEventListener('click', function(e) {
@@ -847,22 +882,13 @@
         }
 
         function triggerLike(container) {
-            // ID aus dem HTML Attribut holen (data-id)
             const recipeId = container.dataset.id;
-
-            // Backend aufrufen (AJAX)
-            if(recipeId) {
-                sendLikeToBackend(recipeId);
-            }
-
-            // Visuelles Update (Herz färben)
+            if(recipeId) sendLikeToBackend(recipeId);
             const heartBtn = container.querySelector('.heart-btn');
             const bigHeart = container.querySelector('.double-tap-heart');
             if(heartBtn) {
-                // Toggle Logic
-                if (heartBtn.classList.contains('liked')) {
-                    heartBtn.classList.remove('liked');
-                } else {
+                if (heartBtn.classList.contains('liked')) { heartBtn.classList.remove('liked'); }
+                else {
                     heartBtn.classList.add('liked');
                     if(bigHeart) {
                         bigHeart.style.display = 'block'; bigHeart.classList.remove('animate'); void bigHeart.offsetWidth;
@@ -872,22 +898,19 @@
             }
         }
 
-        // Klick direkt auf den Herz Button
         document.querySelectorAll('.heart-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-
-                // Container finden um ID zu bekommen
                 const container = this.closest('.feed-item');
                 const recipeId = container.dataset.id;
-
-                // Backend call
                 if(recipeId) sendLikeToBackend(recipeId);
-
-                // Visuell
                 this.classList.toggle('liked');
             });
         });
     </script>
 </body>
-</html>
+</html>@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}

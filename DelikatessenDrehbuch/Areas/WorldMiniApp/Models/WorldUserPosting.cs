@@ -16,6 +16,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         [NotMapped]
         public List<Measure> Measure { get; set; }
         public RecipeBaseData Recipe { get; set; }
+       
         [NotMapped]
         public List<IngredientsAndNutrients> ToSelectIngredientsAndNutrients { get; set; }
         [NotMapped]
