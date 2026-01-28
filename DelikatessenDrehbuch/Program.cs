@@ -121,14 +121,6 @@ builder.Services.AddSession(options =>
 
 var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
 
-//var stripeApiKey = "sk_test_51Pudp8FspvIIGBtcg4p4V0mIFyxOlA81LVgXVmEwLDvL9wC4K81SqHQHX5ORN870vQMPJwwodHFTvD1kL6JksKU600PJAdirM2";
-
-//if (string.IsNullOrEmpty(stripeApiKey))
-//{
-//    throw new Exception("Stripe API Key is missing. Please set STRIPE_API_KEY environment variable.");
-//}
-
-// Stripe API-Schlüssel festlegen
 StripeConfiguration.ApiKey = stripeApiKey;
 
 // Füge Dienste hinzu (z.B. für MVC/Controllers)
@@ -206,7 +198,15 @@ else
 
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+var staticFileOptions = new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000");
+    }
+};
+
+app.UseStaticFiles(staticFileOptions);
 
 app.UseRouting();
 

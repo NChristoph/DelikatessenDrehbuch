@@ -60,7 +60,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         .ToListAsync();
                     break;
             }
-
+            foreach (var item in model)
+            {
+               item.Source=ChangePath(item.Source);
+            }
             ViewData["ScrollToId"] = scrollToId;
 
             return View(model);

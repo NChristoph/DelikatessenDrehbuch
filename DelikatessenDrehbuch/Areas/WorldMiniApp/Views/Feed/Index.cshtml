@@ -534,49 +534,65 @@
             </div>
         </div>
 
-        @foreach (var item in Model)
+      @foreach (var item in Model)
+{
+    
+    bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
+
+    <div class="feed-item" data-id="@item.Recipe.Id">
+        
+        @if (isVideo)
         {
-            <div class="feed-item" data-id="@item.Recipe.Id">
-                <video class="feed-media" playsinline loop muted preload="metadata" poster="@item.Source">
-                    <source src="@item.Source" type="video/mp4">
-                </video>
-                <div class="overlay-gradient"></div>
-                <i class="bi bi-play-fill play-icon-overlay"></i>
-                <div class="sound-toggle" onclick="toggleGlobalSound(this)"><i class="bi bi-volume-mute-fill"></i></div>
-                <i class="bi bi-heart-fill double-tap-heart"></i>
-
-                <div class="info-container">
-                    <div class="chef-badge">
-                        <span class="chef-icon">🥑</span>
-                        <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
-                        <div class="separator"></div>
-
-                        <button class="follow-btn" onclick="toggleFollow(this, '@item?.CreatorId')">
-                            <i class="bi bi-person-plus-fill"></i>
-                        </button>
-                    </div>
-                    <h2 class="recipe-title">@item.Recipe.Title</h2>
-                    <div class="recipe-meta">⏱️ @item.Recipe.PreperationTime Min</div>
-                </div>
-
-                <div class="action-bar">
-                    <div class="action-btn heart-btn">
-                        <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
-                        <span class="action-label">124</span>
-                    </div>
-                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@item.Source')">
-                        <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
-                        <span class="action-label">Planen</span>
-                    </div>
-                    <div class="action-btn">
-                        <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none">
-                            <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
-                        </a>
-                    </div>
-                </div>
+            <video class="feed-media" playsinline loop muted preload="metadata">
+                <source src="@item.Source" type="video/mp4">
+            </video>
+            
+            <i class="bi bi-play-fill play-icon-overlay"></i>
+            <div class="sound-toggle" onclick="toggleGlobalSound(this)">
+                <i class="bi bi-volume-mute-fill"></i>
             </div>
         }
+        else
+        {
+            <img class="feed-media" src="@item.Source" alt="@item.Recipe.Title" loading="lazy">
+        }
 
+        <div class="overlay-gradient"></div>
+        <i class="bi bi-heart-fill double-tap-heart"></i>
+
+        <div class="info-container">
+            <div class="chef-badge">
+                <span class="chef-icon">🥑</span>
+                <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
+                <div class="separator"></div>
+
+                <button class="follow-btn" onclick="toggleFollow(this, '@item?.CreatorId')">
+                    <i class="bi bi-person-plus-fill"></i>
+                </button>
+            </div>
+            <h2 class="recipe-title">@item.Recipe.Title</h2>
+            <div class="recipe-meta">⏱️ @item.Recipe.PreperationTime Min</div>
+        </div>
+
+        <div class="action-bar">
+            <div class="action-btn heart-btn">
+                <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
+                <span class="action-label">124</span>
+            </div>
+            
+            <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@item.Source')">
+                <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
+                <span class="action-label">Planen</span>
+            </div>
+            
+            <div class="action-btn">
+                <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none">
+                    <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
+                </a>
+            </div>
+        </div>
+    </div>
+}
         <div class="feed-item" data-id="99">
             <video class="feed-media" playsinline loop muted preload="metadata" poster="https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg">
                 <source src="https://videos.pexels.com/video-files/3196238/3196238-uhd_2560_1440_25fps.mp4" type="video/mp4">
@@ -646,7 +662,10 @@
                 <div class="modal-body">
                     <div id="addingModeHeader" style="display:none;">
                         <div class="adding-mode-info">
-                            <img id="addingPreviewImg" class="adding-thumb" src="">
+                            <div class="adding-thumb-container">
+                                <img id="addingPreviewImg" class="adding-thumb" src="" style="display:none;">
+                                <video id="addingPreviewVideo" class="adding-thumb" src="" muted playsinline style="display:none; object-fit:cover;"></video>
+                            </div>
                             <div>
                                 <small class="text-white-50 d-block" style="font-size:0.7rem;">Hinzufügen:</small>
                                 <span id="addingPreviewTitle" class="fw-bold" style="font-size:0.9rem;"></span>
@@ -764,15 +783,32 @@
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
 
-        function openPlanModal(title, img) {
+                function openPlanModal(title, url) {
             const modalEl = document.getElementById('planModal');
             const modal = new bootstrap.Modal(modalEl);
-            if (title && img) {
-                pendingRecipe = { title: title, img: img };
+
+            // Elemente holen
+            const imgEl = document.getElementById('addingPreviewImg');
+            const vidEl = document.getElementById('addingPreviewVideo');
+            const titleEl = document.getElementById('addingPreviewTitle');
+
+            if (title && url) {
+                pendingRecipe = { title: title, img: url }; // Wir speichern die URL, egal ob Video oder Bild
+
                 document.getElementById('addingModeHeader').style.display = 'block';
                 document.getElementById('viewModeHeader').style.display = 'none';
-                document.getElementById('addingPreviewTitle').innerText = title;
-                document.getElementById('addingPreviewImg').src = img;
+                titleEl.innerText = title;
+
+                // CHECK: Ist es ein Video?
+                if (url.endsWith('.mp4')) {
+                    imgEl.style.display = 'none';
+                    vidEl.style.display = 'block';
+                    vidEl.src = url + "#t=0.1"; // Frame-Trick
+                } else {
+                    vidEl.style.display = 'none';
+                    imgEl.style.display = 'block';
+                    imgEl.src = url;
+                }
             } else {
                 pendingRecipe = null;
                 document.getElementById('addingModeHeader').style.display = 'none';
@@ -782,27 +818,48 @@
             modal.show();
         }
 
-        function renderPlan() {
+              function renderPlan() {
             const container = document.getElementById('planContainer');
             container.innerHTML = '';
+
             days.forEach((day, dayIndex) => {
                 let dayHtml = `<div class="plan-day-row"><span class="day-label">${day}</span><div class="slot-container">`;
+
                 slots.forEach((slotName, slotIndex) => {
                     const key = `${dayIndex}-${slotIndex}`;
                     const item = weeklyPlanData[key];
+
                     if (item) {
+                        // NEU: Unterscheidung zwischen Bild und Video
+                        let mediaHtml = '';
+
+                        // Prüfen, ob die URL auf .mp4 endet
+                        if (item.img.endsWith('.mp4')) {
+                            // Video-Tag nutzen (mit Frame-Trick #t=0.1 für Standbild)
+                            mediaHtml = `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata"></video>`;
+                        } else {
+                            // Normales Bild nutzen
+                            mediaHtml = `<img src="${item.img}" class="mini-img">`;
+                        }
+
+                        // Hier fügen wir jetzt die Variable 'mediaHtml' ein statt den festen img-Tag
                         dayHtml += `
                             <div class="filled-slot">
-                                <img src="${item.img}" class="mini-img">
-                                <div class="mini-content"><div class="mini-title">${item.title}</div><div class="mini-type">${slotName}</div></div>
+                                ${mediaHtml}
+                                <div class="mini-content">
+                                    <div class="mini-title">${item.title}</div>
+                                    <div class="mini-type">${slotName}</div>
+                                </div>
                                 <div class="delete-slot-btn" onclick="removeFromSlot('${key}')"><i class="bi bi-x-lg"></i></div>
                             </div>`;
                     } else {
+                        // Leerer Slot (bleibt gleich)
                         const action = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
                         const opacity = pendingRecipe ? '1' : '0.4';
                         dayHtml += `<div class="meal-slot-btn" style="opacity:${opacity}" ${action}>${slotName}</div>`;
                     }
                 });
+
                 dayHtml += `</div></div>`;
                 container.innerHTML += dayHtml;
             });
