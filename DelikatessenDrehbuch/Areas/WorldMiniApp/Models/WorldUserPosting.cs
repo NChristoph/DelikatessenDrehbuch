@@ -9,6 +9,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string CreatorId { get; set; }
         public string CreatorName { get; set; }
         public string Source { get; set; }
+        public string ThumbnailUrl { get; set; }
         public string Title { get; set; }
         
         public DateTime CreationTime { get; set; } = DateTime.Now;

@@ -17,11 +17,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
         //TODO:Likecount zu basedata recipe hinzufügen und abo system auch machen neue column auserdem brauchen 
         //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
+        //TodoThumbAutoomqtisch speichern
         public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0)
         {
             List<WorldUserPosting> model = new List<WorldUserPosting>();
 
-            // Basis-Query: Wir laden Posting + Rezept-Infos (aber KEINE Bilder-Joins mehr nötig!)
+            
             var baseQuery = _context.WorldUserPosting
                 .AsNoTracking()
                 .Include(p => p.Recipe);
@@ -60,10 +61,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         .ToListAsync();
                     break;
             }
+
             foreach (var item in model)
             {
                item.Source=ChangePath(item.Source);
+                item.ThumbnailUrl=ChangePath(item.ThumbnailUrl);
             }
+
+           
             ViewData["ScrollToId"] = scrollToId;
 
             return View(model);
@@ -75,7 +80,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (string.IsNullOrEmpty(path)) return path;
 
-            // Ihre Konstanten (am besten oben in der Klasse definieren, aber hier geht es auch)
+          
             string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
             string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
 
@@ -180,11 +185,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             // --- BASIS DATEN (Für alle) ---
 
             // 1. Likes laden
-            var likedRecipes = await _context.WorldUserLike
-                .Where(l => l.WorldAppUser.Id == user.Id)
-                .Include(l => l.Recipe).ThenInclude(r => r.Images)
-                .Select(l => l.Recipe)
-                .ToListAsync();
+            var likes = _context.WorldUserLike.Where(x => x.WorldAppUser.UserHash == userHash).Select(x => x.Recipe.Id);
+
+            var likedRecipes = await _context.WorldUserPosting.Where(x => likes.Contains(x.Recipe.Id)).Include(x => x.Recipe).ToListAsync();
+            
 
             // 2. Abos laden (Wen verfolge ich?)
             var following = await _context.WorldUserAbo
