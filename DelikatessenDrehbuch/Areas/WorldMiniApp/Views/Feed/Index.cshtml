@@ -603,7 +603,9 @@
                 <i class="bi bi-plus"></i>
             </a>
         </div>
-        <div class="nav-item">  <i class="bi bi-search"></i></div>
+        <div class="nav-item" data-bs-toggle="modal" data-bs-target="#searchModal">
+            <i class="bi bi-search"></i>
+        </div>
         <div class="nav-item" onclick="goToProfile()" style="cursor: pointer;">
             <i class="bi bi-person-fill"></i>
         </div>
@@ -635,6 +637,41 @@
                     </div>
                     <div id="planContainer"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Suche im Feed</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="get" action="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })">
+                    <div class="modal-body">
+                        <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
+                        <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
+                        <div class="mb-3">
+                            <label class="form-label">Suchbegriff</label>
+                            <input type="text" name="searchTerm" class="form-control" placeholder="Name oder Keyword"
+                                   value="@ViewData["SearchTerm"]" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kategorie</label>
+                            <input type="text" name="category" class="form-control" placeholder="z. B. Pasta"
+                                   value="@ViewData["Category"]" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Max. Zubereitungszeit (Min.)</label>
+                            <input type="number" name="maxPrepTime" class="form-control" min="1" placeholder="z. B. 20"
+                                   value="@ViewData["MaxPrepTime"]" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="submit" class="btn btn-light w-100">Suchen</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
