@@ -16,6 +16,7 @@ namespace DelikatessenDrehbuch.Models
         public virtual ICollection<RecipeJoinIngredientMeasureQuantity> Ingredients { get; set; }
         public virtual ICollection<RecipeJoyinPreperationSteps> Steps { get; set; }
         public virtual ICollection<RecipeBaseDataImage> Images { get; set; }
+        public virtual ICollection<RecipeBaseKeyword> RecipeKeywords { get; set; }
         
     }
 }
