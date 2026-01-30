@@ -161,9 +161,20 @@ function getRememberLoginValue() {
     return localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 }
 
+function updateStoredLoginInfo(userHash, verifyLevel) {
+    const hashEl = document.getElementById('storedUserHash');
+    const levelEl = document.getElementById('storedVerifyLevel');
+    if (hashEl) {
+        hashEl.textContent = userHash || "-";
+    }
+    if (levelEl) {
+        levelEl.textContent = verifyLevel || "-";
+    }
+}
+
 async function refreshRememberedLogin(userHash) {
     try {
-        await fetch('/WorldMiniApp/Auth/RefreshStatus', {
+        const response = await fetch('/WorldMiniApp/Auth/RefreshStatus', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -171,6 +182,10 @@ async function refreshRememberedLogin(userHash) {
                 rememberLogin: true
             })
         });
+        if (response.ok) {
+            const data = await response.json();
+            updateStoredLoginInfo(userHash, data.status);
+        }
         sessionStorage.setItem("user_verified", "true");
     } catch (error) {
         console.warn("RefreshStatus failed", error);
@@ -219,13 +234,20 @@ window.initAutoLogin = (level) => {
     const storedHash = localStorage.getItem("UserToken");
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
-    if (storedHash && rememberLogin) {
-        refreshRememberedLogin(storedHash);
-        return;
-    }
-
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
     openModal();
-    setTimeout(startLoginProcess, 500);
+    updateStoredLoginInfo(storedHash, "-");
+
+    if (storedHash) {
+        refreshRememberedLogin(storedHash);
+    }
+
+    const consentButton = document.getElementById('consentLoginButton');
+    if (consentButton) {
+        consentButton.onclick = () => {
+            consentButton.disabled = true;
+            startLoginProcess();
+        };
+    }
 };

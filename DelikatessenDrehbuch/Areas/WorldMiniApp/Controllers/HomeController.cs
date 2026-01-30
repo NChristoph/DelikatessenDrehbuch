@@ -53,7 +53,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
-            var url = await _blobUpload.UploadContentToBlob(posting.Content);
+            var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
             SaveNewRecipeModel recipeModel = new()
             {
                 Recipes = new Recipes()
@@ -62,7 +62,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     Category = posting.Recipe.Category,
                     PreparationTime = posting.Recipe.PreperationTime,
                     RecipePersonCount = posting.Recipe.PersonCount,
-                    ImagePath = url
+                    ImagePath = uploadResult.SourceUrl
 
                 },
                 Querys = posting.Recipe.Preferences,
@@ -75,7 +75,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             posting.CreationTime = DateTime.Now;
             posting.CreatorName = "Avocado";
             posting.CreatorId = userHash;
-            posting.Source = url;
+            posting.Source = uploadResult.SourceUrl;
+            posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
             posting.Recipe = recipe;
 
             await _context.WorldUserPosting.AddAsync(posting);
@@ -106,13 +107,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
                 ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
-                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word).ToListAsync()
+                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };
 
             return View("CreatePosting", model);
         }
 
-        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufslisste teilen
+        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufsliste teilen
         //lagere das in einen eigenen controller aus
 
         private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)
