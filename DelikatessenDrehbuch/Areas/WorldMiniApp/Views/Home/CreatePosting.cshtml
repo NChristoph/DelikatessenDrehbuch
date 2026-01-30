@@ -88,9 +88,10 @@
             </div>
 
             <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Video-Drehbuch" data-en="Video Script" data-esp="Guion de video" data-prt="Roteiro de vídeo">Video-Drehbuch</label>
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Media-Drehbuch" data-en="Media Script" data-esp="Guion de medios" data-prt="Roteiro de mídia">Media-Drehbuch</label>
                 <div id="videoPreviewContainer" class="d-none mb-3">
                     <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative bg-dark">
+                        <img id="imagePreview" class="w-100 d-none" style="max-height: 250px; object-fit: cover;" alt="Preview" />
                         <video id="videoPreview" class="w-100" style="max-height: 250px; object-fit: cover;" controls></video>
                         <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle" onclick="resetVideo()"><i class="bi bi-x"></i></button>
                     </div>
@@ -99,8 +100,8 @@
                     <div class="icon-box mx-auto mb-2 rounded-circle candy-blue" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
                         <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary"></i>
                     </div>
-                    <span class="fw-bold label-lang" data-de="Video wählen" data-en="Select Video" data-esp="Seleccionar video" data-prt="Selecionar vídeo">Video wählen</span>
-                    <input asp-for="Content" type="file" accept="video/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
+                    <span class="fw-bold label-lang" data-de="Video oder Bild wählen" data-en="Select Video or Image" data-esp="Seleccionar video o imagen" data-prt="Selecionar vídeo ou imagem">Video oder Bild wählen</span>
+                    <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
                 </label>
             </div>
 
@@ -320,7 +321,18 @@
         // Video Preview Logic
         function handleVideoUpload(input) {
             if (input.files && input.files[0]) {
-                $('#videoPreview').attr('src', URL.createObjectURL(input.files[0]));
+                const file = input.files[0];
+                const fileUrl = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video/');
+
+                if (isVideo) {
+                    $('#videoPreview').attr('src', fileUrl).removeClass('d-none');
+                    $('#imagePreview').addClass('d-none').attr('src', '');
+                } else {
+                    $('#imagePreview').attr('src', fileUrl).removeClass('d-none');
+                    $('#videoPreview').addClass('d-none').attr('src', '');
+                }
+
                 $('#videoPreviewContainer').removeClass('d-none');
                 $('#uploadLabel').addClass('d-none');
             }
@@ -330,6 +342,8 @@
             $('#videoInput').val('');
             $('#videoPreviewContainer').addClass('d-none');
             $('#uploadLabel').removeClass('d-none');
+            $('#videoPreview').attr('src', '');
+            $('#imagePreview').attr('src', '').addClass('d-none');
         }
 
         // Zutat hinzufügen

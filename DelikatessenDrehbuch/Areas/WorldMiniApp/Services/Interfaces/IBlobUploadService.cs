@@ -2,6 +2,6 @@
 {
     public interface IBlobUploadService
     {
-        public Task<string> UploadContentToBlob(IFormFile file);
+        public Task<UploadContentResult> UploadContentToBlob(IFormFile file);
     }
 }

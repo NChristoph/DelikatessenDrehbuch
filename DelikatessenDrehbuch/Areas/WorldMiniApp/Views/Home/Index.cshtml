@@ -117,10 +117,6 @@
         <h5 class="fw-bold">Anmeldung läuft</h5>
         <p class="text-muted small mb-3">Verifikationsstatus-ID</p>
 
-        <button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="seedKeywordsButton">
-            Keywords initialisieren
-        </button>
-
         <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2 mb-3">
             <input class="form-check-input" type="checkbox" role="switch" id="rememberLoginToggle">
             <label class="form-check-label small" for="rememberLoginToggle">Login merken</label>
@@ -174,25 +170,6 @@
                 });
             }
 
-            const seedButton = document.getElementById('seedKeywordsButton');
-            if (seedButton) {
-                seedButton.addEventListener('click', async () => {
-                    seedButton.disabled = true;
-                    try {
-                        const response = await fetch('@Url.Action("SeedKeywords", "Home", new { area = "WorldMiniApp" })', {
-                            method: 'POST'
-                        });
-                        if (response.ok) {
-                            const data = await response.json();
-                            seedButton.textContent = `Keywords gespeichert (${data.count})`;
-                        } else {
-                            seedButton.textContent = 'Fehler beim Speichern';
-                        }
-                    } catch (error) {
-                        seedButton.textContent = 'Fehler beim Speichern';
-                    }
-                });
-            }
         });
     </script>
 }
