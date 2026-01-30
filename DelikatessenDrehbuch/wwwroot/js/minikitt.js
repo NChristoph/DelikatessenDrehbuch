@@ -12,6 +12,7 @@ let currentConfig = {
     level: 'orb',
     redirectUrl: '/WorldMiniApp/Home/Setup'
 };
+const REMEMBER_LOGIN_KEY = "remember_login";
 
 function log(msg, error = false) {
     console.log(msg);
@@ -19,6 +20,10 @@ function log(msg, error = false) {
     if (el) {
         el.innerHTML = `<div style="color:${error ? 'red' : '#555'}">${msg}</div>`;
     }
+}
+
+function handleLoginAbort() {
+    window.location.href = 'https://worldcoin.org';
 }
 
 async function diagnoseEnvironment() {
@@ -73,7 +78,10 @@ async function startLoginProcess() {
             await verifyBackend(res.finalPayload);
         } else {
             log("❌ Abgebrochen", true);
-            setTimeout(closeModal, 1500);
+            setTimeout(() => {
+                closeModal('loginModal');
+                handleLoginAbort();
+            }, 1500);
         }
 
     } catch (error) {
@@ -104,6 +112,7 @@ async function useMockLogin() {
 async function verifyBackend(payload) {
     try {
         log("📤 Prüfe Server...");
+        const rememberLogin = getRememberLoginValue();
 
         const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
             method: 'POST',
@@ -111,7 +120,8 @@ async function verifyBackend(payload) {
             body: JSON.stringify({
                 payload,
                 action: ACTION,
-                signal: ""
+                signal: "",
+                rememberLogin: rememberLogin
             })
         });
 
@@ -120,9 +130,13 @@ async function verifyBackend(payload) {
             sessionStorage.setItem("user_verified", "true");
             await new Promise(r => setTimeout(r, 800));
             localStorage.setItem("UserToken", payload.nullifier_hash);
-          
+            localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
 
-            window.location.href = currentConfig.redirectUrl;
+            if (currentConfig.redirectUrl) {
+                window.location.href = currentConfig.redirectUrl;
+            } else {
+                closeModal();
+            }
         } else {
             const errorText = await response.text();
             log(`❌ Server Fehler: ${errorText.substring(0, 50)}`, true);
@@ -132,18 +146,57 @@ async function verifyBackend(payload) {
     }
 }
 
-function openModal() {
-    const el = document.getElementById('loginModal');
+function openModal(modalId = 'loginModal') {
+    const el = document.getElementById(modalId);
     if (el) {
         const modal = new bootstrap.Offcanvas(el, { backdrop: true });
         modal.show();
     }
 }
 
-function closeModal() {
-    const el = document.getElementById('loginModal');
+function closeModal(modalId = 'loginModal') {
+    const el = document.getElementById(modalId);
     const modal = bootstrap.Offcanvas.getInstance(el);
     if (modal) modal.hide();
+}
+
+function getRememberLoginValue() {
+    const toggle = document.getElementById('rememberLoginToggle');
+    if (toggle) {
+        return toggle.checked;
+    }
+    return localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+}
+
+function updateStoredLoginInfo(userHash, verifyLevel) {
+    const hashEl = document.getElementById('storedUserHash');
+    const levelEl = document.getElementById('storedVerifyLevel');
+    if (hashEl) {
+        hashEl.textContent = userHash ? "gesehen" : "-";
+    }
+    if (levelEl) {
+        levelEl.textContent = verifyLevel ? "gesehen" : "-";
+    }
+}
+
+async function refreshRememberedLogin(userHash) {
+    try {
+        const response = await fetch('/WorldMiniApp/Auth/RefreshStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userHash: userHash,
+                rememberLogin: true
+            })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            updateStoredLoginInfo(userHash, data.status);
+        }
+        sessionStorage.setItem("user_verified", "true");
+    } catch (error) {
+        console.warn("RefreshStatus failed", error);
+    }
 }
 
 
@@ -152,6 +205,16 @@ window.triggerLogin = (level, redirectUrl) => {
 
     // AUTOMATISCH HOLEN: Wir schauen hier im JS nach dem Token
     const storedHash = localStorage.getItem("UserToken");
+    const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+
+    if (storedHash && rememberLogin) {
+        console.log("Hash automatisch gefunden:", storedHash);
+        // URL erweitern
+        const separator = redirectUrl.includes('?') ? '&' : '?';
+        redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
+        window.location.href = redirectUrl;
+        return;
+    }
 
     if (storedHash) {
         console.log("Hash automatisch gefunden:", storedHash);
@@ -164,12 +227,49 @@ window.triggerLogin = (level, redirectUrl) => {
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
-    // Modal öffnen & Starten
-    openModal();
-    setTimeout(startLoginProcess, 500);
+    openModal('loginModal');
+    bindConsentButton();
 };
 
 window.retryVerification = () => {
-    openModal();
-    setTimeout(startLoginProcess, 500);
+    openModal('loginModal');
+    bindConsentButton();
 };
+
+window.initAutoLogin = (level) => {
+    const storedHash = localStorage.getItem("UserToken");
+    const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+
+    currentConfig.level = level;
+    currentConfig.redirectUrl = "";
+    openModal('loginModal');
+    updateStoredLoginInfo(storedHash, "-");
+
+    if (storedHash) {
+        refreshRememberedLogin(storedHash);
+    }
+
+    bindConsentButton();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.addEventListener('hidden.bs.offcanvas', () => {
+            if (sessionStorage.getItem("user_verified") !== "true") {
+                handleLoginAbort();
+            }
+        });
+    }
+});
+
+function bindConsentButton() {
+    const consentButton = document.getElementById('consentLoginButton');
+    if (consentButton) {
+        consentButton.disabled = false;
+        consentButton.onclick = () => {
+            consentButton.disabled = true;
+            startLoginProcess();
+        };
+    }
+}

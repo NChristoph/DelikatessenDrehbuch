@@ -41,6 +41,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
+        public DbSet<Keyword> Keywords { get; set; }
+        public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -51,6 +53,19 @@ namespace DelikatessenDrehbuch.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<RecipeBaseKeyword>()
+                .HasKey(link => new { link.RecipeBaseDataId, link.KeywordId });
+
+            builder.Entity<RecipeBaseKeyword>()
+                .HasOne(link => link.RecipeBaseData)
+                .WithMany(recipe => recipe.RecipeKeywords)
+                .HasForeignKey(link => link.RecipeBaseDataId);
+
+            builder.Entity<RecipeBaseKeyword>()
+                .HasOne(link => link.Keyword)
+                .WithMany(keyword => keyword.RecipeLinks)
+                .HasForeignKey(link => link.KeywordId);
 
         }
     }
