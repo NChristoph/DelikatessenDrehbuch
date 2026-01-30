@@ -17,6 +17,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         [JsonPropertyName("signal")]
         [JsonProperty("signal")]
         public string Signal { get; set; }
+
+        [JsonPropertyName("rememberLogin")]
+        [JsonProperty("rememberLogin")]
+        public bool RememberLogin { get; set; }
     }
 
     public class VerifyPayloadDto
@@ -85,5 +89,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         [JsonPropertyName("detail")]
         [JsonProperty("detail")]
         public string Detail { get; set; }
+    }
+
+    public class RefreshLoginRequest
+    {
+        [JsonPropertyName("userHash")]
+        [JsonProperty("userHash")]
+        public string UserHash { get; set; }
+
+        [JsonPropertyName("rememberLogin")]
+        [JsonProperty("rememberLogin")]
+        public bool? RememberLogin { get; set; }
     }
 }

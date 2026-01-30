@@ -43,6 +43,63 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View();
         }
 
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> SeedKeywords()
+        {
+            var keywords = new List<Keyword>
+            {
+                new() { Word_DE = "Low Carb", Word_EN = "Low Carb", Word_ESP = "Bajo en carbohidratos", Word_PRT = "Baixo carboidrato" },
+                new() { Word_DE = "Low Fat", Word_EN = "Low Fat", Word_ESP = "Bajo en grasa", Word_PRT = "Baixo teor de gordura" },
+                new() { Word_DE = "Einfach", Word_EN = "Easy", Word_ESP = "Fácil", Word_PRT = "Fácil" },
+                new() { Word_DE = "Schnell", Word_EN = "Quick", Word_ESP = "Rápido", Word_PRT = "Rápido" },
+                new() { Word_DE = "Gesund", Word_EN = "Healthy", Word_ESP = "Saludable", Word_PRT = "Saudável" },
+                new() { Word_DE = "Proteinreich", Word_EN = "High Protein", Word_ESP = "Alto en proteínas", Word_PRT = "Alto teor de proteína" },
+                new() { Word_DE = "Kalorienarm", Word_EN = "Low Calorie", Word_ESP = "Bajo en calorías", Word_PRT = "Baixas calorias" },
+                new() { Word_DE = "Zuckerfrei", Word_EN = "Sugar Free", Word_ESP = "Sin azúcar", Word_PRT = "Sem açúcar" },
+                new() { Word_DE = "Glutenfrei", Word_EN = "Gluten Free", Word_ESP = "Sin gluten", Word_PRT = "Sem glúten" },
+                new() { Word_DE = "Laktosefrei", Word_EN = "Lactose Free", Word_ESP = "Sin lactosa", Word_PRT = "Sem lactose" },
+                new() { Word_DE = "Vegan", Word_EN = "Vegan", Word_ESP = "Vegano", Word_PRT = "Vegano" },
+                new() { Word_DE = "Vegetarisch", Word_EN = "Vegetarian", Word_ESP = "Vegetariano", Word_PRT = "Vegetariano" },
+                new() { Word_DE = "High Carb", Word_EN = "High Carb", Word_ESP = "Alto en carbohidratos", Word_PRT = "Alto carboidrato" },
+                new() { Word_DE = "Meal Prep", Word_EN = "Meal Prep", Word_ESP = "Meal prep", Word_PRT = "Meal prep" },
+                new() { Word_DE = "Familienfreundlich", Word_EN = "Family Friendly", Word_ESP = "Para la familia", Word_PRT = "Para a família" },
+                new() { Word_DE = "Kinderfreundlich", Word_EN = "Kid Friendly", Word_ESP = "Para niños", Word_PRT = "Para crianças" },
+                new() { Word_DE = "Saisonal", Word_EN = "Seasonal", Word_ESP = "De temporada", Word_PRT = "Sazonal" },
+                new() { Word_DE = "Günstig", Word_EN = "Budget", Word_ESP = "Económico", Word_PRT = "Econômico" },
+                new() { Word_DE = "Gourmet", Word_EN = "Gourmet", Word_ESP = "Gourmet", Word_PRT = "Gourmet" },
+                new() { Word_DE = "Scharf", Word_EN = "Spicy", Word_ESP = "Picante", Word_PRT = "Picante" },
+                new() { Word_DE = "Herzhaft", Word_EN = "Savory", Word_ESP = "Salado", Word_PRT = "Salgado" },
+                new() { Word_DE = "Süß", Word_EN = "Sweet", Word_ESP = "Dulce", Word_PRT = "Doce" },
+                new() { Word_DE = "Frühstück", Word_EN = "Breakfast", Word_ESP = "Desayuno", Word_PRT = "Café da manhã" },
+                new() { Word_DE = "Mittagessen", Word_EN = "Lunch", Word_ESP = "Almuerzo", Word_PRT = "Almoço" },
+                new() { Word_DE = "Abendessen", Word_EN = "Dinner", Word_ESP = "Cena", Word_PRT = "Jantar" },
+                new() { Word_DE = "Snack", Word_EN = "Snack", Word_ESP = "Snack", Word_PRT = "Lanche" },
+                new() { Word_DE = "Meal Bowl", Word_EN = "Meal Bowl", Word_ESP = "Bowl", Word_PRT = "Bowl" },
+                new() { Word_DE = "One Pot", Word_EN = "One Pot", Word_ESP = "Una olla", Word_PRT = "Panela única" },
+                new() { Word_DE = "Ofengericht", Word_EN = "Oven Baked", Word_ESP = "Al horno", Word_PRT = "Assado no forno" },
+                new() { Word_DE = "Grill", Word_EN = "Grilled", Word_ESP = "A la parrilla", Word_PRT = "Grelhado" }
+            };
+
+            foreach (var keyword in keywords)
+            {
+                var exists = await _context.Keywords.AnyAsync(k =>
+                    k.Word_DE == keyword.Word_DE
+                    && k.Word_EN == keyword.Word_EN
+                    && k.Word_ESP == keyword.Word_ESP
+                    && k.Word_PRT == keyword.Word_PRT);
+
+                if (!exists)
+                {
+                    await _context.Keywords.AddAsync(keyword);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { count = keywords.Count });
+        }
+
         public async Task<IActionResult> Generator()
         {
 
@@ -81,6 +138,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.WorldUserPosting.AddAsync(posting);
             await _context.SaveChangesAsync();
 
+            if (recipe != null && posting.SelectedKeywordIds != null && posting.SelectedKeywordIds.Any())
+            {
+                var keywordLinks = posting.SelectedKeywordIds
+                    .Distinct()
+                    .Select(keywordId => new RecipeBaseKeyword
+                    {
+                        RecipeBaseDataId = recipe.Id,
+                        KeywordId = keywordId
+                    })
+                    .ToList();
+
+                await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+                await _context.SaveChangesAsync();
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -91,12 +163,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
                 ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
+                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };
 
             return View("CreatePosting", model);
         }
 
-        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufslisste teilen
+        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufsliste teilen
         //lagere das in einen eigenen controller aus
 
         private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)

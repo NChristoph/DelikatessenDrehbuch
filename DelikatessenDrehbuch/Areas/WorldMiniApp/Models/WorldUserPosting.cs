@@ -30,5 +30,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
         [NotMapped]
         public IFormFile Content { get; set; }
+
+        [NotMapped]
+        public List<Keyword> ToSelectKeywords { get; set; }
+
+        [NotMapped]
+        public List<int> SelectedKeywordIds { get; set; }
     }
 }
