@@ -45,7 +45,7 @@
                 <div class="px-3 pt-3">
                     <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm" id="pills-tab-@dayIndex" role="tablist" style="font-size: 0.8rem;">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#apperetizer_@dayIndex" type="button">Vorspeise</button>
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#appetizer_@dayIndex" type="button">Vorspeise</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#main_@dayIndex" type="button">Haupt</button>
@@ -58,13 +58,13 @@
 
                 <div class="tab-content p-3">
 
-                    <div class="tab-pane fade" id="apperetizer_@dayIndex" role="tabpanel">
+                    <div class="tab-pane fade" id="appetizer_@dayIndex" role="tabpanel">
                         @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
                         vorspeise,
                                         new ViewDataDictionary(ViewData) {
                                         { "DayIndex", dayIndex },
                                         { "Category", "Vorspeise" },
-                                        { "NamePrefix", "apperetizer_" }
+                                        { "NamePrefix", "appetizer_" }
                                         })
                 </div>
 
