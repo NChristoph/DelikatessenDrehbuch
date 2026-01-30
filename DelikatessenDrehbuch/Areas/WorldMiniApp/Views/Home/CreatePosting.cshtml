@@ -88,9 +88,10 @@
             </div>
 
             <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Video Drehbuch" data-en="Video Script" data-esp="Guion de video" data-prt="Roteiro de vídeo">Video Drehbuch</label>
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Media-Drehbuch" data-en="Media Script" data-esp="Guion de medios" data-prt="Roteiro de mídia">Media-Drehbuch</label>
                 <div id="videoPreviewContainer" class="d-none mb-3">
                     <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative bg-dark">
+                        <img id="imagePreview" class="w-100 d-none" style="max-height: 250px; object-fit: cover;" alt="Preview" />
                         <video id="videoPreview" class="w-100" style="max-height: 250px; object-fit: cover;" controls></video>
                         <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle" onclick="resetVideo()"><i class="bi bi-x"></i></button>
                     </div>
@@ -99,8 +100,8 @@
                     <div class="icon-box mx-auto mb-2 rounded-circle candy-blue" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
                         <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary"></i>
                     </div>
-                    <span class="fw-bold label-lang" data-de="Video wählen" data-en="Select Video" data-esp="Seleccionar video" data-prt="Selecionar vídeo">Video wählen</span>
-                    <input asp-for="Content" type="file" accept="video/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
+                    <span class="fw-bold label-lang" data-de="Video oder Bild wählen" data-en="Select Video or Image" data-esp="Seleccionar video o imagen" data-prt="Selecionar vídeo ou imagem">Video oder Bild wählen</span>
+                    <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
                 </label>
             </div>
 
@@ -153,6 +154,31 @@
                         </table>
                     </div>
                     <div id="selectedSteps" class="mt-3"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Keywords wählen" data-en="Select Keywords" data-esp="Seleccionar palabras clave" data-prt="Selecionar palavras-chave">Keywords wählen</label>
+                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.ToSelectKeywords != null)
+                        {
+                            foreach (var keyword in Model.ToSelectKeywords)
+                            {
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary rounded-pill keyword-btn"
+                                        data-keyword-id="@keyword.Id"
+                                        data-word-de="@keyword.Word_DE"
+                                        data-word-en="@keyword.Word_EN"
+                                        data-word-esp="@keyword.Word_ESP"
+                                        data-word-prt="@keyword.Word_PRT"
+                                        onclick="toggleKeyword('@keyword.Id', this)">
+                                    @keyword.Word_DE
+                                </button>
+                            }
+                        }
+                    </div>
+                    <div id="selectedKeywords" class="mt-3"></div>
                 </div>
             </div>
         </div>
@@ -229,12 +255,28 @@
         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
         let currentLang = 'DE';
 
+        let ingredientsTable;
+        let stepsTable;
+
         $(document).ready(function() {
             // DataTables initialisieren
-            $('#ingredientsDbTable, #stepsDbTable').DataTable({
+            ingredientsTable = $('#ingredientsDbTable').DataTable({
                 pageLength: 9, lengthChange: false, info: false, searching: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' }
             });
+            stepsTable = $('#stepsDbTable').DataTable({
+                pageLength: 9, lengthChange: false, info: false, searching: true,
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' }
+            });
+
+            ingredientsTable.on('draw', function() {
+                updateLanguageLabels();
+            });
+            stepsTable.on('draw', function() {
+                updateLanguageLabels();
+            });
+
+            updateLanguageLabels();
         });
 
         // Sprachwechsel Funktion
@@ -245,6 +287,12 @@
             // 1. Buttons optisch umschalten
             $('.lang-btn').removeClass('active btn-dark').addClass('btn-light');
             $(btn).addClass('active btn-dark').removeClass('btn-light');
+
+            updateLanguageLabels();
+        }
+
+        function updateLanguageLabels() {
+            const langKey = currentLang.toLowerCase();
 
             // 2. Statische Labels (h2, labels, button text)
             $('.label-lang').each(function() {
@@ -264,12 +312,27 @@
             // 5. DB Listen Items (Ingredients/Steps in der Tabelle)
             $('.ingredient-db-row').each(function() { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
             $('.step-db-row').each(function() { $(this).find('.display-step').text($(this).data('step-' + langKey)); });
+            $('.keyword-btn').each(function() { $(this).text($(this).data('word-' + langKey)); });
+            $('.keyword-pill').each(function() {
+                $(this).find('.keyword-text').text($(this).data('word-' + langKey));
+            });
         }
 
         // Video Preview Logic
         function handleVideoUpload(input) {
             if (input.files && input.files[0]) {
-                $('#videoPreview').attr('src', URL.createObjectURL(input.files[0]));
+                const file = input.files[0];
+                const fileUrl = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video/');
+
+                if (isVideo) {
+                    $('#videoPreview').attr('src', fileUrl).removeClass('d-none');
+                    $('#imagePreview').addClass('d-none').attr('src', '');
+                } else {
+                    $('#imagePreview').attr('src', fileUrl).removeClass('d-none');
+                    $('#videoPreview').addClass('d-none').attr('src', '');
+                }
+
                 $('#videoPreviewContainer').removeClass('d-none');
                 $('#uploadLabel').addClass('d-none');
             }
@@ -279,6 +342,8 @@
             $('#videoInput').val('');
             $('#videoPreviewContainer').addClass('d-none');
             $('#uploadLabel').removeClass('d-none');
+            $('#videoPreview').attr('src', '');
+            $('#imagePreview').attr('src', '').addClass('d-none');
         }
 
         // Zutat hinzufügen
@@ -315,6 +380,41 @@
             </div>`;
             $('#selectedSteps').append(html);
             updateStepIndices();
+        }
+
+        function toggleKeyword(id, btn) {
+            const container = $('#selectedKeywords');
+            const existing = container.find(`.keyword-pill[data-keyword-id="${id}"]`);
+
+            if (existing.length > 0) {
+                existing.remove();
+                $(btn).removeClass('btn-secondary').addClass('btn-outline-secondary');
+                return;
+            }
+
+            const langKey = currentLang.toLowerCase();
+            const word = $(btn).data('word-' + langKey);
+
+            const html = `<div class="keyword-pill badge rounded-pill bg-secondary text-white d-inline-flex align-items-center me-2 mb-2"
+                data-keyword-id="${id}"
+                data-word-de="${$(btn).data('word-de')}"
+                data-word-en="${$(btn).data('word-en')}"
+                data-word-esp="${$(btn).data('word-esp')}"
+                data-word-prt="${$(btn).data('word-prt')}">
+                <input type="hidden" name="SelectedKeywordIds" value="${id}" />
+                <span class="me-2 keyword-text">${word}</span>
+                <button type="button" class="btn btn-sm btn-light rounded-circle p-0" style="width:20px;height:20px;line-height:1;" onclick="removeKeyword('${id}')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>`;
+            container.append(html);
+            $(btn).removeClass('btn-outline-secondary').addClass('btn-secondary');
+        }
+
+        function removeKeyword(id) {
+            const container = $('#selectedKeywords');
+            container.find(`.keyword-pill[data-keyword-id="${id}"]`).remove();
+            $(`.keyword-btn[data-keyword-id="${id}"]`).removeClass('btn-secondary').addClass('btn-outline-secondary');
         }
 
         // Schritt-Nummern aktualisieren

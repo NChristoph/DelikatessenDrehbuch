@@ -1,6 +1,8 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
+using DelikatessenDrehbuch.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -11,11 +13,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IAuthService _authService;
         private readonly IUserManager _userManager;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
-        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService)
+        private readonly ApplicationDbContext _context;
+        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService, ApplicationDbContext context)
         {
             _authService = authService;
             _userManager = userManager;
             _worldAppMealPlanService = worldAppMealPlanService;
+            _context = context;
         }
 
         [HttpPost]
@@ -49,6 +53,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> RefreshStatus([FromBody] RefreshLoginRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.UserHash))
+            {
+                return BadRequest("UserHash missing.");
+            }
+
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == request.UserHash);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            user.Lastlogin = DateTime.Now;
+            if (request.RememberLogin.HasValue)
+            {
+                user.RememberLogin = request.RememberLogin.Value;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { status = user.IsVerified, rememberLogin = user.RememberLogin });
         }
         public IActionResult Index()
         {
