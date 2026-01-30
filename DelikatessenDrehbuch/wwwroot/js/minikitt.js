@@ -139,16 +139,16 @@ async function verifyBackend(payload) {
     }
 }
 
-function openModal() {
-    const el = document.getElementById('loginModal');
+function openModal(modalId = 'loginModal') {
+    const el = document.getElementById(modalId);
     if (el) {
         const modal = new bootstrap.Offcanvas(el, { backdrop: true });
         modal.show();
     }
 }
 
-function closeModal() {
-    const el = document.getElementById('loginModal');
+function closeModal(modalId = 'loginModal') {
+    const el = document.getElementById(modalId);
     const modal = bootstrap.Offcanvas.getInstance(el);
     if (modal) modal.hide();
 }
@@ -161,9 +161,20 @@ function getRememberLoginValue() {
     return localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 }
 
+function updateStoredLoginInfo(userHash, verifyLevel) {
+    const hashEl = document.getElementById('storedUserHash');
+    const levelEl = document.getElementById('storedVerifyLevel');
+    if (hashEl) {
+        hashEl.textContent = userHash ? "gesehen" : "-";
+    }
+    if (levelEl) {
+        levelEl.textContent = verifyLevel ? "gesehen" : "-";
+    }
+}
+
 async function refreshRememberedLogin(userHash) {
     try {
-        await fetch('/WorldMiniApp/Auth/RefreshStatus', {
+        const response = await fetch('/WorldMiniApp/Auth/RefreshStatus', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -171,6 +182,10 @@ async function refreshRememberedLogin(userHash) {
                 rememberLogin: true
             })
         });
+        if (response.ok) {
+            const data = await response.json();
+            updateStoredLoginInfo(userHash, data.status);
+        }
         sessionStorage.setItem("user_verified", "true");
     } catch (error) {
         console.warn("RefreshStatus failed", error);
@@ -205,27 +220,38 @@ window.triggerLogin = (level, redirectUrl) => {
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
-    // Modal öffnen & Starten
-    openModal();
-    setTimeout(startLoginProcess, 500);
+    openModal('loginModal');
+    bindConsentButton();
 };
 
 window.retryVerification = () => {
-    openModal();
-    setTimeout(startLoginProcess, 500);
+    openModal('loginModal');
+    bindConsentButton();
 };
 
 window.initAutoLogin = (level) => {
     const storedHash = localStorage.getItem("UserToken");
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
-    if (storedHash && rememberLogin) {
-        refreshRememberedLogin(storedHash);
-        return;
-    }
-
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
-    openModal();
-    setTimeout(startLoginProcess, 500);
+    openModal('loginModal');
+    updateStoredLoginInfo(storedHash, "-");
+
+    if (storedHash) {
+        refreshRememberedLogin(storedHash);
+    }
+
+    bindConsentButton();
 };
+
+function bindConsentButton() {
+    const consentButton = document.getElementById('consentLoginButton');
+    if (consentButton) {
+        consentButton.disabled = false;
+        consentButton.onclick = () => {
+            consentButton.disabled = true;
+            startLoginProcess();
+        };
+    }
+}

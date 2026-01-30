@@ -53,7 +53,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
-            var url = await _blobUpload.UploadContentToBlob(posting.Content);
+            if (!await IsCreatorAllowedAsync(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
             SaveNewRecipeModel recipeModel = new()
             {
                 Recipes = new Recipes()
@@ -62,7 +67,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     Category = posting.Recipe.Category,
                     PreparationTime = posting.Recipe.PreperationTime,
                     RecipePersonCount = posting.Recipe.PersonCount,
-                    ImagePath = url
+                    ImagePath = uploadResult.SourceUrl
 
                 },
                 Querys = posting.Recipe.Preferences,
@@ -75,7 +80,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             posting.CreationTime = DateTime.Now;
             posting.CreatorName = "Avocado";
             posting.CreatorId = userHash;
-            posting.Source = url;
+            posting.Source = uploadResult.SourceUrl;
+            posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
             posting.Recipe = recipe;
 
             await _context.WorldUserPosting.AddAsync(posting);
@@ -99,20 +105,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Upload()
+        public async Task<IActionResult> Upload(string userHash)
         {
+            if (!await IsCreatorAllowedAsync(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
             var model = new WorldUserPosting()
             {
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
                 ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
-                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word).ToListAsync()
+                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };
 
             return View("CreatePosting", model);
         }
 
-        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufslisste teilen
+        private async Task<bool> IsCreatorAllowedAsync(string userHash)
+        {
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            const string superUserHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+            if (userHash == superUserHash)
+            {
+                return true;
+            }
+
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
+            return user?.IsVerified == "orb";
+        }
+
+        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufsliste teilen
         //lagere das in einen eigenen controller aus
 
         private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)
