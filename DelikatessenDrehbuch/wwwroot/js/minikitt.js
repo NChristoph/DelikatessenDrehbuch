@@ -12,6 +12,7 @@ let currentConfig = {
     level: 'orb',
     redirectUrl: '/WorldMiniApp/Home/Setup'
 };
+const REMEMBER_LOGIN_KEY = "remember_login";
 
 function log(msg, error = false) {
     console.log(msg);
@@ -104,6 +105,7 @@ async function useMockLogin() {
 async function verifyBackend(payload) {
     try {
         log("📤 Prüfe Server...");
+        const rememberLogin = getRememberLoginValue();
 
         const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
             method: 'POST',
@@ -111,7 +113,8 @@ async function verifyBackend(payload) {
             body: JSON.stringify({
                 payload,
                 action: ACTION,
-                signal: ""
+                signal: "",
+                rememberLogin: rememberLogin
             })
         });
 
@@ -120,9 +123,13 @@ async function verifyBackend(payload) {
             sessionStorage.setItem("user_verified", "true");
             await new Promise(r => setTimeout(r, 800));
             localStorage.setItem("UserToken", payload.nullifier_hash);
-          
+            localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
 
-            window.location.href = currentConfig.redirectUrl;
+            if (currentConfig.redirectUrl) {
+                window.location.href = currentConfig.redirectUrl;
+            } else {
+                closeModal();
+            }
         } else {
             const errorText = await response.text();
             log(`❌ Server Fehler: ${errorText.substring(0, 50)}`, true);
@@ -146,12 +153,46 @@ function closeModal() {
     if (modal) modal.hide();
 }
 
+function getRememberLoginValue() {
+    const toggle = document.getElementById('rememberLoginToggle');
+    if (toggle) {
+        return toggle.checked;
+    }
+    return localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+}
+
+async function refreshRememberedLogin(userHash) {
+    try {
+        await fetch('/WorldMiniApp/Auth/RefreshStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userHash: userHash,
+                rememberLogin: true
+            })
+        });
+        sessionStorage.setItem("user_verified", "true");
+    } catch (error) {
+        console.warn("RefreshStatus failed", error);
+    }
+}
+
 
 window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
     // AUTOMATISCH HOLEN: Wir schauen hier im JS nach dem Token
     const storedHash = localStorage.getItem("UserToken");
+    const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+
+    if (storedHash && rememberLogin) {
+        console.log("Hash automatisch gefunden:", storedHash);
+        // URL erweitern
+        const separator = redirectUrl.includes('?') ? '&' : '?';
+        redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
+        window.location.href = redirectUrl;
+        return;
+    }
 
     if (storedHash) {
         console.log("Hash automatisch gefunden:", storedHash);
@@ -170,6 +211,21 @@ window.triggerLogin = (level, redirectUrl) => {
 };
 
 window.retryVerification = () => {
+    openModal();
+    setTimeout(startLoginProcess, 500);
+};
+
+window.initAutoLogin = (level) => {
+    const storedHash = localStorage.getItem("UserToken");
+    const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+
+    if (storedHash && rememberLogin) {
+        refreshRememberedLogin(storedHash);
+        return;
+    }
+
+    currentConfig.level = level;
+    currentConfig.redirectUrl = "";
     openModal();
     setTimeout(startLoginProcess, 500);
 };

@@ -81,6 +81,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.WorldUserPosting.AddAsync(posting);
             await _context.SaveChangesAsync();
 
+            if (recipe != null && posting.SelectedKeywordIds != null && posting.SelectedKeywordIds.Any())
+            {
+                var keywordLinks = posting.SelectedKeywordIds
+                    .Distinct()
+                    .Select(keywordId => new RecipeBaseKeyword
+                    {
+                        RecipeBaseDataId = recipe.Id,
+                        KeywordId = keywordId
+                    })
+                    .ToList();
+
+                await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+                await _context.SaveChangesAsync();
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -91,6 +106,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
                 ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
+                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word).ToListAsync()
             };
 
             return View("CreatePosting", model);
