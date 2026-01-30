@@ -74,17 +74,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 var trimmedSearchTerm = searchTerm.Trim();
-                var searchPattern = $"%{trimmedSearchTerm}%";
-                query = query.Where(post => EF.Functions.Like(post.Recipe.Title, searchPattern)
-                    || EF.Functions.Like(post.Recipe.Category, searchPattern)
-                    || post.Recipe.RecipeKeywords.Any(link => EF.Functions.Like(link.Keyword.Word, searchPattern)));
+                query = query.Where(post => post.Recipe.Title.Contains(trimmedSearchTerm)
+                    || post.Recipe.RecipeKeywords.Any(link => link.Keyword.Word.Contains(trimmedSearchTerm)));
             }
 
             if (!string.IsNullOrWhiteSpace(category))
             {
                 var trimmedCategory = category.Trim();
-                var categoryPattern = $"%{trimmedCategory}%";
-                query = query.Where(post => EF.Functions.Like(post.Recipe.Category, categoryPattern));
+                query = query.Where(post => post.Recipe.Category == trimmedCategory);
             }
 
             if (maxPrepTime.HasValue)

@@ -659,12 +659,13 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kategorie</label>
-                            <select name="category" class="form-select">
-                                <option value="">Alle Kategorien</option>
-                                <option value="Appetizer" selected="@(ViewData["Category"]?.ToString() == "Appetizer")">Vorspeise</option>
-                                <option value="Main" selected="@(ViewData["Category"]?.ToString() == "Main")">Hauptspeise</option>
-                                <option value="Dessert" selected="@(ViewData["Category"]?.ToString() == "Dessert")">Dessert</option>
-                            </select>
+                            <input type="text" name="category" class="form-control" placeholder="z. B. Pasta"
+                                   value="@ViewData["Category"]" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Max. Zubereitungszeit (Min.)</label>
+                            <input type="number" name="maxPrepTime" class="form-control" min="1" placeholder="z. B. 20"
+                                   value="@ViewData["MaxPrepTime"]" />
                         </div>
                     </div>
                     <div class="modal-footer border-0">
