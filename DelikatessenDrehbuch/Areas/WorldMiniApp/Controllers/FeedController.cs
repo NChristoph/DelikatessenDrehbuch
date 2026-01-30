@@ -17,15 +17,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
         //TODO:Likecount zu basedata recipe hinzufügen und abo system auch machen neue column auserdem brauchen 
         //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
-        //TodoThumbAutoomqtisch speichern
-        public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0)
+        //TodoThumbAutomatisch speichern
+        public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0, string searchTerm = "", string category = "", int? maxPrepTime = null)
         {
             List<WorldUserPosting> model = new List<WorldUserPosting>();
 
             
             var baseQuery = _context.WorldUserPosting
                 .AsNoTracking()
-                .Include(p => p.Recipe);
+                .Include(p => p.Recipe)
+                .ThenInclude(r => r.RecipeKeywords)
+                .ThenInclude(link => link.Keyword);
+
+            IQueryable<WorldUserPosting> query = baseQuery;
 
             switch (filter)
             {
@@ -36,31 +40,77 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         if (currentUser != null)
                         {
                             var likes = _context.WorldUserLike.Where(x => x.WorldAppUser.UserHash == currentUser.UserHash).Select(x=>x.Recipe.Id);
-                            
-                            model = await _context.WorldUserPosting.Where(x=>likes.Contains(x.Recipe.Id)).Include(x=>x.Recipe).ToListAsync();
-                        
+
+                            query = baseQuery.Where(x => likes.Contains(x.Recipe.Id));
                         }
+                        else
+                        {
+                            query = baseQuery.Where(_ => false);
+                        }
+                    }
+                    else
+                    {
+                        query = baseQuery.Where(_ => false);
                     }
                     break;
 
                 case "myvideos":
                     if (!string.IsNullOrEmpty(userHash))
                     {
-                        model = await baseQuery
-                            .Where(p => p.CreatorId == userHash)
-                            .OrderByDescending(p => p.CreationTime)
-                            .ToListAsync();
+                        query = baseQuery
+                            .Where(p => p.CreatorId == userHash);
+                    }
+                    else
+                    {
+                        query = baseQuery.Where(_ => false);
                     }
                     break;
 
                 case "feed":
                 default:
-                    model = await baseQuery
-                        .OrderByDescending(p => p.Id)
-                        .Take(20)
-                        .ToListAsync();
                     break;
             }
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var trimmedSearchTerm = searchTerm.Trim();
+                var searchPattern = $"%{trimmedSearchTerm}%";
+                query = query.Where(post => EF.Functions.Like(post.Recipe.Title, searchPattern)
+                    || EF.Functions.Like(post.Recipe.Category, searchPattern)
+                    || post.Recipe.RecipeKeywords.Any(link =>
+                        EF.Functions.Like(link.Keyword.Word_DE, searchPattern)
+                        || EF.Functions.Like(link.Keyword.Word_EN, searchPattern)
+                        || EF.Functions.Like(link.Keyword.Word_ESP, searchPattern)
+                        || EF.Functions.Like(link.Keyword.Word_PRT, searchPattern)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                var trimmedCategory = category.Trim();
+                var categoryPattern = $"%{trimmedCategory}%";
+                query = query.Where(post => EF.Functions.Like(post.Recipe.Category, categoryPattern));
+            }
+
+            if (maxPrepTime.HasValue)
+            {
+                query = query.Where(post => post.Recipe.PreperationTime <= maxPrepTime.Value);
+            }
+
+            if (filter == "myvideos")
+            {
+                query = query.OrderByDescending(post => post.CreationTime);
+            }
+            else
+            {
+                query = query.OrderByDescending(post => post.Id);
+            }
+
+            if (filter == "feed" && string.IsNullOrWhiteSpace(searchTerm) && string.IsNullOrWhiteSpace(category) && !maxPrepTime.HasValue)
+            {
+                query = query.Take(20);
+            }
+
+            model = await query.ToListAsync();
 
             foreach (var item in model)
             {
@@ -70,6 +120,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
            
             ViewData["ScrollToId"] = scrollToId;
+            ViewData["CurrentFilter"] = filter;
+            ViewData["SearchTerm"] = searchTerm;
+            ViewData["Category"] = category;
+            ViewData["MaxPrepTime"] = maxPrepTime?.ToString() ?? string.Empty;
+            ViewData["UserHash"] = userHash;
 
             return View(model);
         }
