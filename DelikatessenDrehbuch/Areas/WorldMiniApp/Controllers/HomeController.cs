@@ -106,13 +106,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
                 ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
-                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word).ToListAsync()
+                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };
 
             return View("CreatePosting", model);
         }
 
-        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufslisste teilen
+        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufsliste teilen
         //lagere das in einen eigenen controller aus
 
         private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)
