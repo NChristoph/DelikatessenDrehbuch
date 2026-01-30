@@ -17,8 +17,8 @@
 
     <div class="d-grid gap-3">
 
-        <a href="#" onclick="triggerLogin('device', '@Url.Action("Generator", "Home", new { area = "WorldMiniApp" })')"
-           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative"
+        <a href="@Url.Action("Generator", "Home", new { area = "WorldMiniApp" })"
+           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative app-link"
            style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
 
             <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(20%, -20%);">
@@ -37,8 +37,8 @@
             </div>
         </a>
 
-        <a href="#" onclick="triggerLogin('device', '@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })')"
-           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative"
+        <a href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })"
+           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative app-link"
            style="background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);">
 
             <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(20%, -20%);">
@@ -57,9 +57,9 @@
             </div>
         </a>
 
-        <div onclick="triggerLogin('device', '@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })')"
-             class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect cursor-pointer"
-             style="background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%); cursor: pointer;">
+        <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })"
+           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect cursor-pointer app-link"
+           style="background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%); cursor: pointer;">
 
             <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(10%, -10%);">
                 <i class="bi bi-shield-lock-fill" style="font-size: 7rem; color: white;"></i>
@@ -75,17 +75,16 @@
                         <h5 class="fw-bold mb-0">Rezept hochladen</h5>
                         <span class="badge bg-white text-primary rounded-pill fw-bold border border-white"
                               style="font-size: 9px; padding: 4px 8px;">
-                            <i class="bi bi-person-check-fill me-1"></i> HUMAN ONLY
+                            <i class="bi bi-person-check-fill me-1"></i> Verifikationsstatus-ID
                         </span>
                     </div>
                     <small style="opacity: 0.9;">Werde Creator & verdiene (Orb Required) 💰</small>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <a href="javascript:void(0);"
-           onclick="triggerLogin('device', '@Url.Action("Personality", "Home", new { area = "WorldMiniApp" })')"
-           class="card text-decoration-none border-0 shadow-sm rounded-4 overflow-hidden btn-hover-effect bg-white">
+        <a href="@Url.Action("Personality", "Home", new { area = "WorldMiniApp" })"
+           class="card text-decoration-none border-0 shadow-sm rounded-4 overflow-hidden btn-hover-effect bg-white app-link">
             <div class="card-body p-3 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
@@ -110,13 +109,41 @@
 
 </div>
 
+<div class="offcanvas offcanvas-bottom rounded-top-4" tabindex="-1" id="consentModal" style="height: auto;">
+    <div class="offcanvas-body p-4 text-center">
+        <div class="mb-3 animate__animated animate__pulse animate__infinite">
+            <img src="https://worldcoin.org/icons/logo-small.svg" width="50" height="50" alt="World ID" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3579/3579179.png'">
+        </div>
+        <h5 class="fw-bold">Einwilligung</h5>
+        <p class="text-muted small mb-3">Bitte bestätige die Verbindung mit deiner World ID.</p>
+        <button type="button" class="btn btn-primary btn-sm mb-3" id="openWorldConnectButton">
+            Weiter zur World ID
+        </button>
+    </div>
+</div>
+
 <div class="offcanvas offcanvas-bottom rounded-top-4" tabindex="-1" id="loginModal" style="height: auto;">
     <div class="offcanvas-body p-4 text-center">
         <div class="mb-3 animate__animated animate__pulse animate__infinite">
             <img src="https://worldcoin.org/icons/logo-small.svg" width="50" height="50" alt="World ID" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3579/3579179.png'">
         </div>
-        <h5 class="fw-bold">Anmeldung läuft</h5>
-        <p class="text-muted small mb-3">Bitte bestätige deine World ID.</p>
+        <h5 class="fw-bold">Verbinde deine World ID mit Delikatessen Drehbuch</h5>
+        <p class="text-muted small mb-3">Bestätige in der World App, um fortzufahren.</p>
+
+        <div class="text-start small text-muted mb-3">
+            <div>App erkennt:</div>
+            <div class="d-flex justify-content-between"><span>ID</span><span id="storedUserHash">-</span></div>
+            <div class="d-flex justify-content-between"><span>Verifikationsstatus</span><span id="storedVerifyLevel">-</span></div>
+        </div>
+
+        <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2 mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="rememberLoginToggle">
+            <label class="form-check-label small" for="rememberLoginToggle">Login merken</label>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-sm mb-3" id="consentLoginButton">
+            Zustimmen &amp; fortfahren
+        </button>
 
         <div class="progress mb-2" style="height: 6px;">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-dark" role="progressbar" style="width: 100%"></div>
@@ -144,6 +171,30 @@
 @section Scripts {
    
     <script type="module" src="~/js/minikitt.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.initAutoLogin) {
+                window.initAutoLogin('device');
+            }
+
+            const rememberToggle = document.getElementById('rememberLoginToggle');
+            if (rememberToggle) {
+                rememberToggle.checked = localStorage.getItem("remember_login") === "true";
+            }
+
+            const storedHash = localStorage.getItem("UserToken");
+            if (storedHash) {
+                document.querySelectorAll('.app-link').forEach(link => {
+                    const url = new URL(link.href, window.location.origin);
+                    if (!url.searchParams.get('userHash')) {
+                        url.searchParams.set('userHash', storedHash);
+                        link.href = url.toString();
+                    }
+                });
+            }
+
+        });
+    </script>
 }
 
  

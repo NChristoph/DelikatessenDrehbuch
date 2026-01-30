@@ -20,6 +20,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             {
                 user.Lastlogin = DateTime.Now;
                 user.IsVerified = request.Payload.VerificationLevel;
+                user.RememberLogin = request.RememberLogin;
             }
             else
             {
@@ -27,7 +28,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 {
                     UserHash = request.Payload.NullifierHash,
                     IsVerified = request.Payload.VerificationLevel,
-                    Lastlogin = DateTime.Now
+                    Lastlogin = DateTime.Now,
+                    RememberLogin = request.RememberLogin
                 };
                 _context.WorldAppUser.Add(user);
             }
