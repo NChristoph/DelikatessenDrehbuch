@@ -17,7 +17,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
         //TODO:Likecount zu basedata recipe hinzufügen und abo system auch machen neue column auserdem brauchen 
         //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
-        //TodoThumbAutoomqtisch speichern
+        //TodoThumbAutomatisch speichern
         public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0, string searchTerm = "", string category = "", int? maxPrepTime = null)
         {
             List<WorldUserPosting> model = new List<WorldUserPosting>();
@@ -74,14 +74,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 var trimmedSearchTerm = searchTerm.Trim();
-                query = query.Where(post => post.Recipe.Title.Contains(trimmedSearchTerm)
-                    || post.Recipe.RecipeKeywords.Any(link => link.Keyword.Word.Contains(trimmedSearchTerm)));
+                var searchPattern = $"%{trimmedSearchTerm}%";
+                query = query.Where(post => EF.Functions.Like(post.Recipe.Title, searchPattern)
+                    || EF.Functions.Like(post.Recipe.Category, searchPattern)
+                    || post.Recipe.RecipeKeywords.Any(link =>
+                        EF.Functions.Like(link.Keyword.Word_DE, searchPattern)
+                        || EF.Functions.Like(link.Keyword.Word_EN, searchPattern)
+                        || EF.Functions.Like(link.Keyword.Word_ESP, searchPattern)
+                        || EF.Functions.Like(link.Keyword.Word_PRT, searchPattern)));
             }
 
             if (!string.IsNullOrWhiteSpace(category))
             {
                 var trimmedCategory = category.Trim();
-                query = query.Where(post => post.Recipe.Category == trimmedCategory);
+                var categoryPattern = $"%{trimmedCategory}%";
+                query = query.Where(post => EF.Functions.Like(post.Recipe.Category, categoryPattern));
             }
 
             if (maxPrepTime.HasValue)
