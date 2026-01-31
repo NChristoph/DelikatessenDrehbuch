@@ -15,7 +15,7 @@ namespace DelikatessenDrehbuchViedeoProzessor
         }
 
         [Function(nameof(Function1))]
-        public async Task Run([BlobTrigger("samples-workitems/{name}", Connection = "DefaultEndpointsProtocol=https;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH:RdtJIMME+AStw4Espg==;EndpointSuffix=core.windows.net")] Stream stream, string name)
+        public async Task Run([BlobTrigger("samples-workitems/{name}", Connection = "BlobStorageConnection")] Stream stream, string name)
         {
             using var blobStreamReader = new StreamReader(stream);
             var content = await blobStreamReader.ReadToEndAsync();
