@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -117,12 +118,17 @@ namespace DelikatessenDrehbuchViedeoProzessor
         private static string ResolveFfmpegPath(IConfiguration configuration)
         {
             var configuredPath = configuration["FFMPEG_PATH"];
-            if (!string.IsNullOrWhiteSpace(configuredPath))
-            {
-                return configuredPath;
-            }
+            if (!string.IsNullOrWhiteSpace(configuredPath)) return configuredPath;
 
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "ffmpeg.exe" : "ffmpeg";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg.exe");
+            }
+            else
+            {
+                // Pfad für Linux in Azure Functions
+                return Path.Combine("/home/site/wwwroot", "Bins", "ffmpeg");
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection; // <-- Diese using-Direktive hinzufügen
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
