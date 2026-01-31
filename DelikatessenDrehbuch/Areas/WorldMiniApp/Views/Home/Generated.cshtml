@@ -240,7 +240,7 @@
             const jsonString = JSON.stringify(selectedRecipes);
             const encodedData = encodeURIComponent(jsonString);
             const personCount = @personCount;
-            const hash = localStorage.getItem("UserToken");
+            const hash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
             const title = encodeURIComponent("@title");
        
         window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${hash}&title=${title}`;

@@ -695,8 +695,12 @@
         });
 
 
+        function getUserHash() {
+            return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+        }
+
         function goToProfile() {
-            const userHash = localStorage.getItem("UserToken");
+            const userHash = getUserHash();
             if (userHash) {
                 window.location.href = '/WorldMiniApp/Feed/MyProfile?userHash=' + userHash;
             } else {
@@ -713,7 +717,7 @@
         // --- TOGGLE FOLLOW FUNCTION ---
         async function toggleFollow(btn, creatorId) {
             if(event) event.stopPropagation();
-            const userHash = localStorage.getItem("UserToken");
+            const userHash = getUserHash();
             if(!userHash) { console.warn("Nicht eingeloggt!"); return; }
 
             const icon = btn.querySelector('i');
@@ -742,7 +746,7 @@
 
         // --- LIKE FUNCTION ---
         async function sendLikeToBackend(recipeId) {
-            const userHash = localStorage.getItem("UserToken");
+            const userHash = getUserHash();
             if(!userHash) return;
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             const token = tokenInput ? tokenInput.value : null;

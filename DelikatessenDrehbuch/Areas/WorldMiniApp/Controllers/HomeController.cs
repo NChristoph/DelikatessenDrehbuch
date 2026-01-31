@@ -13,6 +13,7 @@ using Stripe;
 using System.Configuration;
 using System.Data;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -21,6 +22,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class HomeController : Controller
     {
+        private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly IBlobUploadService _blobUpload;
@@ -53,6 +55,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
+            userHash = ResolveUserHash(userHash);
             if (!await IsCreatorAllowedAsync(userHash))
             {
                 return RedirectToAction("Index");
@@ -107,6 +110,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> Upload(string userHash)
         {
+            userHash = ResolveUserHash(userHash);
             if (!await IsCreatorAllowedAsync(userHash))
             {
                 return RedirectToAction("Index");
@@ -165,6 +169,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> Generated(MiniAppSetupModel model, string userHash, string title)
         {
+            userHash = ResolveUserHash(userHash);
             ViewData["PersonCount"] = model.PersonCount;
             ViewData["Title"] = title;
             await _worldAppMealPlanService.CheckVerifie(model, userHash, title);
@@ -239,6 +244,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
         public async Task<IActionResult> EditPlan(string userHash, int id)
         {
+            userHash = ResolveUserHash(userHash);
 
             var plan = _worldAppMealPlanService.GetMealPlanById(id);
             var settings = JsonConvert.DeserializeObject<MiniAppSetupModel>(plan.Settings);
@@ -260,6 +266,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> PersonalityAsync(string userHash)
         {
+            userHash = ResolveUserHash(userHash);
             ViewData["UserHash"] = userHash;
             var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
             return View(mealPlans);
@@ -276,6 +283,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> DeletePlanAsync(string userHash, int id)
         {
+            userHash = ResolveUserHash(userHash);
             _worldAppMealPlanService.DeleteMealPlan(id);
             var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
             return View("Personality", mealPlans);
@@ -359,6 +367,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpGet]
         public async Task<IActionResult> SaveMealPlan(string mealPlanJson, int personCount, string userHash, string title)
         {
+            userHash = ResolveUserHash(userHash);
             ViewData["PersonCount"] = personCount;
             var indexIds = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(mealPlanJson.ToString());
 
@@ -376,6 +385,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             await _worldAppMealPlanService.SaveNewMealPlan(userHash, model, title);
             return View("Finaly", model);
+        }
+
+        private string ResolveUserHash(string userHash)
+        {
+            if (!string.IsNullOrWhiteSpace(userHash))
+            {
+                HttpContext.Session.SetString(SessionUserHashKey, userHash);
+                return userHash;
+            }
+
+            return HttpContext.Session.GetString(SessionUserHashKey) ?? string.Empty;
         }
     }
 }

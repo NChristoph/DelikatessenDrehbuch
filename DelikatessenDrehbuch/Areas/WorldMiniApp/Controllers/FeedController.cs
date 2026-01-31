@@ -1,5 +1,6 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class FeedController : Controller
     {
+        private const string SessionUserHashKey = "WorldMiniAppUserHash";
 
         private readonly ApplicationDbContext _context;
 
@@ -20,6 +22,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         //TodoThumbAutomatisch speichern
         public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0, string searchTerm = "", string category = "", int? maxPrepTime = null)
         {
+            userHash = ResolveUserHash(userHash);
             List<WorldUserPosting> model = new List<WorldUserPosting>();
 
             
@@ -153,6 +156,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleLike([FromForm] string userHash, int recipeId)
         {
+            userHash = ResolveUserHash(userHash);
             await AddOrRemoveLike(userHash, recipeId);
 
             return Ok();
@@ -200,6 +204,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleFollow([FromForm] string userHash, [FromForm] string creatorId)
         {
+            userHash = ResolveUserHash(userHash);
 
             var currentUser = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
             var creator = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == creatorId);
@@ -232,6 +237,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> MyProfile(string userHash)
         {
+            userHash = ResolveUserHash(userHash);
             if (string.IsNullOrEmpty(userHash)) return RedirectToAction("Index");
 
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
@@ -282,6 +288,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             };
 
             return View(model);
+        }
+
+        private string ResolveUserHash(string userHash)
+        {
+            if (!string.IsNullOrWhiteSpace(userHash))
+            {
+                HttpContext.Session.SetString(SessionUserHashKey, userHash);
+                return userHash;
+            }
+
+            return HttpContext.Session.GetString(SessionUserHashKey) ?? string.Empty;
         }
 
 
