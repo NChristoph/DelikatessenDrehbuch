@@ -60,22 +60,38 @@
         }
 
         .nav-tabs {
-            border-bottom: 1px solid #333;
-            margin-top: 20px;
+            border-bottom: 1px solid #1f1f1f;
+            margin: 20px 16px 0;
+            padding: 6px;
+            gap: 8px;
+            background: #101010;
+            border-radius: 999px;
+        }
+
+        .nav-tabs .nav-item {
+            flex: 1 1 0;
         }
 
         .nav-link {
-            color: #888;
+            color: #cfcfcf;
             background: transparent;
-            border: none;
-            padding: 15px;
-            font-size: 1.1rem;
+            border: 1px solid transparent;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            border-radius: 999px;
+            transition: all 0.2s ease-in-out;
         }
 
+            .nav-link:hover {
+                color: #fff;
+                background: #1c1c1c;
+            }
+
             .nav-link.active {
-                color: #FF9966;
-                border-bottom: 2px solid #FF9966;
-                font-weight: bold;
+                color: #111;
+                background: linear-gradient(135deg, #FF9966, #FF5E62);
+                border-color: #FF9966;
+                font-weight: 700;
             }
 
         /* Grid */

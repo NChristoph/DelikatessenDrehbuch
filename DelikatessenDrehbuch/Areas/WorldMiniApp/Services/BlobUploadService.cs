@@ -4,7 +4,6 @@ using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
-using System.Diagnostics;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 {
@@ -51,8 +50,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 };
             }
 
-            var videoResult = await UploadVideoWithThumbnailAsync(blobContainerClient, file, fileName, uniqueToken);
-
+            var videoResult = await UploadRawVideoAsync(blobContainerClient, file, fileName, uniqueToken);
             return videoResult;
         }
 
@@ -93,95 +91,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return outputStream;
         }
 
-        private static async Task<UploadContentResult> UploadVideoWithThumbnailAsync(BlobContainerClient blobContainerClient, IFormFile file, string fileName, string uniqueToken)
+        private static async Task<UploadContentResult> UploadRawVideoAsync(BlobContainerClient blobContainerClient, IFormFile file, string fileName, string uniqueToken)
         {
-           
-            var tempPath = Path.GetTempPath();
-            var tempInput = Path.Combine(tempPath, $"in_{uniqueToken}_{file.FileName}");
-            var tempOutput = Path.Combine(tempPath, $"out_{uniqueToken}.mp4"); // Deutlich unterscheidbar
-            var tempThumb = Path.Combine(tempPath, $"thumb_{uniqueToken}.webp");
+            var videoName = $"{fileName}_{uniqueToken}.mp4";
+            await using var videoStream = file.OpenReadStream();
 
-            // Schritt 1: Stream in Temp-Datei kopieren
-            await using (var fileStream = new FileStream(tempInput, FileMode.Create))
+            var sourceUrl = await UploadStreamAsync(blobContainerClient, videoName, videoStream, "video/mp4");
+
+            return new UploadContentResult
             {
-                await file.CopyToAsync(fileStream); 
-            } // FileStream wird hier geschlossen und die Datei für FFmpeg freigegeben
-
-            try
-            {
-                var scaleFilter = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920";
-                var thumbFilter = "scale=400:711:force_original_aspect_ratio=increase,crop=400:711";
-
-                // Konvertierung: von tempInput -> nach tempOutput
-                await RunFfmpegAsync($"-y -i \"{tempInput}\" -vf \"{scaleFilter}\" -c:v libx264 -preset veryfast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart \"{tempOutput}\"");
-
-                // Thumbnail: von tempOutput -> nach tempThumb
-                await RunFfmpegAsync($"-y -i \"{tempOutput}\" -vf \"{thumbFilter}\" -frames:v 1 \"{tempThumb}\"");
-
-                var videoName = $"{fileName}_{uniqueToken}.mp4";
-                var thumbName = $"{fileName}_{uniqueToken}_thumb.webp";
-
-                await using var videoStream = File.OpenRead(tempOutput);
-                await using var thumbStream = File.OpenRead(tempThumb);
-
-                var sourceUrl = await UploadStreamAsync(blobContainerClient, videoName, videoStream, "video/mp4");
-                var thumbUrl = await UploadStreamAsync(blobContainerClient, thumbName, thumbStream, "image/webp");
-
-                return new UploadContentResult
-                {
-                    SourceUrl = sourceUrl,
-                    ThumbnailUrl = thumbUrl
-                };
-            }
-            finally
-            {
-                TryDeleteTempFile(tempInput);
-                TryDeleteTempFile(tempOutput);
-                TryDeleteTempFile(tempThumb);
-            }
-        }
-
-        private static async Task RunFfmpegAsync(string arguments)
-        {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string ffmpegPath = Path.Combine(baseDirectory, "Bins", "ffmpeg.exe");
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = ffmpegPath,
-                Arguments = arguments,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                SourceUrl = sourceUrl,
+                ThumbnailUrl = sourceUrl
             };
-
-            using var process = Process.Start(startInfo);
-            if (process == null)
-            {
-                throw new InvalidOperationException("FFmpeg konnte nicht gestartet werden.");
-            }
-
-            await process.WaitForExitAsync();
-            if (process.ExitCode != 0)
-            {
-                var errorOutput = await process.StandardError.ReadToEndAsync();
-                throw new InvalidOperationException($"FFmpeg Fehler: {errorOutput}");
-            }
-        }
-
-        private static void TryDeleteTempFile(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            }
-            catch
-            {
-                // Ignore cleanup failures
-            }
         }
     }
 }
