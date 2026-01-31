@@ -52,4 +52,10 @@
     <Folder Include="MealPlaner\Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Bins\ffmpeg.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

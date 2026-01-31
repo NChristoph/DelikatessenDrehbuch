@@ -95,23 +95,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         private static async Task<UploadContentResult> UploadVideoWithThumbnailAsync(BlobContainerClient blobContainerClient, IFormFile file, string fileName, string uniqueToken)
         {
-            var tempInput = Path.Combine(Path.GetTempPath(), $"{fileName}_{uniqueToken}{Path.GetExtension(file.FileName)}");
-            var tempOutput = Path.Combine(Path.GetTempPath(), $"{fileName}_{uniqueToken}.mp4");
-            var tempThumb = Path.Combine(Path.GetTempPath(), $"{fileName}_{uniqueToken}_thumb.webp");
+           
+            var tempPath = Path.GetTempPath();
+            var tempInput = Path.Combine(tempPath, $"in_{uniqueToken}_{file.FileName}");
+            var tempOutput = Path.Combine(tempPath, $"out_{uniqueToken}.mp4"); // Deutlich unterscheidbar
+            var tempThumb = Path.Combine(tempPath, $"thumb_{uniqueToken}.webp");
 
-            await using (var inputStream = file.OpenReadStream())
-            await using (var fileStream = File.Create(tempInput))
+            // Schritt 1: Stream in Temp-Datei kopieren
+            await using (var fileStream = new FileStream(tempInput, FileMode.Create))
             {
-                await inputStream.CopyToAsync(fileStream);
-            }
+                await file.CopyToAsync(fileStream); 
+            } // FileStream wird hier geschlossen und die Datei für FFmpeg freigegeben
 
             try
             {
-                var scaleFilter = "scale=1080:1920:force_original_aspect_ratio=cover,crop=1080:1920";
-                var thumbFilter = "scale=400:711:force_original_aspect_ratio=cover,crop=400:711";
+                var scaleFilter = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920";
+                var thumbFilter = "scale=400:711:force_original_aspect_ratio=increase,crop=400:711";
 
+                // Konvertierung: von tempInput -> nach tempOutput
                 await RunFfmpegAsync($"-y -i \"{tempInput}\" -vf \"{scaleFilter}\" -c:v libx264 -preset veryfast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart \"{tempOutput}\"");
-                await RunFfmpegAsync($"-y -i \"{tempOutput}\" -vf \"{thumbFilter}\" -frames:v 1 -lossless 1 \"{tempThumb}\"");
+
+                // Thumbnail: von tempOutput -> nach tempThumb
+                await RunFfmpegAsync($"-y -i \"{tempOutput}\" -vf \"{thumbFilter}\" -frames:v 1 \"{tempThumb}\"");
 
                 var videoName = $"{fileName}_{uniqueToken}.mp4";
                 var thumbName = $"{fileName}_{uniqueToken}_thumb.webp";
@@ -138,9 +143,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         private static async Task RunFfmpegAsync(string arguments)
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string ffmpegPath = Path.Combine(baseDirectory, "Bins", "ffmpeg.exe");
             var startInfo = new ProcessStartInfo
             {
-                FileName = "ffmpeg",
+                FileName = ffmpegPath,
                 Arguments = arguments,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
