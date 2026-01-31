@@ -22,6 +22,10 @@ function log(msg, error = false) {
     }
 }
 
+function getStoredUserHash() {
+    return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+}
+
 function handleLoginAbort() {
     window.location.href = 'https://worldcoin.org';
 }
@@ -129,7 +133,11 @@ async function verifyBackend(payload) {
             log("🎉 Erfolgreich!");
             sessionStorage.setItem("user_verified", "true");
             await new Promise(r => setTimeout(r, 800));
-            localStorage.setItem("UserToken", payload.nullifier_hash);
+            const storage = rememberLogin ? localStorage : sessionStorage;
+            storage.setItem("UserToken", payload.nullifier_hash);
+            if (!rememberLogin) {
+                localStorage.removeItem("UserToken");
+            }
             localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
 
             if (currentConfig.redirectUrl) {
@@ -204,7 +212,7 @@ window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
     // AUTOMATISCH HOLEN: Wir schauen hier im JS nach dem Token
-    const storedHash = localStorage.getItem("UserToken");
+    const storedHash = getStoredUserHash();
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
     if (storedHash && rememberLogin) {
@@ -237,7 +245,7 @@ window.retryVerification = () => {
 };
 
 window.initAutoLogin = (level) => {
-    const storedHash = localStorage.getItem("UserToken");
+    const storedHash = getStoredUserHash();
 
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
@@ -250,6 +258,8 @@ window.initAutoLogin = (level) => {
 
     bindConsentButton();
 };
+
+window.getStoredUserHash = getStoredUserHash;
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginModal = document.getElementById('loginModal');

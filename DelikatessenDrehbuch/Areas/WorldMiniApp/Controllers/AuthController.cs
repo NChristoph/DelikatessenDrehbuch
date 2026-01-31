@@ -3,6 +3,7 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -10,6 +11,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class AuthController : Controller
     {
+        private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private readonly IAuthService _authService;
         private readonly IUserManager _userManager;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
@@ -39,6 +41,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 if (isValid.Success)
                 {
                     await _userManager.CreateNewUser(request);
+                    HttpContext.Session.SetString(SessionUserHashKey, request.Payload.NullifierHash);
                    
 
                     return Ok(new { status = 200, message = "Erfolg!" });
@@ -77,6 +80,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             await _context.SaveChangesAsync();
+            HttpContext.Session.SetString(SessionUserHashKey, request.UserHash);
 
             return Ok(new { status = user.IsVerified, rememberLogin = user.RememberLogin });
         }

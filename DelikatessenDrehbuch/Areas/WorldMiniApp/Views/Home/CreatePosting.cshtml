@@ -438,7 +438,7 @@
         }
 
             document.addEventListener("DOMContentLoaded", function() {
-            var token = localStorage.getItem("UserToken");
+            var token = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
             if (token) {
                 document.getElementById("hiddenUserTokenField").value = token;
             }

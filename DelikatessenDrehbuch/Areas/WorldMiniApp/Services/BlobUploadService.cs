@@ -110,7 +110,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var scaleFilter = "scale=1080:1920:force_original_aspect_ratio=cover,crop=1080:1920";
                 var thumbFilter = "scale=400:711:force_original_aspect_ratio=cover,crop=400:711";
 
-                await RunFfmpegAsync($"-y -i \"{tempInput}\" -vf \"{scaleFilter}\" -c:v libx264 -preset veryfast -crf 22 -c:a aac -b:a 128k -movflags +faststart \"{tempOutput}\"");
+                await RunFfmpegAsync($"-y -i \"{tempInput}\" -vf \"{scaleFilter}\" -c:v libx264 -preset veryfast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart \"{tempOutput}\"");
                 await RunFfmpegAsync($"-y -i \"{tempOutput}\" -vf \"{thumbFilter}\" -frames:v 1 -lossless 1 \"{tempThumb}\"");
 
                 var videoName = $"{fileName}_{uniqueToken}.mp4";

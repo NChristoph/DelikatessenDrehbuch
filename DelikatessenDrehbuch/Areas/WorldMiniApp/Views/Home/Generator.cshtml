@@ -158,7 +158,7 @@
 @section Scripts {
     <script>
 
-        document.getElementById("hiddenUserHash").value = localStorage.getItem("UserToken");
+        document.getElementById("hiddenUserHash").value = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
         // Logik für Counter (+/-) bleibt wie gehabt
         function changeVal(id, delta) {
             const input = document.getElementById(id);

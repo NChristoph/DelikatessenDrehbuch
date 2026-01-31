@@ -185,7 +185,9 @@
                 rememberToggle.checked = localStorage.getItem("remember_login") === "true";
             }
 
-            const storedHash = localStorage.getItem("UserToken");
+            const storedHash = window.getStoredUserHash
+                ? window.getStoredUserHash()
+                : (sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken"));
             if (storedHash) {
                 document.querySelectorAll('.app-link').forEach(link => {
                     const url = new URL(link.href, window.location.origin);

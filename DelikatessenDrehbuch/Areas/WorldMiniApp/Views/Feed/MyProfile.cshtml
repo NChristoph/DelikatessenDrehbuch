@@ -294,7 +294,7 @@
 
     <script>
         function openFeed(filterMode, scrollToId, targetUserHash = "") {
-            const myUserHash = localStorage.getItem("UserToken");
+            const myUserHash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
             let url = `/WorldMiniApp/Feed/Index?filter=${filterMode}&scrollToId=${scrollToId}&userHash=${myUserHash}`;
             if (filterMode === 'creator' && targetUserHash !== "") {
                 url += `&targetUserHash=${targetUserHash}`;
