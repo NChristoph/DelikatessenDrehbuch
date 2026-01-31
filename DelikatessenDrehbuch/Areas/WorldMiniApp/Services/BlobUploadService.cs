@@ -11,10 +11,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     public class BlobUploadService : IBlobUploadService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<BlobUploadService> _logger;
 
-        public BlobUploadService(IConfiguration configuration)
+        public BlobUploadService(IConfiguration configuration, ILogger<BlobUploadService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         //TODO:Upload prüfen posting vervolständigen
