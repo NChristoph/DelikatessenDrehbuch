@@ -1,7 +1,10 @@
-﻿using System.Diagnostics;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
+using System.Diagnostics;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 {
@@ -15,149 +18,152 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             _configuration = configuration;
             _logger = logger;
         }
-        //TODO:Upload prüfen posting vervolständigen
-        public async Task<string> UploadContentToBlob(IFormFile file)
-        {
-            // 1. Hole Config aus Umgebungsvariablen (oder appsettings.json)
-            // Passe die Keys an, wie du sie genannt hast!
-            string connectionString = _configuration["Blob_Conection_String"];
-            string containerName = _configuration["World-App-Blop-Name"]?? "blob-world-mini-app";
 
-            // 2. Client erstellen
+        //TODO:Upload prüfen posting vervolständigen
+        public async Task<UploadContentResult> UploadContentToBlob(IFormFile file)
+        {
+            string connectionString = _configuration["Blob_Conection_String"];
+            string containerName = _configuration["World-App-Blop-Name"] ?? "blob-world-mini-app";
+
             var blobServiceClient = new BlobServiceClient(connectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
-            // Sicherstellen, dass der Container existiert (optional, aber sicher ist sicher)
             await blobContainerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
             string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            string extension = Path.GetExtension(file.FileName);
-            string contentType = file.ContentType;
-            string blobExtension = extension;
-            string? tempInputPath = null;
-            string? tempOutputPath = null;
+            string uniqueToken = Guid.NewGuid().ToString("N");
 
-            Stream uploadStream;
-            bool isVideo = IsVideoFile(file);
+            if (file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                var sourceName = $"{fileName}_{uniqueToken}.webp";
+                var thumbName = $"{fileName}_{uniqueToken}_thumb.webp";
+
+                using var sourceStream = await ConvertImageToWebpAsync(file, 1080, 1920);
+                using var thumbStream = await ConvertImageToWebpAsync(file, 400, 711);
+
+                var sourceUrl = await UploadStreamAsync(blobContainerClient, sourceName, sourceStream, "image/webp");
+                var thumbUrl = await UploadStreamAsync(blobContainerClient, thumbName, thumbStream, "image/webp");
+
+                return new UploadContentResult
+                {
+                    SourceUrl = sourceUrl,
+                    ThumbnailUrl = thumbUrl
+                };
+            }
+
+            var videoResult = await UploadVideoWithThumbnailAsync(blobContainerClient, file, fileName, uniqueToken);
+
+            return videoResult;
+        }
+
+        private static async Task<string> UploadStreamAsync(BlobContainerClient blobContainerClient, string blobName, Stream stream, string contentType)
+        {
+            stream.Position = 0;
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+            var blobHttpHeaders = new BlobHttpHeaders
+            {
+                ContentType = contentType
+            };
+
+            await blobClient.UploadAsync(stream, new BlobUploadOptions
+            {
+                HttpHeaders = blobHttpHeaders
+            });
+
+            return blobClient.Uri.ToString();
+        }
+
+        private static async Task<MemoryStream> ConvertImageToWebpAsync(IFormFile file, int width, int height)
+        {
+            using var inputStream = file.OpenReadStream();
+            using var image = await Image.LoadAsync(inputStream);
+            image.Mutate(ctx => ctx.Resize(new ResizeOptions
+            {
+                Size = new Size(width, height),
+                Mode = ResizeMode.Crop
+            }));
+
+            var outputStream = new MemoryStream();
+            var encoder = new WebpEncoder
+            {
+                Quality = 90
+            };
+            await image.SaveAsWebpAsync(outputStream, encoder);
+            outputStream.Position = 0;
+            return outputStream;
+        }
+
+        private static async Task<UploadContentResult> UploadVideoWithThumbnailAsync(BlobContainerClient blobContainerClient, IFormFile file, string fileName, string uniqueToken)
+        {
+            var tempInput = Path.Combine(Path.GetTempPath(), $"{fileName}_{uniqueToken}{Path.GetExtension(file.FileName)}");
+            var tempOutput = Path.Combine(Path.GetTempPath(), $"{fileName}_{uniqueToken}.mp4");
+            var tempThumb = Path.Combine(Path.GetTempPath(), $"{fileName}_{uniqueToken}_thumb.webp");
+
+            await using (var inputStream = file.OpenReadStream())
+            await using (var fileStream = File.Create(tempInput))
+            {
+                await inputStream.CopyToAsync(fileStream);
+            }
 
             try
             {
-                if (isVideo)
-                {
-                    tempInputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{extension}");
-                    await using (var tempInput = File.Create(tempInputPath))
-                    {
-                        await file.CopyToAsync(tempInput);
-                    }
+                var scaleFilter = "scale=1080:1920:force_original_aspect_ratio=cover,crop=1080:1920";
+                var thumbFilter = "scale=400:711:force_original_aspect_ratio=cover,crop=400:711";
 
-                    tempOutputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp4");
-                    if (await TryOptimizeVideoAsync(tempInputPath, tempOutputPath))
-                    {
-                        uploadStream = File.OpenReadStream(tempOutputPath);
-                        contentType = "video/mp4";
-                        blobExtension = ".mp4";
-                    }
-                    else
-                    {
-                        uploadStream = file.OpenReadStream();
-                    }
-                }
-                else
-                {
-                    uploadStream = file.OpenReadStream();
-                }
+                await RunFfmpegAsync($"-y -i \"{tempInput}\" -vf \"{scaleFilter}\" -c:v libx264 -preset veryfast -crf 22 -c:a aac -b:a 128k -movflags +faststart \"{tempOutput}\"");
+                await RunFfmpegAsync($"-y -i \"{tempOutput}\" -vf \"{thumbFilter}\" -frames:v 1 -lossless 1 \"{tempThumb}\"");
 
-                string uniqueFileName = $"{fileName}_{Guid.NewGuid()}{blobExtension}";
-                var blobClient = blobContainerClient.GetBlobClient(uniqueFileName);
+                var videoName = $"{fileName}_{uniqueToken}.mp4";
+                var thumbName = $"{fileName}_{uniqueToken}_thumb.webp";
 
-                // 4. Hochladen mit korrekten Headern (WICHTIG FÜR VIDEOS!)
-                var blobHttpHeaders = new BlobHttpHeaders
+                await using var videoStream = File.OpenRead(tempOutput);
+                await using var thumbStream = File.OpenRead(tempThumb);
+
+                var sourceUrl = await UploadStreamAsync(blobContainerClient, videoName, videoStream, "video/mp4");
+                var thumbUrl = await UploadStreamAsync(blobContainerClient, thumbName, thumbStream, "image/webp");
+
+                return new UploadContentResult
                 {
-                    ContentType = contentType // z.B. "video/mp4"
+                    SourceUrl = sourceUrl,
+                    ThumbnailUrl = thumbUrl
                 };
-
-                using (uploadStream)
-                {
-                    await blobClient.UploadAsync(uploadStream, new BlobUploadOptions
-                    {
-                        HttpHeaders = blobHttpHeaders
-                    });
-                }
-
-                // 5. Die komplette URL zurückgeben (z.B. https://meinapp.blob.core.windows.net/videos/...)
-                return blobClient.Uri.ToString();
             }
             finally
             {
-                CleanupTempFile(tempInputPath);
-                CleanupTempFile(tempOutputPath);
+                TryDeleteTempFile(tempInput);
+                TryDeleteTempFile(tempOutput);
+                TryDeleteTempFile(tempThumb);
             }
         }
 
-        private static bool IsVideoFile(IFormFile file)
+        private static async Task RunFfmpegAsync(string arguments)
         {
-            if (!string.IsNullOrWhiteSpace(file.ContentType)
-                && file.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase))
+            var startInfo = new ProcessStartInfo
             {
-                return true;
+                FileName = "ffmpeg",
+                Arguments = arguments,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(startInfo);
+            if (process == null)
+            {
+                throw new InvalidOperationException("FFmpeg konnte nicht gestartet werden.");
             }
 
-            string extension = Path.GetExtension(file.FileName);
-            return extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".mov", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".m4v", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".avi", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".webm", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private async Task<bool> TryOptimizeVideoAsync(string inputPath, string outputPath)
-        {
-            try
+            await process.WaitForExitAsync();
+            if (process.ExitCode != 0)
             {
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = "ffmpeg",
-                    Arguments = $"-y -i \"{inputPath}\" -movflags +faststart -c:v libx264 -crf 22 -c:a aac -b:a 128k \"{outputPath}\"",
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using var process = new Process { StartInfo = startInfo };
-                process.Start();
-
-                string stderr = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    _logger.LogWarning("Video-Optimierung fehlgeschlagen (ExitCode {ExitCode}). FFmpeg-Fehler: {Error}", process.ExitCode, stderr);
-                    return false;
-                }
-
-                if (!File.Exists(outputPath))
-                {
-                    _logger.LogWarning("Video-Optimierung lieferte keine Ausgabedatei: {OutputPath}", outputPath);
-                    return false;
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Video-Optimierung fehlgeschlagen. Upload erfolgt ohne Optimierung.");
-                return false;
+                var errorOutput = await process.StandardError.ReadToEndAsync();
+                throw new InvalidOperationException($"FFmpeg Fehler: {errorOutput}");
             }
         }
 
-        private static void CleanupTempFile(string? path)
+        private static void TryDeleteTempFile(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                return;
-            }
-
             try
             {
                 if (File.Exists(path))
@@ -167,7 +173,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
             catch
             {
-                // Ignorieren, wenn Temp-Dateien nicht gelöscht werden können.
+                // Ignore cleanup failures
             }
         }
     }
