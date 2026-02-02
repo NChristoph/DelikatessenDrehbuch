@@ -360,6 +360,17 @@
         }
 
         function addNewIngredient(dbId, name) {
+            const existingById = dbId !== '0' && $('#newIngredientsList .ingredient-row').filter(function() {
+                return $(this).data('ingredient-id')?.toString() === dbId.toString();
+            }).length > 0;
+            const existingByName = name && $('#newIngredientsList .ingredient-row input[name*="IngredientsAndNutrients.Name_DE"]').filter(function() {
+                return $(this).val()?.toString().trim().toLowerCase() === name.toString().trim().toLowerCase();
+            }).length > 0;
+
+            if (existingById || existingByName) {
+                return;
+            }
+
             $('#emptyIngredientsMsg').hide();
 
             // Generiere eine temporäre ID (Timestamp) für DOM-Manipulation
@@ -373,7 +384,7 @@
 
             // Wir verwenden erst mal einen Platzhalter INDEX im namen, der später ersetzt wird
             let html = `
-                <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm ingredient-row" id="ing_row_${tempId}">
+                <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm ingredient-row" id="ing_row_${tempId}" data-ingredient-id="${dbId}">
                     <input type="hidden" class="field-id" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${dbId}" />
 
                     <div class="col-md-5 col-12">
@@ -420,6 +431,14 @@
         }
 
         function addJoinStep(stepId, stepText) {
+            const alreadySelected = $('#newStepsList .step-row').filter(function() {
+                return $(this).data('step-id')?.toString() === stepId.toString();
+            }).length > 0;
+
+            if (alreadySelected) {
+                return;
+            }
+
             $('#emptyStepsMsg').hide();
 
             // Automatisch die nächste Nummer ermitteln
@@ -427,10 +446,19 @@
             const tempId = Date.now();
 
             let html = `
-                <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm step-row" id="step_row_${tempId}" style="border-left: 5px solid #0d6efd !important;">
+                <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm step-row" id="step_row_${tempId}" data-step-id="${stepId}" draggable="true" style="border-left: 5px solid #0d6efd !important;">
 
                     <input type="hidden" class="field-prepid" name="RecipeJoyinPreperationSteps[INDEX].PreperationStepId" value="${stepId}" />
                     <input type="hidden" class="field-recid" name="RecipeJoyinPreperationSteps[INDEX].RecipeId" value="@Model.Recipes.Id" />
+
+                    <div class="col-12 col-md-1 d-flex flex-md-column gap-1 align-items-center justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="moveStepRow(this, -1)" title="Schritt nach oben">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="moveStepRow(this, 1)" title="Schritt nach unten">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                    </div>
 
                     <div class="col-3 col-md-2">
                          <label class="small text-muted fw-bold">Nr.</label>
@@ -439,12 +467,15 @@
                                 value="${currentCount}" required />
                     </div>
 
-                    <div class="col-9 col-md-9">
+                    <div class="col-9 col-md-8">
                         <label class="small text-muted fw-bold d-md-none">Beschreibung</label>
                         <input type="text" class="form-control bg-light" value="${stepText}" readonly />
                     </div>
 
                     <div class="col-12 col-md-1 text-end">
+                        <span class="text-muted d-none d-md-inline-block me-2" title="Ziehen zum Sortieren">
+                            <i class="fa-solid fa-grip-lines"></i>
+                        </span>
                         <button type="button" class="btn btn-outline-danger btn-icon ms-auto mt-2 mt-md-0" onclick="removeStepRow(this)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
@@ -461,6 +492,43 @@
                 $(this).find('.field-stepindex').val(index + 1);
             });
         }
+
+        function moveStepRow(btn, direction) {
+            const row = $(btn).closest('.step-row');
+            if (direction < 0) {
+                const prev = row.prev('.step-row');
+                if (prev.length) prev.before(row);
+            } else {
+                const next = row.next('.step-row');
+                if (next.length) next.after(row);
+            }
+            recalcStepNumbers();
+        }
+
+        let draggedStepRow = null;
+        $('#newStepsList').on('dragstart', '.step-row', function(e) {
+            draggedStepRow = this;
+            e.originalEvent.dataTransfer.effectAllowed = 'move';
+            $(this).addClass('opacity-50');
+        });
+
+        $('#newStepsList').on('dragend', '.step-row', function() {
+            $(this).removeClass('opacity-50');
+            draggedStepRow = null;
+        });
+
+        $('#newStepsList').on('dragover', '.step-row', function(e) {
+            e.preventDefault();
+            if (!draggedStepRow || draggedStepRow === this) return;
+            const rect = this.getBoundingClientRect();
+            const offset = e.originalEvent.clientY - rect.top;
+            if (offset > rect.height / 2) {
+                $(this).after(draggedStepRow);
+            } else {
+                $(this).before(draggedStepRow);
+            }
+            recalcStepNumbers();
+        });
 
         // ----------------------------------------------------
         // WICHTIG: FORM SUBMIT VORBEREITUNG

@@ -275,6 +275,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(mealPlans);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SeedWorldPreparationSteps(string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            var existingSteps = await _context.RecipePreperationSteps
+                .Select(step => step.Step_DE)
+                .ToListAsync();
+            var existingSet = new HashSet<string>(existingSteps, StringComparer.OrdinalIgnoreCase);
+            var stepsToInsert = GetWorldPreparationStepSeeds()
+                .Where(step => !existingSet.Contains(step.Step_DE))
+                .ToList();
+
+            if (stepsToInsert.Count > 0)
+            {
+                await _context.RecipePreperationSteps.AddRangeAsync(stepsToInsert);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Personality", new { userHash });
+        }
+
         public async Task<IActionResult> ViewPlanAsync(int id)
         {
             var plan = _worldAppMealPlanService.GetMealPlanById(id);
@@ -298,6 +319,63 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var randoRecipes = _recipesService.GetRendomRecipesIds(categoryRecipeIds.ToList(), count);
             var recipes = await _recipesService.GetRecipesListByIdsAsync(randoRecipes);
             return recipes;
+        }
+
+        private static List<RecipePreperationSteps> GetWorldPreparationStepSeeds()
+        {
+            return new List<RecipePreperationSteps>
+            {
+                new() { Step_DE = "Spüle den Reis gründlich mit kaltem Wasser, bis das Wasser klar bleibt.", Step_EN = "Rinse the rice with cold water until the water runs clear.", Step_PRT = "Lave o arroz com água fria até a água ficar transparente.", Step_ESP = "Enjuaga el arroz con agua fría hasta que el agua salga clara." },
+                new() { Step_DE = "Gib den Reis mit der doppelten Menge Wasser in einen Topf und bringe ihn zum Kochen.", Step_EN = "Add the rice with twice the amount of water to a pot and bring to a boil.", Step_PRT = "Coloque o arroz com o dobro de água numa panela e leve ao fogo até ferver.", Step_ESP = "Pon el arroz con el doble de agua en una olla y llévalo a ebullición." },
+                new() { Step_DE = "Reduziere die Hitze, decke den Topf ab und lasse den Reis 12 Minuten ziehen.", Step_EN = "Reduce the heat, cover the pot, and let the rice steam for 12 minutes.", Step_PRT = "Reduza o fogo, tampe a panela e deixe o arroz cozinhar por 12 minutos.", Step_ESP = "Baja el fuego, tapa la olla y deja que el arroz se cocine al vapor durante 12 minutos." },
+                new() { Step_DE = "Wasche den Salat gründlich und schleudere ihn trocken.", Step_EN = "Wash the lettuce thoroughly and spin it dry.", Step_PRT = "Lave bem a alface e seque-a na centrifugadora.", Step_ESP = "Lava bien la lechuga y escúrrela en una centrifugadora." },
+                new() { Step_DE = "Schneide die Tomaten in mundgerechte Stücke.", Step_EN = "Cut the tomatoes into bite-sized pieces.", Step_PRT = "Corte os tomates em pedaços de tamanho para comer.", Step_ESP = "Corta los tomates en trozos del tamaño de un bocado." },
+                new() { Step_DE = "Schneide die Gurke in dünne Scheiben.", Step_EN = "Slice the cucumber into thin rounds.", Step_PRT = "Corte o pepino em rodelas finas.", Step_ESP = "Corta el pepino en rodajas finas." },
+                new() { Step_DE = "Schneide die Paprika in feine Streifen.", Step_EN = "Cut the bell pepper into thin strips.", Step_PRT = "Corte o pimentão em tiras finas.", Step_ESP = "Corta el pimiento en tiras finas." },
+                new() { Step_DE = "Schäle den Apfel, entferne das Kerngehäuse und würfle ihn.", Step_EN = "Peel the apple, remove the core, and dice it.", Step_PRT = "Descasque a maçã, retire o miolo e corte em cubos.", Step_ESP = "Pela la manzana, retira el corazón y córtala en cubos." },
+                new() { Step_DE = "Reibe die Zitronenschale fein ab.", Step_EN = "Finely zest the lemon peel.", Step_PRT = "Rale finamente a casca do limão.", Step_ESP = "Ralla finamente la cáscara de limón." },
+                new() { Step_DE = "Presse den Zitronensaft aus.", Step_EN = "Squeeze the lemon juice.", Step_PRT = "Esprema o suco do limão.", Step_ESP = "Exprime el jugo de limón." },
+                new() { Step_DE = "Verrühre Öl, Essig, Salz und Pfeffer zu einem Dressing.", Step_EN = "Whisk oil, vinegar, salt, and pepper into a dressing.", Step_PRT = "Bata o óleo, o vinagre, o sal e a pimenta para fazer um molho.", Step_ESP = "Bate el aceite, el vinagre, la sal y la pimienta para hacer un aderezo." },
+                new() { Step_DE = "Mische den Salat mit dem Dressing und richte ihn an.", Step_EN = "Toss the salad with the dressing and serve.", Step_PRT = "Misture a salada com o molho e sirva.", Step_ESP = "Mezcla la ensalada con el aderezo y sirve." },
+                new() { Step_DE = "Schäle die Garnelen und entferne den Darm.", Step_EN = "Peel the shrimp and remove the vein.", Step_PRT = "Descasque os camarões e retire o intestino.", Step_ESP = "Pela los camarones y retira la vena." },
+                new() { Step_DE = "Erhitze Öl in einer Pfanne und brate die Garnelen 2–3 Minuten.", Step_EN = "Heat oil in a pan and sauté the shrimp for 2–3 minutes.", Step_PRT = "Aqueça o óleo numa frigideira e salteie os camarões por 2–3 minutos.", Step_ESP = "Calienta aceite en una sartén y saltea los camarones 2–3 minutos." },
+                new() { Step_DE = "Gib einen Schuss Weißwein hinzu und lass ihn kurz einkochen.", Step_EN = "Add a splash of white wine and let it reduce briefly.", Step_PRT = "Adicione um pouco de vinho branco e deixe reduzir rapidamente.", Step_ESP = "Añade un chorrito de vino blanco y deja reducir brevemente." },
+                new() { Step_DE = "Rühre die Sahne ein und lasse die Sauce cremig werden.", Step_EN = "Stir in the cream and let the sauce turn creamy.", Step_PRT = "Junte o creme e deixe o molho ficar cremoso.", Step_ESP = "Incorpora la nata y deja que la salsa quede cremosa." },
+                new() { Step_DE = "Schneide die Champignons in Scheiben.", Step_EN = "Slice the mushrooms.", Step_PRT = "Fatie os cogumelos.", Step_ESP = "Corta los champiñones en láminas." },
+                new() { Step_DE = "Brate die Champignons an, bis sie goldbraun sind.", Step_EN = "Sauté the mushrooms until golden brown.", Step_PRT = "Salteie os cogumelos até dourarem.", Step_ESP = "Saltea los champiñones hasta que estén dorados." },
+                new() { Step_DE = "Hacke die Petersilie fein.", Step_EN = "Finely chop the parsley.", Step_PRT = "Pique a salsa finamente.", Step_ESP = "Pica finamente el perejil." },
+                new() { Step_DE = "Bestreue das Gericht mit frischer Petersilie.", Step_EN = "Sprinkle the dish with fresh parsley.", Step_PRT = "Polvilhe o prato com salsa fresca.", Step_ESP = "Espolvorea el plato con perejil fresco." },
+                new() { Step_DE = "Schäle die Kartoffeln und reibe sie grob.", Step_EN = "Peel the potatoes and grate them coarsely.", Step_PRT = "Descasque as batatas e rale-as grosseiramente.", Step_ESP = "Pela las patatas y rállalas grueso." },
+                new() { Step_DE = "Drücke die geriebenen Kartoffeln in einem Tuch aus.", Step_EN = "Squeeze the grated potatoes in a cloth.", Step_PRT = "Esprema as batatas raladas num pano.", Step_ESP = "Exprime las patatas ralladas en un paño." },
+                new() { Step_DE = "Vermenge die Kartoffeln mit Ei, Salz und Pfeffer.", Step_EN = "Mix the potatoes with egg, salt, and pepper.", Step_PRT = "Misture as batatas com ovo, sal e pimenta.", Step_ESP = "Mezcla las patatas con huevo, sal y pimienta." },
+                new() { Step_DE = "Forme kleine Puffer und brate sie in Öl knusprig.", Step_EN = "Form small patties and fry them in oil until crisp.", Step_PRT = "Forme pequenos bolinhos e frite-os no óleo até ficarem crocantes.", Step_ESP = "Forma pequeñas tortitas y fríelas en aceite hasta que estén crujientes." },
+                new() { Step_DE = "Schneide den Fisch in gleichmäßige Stücke.", Step_EN = "Cut the fish into even pieces.", Step_PRT = "Corte o peixe em pedaços uniformes.", Step_ESP = "Corta el pescado en trozos uniformes." },
+                new() { Step_DE = "Würze den Fisch mit Salz, Pfeffer und Zitronensaft.", Step_EN = "Season the fish with salt, pepper, and lemon juice.", Step_PRT = "Tempere o peixe com sal, pimenta e suco de limão.", Step_ESP = "Sazona el pescado con sal, pimienta y jugo de limón." },
+                new() { Step_DE = "Erhitze Butter in einer Pfanne und brate den Fisch auf jeder Seite 2–3 Minuten.", Step_EN = "Heat butter in a pan and fry the fish 2–3 minutes per side.", Step_PRT = "Aqueça a manteiga numa frigideira e frite o peixe por 2–3 minutos de cada lado.", Step_ESP = "Calienta mantequilla en una sartén y fríe el pescado 2–3 minutos por lado." },
+                new() { Step_DE = "Halbiere die Avocado, entferne den Kern und würfle das Fruchtfleisch.", Step_EN = "Halve the avocado, remove the pit, and dice the flesh.", Step_PRT = "Corte o abacate ao meio, retire o caroço e corte a polpa em cubos.", Step_ESP = "Parte el aguacate, quita el hueso y corta la pulpa en cubos." },
+                new() { Step_DE = "Zerdrücke die Avocado mit einer Gabel und rühre Limettensaft ein.", Step_EN = "Mash the avocado with a fork and stir in lime juice.", Step_PRT = "Amasse o abacate com um garfo e misture o suco de lima.", Step_ESP = "Machaca el aguacate con un tenedor y agrega jugo de lima." },
+                new() { Step_DE = "Schneide die Zwiebel in feine Streifen.", Step_EN = "Cut the onion into thin strips.", Step_PRT = "Corte a cebola em tiras finas.", Step_ESP = "Corta la cebolla en tiras finas." },
+                new() { Step_DE = "Mariniere die Zwiebel mit etwas Salz und Essig für 10 Minuten.", Step_EN = "Marinate the onion with a bit of salt and vinegar for 10 minutes.", Step_PRT = "Marine a cebola com um pouco de sal e vinagre por 10 minutos.", Step_ESP = "Marina la cebolla con un poco de sal y vinagre durante 10 minutos." },
+                new() { Step_DE = "Hacke die frischen Kräuter und mische sie unter.", Step_EN = "Chop the fresh herbs and mix them in.", Step_PRT = "Pique as ervas frescas e misture.", Step_ESP = "Pica las hierbas frescas y mézclalas." },
+                new() { Step_DE = "Schneide das Brot in Scheiben und röste es leicht.", Step_EN = "Slice the bread and lightly toast it.", Step_PRT = "Corte o pão em fatias e toste levemente.", Step_ESP = "Corta el pan en rebanadas y tuéstalo ligeramente." },
+                new() { Step_DE = "Reibe die Brotscheiben mit einer halbierten Knoblauchzehe ein.", Step_EN = "Rub the bread slices with a halved garlic clove.", Step_PRT = "Esfregue as fatias de pão com um dente de alho cortado ao meio.", Step_ESP = "Frota las rebanadas con un diente de ajo partido." },
+                new() { Step_DE = "Schneide den Käse in kleine Würfel.", Step_EN = "Cut the cheese into small cubes.", Step_PRT = "Corte o queijo em cubos pequenos.", Step_ESP = "Corta el queso en cubitos." },
+                new() { Step_DE = "Rühre Senf, Honig und Öl zu einer Marinade.", Step_EN = "Stir together mustard, honey, and oil into a marinade.", Step_PRT = "Misture mostarda, mel e óleo para fazer uma marinada.", Step_ESP = "Mezcla mostaza, miel y aceite para hacer una marinada." },
+                new() { Step_DE = "Wende das Fleisch in der Marinade und lasse es 20 Minuten ziehen.", Step_EN = "Coat the meat in the marinade and let it rest for 20 minutes.", Step_PRT = "Passe a carne na marinada e deixe descansar por 20 minutos.", Step_ESP = "Cubre la carne con la marinada y deja reposar 20 minutos." },
+                new() { Step_DE = "Erhitze eine Grillpfanne und grille das Fleisch von beiden Seiten.", Step_EN = "Heat a grill pan and grill the meat on both sides.", Step_PRT = "Aqueça uma frigideira grill e grelhe a carne dos dois lados.", Step_ESP = "Calienta una plancha y asa la carne por ambos lados." },
+                new() { Step_DE = "Schneide die Zucchini in dünne Scheiben.", Step_EN = "Slice the zucchini thinly.", Step_PRT = "Fatie a abobrinha finamente.", Step_ESP = "Corta el calabacín en láminas finas." },
+                new() { Step_DE = "Bestreiche die Zucchini mit Öl und grilliere sie kurz.", Step_EN = "Brush the zucchini with oil and grill briefly.", Step_PRT = "Pincele a abobrinha com óleo e grelhe rapidamente.", Step_ESP = "Unta el calabacín con aceite y ásalo brevemente." },
+                new() { Step_DE = "Koche die Nudeln in kochendem Salzwasser al dente.", Step_EN = "Cook the pasta in salted boiling water until al dente.", Step_PRT = "Cozinhe a massa em água salgada até ficar al dente.", Step_ESP = "Cuece la pasta en agua con sal hasta que quede al dente." },
+                new() { Step_DE = "Vermische die Nudeln mit der Sauce und gib etwas Nudelwasser dazu.", Step_EN = "Toss the pasta with the sauce and add a bit of pasta water.", Step_PRT = "Misture a massa com o molho e adicione um pouco da água do cozimento.", Step_ESP = "Mezcla la pasta con la salsa y añade un poco del agua de cocción." },
+                new() { Step_DE = "Schmecke das Gericht mit Salz, Pfeffer und Kräutern ab.", Step_EN = "Season the dish with salt, pepper, and herbs.", Step_PRT = "Tempere o prato com sal, pimenta e ervas.", Step_ESP = "Sazona el plato con sal, pimienta y hierbas." },
+                new() { Step_DE = "Schichte Joghurt, Obst und Müsli in Gläser.", Step_EN = "Layer yogurt, fruit, and granola in glasses.", Step_PRT = "Monte camadas de iogurte, fruta e granola em copos.", Step_ESP = "Coloca capas de yogur, fruta y granola en vasos." },
+                new() { Step_DE = "Schmelze die Schokolade im Wasserbad.", Step_EN = "Melt the chocolate over a water bath.", Step_PRT = "Derreta o chocolate em banho-maria.", Step_ESP = "Derrite el chocolate al baño maría." },
+                new() { Step_DE = "Rühre die geschmolzene Schokolade unter den Teig.", Step_EN = "Fold the melted chocolate into the batter.", Step_PRT = "Incorpore o chocolate derretido à massa.", Step_ESP = "Incorpora el chocolate derretido a la masa." },
+                new() { Step_DE = "Fülle den Teig in eine gefettete Form.", Step_EN = "Pour the batter into a greased pan.", Step_PRT = "Despeje a massa numa forma untada.", Step_ESP = "Vierte la masa en un molde engrasado." },
+                new() { Step_DE = "Backe den Kuchen im vorgeheizten Ofen 30–35 Minuten.", Step_EN = "Bake the cake in the preheated oven for 30–35 minutes.", Step_PRT = "Asse o bolo no forno pré-aquecido por 30–35 minutos.", Step_ESP = "Hornea el pastel en el horno precalentado durante 30–35 minutos." },
+                new() { Step_DE = "Lasse den Kuchen auf einem Gitter vollständig auskühlen.", Step_EN = "Let the cake cool completely on a rack.", Step_PRT = "Deixe o bolo esfriar completamente numa grade.", Step_ESP = "Deja que el pastel se enfríe completamente sobre una rejilla." },
+                new() { Step_DE = "Serviere das Gericht heiß und garniere es nach Wunsch.", Step_EN = "Serve the dish hot and garnish as desired.", Step_PRT = "Sirva o prato quente e decore a gosto.", Step_ESP = "Sirve el plato caliente y decora a gusto." }
+            };
         }
 
         // 1. ZUFALLS-REZEPT (Würfeln)
