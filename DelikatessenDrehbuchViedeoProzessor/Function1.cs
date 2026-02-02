@@ -1,11 +1,12 @@
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,40 +17,130 @@ namespace DelikatessenDrehbuchViedeoProzessor
     {
         private readonly ILogger<Function1> _logger;
         private readonly BlobServiceClient _blobServiceClient;
-        private readonly string _videoContainerName;
+        private readonly IConfiguration _config;
         private readonly string _ffmpegPath;
 
         public Function1(ILogger<Function1> logger, BlobServiceClient blobServiceClient, IConfiguration configuration)
         {
             _logger = logger;
             _blobServiceClient = blobServiceClient;
-            _videoContainerName = configuration["VideoUploadContainer"] ?? "blob-world-mini-app";
+            _config = configuration;
             _ffmpegPath = ResolveFfmpegPath(configuration);
         }
 
-        [Function(nameof(Function1))]
-        public async Task Run([BlobTrigger("%VideoUploadContainer%/{name}", Connection = "BlobStorageConnection")] Stream stream, string name)
+        private sealed class VideoJob
         {
-            if (!IsVideoFile(name))
+            public string? Container { get; set; }
+            public string? BlobName { get; set; }
+        }
+
+        [Function("Function1")]
+        public async Task Run(
+            [QueueTrigger("%VideoProcessingQueue%", Connection = "QueueStorageConnection")] string message,
+            FunctionContext context)
+        {
+          
+
+            VideoJob job;
+            try
             {
-                _logger.LogInformation("Skipping non-video blob: {BlobName}", name);
+                job = JsonSerializer.Deserialize<VideoJob>(message, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? throw new InvalidOperationException("Message deserialized to null.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Invalid JSON in queue message. Moving to poison automatically.");
+                throw; 
+            }
+
+            var containerName = job.Container ?? _config["VideoUploadContainer"] ?? "blob-world-mini-app";
+            var blobName = job.BlobName;
+
+            if (string.IsNullOrWhiteSpace(blobName))
+            {
+                _logger.LogError("❌ blobName missing in message.");
+                throw new InvalidOperationException("blobName missing in message.");
+            }
+
+            if (!IsVideoFile(blobName))
+            {
+                _logger.LogInformation("Skipping non-video blob: {BlobName}", blobName);
                 return;
             }
 
-            var inputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{Path.GetExtension(name)}");
+            var inputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{Path.GetExtension(blobName)}");
+            var outputBlobName = Path.GetFileNameWithoutExtension(blobName) + "_processed.mp4";
             var outputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}_processed.mp4");
 
             try
             {
-                await using (var fileStream = File.Create(inputPath))
+                _logger.LogInformation("⬇️ Downloading blob: {Container}/{Blob}", containerName, blobName);
+
+                var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+                var inputBlob = containerClient.GetBlobClient(blobName);
+
+                // Existenzcheck
+                if (!await inputBlob.ExistsAsync())
                 {
-                    await stream.CopyToAsync(fileStream);
+                    _logger.LogError("❌ Blob not found: {Container}/{Blob}", containerName, blobName);
+                    throw new FileNotFoundException($"Blob not found: {containerName}/{blobName}");
                 }
 
-                var ffmpegArgs = $"-y -i \"{inputPath}\" -vf scale=1280:-2 -c:v libx264 -preset fast -crf 28 -c:a aac -b:a 128k \"{outputPath}\"";
-                var startInfo = new System.Diagnostics.ProcessStartInfo
+                await using (var fs = File.Create(inputPath))
                 {
-                    FileName = _ffmpegPath,
+                    await inputBlob.DownloadToAsync(fs);
+                }
+                string ffmpegToUse = _ffmpegPath;
+
+                if (OperatingSystem.IsLinux())
+                {
+                    // Ziel in /tmp (schreibbar)
+                    var tmpFfmpeg = "/tmp/ffmpeg";
+
+                    try
+                    {
+                        // Falls nicht vorhanden oder neu deployt: kopieren
+                        if (!File.Exists(tmpFfmpeg))
+                        {
+                           
+                            File.Copy(_ffmpegPath, tmpFfmpeg, overwrite: true);
+                        }
+
+                        // Execute-Rechte auf /tmp setzen
+                        _logger.LogInformation("🔐 Setze Execute-Rechte für ffmpeg in /tmp: {Path}", tmpFfmpeg);
+
+                        var chmod = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "/bin/chmod",
+                            Arguments = $"+x \"{tmpFfmpeg}\"",
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false
+                        });
+
+                        chmod!.WaitForExit();
+
+                        var chmodErr = chmod.StandardError.ReadToEnd();
+                        if (!string.IsNullOrWhiteSpace(chmodErr))
+                            _logger.LogWarning("chmod stderr: {err}", chmodErr);
+
+                        ffmpegToUse = tmpFfmpeg;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "❌ Konnte ffmpeg nicht nach /tmp vorbereiten");
+                        throw;
+                    }
+                }
+
+           
+                var ffmpegArgs = $"-y -i \"{inputPath}\" -vf scale=1080:-2 -c:v libx264 -preset fast -crf 28 -c:a aac -b:a 128k \"{outputPath}\"";
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegToUse,
                     Arguments = ffmpegArgs,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -57,12 +148,9 @@ namespace DelikatessenDrehbuchViedeoProzessor
                     CreateNoWindow = true
                 };
 
-                using var process = System.Diagnostics.Process.Start(startInfo);
+                using var process = Process.Start(startInfo);
                 if (process == null)
-                {
-                    _logger.LogError("Failed to start ffmpeg for blob {BlobName}", name);
-                    return;
-                }
+                    throw new InvalidOperationException("Failed to start ffmpeg process.");
 
                 var stdOutTask = process.StandardOutput.ReadToEndAsync();
                 var stdErrTask = process.StandardError.ReadToEndAsync();
@@ -74,18 +162,25 @@ namespace DelikatessenDrehbuchViedeoProzessor
 
                 if (process.ExitCode != 0)
                 {
-                    _logger.LogError("ffmpeg failed for blob {BlobName}. ExitCode: {ExitCode}. Output: {StdOut}. Error: {StdErr}", name, process.ExitCode, stdOut, stdErr);
-                    return;
+                    _logger.LogError("❌ ffmpeg failed. ExitCode={ExitCode}\nSTDOUT={StdOut}\nSTDERR={StdErr}",
+                        process.ExitCode, stdOut, stdErr);
+                    throw new InvalidOperationException($"ffmpeg failed with ExitCode {process.ExitCode}");
                 }
 
-                var containerClient = _blobServiceClient.GetBlobContainerClient(_videoContainerName);
-                var outputBlob = containerClient.GetBlobClient(name);
+                _logger.LogInformation("⬆️ Uploading processed video as new blob: {Container}/{Blob}", containerName, outputBlobName);
 
+                var outputBlob = containerClient.GetBlobClient(outputBlobName);
                 await using var outputStream = File.OpenRead(outputPath);
+
                 await outputBlob.UploadAsync(outputStream, overwrite: true);
                 await outputBlob.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = "video/mp4" });
 
-                _logger.LogInformation("Processed video overwritten: {BlobName} in {Container}", name, _videoContainerName);
+                _logger.LogInformation("✅ Done. Output: {Url}", outputBlob.Uri.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🔥 Processing failed for blob {Container}/{Blob}", containerName, blobName);
+                throw; // wichtig: damit Azure es in poison schiebt, falls es wiederholt failt
             }
             finally
             {
@@ -100,19 +195,10 @@ namespace DelikatessenDrehbuchViedeoProzessor
             return extension is ".mp4" or ".mov" or ".mkv" or ".avi" or ".webm";
         }
 
-        private void SafeDeleteFile(string path)
+        private static void SafeDeleteFile(string path)
         {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to delete temp file {Path}", path);
-            }
+            try { if (File.Exists(path)) File.Delete(path); }
+            catch { /* egal */ }
         }
 
         private static string ResolveFfmpegPath(IConfiguration configuration)
@@ -121,14 +207,9 @@ namespace DelikatessenDrehbuchViedeoProzessor
             if (!string.IsNullOrWhiteSpace(configuredPath)) return configuredPath;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
                 return Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg.exe");
-            }
-            else
-            {
-                // Pfad f�r Linux in Azure Functions
-                return Path.Combine("/home/site/wwwroot", "Bins", "ffmpeg");
-            }
+
+            return Path.Combine("/home/site/wwwroot", "Bins", "ffmpeg");
         }
     }
 }
