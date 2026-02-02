@@ -68,7 +68,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     Name = posting.Title,
                     Category = posting.Recipe.Category,
-                    PreparationTime = posting.Recipe.PreperationTime,
                     RecipePersonCount = posting.Recipe.PersonCount,
                     ImagePath = uploadResult.SourceUrl
 
@@ -85,7 +84,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             posting.CreatorId = userHash;
             posting.Source = uploadResult.SourceUrl;
             posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
-            posting.Recipe = recipe;
+            if (recipe != null)
+            {
+                posting.Recipe = recipe;
+                posting.Recipe.PreperationTime = 0;
+            }
 
             await _context.WorldUserPosting.AddAsync(posting);
             await _context.SaveChangesAsync();

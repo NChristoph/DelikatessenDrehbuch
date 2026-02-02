@@ -136,7 +136,7 @@ namespace DelikatessenDrehbuchViedeoProzessor
                 }
 
            
-                var ffmpegArgs = $"-y -i \"{inputPath}\" -vf scale=1080:-2 -c:v libx264 -preset fast -crf 28 -c:a aac -b:a 128k \"{outputPath}\"";
+                var ffmpegArgs = $"-y -i \"{inputPath}\" -vf scale='min(1080,iw)':-2 -c:v libx264 -preset veryfast -crf 26 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 \"{outputPath}\"";
 
                 var startInfo = new ProcessStartInfo
                 {

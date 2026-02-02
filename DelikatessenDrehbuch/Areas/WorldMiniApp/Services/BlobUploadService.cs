@@ -12,6 +12,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 {
     public class BlobUploadService : IBlobUploadService
     {
+        private const long MaxImageBytes = 15L * 1024 * 1024;
+        private const long MaxVideoBytes = 200L * 1024 * 1024;
+        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+        private static readonly string[] AllowedVideoExtensions = { ".mp4", ".mov", ".webm" };
         private readonly IConfiguration _configuration;
         private readonly ILogger<BlobUploadService> _logger;
 
@@ -25,6 +29,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Datei ist leer oder nicht vorhanden.");
+
+            ValidateFileUpload(file);
 
             // Deine Keys (ich behalte sie bei)
             string storageConnectionString = _configuration["Blob_Conection_String"];
@@ -72,6 +78,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             // ---- VIDEOS ----
             var videoResult = await UploadRawVideoAsync(blobContainerClient, file, fileName, uniqueToken);
+            var processedVideoName = GetProcessedVideoName(videoResult.BlobName);
+            var processedVideoUrl = blobContainerClient.GetBlobClient(processedVideoName).Uri.ToString();
 
             // Nach Video-Upload: Queue-Job erstellen
             try
@@ -99,9 +107,39 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             // Ergebnis für UI/DB
             return new UploadContentResult
             {
-                SourceUrl = videoResult.SourceUrl,
-                ThumbnailUrl = videoResult.SourceUrl
+                SourceUrl = processedVideoUrl,
+                ThumbnailUrl = processedVideoUrl
             };
+        }
+
+        private static void ValidateFileUpload(IFormFile file)
+        {
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var isImage = file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+            var isVideo = file.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
+
+            if (!isImage && !isVideo)
+            {
+                throw new InvalidOperationException("Ungültiger Dateityp. Bitte ein Bild oder Video hochladen.");
+            }
+
+            if (isImage)
+            {
+                if (!AllowedImageExtensions.Contains(extension))
+                    throw new InvalidOperationException("Ungültiges Bildformat. Bitte JPG, PNG oder WEBP nutzen.");
+
+                if (file.Length > MaxImageBytes)
+                    throw new InvalidOperationException("Bild ist zu groß. Maximal 15 MB erlaubt.");
+            }
+
+            if (isVideo)
+            {
+                if (!AllowedVideoExtensions.Contains(extension))
+                    throw new InvalidOperationException("Ungültiges Videoformat. Bitte MP4, MOV oder WEBM nutzen.");
+
+                if (file.Length > MaxVideoBytes)
+                    throw new InvalidOperationException("Video ist zu groß. Maximal 200 MB erlaubt.");
+            }
         }
 
         private static async Task<string> UploadStreamAsync(
@@ -156,6 +194,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var sourceUrl = await UploadStreamAsync(blobContainerClient, videoName, videoStream, "video/mp4");
 
             return new UploadedVideoResult(sourceUrl, videoName);
+        }
+
+        private static string GetProcessedVideoName(string rawVideoName)
+        {
+            return Path.GetFileNameWithoutExtension(rawVideoName) + "_processed.mp4";
         }
 
         private static async Task EnqueueVideoJobAsync(
