@@ -41,6 +41,7 @@ namespace DelikatessenDrehbuch.Controllers
         private readonly INutrientService _nutrientService;
         private readonly ISupportTicketService _supportTicketService;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
+        private readonly IBlobUploadService _blobUploadService;
 
 
         public AdminController(ApplicationDbContext context, AddRecipeException myExceptions,
@@ -49,7 +50,8 @@ namespace DelikatessenDrehbuch.Controllers
                                IQueryService queryService, IRecipesHandlerService recipesHandlerService,
                                IMeasureService measureService, IQuantityService quantityService,
                                IMealPlanService mealPlanService, INutrientService nutrientService,
-                               ISupportTicketService supportTicketService,ISaveNewRecipeService saveNewRecipeService)
+                               ISupportTicketService supportTicketService, ISaveNewRecipeService saveNewRecipeService,
+                               IBlobUploadService blobUploadService)
         {
 
 
@@ -66,6 +68,7 @@ namespace DelikatessenDrehbuch.Controllers
             _nutrientService = nutrientService;
             _supportTicketService = supportTicketService;
             _saveNewRecipeService = saveNewRecipeService;
+            _blobUploadService = blobUploadService;
             _context = context;
 
 
@@ -102,6 +105,20 @@ namespace DelikatessenDrehbuch.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditRecipeAsync(EditRecipesModel recipe)
         {
+            if (recipe.Recipes.FormFile == null)
+            {
+                var existingImagePath = await _context.Recipes
+                    .Where(x => x.Id == recipe.Recipes.Id)
+                    .Select(x => x.ImagePath)
+                    .FirstOrDefaultAsync();
+
+                if (!string.IsNullOrWhiteSpace(existingImagePath))
+                {
+                    var uploadResult = await _blobUploadService.UploadContentToBlobFromUrl(existingImagePath);
+                    recipe.Recipes.ImagePath = uploadResult.SourceUrl;
+                }
+            }
+
             SaveNewRecipeModel saveNewRecipeModel = new()
             {
                 Recipes = recipe.Recipes,
@@ -283,4 +300,3 @@ namespace DelikatessenDrehbuch.Controllers
     }
 
 }
-
