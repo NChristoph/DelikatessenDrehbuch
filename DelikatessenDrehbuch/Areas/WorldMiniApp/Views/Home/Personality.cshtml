@@ -20,14 +20,14 @@
         <div class="card-body p-4">
             <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
                 <div>
-                    <h6 class="fw-bold mb-1">Zubereitungsschritte erweitern</h6>
-                    <p class="text-muted small mb-0">Füge 245 neue Schritte hinzu, die noch nicht in der Datenbank sind.</p>
+                    <h6 class="fw-bold mb-1">Zutaten &amp; Nährwerte erweitern</h6>
+                    <p class="text-muted small mb-0">Füge 50 neue Zutaten hinzu, die noch nicht in der Datenbank sind.</p>
                 </div>
-                <form asp-action="SeedWorldPreparationSteps" method="post" class="ms-md-auto">
+                <form asp-action="SeedWorldIngredientsAndNutrients" method="post" class="ms-md-auto">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="userHash" value="@userHash" />
                     <button type="submit" class="btn btn-dark rounded-pill px-4">
-                        245 Schritte hinzufügen
+                        50 Zutaten hinzufügen
                     </button>
                 </form>
             </div>
