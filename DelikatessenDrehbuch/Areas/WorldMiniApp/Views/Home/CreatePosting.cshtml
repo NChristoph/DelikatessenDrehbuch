@@ -348,6 +348,14 @@
 
         // Zutat hinzufügen
         function addIngredient(id, btn) {
+            const existing = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').filter(function() {
+                return $(this).val()?.toString() === id.toString();
+            }).length > 0;
+
+            if (existing) {
+                return;
+            }
+
             const name = $(btn).closest('tr').data('name-' + currentLang.toLowerCase());
             let unitOptions = dbUnits.map(u => `<option value="${u}">${u}</option>`).join('');
 
@@ -369,14 +377,26 @@
 
         // Schritt hinzufügen
         function addStep(id, btn) {
+            const alreadySelected = $('#selectedSteps .step-row').filter(function() {
+                return $(this).data('step-id')?.toString() === id.toString();
+            }).length > 0;
+
+            if (alreadySelected) {
+                return;
+            }
+
             const text = $(btn).closest('tr').data('step-' + currentLang.toLowerCase());
 
-            const html = `<div class="dynamic-item d-flex align-items-center step-row">
+            const html = `<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${id}" />
-                <input type="hidden" name="RecipePreperationSteps[INDEX].StepIndex" value="${text}" />
+                <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
                 <div class="small flex-grow-1 display-step-selected text-muted">${text}</div>
-                <button type="button" class="btn btn-sm text-danger opacity-50" onclick="$(this).closest('.step-row').remove(); updateStepIndices();"><i class="bi bi-trash3"></i></button>
+                <div class="btn-group ms-2" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)" title="Schritt nach oben"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)" title="Schritt nach unten"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="$(this).closest('.step-row').remove(); updateStepIndices();"><i class="bi bi-trash3"></i></button>
+                </div>
             </div>`;
             $('#selectedSteps').append(html);
             updateStepIndices();
@@ -419,11 +439,15 @@
 
         // Schritt-Nummern aktualisieren
         function updateStepIndices() {
-            $('#selectedSteps .step-row').each(function(i) { $(this).find('.step-badge').text(i + 1); });
+            $('#selectedSteps .step-row').each(function(i) {
+                $(this).find('.step-badge').text(i + 1);
+                $(this).find('.step-index-input').val(i + 1);
+            });
         }
 
         // Model Binding Vorbereitung (Indices korrigieren)
         function prepareBinding() {
+            updateStepIndices();
             $('.ingredient-row').each(function(i) {
                 $(this).find('input, select').each(function() {
                     if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
@@ -436,6 +460,43 @@
             });
             return true;
         }
+
+        function moveStepRow(btn, direction) {
+            const row = $(btn).closest('.step-row');
+            if (direction < 0) {
+                const prev = row.prev('.step-row');
+                if (prev.length) prev.before(row);
+            } else {
+                const next = row.next('.step-row');
+                if (next.length) next.after(row);
+            }
+            updateStepIndices();
+        }
+
+        let draggedStepRow = null;
+        $('#selectedSteps').on('dragstart', '.step-row', function(e) {
+            draggedStepRow = this;
+            e.originalEvent.dataTransfer.effectAllowed = 'move';
+            $(this).addClass('opacity-50');
+        });
+
+        $('#selectedSteps').on('dragend', '.step-row', function() {
+            $(this).removeClass('opacity-50');
+            draggedStepRow = null;
+        });
+
+        $('#selectedSteps').on('dragover', '.step-row', function(e) {
+            e.preventDefault();
+            if (!draggedStepRow || draggedStepRow === this) return;
+            const rect = this.getBoundingClientRect();
+            const offset = e.originalEvent.clientY - rect.top;
+            if (offset > rect.height / 2) {
+                $(this).after(draggedStepRow);
+            } else {
+                $(this).before(draggedStepRow);
+            }
+            updateStepIndices();
+        });
 
             document.addEventListener("DOMContentLoaded", function() {
             var token = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
