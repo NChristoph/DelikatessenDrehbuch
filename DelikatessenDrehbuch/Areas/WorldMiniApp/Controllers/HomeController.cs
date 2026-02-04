@@ -26,17 +26,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly IBlobUploadService _blobUpload;
+        private readonly IIngredientScaleService _ingredientScaleService;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
         private readonly ApplicationDbContext _context;
 
 
-        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService)
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IIngredientScaleService ingredientScaleService)
         {
             _recipesService = recipesService;
             _worldAppMealPlanService = worldUserMealPlanService;
             _blobUpload = blobUpload;
             _context = context;
             _saveNewRecipeService = saveNewRecipeService;
+            _ingredientScaleService = ingredientScaleService;
         }
 
         // Die Startseite (Das Menü von oben)
