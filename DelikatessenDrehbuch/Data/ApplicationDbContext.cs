@@ -39,6 +39,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
         public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
+        public DbSet<WorldSharedMealPlan> WorldSharedMealPlan { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
