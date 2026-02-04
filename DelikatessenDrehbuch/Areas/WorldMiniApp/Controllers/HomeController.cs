@@ -208,8 +208,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 foreach (var recipeId in entry.Value) // Gehe jedes Rezept an diesem Tag durch
                 {
                     // Finde das passende Rezept-Objekt in der geladenen Liste
-                    var recipe = await _recipesService.GetRecipesFromDbByIdAsync(recipeId);
-
+                    var recipe = await _context.Recipes.AsNoTracking().FirstOrDefaultAsync(r => r.Id == recipeId);
                     if (recipe != null)
                     {
                         model.Add(new MealPlanerModel
@@ -217,7 +216,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                             Index = dayIndex,
                             Recipes = recipe
                         });
+                        continue;
                     }
+
+                    var baseData = await _context.RecipeBaseData
+                        .Include(r => r.Images)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(r => r.Id == recipeId);
+                    if (baseData == null)
+                    {
+                        continue;
+                    }
+
+                    var baseImage = baseData.Images?.FirstOrDefault()?.Image;
+                    model.Add(new MealPlanerModel
+                    {
+                        Index = dayIndex,
+                        Recipes = new Recipes
+                        {
+                            Id = baseData.Id,
+                            Name = baseData.Title,
+                            Category = baseData.Category,
+                            PreparationTime = baseData.PreperationTime,
+                            ImagePath = baseImage
+                        },
+                        IsBaseData = true
+                    });
                 }
             }
 
@@ -280,10 +304,30 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> ViewPlanAsync(int id)
         {
             var plan = _worldAppMealPlanService.GetMealPlanById(id);
+            if (plan == null)
+            {
+                return NotFound();
+            }
+
+            var settings = string.IsNullOrWhiteSpace(plan.Settings)
+                ? new MiniAppSetupModel { PersonCount = 1 }
+                : JsonConvert.DeserializeObject<MiniAppSetupModel>(plan.Settings) ?? new MiniAppSetupModel { PersonCount = 1 };
 
             List<MealPlanerModel> model = await GetMelplanerModel(plan);
+            var baseDataIds = model.Where(x => x.IsBaseData).Select(x => x.Recipes.Id).Distinct().ToList();
+            var shoppingListItems = baseDataIds.Any()
+                ? await BuildShoppingListItemsAsync(baseDataIds, settings.PersonCount)
+                : new List<ShoppingListItem>();
 
-            return View("Finaly", model);
+            var viewModel = new WorldMealPlanViewModel
+            {
+                Title = plan.Title ?? "Mein Plan",
+                PersonCount = settings.PersonCount,
+                MealPlan = model,
+                ShoppingList = shoppingListItems
+            };
+
+            return View("WorldPlan", viewModel);
         }
 
         public async Task<IActionResult> DeletePlanAsync(string userHash, int id)
