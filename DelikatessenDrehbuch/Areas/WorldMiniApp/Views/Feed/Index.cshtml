@@ -337,6 +337,9 @@
             margin-bottom: 20px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 14px;
+            padding: 14px;
         }
 
         .day-label {
@@ -400,6 +403,49 @@
         }
 
         .filled-slot:active { transform: scale(0.98); }
+
+        .replace-slot {
+            outline: 2px dashed rgba(255,153,102,0.6);
+            cursor: pointer;
+        }
+
+        .slot-actions {
+            display: flex;
+            gap: 6px;
+            padding-right: 8px;
+        }
+
+        .slot-btn {
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .replace-hint {
+            position: absolute;
+            right: 10px;
+            bottom: 6px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .plan-tools .form-control,
+        .shopping-share .form-control {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        .plan-tools .form-label,
+        .shopping-share .form-label {
+            color: rgba(255,255,255,0.65);
+        }
 
         .mini-img {
             width: 85px; /* HIER GEÄNDERT */
@@ -538,7 +584,7 @@
                         <span class="action-label">124</span>
                     </div>
                     
-                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource')">
+                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
                         <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                         <span class="action-label">Planen</span>
                     </div>
@@ -577,7 +623,7 @@
                     <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                     <span class="action-label">12k</span>
                 </div>
-                <div class="action-btn" onclick="openPlanModal('Echte Carbonara 🍝', 'https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg')">
+                <div class="action-btn" onclick="openPlanModal('Echte Carbonara 🍝', 'https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg', '0')">
                     <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                     <span class="action-label">Planen</span>
                 </div>
@@ -595,7 +641,7 @@
         <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="nav-item text-decoration-none">
             <i class="bi bi-house-door-fill"></i>
         </a>
-        <div class="nav-item" onclick="openPlanModal(null, null)">
+        <div class="nav-item" onclick="openPlanModal(null, null, null)">
             <i class="bi bi-calendar-week"></i>
         </div>
         <div class="add-btn-wrapper">
@@ -619,6 +665,22 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="plan-tools mb-3">
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <label class="form-label small text-muted mb-1">Plan-Name</label>
+                                <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label small text-muted mb-1">Personen</label>
+                                <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="button" class="btn btn-dark btn-sm flex-grow-1" onclick="saveWeeklyPlan()">Plan speichern</button>
+                            <button type="button" class="btn btn-outline-light btn-sm flex-grow-1" onclick="prepareShoppingList()">Einkaufsliste laden</button>
+                        </div>
+                    </div>
                     <div id="addingModeHeader" style="display:none;">
                         <div class="adding-mode-info">
                             <div class="adding-thumb-container">
@@ -636,6 +698,15 @@
                         Dein aktueller Plan für die Woche
                     </div>
                     <div id="planContainer"></div>
+                    <div class="shopping-share mt-3">
+                        <label class="form-label small text-muted">Einkaufsliste bearbeiten & teilen</label>
+                        <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..."></textarea>
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="button" class="btn btn-outline-light btn-sm flex-grow-1" onclick="generateShareLink()">Link erstellen</button>
+                            <button type="button" class="btn btn-light btn-sm flex-grow-1" onclick="copyShareLink()">Link kopieren</button>
+                        </div>
+                        <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
+                    </div>
                 </div>
             </div>
         </div>
@@ -713,6 +784,7 @@
         let hasUserInteracted = false;
         let weeklyPlanData = {};
         let pendingRecipe = null;
+        let editingSlotKey = null;
 
         // --- TOGGLE FOLLOW FUNCTION ---
         async function toggleFollow(btn, creatorId) {
@@ -761,7 +833,7 @@
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
 
-        function openPlanModal(title, url) {
+        function openPlanModal(title, url, recipeId) {
             const modalEl = document.getElementById('planModal');
             const modal = new bootstrap.Modal(modalEl);
             const imgEl = document.getElementById('addingPreviewImg');
@@ -769,7 +841,12 @@
             const titleEl = document.getElementById('addingPreviewTitle');
 
             if (title && url) {
-                pendingRecipe = { title: title, img: url };
+                pendingRecipe = { title: title, img: url, recipeId: recipeId };
+                if (editingSlotKey) {
+                    weeklyPlanData[editingSlotKey] = pendingRecipe;
+                    editingSlotKey = null;
+                    pendingRecipe = null;
+                }
                 document.getElementById('addingModeHeader').style.display = 'block';
                 document.getElementById('viewModeHeader').style.display = 'none';
                 titleEl.innerText = title;
@@ -814,14 +891,21 @@
                             mediaHtml = `<img src="${item.img}" class="mini-img">`;
                         }
 
+                        const replaceMode = pendingRecipe ? 'replace-slot' : '';
+                        const replaceAction = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
+                        const replaceHint = pendingRecipe ? '<div class="replace-hint">Antippen zum Ersetzen</div>' : '';
                         dayHtml += `
-                            <div class="filled-slot">
+                            <div class="filled-slot ${replaceMode}" ${replaceAction}>
                                 ${mediaHtml}
                                 <div class="mini-content">
                                     <div class="mini-title">${item.title}</div>
                                     <div class="mini-type">${slotName}</div>
                                 </div>
-                                <div class="delete-slot-btn" onclick="removeFromSlot('${key}')"><i class="bi bi-x-lg"></i></div>
+                                ${replaceHint}
+                                <div class="slot-actions">
+                                    <button class="slot-btn edit-slot-btn" onclick="startEditSlot('${key}')"><i class="bi bi-pencil"></i></button>
+                                    <button class="slot-btn delete-slot-btn" onclick="removeFromSlot('${key}')"><i class="bi bi-x-lg"></i></button>
+                                </div>
                             </div>`;
                     } else {
                         const action = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
@@ -839,7 +923,97 @@
             weeklyPlanData[key] = pendingRecipe;
             renderPlan();
         }
-        function removeFromSlot(key) { delete weeklyPlanData[key]; renderPlan(); }
+        function removeFromSlot(key) {
+            delete weeklyPlanData[key];
+            renderPlan();
+        }
+
+        function startEditSlot(key) {
+            editingSlotKey = key;
+            const modalEl = document.getElementById('planModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            alert('Wähle jetzt im Feed ein Rezept zum Ersetzen.');
+        }
+
+        function getPlanRecipeIds(payload) {
+            return payload
+                .map(item => item.RecipeId)
+                .filter(id => Number.isFinite(id));
+        }
+
+        function buildMealPlanPayload() {
+            const payload = [];
+            Object.keys(weeklyPlanData).forEach(key => {
+                const item = weeklyPlanData[key];
+                if (!item || !item.recipeId || item.recipeId === '0') return;
+                const [dayIndex] = key.split('-').map(Number);
+                payload.push({ DayIndex: dayIndex + 1, RecipeId: parseInt(item.recipeId, 10) });
+            });
+            return payload;
+        }
+
+        function saveWeeklyPlan() {
+            const userHash = getUserHash();
+            if (!userHash) {
+                alert("Bitte erst einloggen!");
+                return;
+            }
+            const payload = buildMealPlanPayload();
+            if (payload.length === 0) {
+                alert("Bitte mindestens ein Rezept auswählen.");
+                return;
+            }
+            const titleInput = document.getElementById('planTitleInput');
+            const personCountInput = document.getElementById('planPersonCount');
+            const title = titleInput.value.trim() || "Mein Wochenplan";
+            const personCount = parseInt(personCountInput.value, 10) || 1;
+            const encodedData = encodeURIComponent(JSON.stringify(payload));
+            window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${userHash}&title=${encodeURIComponent(title)}`;
+        }
+
+        async function prepareShoppingList() {
+            const payload = buildMealPlanPayload();
+            const recipeIds = getPlanRecipeIds(payload);
+            if (recipeIds.length === 0) {
+                alert("Bitte mindestens ein Rezept auswählen.");
+                return;
+            }
+            const personCount = parseInt(document.getElementById('planPersonCount').value, 10) || 1;
+            const params = new URLSearchParams();
+            recipeIds.forEach(id => params.append('recipeIds', id));
+            params.append('personCount', personCount);
+            const response = await fetch(`/WorldMiniApp/Home/GetShoppingListText?${params.toString()}`);
+            if (!response.ok) {
+                alert("Einkaufsliste konnte nicht geladen werden.");
+                return;
+            }
+            const data = await response.json();
+            document.getElementById('shoppingListEditor').value = data.text || '';
+        }
+
+        function generateShareLink() {
+            const text = document.getElementById('shoppingListEditor').value.trim();
+            if (!text) {
+                alert("Bitte zuerst eine Einkaufsliste laden oder einfügen.");
+                return;
+            }
+            const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
+            document.getElementById('shoppingShareLink').value = shareLink;
+        }
+
+        async function copyShareLink() {
+            const linkInput = document.getElementById('shoppingShareLink');
+            if (!linkInput.value) {
+                generateShareLink();
+            }
+            if (linkInput.value) {
+                await navigator.clipboard.writeText(linkInput.value);
+                alert("Link kopiert!");
+            }
+        }
 
         /* === FEED BASIS LOGIK === */
         function unlockAudio() {
