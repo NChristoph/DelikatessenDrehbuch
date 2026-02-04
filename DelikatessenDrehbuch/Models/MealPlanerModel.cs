@@ -7,6 +7,7 @@ namespace DelikatessenDrehbuch.Models
        
         public int Index { get; set; }
         public Recipes Recipes { get; set; }
+        public bool IsBaseData { get; set; }
      
 
      

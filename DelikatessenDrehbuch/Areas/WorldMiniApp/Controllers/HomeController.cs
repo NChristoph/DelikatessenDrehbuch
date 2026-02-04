@@ -208,8 +208,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 foreach (var recipeId in entry.Value) // Gehe jedes Rezept an diesem Tag durch
                 {
                     // Finde das passende Rezept-Objekt in der geladenen Liste
-                    var recipe = await _recipesService.GetRecipesFromDbByIdAsync(recipeId);
-
+                    var recipe = await _context.Recipes.AsNoTracking().FirstOrDefaultAsync(r => r.Id == recipeId);
                     if (recipe != null)
                     {
                         model.Add(new MealPlanerModel
@@ -217,7 +216,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                             Index = dayIndex,
                             Recipes = recipe
                         });
+                        continue;
                     }
+
+                    var baseData = await _context.RecipeBaseData
+                        .Include(r => r.Images)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(r => r.Id == recipeId);
+                    if (baseData == null)
+                    {
+                        continue;
+                    }
+
+                    var baseImage = baseData.Images?.FirstOrDefault()?.Image;
+                    model.Add(new MealPlanerModel
+                    {
+                        Index = dayIndex,
+                        Recipes = new Recipes
+                        {
+                            Id = baseData.Id,
+                            Name = baseData.Title,
+                            Category = baseData.Category,
+                            PreparationTime = baseData.PreperationTime,
+                            ImagePath = baseImage
+                        },
+                        IsBaseData = true
+                    });
                 }
             }
 
