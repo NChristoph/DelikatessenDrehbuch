@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
@@ -110,6 +111,40 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 SourceUrl = processedVideoUrl,
                 ThumbnailUrl = processedVideoUrl
             };
+        }
+
+        public async Task<UploadContentResult> UploadContentToBlobFromUrl(string sourceUrl)
+        {
+            if (string.IsNullOrWhiteSpace(sourceUrl))
+                throw new ArgumentException("Bildquelle fehlt.");
+
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(sourceUrl);
+            response.EnsureSuccessStatusCode();
+
+            var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+            var extension = GetExtensionFromContentType(contentType);
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = Path.GetExtension(new Uri(sourceUrl).AbsolutePath);
+            }
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = ".jpg";
+            }
+
+            var fileName = $"recipe_{Guid.NewGuid():N}{extension}";
+            await using var stream = new MemoryStream();
+            await response.Content.CopyToAsync(stream);
+            stream.Position = 0;
+
+            var formFile = new FormFile(stream, 0, stream.Length, "file", fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = contentType
+            };
+
+            return await UploadContentToBlob(formFile);
         }
 
         private static void ValidateFileUpload(IFormFile file)
@@ -225,6 +260,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 
             await queueClient.SendMessageAsync(base64);
+        }
+
+        private static string? GetExtensionFromContentType(string contentType)
+        {
+            return contentType.ToLowerInvariant() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/jpg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                _ => null
+            };
         }
 
         private record UploadedVideoResult(string SourceUrl, string BlobName);

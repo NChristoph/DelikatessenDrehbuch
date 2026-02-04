@@ -134,10 +134,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         private void ProcessRecipeImage(RecipeBaseData recipe, SaveNewRecipeModel model,bool wordlUserImage)
         {
-            var imagePath = _context.Recipes
-                .Where(x => x.Preparation == model.Recipes.Preparation)
-                .Select(x => x.ImagePath)
-                .FirstOrDefault()??model.Recipes.ImagePath;
+            var imagePath = !string.IsNullOrWhiteSpace(model.Recipes.ImagePath)
+                ? model.Recipes.ImagePath
+                : _context.Recipes
+                    .Where(x => x.Preparation == model.Recipes.Preparation)
+                    .Select(x => x.ImagePath)
+                    .FirstOrDefault();
 
             if (imagePath != null)
             {
