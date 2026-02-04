@@ -1,0 +1,50 @@
+@{
+    Layout = "_MiniAppLayout";
+    var title = ViewData["Title"] as string ?? "Geteilter Plan";
+    var personCount = ViewData["PersonCount"] ?? 1;
+    var recipeNames = ViewData["RecipeNames"] as List<string> ?? new List<string>();
+    var shoppingListText = ViewData["ShoppingListText"] as string ?? string.Empty;
+}
+
+<div class="px-4 pt-4 pb-2">
+    <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
+        <i class="bi bi-arrow-left"></i> Zurück
+    </a>
+    <h2 class="fw-bold mb-1" style="color: #2c3e50;">@title</h2>
+    <p class="text-muted small">Personen: @personCount</p>
+</div>
+
+<div class="container px-4 pb-5">
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+        <div class="card-body p-4">
+            <h6 class="fw-bold mb-3">Rezepte</h6>
+            @if (recipeNames.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var name in recipeNames)
+                    {
+                        <li class="list-group-item">@name</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Keine Rezepte gefunden.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <h6 class="fw-bold mb-3">Einkaufsliste (bearbeitbar)</h6>
+            <textarea class="form-control bg-light" rows="12">@shoppingListText</textarea>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);
+        min-height: 100vh;
+    }
+</style>
