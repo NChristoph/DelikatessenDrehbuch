@@ -304,10 +304,30 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> ViewPlanAsync(int id)
         {
             var plan = _worldAppMealPlanService.GetMealPlanById(id);
+            if (plan == null)
+            {
+                return NotFound();
+            }
+
+            var settings = string.IsNullOrWhiteSpace(plan.Settings)
+                ? new MiniAppSetupModel { PersonCount = 1 }
+                : JsonConvert.DeserializeObject<MiniAppSetupModel>(plan.Settings) ?? new MiniAppSetupModel { PersonCount = 1 };
 
             List<MealPlanerModel> model = await GetMelplanerModel(plan);
+            var baseDataIds = model.Where(x => x.IsBaseData).Select(x => x.Recipes.Id).Distinct().ToList();
+            var shoppingListItems = baseDataIds.Any()
+                ? await BuildShoppingListItemsAsync(baseDataIds, settings.PersonCount)
+                : new List<ShoppingListItem>();
 
-            return View("Finaly", model);
+            var viewModel = new WorldMealPlanViewModel
+            {
+                Title = plan.Title ?? "Mein Plan",
+                PersonCount = settings.PersonCount,
+                MealPlan = model,
+                ShoppingList = shoppingListItems
+            };
+
+            return View("WorldPlan", viewModel);
         }
 
         public async Task<IActionResult> DeletePlanAsync(string userHash, int id)
