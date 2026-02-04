@@ -26,17 +26,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly IBlobUploadService _blobUpload;
+        private readonly IIngredientScaleService _ingredientScaleService;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
         private readonly ApplicationDbContext _context;
 
 
-        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService)
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IIngredientScaleService ingredientScaleService)
         {
             _recipesService = recipesService;
             _worldAppMealPlanService = worldUserMealPlanService;
             _blobUpload = blobUpload;
             _context = context;
             _saveNewRecipeService = saveNewRecipeService;
+            _ingredientScaleService = ingredientScaleService;
         }
 
         // Die Startseite (Das Menü von oben)
@@ -392,6 +394,73 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             await _worldAppMealPlanService.SaveNewMealPlan(userHash, model, title);
             return View("Finaly", model);
+        }
+
+        [HttpGet]
+        public IActionResult GetShoppingListText([FromQuery] List<int> recipeIds, int personCount = 1)
+        {
+            if (recipeIds == null || recipeIds.Count == 0)
+            {
+                return Ok(new { text = string.Empty });
+            }
+
+            var allHandlers = new List<IngredientHandlerModel>();
+            bool totalSalt = false;
+            bool totalPepper = false;
+
+            foreach (var recipeId in recipeIds)
+            {
+                var result = _ingredientScaleService.GetScaledIngredienthandler(recipeId, personCount);
+                var group = result.Item1;
+                var salt = result.Item2;
+                var pepper = result.Item3;
+
+                if (salt) totalSalt = true;
+                if (pepper) totalPepper = true;
+
+                var flatList = group.SelectMany(g => g).ToList();
+                allHandlers.AddRange(flatList);
+            }
+
+            var summedIngredients = allHandlers
+                .GroupBy(x => new { x.Ingredient.Id, x.Measure.UnitOfMeasurement })
+                .Select(g => new IngredientHandlerModel
+                {
+                    Ingredient = g.First().Ingredient,
+                    Measure = g.First().Measure,
+                    Quantity = new Quantity
+                    {
+                        Quantitys = g.Sum(x => x.Quantity.Quantitys)
+                    }
+                })
+                .ToList();
+
+            var finalGrouped = summedIngredients
+                .GroupBy(x => x.Ingredient.Group.Name ?? "Sonstiges")
+                .OrderBy(g => g.Key);
+
+            var builder = new System.Text.StringBuilder();
+            foreach (var group in finalGrouped)
+            {
+                builder.AppendLine($"{group.Key}:");
+                foreach (var item in group.OrderBy(x => x.Ingredient.Name))
+                {
+                    builder.AppendLine($"- {item.Quantity.Quantitys:0.##} {item.Measure.UnitOfMeasurement} {item.Ingredient.Name}");
+                }
+                builder.AppendLine();
+            }
+
+            if (totalSalt) builder.AppendLine("- Salz");
+            if (totalPepper) builder.AppendLine("- Pfeffer");
+
+            return Ok(new { text = builder.ToString().Trim() });
+        }
+
+        [HttpGet]
+        public IActionResult ShareShoppingList(string list)
+        {
+            ViewData["List"] = list ?? string.Empty;
+            return View();
         }
 
         private string ResolveUserHash(string userHash)
