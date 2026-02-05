@@ -1,28 +1,50 @@
 ﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using System.Globalization
 @model List<WorldUserMealPlan>
 
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = "Meine Pläne";
+    ViewData["Title"] = "Mein Bereich";
     var userHash = ViewData["UserHash"] as string;
+    var isGerman = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase);
+    string T(string de, string en) => isGerman ? de : en;
+    string DeleteConfirmText(string title)
+    {
+        var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?", $"Do you really want to delete the plan \"{title}\"?");
+        return text.Replace("'", "\\'");
+    }
 }
 
-<div class="px-4 pt-4 pb-2">
-    <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
-        <i class="bi bi-arrow-left"></i> Zurück
+<div class="profile-header px-4 pt-4 pb-3 text-center position-relative">
+    <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })"
+       class="text-decoration-none text-muted mb-3 d-inline-flex align-items-center small opacity-75 position-absolute start-0 top-0 mt-3 ms-3">
+        <i class="bi bi-arrow-left"></i> @T("Zurück", "Back")
     </a>
-    <h2 class="fw-bold mb-1" style="color: #2c3e50;">Deine Pläne 🥑</h2>
-    <p class="text-muted small">Verwalte deine gespeicherten Wochenpläne.</p>
+    <div class="profile-avatar shadow-sm">
+        <img src="https://ui-avatars.com/api/?name=@(userHash ?? "DD")&background=random" alt="Profile" />
+    </div>
+    <h2 class="fw-bold mb-1 text-dark">@T("Mein Bereich", "My profile")</h2>
+    <p class="text-muted small mb-3">@T("Dein Social Space in der World App", "Your social space in the World App")</p>
+    <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = userHash })"
+       class="btn btn-dark rounded-pill px-4">
+        <i class="bi bi-person-badge me-2"></i>@T("Profil ansehen", "View profile")
+    </a>
 </div>
 
 <div class="container px-4 pb-5">
-    @* Zutaten-Seeding-Card entfernt (vormals harte Seed-Daten). *@
+    <div class="section-title d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h4 class="fw-bold text-dark mb-0">@T("Essenspläne", "Meal plans")</h4>
+            <small class="text-muted">@T("Deine gespeicherten Wochenpläne", "Your saved weekly plans")</small>
+        </div>
+        <span class="badge rounded-pill bg-light text-dark">@Model?.Count() ?? 0</span>
+    </div>
 
     @if (Model == null || !Model.Any())
     {
         <div class="text-center py-5 opacity-50">
             <i class="bi bi-journal-x fs-1 mb-3 d-block"></i>
-            <p>Noch keine Pläne erstellt.</p>
+            <p>@T("Noch keine Pläne erstellt.", "No plans created yet.")</p>
         </div>
     }
     else
@@ -50,21 +72,21 @@
                         <a href="@Url.Action("ViewPlan", new { id = plan.Id })"
                            class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px;">
-                            <i class="bi bi-eye-fill me-2"></i> Anzeigen
+                            <i class="bi bi-eye-fill me-2"></i> @T("Anzeigen", "View")
                         </a>
 
                         <a href="@Url.Action("EditPlan", new { id = plan.Id })"
                            class="btn border-0 rounded-4 d-flex align-items-center justify-content-center btn-hover-scale"
                            style="background: #fff3e0; color: #ff9800; width: 50px;"
-                           title="Bearbeiten">
+                           title="@T("Bearbeiten", "Edit")">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
 
                         <a href="@Url.Action("DeletePlan", new { userHash=plan.UserHash,id = plan.Id })"
-                           onclick="return confirm('Möchtest du den Plan \'@plan.Title\' wirklich löschen?');"
+                           onclick="return confirm('@DeleteConfirmText(plan.Title)');"
                            class="btn border-0 rounded-4 d-flex align-items-center justify-content-center btn-hover-scale"
                            style="background: #ffebee; color: #ef5350; width: 50px;"
-                           title="Löschen">
+                           title="@T("Löschen", "Delete")">
                             <i class="bi bi-trash-fill"></i>
                         </a>
 
@@ -80,6 +102,32 @@
         /* Hintergrund passend zu den anderen Seiten */
         background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);
         min-height: 100vh;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, rgba(142, 45, 226, 0.12) 0%, rgba(255, 153, 102, 0.12) 100%);
+        border-bottom-left-radius: 32px;
+        border-bottom-right-radius: 32px;
+    }
+
+    .profile-avatar {
+        width: 96px;
+        height: 96px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid rgba(255, 255, 255, 0.8);
+        background: white;
+    }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .section-title {
+        padding-top: 12px;
     }
 
     .plan-card {

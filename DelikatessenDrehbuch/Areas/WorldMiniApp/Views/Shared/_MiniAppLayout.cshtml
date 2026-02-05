@@ -22,16 +22,37 @@
         }
     </style>
 </head>
+@{
+    var currentLang = Context.Request.Cookies["deli-lang"] ?? "de";
+}
 <body>
 
     <main role="main" class="container-fluid p-0">
         @RenderBody()
     </main>
 
+    <div class="position-fixed top-0 end-0 m-3 dropdown" style="z-index: 1050;">
+        <button class="btn btn-sm btn-light border rounded-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            🌐 @currentLang.ToUpperInvariant()
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('de')">Deutsch</button></li>
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('en')">English</button></li>
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('es')">Español</button></li>
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('pt')">Português</button></li>
+        </ul>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="~/js/CreateNewMealPlan.js"></script>
+    <script>
+        function setAppLanguage(lang) {
+            document.cookie = `deli-lang=${lang}; path=/; max-age=31536000`;
+            window.location.reload();
+        }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
