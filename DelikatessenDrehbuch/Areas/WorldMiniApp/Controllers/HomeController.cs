@@ -323,6 +323,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 Title = plan.Title ?? "Mein Plan",
                 PersonCount = settings.PersonCount,
+                UserHash = plan.UserHash,
                 MealPlan = model,
                 ShoppingList = shoppingListItems
             };

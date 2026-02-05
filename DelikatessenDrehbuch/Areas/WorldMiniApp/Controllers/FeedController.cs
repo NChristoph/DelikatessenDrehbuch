@@ -258,6 +258,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Select(a => a.Creator)
                 .ToListAsync();
 
+            var mealPlans = await _context.WorldUserMealPlan
+                .Where(p => p.UserHash == userHash)
+                .OrderByDescending(p => p.CreationTime)
+                .ToListAsync();
+
             // --- ORB / CREATOR DATEN (Nur wenn verifiziert) ---
 
             var myVideos = new List<WorldUserPosting>();
@@ -283,6 +288,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 User = user,
                 LikedRecipes = likedRecipes,
                 Following = following,
+                MealPlans = mealPlans,
                 MyVideos = myVideos,
                 FollowerCount = followerCount
             };
