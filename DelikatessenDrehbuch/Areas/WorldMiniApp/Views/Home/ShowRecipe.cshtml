@@ -28,6 +28,31 @@
 
     // Basis-Portionen für JavaScript-Berechnung speichern
     var basePortions = Model.PersonCount;
+    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
+    string IngredientName(DelikatessenDrehbuch.Models.IngredientsAndNutrients item) => language switch
+    {
+        "en" => item.Name_EN,
+        "es" => item.Name_ESP,
+        "pt" => item.Name_PRT,
+        _ => item.Name_DE
+    };
+
+    string StepText(DelikatessenDrehbuch.Models.RecipePreperationStep step) => language switch
+    {
+        "en" => step.Step_EN,
+        "es" => step.Step_ESP,
+        "pt" => step.Step_PRT,
+        _ => step.Step_DE
+    };
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
@@ -248,13 +273,13 @@
 
         <ul class="nav nav-tabs deli-tabs justify-content-center" id="recipeTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab">Einkauf</button>
+                <button class="nav-link active" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab">@T("Einkauf", "Shopping", "Compra", "Compras")</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="prep-tab" data-bs-toggle="tab" data-bs-target="#preparation" type="button" role="tab">Zubereitung</button>
+                <button class="nav-link" id="prep-tab" data-bs-toggle="tab" data-bs-target="#preparation" type="button" role="tab">@T("Zubereitung", "Preparation", "Preparación", "Preparação")</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="nutri-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab">Nährwerte</button>
+                <button class="nav-link" id="nutri-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab">@T("Nährwerte", "Nutrition", "Nutrición", "Nutrição")</button>
             </li>
         </ul>
 
@@ -264,9 +289,9 @@
 
                 <div class="text-center mb-4">
                     <div class="person-input-wrapper shadow-sm">
-                        <span>Zutaten für</span>
+                        <span>@T("Zutaten für", "Ingredients for", "Ingredientes para", "Ingredientes para")</span>
                         <input type="number" id="portionInput" class="person-input" value="@Model.PersonCount" min="1" onchange="updatePortions()">
-                        <span>Personen</span>
+                        <span>@T("Personen", "people", "personas", "pessoas")</span>
                     </div>
                 </div>
 
@@ -292,10 +317,7 @@
                                     </span>
 
                                     <div class="lh-1">
-                                        <span class="lang-content lang-de">@item.Ingredient.IngredientsAndNutrients.Name_DE</span>
-                                        <span class="lang-content lang-en d-none">@item.Ingredient.IngredientsAndNutrients.Name_EN</span>
-                                        <span class="lang-content lang-es d-none">@item.Ingredient.IngredientsAndNutrients.Name_ESP</span>
-                                        <span class="lang-content lang-pt d-none">@item.Ingredient.IngredientsAndNutrients.Name_PRT</span>
+                                        <span>@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
                                     </div>
                                 </div>
                             </div>
@@ -311,10 +333,7 @@
                         <div class="step-box bg-white p-4 rounded-4 shadow-sm mb-3">
                             <span class="step-number">@step.StepIndex</span>
                             <div class="pe-4" style="position:relative; z-index:2;">
-                                <p class="mb-0 fs-6 lang-content lang-de" style="line-height: 1.6;">@step.RecipePreperationStep.Step_DE</p>
-                                <p class="mb-0 fs-6 lang-content lang-en d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_EN</p>
-                                <p class="mb-0 fs-6 lang-content lang-es d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_ESP</p>
-                                <p class="mb-0 fs-6 lang-content lang-pt d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_PRT</p>
+                                <p class="mb-0 fs-6" style="line-height: 1.6;">@StepText(step.RecipePreperationStep)</p>
                             </div>
                         </div>
                     }
@@ -323,25 +342,25 @@
 
             <div class="tab-pane fade" id="nutrition" role="tabpanel">
                 <div class="nutrition-card p-4 mb-4 text-center">
-                    <h6 class="text-uppercase mb-4" style="letter-spacing: 2px; opacity: 0.8; font-family:'Outfit', sans-serif;">Gesamt-Nährwerte</h6>
+                    <h6 class="text-uppercase mb-4" style="letter-spacing: 2px; opacity: 0.8; font-family:'Outfit', sans-serif;">@T("Gesamt-Nährwerte", "Total nutrition", "Valores nutricionales totales", "Valores nutricionais totais")</h6>
 
                     <div class="row g-3">
                         <div class="col-4">
                             <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-white border-opacity-10">
                                 <span class="d-block fw-bold fs-5 dyn-nutri" data-base="@totalCarbs">@Math.Round(totalCarbs)</span>
-                                <small class="opacity-75" style="font-size:0.7rem">KH (g)</small>
+                                <small class="opacity-75" style="font-size:0.7rem">@T("Carbs (g)", "Carbs (g)", "Carbohidratos (g)", "Carboidratos (g)")</small>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-white border-opacity-10">
                                 <span class="d-block fw-bold fs-5 dyn-nutri" data-base="@totalProtein">@Math.Round(totalProtein)</span>
-                                <small class="opacity-75" style="font-size:0.7rem">Protein (g)</small>
+                                <small class="opacity-75" style="font-size:0.7rem">@T("Protein (g)", "Protein (g)", "Proteína (g)", "Proteína (g)")</small>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-white border-opacity-10">
                                 <span class="d-block fw-bold fs-5 dyn-nutri" data-base="@totalFat">@Math.Round(totalFat)</span>
-                                <small class="opacity-75" style="font-size:0.7rem">Fett (g)</small>
+                                <small class="opacity-75" style="font-size:0.7rem">@T("Fett (g)", "Fat (g)", "Grasa (g)", "Gordura (g)")</small>
                             </div>
                         </div>
 
@@ -349,19 +368,19 @@
                             <div class="bg-warning text-dark p-3 rounded-4 shadow-sm d-inline-block px-5">
                                 <span class="fs-1 fw-bold serif-font dyn-nutri" data-base="@totalCalories">@Math.Round(totalCalories)</span>
                                 <span class="fs-6 fw-bold text-uppercase">kcal</span>
-                                <div class="small opacity-75 mt-1">(Gesamtes Rezept)</div>
+                                <div class="small opacity-75 mt-1">@T("(Gesamtes Rezept)", "(Entire recipe)", "(Receta completa)", "(Receita completa)")</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-center gap-4 mt-4 small opacity-75">
-                        <span>Zucker: <span class="dyn-nutri" data-base="@totalSugar">@Math.Round(totalSugar, 1)</span>g</span>
-                        <span>Fasern: <span class="dyn-nutri" data-base="@totalFiber">@Math.Round(totalFiber, 1)</span>g</span>
+                        <span>@T("Zucker:", "Sugar:", "Azúcar:", "Açúcar:") <span class="dyn-nutri" data-base="@totalSugar">@Math.Round(totalSugar, 1)</span>g</span>
+                        <span>@T("Fasern:", "Fiber:", "Fibra:", "Fibras:") <span class="dyn-nutri" data-base="@totalFiber">@Math.Round(totalFiber, 1)</span>g</span>
                     </div>
                 </div>
 
                 <div class="text-center text-muted small fst-italic px-4">
-                    Hinweis: Nährwerte sind Berechnungen basierend auf Standardwerten und können je nach Produkt variieren.
+                    @T("Hinweis: Nährwerte sind Berechnungen basierend auf Standardwerten und können je nach Produkt variieren.", "Note: Nutrition values are estimates based on standard values and may vary by product.", "Nota: Los valores nutricionales son estimaciones basadas en valores estándar y pueden variar según el producto.", "Nota: Os valores nutricionais são estimativas baseadas em valores padrão e podem variar conforme o produto.")
                 </div>
             </div>
         </div>
@@ -376,23 +395,6 @@
         element.querySelector('.bi-check-circle-fill').classList.toggle('d-none');
         element.querySelector('.bi-circle').classList.toggle('d-none');
     }
-
-    function applyRecipeLanguage(lang) {
-        const supported = ['de', 'en', 'es', 'pt'];
-        const normalized = supported.includes(lang) ? lang : 'de';
-        document.getElementById('currentLangLabel').innerText = normalized.toUpperCase();
-        document.querySelectorAll('.lang-content').forEach(el => el.classList.add('d-none'));
-        document.querySelectorAll('.lang-' + normalized).forEach(el => el.classList.remove('d-none'));
-    }
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const languageCookie = document.cookie
-            .split('; ')
-            .find(c => c.startsWith('deli-lang='))
-            ?.split('=')[1] || 'de';
-        applyRecipeLanguage(languageCookie.toLowerCase());
-    });
 
     function updatePortions() {
         const input = document.getElementById('portionInput');
