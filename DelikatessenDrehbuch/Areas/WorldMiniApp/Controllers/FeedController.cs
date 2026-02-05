@@ -296,6 +296,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(string userHash, string userName)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
+            }
+
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                user.UserName = userName.Trim();
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(MyProfile), new { userHash });
+        }
+
         private string ResolveUserHash(string userHash)
         {
             if (!string.IsNullOrWhiteSpace(userHash))
