@@ -7,105 +7,56 @@
 
 @{
     int index = (int)ViewData["PersonCount"];
+    var language = Context.Request.Cookies["deli-lang"] ?? "de";
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
+    string ResolveThumbnail(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        if (path.StartsWith("http", StringComparison.OrdinalIgnoreCase) || path.Contains("_small", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        var smallPath = FrontendFunctions.GetSmallImagePath(path);
+        if (string.IsNullOrWhiteSpace(smallPath) || smallPath == "_small.webp")
+        {
+            return path;
+        }
+
+        return smallPath;
+    }
 }
 
 <style>
-    /* Design Tokens für Konsistenz */
-    .partial-recipe-container {
-        font-family: 'Segoe UI', sans-serif;
-        color: #2a3440;
-    }
-
-    /* Bild Header */
-    .partial-header-img {
-        width: 100%;
-        height: 220px;
-        object-fit: cover;
-        border-radius: 0 0 1rem 1rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 1.5rem;
-    }
-
-    /* Titel */
-    .partial-title {
-        font-family: 'Playfair Display', serif;
-        color: #770f0f;
-        font-weight: 700;
-        font-size: 1.8rem;
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-
-    /* Meta Infos (Zeit etc.) */
-    .partial-meta {
-        display: flex;
-        justify-content: center;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-        font-size: 0.9rem;
-        color: #666;
-    }
-
-    .partial-meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #FEFFF2; /* Creme */
-        padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        border: 1px solid #D4AF37;
-    }
-
-    /* Tabs Styling */
-    .partial-tabs .nav-link {
-        color: #666;
-        border: none;
-        font-weight: 600;
-        padding: 0.8rem 1rem;
-        background: transparent;
-        border-bottom: 3px solid transparent;
-    }
-
-        .partial-tabs .nav-link.active {
-            color: #770f0f;
-            background: transparent;
-            border-bottom-color: #D4AF37;
-        }
-
-    .partial-tab-content {
-        background: #fff;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        margin-top: 1rem;
-        border: 1px solid #f0f0f0;
-    }
-
-    /* Zubereitung Text */
-    .partial-prep-text {
-        font-size: 1rem;
-        line-height: 1.7;
-        white-space: pre-wrap;
-        color: #444;
-    }
-
-    /* Werbung Box */
-    .partial-ad-box {
-        background: #fafafa;
-        border: 1px dashed #ccc;
-        padding: 1rem;
-        text-align: center;
-        margin: 2rem 0;
-        border-radius: 0.5rem;
-    }
+    .partial-recipe-container { font-family: 'Segoe UI', sans-serif; color: #2a3440; }
+    .partial-header-img { width: 100%; height: 220px; object-fit: cover; border-radius: 0 0 1rem 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    .partial-title { font-family: 'Playfair Display', serif; color: #770f0f; font-weight: 700; font-size: 1.8rem; text-align: center; margin-bottom: 1rem; }
+    .partial-meta { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 2rem; font-size: 0.9rem; color: #666; }
+    .partial-meta-item { display: flex; align-items: center; gap: 0.4rem; background: #FEFFF2; padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid #D4AF37; }
+    .partial-tabs .nav-link { color: #666; border: none; font-weight: 600; padding: 0.8rem 1rem; background: transparent; border-bottom: 3px solid transparent; }
+    .partial-tabs .nav-link.active { color: #770f0f; background: transparent; border-bottom-color: #D4AF37; }
+    .partial-tab-content { background: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-top: 1rem; border: 1px solid #f0f0f0; }
+    .partial-prep-text { font-size: 1rem; line-height: 1.7; white-space: pre-wrap; color: #444; }
+    .partial-ad-box { background: #fafafa; border: 1px dashed #ccc; padding: 1rem; text-align: center; margin: 2rem 0; border-radius: 0.5rem; }
 </style>
 
 <div class="partial-recipe-container">
 
     @if (!string.IsNullOrEmpty(Model.ImagePath))
     {
-        var smallPath = FrontendFunctions.GetSmallImagePath(Model.ImagePath);
-        <img src="@smallPath" alt="@Model.Name" class="partial-header-img" loading="lazy" />
+        var thumbPath = ResolveThumbnail(Model.ImagePath);
+        <img src="@thumbPath" alt="@Model.Name" class="partial-header-img" loading="lazy" />
     }
     else
     {
@@ -122,7 +73,7 @@
             </div>
         }
         <div class="partial-meta-item">
-            <i class="bi bi-heart"></i> @Model.LikeCount Likes
+            <i class="bi bi-heart"></i> @Model.LikeCount @T("Likes", "Likes", "Me gusta", "Curtidas")
         </div>
     </div>
 
@@ -134,7 +85,7 @@
     }
 
     <div class="mb-4">
-        <h5 class="text-center text-secondary mb-3" style="font-family:'Century'">Zutaten für @index Personen</h5>
+        <h5 class="text-center text-secondary mb-3" style="font-family:'Century'">@T("Zutaten für", "Ingredients for", "Ingredientes para", "Ingredientes para") @index @T("Personen", "people", "personas", "pessoas")</h5>
         <div class="p-3 border rounded bg-white">
             <vc:ingredient recipe-id="@Model.Id" person-count="@index"></vc:ingredient>
         </div>
@@ -143,7 +94,7 @@
     @if (!User.IsInRole("PremiumUser"))
     {
         <div class="partial-ad-box">
-            <small class="text-muted d-block mb-1">Anzeige</small>
+            <small class="text-muted d-block mb-1">@T("Anzeige", "Ad", "Anuncio", "Anúncio")</small>
             <ins class="adsbygoogle" style="display:inline-block;width:100%;height:250px"
                  data-ad-client="ca-pub-2332503983815482" data-ad-slot="1475024307"></ins>
             <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
@@ -153,17 +104,17 @@
     <ul class="nav nav-tabs partial-tabs nav-fill" id="recipeTabs_@Model.Id" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="prep-tab-@Model.Id" data-bs-toggle="tab" data-bs-target="#prep_@Model.Id" type="button" role="tab">
-                Zubereitung
+                @T("Zubereitung", "Preparation", "Preparación", "Preparo")
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="nutrition-tab-@Model.Id" data-bs-toggle="tab" data-bs-target="#nutrition_@Model.Id" type="button" role="tab">
-                Nährstoffe
+                @T("Nährstoffe", "Nutrition", "Nutrientes", "Nutrientes")
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="total-nutrition-tab-@Model.Id" data-bs-toggle="tab" data-bs-target="#gesamtZutaten_@Model.Id" type="button" role="tab">
-                Gesamt
+                @T("Gesamt", "Total", "Total", "Total")
             </button>
         </li>
     </ul>
@@ -171,20 +122,17 @@
     <div class="tab-content" id="recipeTabsContent_@Model.Id">
 
         <div class="tab-pane fade show active partial-tab-content" id="prep_@Model.Id" role="tabpanel">
-            <h5 class="mb-3 text-danger">Anleitung</h5>
-
-           
-
+            <h5 class="mb-3 text-danger">@T("Anleitung", "Instructions", "Instrucciones", "Instruções")</h5>
             <div class="partial-prep-text">@Html.Raw(Model.Preparation)</div>
         </div>
 
         <div class="tab-pane fade partial-tab-content" id="nutrition_@Model.Id" role="tabpanel">
-            <h5 class="mb-3 text-danger">Details pro Zutat</h5>
+            <h5 class="mb-3 text-danger">@T("Details pro Zutat", "Details per ingredient", "Detalles por ingrediente", "Detalhes por ingrediente")</h5>
             <vc:nutrien-ingredient recipe-id="@Model.Id"></vc:nutrien-ingredient>
         </div>
 
         <div class="tab-pane fade partial-tab-content" id="gesamtZutaten_@Model.Id" role="tabpanel">
-            <h5 class="mb-3 text-danger">Gesamtbilanz</h5>
+            <h5 class="mb-3 text-danger">@T("Gesamtbilanz", "Total balance", "Balance total", "Balanço total")</h5>
             @if (User.IsInRole("PremiumUser"))
             {
                 <vc:nutrient-sum recipe-id="@Model.Id"></vc:nutrient-sum>
@@ -192,8 +140,8 @@
             else
             {
                 <div class="alert alert-warning text-center">
-                    <i class="bi bi-gem me-2"></i> Nur für Premium-Mitglieder.
-                    <a href="/Premium" class="fw-bold text-dark d-block mt-2">Jetzt upgraden</a>
+                    <i class="bi bi-gem me-2"></i> @T("Nur für Premium-Mitglieder.", "Only for premium members.", "Solo para miembros premium.", "Apenas para membros premium.")
+                    <a href="/Premium" class="fw-bold text-dark d-block mt-2">@T("Jetzt upgraden", "Upgrade now", "Mejorar ahora", "Atualizar agora")</a>
                 </div>
             }
         </div>
@@ -202,7 +150,7 @@
     @if (!User.IsInRole("PremiumUser"))
     {
         <div class="partial-ad-box">
-            <small class="text-muted d-block mb-1">Anzeige</small>
+            <small class="text-muted d-block mb-1">@T("Anzeige", "Ad", "Anuncio", "Anúncio")</small>
             <ins class="adsbygoogle" style="display:inline-block;width:100%;height:250px"
                  data-ad-client="ca-pub-2332503983815482" data-ad-slot="8288802523"></ins>
             <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
