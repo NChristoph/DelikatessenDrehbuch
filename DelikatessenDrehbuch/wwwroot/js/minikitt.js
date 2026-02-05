@@ -249,13 +249,14 @@ window.initAutoLogin = (level) => {
 
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
-    openModal('loginModal');
     updateStoredLoginInfo(storedHash, "-");
 
     if (storedHash) {
-        refreshRememberedLogin(storedHash);
+        sessionStorage.setItem("user_verified", "true");
+        return;
     }
 
+    openModal('loginModal');
     bindConsentButton();
 };
 

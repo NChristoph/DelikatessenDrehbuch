@@ -211,17 +211,7 @@
             <i class="bi bi-arrow-left fs-5"></i>
         </a>
 
-        <div class="dropdown">
-            <button class="btn bg-white rounded-pill shadow-sm px-3 fw-bold border-0 text-dark d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-translate text-warning"></i> <span id="currentLangLabel">DE</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 mt-2">
-                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('DE')">🇩🇪 Deutsch</a></li>
-                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('EN')">🇺🇸 English</a></li>
-                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('ESP')">🇪🇸 Español</a></li>
-                <li><a class="dropdown-item rounded-3" href="javascript:void(0)" onclick="setAppLanguage('PRT')">🇵🇹 Português</a></li>
-            </ul>
-        </div>
+
     </div>
 
     <div class="position-relative" style="margin-top: -60px;">
@@ -304,8 +294,8 @@
                                     <div class="lh-1">
                                         <span class="lang-content lang-de">@item.Ingredient.IngredientsAndNutrients.Name_DE</span>
                                         <span class="lang-content lang-en d-none">@item.Ingredient.IngredientsAndNutrients.Name_EN</span>
-                                        <span class="lang-content lang-esp d-none">@item.Ingredient.IngredientsAndNutrients.Name_ESP</span>
-                                        <span class="lang-content lang-prt d-none">@item.Ingredient.IngredientsAndNutrients.Name_PRT</span>
+                                        <span class="lang-content lang-es d-none">@item.Ingredient.IngredientsAndNutrients.Name_ESP</span>
+                                        <span class="lang-content lang-pt d-none">@item.Ingredient.IngredientsAndNutrients.Name_PRT</span>
                                     </div>
                                 </div>
                             </div>
@@ -323,8 +313,8 @@
                             <div class="pe-4" style="position:relative; z-index:2;">
                                 <p class="mb-0 fs-6 lang-content lang-de" style="line-height: 1.6;">@step.RecipePreperationStep.Step_DE</p>
                                 <p class="mb-0 fs-6 lang-content lang-en d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_EN</p>
-                                <p class="mb-0 fs-6 lang-content lang-esp d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_ESP</p>
-                                <p class="mb-0 fs-6 lang-content lang-prt d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_PRT</p>
+                                <p class="mb-0 fs-6 lang-content lang-es d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_ESP</p>
+                                <p class="mb-0 fs-6 lang-content lang-pt d-none" style="line-height: 1.6;">@step.RecipePreperationStep.Step_PRT</p>
                             </div>
                         </div>
                     }
@@ -387,11 +377,22 @@
         element.querySelector('.bi-circle').classList.toggle('d-none');
     }
 
-    function setAppLanguage(lang) {
-        document.getElementById('currentLangLabel').innerText = lang;
+    function applyRecipeLanguage(lang) {
+        const supported = ['de', 'en', 'es', 'pt'];
+        const normalized = supported.includes(lang) ? lang : 'de';
+        document.getElementById('currentLangLabel').innerText = normalized.toUpperCase();
         document.querySelectorAll('.lang-content').forEach(el => el.classList.add('d-none'));
-        document.querySelectorAll('.lang-' + lang.toLowerCase()).forEach(el => el.classList.remove('d-none'));
+        document.querySelectorAll('.lang-' + normalized).forEach(el => el.classList.remove('d-none'));
     }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const languageCookie = document.cookie
+            .split('; ')
+            .find(c => c.startsWith('deli-lang='))
+            ?.split('=')[1] || 'de';
+        applyRecipeLanguage(languageCookie.toLowerCase());
+    });
 
     function updatePortions() {
         const input = document.getElementById('portionInput');
