@@ -3,9 +3,26 @@
 @{
     ViewData["Title"] = "Feed";
     Layout = null;
+    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
+    var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
+    var selectedCategory = selectedCategoryRaw switch
+    {
+        "appetizer" or "aperetizer" or "vorspeise" or "entrada" => "appetizer",
+        "main" or "maincourse" or "hauptspeise" or "plato principal" or "platoprincipal" or "prato principal" or "pratoprincipal" => "main",
+        "dessert" or "postre" or "sobremesa" or "nachspeise" => "dessert",
+        _ => selectedCategoryRaw
+    };
 }
 <!DOCTYPE html>
-<html lang="de">
+<html lang="@language">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -718,7 +735,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title">Suche im Feed</h5>
+                    <h5 class="modal-title">@T("Suche im Feed", "Search in feed", "Buscar en el feed", "Buscar no feed")</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="get" action="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })">
@@ -726,22 +743,22 @@
                         <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
                         <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
                         <div class="mb-3">
-                            <label class="form-label">Suchbegriff</label>
-                            <input type="text" name="searchTerm" class="form-control" placeholder="Name oder Keyword"
+                            <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
+                            <input type="text" name="searchTerm" class="form-control" placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kategorie</label>
+                            <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
                             <select name="category" class="form-select">
-                                <option value="">Alle Kategorien</option>
-                                <option value="Appetizer" selected="@(ViewData["Category"]?.ToString() == "Appetizer")">Vorspeise</option>
-                                <option value="Main" selected="@(ViewData["Category"]?.ToString() == "Main")">Hauptspeise</option>
-                                <option value="Dessert" selected="@(ViewData["Category"]?.ToString() == "Dessert")">Dessert</option>
+                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
+                                <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
+                                <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
+                                <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
                             </select>
                         </div>
                     </div>
                     <div class="modal-footer border-0">
-                        <button type="submit" class="btn btn-light w-100">Suchen</button>
+                        <button type="submit" class="btn btn-light w-100">@T("Suchen", "Search", "Buscar", "Buscar")</button>
                     </div>
                 </form>
             </div>
