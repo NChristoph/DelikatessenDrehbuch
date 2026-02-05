@@ -357,7 +357,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var recipe = await GetRandomRecipesByCategory(category, 1); // Methode musst du evtl. in deinem Service haben
 
-            // Falls dein Service anders funktioniert, hier anpassen!
+          
             // Wir bauen das Model für die Partial View
             var model = new MealPlanerModel
             {
@@ -672,7 +672,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var name = nutrient?.Name_DE?.Trim();
                     var groupName = nutrient?.Group?.Name ?? "Sonstiges";
                     var unit = ingredient?.Measure?.UnitOfMeasurement ?? string.Empty;
-                    var quantity = ingredient?.Quantity?.Quantitys ?? 0m;
+                    var quantity = ingredient?.Quantity?.Quantitys ;
 
                     if (string.IsNullOrWhiteSpace(name))
                     {
@@ -696,7 +696,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         GroupName = groupName,
                         IngredientName = name,
                         Unit = unit,
-                        Quantity = quantity * scale
+                        Quantity = (decimal)(quantity ?? 0) * scale
                     });
                 }
             }
@@ -795,7 +795,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return builder.ToString().Trim();
         }
 
-        private class SharedMealPlanRequest
+        public class SharedMealPlanRequest
         {
             public string MealPlanJson { get; set; }
             public int PersonCount { get; set; }
