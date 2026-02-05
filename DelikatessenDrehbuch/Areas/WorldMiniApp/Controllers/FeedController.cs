@@ -3,6 +3,7 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -10,6 +11,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     public class FeedController : Controller
     {
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
+        private static readonly Dictionary<string, string[]> CategoryAliases = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["appetizer"] = new[] { "appetizer", "aperetizer", "vorspeise", "entrada" },
+            ["main"] = new[] { "main", "maincourse", "hauptspeise", "platoprincipal", "pratoprincipal" },
+            ["dessert"] = new[] { "dessert", "postre", "sobremesa", "nachspeise" }
+        };
+
+        private static readonly Dictionary<string, string> CategoryAliasLookup = CategoryAliases
+            .SelectMany(group => group.Value.Select(alias => new KeyValuePair<string, string>(alias, group.Key)))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
 
         private readonly ApplicationDbContext _context;
 
@@ -78,8 +89,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 var trimmedSearchTerm = searchTerm.Trim();
                 var searchPattern = $"%{trimmedSearchTerm}%";
+                var canonicalSearchCategory = ResolveCanonicalCategory(trimmedSearchTerm);
+                var categoryTerms = canonicalSearchCategory is null
+                    ? null
+                    : CategoryAliases[canonicalSearchCategory];
+
                 query = query.Where(post => EF.Functions.Like(post.Recipe.Title, searchPattern)
                     || EF.Functions.Like(post.Recipe.Category, searchPattern)
+                    || (categoryTerms != null
+                        && post.Recipe.Category != null
+                        && categoryTerms.Contains(post.Recipe.Category.ToLower()))
                     || post.Recipe.RecipeKeywords.Any(link =>
                         EF.Functions.Like(link.Keyword.Word_DE, searchPattern)
                         || EF.Functions.Like(link.Keyword.Word_EN, searchPattern)
@@ -89,9 +108,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (!string.IsNullOrWhiteSpace(category))
             {
-                var trimmedCategory = category.Trim();
-                var categoryPattern = $"%{trimmedCategory}%";
-                query = query.Where(post => EF.Functions.Like(post.Recipe.Category, categoryPattern));
+                var canonicalCategory = ResolveCanonicalCategory(category);
+
+                if (canonicalCategory is null)
+                {
+                    var trimmedCategory = category.Trim();
+                    var categoryPattern = $"%{trimmedCategory}%";
+                    query = query.Where(post => EF.Functions.Like(post.Recipe.Category, categoryPattern));
+                }
+                else
+                {
+                    var canonicalCategoryTerms = CategoryAliases[canonicalCategory];
+                    query = query.Where(post => post.Recipe.Category != null
+                        && canonicalCategoryTerms.Contains(post.Recipe.Category.ToLower()));
+                }
             }
 
             if (maxPrepTime.HasValue)
@@ -130,6 +160,29 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["UserHash"] = userHash;
 
             return View(model);
+        }
+
+        private static string? ResolveCanonicalCategory(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+
+            var normalizedInput = NormalizeCategory(input);
+            return CategoryAliasLookup.TryGetValue(normalizedInput, out var canonicalCategory)
+                ? canonicalCategory
+                : null;
+        }
+
+        private static string NormalizeCategory(string value)
+        {
+            var normalized = value.Trim().ToLowerInvariant();
+            normalized = normalized.Replace("-", string.Empty).Replace(" ", string.Empty);
+
+            var withoutDiacritics = normalized
+                .Normalize(NormalizationForm.FormD)
+                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                .ToArray();
+
+            return new string(withoutDiacritics).Normalize(NormalizationForm.FormC);
         }
 
 
