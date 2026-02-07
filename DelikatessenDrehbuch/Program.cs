@@ -10,6 +10,7 @@ using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.ShoppingList.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -37,7 +38,7 @@ var retryPolicy = Policy
         sleepDurationProvider: attempt => TimeSpan.FromSeconds(2),
         onRetry: (exception, sleepDuration, attempt, context) =>
         {
-            // Logging, falls gewünscht
+            // Logging, falls gewÃ¼nscht
             Console.WriteLine($"Retry {attempt} due to {exception}");
         });
 var configuration = builder.Configuration;
@@ -76,14 +77,15 @@ builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.Password.RequireDigit = false; // Keine Zahl erforderlich
     options.Password.RequireLowercase = false; // Kein Kleinbuchstabe erforderlich
     options.Password.RequireNonAlphanumeric = false; // Kein Sonderzeichen erforderlich
-    options.Password.RequireUppercase = false; // Kein Großbuchstabe erforderlich
-    options.Password.RequiredLength = 6; // Mindestlänge des Passworts
+    options.Password.RequireUppercase = false; // Kein GroÃŸbuchstabe erforderlich
+    options.Password.RequiredLength = 6; // MindestlÃ¤nge des Passworts
     options.Password.RequiredUniqueChars = 1; // Anzahl der erforderlichen eindeutigen Zeichen
     options.SignIn.RequireConfirmedAccount = false;
 })
@@ -104,14 +106,14 @@ builder.Services.AddControllersWithViews(options =>
 
 
 
-// Füge den Session-Service hinzu
+// FÃ¼ge den Session-Service hinzu
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromDays(365 * 10); // Zeit, bis die Session abläuft
+    options.IdleTimeout = TimeSpan.FromDays(365 * 10); // Zeit, bis die Session ablÃ¤uft
     options.Cookie.MaxAge = TimeSpan.FromDays(365 * 10); // Lebensdauer des Session-Cookies
     options.Cookie.HttpOnly = true; // Sicherheitseinstellungen
-    options.Cookie.IsEssential = true; // Erforderlich für EU-Cookie-Richtlinien
+    options.Cookie.IsEssential = true; // Erforderlich fÃ¼r EU-Cookie-Richtlinien
 });
 
 
@@ -123,7 +125,7 @@ var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
 
 StripeConfiguration.ApiKey = stripeApiKey;
 
-// Füge Dienste hinzu (z.B. für MVC/Controllers)
+// FÃ¼ge Dienste hinzu (z.B. fÃ¼r MVC/Controllers)
 builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 var app = builder.Build();
@@ -191,10 +193,35 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionHandlerFeature?.Error != null)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(exceptionHandlerFeature.Error, "Unhandled exception.");
+        }
+
+        if (context.Request.Headers.Accept.Any(accept => accept.Contains("text/html", StringComparison.OrdinalIgnoreCase)))
+        {
+            context.Response.Redirect("/Home/Error");
+            return;
+        }
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/problem+json";
+
+        await Results.Problem(
+                title: "Ein unerwarteter Fehler ist aufgetreten.",
+                statusCode: StatusCodes.Status500InternalServerError)
+            .ExecuteAsync(context);
+    });
+});
 
 
 app.UseHttpsRedirection();

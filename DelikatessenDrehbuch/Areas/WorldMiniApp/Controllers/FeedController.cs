@@ -24,10 +24,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
 
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<FeedController> _logger;
 
-        public FeedController(ApplicationDbContext context)
+        public FeedController(ApplicationDbContext context, ILogger<FeedController> logger)
         {
          _context = context;   
+            _logger = logger;
         }
         //TODO:Likecount zu basedata recipe hinzufügen und abo system auch machen neue column auserdem brauchen 
         //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
@@ -211,47 +213,50 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> ToggleLike([FromForm] string userHash, int recipeId)
         {
             userHash = ResolveUserHash(userHash);
-            await AddOrRemoveLike(userHash, recipeId);
-
-            return Ok();
+            try
+            {
+                await AddOrRemoveLike(userHash, recipeId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to toggle like for recipe {RecipeId}.", recipeId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ein unerwarteter Fehler ist aufgetreten.");
+            }
         }
 
         private async Task AddOrRemoveLike(string userHash, int recipeId)
         {
-            try
+            var like = await _context.WorldUserLike
+                           .FirstOrDefaultAsync(x => x.WorldAppUser.UserHash == userHash && x.Recipe.Id == recipeId);
+            var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(x => x.Id == recipeId);
+            if (recipe == null)
             {
-                var like = await _context.WorldUserLike
-                               .FirstOrDefaultAsync(x => x.WorldAppUser.UserHash == userHash && x.Recipe.Id == recipeId);
-                var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(x => x.Id == recipeId);
+                return;
+            }
 
-                if (like != null)
+            if (like != null)
+            {
+                _context.WorldUserLike.Remove(like);
+                recipe.LikeCount = Math.Max(0, recipe.LikeCount - 1);
+            }
+            else
+            {
+                var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
+
+
+                if (user != null)
                 {
-                    _context.WorldUserLike.Remove(like);
-                    recipe.LikeCount--;
-                }
-                else
-                {
-                    var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
-
-
-                    if (user != null && recipe != null)
+                    WorldUserLike newLike = new WorldUserLike()
                     {
-                        WorldUserLike newLike = new WorldUserLike()
-                        {
-                            Recipe = recipe,
-                            WorldAppUser = user
-                        };
-                        recipe.LikeCount++;
-                        await _context.WorldUserLike.AddAsync(newLike);
-                    }
+                        Recipe = recipe,
+                        WorldAppUser = user
+                    };
+                    recipe.LikeCount++;
+                    await _context.WorldUserLike.AddAsync(newLike);
                 }
-                await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
+            await _context.SaveChangesAsync();
         }
 
         [HttpPost]
@@ -377,13 +382,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash(string userHash)
         {
-            if (!string.IsNullOrWhiteSpace(userHash))
+            var sessionHash = HttpContext.Session.GetString(SessionUserHashKey);
+            if (string.IsNullOrWhiteSpace(sessionHash))
             {
-                HttpContext.Session.SetString(SessionUserHashKey, userHash);
-                return userHash;
+                return string.Empty;
             }
 
-            return HttpContext.Session.GetString(SessionUserHashKey) ?? string.Empty;
+            return sessionHash;
         }
 
 

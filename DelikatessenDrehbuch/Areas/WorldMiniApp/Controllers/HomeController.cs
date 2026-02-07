@@ -12,8 +12,10 @@ using Newtonsoft.Json;
 using Stripe;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -28,15 +30,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IBlobUploadService _blobUpload;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
         private readonly ApplicationDbContext _context;
+        private readonly IMemoryCache _memoryCache;
+        private readonly ILogger<HomeController> _logger;
+        private const int UploadRateLimit = 5;
+        private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
 
 
-        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService)
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IMemoryCache memoryCache, ILogger<HomeController> logger)
         {
             _recipesService = recipesService;
             _worldAppMealPlanService = worldUserMealPlanService;
             _blobUpload = blobUpload;
             _context = context;
             _saveNewRecipeService = saveNewRecipeService;
+            _memoryCache = memoryCache;
+            _logger = logger;
         }
 
         // Die Startseite (Das Menü von oben)
@@ -59,6 +67,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (!await IsCreatorAllowedAsync(userHash))
             {
                 return RedirectToAction("Index");
+            }
+            if (!TryConsumeUploadSlot(userHash, out var retryAfter))
+            {
+                if (retryAfter.HasValue)
+                {
+                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                }
+                return StatusCode(StatusCodes.Status429TooManyRequests, "Upload-Limit erreicht. Bitte später erneut versuchen.");
             }
 
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -626,13 +642,50 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash(string userHash)
         {
-            if (!string.IsNullOrWhiteSpace(userHash))
+            var sessionHash = HttpContext.Session.GetString(SessionUserHashKey);
+            if (string.IsNullOrWhiteSpace(sessionHash))
             {
-                HttpContext.Session.SetString(SessionUserHashKey, userHash);
-                return userHash;
+                return string.Empty;
             }
 
-            return HttpContext.Session.GetString(SessionUserHashKey) ?? string.Empty;
+            return sessionHash;
+        }
+
+        private bool TryConsumeUploadSlot(string userHash, out TimeSpan? retryAfter)
+        {
+            retryAfter = null;
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            var cacheKey = $"worldminiapp:upload:{userHash}";
+            var now = DateTimeOffset.UtcNow;
+
+            var state = _memoryCache.Get<UploadRateState>(cacheKey);
+            if (state == null)
+            {
+                state = new UploadRateState { Count = 1, WindowStart = now };
+                _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = UploadRateWindow
+                });
+                return true;
+            }
+
+            if (state.Count >= UploadRateLimit)
+            {
+                retryAfter = (state.WindowStart + UploadRateWindow) - now;
+                _logger.LogWarning("Upload rate limit exceeded for user {UserHash}.", userHash);
+                return false;
+            }
+
+            state.Count += 1;
+            _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = UploadRateWindow
+            });
+            return true;
         }
 
         private async Task<List<ShoppingListItem>> BuildShoppingListItemsAsync(List<int> recipeIds, int personCount)
@@ -801,6 +854,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             public int PersonCount { get; set; }
             public string Title { get; set; }
             public string? UserHash { get; set; }
+        }
+
+        private sealed class UploadRateState
+        {
+            public int Count { get; set; }
+            public DateTimeOffset WindowStart { get; set; }
         }
     }
 }
