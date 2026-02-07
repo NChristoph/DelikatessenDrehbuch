@@ -25,7 +25,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyAction([FromBody] VerifyRequestDto request)
         {
             if (request?.Payload == null || request.Payload.Status != "success")

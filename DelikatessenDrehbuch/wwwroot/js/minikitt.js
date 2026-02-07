@@ -111,7 +111,7 @@ async function useMockLogin() {
     await verifyBackend(mockPayload);
 }
 
-// ... (Der Rest bleibt gleich: verifyBackend, openModal, closeModal, triggerLogin) ...
+
 
 async function verifyBackend(payload) {
     try {
