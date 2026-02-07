@@ -337,31 +337,81 @@
             opacity: 1;
         }
 
+        :root {
+            --plan-accent: #FF9966;
+            --plan-accent-soft: rgba(255, 153, 102, 0.6);
+            --plan-accent-border: rgba(255, 153, 102, 0.35);
+            --plan-accent-contrast: #1e1e1e;
+            --plan-bg: #121212;
+            --plan-surface: #1e1e1e;
+            --plan-tile: #2d2d2d;
+            --plan-text: #ffffff;
+        }
+
         .modal-content {
-            background-color: #1e1e1e;
-            color: white;
+            background-color: var(--plan-surface);
+            color: var(--plan-text);
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--plan-accent-border);
         }
 
         .modal-header {
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
+        .modal-title {
+            color: var(--plan-accent);
+        }
+
         .btn-close { filter: invert(1); }
+
+        .plan-btn-primary {
+            background: var(--plan-accent);
+            border: 1px solid var(--plan-accent);
+            color: var(--plan-accent-contrast);
+            font-weight: 700;
+        }
+
+            .plan-btn-primary:hover {
+                opacity: 0.92;
+                color: var(--plan-accent-contrast);
+            }
+
+        .plan-btn-outline {
+            border: 1px solid var(--plan-accent);
+            color: var(--plan-accent);
+            background: transparent;
+            font-weight: 600;
+        }
+
+            .plan-btn-outline:hover {
+                background: var(--plan-accent);
+                color: var(--plan-accent-contrast);
+            }
+
+        .plan-btn-secondary {
+            border: 1px solid var(--plan-accent-border);
+            color: var(--plan-text);
+            background: var(--plan-surface);
+        }
+
+        .plan-text-muted {
+            color: var(--plan-text);
+            opacity: 0.7;
+        }
 
         .plan-day-row {
             margin-bottom: 20px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 20px;
-            background: rgba(255,255,255,0.02);
+            background: var(--plan-bg);
             border-radius: 14px;
             padding: 14px;
         }
 
         .day-label {
             font-weight: 800;
-            color: #FF9966;
+            color: var(--plan-accent);
             margin-bottom: 12px;
             display: block;
             font-size: 1rem;
@@ -383,9 +433,9 @@
 
         /* --- UPDATED: GRÖSSERE SLOTS (85px) --- */
         .meal-slot-btn {
-            background: rgba(255,255,255,0.08);
-            border: 1px dashed rgba(255,255,255,0.2);
-            color: rgba(255,255,255,0.5);
+            background: var(--plan-surface);
+            border: 1px dashed var(--plan-accent-border);
+            color: var(--plan-text);
             height: 85px; /* HIER GEÄNDERT */
             border-radius: 12px;
             font-size: 0.9rem;
@@ -399,15 +449,15 @@
         }
 
         .meal-slot-btn:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
+            background: var(--plan-surface);
+            color: var(--plan-text);
             border-style: solid;
-            border-color: #FF9966;
+            border-color: var(--plan-accent);
         }
 
         .filled-slot {
-            background: #2d2d2d;
-            border-left: 4px solid #FF9966;
+            background: var(--plan-tile);
+            border-left: 4px solid var(--plan-accent);
             border-radius: 8px;
             padding: 0;
             display: flex;
@@ -422,7 +472,7 @@
         .filled-slot:active { transform: scale(0.98); }
 
         .replace-slot {
-            outline: 2px dashed rgba(255,153,102,0.6);
+            outline: 2px dashed var(--plan-accent-soft);
             cursor: pointer;
         }
 
@@ -434,14 +484,20 @@
 
         .slot-btn {
             border: none;
-            background: rgba(255,255,255,0.1);
-            color: white;
+            background: rgba(0,0,0,0.15);
+            color: var(--plan-text);
             width: 28px;
             height: 28px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .slot-btn.edit-slot-btn {
+            color: var(--plan-accent);
+            border: 1px solid var(--plan-accent);
+            background: rgba(0,0,0,0.25);
         }
 
         .replace-hint {
@@ -454,14 +510,24 @@
 
         .plan-tools .form-control,
         .shopping-share .form-control {
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: white;
+            background: var(--plan-surface);
+            border: 1px solid var(--plan-accent-border);
+            color: var(--plan-text);
         }
 
         .plan-tools .form-label,
         .shopping-share .form-label {
-            color: rgba(255,255,255,0.65);
+            color: var(--plan-text);
+        }
+
+        #searchModal .modal-content {
+            background: var(--plan-surface);
+            color: var(--plan-text);
+            border: 1px solid var(--plan-accent-border);
+        }
+
+        #searchModal .btn-close {
+            filter: none;
         }
 
         .mini-img {
@@ -486,14 +552,15 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: white;
+            color: var(--plan-text);
             line-height: 1.2;
             margin-bottom: 2px;
         }
 
         .mini-type {
             font-size: 0.65rem;
-            color: #aaa;
+            color: var(--plan-text);
+            opacity: 0.6;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -685,18 +752,20 @@
                     <div class="plan-tools mb-3">
                         <div class="row g-2">
                             <div class="col-7">
-                                <label class="form-label small text-muted mb-1">Plan-Name</label>
+                                <label class="form-label small mb-1">Plan-Name</label>
                                 <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
                             </div>
                             <div class="col-5">
-                                <label class="form-label small text-muted mb-1">Personen</label>
+                                <label class="form-label small mb-1">Personen</label>
                                 <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
                             </div>
                         </div>
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn btn-dark btn-sm flex-grow-1" onclick="saveWeeklyPlan()">Plan speichern</button>
-                            <button type="button" class="btn btn-outline-light btn-sm flex-grow-1" onclick="shareWeeklyPlan()">Plan teilen</button>
+                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">Plan speichern</button>
+                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">Plan teilen</button>
                         </div>
+                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">Plan leeren</button>
+                        <button type="button" class="btn plan-btn-outline btn-sm w-100 mt-2" data-bs-dismiss="modal">Modal schließen</button>
                         <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
                     </div>
                     <div id="addingModeHeader" style="display:none;">
@@ -706,23 +775,23 @@
                                 <video id="addingPreviewVideo" class="adding-thumb" src="" muted playsinline style="display:none; object-fit:cover;"></video>
                             </div>
                             <div>
-                                <small class="text-white-50 d-block" style="font-size:0.7rem;">Hinzufügen:</small>
+                                <small class="plan-text-muted d-block" style="font-size:0.7rem;">Hinzufügen:</small>
                                 <span id="addingPreviewTitle" class="fw-bold" style="font-size:0.9rem;"></span>
                             </div>
                         </div>
-                        <p class="text-white-50 small mb-4 text-center">Tippe auf einen freien Slot 👇</p>
+                        <p class="plan-text-muted small mb-4 text-center">Tippe auf einen freien Slot 👇</p>
                     </div>
-                    <div id="viewModeHeader" class="text-white-50 small mb-4 text-center">
+                    <div id="viewModeHeader" class="plan-text-muted small mb-4 text-center">
                         Dein aktueller Plan für die Woche
                     </div>
                     <div id="planContainer"></div>
                     <div class="shopping-share mt-3">
-                        <label class="form-label small text-muted">Einkaufsliste bearbeiten & teilen</label>
-                        <button type="button" class="btn btn-outline-light btn-sm w-100 mb-2" onclick="prepareShoppingList()">Einkaufsliste laden</button>
+                        <label class="form-label small">Einkaufsliste bearbeiten & teilen</label>
+                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="prepareShoppingList()">Einkaufsliste laden</button>
                         <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..."></textarea>
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn btn-outline-light btn-sm flex-grow-1" onclick="generateShareLink()">Link erstellen</button>
-                            <button type="button" class="btn btn-light btn-sm flex-grow-1" onclick="copyShareLink()">Link kopieren</button>
+                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="generateShareLink()">Link erstellen</button>
+                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="copyShareLink()">Link kopieren</button>
                         </div>
                         <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
                     </div>
@@ -733,10 +802,10 @@
 
     <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white">
+            <div class="modal-content">
                 <div class="modal-header border-0">
                     <h5 class="modal-title">@T("Suche im Feed", "Search in feed", "Buscar en el feed", "Buscar no feed")</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="get" action="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })">
                     <div class="modal-body">
@@ -758,7 +827,7 @@
                         </div>
                     </div>
                     <div class="modal-footer border-0">
-                        <button type="submit" class="btn btn-light w-100">@T("Suchen", "Search", "Buscar", "Buscar")</button>
+                        <button type="submit" class="btn plan-btn-primary w-100">@T("Suchen", "Search", "Buscar", "Buscar")</button>
                     </div>
                 </form>
             </div>
@@ -786,7 +855,78 @@
 
 
         function getUserHash() {
-            return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+            const stored = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+            const fallback = '@ViewData["UserHash"]';
+            return stored || fallback;
+        }
+
+        function resolvePlanThemeColors(theme) {
+            const key = (theme || '').toLowerCase();
+            const themeMap = {
+                color: {
+                    accent: '#2D4F1E',
+                    contrast: '#ffffff',
+                    bg: '#F8FAF7',
+                    surface: '#FFFFFF',
+                    tile: '#F0F4EF',
+                    text: '#1A1A1A'
+                },
+                black: {
+                    accent: '#ffffff',
+                    contrast: '#1e1e1e',
+                    bg: '#000000',
+                    surface: '#111111',
+                    tile: '#1b1b1b',
+                    text: '#ffffff'
+                },
+                white: {
+                    accent: '#1A1A1A',
+                    contrast: '#ffffff',
+                    bg: '#ffffff',
+                    surface: '#f7f7f7',
+                    tile: '#f0f0f0',
+                    text: '#1A1A1A'
+                },
+                rose: {
+                    accent: '#FFB6C1',
+                    contrast: '#852D3E',
+                    bg: '#FFF5F7',
+                    surface: '#FFFFFF',
+                    tile: '#FEE2E7',
+                    text: '#852D3E'
+                },
+                lavender: {
+                    accent: '#A78BFA',
+                    contrast: '#4B3D8A',
+                    bg: '#F3F0FF',
+                    surface: '#FFFFFF',
+                    tile: '#EBE4FF',
+                    text: '#4B3D8A'
+                }
+            };
+
+            return themeMap[key] || {
+                accent: '#FF9966',
+                contrast: '#1e1e1e',
+                bg: '#121212',
+                surface: '#1e1e1e',
+                tile: '#2d2d2d',
+                text: '#ffffff'
+            };
+        }
+
+        function applyPlanThemeFromProfile() {
+            const theme = localStorage.getItem('profile_theme');
+            const colors = resolvePlanThemeColors(theme);
+            const root = document.documentElement;
+            root.style.setProperty('--plan-accent', colors.accent);
+            root.style.setProperty('--plan-accent-soft', `${colors.accent}99`);
+            root.style.setProperty('--plan-accent-border', `${colors.accent}59`);
+            root.style.setProperty('--plan-accent-contrast', colors.contrast);
+            root.style.setProperty('--plan-bg', colors.bg);
+            root.style.setProperty('--plan-surface', colors.surface);
+            root.style.setProperty('--plan-tile', colors.tile);
+            root.style.setProperty('--plan-text', colors.text);
         }
 
         function goToProfile() {
@@ -853,6 +993,16 @@
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
 
+        function updatePlanModeHeader() {
+            if (pendingRecipe) {
+                document.getElementById('addingModeHeader').style.display = 'block';
+                document.getElementById('viewModeHeader').style.display = 'none';
+            } else {
+                document.getElementById('addingModeHeader').style.display = 'none';
+                document.getElementById('viewModeHeader').style.display = 'block';
+            }
+        }
+
         function openPlanModal(title, url, recipeId) {
             const modalEl = document.getElementById('planModal');
             const modal = new bootstrap.Modal(modalEl);
@@ -868,8 +1018,7 @@
                     pendingRecipe = null;
                     scheduleDraftSave();
                 }
-                document.getElementById('addingModeHeader').style.display = 'block';
-                document.getElementById('viewModeHeader').style.display = 'none';
+                updatePlanModeHeader();
                 titleEl.innerText = title;
 
                 // CHECK: Fallback für Videos, falls noch kein Thumbnail existiert
@@ -884,8 +1033,7 @@
                 }
             } else {
                 pendingRecipe = null;
-                document.getElementById('addingModeHeader').style.display = 'none';
-                document.getElementById('viewModeHeader').style.display = 'block';
+                updatePlanModeHeader();
             }
             renderPlan();
             modal.show();
@@ -984,6 +1132,21 @@
             return payload;
         }
 
+        function clearWeeklyPlanState(keepPendingRecipe = false) {
+            weeklyPlanData = {};
+            if (!keepPendingRecipe) {
+                pendingRecipe = null;
+                editingSlotKey = null;
+            }
+            localStorage.removeItem(getDraftStorageKey());
+            const linkInput = document.getElementById('planShareLink');
+            if (linkInput) {
+                linkInput.value = '';
+            }
+            updatePlanModeHeader();
+            renderPlan();
+        }
+
         function saveWeeklyPlan() {
             const userHash = getUserHash();
             if (!userHash) {
@@ -1000,6 +1163,7 @@
             const title = titleInput.value.trim() || "Mein Wochenplan";
             const personCount = parseInt(personCountInput.value, 10) || 1;
             const encodedData = encodeURIComponent(JSON.stringify(payload));
+            clearWeeklyPlanState();
             window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${userHash}&title=${encodeURIComponent(title)}`;
         }
 
@@ -1014,25 +1178,52 @@
             const title = titleInput.value.trim() || "Mein Wochenplan";
             const personCount = parseInt(personCountInput.value, 10) || 1;
 
-            const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mealPlanJson: JSON.stringify(payload),
-                    personCount: personCount,
-                    title: title,
-                    userHash: getUserHash()
-                })
-            });
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : null;
+                const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'RequestVerificationToken': token } : {})
+                    },
+                    body: JSON.stringify({
+                        mealPlanJson: JSON.stringify(payload),
+                        personCount: personCount,
+                        title: title,
+                        userHash: getUserHash()
+                    })
+                });
 
-            if (!response.ok) {
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    alert(`Plan konnte nicht geteilt werden. ${errorText}`);
+                    return;
+                }
+
+                const data = await response.json();
+                const linkInput = document.getElementById('planShareLink');
+                linkInput.value = data.shareUrl || '';
+
+                if (!data.shareUrl) {
+                    alert("Teilen fehlgeschlagen: Kein Link erhalten.");
+                    return;
+                }
+
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: title, url: data.shareUrl });
+                    } else if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(data.shareUrl);
+                        alert("Link kopiert!");
+                    }
+                } catch (shareError) {
+                    console.warn("Teilen nicht verfügbar:", shareError);
+                }
+            } catch (error) {
+                console.error("Teilen fehlgeschlagen:", error);
                 alert("Plan konnte nicht geteilt werden.");
-                return;
             }
-
-            const data = await response.json();
-            const linkInput = document.getElementById('planShareLink');
-            linkInput.value = data.shareUrl || '';
         }
 
         function getDraftStorageKey() {
@@ -1175,6 +1366,7 @@
             document.removeEventListener('click', unlockAudio);
         }
         document.addEventListener('click', unlockAudio);
+        document.addEventListener('DOMContentLoaded', applyPlanThemeFromProfile);
         document.addEventListener('DOMContentLoaded', loadDraft);
 
         const observer = new IntersectionObserver((entries) => {

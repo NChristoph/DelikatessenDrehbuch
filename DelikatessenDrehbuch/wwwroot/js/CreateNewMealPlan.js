@@ -2,6 +2,29 @@
    CreateNewMealPlan.js
    Logik für das Laden, Ändern und Speichern von Rezepten
    =========================================================== */
+function resolveMealPlanThemeColors(theme) {
+    const themeKey = (theme || '').toLowerCase();
+    const themeMap = {
+        color: { accent: '#2D4F1E', contrast: '#ffffff' },
+        black: { accent: '#ffffff', contrast: '#1A1A1A' },
+        white: { accent: '#1A1A1A', contrast: '#ffffff' },
+        rose: { accent: '#FFB6C1', contrast: '#ffffff' },
+        lavender: { accent: '#A78BFA', contrast: '#ffffff' }
+    };
+
+    return themeMap[themeKey] || { accent: '#770f0f', contrast: '#ffffff' };
+}
+
+function applyMealPlanThemeFromProfile() {
+    const theme = localStorage.getItem('profile_theme');
+    const colors = resolveMealPlanThemeColors(theme);
+    const root = document.documentElement;
+    root.style.setProperty('--mealplan-accent', colors.accent);
+    root.style.setProperty('--mealplan-accent-soft', colors.accent);
+    root.style.setProperty('--mealplan-accent-contrast', colors.contrast);
+}
+
+document.addEventListener('DOMContentLoaded', applyMealPlanThemeFromProfile);
 function AddRecipe(button, index) {
 
     var jsonString = button.getAttribute("data-json");
@@ -17,6 +40,65 @@ function AddRecipe(button, index) {
     var slot = document.getElementById(namePrefix + index);
     slot.innerHTML = html;
 
+    SaveMealPlanToDb();
+}
+
+function createEmptyMealCard(category, index, namePrefix) {
+    return `
+        <div class="empty-state">
+            <i class="bi bi-plus-circle display-1 mb-3 text-secondary opacity-25"></i>
+            <h5 class="text-muted">Kein Gericht</h5>
+            <button class="btn btn-sm mealplan-accent-bg mt-2"
+                    data-name="${namePrefix}"
+                    data-index="${index}"
+                    data-id="0"
+                    data-category="${category}"
+                    onclick="ChangeOrAddRecipe(this)">
+                + Hinzufügen
+            </button>
+        </div>
+    `;
+}
+
+function resetMiniCard(dayIndex, category) {
+    const desktopId = `mini_${dayIndex}_${category}`;
+    const mobileId = `mini_mobile_${dayIndex}_${category}`;
+    const targetIds = [desktopId, mobileId];
+
+    targetIds.forEach(id => {
+        const item = document.getElementById(id);
+        if (!item) return;
+
+        const imgEl = item.querySelector('.ov-img');
+        const placeholderHtml = '<div class="ov-img d-flex align-items-center justify-content-center small text-muted bg-light"><i class="bi bi-egg"></i></div>';
+        if (imgEl) {
+            if (imgEl.tagName === 'IMG') {
+                imgEl.outerHTML = placeholderHtml;
+            } else {
+                imgEl.outerHTML = placeholderHtml;
+            }
+        }
+
+        const titleEl = item.querySelector('.ov-title');
+        if (titleEl) {
+            titleEl.innerText = '- Leer -';
+            titleEl.classList.remove('text-truncate', 'd-block');
+            titleEl.classList.add('text-muted', 'fst-italic', 'small');
+        }
+    });
+}
+
+function ClearMealSlot(button) {
+    const name = button.getAttribute("data-name");
+    const index = button.getAttribute("data-index");
+    const category = button.getAttribute("data-category");
+    const slotId = `${name}${index}`;
+    const slot = document.getElementById(slotId);
+
+    if (!slot) return;
+
+    slot.innerHTML = createEmptyMealCard(category, index, name);
+    resetMiniCard(index, category);
     SaveMealPlanToDb();
 }
 
@@ -210,6 +292,16 @@ function createMealCard(recipes, index) {
                     <i class="bi bi-search"></i> Ersetzen durch...
                 </button>
 
+                <button class="btn btn-change"
+                        type="button"
+                        data-name="${namePrefix}"
+                        data-index="${index}"
+                        data-category="${recipes.category || ''}"
+                        onclick="ClearMealSlot(this)"
+                        title="Slot leeren">
+                    <i class="bi bi-x-circle"></i> Leeren
+                </button>
+
             </div>
         </div>
     `;
@@ -392,5 +484,3 @@ function updateDayAttributes(dayIndex) {
         }
     });
 }
-
-
