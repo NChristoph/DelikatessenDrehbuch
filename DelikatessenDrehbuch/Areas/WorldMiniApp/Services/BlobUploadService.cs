@@ -15,6 +15,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     {
         private const long MaxImageBytes = 15L * 1024 * 1024;
         private const long MaxVideoBytes = 200L * 1024 * 1024;
+        private const int MagicHeaderBytes = 16;
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".mov", ".webm" };
         private readonly IConfiguration _configuration;
@@ -175,6 +176,60 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 if (file.Length > MaxVideoBytes)
                     throw new InvalidOperationException("Video ist zu groß. Maximal 200 MB erlaubt.");
             }
+
+            if (!MatchesMagicBytes(file, extension, isImage, isVideo))
+            {
+                throw new InvalidOperationException("Dateisignatur stimmt nicht mit dem Dateityp überein.");
+            }
+        }
+
+        private static bool MatchesMagicBytes(IFormFile file, string extension, bool isImage, bool isVideo)
+        {
+            Span<byte> header = stackalloc byte[MagicHeaderBytes];
+            using var stream = file.OpenReadStream();
+            var read = stream.Read(header);
+            if (read < 4)
+            {
+                return false;
+            }
+
+            if (isImage)
+            {
+                if (extension is ".jpg" or ".jpeg")
+                {
+                    return header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF;
+                }
+
+                if (extension == ".png")
+                {
+                    return read >= 8
+                        && header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47
+                        && header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A;
+                }
+
+                if (extension == ".webp")
+                {
+                    return read >= 12
+                        && header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46
+                        && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50;
+                }
+            }
+
+            if (isVideo)
+            {
+                if (extension is ".mp4" or ".mov")
+                {
+                    return read >= 8
+                        && header[4] == 0x66 && header[5] == 0x74 && header[6] == 0x79 && header[7] == 0x70;
+                }
+
+                if (extension == ".webm")
+                {
+                    return header[0] == 0x1A && header[1] == 0x45 && header[2] == 0xDF && header[3] == 0xA3;
+                }
+            }
+
+            return false;
         }
 
         private static async Task<string> UploadStreamAsync(

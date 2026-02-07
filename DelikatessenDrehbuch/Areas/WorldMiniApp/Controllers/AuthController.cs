@@ -16,12 +16,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IUserManager _userManager;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly ApplicationDbContext _context;
-        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService, ApplicationDbContext context)
+        private readonly ILogger<AuthController> _logger;
+        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService, ApplicationDbContext context, ILogger<AuthController> logger)
         {
             _authService = authService;
             _userManager = userManager;
             _worldAppMealPlanService = worldAppMealPlanService;
             _context = context;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -53,8 +55,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                
-                return BadRequest(ex.Message);
+                _logger.LogError(ex, "VerifyAction failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ein unerwarteter Fehler ist aufgetreten.");
             }
         }
 
@@ -80,7 +82,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             await _context.SaveChangesAsync();
-            HttpContext.Session.SetString(SessionUserHashKey, request.UserHash);
 
             return Ok(new { status = user.IsVerified, rememberLogin = user.RememberLogin });
         }

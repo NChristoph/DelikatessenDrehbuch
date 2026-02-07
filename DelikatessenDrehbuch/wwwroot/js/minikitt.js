@@ -117,10 +117,14 @@ async function verifyBackend(payload) {
     try {
         log("📤 Prüfe Server...");
         const rememberLogin = getRememberLoginValue();
+        const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
         const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(antiForgeryToken ? { 'RequestVerificationToken': antiForgeryToken } : {})
+            },
             body: JSON.stringify({
                 payload,
                 action: ACTION,
