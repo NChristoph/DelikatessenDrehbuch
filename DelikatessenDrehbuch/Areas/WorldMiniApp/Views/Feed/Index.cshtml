@@ -929,6 +929,29 @@
             root.style.setProperty('--plan-text', colors.text);
         }
 
+        function resolvePlanThemeColors(theme) {
+            const key = (theme || '').toLowerCase();
+            const themeMap = {
+                color: { accent: '#2D4F1E', contrast: '#ffffff' },
+                black: { accent: '#ffffff', contrast: '#1e1e1e' },
+                white: { accent: '#1A1A1A', contrast: '#ffffff' },
+                rose: { accent: '#FFB6C1', contrast: '#1e1e1e' },
+                lavender: { accent: '#A78BFA', contrast: '#1e1e1e' }
+            };
+
+            return themeMap[key] || { accent: '#FF9966', contrast: '#1e1e1e' };
+        }
+
+        function applyPlanThemeFromProfile() {
+            const theme = localStorage.getItem('profile_theme');
+            const colors = resolvePlanThemeColors(theme);
+            const root = document.documentElement;
+            root.style.setProperty('--plan-accent', colors.accent);
+            root.style.setProperty('--plan-accent-soft', `${colors.accent}99`);
+            root.style.setProperty('--plan-accent-border', `${colors.accent}59`);
+            root.style.setProperty('--plan-accent-contrast', colors.contrast);
+        }
+
         function goToProfile() {
             const userHash = getUserHash();
             if (userHash) {
