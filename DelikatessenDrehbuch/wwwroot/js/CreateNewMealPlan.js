@@ -2,6 +2,29 @@
    CreateNewMealPlan.js
    Logik für das Laden, Ändern und Speichern von Rezepten
    =========================================================== */
+function resolveMealPlanThemeColors(theme) {
+    const themeKey = (theme || '').toLowerCase();
+    const themeMap = {
+        color: { accent: '#2D4F1E', contrast: '#ffffff' },
+        black: { accent: '#ffffff', contrast: '#1A1A1A' },
+        white: { accent: '#1A1A1A', contrast: '#ffffff' },
+        rose: { accent: '#FFB6C1', contrast: '#ffffff' },
+        lavender: { accent: '#A78BFA', contrast: '#ffffff' }
+    };
+
+    return themeMap[themeKey] || { accent: '#770f0f', contrast: '#ffffff' };
+}
+
+function applyMealPlanThemeFromProfile() {
+    const theme = localStorage.getItem('profile_theme');
+    const colors = resolveMealPlanThemeColors(theme);
+    const root = document.documentElement;
+    root.style.setProperty('--mealplan-accent', colors.accent);
+    root.style.setProperty('--mealplan-accent-soft', colors.accent);
+    root.style.setProperty('--mealplan-accent-contrast', colors.contrast);
+}
+
+document.addEventListener('DOMContentLoaded', applyMealPlanThemeFromProfile);
 function AddRecipe(button, index) {
 
     var jsonString = button.getAttribute("data-json");
@@ -392,5 +415,4 @@ function updateDayAttributes(dayIndex) {
         }
     });
 }
-
 

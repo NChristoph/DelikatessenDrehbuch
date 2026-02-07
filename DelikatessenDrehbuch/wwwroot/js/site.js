@@ -158,7 +158,7 @@ async function saveAndShareList() {
 
             // 3. Jetzt WhatsApp öffnen mit dem Link vom Server
             if (result.shareUrl) {
-                const waText = `Hier ist die Einkaufsliste: 🛒\n${result.shareUrl}`;
+                const waText = `Hier ist deine Einkaufsliste by/Avocado\n${result.shareUrl}`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, '_blank');
             }
         } else {
@@ -168,4 +168,3 @@ async function saveAndShareList() {
         console.error("Fehler:", error);
     }
 }
-

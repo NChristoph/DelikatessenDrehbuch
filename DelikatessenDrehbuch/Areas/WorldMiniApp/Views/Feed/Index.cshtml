@@ -337,15 +337,26 @@
             opacity: 1;
         }
 
+        :root {
+            --plan-accent: #FF9966;
+            --plan-accent-soft: rgba(255, 153, 102, 0.6);
+            --plan-accent-border: rgba(255, 153, 102, 0.35);
+            --plan-accent-contrast: #1e1e1e;
+        }
+
         .modal-content {
             background-color: #1e1e1e;
             color: white;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--plan-accent-border);
         }
 
         .modal-header {
             border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-title {
+            color: var(--plan-accent);
         }
 
         .btn-close { filter: invert(1); }
@@ -361,7 +372,7 @@
 
         .day-label {
             font-weight: 800;
-            color: #FF9966;
+            color: var(--plan-accent);
             margin-bottom: 12px;
             display: block;
             font-size: 1rem;
@@ -402,12 +413,12 @@
             background: rgba(255,255,255,0.15);
             color: white;
             border-style: solid;
-            border-color: #FF9966;
+            border-color: var(--plan-accent);
         }
 
         .filled-slot {
             background: #2d2d2d;
-            border-left: 4px solid #FF9966;
+            border-left: 4px solid var(--plan-accent);
             border-radius: 8px;
             padding: 0;
             display: flex;
@@ -422,7 +433,7 @@
         .filled-slot:active { transform: scale(0.98); }
 
         .replace-slot {
-            outline: 2px dashed rgba(255,153,102,0.6);
+            outline: 2px dashed var(--plan-accent-soft);
             cursor: pointer;
         }
 
@@ -442,6 +453,12 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .slot-btn.edit-slot-btn {
+            color: var(--plan-accent);
+            border: 1px solid var(--plan-accent);
+            background: rgba(0,0,0,0.25);
         }
 
         .replace-hint {
@@ -789,6 +806,29 @@
             return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
         }
 
+        function resolvePlanThemeColors(theme) {
+            const key = (theme || '').toLowerCase();
+            const themeMap = {
+                color: { accent: '#2D4F1E', contrast: '#ffffff' },
+                black: { accent: '#ffffff', contrast: '#1e1e1e' },
+                white: { accent: '#1A1A1A', contrast: '#ffffff' },
+                rose: { accent: '#FFB6C1', contrast: '#1e1e1e' },
+                lavender: { accent: '#A78BFA', contrast: '#1e1e1e' }
+            };
+
+            return themeMap[key] || { accent: '#FF9966', contrast: '#1e1e1e' };
+        }
+
+        function applyPlanThemeFromProfile() {
+            const theme = localStorage.getItem('profile_theme');
+            const colors = resolvePlanThemeColors(theme);
+            const root = document.documentElement;
+            root.style.setProperty('--plan-accent', colors.accent);
+            root.style.setProperty('--plan-accent-soft', `${colors.accent}99`);
+            root.style.setProperty('--plan-accent-border', `${colors.accent}59`);
+            root.style.setProperty('--plan-accent-contrast', colors.contrast);
+        }
+
         function goToProfile() {
             const userHash = getUserHash();
             if (userHash) {
@@ -984,6 +1024,14 @@
             return payload;
         }
 
+        function clearWeeklyPlanState() {
+            weeklyPlanData = {};
+            pendingRecipe = null;
+            editingSlotKey = null;
+            localStorage.removeItem(getDraftStorageKey());
+            renderPlan();
+        }
+
         function saveWeeklyPlan() {
             const userHash = getUserHash();
             if (!userHash) {
@@ -1000,6 +1048,7 @@
             const title = titleInput.value.trim() || "Mein Wochenplan";
             const personCount = parseInt(personCountInput.value, 10) || 1;
             const encodedData = encodeURIComponent(JSON.stringify(payload));
+            clearWeeklyPlanState();
             window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${userHash}&title=${encodeURIComponent(title)}`;
         }
 
@@ -1014,25 +1063,43 @@
             const title = titleInput.value.trim() || "Mein Wochenplan";
             const personCount = parseInt(personCountInput.value, 10) || 1;
 
-            const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mealPlanJson: JSON.stringify(payload),
-                    personCount: personCount,
-                    title: title,
-                    userHash: getUserHash()
-                })
-            });
+            try {
+                const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mealPlanJson: JSON.stringify(payload),
+                        personCount: personCount,
+                        title: title,
+                        userHash: getUserHash()
+                    })
+                });
 
-            if (!response.ok) {
+                if (!response.ok) {
+                    alert("Plan konnte nicht geteilt werden.");
+                    return;
+                }
+
+                const data = await response.json();
+                const linkInput = document.getElementById('planShareLink');
+                linkInput.value = data.shareUrl || '';
+
+                if (data.shareUrl) {
+                    try {
+                        if (navigator.share) {
+                            await navigator.share({ title: title, url: data.shareUrl });
+                        } else if (navigator.clipboard) {
+                            await navigator.clipboard.writeText(data.shareUrl);
+                            alert("Link kopiert!");
+                        }
+                    } catch (shareError) {
+                        console.warn("Teilen nicht verfügbar:", shareError);
+                    }
+                }
+            } catch (error) {
+                console.error("Teilen fehlgeschlagen:", error);
                 alert("Plan konnte nicht geteilt werden.");
-                return;
             }
-
-            const data = await response.json();
-            const linkInput = document.getElementById('planShareLink');
-            linkInput.value = data.shareUrl || '';
         }
 
         function getDraftStorageKey() {
@@ -1175,6 +1242,7 @@
             document.removeEventListener('click', unlockAudio);
         }
         document.addEventListener('click', unlockAudio);
+        document.addEventListener('DOMContentLoaded', applyPlanThemeFromProfile);
         document.addEventListener('DOMContentLoaded', loadDraft);
 
         const observer = new IntersectionObserver((entries) => {
