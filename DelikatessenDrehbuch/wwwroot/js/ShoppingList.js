@@ -56,7 +56,7 @@ function CreateShoppingList() {
 document.getElementById("shareBtn").addEventListener("click", async () => {
     const shareData = {
         title: "Meine Einkaufsliste",
-        text: "Hier ist der Link zu deiner Einkaufsliste:",
+        text: "Hier ist deine Einkaufsliste by/Avocado",
         url: shareUrl
     };
 

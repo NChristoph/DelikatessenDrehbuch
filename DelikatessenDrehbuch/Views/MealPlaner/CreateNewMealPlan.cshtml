@@ -17,6 +17,37 @@
     /* ===========================
                Delikatessen Styles - Final
                =========================== */
+    :root {
+        --mealplan-accent: #770f0f;
+        --mealplan-accent-soft: #D4AF37;
+        --mealplan-accent-contrast: #fff;
+        --mealplan-cream: #FEFFF2;
+        --deli-cream: var(--mealplan-cream);
+    }
+
+    .mealplan-accent-text {
+        color: var(--mealplan-accent);
+    }
+
+    .mealplan-accent-bg {
+        background-color: var(--mealplan-accent);
+        color: var(--mealplan-accent-contrast);
+    }
+
+    .mealplan-accent-border {
+        border-color: var(--mealplan-accent);
+    }
+
+    .mealplan-accent-outline {
+        color: var(--mealplan-accent);
+        border-color: var(--mealplan-accent);
+        background-color: transparent;
+    }
+
+        .mealplan-accent-outline:hover {
+            background-color: var(--mealplan-accent);
+            color: var(--mealplan-accent-contrast);
+        }
 
     /* --- Hauptbereich (Links) --- */
     .day-container {
@@ -34,13 +65,13 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
-        border-bottom: 2px solid #FEFFF2;
+        border-bottom: 2px solid var(--mealplan-cream);
         padding-bottom: 0.5rem;
     }
 
     .day-title {
         font-family: 'Playfair Display', serif;
-        color: #770f0f; /* Dunkelrot */
+        color: var(--mealplan-accent);
         font-weight: 700;
         font-size: 1.5rem;
         margin: 0;
@@ -60,16 +91,16 @@
     }
 
         .nav-pills .nav-link.active {
-            background-color: #770f0f;
-            color: #fff;
-            border-color: #770f0f;
+            background-color: var(--mealplan-accent);
+            color: var(--mealplan-accent-contrast);
+            border-color: var(--mealplan-accent);
             box-shadow: 0 4px 10px rgba(119, 15, 15, 0.3);
         }
 
         .nav-pills .nav-link:hover:not(.active) {
             background-color: #fcfcfc;
-            border-color: #D4AF37;
-            color: #D4AF37;
+            border-color: var(--mealplan-accent);
+            color: var(--mealplan-accent);
         }
 
     /* --- Große Karte (Tab Content) --- */
@@ -141,8 +172,8 @@
 
     .btn-change {
         background-color: #fff;
-        color: #770f0f;
-        border: 1px solid #770f0f;
+        color: var(--mealplan-accent);
+        border: 1px solid var(--mealplan-accent);
         padding: 0.4rem 1.2rem;
         border-radius: 2rem;
         font-weight: 600;
@@ -151,8 +182,8 @@
     }
 
         .btn-change:hover {
-            background-color: #770f0f;
-            color: #fff;
+            background-color: var(--mealplan-accent);
+            color: var(--mealplan-accent-contrast);
         }
 
     /* Empty State */
@@ -175,7 +206,7 @@
         position: sticky;
         top: 20px;
         background: #fff;
-        border: 1px solid #D4AF37;
+        border: 1px solid var(--mealplan-accent-soft);
         border-radius: 1rem;
         padding: 1.5rem;
         box-shadow: 0 10px 30px rgba(0,0,0,0.08);
@@ -206,7 +237,7 @@
     .ov-cat {
         font-size: 0.65rem;
         text-transform: uppercase;
-        color: #D4AF37;
+        color: var(--mealplan-accent-soft);
         font-weight: 700;
         display: block;
         margin-bottom: 2px;
@@ -230,8 +261,8 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         padding: 12px 20px;
         font-weight: 700;
-        background-color: #D4AF37;
-        color: #fff;
+        background-color: var(--mealplan-accent);
+        color: var(--mealplan-accent-contrast);
         border: none;
         display: none; /* Standard aus */
     }
@@ -254,7 +285,7 @@
 
 <div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100"  tabindex="-1" style="min-width:50%" id="offcanvasDay_Hauptspeise">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Hauptspeise</h5>
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text" style="font-family:'Playfair Display'">Hauptspeise</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
 
@@ -266,7 +297,7 @@
 
 <div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100" tabindex="-1" style="min-width:50%" id="offcanvasDay_Dessert">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Dessert</h5>
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text" style="font-family:'Playfair Display'">Dessert</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
 
@@ -277,7 +308,7 @@
 
 <div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100" tabindex="-1" style="min-width:50%" id="offcanvasDay_Vorspeise">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Vorspeise</h5>
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text" style="font-family:'Playfair Display'">Vorspeise</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
 
@@ -290,7 +321,7 @@
 
 <div class="container mb-4">
     <div class="card p-4 border-0 shadow-sm text-center bg-light">
-        <h5 class="fw-bold text-danger mb-2">Schritt 2: Dein Plan</h5>
+        <h5 class="fw-bold mealplan-accent-text mb-2">Schritt 2: Dein Plan</h5>
         <p class="text-muted m-0">Passe jeden Gang individuell an oder verschiebe Tage über die Seitenleiste.</p>
     </div>
 </div>
@@ -358,7 +389,7 @@
 
         <div class="col-lg-4 desktop-sidebar">
             <div class="overview-sidebar">
-                <h5 class="text-danger fw-bold mb-4 text-center"><i class="bi bi-calendar-check"></i> Wochen-Check</h5>
+                <h5 class="mealplan-accent-text fw-bold mb-4 text-center"><i class="bi bi-calendar-check"></i> Wochen-Check</h5>
 
                 @foreach (var day in groupedPerDays)
                 {
@@ -410,7 +441,7 @@
 
 <div class="offcanvas offcanvas-end offcanvas-overview" tabindex="-1" id="overviewOffcanvas">
     <div class="offcanvas-header bg-light border-bottom">
-        <h5 class="offcanvas-title fw-bold text-danger">Wochen-Übersicht</h5>
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text">Wochen-Übersicht</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">
@@ -498,25 +529,31 @@
                         {
                             <p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">@Html.Raw(slot.Recipes.Description)</p>
                         }
-                        <div class="meal-actions">
-                            <button class="btn btn-change mb-1"
-                                    data-name="@namePrefix" data-index="@dayIndex" data-id="@recipeId" data-category="@category"
-                                    onclick="ChangeOrAddRecipe(this)">
-                                <i class="bi bi-arrow-repeat me-1"></i> Ändern
-                            </button>
+                    <div class="meal-actions">
+                        <button class="btn btn-change mb-1"
+                                data-name="@namePrefix" data-index="@dayIndex" data-id="@recipeId" data-category="@category"
+                                onclick="ChangeOrAddRecipe(this)">
+                            <i class="bi bi-arrow-repeat me-1"></i> Ändern
+                        </button>
 
-                             <button class="btn btn-change"
-                                    data-name="@namePrefix"
-                                    data-bs-toggle="offcanvas"
-                                    data-bs-target="#offcanvasDay_@category" 
-                                    data-index="@dayIndex" 
-                                    data-id="@recipeId" 
-                                    data-category="@category"
-                                    onclick="GetOptionalRecipe(this)">
-                                <i class="bi bi-search me-1"></i> Ersetzen durch...
-                            </button>
+                         <button class="btn btn-change"
+                                data-name="@namePrefix"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#offcanvasDay_@category" 
+                                data-index="@dayIndex" 
+                                data-id="@recipeId" 
+                                data-category="@category"
+                                onclick="GetOptionalRecipe(this)">
+                            <i class="bi bi-search me-1"></i> Ersetzen durch...
+                        </button>
 
-                           
+                        <button class="btn btn-change"
+                                data-name="@namePrefix"
+                                data-index="@dayIndex"
+                                data-category="@category"
+                                onclick="ClearMealSlot(this)">
+                            <i class="bi bi-x-circle me-1"></i> Leeren
+                        </button>
 
 
                         </div>
@@ -527,7 +564,7 @@
                     <div class="empty-state">
                         <i class="bi bi-plus-circle display-1 mb-3 text-secondary opacity-25"></i>
                         <h5 class="text-muted">Kein Gericht</h5>
-                        <button class="btn btn-sm btn-warning text-white mt-2"
+                        <button class="btn btn-sm mealplan-accent-bg mt-2"
                                 data-name="@namePrefix" data-index="@dayIndex" data-id="0" data-category="@category"
                                 onclick="ChangeOrAddRecipe(this)">
                             + Hinzufügen

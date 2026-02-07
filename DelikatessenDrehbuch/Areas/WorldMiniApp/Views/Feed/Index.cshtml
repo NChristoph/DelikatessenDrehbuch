@@ -337,15 +337,30 @@
             opacity: 1;
         }
 
+        :root {
+            --plan-accent: #FF9966;
+            --plan-accent-soft: rgba(255, 153, 102, 0.6);
+            --plan-accent-border: rgba(255, 153, 102, 0.35);
+            --plan-accent-contrast: #1e1e1e;
+            --plan-bg: #121212;
+            --plan-surface: #1e1e1e;
+            --plan-tile: #2d2d2d;
+            --plan-text: #ffffff;
+        }
+
         .modal-content {
-            background-color: #1e1e1e;
-            color: white;
+            background-color: var(--plan-surface);
+            color: var(--plan-text);
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--plan-accent-border);
         }
 
         .modal-header {
             border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-title {
+            color: var(--plan-accent);
         }
 
         .btn-close { filter: invert(1); }
@@ -354,14 +369,14 @@
             margin-bottom: 20px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 20px;
-            background: rgba(255,255,255,0.02);
+            background: var(--plan-bg);
             border-radius: 14px;
             padding: 14px;
         }
 
         .day-label {
             font-weight: 800;
-            color: #FF9966;
+            color: var(--plan-accent);
             margin-bottom: 12px;
             display: block;
             font-size: 1rem;
@@ -383,9 +398,9 @@
 
         /* --- UPDATED: GRÖSSERE SLOTS (85px) --- */
         .meal-slot-btn {
-            background: rgba(255,255,255,0.08);
-            border: 1px dashed rgba(255,255,255,0.2);
-            color: rgba(255,255,255,0.5);
+            background: var(--plan-surface);
+            border: 1px dashed var(--plan-accent-border);
+            color: var(--plan-text);
             height: 85px; /* HIER GEÄNDERT */
             border-radius: 12px;
             font-size: 0.9rem;
@@ -399,15 +414,15 @@
         }
 
         .meal-slot-btn:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
+            background: var(--plan-surface);
+            color: var(--plan-text);
             border-style: solid;
-            border-color: #FF9966;
+            border-color: var(--plan-accent);
         }
 
         .filled-slot {
-            background: #2d2d2d;
-            border-left: 4px solid #FF9966;
+            background: var(--plan-tile);
+            border-left: 4px solid var(--plan-accent);
             border-radius: 8px;
             padding: 0;
             display: flex;
@@ -422,7 +437,7 @@
         .filled-slot:active { transform: scale(0.98); }
 
         .replace-slot {
-            outline: 2px dashed rgba(255,153,102,0.6);
+            outline: 2px dashed var(--plan-accent-soft);
             cursor: pointer;
         }
 
@@ -434,14 +449,20 @@
 
         .slot-btn {
             border: none;
-            background: rgba(255,255,255,0.1);
-            color: white;
+            background: rgba(0,0,0,0.15);
+            color: var(--plan-text);
             width: 28px;
             height: 28px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .slot-btn.edit-slot-btn {
+            color: var(--plan-accent);
+            border: 1px solid var(--plan-accent);
+            background: rgba(0,0,0,0.25);
         }
 
         .replace-hint {
@@ -454,14 +475,14 @@
 
         .plan-tools .form-control,
         .shopping-share .form-control {
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: white;
+            background: var(--plan-surface);
+            border: 1px solid var(--plan-accent-border);
+            color: var(--plan-text);
         }
 
         .plan-tools .form-label,
         .shopping-share .form-label {
-            color: rgba(255,255,255,0.65);
+            color: var(--plan-text);
         }
 
         .mini-img {
@@ -486,14 +507,15 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: white;
+            color: var(--plan-text);
             line-height: 1.2;
             margin-bottom: 2px;
         }
 
         .mini-type {
             font-size: 0.65rem;
-            color: #aaa;
+            color: var(--plan-text);
+            opacity: 0.6;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -685,11 +707,11 @@
                     <div class="plan-tools mb-3">
                         <div class="row g-2">
                             <div class="col-7">
-                                <label class="form-label small text-muted mb-1">Plan-Name</label>
+                                <label class="form-label small mb-1">Plan-Name</label>
                                 <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
                             </div>
                             <div class="col-5">
-                                <label class="form-label small text-muted mb-1">Personen</label>
+                                <label class="form-label small mb-1">Personen</label>
                                 <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
                             </div>
                         </div>
@@ -697,6 +719,7 @@
                             <button type="button" class="btn btn-dark btn-sm flex-grow-1" onclick="saveWeeklyPlan()">Plan speichern</button>
                             <button type="button" class="btn btn-outline-light btn-sm flex-grow-1" onclick="shareWeeklyPlan()">Plan teilen</button>
                         </div>
+                        <button type="button" class="btn btn-outline-light btn-sm w-100 mt-2" onclick="clearWeeklyPlanState()">Plan leeren</button>
                         <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
                     </div>
                     <div id="addingModeHeader" style="display:none;">
@@ -787,6 +810,75 @@
 
         function getUserHash() {
             return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+        }
+
+        function resolvePlanThemeColors(theme) {
+            const key = (theme || '').toLowerCase();
+            const themeMap = {
+                color: {
+                    accent: '#2D4F1E',
+                    contrast: '#ffffff',
+                    bg: '#F8FAF7',
+                    surface: '#FFFFFF',
+                    tile: '#F0F4EF',
+                    text: '#1A1A1A'
+                },
+                black: {
+                    accent: '#ffffff',
+                    contrast: '#1e1e1e',
+                    bg: '#000000',
+                    surface: '#111111',
+                    tile: '#1b1b1b',
+                    text: '#ffffff'
+                },
+                white: {
+                    accent: '#1A1A1A',
+                    contrast: '#ffffff',
+                    bg: '#ffffff',
+                    surface: '#f7f7f7',
+                    tile: '#f0f0f0',
+                    text: '#1A1A1A'
+                },
+                rose: {
+                    accent: '#FFB6C1',
+                    contrast: '#852D3E',
+                    bg: '#FFF5F7',
+                    surface: '#FFFFFF',
+                    tile: '#FEE2E7',
+                    text: '#852D3E'
+                },
+                lavender: {
+                    accent: '#A78BFA',
+                    contrast: '#4B3D8A',
+                    bg: '#F3F0FF',
+                    surface: '#FFFFFF',
+                    tile: '#EBE4FF',
+                    text: '#4B3D8A'
+                }
+            };
+
+            return themeMap[key] || {
+                accent: '#FF9966',
+                contrast: '#1e1e1e',
+                bg: '#121212',
+                surface: '#1e1e1e',
+                tile: '#2d2d2d',
+                text: '#ffffff'
+            };
+        }
+
+        function applyPlanThemeFromProfile() {
+            const theme = localStorage.getItem('profile_theme');
+            const colors = resolvePlanThemeColors(theme);
+            const root = document.documentElement;
+            root.style.setProperty('--plan-accent', colors.accent);
+            root.style.setProperty('--plan-accent-soft', `${colors.accent}99`);
+            root.style.setProperty('--plan-accent-border', `${colors.accent}59`);
+            root.style.setProperty('--plan-accent-contrast', colors.contrast);
+            root.style.setProperty('--plan-bg', colors.bg);
+            root.style.setProperty('--plan-surface', colors.surface);
+            root.style.setProperty('--plan-tile', colors.tile);
+            root.style.setProperty('--plan-text', colors.text);
         }
 
         function goToProfile() {
@@ -984,6 +1076,18 @@
             return payload;
         }
 
+        function clearWeeklyPlanState() {
+            weeklyPlanData = {};
+            pendingRecipe = null;
+            editingSlotKey = null;
+            localStorage.removeItem(getDraftStorageKey());
+            const linkInput = document.getElementById('planShareLink');
+            if (linkInput) {
+                linkInput.value = '';
+            }
+            renderPlan();
+        }
+
         function saveWeeklyPlan() {
             const userHash = getUserHash();
             if (!userHash) {
@@ -1000,6 +1104,7 @@
             const title = titleInput.value.trim() || "Mein Wochenplan";
             const personCount = parseInt(personCountInput.value, 10) || 1;
             const encodedData = encodeURIComponent(JSON.stringify(payload));
+            clearWeeklyPlanState();
             window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${userHash}&title=${encodeURIComponent(title)}`;
         }
 
@@ -1014,25 +1119,46 @@
             const title = titleInput.value.trim() || "Mein Wochenplan";
             const personCount = parseInt(personCountInput.value, 10) || 1;
 
-            const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mealPlanJson: JSON.stringify(payload),
-                    personCount: personCount,
-                    title: title,
-                    userHash: getUserHash()
-                })
-            });
+            try {
+                const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mealPlanJson: JSON.stringify(payload),
+                        personCount: personCount,
+                        title: title,
+                        userHash: getUserHash()
+                    })
+                });
 
-            if (!response.ok) {
+                if (!response.ok) {
+                    alert("Plan konnte nicht geteilt werden.");
+                    return;
+                }
+
+                const data = await response.json();
+                const linkInput = document.getElementById('planShareLink');
+                linkInput.value = data.shareUrl || '';
+
+                if (!data.shareUrl) {
+                    alert("Teilen fehlgeschlagen: Kein Link erhalten.");
+                    return;
+                }
+
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: title, url: data.shareUrl });
+                    } else if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(data.shareUrl);
+                        alert("Link kopiert!");
+                    }
+                } catch (shareError) {
+                    console.warn("Teilen nicht verfügbar:", shareError);
+                }
+            } catch (error) {
+                console.error("Teilen fehlgeschlagen:", error);
                 alert("Plan konnte nicht geteilt werden.");
-                return;
             }
-
-            const data = await response.json();
-            const linkInput = document.getElementById('planShareLink');
-            linkInput.value = data.shareUrl || '';
         }
 
         function getDraftStorageKey() {
@@ -1175,6 +1301,7 @@
             document.removeEventListener('click', unlockAudio);
         }
         document.addEventListener('click', unlockAudio);
+        document.addEventListener('DOMContentLoaded', applyPlanThemeFromProfile);
         document.addEventListener('DOMContentLoaded', loadDraft);
 
         const observer = new IntersectionObserver((entries) => {
