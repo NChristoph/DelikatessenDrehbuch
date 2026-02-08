@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Feed";
     Layout = null;
+
     var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
     string T(string de, string en, string es, string pt) => language switch
     {
@@ -118,31 +119,6 @@
             font-size: 1.2rem;
         }
 
-        .unmute-hint {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-            z-index: 50;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: pulse 2s infinite;
-        }
-
-        @@keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.05); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-
         .info-container {
             position: absolute;
             bottom: 100px;
@@ -154,7 +130,9 @@
             pointer-events: none;
         }
 
-        .info-container * { pointer-events: auto; }
+            .info-container * {
+                pointer-events: auto;
+            }
 
         .chef-badge {
             display: inline-flex;
@@ -168,14 +146,6 @@
             margin-bottom: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             max-width: fit-content;
-        }
-
-        .chef-badge img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 8px;
-            object-fit: cover;
         }
 
         .chef-name {
@@ -204,7 +174,9 @@
             transition: transform 0.2s;
         }
 
-        .follow-btn:active { transform: scale(0.9); }
+            .follow-btn:active {
+                transform: scale(0.9);
+            }
 
         .recipe-title {
             font-size: 1.8rem;
@@ -242,7 +214,9 @@
             transition: transform 0.1s;
         }
 
-        .action-btn:active { transform: scale(0.9); }
+            .action-btn:active {
+                transform: scale(0.9);
+            }
 
         .icon-circle {
             width: 52px;
@@ -332,91 +306,131 @@
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
         }
 
-        .double-tap-heart.animate {
-            transform: translate(-50%, -50%) scale(1.2);
-            opacity: 1;
-        }
+            .double-tap-heart.animate {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
 
+        /* ------------ PLAN MODAL (clean, social) ------------ */
         :root {
             --plan-accent: #FF9966;
-            --plan-accent-soft: rgba(255, 153, 102, 0.6);
             --plan-accent-border: rgba(255, 153, 102, 0.35);
-            --plan-accent-contrast: #1e1e1e;
-            --plan-bg: #121212;
-            --plan-surface: #1e1e1e;
-            --plan-tile: #2d2d2d;
+            --plan-surface: rgba(18,18,18, 0.94);
             --plan-text: #ffffff;
         }
 
+        .modal-dialog {
+            max-width: 520px;
+        }
+
         .modal-content {
-            background-color: var(--plan-surface);
+            background: radial-gradient(1200px 800px at 10% 0%, rgba(255,153,102,0.12), transparent 60%), radial-gradient(900px 600px at 90% 20%, rgba(255,94,98,0.14), transparent 60%), var(--plan-surface);
             color: var(--plan-text);
-            border-radius: 20px;
-            border: 1px solid var(--plan-accent-border);
+            border-radius: 26px;
+            border: 1px solid rgba(255,255,255,0.10);
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(0,0,0,0.55);
         }
 
         .modal-header {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 14px 16px;
+            background: rgba(0,0,0,0.22);
+            backdrop-filter: blur(14px);
         }
 
         .modal-title {
             color: var(--plan-accent);
+            font-weight: 900;
+            letter-spacing: 0.3px;
         }
 
-        .btn-close { filter: invert(1); }
+        .btn-close {
+            filter: invert(1);
+            opacity: 0.9;
+        }
+
+        #planModal .modal-body {
+            position: relative;
+            padding-top: 12px;
+        }
+
+        .plan-tools {
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            padding: 12px;
+            border-radius: 18px;
+            background: rgba(0,0,0,0.58);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+            transition: transform 220ms ease, opacity 220ms ease;
+            will-change: transform, opacity;
+            margin-bottom: 12px;
+        }
+
+            .plan-tools.is-hidden {
+                transform: translateY(-115%);
+                opacity: 0.15;
+                pointer-events: none;
+            }
 
         .plan-btn-primary {
-            background: var(--plan-accent);
-            border: 1px solid var(--plan-accent);
-            color: var(--plan-accent-contrast);
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            border: none;
+            color: #111;
+            font-weight: 900;
+            border-radius: 14px;
+        }
+
+        .plan-btn-outline {
+            border: 1px solid rgba(255,153,102,0.85);
+            color: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.06);
+            font-weight: 800;
+            border-radius: 14px;
+        }
+
+        .plan-btn-secondary {
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.06);
+            font-weight: 800;
+            border-radius: 14px;
+        }
+
+        .plan-tools .form-control {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.10);
+            color: var(--plan-text);
+        }
+
+            .plan-tools .form-control::placeholder {
+                color: rgba(255,255,255,0.45);
+            }
+
+        .plan-tools .form-label {
+            color: rgba(255,255,255,0.92);
             font-weight: 700;
         }
 
-            .plan-btn-primary:hover {
-                opacity: 0.92;
-                color: var(--plan-accent-contrast);
-            }
-
-        .plan-btn-outline {
-            border: 1px solid var(--plan-accent);
-            color: var(--plan-accent);
-            background: transparent;
-            font-weight: 600;
-        }
-
-            .plan-btn-outline:hover {
-                background: var(--plan-accent);
-                color: var(--plan-accent-contrast);
-            }
-
-        .plan-btn-secondary {
-            border: 1px solid var(--plan-accent-border);
-            color: var(--plan-text);
-            background: var(--plan-surface);
-        }
-
-        .plan-text-muted {
-            color: var(--plan-text);
-            opacity: 0.7;
-        }
-
         .plan-day-row {
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 20px;
-            background: var(--plan-bg);
-            border-radius: 14px;
-            padding: 14px;
+            margin-top: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.18);
+            border-radius: 18px;
+            padding: 12px;
         }
 
         .day-label {
-            font-weight: 800;
+            font-weight: 950;
             color: var(--plan-accent);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: block;
-            font-size: 1rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
         }
 
         .slot-container {
@@ -431,183 +445,130 @@
             }
         }
 
-        /* --- UPDATED: GRÖSSERE SLOTS (85px) --- */
         .meal-slot-btn {
-            background: var(--plan-surface);
-            border: 1px dashed var(--plan-accent-border);
-            color: var(--plan-text);
-            height: 85px; /* HIER GEÄNDERT */
-            border-radius: 12px;
-            font-size: 0.9rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px dashed rgba(255,153,102,0.35);
+            color: rgba(255,255,255,0.9);
+            height: 112px;
+            border-radius: 16px;
+            font-size: 0.85rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.18s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 500;
-        }
-
-        .meal-slot-btn:hover {
-            background: var(--plan-surface);
-            color: var(--plan-text);
-            border-style: solid;
-            border-color: var(--plan-accent);
+            font-weight: 800;
+            position: relative;
+            overflow: hidden;
+            opacity: 0.55;
         }
 
         .filled-slot {
-            background: var(--plan-tile);
-            border-left: 4px solid var(--plan-accent);
-            border-radius: 8px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            height: 85px; /* HIER GEÄNDERT */
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            height: 112px;
             overflow: hidden;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.35);
             position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            display: grid;
+            grid-template-columns: 78px 1fr;
+            align-items: stretch;
         }
 
-        .filled-slot:active { transform: scale(0.98); }
-
         .replace-slot {
-            outline: 2px dashed var(--plan-accent-soft);
+            outline: 2px dashed rgba(255,153,102,0.55);
             cursor: pointer;
         }
 
+        .mini-img {
+            width: 78px;
+            height: 112px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mini-content {
+            padding: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .mini-title {
+            font-size: 0.92rem;
+            font-weight: 950;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: rgba(255,255,255,0.98);
+            line-height: 1.2;
+        }
+
+        .mini-type {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.70);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 800;
+        }
+
         .slot-actions {
+            position: absolute;
+            right: 8px;
+            top: 8px;
             display: flex;
             gap: 6px;
-            padding-right: 8px;
+            z-index: 2;
         }
 
         .slot-btn {
             border: none;
-            background: rgba(0,0,0,0.15);
-            color: var(--plan-text);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+            background: rgba(0,0,0,0.35);
+            color: rgba(255,255,255,0.92);
+            width: 30px;
+            height: 30px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
-        .slot-btn.edit-slot-btn {
-            color: var(--plan-accent);
-            border: 1px solid var(--plan-accent);
-            background: rgba(0,0,0,0.25);
-        }
+            .slot-btn.edit-slot-btn {
+                color: #111;
+                background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+                font-weight: 900;
+            }
+
+            .slot-btn.delete-slot-btn {
+                background: rgba(255, 94, 98, 0.18);
+                color: rgba(255,255,255,0.95);
+            }
 
         .replace-hint {
             position: absolute;
             right: 10px;
-            bottom: 6px;
-            font-size: 0.7rem;
-            color: rgba(255,255,255,0.6);
+            bottom: 8px;
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.70);
+            background: rgba(0,0,0,0.30);
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.10);
         }
 
-        .plan-tools .form-control,
-        .shopping-share .form-control {
-            background: var(--plan-surface);
-            border: 1px solid var(--plan-accent-border);
-            color: var(--plan-text);
+        .plan-text-muted {
+            color: rgba(255,255,255,0.75);
         }
 
-        .plan-tools .form-label,
-        .shopping-share .form-label {
-            color: var(--plan-text);
-        }
-
-        #searchModal .modal-content {
-            background: var(--plan-surface);
-            color: var(--plan-text);
-            border: 1px solid var(--plan-accent-border);
-        }
-
-        #searchModal .btn-close {
-            filter: none;
-        }
-
-        .mini-img {
-            width: 85px; /* HIER GEÄNDERT */
-            height: 100%;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .mini-content {
-            padding: 0 8px;
-            flex-grow: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .mini-title {
-            font-size: 1rem; /* Lesbarer */
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--plan-text);
-            line-height: 1.2;
-            margin-bottom: 2px;
-        }
-
-        .mini-type {
-            font-size: 0.65rem;
-            color: var(--plan-text);
-            opacity: 0.6;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .delete-slot-btn {
-            background: transparent;
-            color: #ff5e62;
-            border: none;
-            width: 30px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            cursor: pointer;
-            flex-shrink: 0;
-            border-left: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .delete-slot-btn:hover {
-            background: rgba(255, 94, 98, 0.2);
-        }
-
-        .adding-mode-info {
-            background: linear-gradient(135deg, rgba(255, 153, 102, 0.2) 0%, rgba(255, 94, 98, 0.2) 100%);
-            border: 1px solid #FF9966;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .adding-thumb-container {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: #000;
-        }
-
-        .adding-thumb {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .shopping-share textarea {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.10);
+            color: rgba(255,255,255,0.92);
+            border-radius: 16px;
         }
     </style>
 </head>
@@ -615,25 +576,17 @@
     @Html.AntiForgeryToken()
 
     <div class="feed-container" id="feedContainer">
-
-     
-
         @foreach (var item in Model)
         {
-          
             bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
-          
             string thumbOrSource = !string.IsNullOrEmpty(item.ThumbnailUrl) ? item.ThumbnailUrl : item.Source;
 
             <div class="feed-item" data-id="@item.Recipe.Id">
-                
                 @if (isVideo)
                 {
-                   
                     <video class="feed-media" playsinline loop muted preload="metadata" poster="@thumbOrSource">
                         <source src="@item.Source" type="video/mp4">
                     </video>
-                    
                     <i class="bi bi-play-fill play-icon-overlay"></i>
                     <div class="sound-toggle" onclick="toggleGlobalSound(this)">
                         <i class="bi bi-volume-mute-fill"></i>
@@ -641,7 +594,6 @@
                 }
                 else
                 {
-                    
                     <img class="feed-media" src="@item.Source" alt="@item.Recipe.Title" loading="lazy">
                 }
 
@@ -653,11 +605,11 @@
                         <span class="chef-icon">🥑</span>
                         <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
                         <div class="separator"></div>
-
-                        <button class="follow-btn" onclick="toggleFollow(this, '@item?.CreatorId')">
+                        <button class="follow-btn" onclick="toggleFollow(event, this, '@item?.CreatorId')">
                             <i class="bi bi-person-plus-fill"></i>
                         </button>
                     </div>
+
                     <h2 class="recipe-title">@item.Recipe.Title</h2>
                     <div class="recipe-meta">⏱️ @item.Recipe.PreperationTime Min</div>
                 </div>
@@ -667,12 +619,12 @@
                         <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                         <span class="action-label">124</span>
                     </div>
-                    
+
                     <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
                         <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                         <span class="action-label">Planen</span>
                     </div>
-                    
+
                     <div class="action-btn">
                         <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none">
                             <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
@@ -681,43 +633,6 @@
                 </div>
             </div>
         }
-
-        <div class="feed-item" data-id="99">
-            <video class="feed-media" playsinline loop muted preload="metadata" poster="https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg">
-                <source src="https://videos.pexels.com/video-files/3196238/3196238-uhd_2560_1440_25fps.mp4" type="video/mp4">
-            </video>
-            <div class="overlay-gradient"></div>
-            <i class="bi bi-play-fill play-icon-overlay"></i>
-            <div class="sound-toggle" onclick="toggleGlobalSound(this)"><i class="bi bi-volume-mute-fill"></i></div>
-            <i class="bi bi-heart-fill double-tap-heart"></i>
-
-            <div class="info-container">
-                <div class="chef-badge">
-                    <img src="https://ui-avatars.com/api/?name=Chef+Mario&background=random">
-                    <span class="chef-name">ChefMario</span>
-                    <div class="separator"></div>
-                    <button class="follow-btn" onclick="toggleFollow(this, '998')"><i class="bi bi-person-plus-fill"></i></button>
-                </div>
-                <h2 class="recipe-title">Echte Carbonara 🍝</h2>
-                <div class="recipe-meta">Mittel • ⏱️ 20 Min</div>
-            </div>
-
-            <div class="action-bar">
-                <div class="action-btn heart-btn">
-                    <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
-                    <span class="action-label">12k</span>
-                </div>
-                <div class="action-btn" onclick="openPlanModal('Echte Carbonara 🍝', 'https://images.pexels.com/photos/1256875/pexels-photo-1256875.jpeg', '0')">
-                    <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
-                    <span class="action-label">Planen</span>
-                </div>
-                <div class="action-btn">
-                    <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
-                    <span class="action-label">Rezept</span>
-                </div>
-            </div>
-        </div>
-
         <div id="feedContent"></div>
     </div>
 
@@ -741,15 +656,17 @@
         </div>
     </div>
 
+    <!-- PLAN MODAL -->
     <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Wochenplaner</h5>
+                    <h5 class="modal-title mb-0">Wochenplaner</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="plan-tools mb-3">
+
+                <div class="modal-body" id="planModalBody">
+                    <div class="plan-tools" id="planTools">
                         <div class="row g-2">
                             <div class="col-7">
                                 <label class="form-label small mb-1">Plan-Name</label>
@@ -760,38 +677,46 @@
                                 <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
                             </div>
                         </div>
+
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">Plan speichern</button>
-                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">Plan teilen</button>
+                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
+                                <i class="bi bi-check2-circle me-1"></i> Plan speichern
+                            </button>
+                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">
+                                <i class="bi bi-share me-1"></i> Plan teilen
+                            </button>
                         </div>
-                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">Plan leeren</button>
-                        <button type="button" class="btn plan-btn-outline btn-sm w-100 mt-2" data-bs-dismiss="modal">Modal schließen</button>
+
+                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">
+                            <i class="bi bi-trash3 me-1"></i> Plan leeren
+                        </button>
+
                         <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
                     </div>
+
                     <div id="addingModeHeader" style="display:none;">
-                        <div class="adding-mode-info">
-                            <div class="adding-thumb-container">
-                                <img id="addingPreviewImg" class="adding-thumb" src="" style="display:none;">
-                                <video id="addingPreviewVideo" class="adding-thumb" src="" muted playsinline style="display:none; object-fit:cover;"></video>
-                            </div>
-                            <div>
-                                <small class="plan-text-muted d-block" style="font-size:0.7rem;">Hinzufügen:</small>
-                                <span id="addingPreviewTitle" class="fw-bold" style="font-size:0.9rem;"></span>
-                            </div>
-                        </div>
-                        <p class="plan-text-muted small mb-4 text-center">Tippe auf einen freien Slot 👇</p>
+                        <div class="plan-text-muted small text-center mb-2">Tippe auf einen Slot 👇</div>
                     </div>
-                    <div id="viewModeHeader" class="plan-text-muted small mb-4 text-center">
+
+                    <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
                         Dein aktueller Plan für die Woche
                     </div>
+
                     <div id="planContainer"></div>
+
                     <div class="shopping-share mt-3">
                         <label class="form-label small">Einkaufsliste bearbeiten & teilen</label>
-                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="prepareShoppingList()">Einkaufsliste laden</button>
+                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="prepareShoppingList()">
+                            <i class="bi bi-basket3 me-1"></i> Einkaufsliste laden
+                        </button>
                         <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..."></textarea>
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="generateShareLink()">Link erstellen</button>
-                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="copyShareLink()">Link kopieren</button>
+                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="generateShareLink()">
+                                <i class="bi bi-link-45deg me-1"></i> Link erstellen
+                            </button>
+                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="copyShareLink()">
+                                <i class="bi bi-clipboard-check me-1"></i> Link kopieren
+                            </button>
                         </div>
                         <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
                     </div>
@@ -800,6 +725,7 @@
         </div>
     </div>
 
+    <!-- SEARCH MODAL -->
     <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -813,7 +739,8 @@
                         <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
                         <div class="mb-3">
                             <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
-                            <input type="text" name="searchTerm" class="form-control" placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
+                            <input type="text" name="searchTerm" class="form-control"
+                                   placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
@@ -837,22 +764,16 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            // Die ID aus dem Controller holen (wird von Razor hier reingeschrieben)
-            const scrollToId = '@ViewData["ScrollToId"]';
-
-            if (scrollToId && scrollToId !== "0" && scrollToId !== "") {
-                // Das Video-Element suchen
-                const targetElement = document.querySelector(`.feed-item[data-id="${scrollToId}"]`);
-
-                if (targetElement) {
-                    // Sofort hinspringen (behavior: 'auto' ist wichtig, damit es nicht langsam hinscrollt)
-                    targetElement.scrollIntoView({ behavior: 'auto', block: 'start' });
-                }
-            }
-        });
-
+        // ----------------- helpers -----------------
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
 
         function getUserHash() {
             const stored = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
@@ -860,251 +781,113 @@
             return stored || fallback;
         }
 
-        function resolvePlanThemeColors(theme) {
-            const key = (theme || '').toLowerCase();
-            const themeMap = {
-                color: {
-                    accent: '#2D4F1E',
-                    contrast: '#ffffff',
-                    bg: '#F8FAF7',
-                    surface: '#FFFFFF',
-                    tile: '#F0F4EF',
-                    text: '#1A1A1A'
-                },
-                black: {
-                    accent: '#ffffff',
-                    contrast: '#1e1e1e',
-                    bg: '#000000',
-                    surface: '#111111',
-                    tile: '#1b1b1b',
-                    text: '#ffffff'
-                },
-                white: {
-                    accent: '#1A1A1A',
-                    contrast: '#ffffff',
-                    bg: '#ffffff',
-                    surface: '#f7f7f7',
-                    tile: '#f0f0f0',
-                    text: '#1A1A1A'
-                },
-                rose: {
-                    accent: '#FFB6C1',
-                    contrast: '#852D3E',
-                    bg: '#FFF5F7',
-                    surface: '#FFFFFF',
-                    tile: '#FEE2E7',
-                    text: '#852D3E'
-                },
-                lavender: {
-                    accent: '#A78BFA',
-                    contrast: '#4B3D8A',
-                    bg: '#F3F0FF',
-                    surface: '#FFFFFF',
-                    tile: '#EBE4FF',
-                    text: '#4B3D8A'
-                }
-            };
-
-            return themeMap[key] || {
-                accent: '#FF9966',
-                contrast: '#1e1e1e',
-                bg: '#121212',
-                surface: '#1e1e1e',
-                tile: '#2d2d2d',
-                text: '#ffffff'
-            };
-        }
-
-        function applyPlanThemeFromProfile() {
-            const theme = localStorage.getItem('profile_theme');
-            const colors = resolvePlanThemeColors(theme);
-            const root = document.documentElement;
-            root.style.setProperty('--plan-accent', colors.accent);
-            root.style.setProperty('--plan-accent-soft', `${colors.accent}99`);
-            root.style.setProperty('--plan-accent-border', `${colors.accent}59`);
-            root.style.setProperty('--plan-accent-contrast', colors.contrast);
-            root.style.setProperty('--plan-bg', colors.bg);
-            root.style.setProperty('--plan-surface', colors.surface);
-            root.style.setProperty('--plan-tile', colors.tile);
-            root.style.setProperty('--plan-text', colors.text);
-        }
-
-        function resolvePlanThemeColors(theme) {
-            const key = (theme || '').toLowerCase();
-            const themeMap = {
-                color: { accent: '#2D4F1E', contrast: '#ffffff' },
-                black: { accent: '#ffffff', contrast: '#1e1e1e' },
-                white: { accent: '#1A1A1A', contrast: '#ffffff' },
-                rose: { accent: '#FFB6C1', contrast: '#1e1e1e' },
-                lavender: { accent: '#A78BFA', contrast: '#1e1e1e' }
-            };
-
-            return themeMap[key] || { accent: '#FF9966', contrast: '#1e1e1e' };
-        }
-
-        function applyPlanThemeFromProfile() {
-            const theme = localStorage.getItem('profile_theme');
-            const colors = resolvePlanThemeColors(theme);
-            const root = document.documentElement;
-            root.style.setProperty('--plan-accent', colors.accent);
-            root.style.setProperty('--plan-accent-soft', `${colors.accent}99`);
-            root.style.setProperty('--plan-accent-border', `${colors.accent}59`);
-            root.style.setProperty('--plan-accent-contrast', colors.contrast);
-        }
-
         function goToProfile() {
             const userHash = getUserHash();
-            if (userHash) {
-                window.location.href = '/WorldMiniApp/Feed/MyProfile?userHash=' + userHash;
-            } else {
-                alert("Bitte erst einloggen!");
-            }
+            if (userHash) window.location.href = '/WorldMiniApp/Feed/MyProfile?userHash=' + encodeURIComponent(userHash);
+            else alert("Bitte erst einloggen!");
         }
 
-        /* === JS LOGIK === */
-        let isGlobalMuted = true;
-        let hasUserInteracted = false;
+        // ----------------- WEEKLY PLAN LOGIC (FULL) -----------------
         let weeklyPlanData = {};
         let pendingRecipe = null;
         let editingSlotKey = null;
         let saveTimer = null;
 
-        // --- TOGGLE FOLLOW FUNCTION ---
-        async function toggleFollow(btn, creatorId) {
-            if(event) event.stopPropagation();
-            const userHash = getUserHash();
-            if(!userHash) { console.warn("Nicht eingeloggt!"); return; }
-
-            const icon = btn.querySelector('i');
-            const isFollowing = icon.classList.contains('bi-check-lg');
-
-            if (isFollowing) {
-                icon.classList.remove('bi-check-lg');
-                icon.classList.add('bi-person-plus-fill');
-                btn.style.color = "white";
-            } else {
-                icon.classList.remove('bi-person-plus-fill');
-                icon.classList.add('bi-check-lg');
-                btn.style.color = "#4cd137";
-            }
-
-            const formData = new FormData();
-            formData.append('userHash', userHash);
-            formData.append('creatorId', creatorId);
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
-
-            try {
-                const response = await fetch('/WorldMiniApp/Feed/ToggleFollow', { method: 'POST', body: formData });
-            } catch (error) { console.error("Netzwerkfehler:", error); }
-        }
-
-        // --- LIKE FUNCTION ---
-        async function sendLikeToBackend(recipeId) {
-            const userHash = getUserHash();
-            if(!userHash) return;
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            const token = tokenInput ? tokenInput.value : null;
-            const formData = new FormData();
-            formData.append('userHash', userHash);
-            formData.append('recipeId', recipeId);
-            if (token) formData.append('__RequestVerificationToken', token);
-            try { await fetch('/WorldMiniApp/Feed/ToggleLike', { method: 'POST', body: formData }); } catch (error) { console.error(error); }
-        }
-
-        // --- WOCHENPLAN LOGIK ---
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
 
         function updatePlanModeHeader() {
-            if (pendingRecipe) {
-                document.getElementById('addingModeHeader').style.display = 'block';
-                document.getElementById('viewModeHeader').style.display = 'none';
-            } else {
-                document.getElementById('addingModeHeader').style.display = 'none';
-                document.getElementById('viewModeHeader').style.display = 'block';
-            }
+            const adding = document.getElementById('addingModeHeader');
+            const view = document.getElementById('viewModeHeader');
+            if (!adding || !view) return;
+
+            if (pendingRecipe) { adding.style.display = 'block'; view.style.display = 'none'; }
+            else { adding.style.display = 'none'; view.style.display = 'block'; }
+        }
+
+        function showPlanTools() {
+            const tools = document.getElementById('planTools');
+            if (tools) tools.classList.remove('is-hidden');
+        }
+        function hidePlanTools() {
+            const tools = document.getElementById('planTools');
+            if (tools) tools.classList.add('is-hidden');
         }
 
         function openPlanModal(title, url, recipeId) {
             const modalEl = document.getElementById('planModal');
-            const modal = new bootstrap.Modal(modalEl);
-            const imgEl = document.getElementById('addingPreviewImg');
-            const vidEl = document.getElementById('addingPreviewVideo');
-            const titleEl = document.getElementById('addingPreviewTitle');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
             if (title && url) {
                 pendingRecipe = { title: title, img: url, recipeId: recipeId };
+
                 if (editingSlotKey) {
                     weeklyPlanData[editingSlotKey] = pendingRecipe;
                     editingSlotKey = null;
                     pendingRecipe = null;
                     scheduleDraftSave();
                 }
-                updatePlanModeHeader();
-                titleEl.innerText = title;
-
-                // CHECK: Fallback für Videos, falls noch kein Thumbnail existiert
-                if (url.endsWith('.mp4')) {
-                    imgEl.style.display = 'none';
-                    vidEl.style.display = 'block';
-                    vidEl.src = url + "#t=0.1";
-                } else {
-                    vidEl.style.display = 'none';
-                    imgEl.style.display = 'block';
-                    imgEl.src = url;
-                }
             } else {
                 pendingRecipe = null;
-                updatePlanModeHeader();
             }
+
+            updatePlanModeHeader();
             renderPlan();
             modal.show();
+            showPlanTools();
         }
 
         function renderPlan() {
             const container = document.getElementById('planContainer');
+            if (!container) return;
+
             container.innerHTML = '';
 
             days.forEach((day, dayIndex) => {
-                let dayHtml = `<div class="plan-day-row"><span class="day-label">${day}</span><div class="slot-container">`;
+                let dayHtml = `
+                    <div class="plan-day-row">
+                        <span class="day-label">${day}</span>
+                        <div class="slot-container">`;
 
                 slots.forEach((slotName, slotIndex) => {
                     const key = `${dayIndex}-${slotIndex}`;
                     const item = weeklyPlanData[key];
 
                     if (item) {
-                        let mediaHtml = '';
-                        // Fallback: Wenn es immer noch ein Video ist (kein Thumbnail), zeige Video
-                        if (item.img.endsWith('.mp4')) {
-                            mediaHtml = `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata"></video>`;
-                        } else {
-                            // Normalfall: Thumbnail anzeigen
-                            mediaHtml = `<img src="${item.img}" class="mini-img">`;
-                        }
-
                         const replaceMode = pendingRecipe ? 'replace-slot' : '';
                         const replaceAction = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
-                        const replaceHint = pendingRecipe ? '<div class="replace-hint">Antippen zum Ersetzen</div>' : '';
+                        const replaceHint = pendingRecipe ? `<div class="replace-hint">Antippen zum Ersetzen</div>` : '';
+
+                        const media = (item.img && item.img.endsWith('.mp4'))
+                            ? `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata"></video>`
+                            : `<img src="${item.img}" class="mini-img" loading="lazy" />`;
+
                         dayHtml += `
                             <div class="filled-slot ${replaceMode}" ${replaceAction}>
-                                ${mediaHtml}
+                                ${media}
                                 <div class="mini-content">
-                                    <div class="mini-title">${item.title}</div>
+                                    <div class="mini-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
                                     <div class="mini-type">${slotName}</div>
                                 </div>
-                                ${replaceHint}
+
                                 <div class="slot-actions">
-                                    <button class="slot-btn edit-slot-btn" onclick="startEditSlot('${key}')"><i class="bi bi-pencil"></i></button>
-                                    <button class="slot-btn delete-slot-btn" onclick="removeFromSlot('${key}')"><i class="bi bi-x-lg"></i></button>
+                                    <button type="button" class="slot-btn edit-slot-btn" onclick="startEditSlot('${key}'); event.stopPropagation();">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="slot-btn delete-slot-btn" onclick="removeFromSlot('${key}'); event.stopPropagation();">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
+
+                                ${replaceHint}
                             </div>`;
                     } else {
                         const action = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
-                        const opacity = pendingRecipe ? '1' : '0.4';
+                        const opacity = pendingRecipe ? '1' : '0.55';
                         dayHtml += `<div class="meal-slot-btn" style="opacity:${opacity}" ${action}>${slotName}</div>`;
                     }
                 });
+
                 dayHtml += `</div></div>`;
                 container.innerHTML += dayHtml;
             });
@@ -1116,6 +899,7 @@
             renderPlan();
             scheduleDraftSave();
         }
+
         function removeFromSlot(key) {
             delete weeklyPlanData[key];
             renderPlan();
@@ -1126,16 +910,8 @@
             editingSlotKey = key;
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
+            if (modalInstance) modalInstance.hide();
             alert('Wähle jetzt im Feed ein Rezept zum Ersetzen.');
-        }
-
-        function getPlanRecipeIds(payload) {
-            return payload
-                .map(item => item.RecipeId)
-                .filter(id => Number.isFinite(id));
         }
 
         function buildMealPlanPayload() {
@@ -1143,6 +919,7 @@
             Object.keys(weeklyPlanData).forEach(key => {
                 const item = weeklyPlanData[key];
                 if (!item || !item.recipeId || item.recipeId === '0') return;
+
                 const [dayIndex, slotIndex] = key.split('-').map(Number);
                 payload.push({
                     DayIndex: dayIndex + 1,
@@ -1157,53 +934,40 @@
 
         function clearWeeklyPlanState(keepPendingRecipe = false) {
             weeklyPlanData = {};
-            if (!keepPendingRecipe) {
-                pendingRecipe = null;
-                editingSlotKey = null;
-            }
+            if (!keepPendingRecipe) { pendingRecipe = null; editingSlotKey = null; }
             localStorage.removeItem(getDraftStorageKey());
             const linkInput = document.getElementById('planShareLink');
-            if (linkInput) {
-                linkInput.value = '';
-            }
+            if (linkInput) linkInput.value = '';
             updatePlanModeHeader();
             renderPlan();
         }
 
         function saveWeeklyPlan() {
             const userHash = getUserHash();
-            if (!userHash) {
-                alert("Bitte erst einloggen!");
-                return;
-            }
+            if (!userHash) { alert("Bitte erst einloggen!"); return; }
+
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) {
-                alert("Bitte mindestens ein Rezept auswählen.");
-                return;
-            }
-            const titleInput = document.getElementById('planTitleInput');
-            const personCountInput = document.getElementById('planPersonCount');
-            const title = titleInput.value.trim() || "Mein Wochenplan";
-            const personCount = parseInt(personCountInput.value, 10) || 1;
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+
+            const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+
             const encodedData = encodeURIComponent(JSON.stringify(payload));
             clearWeeklyPlanState();
-            window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${userHash}&title=${encodeURIComponent(title)}`;
+            window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
         }
 
         async function shareWeeklyPlan() {
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) {
-                alert("Bitte mindestens ein Rezept auswählen.");
-                return;
-            }
-            const titleInput = document.getElementById('planTitleInput');
-            const personCountInput = document.getElementById('planPersonCount');
-            const title = titleInput.value.trim() || "Mein Wochenplan";
-            const personCount = parseInt(personCountInput.value, 10) || 1;
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+
+            const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
 
             try {
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                 const token = tokenInput ? tokenInput.value : null;
+
                 const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
                     method: 'POST',
                     headers: {
@@ -1226,20 +990,13 @@
 
                 const data = await response.json();
                 const linkInput = document.getElementById('planShareLink');
-                linkInput.value = data.shareUrl || '';
+                if (linkInput) linkInput.value = data.shareUrl || '';
 
-                if (!data.shareUrl) {
-                    alert("Teilen fehlgeschlagen: Kein Link erhalten.");
-                    return;
-                }
+                if (!data.shareUrl) { alert("Teilen fehlgeschlagen: Kein Link erhalten."); return; }
 
                 try {
-                    if (navigator.share) {
-                        await navigator.share({ title: title, url: data.shareUrl });
-                    } else if (navigator.clipboard) {
-                        await navigator.clipboard.writeText(data.shareUrl);
-                        alert("Link kopiert!");
-                    }
+                    if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
+                    else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); alert("Link kopiert!"); }
                 } catch (shareError) {
                     console.warn("Teilen nicht verfügbar:", shareError);
                 }
@@ -1255,19 +1012,14 @@
         }
 
         function scheduleDraftSave() {
-            if (saveTimer) {
-                clearTimeout(saveTimer);
-            }
-            saveTimer = setTimeout(() => {
-                saveDraft();
-            }, 600);
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => saveDraft(), 600);
         }
 
         async function saveDraft() {
             const payload = buildMealPlanPayload();
-            const personCount = parseInt(document.getElementById('planPersonCount').value, 10) || 1;
-            const titleInput = document.getElementById('planTitleInput');
-            const title = titleInput.value.trim() || "Feed-Plan";
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+            const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Feed-Plan";
 
             localStorage.setItem(getDraftStorageKey(), JSON.stringify({
                 mealPlanJson: JSON.stringify(payload),
@@ -1278,27 +1030,27 @@
             const userHash = getUserHash();
             if (!userHash) return;
 
-            await fetch('/WorldMiniApp/Home/SaveFeedMealPlanDraft', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mealPlanJson: JSON.stringify(payload),
-                    personCount: personCount,
-                    title: title,
-                    userHash: userHash
-                })
-            });
+            // optional: du hattest einen endpoint - wenn du ihn willst, ist das hier ok:
+            try {
+                await fetch('/WorldMiniApp/Home/SaveFeedMealPlanDraft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mealPlanJson: JSON.stringify(payload),
+                        personCount: personCount,
+                        title: title,
+                        userHash: userHash
+                    })
+                });
+            } catch { }
         }
 
         function applyDraftPayload(payload, personCount, title) {
-            if (title) {
-                document.getElementById('planTitleInput').value = title;
-            }
-            if (personCount) {
-                document.getElementById('planPersonCount').value = personCount;
-            }
+            if (title) document.getElementById('planTitleInput').value = title;
+            if (personCount) document.getElementById('planPersonCount').value = personCount;
+
             weeklyPlanData = {};
-            payload.forEach(item => {
+            (payload || []).forEach(item => {
                 const dayIndex = (item.DayIndex || 1) - 1;
                 const slotIndex = item.SlotIndex ?? 0;
                 const key = `${dayIndex}-${slotIndex}`;
@@ -1320,157 +1072,261 @@
                     applyDraftPayload(payload, parsed.personCount, parsed.title);
                     return;
                 } catch (err) {
-                    console.warn("Draft konnte nicht geladen werden.", err);
+                    console.warn("Draft local konnte nicht geladen werden.", err);
                 }
             }
 
-            const userHash = getUserHash();
-            if (!userHash) return;
+            // OPTIONAL: wenn du wieder server draft laden willst, bau hier wieder ein:
+            // const userHash = getUserHash();
+            // if (!userHash) return;
+            // const response = await fetch(`/WorldMiniApp/Home/GetFeedMealPlanDraft?userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(document.getElementById('planTitleInput').value || 'Feed-Plan')}`);
+            // if (!response.ok) return;
+            // const data = await response.json();
+            // if (!data.mealPlanJson) return;
+            // applyDraftPayload(JSON.parse(data.mealPlanJson || '[]'), data.personCount, data.title);
+        }
 
-            const response = await fetch(`/WorldMiniApp/Home/GetFeedMealPlanDraft?userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(document.getElementById('planTitleInput').value || 'Feed-Plan')}`);
-            if (!response.ok) return;
-            const data = await response.json();
-            if (!data.mealPlanJson) return;
-
-            const payload = JSON.parse(data.mealPlanJson || '[]');
-            applyDraftPayload(payload, data.personCount, data.title);
+        function getPlanRecipeIds(payload) {
+            return (payload || []).map(x => x.RecipeId).filter(id => Number.isFinite(id));
         }
 
         async function prepareShoppingList() {
             const payload = buildMealPlanPayload();
             const recipeIds = getPlanRecipeIds(payload);
-            if (recipeIds.length === 0) {
-                alert("Bitte mindestens ein Rezept auswählen.");
-                return;
-            }
-            const personCount = parseInt(document.getElementById('planPersonCount').value, 10) || 1;
+            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
             params.append('personCount', personCount);
+
             const response = await fetch(`/WorldMiniApp/Home/GetShoppingListText?${params.toString()}`);
-            if (!response.ok) {
-                alert("Einkaufsliste konnte nicht geladen werden.");
-                return;
-            }
+            if (!response.ok) { alert("Einkaufsliste konnte nicht geladen werden."); return; }
+
             const data = await response.json();
             document.getElementById('shoppingListEditor').value = data.text || '';
         }
 
         function generateShareLink() {
-            const text = document.getElementById('shoppingListEditor').value.trim();
-            if (!text) {
-                alert("Bitte zuerst eine Einkaufsliste laden oder einfügen.");
-                return;
-            }
+            const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
+            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einfügen."); return; }
+
             const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
             document.getElementById('shoppingShareLink').value = shareLink;
         }
 
         async function copyShareLink() {
             const linkInput = document.getElementById('shoppingShareLink');
-            if (!linkInput.value) {
-                generateShareLink();
-            }
+            if (!linkInput.value) generateShareLink();
             if (linkInput.value) {
                 await navigator.clipboard.writeText(linkInput.value);
                 alert("Link kopiert!");
             }
         }
 
-        /* === FEED BASIS LOGIK === */
+        // hide settings on scroll down (inside modal body)
+        let lastPlanScrollTop = 0;
+        let planScrollTicking = false;
+        function attachPlanScrollBehavior() {
+            const body = document.getElementById('planModalBody');
+            if (!body) return;
+            lastPlanScrollTop = body.scrollTop || 0;
+
+            body.addEventListener('scroll', () => {
+                if (planScrollTicking) return;
+                planScrollTicking = true;
+
+                requestAnimationFrame(() => {
+                    const st = body.scrollTop || 0;
+                    const delta = st - lastPlanScrollTop;
+                    if (Math.abs(delta) < 6) { planScrollTicking = false; return; }
+
+                    if (delta > 0 && st > 10) hidePlanTools();
+                    else showPlanTools();
+
+                    lastPlanScrollTop = st;
+                    planScrollTicking = false;
+                });
+            }, { passive: true });
+        }
+
+        // ----------------- FEED: Autoplay + Sound + DoubleTap Like -----------------
+        let isGlobalMuted = true;
+        let hasUserInteracted = false;
+
+        function updateSoundIcon(container, isMuted) {
+            const icon = container?.querySelector('.sound-toggle i');
+            if (!icon) return;
+            if (isMuted) {
+                icon.classList.remove('bi-volume-up-fill');
+                icon.classList.add('bi-volume-mute-fill');
+            } else {
+                icon.classList.remove('bi-volume-mute-fill');
+                icon.classList.add('bi-volume-up-fill');
+            }
+        }
+
         function unlockAudio() {
             if (hasUserInteracted) return;
             hasUserInteracted = true;
             isGlobalMuted = false;
-            const hint = document.getElementById('firstInteractionHint');
-            if(hint) hint.style.display = 'none';
-            document.querySelectorAll('video').forEach(v => { v.muted = false; });
-            document.querySelectorAll('.sound-toggle').forEach(btn => updateSoundIcon(btn.closest('.feed-item'), false));
-            document.removeEventListener('click', unlockAudio);
-        }
-        document.addEventListener('click', unlockAudio);
-        document.addEventListener('DOMContentLoaded', applyPlanThemeFromProfile);
-        document.addEventListener('DOMContentLoaded', loadDraft);
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const video = entry.target.querySelector('video');
-                const container = entry.target;
-                if (video) {
-                    if(entry.isIntersecting) {
-                        video.muted = isGlobalMuted;
-                        updateSoundIcon(container, isGlobalMuted);
-                        video.play().then(() => container.classList.remove('paused')).catch(e=>{});
-                    } else { video.pause(); }
-                }
-            });
-        }, { threshold: 0.6 });
-        document.querySelectorAll('.feed-item').forEach(item => observer.observe(item));
+            document.querySelectorAll('.feed-item video').forEach(v => v.muted = false);
+            document.querySelectorAll('.feed-item').forEach(item => updateSoundIcon(item, false));
+
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        }
+
+        document.addEventListener('click', unlockAudio, { passive: true });
+        document.addEventListener('touchstart', unlockAudio, { passive: true });
 
         function toggleGlobalSound(btn) {
             hasUserInteracted = true;
-            const hint = document.getElementById('firstInteractionHint');
-            if(hint) hint.style.display = 'none';
             isGlobalMuted = !isGlobalMuted;
+
             const container = btn.closest('.feed-item');
-            const video = container.querySelector('video');
-            if(video) video.muted = isGlobalMuted;
+            const video = container?.querySelector('video');
+            if (video) video.muted = isGlobalMuted;
+
             updateSoundIcon(container, isGlobalMuted);
         }
 
-        function updateSoundIcon(container, isMuted) {
-            const icon = container.querySelector('.sound-toggle i');
-            if (!icon) return;
-            if(isMuted) { icon.classList.remove('bi-volume-up-fill'); icon.classList.add('bi-volume-mute-fill'); }
-            else { icon.classList.remove('bi-volume-mute-fill'); icon.classList.add('bi-volume-up-fill'); }
-        }
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const container = entry.target;
+                const video = container.querySelector('video');
+                if (!video) return;
 
-        document.querySelectorAll('.feed-item').forEach(item => {
-            let lastTap = 0; let tapTimeout;
-            item.addEventListener('click', function(e) {
-                if(e.target.closest('.action-btn') || e.target.closest('.sound-toggle') || e.target.closest('.chef-badge') || e.target.closest('.modal')) return;
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTap;
-                if (tapLength < 300 && tapLength > 0) {
-                    clearTimeout(tapTimeout); triggerLike(this); lastTap = 0;
+                if (entry.isIntersecting) {
+                    video.muted = isGlobalMuted;
+                    updateSoundIcon(container, isGlobalMuted);
+                    video.play().then(() => container.classList.remove('paused')).catch(() => {});
                 } else {
-                    lastTap = currentTime; tapTimeout = setTimeout(() => { togglePlayPause(this); }, 300);
+                    video.pause();
                 }
             });
-        });
+        }, { threshold: 0.6 });
+
+        async function sendLikeToBackend(recipeId) {
+            const userHash = getUserHash();
+            if (!userHash || !recipeId) return;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+
+            const formData = new FormData();
+            formData.append('userHash', userHash);
+            formData.append('recipeId', recipeId);
+            if (token) formData.append('__RequestVerificationToken', token);
+
+            try { await fetch('/WorldMiniApp/Feed/ToggleLike', { method: 'POST', body: formData }); }
+            catch (e) { console.error(e); }
+        }
 
         function togglePlayPause(container) {
             const video = container.querySelector('video');
-            if (video.paused) { video.play(); container.classList.remove('paused'); }
+            if (!video) return;
+            if (video.paused) { video.play().catch(()=>{}); container.classList.remove('paused'); }
             else { video.pause(); container.classList.add('paused'); }
         }
 
         function triggerLike(container) {
             const recipeId = container.dataset.id;
-            if(recipeId) sendLikeToBackend(recipeId);
+            if (recipeId) sendLikeToBackend(recipeId);
+
             const heartBtn = container.querySelector('.heart-btn');
             const bigHeart = container.querySelector('.double-tap-heart');
-            if(heartBtn) {
-                if (heartBtn.classList.contains('liked')) { heartBtn.classList.remove('liked'); }
-                else {
-                    heartBtn.classList.add('liked');
-                    if(bigHeart) {
-                        bigHeart.style.display = 'block'; bigHeart.classList.remove('animate'); void bigHeart.offsetWidth;
-                        bigHeart.classList.add('animate'); setTimeout(() => { bigHeart.classList.remove('animate'); }, 800);
-                    }
-                }
+
+            if (heartBtn) heartBtn.classList.toggle('liked');
+
+            if (bigHeart) {
+                bigHeart.style.display = 'block';
+                bigHeart.classList.remove('animate');
+                void bigHeart.offsetWidth;
+                bigHeart.classList.add('animate');
+                setTimeout(() => bigHeart.classList.remove('animate'), 800);
             }
         }
 
-        document.querySelectorAll('.heart-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const container = this.closest('.feed-item');
-                const recipeId = container.dataset.id;
-                if(recipeId) sendLikeToBackend(recipeId);
-                this.classList.toggle('liked');
+        function attachFeedHandlers() {
+            document.querySelectorAll('.feed-item').forEach(item => observer.observe(item));
+
+            document.querySelectorAll('.feed-item').forEach(item => {
+                let lastTap = 0;
+                let tapTimeout = null;
+
+                item.addEventListener('click', function (e) {
+                    if (e.target.closest('.action-btn') ||
+                        e.target.closest('.sound-toggle') ||
+                        e.target.closest('.chef-badge') ||
+                        e.target.closest('.modal')) return;
+
+                    const now = Date.now();
+                    const tapLen = now - lastTap;
+
+                    if (tapLen < 300 && tapLen > 0) {
+                        clearTimeout(tapTimeout);
+                        triggerLike(this);
+                        lastTap = 0;
+                    } else {
+                        lastTap = now;
+                        tapTimeout = setTimeout(() => togglePlayPause(this), 300);
+                    }
+                });
             });
+
+            document.querySelectorAll('.heart-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const container = this.closest('.feed-item');
+                    const recipeId = container?.dataset?.id;
+                    if (recipeId) sendLikeToBackend(recipeId);
+                    this.classList.toggle('liked');
+                });
+            });
+        }
+
+        // ----------------- FOLLOW (fix event global) -----------------
+        async function toggleFollow(e, btn, creatorId) {
+            if (e) e.stopPropagation();
+            const userHash = getUserHash();
+            if (!userHash) { console.warn("Nicht eingeloggt!"); return; }
+
+            const icon = btn.querySelector('i');
+            const isFollowing = icon.classList.contains('bi-check-lg');
+
+            if (isFollowing) {
+                icon.classList.remove('bi-check-lg');
+                icon.classList.add('bi-person-plus-fill');
+                btn.style.color = "white";
+            } else {
+                icon.classList.remove('bi-person-plus-fill');
+                icon.classList.add('bi-check-lg');
+                btn.style.color = "#4cd137";
+            }
+
+            const formData = new FormData();
+            formData.append('userHash', userHash);
+            formData.append('creatorId', creatorId);
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            try { await fetch('/WorldMiniApp/Feed/ToggleFollow', { method: 'POST', body: formData }); }
+            catch (error) { console.error("Netzwerkfehler:", error); }
+        }
+
+        // ----------------- init -----------------
+        document.addEventListener('DOMContentLoaded', () => {
+            attachFeedHandlers();
+            attachPlanScrollBehavior();
+            loadDraft();
+            renderPlan();
+            updatePlanModeHeader();
         });
     </script>
+
 </body>
 </html>
