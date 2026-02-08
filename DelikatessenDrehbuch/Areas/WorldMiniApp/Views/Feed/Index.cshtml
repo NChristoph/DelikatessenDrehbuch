@@ -365,6 +365,15 @@
             padding-top: 12px;
         }
 
+        .plan-sticky-stack {
+            position: sticky;
+            top: 0;
+            z-index: 70;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .pending-recipe {
             display: none;
             gap: 12px;
@@ -373,7 +382,6 @@
             border-radius: 18px;
             border: 1px solid var(--plan-accent-border);
             background: rgba(255, 255, 255, 0.08);
-            margin-bottom: 12px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
         }
 
@@ -410,8 +418,6 @@
         }
 
         .plan-tools {
-            position: sticky;
-            top: 0;
             z-index: 60;
             padding: 12px;
             border-radius: 18px;
@@ -421,7 +427,6 @@
             box-shadow: 0 14px 40px rgba(0,0,0,0.35);
             transition: transform 220ms ease, opacity 220ms ease;
             will-change: transform, opacity;
-            margin-bottom: 12px;
         }
 
             .plan-tools.is-hidden {
@@ -467,6 +472,66 @@
         .plan-tools .form-label {
             color: var(--plan-text);
             font-weight: 700;
+        }
+
+        .plan-nutrition {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 14px;
+            border: 1px solid var(--plan-outline);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .plan-nutrition-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--plan-text);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 8px;
+        }
+
+        .plan-nutrition-status {
+            font-size: 0.7rem;
+            color: var(--plan-muted-text);
+        }
+
+        .plan-nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .plan-nutrition-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid var(--plan-card-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .plan-nutrition-item span {
+            font-size: 0.75rem;
+            color: var(--plan-muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .plan-nutrition-value {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--plan-text);
+            line-height: 1.1;
+        }
+
+        .plan-nutrition-unit {
+            font-size: 0.7rem;
+            color: var(--plan-muted-text);
         }
 
         .plan-day-row {
@@ -720,39 +785,90 @@
                 </div>
 
                 <div class="modal-body" id="planModalBody">
-                    <div id="pendingRecipeCard" class="pending-recipe">
-                        <div class="pending-media" id="pendingRecipeMedia"></div>
-                        <div class="pending-info">
-                            <div class="pending-label">Wird hinzugefügt</div>
-                            <div class="pending-title" id="pendingRecipeTitle"></div>
-                        </div>
-                    </div>
-                    <div class="plan-tools" id="planTools">
-                        <div class="row g-2">
-                            <div class="col-7">
-                                <label class="form-label small mb-1">Plan-Name</label>
-                                <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
-                            </div>
-                            <div class="col-5">
-                                <label class="form-label small mb-1">Personen</label>
-                                <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
+                    <div class="plan-sticky-stack">
+                        <div id="pendingRecipeCard" class="pending-recipe">
+                            <div class="pending-media" id="pendingRecipeMedia"></div>
+                            <div class="pending-info">
+                                <div class="pending-label">Wird hinzugefügt</div>
+                                <div class="pending-title" id="pendingRecipeTitle"></div>
                             </div>
                         </div>
+                        <div class="plan-tools" id="planTools">
+                            <div class="row g-2">
+                                <div class="col-7">
+                                    <label class="form-label small mb-1">Plan-Name</label>
+                                    <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label small mb-1">Personen</label>
+                                    <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
+                                </div>
+                            </div>
 
-                        <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
-                                <i class="bi bi-check2-circle me-1"></i> Plan speichern
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
+                                    <i class="bi bi-check2-circle me-1"></i> Plan speichern
+                                </button>
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">
+                                    <i class="bi bi-share me-1"></i> Plan teilen
+                                </button>
+                            </div>
+
+                            <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">
+                                <i class="bi bi-trash3 me-1"></i> Plan leeren
                             </button>
-                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">
-                                <i class="bi bi-share me-1"></i> Plan teilen
-                            </button>
+
+                            <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
+
+                            <div class="plan-nutrition" id="planNutrition">
+                                <div class="plan-nutrition-header">
+                                    <span>Nährwerte gesamt</span>
+                                    <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
+                                </div>
+                                <div class="plan-nutrition-grid">
+                                    <div class="plan-nutrition-item">
+                                        <span>Kalorien</span>
+                                        <div class="plan-nutrition-value" id="planNutritionCalories">—</div>
+                                        <div class="plan-nutrition-unit">kcal</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Protein</span>
+                                        <div class="plan-nutrition-value" id="planNutritionProtein">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Fett</span>
+                                        <div class="plan-nutrition-value" id="planNutritionFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Kohlenhydrate</span>
+                                        <div class="plan-nutrition-value" id="planNutritionCarbs">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Zucker</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSugar">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Ballaststoffe</span>
+                                        <div class="plan-nutrition-value" id="planNutritionFiber">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Gesättigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Salz</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSalt">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">
-                            <i class="bi bi-trash3 me-1"></i> Plan leeren
-                        </button>
-
-                        <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
                     </div>
 
                     <div id="addingModeHeader" style="display:none;">
@@ -1030,6 +1146,8 @@
                 dayHtml += `</div></div>`;
                 container.innerHTML += dayHtml;
             });
+
+            scheduleNutritionUpdate();
         }
 
         function addToSlot(key) {
@@ -1079,6 +1197,7 @@
             if (linkInput) linkInput.value = '';
             updatePlanModeHeader();
             renderPlan();
+            scheduleNutritionUpdate();
         }
 
         function saveWeeklyPlan() {
@@ -1200,6 +1319,7 @@
                 };
             });
             renderPlan();
+            scheduleNutritionUpdate();
         }
 
         async function loadDraft() {
@@ -1245,6 +1365,81 @@
 
             const data = await response.json();
             document.getElementById('shoppingListEditor').value = data.text || '';
+        }
+
+        let nutritionTimer = null;
+
+        function scheduleNutritionUpdate() {
+            if (nutritionTimer) clearTimeout(nutritionTimer);
+            nutritionTimer = setTimeout(() => updatePlanNutritionTotals(), 400);
+        }
+
+        function formatNutritionValue(value, decimals) {
+            if (!Number.isFinite(value)) return '—';
+            return value.toLocaleString('de-DE', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function setNutritionTotals(data) {
+            const caloriesEl = document.getElementById('planNutritionCalories');
+            const proteinEl = document.getElementById('planNutritionProtein');
+            const fatEl = document.getElementById('planNutritionFat');
+            const carbsEl = document.getElementById('planNutritionCarbs');
+            const sugarEl = document.getElementById('planNutritionSugar');
+            const fiberEl = document.getElementById('planNutritionFiber');
+            const saturatedEl = document.getElementById('planNutritionSaturatedFat');
+            const saltEl = document.getElementById('planNutritionSalt');
+
+            const calories = data?.calories;
+            const protein = data?.protein;
+            const fat = data?.fat;
+            const carbs = data?.carbohydrates;
+            const sugar = data?.sugar;
+            const fiber = data?.fiber;
+            const saturatedFat = data?.saturatedFat;
+            const salt = data?.salt;
+
+            if (caloriesEl) caloriesEl.textContent = formatNutritionValue(calories, 0);
+            if (proteinEl) proteinEl.textContent = formatNutritionValue(protein, 1);
+            if (fatEl) fatEl.textContent = formatNutritionValue(fat, 1);
+            if (carbsEl) carbsEl.textContent = formatNutritionValue(carbs, 1);
+            if (sugarEl) sugarEl.textContent = formatNutritionValue(sugar, 1);
+            if (fiberEl) fiberEl.textContent = formatNutritionValue(fiber, 1);
+            if (saturatedEl) saturatedEl.textContent = formatNutritionValue(saturatedFat, 1);
+            if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
+        }
+
+        async function updatePlanNutritionTotals() {
+            const statusEl = document.getElementById('planNutritionStatus');
+            const payload = buildMealPlanPayload();
+            const recipeIds = getPlanRecipeIds(payload);
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+
+            if (recipeIds.length === 0) {
+                if (statusEl) statusEl.textContent = 'Keine Rezepte';
+                setNutritionTotals(null);
+                return;
+            }
+
+            if (statusEl) statusEl.textContent = 'Lädt...';
+
+            const params = new URLSearchParams();
+            recipeIds.forEach(id => params.append('recipeIds', id));
+            params.append('personCount', personCount);
+
+            try {
+                const response = await fetch(`/WorldMiniApp/Home/GetMealPlanNutritionTotals?${params.toString()}`);
+                if (!response.ok) throw new Error('Nutrition fetch failed');
+                const data = await response.json();
+                setNutritionTotals(data);
+                if (statusEl) statusEl.textContent = 'Aktuell';
+            } catch (error) {
+                console.error("Nährwerte konnten nicht geladen werden.", error);
+                setNutritionTotals(null);
+                if (statusEl) statusEl.textContent = 'Fehler';
+            }
         }
 
         function generateShareLink() {
@@ -1323,6 +1518,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             applyPlanThemeFromProfile();
+            const personInput = document.getElementById('planPersonCount');
+            if (personInput) {
+                personInput.addEventListener('input', () => scheduleNutritionUpdate());
+            }
         });
 
         function toggleGlobalSound(btn) {
