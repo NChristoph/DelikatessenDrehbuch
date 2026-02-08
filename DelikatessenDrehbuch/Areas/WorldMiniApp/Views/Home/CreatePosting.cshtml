@@ -16,13 +16,6 @@
             </a>
             <h2 class="fw-bold mb-1" style="color: #2c3e50;">Creator Studio 🥑</h2>
         </div>
-
-        <div class="btn-group shadow-sm rounded-pill bg-white p-1">
-            <button type="button" class="btn btn-sm btn-dark rounded-pill lang-btn active" onclick="switchLanguage('DE', this)">DE</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill lang-btn" onclick="switchLanguage('EN', this)">EN</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill lang-btn" onclick="switchLanguage('ESP', this)">ES</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill lang-btn" onclick="switchLanguage('PRT', this)">PT</button>
-        </div>
     </div>
 
     <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()" class="pb-5">
@@ -230,11 +223,6 @@
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
 
-    .lang-btn.active {
-        background-color: #2c3e50 !important;
-        color: white !important;
-    }
-
     .cursor-pointer {
         cursor: pointer;
     }
@@ -253,7 +241,15 @@
     <script>
         // Einheiten aus der DB laden
         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
-        let currentLang = 'DE';
+        function getCookieValue(name) {
+            const cookie = document.cookie
+                .split('; ')
+                .find(row => row.startsWith(`${name}=`));
+            return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+        }
+
+        const cookieLang = getCookieValue('deli-lang') || 'de';
+        let currentLang = cookieLang.toUpperCase();
 
         let ingredientsTable;
         let stepsTable;
@@ -278,18 +274,6 @@
 
             updateLanguageLabels();
         });
-
-        // Sprachwechsel Funktion
-        function switchLanguage(lang, btn) {
-            currentLang = lang;
-            const langKey = lang.toLowerCase();
-
-            // 1. Buttons optisch umschalten
-            $('.lang-btn').removeClass('active btn-dark').addClass('btn-light');
-            $(btn).addClass('active btn-dark').removeClass('btn-light');
-
-            updateLanguageLabels();
-        }
 
         function updateLanguageLabels() {
             const langKey = currentLang.toLowerCase();
