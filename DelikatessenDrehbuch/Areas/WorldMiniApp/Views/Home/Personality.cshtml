@@ -1,13 +1,10 @@
 ﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
-@using System.Globalization
 @model List<WorldUserMealPlan>
 
 @{
     Layout = "_MiniAppLayout";
     ViewData["Title"] = "Mein Bereich";
     var userHash = ViewData["UserHash"] as string;
-    var isGerman = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase);
-    string T(string de, string en) => isGerman ? de : en;
     string DeleteConfirmText(string title)
     {
         var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?", $"Do you really want to delete the plan \"{title}\"?");

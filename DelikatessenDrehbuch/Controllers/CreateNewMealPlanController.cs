@@ -292,6 +292,20 @@ namespace DelikatessenDrehbuch.Controllers
             return Ok(new { success = true, message = "Gespeichert" });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteSavedMealPlan()
+        {
+            var savedMealPlan = _context.SavedMealPlan.FirstOrDefault(x => x.UserMail == User.Identity.Name);
+            if (savedMealPlan != null)
+            {
+                _context.SavedMealPlan.Remove(savedMealPlan);
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("MealPlanSetting");
+        }
+
     }
 
 
