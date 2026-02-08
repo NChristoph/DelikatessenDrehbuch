@@ -170,6 +170,8 @@
     .btn-create-plan { background-color: var(--deli-red); color: #fff; border: 2px solid var(--deli-gold); padding: 1rem 3rem; font-weight: 700; border-radius: 2rem; display: block; margin: 0 auto; cursor: pointer; }
     .btn-create-plan:hover { background-color: #5e0c0c; color: #fff; }
     .btn-secondary-action { background: #fff; border: 1px solid var(--deli-red); color: var(--deli-red); padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; }
+    .btn-delete-plan { background: #fff5f5; border-color: #c62828; color: #c62828; }
+    .btn-delete-plan:hover { background: #ffecec; color: #b71c1c; }
     
     /* Premium */
     .premium-section { background: linear-gradient(135deg, #fff 0%, #fffdf5 100%); border: 1px solid var(--deli-gold); position: relative; }
@@ -191,6 +193,12 @@
                 <div class="d-flex gap-2">
                     <a class="btn-secondary-action" asp-controller="CreateNewMealPlan" asp-action="LoadLastMealPlan"><i class="bi bi-arrow-repeat"></i> Laden</a>
                     <a class="btn-secondary-action" asp-controller="CreateNewMealPlan" asp-action="LoadMealPlanForEdit"><i class="bi bi-pencil"></i> Bearbeiten</a>
+                    <form asp-controller="CreateNewMealPlan" asp-action="DeleteSavedMealPlan" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-secondary-action btn-delete-plan" onclick="return confirm('Möchtest du den gespeicherten Plan wirklich löschen?');">
+                            <i class="bi bi-trash"></i> Löschen
+                        </button>
+                    </form>
                 </div>
             </div>
         }
