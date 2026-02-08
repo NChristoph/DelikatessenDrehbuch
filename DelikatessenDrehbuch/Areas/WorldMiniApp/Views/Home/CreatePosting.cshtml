@@ -7,7 +7,16 @@
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 
-<div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+<div class="min-vh-100 pb-5 position-relative" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+    <div id="datatableLoadingOverlay" class="datatable-loading d-none">
+        <div class="datatable-loading-card">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Lade...</span>
+            </div>
+            <div class="fw-bold mt-2">Lade Daten...</div>
+            <div class="small text-muted">Einen Moment bitte</div>
+        </div>
+    </div>
 
     <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-start">
         <div>
@@ -226,6 +235,25 @@
     .cursor-pointer {
         cursor: pointer;
     }
+
+    .datatable-loading {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+
+    .datatable-loading-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        text-align: center;
+    }
     /* Verhindert den blauen Fokus-Rahmen bei Inputs für cleaneres Design */
     .form-control:focus, .form-select:focus {
         box-shadow: none;
@@ -260,7 +288,14 @@
         let ingredientsTable;
         let stepsTable;
 
+        function setDataTableLoading(isLoading) {
+            const overlay = document.getElementById('datatableLoadingOverlay');
+            if (!overlay) return;
+            overlay.classList.toggle('d-none', !isLoading);
+        }
+
         $(document).ready(function() {
+            setDataTableLoading(true);
             // DataTables initialisieren
             ingredientsTable = $('#ingredientsDbTable').DataTable({
                 pageLength: 9, lengthChange: false, info: false, searching: true,
@@ -279,6 +314,7 @@
             });
 
             updateLanguageLabels();
+            setDataTableLoading(false);
         });
 
         function updateLanguageLabels() {
