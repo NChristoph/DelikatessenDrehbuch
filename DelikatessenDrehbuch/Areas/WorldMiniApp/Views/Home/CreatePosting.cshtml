@@ -248,8 +248,14 @@
             return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
         }
 
-        const cookieLang = getCookieValue('deli-lang') || 'de';
-        let currentLang = cookieLang.toUpperCase();
+        function resolveLangKey(value) {
+            const normalized = (value || 'de').toLowerCase();
+            if (normalized === 'es') return 'esp';
+            if (normalized === 'pt') return 'prt';
+            return normalized;
+        }
+
+        let currentLang = resolveLangKey(getCookieValue('deli-lang'));
 
         let ingredientsTable;
         let stepsTable;
@@ -276,7 +282,7 @@
         });
 
         function updateLanguageLabels() {
-            const langKey = currentLang.toLowerCase();
+            const langKey = resolveLangKey(currentLang);
 
             // 2. Statische Labels (h2, labels, button text)
             $('.label-lang').each(function() {

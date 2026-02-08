@@ -15,6 +15,12 @@
         "pt" => pt,
         _ => de
     };
+
+    string DeleteConfirmText(string title)
+    {
+        var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?", $"Do you really want to delete the plan \"{title}\"?", "¿Quieres eliminar el plan?", "Quer mesmo apagar o plano?");
+        return text.Replace("'", "\\'");
+    }
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -419,7 +425,15 @@
                         <div class="fw-bold">@plan.Title</div>
                         <div class="small opacity-50">@plan.CreationTime.ToShortDateString()</div>
                     </div>
-                    <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })" class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
+                    <div class="d-flex gap-2">
+                        <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })" class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
+                        <a href="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp", userHash = plan.UserHash, id = plan.Id })"
+                           onclick="return confirm('@DeleteConfirmText(plan.Title)');"
+                           class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                           title="@T("Löschen", "Delete", "Eliminar", "Apagar")">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
                 </div>
             }
         </div>
