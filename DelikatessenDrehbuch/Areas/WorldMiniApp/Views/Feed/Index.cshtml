@@ -315,8 +315,18 @@
         :root {
             --plan-accent: #FF9966;
             --plan-accent-border: rgba(255, 153, 102, 0.35);
-            --plan-surface: rgba(18,18,18, 0.94);
+            --plan-accent-soft: rgba(255, 153, 102, 0.12);
+            --plan-accent-soft-2: rgba(255, 94, 98, 0.14);
+            --plan-surface: rgba(18, 18, 18, 0.94);
             --plan-text: #ffffff;
+            --plan-muted-text: rgba(255, 255, 255, 0.75);
+            --plan-button-text: #111111;
+            --plan-header-bg: rgba(0, 0, 0, 0.22);
+            --plan-tools-bg: rgba(0, 0, 0, 0.58);
+            --plan-card-bg: rgba(0, 0, 0, 0.18);
+            --plan-card-border: rgba(255, 255, 255, 0.06);
+            --plan-outline: rgba(255, 255, 255, 0.08);
+            --plan-input-bg: rgba(0, 0, 0, 0.25);
         }
 
         .modal-dialog {
@@ -324,7 +334,7 @@
         }
 
         .modal-content {
-            background: radial-gradient(1200px 800px at 10% 0%, rgba(255,153,102,0.12), transparent 60%), radial-gradient(900px 600px at 90% 20%, rgba(255,94,98,0.14), transparent 60%), var(--plan-surface);
+            background: radial-gradient(1200px 800px at 10% 0%, var(--plan-accent-soft), transparent 60%), radial-gradient(900px 600px at 90% 20%, var(--plan-accent-soft-2), transparent 60%), var(--plan-surface);
             color: var(--plan-text);
             border-radius: 26px;
             border: 1px solid rgba(255,255,255,0.10);
@@ -333,9 +343,9 @@
         }
 
         .modal-header {
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid var(--plan-outline);
             padding: 14px 16px;
-            background: rgba(0,0,0,0.22);
+            background: var(--plan-header-bg);
             backdrop-filter: blur(14px);
         }
 
@@ -355,14 +365,58 @@
             padding-top: 12px;
         }
 
+        .pending-recipe {
+            display: none;
+            gap: 12px;
+            align-items: center;
+            padding: 10px;
+            border-radius: 18px;
+            border: 1px solid var(--plan-accent-border);
+            background: rgba(255, 255, 255, 0.08);
+            margin-bottom: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .pending-media {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid var(--plan-accent-border);
+        }
+
+            .pending-media img,
+            .pending-media video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        .pending-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+            color: var(--plan-muted-text);
+        }
+
+        .pending-title {
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: var(--plan-text);
+            line-height: 1.2;
+        }
+
         .plan-tools {
             position: sticky;
             top: 0;
             z-index: 60;
             padding: 12px;
             border-radius: 18px;
-            background: rgba(0,0,0,0.58);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: var(--plan-tools-bg);
+            border: 1px solid var(--plan-outline);
             backdrop-filter: blur(16px);
             box-shadow: 0 14px 40px rgba(0,0,0,0.35);
             transition: transform 220ms ease, opacity 220ms ease;
@@ -377,48 +431,48 @@
             }
 
         .plan-btn-primary {
-            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            background: var(--plan-accent);
             border: none;
-            color: #111;
+            color: var(--plan-button-text);
             font-weight: 900;
             border-radius: 14px;
         }
 
         .plan-btn-outline {
-            border: 1px solid rgba(255,153,102,0.85);
-            color: rgba(255,255,255,0.95);
-            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--plan-accent-border);
+            color: var(--plan-text);
+            background: var(--plan-input-bg);
             font-weight: 800;
             border-radius: 14px;
         }
 
         .plan-btn-secondary {
-            border: 1px solid rgba(255,255,255,0.12);
-            color: rgba(255,255,255,0.95);
-            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
+            background: var(--plan-input-bg);
             font-weight: 800;
             border-radius: 14px;
         }
 
         .plan-tools .form-control {
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.10);
+            background: var(--plan-input-bg);
+            border: 1px solid var(--plan-outline);
             color: var(--plan-text);
         }
 
             .plan-tools .form-control::placeholder {
-                color: rgba(255,255,255,0.45);
+                color: var(--plan-muted-text);
             }
 
         .plan-tools .form-label {
-            color: rgba(255,255,255,0.92);
+            color: var(--plan-text);
             font-weight: 700;
         }
 
         .plan-day-row {
             margin-top: 12px;
-            border: 1px solid rgba(255,255,255,0.06);
-            background: rgba(0,0,0,0.18);
+            border: 1px solid var(--plan-card-border);
+            background: var(--plan-card-bg);
             border-radius: 18px;
             padding: 12px;
         }
@@ -447,8 +501,8 @@
 
         .meal-slot-btn {
             background: rgba(255,255,255,0.06);
-            border: 1px dashed rgba(255,153,102,0.35);
-            color: rgba(255,255,255,0.9);
+            border: 1px dashed var(--plan-accent-border);
+            color: var(--plan-text);
             height: 112px;
             border-radius: 16px;
             font-size: 0.85rem;
@@ -465,8 +519,8 @@
         }
 
         .filled-slot {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: var(--plan-input-bg);
+            border: 1px solid var(--plan-outline);
             border-radius: 16px;
             height: 112px;
             overflow: hidden;
@@ -478,7 +532,7 @@
         }
 
         .replace-slot {
-            outline: 2px dashed rgba(255,153,102,0.55);
+            outline: 2px dashed var(--plan-accent-border);
             cursor: pointer;
         }
 
@@ -504,13 +558,13 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: rgba(255,255,255,0.98);
+            color: var(--plan-text);
             line-height: 1.2;
         }
 
         .mini-type {
             font-size: 0.62rem;
-            color: rgba(255,255,255,0.70);
+            color: var(--plan-muted-text);
             text-transform: uppercase;
             letter-spacing: 0.8px;
             font-weight: 800;
@@ -528,7 +582,7 @@
         .slot-btn {
             border: none;
             background: rgba(0,0,0,0.35);
-            color: rgba(255,255,255,0.92);
+            color: var(--plan-text);
             width: 30px;
             height: 30px;
             border-radius: 12px;
@@ -538,8 +592,8 @@
         }
 
             .slot-btn.edit-slot-btn {
-                color: #111;
-                background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+                color: var(--plan-button-text);
+                background: var(--plan-accent);
                 font-weight: 900;
             }
 
@@ -553,21 +607,21 @@
             right: 10px;
             bottom: 8px;
             font-size: 0.68rem;
-            color: rgba(255,255,255,0.70);
-            background: rgba(0,0,0,0.30);
+            color: var(--plan-muted-text);
+            background: var(--plan-header-bg);
             padding: 4px 8px;
             border-radius: 999px;
             border: 1px solid rgba(255,255,255,0.10);
         }
 
         .plan-text-muted {
-            color: rgba(255,255,255,0.75);
+            color: var(--plan-muted-text);
         }
 
         .shopping-share textarea {
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.10);
-            color: rgba(255,255,255,0.92);
+            background: var(--plan-input-bg);
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
             border-radius: 16px;
         }
     </style>
@@ -666,6 +720,13 @@
                 </div>
 
                 <div class="modal-body" id="planModalBody">
+                    <div id="pendingRecipeCard" class="pending-recipe">
+                        <div class="pending-media" id="pendingRecipeMedia"></div>
+                        <div class="pending-info">
+                            <div class="pending-label">Wird hinzugefügt</div>
+                            <div class="pending-title" id="pendingRecipeTitle"></div>
+                        </div>
+                    </div>
                     <div class="plan-tools" id="planTools">
                         <div class="row g-2">
                             <div class="col-7">
@@ -793,6 +854,81 @@
         let editingSlotKey = null;
         let saveTimer = null;
 
+        function hexToRgb(hex) {
+            const cleaned = hex.replace('#', '').trim();
+            if (cleaned.length !== 6) return null;
+            const num = parseInt(cleaned, 16);
+            return {
+                r: (num >> 16) & 255,
+                g: (num >> 8) & 255,
+                b: num & 255
+            };
+        }
+
+        function rgbaFromHex(hex, alpha) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return hex;
+            return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+        }
+
+        function getContrastText(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return '#111111';
+            const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+            return luminance > 0.6 ? '#111111' : '#ffffff';
+        }
+
+        function applyPlanThemeFromProfile() {
+            const theme = localStorage.getItem('profile_theme') || 'color';
+            const themes = {
+                color: { background: '#F8FAF7', text: '#1A1A1A', accent: '#2D4F1E' },
+                black: { background: '#000000', text: '#ffffff', accent: '#ffffff' },
+                white: { background: '#ffffff', text: '#111111', accent: '#111111' },
+                rose: { background: '#FFF5F7', text: '#852D3E', accent: '#FFB6C1' },
+                lavender: { background: '#F3F0FF', text: '#4B3D8A', accent: '#A78BFA' }
+            };
+
+            const selected = themes[theme] || themes.color;
+            const root = document.documentElement;
+            root.style.setProperty('--plan-accent', selected.accent);
+            root.style.setProperty('--plan-accent-border', rgbaFromHex(selected.accent, 0.35));
+            root.style.setProperty('--plan-accent-soft', rgbaFromHex(selected.accent, 0.12));
+            root.style.setProperty('--plan-accent-soft-2', rgbaFromHex(selected.accent, 0.18));
+            root.style.setProperty('--plan-surface', rgbaFromHex(selected.background, 0.94));
+            root.style.setProperty('--plan-text', selected.text);
+            root.style.setProperty('--plan-muted-text', rgbaFromHex(selected.text, 0.75));
+            root.style.setProperty('--plan-button-text', getContrastText(selected.accent));
+            root.style.setProperty('--plan-header-bg', rgbaFromHex(selected.background, 0.22));
+            root.style.setProperty('--plan-tools-bg', rgbaFromHex(selected.background, 0.6));
+            root.style.setProperty('--plan-card-bg', rgbaFromHex(selected.background, 0.35));
+            root.style.setProperty('--plan-card-border', rgbaFromHex(selected.text, 0.1));
+            root.style.setProperty('--plan-outline', rgbaFromHex(selected.text, 0.12));
+            root.style.setProperty('--plan-input-bg', rgbaFromHex(selected.background, 0.4));
+        }
+
+        function updatePendingRecipeCard() {
+            const card = document.getElementById('pendingRecipeCard');
+            const media = document.getElementById('pendingRecipeMedia');
+            const titleEl = document.getElementById('pendingRecipeTitle');
+            if (!card || !media || !titleEl) return;
+
+            if (!pendingRecipe) {
+                card.style.display = 'none';
+                media.innerHTML = '';
+                titleEl.textContent = '';
+                return;
+            }
+
+            const safeTitle = pendingRecipe.title || '';
+            const isVideo = pendingRecipe.img && pendingRecipe.img.endsWith('.mp4');
+            media.innerHTML = isVideo
+                ? `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata"></video>`
+                : `<img src="${pendingRecipe.img}" alt="${escapeHtml(safeTitle)}" loading="lazy" />`;
+
+            titleEl.textContent = safeTitle;
+            card.style.display = 'flex';
+        }
+
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
 
@@ -803,6 +939,8 @@
 
             if (pendingRecipe) { adding.style.display = 'block'; view.style.display = 'none'; }
             else { adding.style.display = 'none'; view.style.display = 'block'; }
+
+            updatePendingRecipeCard();
         }
 
         function showPlanTools() {
@@ -833,6 +971,7 @@
 
             updatePlanModeHeader();
             renderPlan();
+            applyPlanThemeFromProfile();
             modal.show();
             showPlanTools();
         }
@@ -1181,6 +1320,10 @@
 
         document.addEventListener('click', unlockAudio, { passive: true });
         document.addEventListener('touchstart', unlockAudio, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyPlanThemeFromProfile();
+        });
 
         function toggleGlobalSound(btn) {
             hasUserInteracted = true;
