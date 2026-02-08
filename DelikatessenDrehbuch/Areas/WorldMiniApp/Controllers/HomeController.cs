@@ -502,6 +502,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return Ok(new { text });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetMealPlanNutritionTotals([FromQuery] List<int> recipeIds, int personCount = 1)
+        {
+            if (recipeIds == null || recipeIds.Count == 0)
+            {
+                return Ok(new MealPlanNutritionTotals());
+            }
+
+            var totals = await BuildMealPlanNutritionTotalsAsync(recipeIds, Math.Max(1, personCount));
+            return Ok(totals);
+        }
+
         [HttpPost]
         public async Task<IActionResult> SaveSharedMealPlan([FromBody] SharedMealPlanRequest request)
         {
@@ -790,6 +802,82 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return summarized;
         }
 
+        private async Task<MealPlanNutritionTotals> BuildMealPlanNutritionTotalsAsync(List<int> recipeIds, int personCount)
+        {
+            var recipes = await _context.RecipeBaseData
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.IngredientsAndNutrients)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Quantity)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Measure)
+                .Where(r => recipeIds.Contains(r.Id))
+                .ToListAsync();
+
+            var totals = new MealPlanNutritionTotals();
+
+            foreach (var recipe in recipes)
+            {
+                if (recipe.Ingredients == null)
+                {
+                    continue;
+                }
+
+                var basePersonCount = recipe.PersonCount == 0 ? 1 : recipe.PersonCount;
+                var scale = (decimal)personCount / basePersonCount;
+
+                foreach (var entry in recipe.Ingredients)
+                {
+                    var ingredient = entry.Ingredient;
+                    var nutrient = ingredient?.IngredientsAndNutrients;
+                    if (nutrient == null)
+                    {
+                        continue;
+                    }
+
+                    var quantity = ingredient.Quantity?.Quantitys ?? 0;
+                    var unit = ingredient.Measure?.UnitOfMeasurement ?? string.Empty;
+                    var grams = (decimal)quantity;
+
+                    if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(unit, "Stück", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var weightPerPiece = nutrient.Weight_per_piece > 0 ? nutrient.Weight_per_piece : 0;
+                        grams = (decimal)weightPerPiece * (decimal)quantity;
+                    }
+
+                    grams *= scale;
+                    if (grams <= 0)
+                    {
+                        continue;
+                    }
+
+                    totals.Calories += ((decimal)nutrient.Calories_a_100g * grams) / 100m;
+                    totals.Fat += (nutrient.Fat_a_100g * grams) / 100m;
+                    totals.SaturatedFat += (nutrient.Saturated_fat_a_100g * grams) / 100m;
+                    totals.Carbohydrates += (nutrient.Carbohydrates_a_100g * grams) / 100m;
+                    totals.Sugar += (nutrient.Sugar_a_100g * grams) / 100m;
+                    totals.Salt += (nutrient.Salt_a_100g * grams) / 100m;
+                    totals.Protein += (nutrient.Protein_a_100g * grams) / 100m;
+                    totals.Fiber += (nutrient.Fiber_a_100g * grams) / 100m;
+                }
+            }
+
+            totals.Calories = Math.Round(totals.Calories, 0);
+            totals.Fat = Math.Round(totals.Fat, 1);
+            totals.SaturatedFat = Math.Round(totals.SaturatedFat, 1);
+            totals.Carbohydrates = Math.Round(totals.Carbohydrates, 1);
+            totals.Sugar = Math.Round(totals.Sugar, 1);
+            totals.Salt = Math.Round(totals.Salt, 1);
+            totals.Protein = Math.Round(totals.Protein, 1);
+            totals.Fiber = Math.Round(totals.Fiber, 1);
+
+            return totals;
+        }
+
         private async Task<RecipeBaseData?> GetRecipeBaseDataByIdAsync(int id)
         {
             return await _context.RecipeBaseData.FirstOrDefaultAsync(r => r.Id == id);
@@ -854,6 +942,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             public int PersonCount { get; set; }
             public string Title { get; set; }
             public string? UserHash { get; set; }
+        }
+
+        public class MealPlanNutritionTotals
+        {
+            public decimal Calories { get; set; }
+            public decimal Protein { get; set; }
+            public decimal Fat { get; set; }
+            public decimal SaturatedFat { get; set; }
+            public decimal Carbohydrates { get; set; }
+            public decimal Sugar { get; set; }
+            public decimal Salt { get; set; }
+            public decimal Fiber { get; set; }
         }
 
         private sealed class UploadRateState
