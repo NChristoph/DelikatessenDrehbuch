@@ -371,7 +371,8 @@
             z-index: 70;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
+            padding-bottom: 8px;
         }
 
         .pending-recipe {
@@ -475,23 +476,50 @@
         }
 
         .plan-nutrition {
-            margin-top: 12px;
-            padding: 10px;
             border-radius: 14px;
             border: 1px solid var(--plan-outline);
             background: rgba(255, 255, 255, 0.06);
         }
 
-        .plan-nutrition-header {
+        .plan-nutrition-toggle {
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
             font-size: 0.85rem;
             font-weight: 800;
             color: var(--plan-text);
             text-transform: uppercase;
             letter-spacing: 0.6px;
-            margin-bottom: 8px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .plan-nutrition-toggle-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-nutrition-toggle i {
+            font-size: 0.9rem;
+            transition: transform 180ms ease;
+        }
+
+        .plan-nutrition.is-collapsed .plan-nutrition-toggle i {
+            transform: rotate(-90deg);
+        }
+
+        .plan-nutrition-body {
+            margin-top: 8px;
+        }
+
+        .plan-nutrition.is-collapsed .plan-nutrition-body {
+            display: none;
         }
 
         .plan-nutrition-status {
@@ -793,16 +821,66 @@
                                 <div class="pending-title" id="pendingRecipeTitle"></div>
                             </div>
                         </div>
-                        <div class="plan-tools" id="planTools">
-                            <div class="row g-2">
-                                <div class="col-7">
-                                    <label class="form-label small mb-1">Plan-Name</label>
-                                    <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
+                        <div class="plan-nutrition is-collapsed" id="planNutrition">
+                            <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
+                                <span class="plan-nutrition-toggle-content">
+                                    <i class="bi bi-chevron-down"></i>
+                                    <span>Nährwerte gesamt</span>
+                                </span>
+                                <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
+                            </button>
+                            <div class="plan-nutrition-body">
+                                <div class="plan-nutrition-grid">
+                                    <div class="plan-nutrition-item">
+                                        <span>Kalorien</span>
+                                        <div class="plan-nutrition-value" id="planNutritionCalories">—</div>
+                                        <div class="plan-nutrition-unit">kcal</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Protein</span>
+                                        <div class="plan-nutrition-value" id="planNutritionProtein">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Fett</span>
+                                        <div class="plan-nutrition-value" id="planNutritionFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Kohlenhydrate</span>
+                                        <div class="plan-nutrition-value" id="planNutritionCarbs">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Zucker</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSugar">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Ballaststoffe</span>
+                                        <div class="plan-nutrition-value" id="planNutritionFiber">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Gesättigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Salz</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSalt">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
                                 </div>
-                                <div class="col-5">
-                                    <label class="form-label small mb-1">Personen</label>
-                                    <input id="planPersonCount" type="number" class="form-control form-control-sm" value="2" min="1" />
-                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-tools" id="planTools">
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <label class="form-label small mb-1">Plan-Name</label>
+                                <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
                             </div>
 
                             <div class="d-flex gap-2 mt-2">
@@ -1411,6 +1489,16 @@
             if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
         }
 
+        function togglePlanNutrition() {
+            const nutritionEl = document.getElementById('planNutrition');
+            const toggle = document.getElementById('planNutritionToggle');
+            if (!nutritionEl || !toggle) return;
+
+            const isCollapsed = nutritionEl.classList.contains('is-collapsed');
+            nutritionEl.classList.toggle('is-collapsed', !isCollapsed);
+            toggle.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+        }
+
         async function updatePlanNutritionTotals() {
             const statusEl = document.getElementById('planNutritionStatus');
             const payload = buildMealPlanPayload();
@@ -1521,6 +1609,10 @@
             const personInput = document.getElementById('planPersonCount');
             if (personInput) {
                 personInput.addEventListener('input', () => scheduleNutritionUpdate());
+            }
+            const nutritionToggle = document.getElementById('planNutritionToggle');
+            if (nutritionToggle) {
+                nutritionToggle.addEventListener('click', togglePlanNutrition);
             }
         });
 
