@@ -392,7 +392,7 @@
                     <button type="button" class="btn btn-sm text-danger opacity-50" onclick="$(this).closest('.ingredient-row').remove()"><i class="bi bi-trash3"></i></button>
                 </div>
                 <div class="d-flex gap-2 mt-2">
-                    <input type="number" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="form-control form-control-sm border-0 candy-purple rounded-3 fw-bold text-center" style="width:70px" placeholder="0" />
+                    <input type="text" inputmode="decimal" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="form-control form-control-sm border-0 candy-purple rounded-3 fw-bold text-center js-decimal-input" style="width:90px" placeholder="0,0" />
                     <select name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement" class="form-select form-select-sm border-0 candy-purple rounded-3 fw-bold">
                         ${unitOptions}
                     </select>
@@ -472,6 +472,11 @@
         }
 
         // Model Binding Vorbereitung (Indices korrigieren)
+        function normalizeDecimalInputValue(value) {
+            if (!value) return value;
+            return value.toString().trim().replace(/\s/g, '').replace(',', '.');
+        }
+
         function prepareBinding() {
             updateStepIndices();
             $('.ingredient-row').each(function(i) {
@@ -484,6 +489,11 @@
                     if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
                 });
             });
+
+            $('input[name$=".Quantity.Quantitys"], .js-decimal-input').each(function() {
+                this.value = normalizeDecimalInputValue(this.value);
+            });
+
             return true;
         }
 

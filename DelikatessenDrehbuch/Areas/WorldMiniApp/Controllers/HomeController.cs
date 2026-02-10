@@ -146,6 +146,229 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View("CreatePosting", model);
         }
 
+        public async Task<IActionResult> EditRecipe(int postingId, string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var posting = await _context.WorldUserPosting
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Ingredients)
+                        .ThenInclude(link => link.Ingredient)
+                            .ThenInclude(i => i.IngredientsAndNutrients)
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Ingredients)
+                        .ThenInclude(link => link.Ingredient)
+                            .ThenInclude(i => i.Measure)
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Ingredients)
+                        .ThenInclude(link => link.Ingredient)
+                            .ThenInclude(i => i.Quantity)
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Images)
+                .FirstOrDefaultAsync(x => x.Id == postingId);
+
+            if (posting == null || posting.Recipe == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(posting.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            var model = new EditPostingRecipeViewModel
+            {
+                PostingId = posting.Id,
+                RecipeId = posting.Recipe.Id,
+                Title = posting.Title,
+                Category = posting.Recipe.Category,
+                Preferences = posting.Recipe.Preferences,
+                PersonCount = posting.Recipe.PersonCount,
+                PreperationTime = posting.Recipe.PreperationTime,
+                CurrentImageUrl = posting.ThumbnailUrl ?? posting.Source,
+                Ingredients = posting.Recipe.Ingredients?
+                    .Where(x => x.Ingredient?.IngredientsAndNutrients != null && x.Ingredient?.Measure != null)
+                    .Select(x => new EditPostingIngredientRowViewModel
+                    {
+                        IngredientId = x.Ingredient.IngredientsAndNutrients.Id,
+                        MeasureId = x.Ingredient.Measure.Id,
+                        Quantity = x.Ingredient.Quantity?.Quantitys ?? 0
+                    })
+                    .ToList() ?? new List<EditPostingIngredientRowViewModel>(),
+                AvailableIngredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
+                AvailableMeasures = await _context.Metrics.OrderBy(x => x.UnitOfMeasurement).ToListAsync()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRecipe(EditPostingRecipeViewModel model, string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var postingToEdit = await _context.WorldUserPosting
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Ingredients)
+                        .ThenInclude(link => link.Ingredient)
+                            .ThenInclude(i => i.Quantity)
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Images)
+                .FirstOrDefaultAsync(x => x.Id == model.PostingId);
+
+            if (postingToEdit == null || postingToEdit.Recipe == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(postingToEdit.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            postingToEdit.Title = string.IsNullOrWhiteSpace(model.Title) ? postingToEdit.Title : model.Title.Trim();
+            postingToEdit.Recipe.Title = postingToEdit.Title;
+            postingToEdit.Recipe.Category = model.Category ?? postingToEdit.Recipe.Category;
+            postingToEdit.Recipe.Preferences = model.Preferences ?? postingToEdit.Recipe.Preferences;
+            postingToEdit.Recipe.PersonCount = model.PersonCount;
+            postingToEdit.Recipe.PreperationTime = model.PreperationTime;
+
+            var existingJoinEntries = postingToEdit.Recipe.Ingredients?.ToList() ?? new List<RecipeJoinIngredientMeasureQuantity>();
+
+            if (existingJoinEntries.Any())
+            {
+                // WICHTIG: Nur die Join-Entities löschen.
+                // Die IngredientMeasureQuantity-Entities können (historisch) auch von anderen Rezepten referenziert werden.
+                // Ein direktes Löschen erzeugt sonst FK-Konflikte.
+                _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
+                await _context.SaveChangesAsync();
+            }
+
+            var parsedRows = ExtractIngredientRowsFromRequest(model, Request.Form);
+            var cleanedRows = parsedRows
+                .Where(x => x.IngredientId > 0 && x.MeasureId > 0 && x.Quantity > 0)
+                .ToList();
+
+            var ingredientIds = cleanedRows.Select(x => x.IngredientId).Distinct().ToList();
+            var measureIds = cleanedRows.Select(x => x.MeasureId).Distinct().ToList();
+
+            var ingredientsById = await _context.IngredientsAndNutrients
+                .Where(x => ingredientIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+
+            var measuresById = await _context.Metrics
+                .Where(x => measureIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+
+            foreach (var row in cleanedRows)
+            {
+                if (!ingredientsById.TryGetValue(row.IngredientId, out var ingredient))
+                {
+                    continue;
+                }
+
+                if (!measuresById.TryGetValue(row.MeasureId, out var measure))
+                {
+                    continue;
+                }
+
+                var quantity = new Quantity { Quantitys = row.Quantity };
+                var ingredientMeasureQuantity = new IngredientMeasureQuantity
+                {
+                    IngredientsAndNutrients = ingredient,
+                    Measure = measure,
+                    Quantity = quantity
+                };
+
+                var join = new RecipeJoinIngredientMeasureQuantity
+                {
+                    Recipe = postingToEdit.Recipe,
+                    Ingredient = ingredientMeasureQuantity
+                };
+
+                await _context.Quantities.AddAsync(quantity);
+                await _context.IngredientMeasureQuantity.AddAsync(ingredientMeasureQuantity);
+                await _context.RecipeJoinIngredientMeasureQuantity.AddAsync(join);
+            }
+
+            if (model.NewContent != null && model.NewContent.Length > 0)
+            {
+                var uploadResult = await _blobUpload.UploadContentToBlob(model.NewContent);
+                postingToEdit.Source = uploadResult.SourceUrl;
+                postingToEdit.ThumbnailUrl = uploadResult.ThumbnailUrl;
+
+                var recipeImage = postingToEdit.Recipe.Images?.FirstOrDefault(x => x.WorldAppImage)
+                                 ?? postingToEdit.Recipe.Images?.FirstOrDefault();
+
+                if (recipeImage == null)
+                {
+                    recipeImage = new RecipeBaseDataImage
+                    {
+                        Recipe = postingToEdit.Recipe,
+                        Image = uploadResult.SourceUrl,
+                        WorldAppImage = true
+                    };
+                    await _context.RecipeBaseDataImage.AddAsync(recipeImage);
+                }
+                else
+                {
+                    recipeImage.Image = uploadResult.SourceUrl;
+                    recipeImage.WorldAppImage = true;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+        }
+
+
+        private static List<EditPostingIngredientRowViewModel> ExtractIngredientRowsFromRequest(EditPostingRecipeViewModel model, IFormCollection form)
+        {
+            var fallback = model.Ingredients ?? new List<EditPostingIngredientRowViewModel>();
+            var result = new List<EditPostingIngredientRowViewModel>();
+
+            for (var i = 0; ; i++)
+            {
+                var ingredientKey = $"Ingredients[{i}].IngredientId";
+                var measureKey = $"Ingredients[{i}].MeasureId";
+                var quantityKey = $"Ingredients[{i}].Quantity";
+
+                if (!form.ContainsKey(ingredientKey) && !form.ContainsKey(measureKey) && !form.ContainsKey(quantityKey))
+                {
+                    break;
+                }
+
+                _ = int.TryParse(form[ingredientKey].FirstOrDefault(), out var ingredientId);
+                _ = int.TryParse(form[measureKey].FirstOrDefault(), out var measureId);
+
+                var rawQuantity = (form[quantityKey].FirstOrDefault() ?? string.Empty).Trim();
+                var normalizedQuantity = rawQuantity.Replace(" ", string.Empty).Replace(",", ".");
+
+                var quantityParsed = double.TryParse(normalizedQuantity, NumberStyles.Any, CultureInfo.InvariantCulture, out var quantity)
+                                     || double.TryParse(rawQuantity, NumberStyles.Any, CultureInfo.CurrentCulture, out quantity);
+
+                result.Add(new EditPostingIngredientRowViewModel
+                {
+                    IngredientId = ingredientId,
+                    MeasureId = measureId,
+                    Quantity = quantityParsed ? quantity : 0
+                });
+            }
+
+            return result.Any() ? result : fallback;
+        }
+
         private async Task<bool> IsCreatorAllowedAsync(string userHash)
         {
             if (string.IsNullOrWhiteSpace(userHash))
