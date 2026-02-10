@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <form asp-action="UpdateRecipe" method="post" enctype="multipart/form-data" class="card border-0 shadow-sm rounded-4">
+    <form id="editRecipeForm" asp-action="UpdateRecipe" method="post" enctype="multipart/form-data" class="card border-0 shadow-sm rounded-4">
         @Html.AntiForgeryToken()
         <div class="card-body p-4">
             <input type="hidden" asp-for="PostingId" />
@@ -97,7 +97,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <input class="form-control rounded-3" type="number" min="0.01" step="0.01" name="Ingredients[@i].Quantity" value="@Model.Ingredients[i].Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+                            <input class="form-control rounded-3 js-decimal-input" type="text" inputmode="decimal" name="Ingredients[@i].Quantity" value="@Model.Ingredients[i].Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture)" placeholder="z.B. 1,5 oder 1.5" required />
                         </div>
                         <div class="col-md-3">
                             <select class="form-select rounded-3" name="Ingredients[@i].MeasureId" required>
@@ -141,7 +141,7 @@
             </select>
         </div>
         <div class="col-md-3">
-            <input class="form-control rounded-3 ingredient-quantity" type="number" min="0.01" step="0.01" value="1" required />
+            <input class="form-control rounded-3 ingredient-quantity js-decimal-input" type="text" inputmode="decimal" value="1" placeholder="z.B. 1,5 oder 1.5" required />
         </div>
         <div class="col-md-3">
             <select class="form-select rounded-3 ingredient-measure" required>
@@ -186,5 +186,23 @@
             row.querySelector('select[name*="MeasureId"]').setAttribute('name', `Ingredients[${index}].MeasureId`);
         });
     }
+
+    function normalizeDecimalInputs(scopeSelector) {
+        const container = document.querySelector(scopeSelector);
+        if (!container) return;
+
+        container.querySelectorAll('.js-decimal-input').forEach(input => {
+            const raw = (input.value || '').trim();
+            if (!raw) return;
+
+            // erlaubt sowohl "1,5" als auch "1.5" -> normalisiert auf Punkt für serverseitiges Binding
+            input.value = raw.replace(/\s/g, '').replace(',', '.');
+        });
+    }
+
+    document.getElementById('editRecipeForm')?.addEventListener('submit', function () {
+        normalizeDecimalInputs('#editRecipeForm');
+    });
+
 </script>
 }

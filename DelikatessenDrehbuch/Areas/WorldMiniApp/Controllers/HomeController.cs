@@ -254,7 +254,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            var cleanedRows = (model.Ingredients ?? new List<EditPostingIngredientRowViewModel>())
+            var parsedRows = ExtractIngredientRowsFromRequest(model, Request.Form);
+            var cleanedRows = parsedRows
                 .Where(x => x.IngredientId > 0 && x.MeasureId > 0 && x.Quantity > 0)
                 .ToList();
 
@@ -329,6 +330,43 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+        }
+
+
+        private static List<EditPostingIngredientRowViewModel> ExtractIngredientRowsFromRequest(EditPostingRecipeViewModel model, IFormCollection form)
+        {
+            var fallback = model.Ingredients ?? new List<EditPostingIngredientRowViewModel>();
+            var result = new List<EditPostingIngredientRowViewModel>();
+
+            for (var i = 0; ; i++)
+            {
+                var ingredientKey = $"Ingredients[{i}].IngredientId";
+                var measureKey = $"Ingredients[{i}].MeasureId";
+                var quantityKey = $"Ingredients[{i}].Quantity";
+
+                if (!form.ContainsKey(ingredientKey) && !form.ContainsKey(measureKey) && !form.ContainsKey(quantityKey))
+                {
+                    break;
+                }
+
+                _ = int.TryParse(form[ingredientKey].FirstOrDefault(), out var ingredientId);
+                _ = int.TryParse(form[measureKey].FirstOrDefault(), out var measureId);
+
+                var rawQuantity = (form[quantityKey].FirstOrDefault() ?? string.Empty).Trim();
+                var normalizedQuantity = rawQuantity.Replace(" ", string.Empty).Replace(",", ".");
+
+                var quantityParsed = double.TryParse(normalizedQuantity, NumberStyles.Any, CultureInfo.InvariantCulture, out var quantity)
+                                     || double.TryParse(rawQuantity, NumberStyles.Any, CultureInfo.CurrentCulture, out quantity);
+
+                result.Add(new EditPostingIngredientRowViewModel
+                {
+                    IngredientId = ingredientId,
+                    MeasureId = measureId,
+                    Quantity = quantityParsed ? quantity : 0
+                });
+            }
+
+            return result.Any() ? result : fallback;
         }
 
         private async Task<bool> IsCreatorAllowedAsync(string userHash)
