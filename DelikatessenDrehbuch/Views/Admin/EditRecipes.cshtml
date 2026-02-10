@@ -1,7 +1,6 @@
 ﻿@model EditRecipesModel
 @using Newtonsoft.Json
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
@@ -275,10 +274,6 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
     <script>
         var availableUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure.Select(x => x.UnitOfMeasurement).ToList()));
 
@@ -294,11 +289,42 @@
                 .replace(/\r/g, '')
                 .replace(/\n/g, ' ');
         }
+        function ensureIngredientsTableHeader() {
+            const requiredHeaders = ['Zutat', 'Menge + Einheit', 'Gruppe', 'Wählen'];
+            const headerRow = document.querySelector('#ingredientsDbTable thead tr');
+            if (!headerRow) return;
+
+            while (headerRow.children.length < requiredHeaders.length) {
+                const th = document.createElement('th');
+                th.textContent = requiredHeaders[headerRow.children.length];
+                headerRow.appendChild(th);
+            }
+
+            const lastHeader = headerRow.children[requiredHeaders.length - 1];
+            if (lastHeader) {
+                lastHeader.classList.add('text-end');
+            }
+        }
+
+        function normalizeIngredientRows(rawRows) {
+            if (!Array.isArray(rawRows)) return [];
+            return rawRows
+                .filter(row => row != null)
+                .map(row => ({
+                    ...row,
+                    groupe: row.groupe ?? row.group ?? row.Group ?? ''
+                }));
+        }
+
         $(document).ready(function() {
-            ingredientsTable = $('#ingredientsDbTable').DataTable({
+            ensureIngredientsTableHeader();
+
+            ingredientsTable = new DataTable('#ingredientsDbTable', {
                 ajax: {
                     url: '@Url.Action("GetIngredientTableData", "Admin")',
-                    dataSrc: ''
+                    dataSrc: function(json) {
+                        return normalizeIngredientRows(json);
+                    }
                 },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
                 pageLength: 5,
@@ -316,7 +342,14 @@
                                 <div class="d-flex gap-2 align-items-center">                                    <input type="number" step="any" min="0" class="form-control form-control-sm ingredient-qty-input" value="0" style="max-width:110px" />                                    <select class="form-select form-select-sm ingredient-unit-input" style="max-width:140px">${unitOptions}</select>                                </div>`;
                         }
                     },
-                    { data: 'groupe', render: function(data) { return `<span class="badge bg-light text-dark border">${data ?? ''}</span>`; } },
+                    {
+                        data: 'groupe',
+                        defaultContent: '',
+                        render: function(data) {
+                            const groupName = (data ?? '').toString();
+                            return `<span class="badge bg-light text-dark border">${groupName}</span>`;
+                        }
+                    },
                     {
                         data: null,
                         className: 'text-end',
@@ -328,7 +361,7 @@
                 ]
             });
 
-            stepsTable = $('#stepsDbTable').DataTable({
+            stepsTable = new DataTable('#stepsDbTable', {
                 ajax: {
                     url: '@Url.Action("GetPreparationStepTableData", "Admin")',
                     dataSrc: ''
