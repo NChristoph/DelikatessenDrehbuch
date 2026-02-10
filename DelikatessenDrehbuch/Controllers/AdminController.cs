@@ -92,6 +92,36 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetIngredientTableData()
+        {
+            var ingredients = await _context.IngredientsAndNutrients
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name_DE,
+                    x.Calories_a_100g,
+                    x.Groupe
+                })
+                .ToListAsync();
+
+            return Json(ingredients);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPreparationStepTableData()
+        {
+            var preparationSteps = await _context.RecipePreperationSteps
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Step_DE
+                })
+                .ToListAsync();
+
+            return Json(preparationSteps);
+        }
+
         public IActionResult SavePreperationStep(RecipePreperationSteps step)
         {
             _context.RecipePreperationSteps.Add(step);
