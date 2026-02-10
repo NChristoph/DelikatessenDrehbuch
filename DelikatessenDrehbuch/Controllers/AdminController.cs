@@ -95,31 +95,53 @@ namespace DelikatessenDrehbuch.Controllers
         [HttpGet]
         public async Task<IActionResult> GetIngredientTableData()
         {
-            var ingredients = await _context.IngredientsAndNutrients
-                .Select(x => new
-                {
-                    x.Id,
-                    x.Name_DE,
-                    x.Calories_a_100g,
-                    x.Groupe
-                })
-                .ToListAsync();
+            try
+            {
+                var ingredients = await _context.IngredientsAndNutrients
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.Name_DE,
+                        x.Calories_a_100g,
+                        x.Groupe
+                    })
+                    .ToListAsync();
 
-            return Json(ingredients);
+                return Json(ingredients);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                throw new Exception("Fehler beim Laden der Zutaten-Tabelle.", ex);
+#else
+                return StatusCode(500, new { message = "Fehler beim Laden der Zutaten-Tabelle." });
+#endif
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetPreparationStepTableData()
         {
-            var preparationSteps = await _context.RecipePreperationSteps
-                .Select(x => new
-                {
-                    x.Id,
-                    x.Step_DE
-                })
-                .ToListAsync();
+            try
+            {
+                var preparationSteps = await _context.RecipePreperationSteps
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.Step_DE
+                    })
+                    .ToListAsync();
 
-            return Json(preparationSteps);
+                return Json(preparationSteps);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                throw new Exception("Fehler beim Laden der Zubereitungsschritte-Tabelle.", ex);
+#else
+                return StatusCode(500, new { message = "Fehler beim Laden der Zubereitungsschritte-Tabelle." });
+#endif
+            }
         }
 
         public IActionResult SavePreperationStep(RecipePreperationSteps step)

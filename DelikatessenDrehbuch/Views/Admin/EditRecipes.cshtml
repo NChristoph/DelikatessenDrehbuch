@@ -206,7 +206,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Zutat</th>
-                            <th>Kcal/100g</th>
+                            <th>Menge + Einheit</th>
                             <th>Gruppe</th>
                             <th class="text-end">Wählen</th>
                         </tr>
@@ -303,18 +303,26 @@
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
                 pageLength: 5,
                 lengthMenu: [5, 10, 25],
-                columnDefs: [ { orderable: false, targets: 3 } ],
+                columnDefs: [ { orderable: false, targets: [1, 3] } ],
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
                 columns: [
                     { data: 'name_DE', className: 'fw-bold' },
-                    { data: 'calories_a_100g' },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function(data, type, row) {
+                            const unitOptions = availableUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                            return `
+                                <div class="d-flex gap-2 align-items-center">                                    <input type="number" step="any" min="0" class="form-control form-control-sm ingredient-qty-input" value="0" style="max-width:110px" />                                    <select class="form-select form-select-sm ingredient-unit-input" style="max-width:140px">${unitOptions}</select>                                </div>`;
+                        }
+                    },
                     { data: 'groupe', render: function(data) { return `<span class="badge bg-light text-dark border">${data ?? ''}</span>`; } },
                     {
                         data: null,
                         className: 'text-end',
                         render: function(data, type, row) {
                             const safeName = escapeForJsSingleQuote(row.name_DE || '');
-                            return `<button type="button" class="btn btn-outline-success btn-sm rounded-pill" onclick="addNewIngredient('${row.id}', '${safeName}')"><i class="fa-solid fa-plus"></i> Hinzufügen</button>`;
+                            return `<button type="button" class="btn btn-outline-success btn-sm rounded-pill" onclick="addNewIngredientFromTable(this, '${row.id}', '${safeName}')"><i class="fa-solid fa-plus"></i> Hinzufügen</button>`;
                         }
                     }
                 ]
@@ -379,7 +387,14 @@
             });
         }
 
-        function addNewIngredient(dbId, name) {
+        function addNewIngredientFromTable(btn, dbId, name) {
+            const row = $(btn).closest('tr');
+            const quantity = row.find('.ingredient-qty-input').val() || '';
+            const unit = row.find('.ingredient-unit-input').val() || 'Gramm';
+            addNewIngredient(dbId, name, quantity, unit);
+        }
+
+        function addNewIngredient(dbId, name, quantity = '', unit = 'Gramm') {
             const existingById = dbId !== '0' && $('#newIngredientsList .ingredient-row').filter(function() {
                 return $(this).data('ingredient-id')?.toString() === dbId.toString();
             }).length > 0;
@@ -417,14 +432,14 @@
                     <div class="col-6 col-md-2">
                         <label class="small text-muted fw-bold d-md-none">Menge</label>
                         <input type="number" step="any" class="form-control"
-                               name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" placeholder="0" required />
+                               name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" placeholder="0" value="${quantity}" required />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="small text-muted fw-bold d-md-none">Einheit</label>
-                        <input type="hidden" class="unit-input" name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement" value="Gramm" />
+                        <input type="hidden" class="unit-input" name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement" value="${unit}" />
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle w-100 unit-btn text-truncate" type="button" data-bs-toggle="dropdown">g.</button>
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 unit-btn text-truncate" type="button" data-bs-toggle="dropdown">${unit}</button>
                             <ul class="dropdown-menu shadow" style="max-height: 200px; overflow-y: auto;">${dropdownItems}</ul>
                         </div>
                     </div>
