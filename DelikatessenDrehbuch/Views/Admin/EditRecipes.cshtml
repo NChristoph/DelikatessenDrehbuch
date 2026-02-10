@@ -87,6 +87,27 @@
         margin-top: 10px;
     }
 
+
+    #ingredientsDbTable th:last-child,
+    #ingredientsDbTable td:last-child {
+        width: 1%;
+        white-space: nowrap;
+    }
+
+    #ingredientsDbTable .ingredient-cell-controls {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+    }
+
+    #ingredientsDbTable .ingredient-qty-input {
+        min-width: 120px;
+    }
+
+    #ingredientsDbTable .ingredient-unit-input {
+        min-width: 130px;
+    }
+
     /* Eingabefelder auf Mobile */
     @@media (max-width: 768px) {
         .recipe-card, .recipe-card-blue
@@ -98,6 +119,25 @@
     .btn-mobile-full {
         width: 100%;
         margin-top: 5px;
+    }
+
+    #ingredientsDbTable .ingredient-cell-controls {
+        gap: .4rem;
+    }
+
+    #ingredientsDbTable .ingredient-qty-input {
+        min-width: 96px;
+        max-width: 45vw;
+    }
+
+    #ingredientsDbTable .ingredient-unit-input {
+        min-width: 100px;
+        max-width: 48vw;
+    }
+
+    #ingredientsDbTable .btn-add-ingredient {
+        padding-left: .55rem;
+        padding-right: .55rem;
     }
 
     }
@@ -206,7 +246,6 @@
                         <tr>
                             <th>Zutat</th>
                             <th>Menge + Einheit</th>
-                            <th>Gruppe</th>
                             <th class="text-end">Wählen</th>
                         </tr>
                     </thead>
@@ -317,8 +356,6 @@
         }
 
         $(document).ready(function() {
-            ensureIngredientsTableHeader();
-
             ingredientsTable = new DataTable('#ingredientsDbTable', {
                 ajax: {
                     url: '@Url.Action("GetIngredientTableData", "Admin")',
@@ -329,7 +366,7 @@
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
                 pageLength: 5,
                 lengthMenu: [5, 10, 25],
-                columnDefs: [ { orderable: false, targets: [1, 3] } ],
+                columnDefs: [ { orderable: false, targets: [1, 2] } ],
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
                 columns: [
                     { data: 'name_DE', className: 'fw-bold' },
@@ -339,23 +376,15 @@
                         render: function(data, type, row) {
                             const unitOptions = availableUnits.map(u => `<option value="${u}">${u}</option>`).join('');
                             return `
-                                <div class="d-flex gap-2 align-items-center">                                    <input type="number" step="any" min="0" class="form-control form-control-sm ingredient-qty-input" value="0" style="max-width:110px" />                                    <select class="form-select form-select-sm ingredient-unit-input" style="max-width:140px">${unitOptions}</select>                                </div>`;
-                        }
-                    },
-                    {
-                        data: 'groupe',
-                        defaultContent: '',
-                        render: function(data) {
-                            const groupName = (data ?? '').toString();
-                            return `<span class="badge bg-light text-dark border">${groupName}</span>`;
+                                <div class="ingredient-cell-controls">                                    <input type="number" step="any" min="0" class="form-control form-control-sm ingredient-qty-input" value="0" />                                    <select class="form-select form-select-sm ingredient-unit-input">${unitOptions}</select>                                </div>`;
                         }
                     },
                     {
                         data: null,
-                        className: 'text-end',
+                        className: 'text-end align-middle w-auto',
                         render: function(data, type, row) {
                             const safeName = escapeForJsSingleQuote(row.name_DE || '');
-                            return `<button type="button" class="btn btn-outline-success btn-sm rounded-pill" onclick="addNewIngredientFromTable(this, '${row.id}', '${safeName}')"><i class="fa-solid fa-plus"></i> Hinzufügen</button>`;
+                            return `<button type="button" class="btn btn-outline-success btn-sm rounded-pill btn-add-ingredient" onclick="addNewIngredientFromTable(this, '${row.id}', '${safeName}')"><i class="fa-solid fa-plus"></i> Hinzufügen</button>`;
                         }
                     }
                 ]
