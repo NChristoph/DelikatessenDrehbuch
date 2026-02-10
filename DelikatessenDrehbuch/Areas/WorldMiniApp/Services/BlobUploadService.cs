@@ -134,6 +134,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 extension = ".jpg";
             }
 
+            // Blob/CDN Responses kommen teilweise als application/octet-stream zurück.
+            // Dann leiten wir den Dateityp über die Extension her, damit die Upload-Validierung
+            // (image/* / video/*) nicht fälschlich blockiert.
+            if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
+                && !contentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase))
+            {
+                contentType = GetContentTypeFromExtension(extension) ?? contentType;
+            }
+
             var fileName = $"recipe_{Guid.NewGuid():N}{extension}";
             await using var stream = new MemoryStream();
             await response.Content.CopyToAsync(stream);
@@ -151,8 +160,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private static void ValidateFileUpload(IFormFile file)
         {
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            var isImage = file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
-            var isVideo = file.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
+            var isImage = file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
+                          || AllowedImageExtensions.Contains(extension);
+            var isVideo = file.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase)
+                          || AllowedVideoExtensions.Contains(extension);
 
             if (!isImage && !isVideo)
             {
@@ -325,6 +336,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 "image/jpg" => ".jpg",
                 "image/png" => ".png",
                 "image/webp" => ".webp",
+                "video/mp4" => ".mp4",
+                "video/quicktime" => ".mov",
+                "video/webm" => ".webm",
+                _ => null
+            };
+        }
+
+        private static string? GetContentTypeFromExtension(string extension)
+        {
+            return extension.ToLowerInvariant() switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                ".mp4" => "video/mp4",
+                ".mov" => "video/quicktime",
+                ".webm" => "video/webm",
                 _ => null
             };
         }
