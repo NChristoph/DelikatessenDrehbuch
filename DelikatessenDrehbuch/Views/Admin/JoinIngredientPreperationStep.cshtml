@@ -1,0 +1,142 @@
+@model DelikatessenDrehbuch.Models.JoinIngredientPreparationStepViewModel
+
+<div class="recipe-card minWidth90 mobieleWidth90 mx-auto" style="border-left-color: #dc3545;">
+    <h3 class="section-title" style="color: #dc3545;">
+        <i class="fa-solid fa-link me-2"></i>Zutaten mit Zubereitungsschritt verknüpfen
+    </h3>
+
+    <p class="text-muted">Schritt auswählen, Zutaten markieren und gemeinsam speichern.</p>
+
+    <form asp-action="SaveJoinIngredientPreperationStep" asp-controller="Admin" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="selectedStepId" name="selectedStepId" />
+        <input type="hidden" id="selectedIngredientIds" name="selectedIngredientIds" />
+
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header fw-bold">Zubereitungsschritte</div>
+                    <div class="card-body">
+                        <table id="prepStepsTable" class="table table-sm table-hover w-100">
+                            <thead>
+                                <tr><th>ID</th><th>Text</th><th>Aktion</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var step in Model.PreparationSteps)
+                                {
+                                    <tr>
+                                        <td>@step.Id</td>
+                                        <td>@step.Step_DE</td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectStep(@step.Id, '@Html.Raw((step.Step_DE ?? string.Empty).Replace("'", "\\'"))')">Auswählen</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header fw-bold">Zutaten</div>
+                    <div class="card-body">
+                        <table id="ingredientsTable" class="table table-sm table-hover w-100">
+                            <thead>
+                                <tr><th>ID</th><th>Name</th><th>Aktion</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ingredient in Model.Ingredients)
+                                {
+                                    <tr>
+                                        <td>@ingredient.Id</td>
+                                        <td>@ingredient.Name_DE</td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleIngredient(@ingredient.Id, '@Html.Raw((ingredient.Name_DE ?? string.Empty).Replace("'", "\\'"))')">Hinzufügen</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3 shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold">Ausgewählter Zubereitungsschritt</h5>
+                <div id="selectedStepPreview" class="text-muted">Noch kein Schritt ausgewählt.</div>
+                <hr />
+                <h5 class="fw-bold">Ausgewählte Zutaten</h5>
+                <ul id="selectedIngredientsPreview" class="mb-0"></ul>
+            </div>
+        </div>
+
+        <button type="submit" class="btn bgRed Border-Gold mt-3" style="color:white">Verknüpfung speichern</button>
+    </form>
+
+    <div class="card mt-4 shadow-sm">
+        <div class="card-header fw-bold">Bereits gespeicherte Verknüpfungen</div>
+        <div class="card-body">
+            <table id="existingJoinTable" class="table table-sm table-striped w-100">
+                <thead>
+                    <tr><th>Schritt</th><th>Zutat</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var join in Model.ExistingJoins)
+                    {
+                        <tr>
+                            <td>@join.PreperationStep?.Step_DE</td>
+                            <td>@join.Ingredient?.Name_DE</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    const selectedIngredients = new Map();
+
+    function selectStep(stepId, stepText) {
+        document.getElementById('selectedStepId').value = stepId;
+        document.getElementById('selectedStepPreview').textContent = `${stepId}: ${stepText}`;
+    }
+
+    function toggleIngredient(ingredientId, ingredientName) {
+        if (selectedIngredients.has(ingredientId)) {
+            selectedIngredients.delete(ingredientId);
+        } else {
+            selectedIngredients.set(ingredientId, ingredientName);
+        }
+
+        document.getElementById('selectedIngredientIds').value = Array.from(selectedIngredients.keys()).join(',');
+
+        const preview = document.getElementById('selectedIngredientsPreview');
+        preview.innerHTML = '';
+
+        if (selectedIngredients.size === 0) {
+            preview.innerHTML = '<li class="text-muted">Noch keine Zutaten ausgewählt.</li>';
+            return;
+        }
+
+        selectedIngredients.forEach((name, id) => {
+            const li = document.createElement('li');
+            li.textContent = `${id}: ${name}`;
+            preview.appendChild(li);
+        });
+    }
+
+    $(document).ready(function () {
+        $('#prepStepsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+        $('#ingredientsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+        $('#existingJoinTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+    });
+</script>

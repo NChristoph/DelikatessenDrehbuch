@@ -92,6 +92,57 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> JoinIngredientPreperationStep()
+        {
+            var model = new JoinIngredientPreparationStepViewModel
+            {
+                PreparationSteps = await _context.RecipePreperationSteps.OrderBy(x => x.Id).ToListAsync(),
+                Ingredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
+                ExistingJoins = await _context.JoinIngredientPREPERATIONstep
+                    .Include(x => x.PreperationStep)
+                    .Include(x => x.Ingredient)
+                    .ToListAsync()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveJoinIngredientPreperationStep(int selectedStepId, string selectedIngredientIds)
+        {
+            if (selectedStepId <= 0)
+                return BadRequest("Bitte einen Zubereitungsschritt auswählen.");
+
+            var ingredientIds = (selectedIngredientIds ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : 0)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (ingredientIds.Count == 0)
+                return BadRequest("Bitte mindestens eine Zutat auswählen.");
+
+            var existingRows = await _context.JoinIngredientPREPERATIONstep
+                .Where(x => x.PreperationStepId == selectedStepId)
+                .ToListAsync();
+
+            if (existingRows.Count > 0)
+                _context.JoinIngredientPREPERATIONstep.RemoveRange(existingRows);
+
+            var newRows = ingredientIds.Select(ingredientId => new JoinIngredientPREPERATIONstep
+            {
+                PreperationStepId = selectedStepId,
+                IngredientId = ingredientId
+            });
+
+            await _context.JoinIngredientPREPERATIONstep.AddRangeAsync(newRows);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(JoinIngredientPreperationStep));
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetIngredientTableData()
         {

@@ -35,6 +35,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeJoyinPreperationSteps> RecipeJoinPreperationSteps { get; set; }
         public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
         public DbSet<RecipePreperationSteps> RecipePreperationSteps { get; set; }
+        public DbSet<JoinIngredientPREPERATIONstep> JoinIngredientPREPERATIONstep { get; set; }
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
