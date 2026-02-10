@@ -267,6 +267,27 @@
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
+    .grid-edit-link {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        text-decoration: none;
+    }
+
+        .grid-edit-link:hover {
+            color: #fff;
+            background: rgba(0, 0, 0, 0.75);
+        }
+
     /* --- Buttons & Utilities --- */
     .btn-action {
         background: var(--deli-primary);
@@ -445,6 +466,12 @@
                     @foreach (var posting in Model.MyVideos)
                     {
                         <div class="grid-item shadow-sm" onclick="openFeed('myvideos', @posting.Recipe.Id)">
+                            <a class="grid-edit-link"
+                               href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = posting.Id })"
+                               onclick="event.stopPropagation();"
+                               title="@T("Rezept bearbeiten", "Edit recipe", "Editar receta", "Editar receita")">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
                             <img src="@(string.IsNullOrEmpty(posting.ThumbnailUrl) ? posting.Source : posting.ThumbnailUrl)" class="grid-img">
                             <div class="grid-overlay"><i class="bi bi-camera-reels"></i></div>
                         </div>
