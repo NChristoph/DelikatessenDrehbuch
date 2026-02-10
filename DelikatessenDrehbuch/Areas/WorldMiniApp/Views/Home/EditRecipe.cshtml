@@ -1,0 +1,190 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.EditPostingRecipeViewModel
+@{
+    ViewData["Title"] = "Rezept bearbeiten";
+    Layout = "_MiniAppLayout";
+}
+
+<div class="container py-4" style="max-width: 720px;">
+    <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zum Profil
+    </a>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+        <div class="card-body p-4">
+            <h4 class="fw-bold mb-1">Rezept bearbeiten</h4>
+            <p class="text-muted small mb-0">Jetzt kannst du auch Zutaten, Mengen und das Bild/Video ändern.</p>
+        </div>
+    </div>
+
+    <form asp-action="UpdateRecipe" method="post" enctype="multipart/form-data" class="card border-0 shadow-sm rounded-4">
+        @Html.AntiForgeryToken()
+        <div class="card-body p-4">
+            <input type="hidden" asp-for="PostingId" />
+            <input type="hidden" asp-for="RecipeId" />
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label fw-semibold">Titel</label>
+                <input asp-for="Title" class="form-control rounded-3" required />
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="Category" class="form-label fw-semibold">Kategorie</label>
+                    <select asp-for="Category" class="form-select rounded-3">
+                        <option value="Appetizer">Vorspeise</option>
+                        <option value="Main">Hauptspeise</option>
+                        <option value="Dessert">Dessert</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Preferences" class="form-label fw-semibold">Präferenz</label>
+                    <select asp-for="Preferences" class="form-select rounded-3">
+                        <option value="Vegan">Vegan</option>
+                        <option value="Vegetarian">Vegetarisch</option>
+                        <option value="Fish">Fisch</option>
+                        <option value="Pork">Schwein</option>
+                        <option value="Beef">Rind</option>
+                        <option value="OtherMeat">Anderes Fleisch</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="PersonCount" class="form-label fw-semibold">Personen</label>
+                    <input asp-for="PersonCount" min="1" type="number" class="form-control rounded-3" />
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="PreperationTime" class="form-label fw-semibold">Zeit</label>
+                    <input asp-for="PreperationTime" min="0" type="number" class="form-control rounded-3" />
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold d-block">Bild/Video ersetzen (optional)</label>
+                @if (!string.IsNullOrWhiteSpace(Model.CurrentImageUrl))
+                {
+                    <img src="@Model.CurrentImageUrl" class="rounded-3 mb-2" style="max-height:180px; object-fit:cover;" />
+                }
+                <input asp-for="NewContent" type="file" accept="image/*,video/*" class="form-control rounded-3" />
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-semibold mb-0">Zutaten & Mengen</label>
+                <button type="button" class="btn btn-sm btn-outline-dark rounded-pill" onclick="addIngredientRow()">
+                    <i class="bi bi-plus"></i> Zutat hinzufügen
+                </button>
+            </div>
+
+            <div id="ingredientRows" class="d-flex flex-column gap-2">
+                @for (var i = 0; i < Model.Ingredients.Count; i++)
+                {
+                    <div class="row g-2 ingredient-row">
+                        <div class="col-md-5">
+                            <select class="form-select rounded-3" name="Ingredients[@i].IngredientId" required>
+                                @foreach (var ingredient in Model.AvailableIngredients)
+                                {
+                                    if (ingredient.Id == Model.Ingredients[i].IngredientId)
+                                    {
+                                        <option value="@ingredient.Id" selected>@ingredient.Name_DE</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@ingredient.Id">@ingredient.Name_DE</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input class="form-control rounded-3" type="number" min="0.01" step="0.01" name="Ingredients[@i].Quantity" value="@Model.Ingredients[i].Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select rounded-3" name="Ingredients[@i].MeasureId" required>
+                                @foreach (var measure in Model.AvailableMeasures)
+                                {
+                                    if (measure.Id == Model.Ingredients[i].MeasureId)
+                                    {
+                                        <option value="@measure.Id" selected>@measure.UnitOfMeasurement</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@measure.Id">@measure.UnitOfMeasurement</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIngredientRow(this)"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-dark rounded-pill py-2 fw-semibold">
+                    Änderungen speichern
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<template id="ingredientRowTemplate">
+    <div class="row g-2 ingredient-row">
+        <div class="col-md-5">
+            <select class="form-select rounded-3 ingredient-id" required>
+                @foreach (var ingredient in Model.AvailableIngredients)
+                {
+                    <option value="@ingredient.Id">@ingredient.Name_DE</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input class="form-control rounded-3 ingredient-quantity" type="number" min="0.01" step="0.01" value="1" required />
+        </div>
+        <div class="col-md-3">
+            <select class="form-select rounded-3 ingredient-measure" required>
+                @foreach (var measure in Model.AvailableMeasures)
+                {
+                    <option value="@measure.Id">@measure.UnitOfMeasurement</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-1 d-flex align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIngredientRow(this)"><i class="bi bi-trash"></i></button>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+<script>
+    function addIngredientRow() {
+        const container = document.getElementById('ingredientRows');
+        const tpl = document.getElementById('ingredientRowTemplate');
+        const index = container.querySelectorAll('.ingredient-row').length;
+
+        const fragment = tpl.content.cloneNode(true);
+        fragment.querySelector('.ingredient-id').setAttribute('name', `Ingredients[${index}].IngredientId`);
+        fragment.querySelector('.ingredient-quantity').setAttribute('name', `Ingredients[${index}].Quantity`);
+        fragment.querySelector('.ingredient-measure').setAttribute('name', `Ingredients[${index}].MeasureId`);
+
+        container.appendChild(fragment);
+    }
+
+    function removeIngredientRow(btn) {
+        const row = btn.closest('.ingredient-row');
+        row.remove();
+        reindexIngredientRows();
+    }
+
+    function reindexIngredientRows() {
+        const rows = document.querySelectorAll('#ingredientRows .ingredient-row');
+        rows.forEach((row, index) => {
+            row.querySelector('select[name*="IngredientId"]').setAttribute('name', `Ingredients[${index}].IngredientId`);
+            row.querySelector('input[name*="Quantity"]').setAttribute('name', `Ingredients[${index}].Quantity`);
+            row.querySelector('select[name*="MeasureId"]').setAttribute('name', `Ingredients[${index}].MeasureId`);
+        });
+    }
+</script>
+}
