@@ -153,11 +153,6 @@ app.UseSession();
 
 
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
-}
-
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Add("Cross-Origin-Opener-Policy", "same-origin");
@@ -189,39 +184,39 @@ async Task CreateDefauldUser(IServiceProvider serviceProvider, string rollName, 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseMigrationsEndPoint();
 }
 else
 {
     app.UseHsts();
-}
-
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
+    app.UseExceptionHandler(errorApp =>
     {
-        var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
-        if (exceptionHandlerFeature?.Error != null)
+        errorApp.Run(async context =>
         {
-            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError(exceptionHandlerFeature.Error, "Unhandled exception.");
-        }
+            var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+            if (exceptionHandlerFeature?.Error != null)
+            {
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogError(exceptionHandlerFeature.Error, "Unhandled exception.");
+            }
 
-        if (context.Request.Headers.Accept.Any(accept => accept.Contains("text/html", StringComparison.OrdinalIgnoreCase)))
-        {
-            context.Response.Redirect("/Home/Error");
-            return;
-        }
+            if (context.Request.Headers.Accept.Any(accept => accept.Contains("text/html", StringComparison.OrdinalIgnoreCase)))
+            {
+                context.Response.Redirect("/Home/Error");
+                return;
+            }
 
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/problem+json";
 
-        await Results.Problem(
-                title: "Ein unerwarteter Fehler ist aufgetreten.",
-                statusCode: StatusCodes.Status500InternalServerError)
-            .ExecuteAsync(context);
+            await Results.Problem(
+                    title: "Ein unerwarteter Fehler ist aufgetreten.",
+                    statusCode: StatusCodes.Status500InternalServerError)
+                .ExecuteAsync(context);
+        });
     });
-});
+}
 
 
 app.UseHttpsRedirection();

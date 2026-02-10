@@ -92,6 +92,58 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetIngredientTableData()
+        {
+            try
+            {
+                var ingredients = await _context.IngredientsAndNutrients
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.Name_DE,
+                        x.Calories_a_100g,
+                        x.Groupe
+                    })
+                    .ToListAsync();
+
+                return Json(ingredients);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                throw new Exception("Fehler beim Laden der Zutaten-Tabelle.", ex);
+#else
+                return StatusCode(500, new { message = "Fehler beim Laden der Zutaten-Tabelle." });
+#endif
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPreparationStepTableData()
+        {
+            try
+            {
+                var preparationSteps = await _context.RecipePreperationSteps
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.Step_DE
+                    })
+                    .ToListAsync();
+
+                return Json(preparationSteps);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                throw new Exception("Fehler beim Laden der Zubereitungsschritte-Tabelle.", ex);
+#else
+                return StatusCode(500, new { message = "Fehler beim Laden der Zubereitungsschritte-Tabelle." });
+#endif
+            }
+        }
+
         public IActionResult SavePreperationStep(RecipePreperationSteps step)
         {
             _context.RecipePreperationSteps.Add(step);
