@@ -35,6 +35,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeJoyinPreperationSteps> RecipeJoinPreperationSteps { get; set; }
         public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
         public DbSet<RecipePreperationSteps> RecipePreperationSteps { get; set; }
+        public DbSet<PreparationStepIngredientLink> PreparationStepIngredientLinks { get; set; }
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
@@ -67,6 +68,21 @@ namespace DelikatessenDrehbuch.Data
                 .HasOne(link => link.Keyword)
                 .WithMany(keyword => keyword.RecipeLinks)
                 .HasForeignKey(link => link.KeywordId);
+
+            builder.Entity<PreparationStepIngredientLink>()
+                .HasKey("PreperationStepId", "IngredientId");
+
+            builder.Entity<PreparationStepIngredientLink>()
+                .HasOne(x => x.PreperationStep)
+                .WithMany()
+                .HasForeignKey("PreperationStepId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PreparationStepIngredientLink>()
+                .HasOne(x => x.Ingredient)
+                .WithMany()
+                .HasForeignKey("IngredientId")
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

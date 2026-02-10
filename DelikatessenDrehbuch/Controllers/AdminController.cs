@@ -92,6 +92,65 @@ namespace DelikatessenDrehbuch.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> JoinIngredientPreperationStep()
+        {
+            var model = new JoinIngredientPreparationStepViewModel
+            {
+                PreparationSteps = await _context.RecipePreperationSteps.OrderBy(x => x.Id).ToListAsync(),
+                Ingredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
+                ExistingJoins = await _context.PreparationStepIngredientLinks
+                    .Include(x => x.PreperationStep)
+                    .Include(x => x.Ingredient)
+                    .ToListAsync()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveJoinIngredientPreperationStep(int selectedStep, string selectedIngredients)
+        {
+            if (selectedStep <= 0)
+                return BadRequest("Bitte einen Zubereitungsschritt auswählen.");
+
+            var ingredientIds = (selectedIngredients ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : 0)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (ingredientIds.Count == 0)
+                return BadRequest("Bitte mindestens eine Zutat auswählen.");
+
+            var existingRows = await _context.PreparationStepIngredientLinks
+                 .Where(x => x.PreperationStep != null && x.PreperationStep.Id == selectedStep)
+                .ToListAsync();
+
+            if (existingRows.Count > 0)
+                _context.PreparationStepIngredientLinks.RemoveRange(existingRows);
+
+            var stepEntity = await _context.RecipePreperationSteps.FirstOrDefaultAsync(x => x.Id == selectedStep);
+            if (stepEntity == null)
+                return BadRequest("Der ausgewählte Zubereitungsschritt wurde nicht gefunden.");
+
+            var ingredientEntities = await _context.IngredientsAndNutrients
+                .Where(x => ingredientIds.Contains(x.Id))
+                .ToListAsync();
+
+            var newRows = ingredientEntities.Select(ingredient => new PreparationStepIngredientLink
+            {
+                PreperationStep = stepEntity,
+                Ingredient = ingredient
+            });
+
+            await _context.PreparationStepIngredientLinks.AddRangeAsync(newRows);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(JoinIngredientPreperationStep));
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetIngredientTableData()
         {
