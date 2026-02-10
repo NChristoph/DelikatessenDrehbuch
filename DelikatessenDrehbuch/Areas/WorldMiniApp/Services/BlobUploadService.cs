@@ -15,6 +15,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     {
         private const long MaxImageBytes = 15L * 1024 * 1024;
         private const long MaxVideoBytes = 200L * 1024 * 1024;
+        private const long TargetSourceImageBytes = 850_000; // ~0.85 MB
+        private const long TargetThumbImageBytes = 250_000;
         private const int MagicHeaderBytes = 16;
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".mov", ".webm" };
@@ -63,8 +65,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var sourceName = $"{fileName}_{uniqueToken}.webp";
                 var thumbName = $"{fileName}_{uniqueToken}_thumb.webp";
 
-                using var sourceStream = await ConvertImageToWebpAsync(file, 1080, 1920);
-                using var thumbStream = await ConvertImageToWebpAsync(file, 400, 711);
+                using var sourceStream = await ConvertImageToWebpAsync(file, 1080, 1920, TargetSourceImageBytes);
+                using var thumbStream = await ConvertImageToWebpAsync(file, 400, 711, TargetThumbImageBytes);
 
                 var sourceUrl = await UploadStreamAsync(blobContainerClient, sourceName, sourceStream, "image/webp");
                 var thumbUrl = await UploadStreamAsync(blobContainerClient, thumbName, thumbStream, "image/webp");
@@ -262,7 +264,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return blobClient.Uri.ToString();
         }
 
-        private static async Task<MemoryStream> ConvertImageToWebpAsync(IFormFile file, int width, int height)
+        private static async Task<MemoryStream> ConvertImageToWebpAsync(IFormFile file, int width, int height, long targetMaxBytes)
         {
             using var inputStream = file.OpenReadStream();
             using var image = await Image.LoadAsync(inputStream);
@@ -273,13 +275,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 Mode = ResizeMode.Crop
             }));
 
-            var outputStream = new MemoryStream();
-            var encoder = new WebpEncoder { Quality = 90 };
+            var quality = 88;
+            for (var attempt = 0; attempt < 8; attempt++)
+            {
+                var outputStream = new MemoryStream();
+                var encoder = new WebpEncoder { Quality = quality };
 
-            await image.SaveAsWebpAsync(outputStream, encoder);
-            outputStream.Position = 0;
+                await image.SaveAsWebpAsync(outputStream, encoder);
 
-            return outputStream;
+                if (outputStream.Length <= targetMaxBytes || quality <= 35)
+                {
+                    outputStream.Position = 0;
+                    return outputStream;
+                }
+
+                outputStream.Dispose();
+                quality -= 8;
+            }
+
+            var fallbackStream = new MemoryStream();
+            await image.SaveAsWebpAsync(fallbackStream, new WebpEncoder { Quality = 35 });
+            fallbackStream.Position = 0;
+            return fallbackStream;
         }
 
         // Return-Typ erweitert, damit wir BlobName für Queue haben
