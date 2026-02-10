@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
@@ -98,8 +99,8 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 PreparationSteps = await _context.RecipePreperationSteps.OrderBy(x => x.Id).ToListAsync(),
                 Ingredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
-                ExistingJoins = await _context.JoinIngredientPREPERATIONstep
-                    .Include(x => x.PreperationStep)
+                ExistingJoins = await _context.JoinIngredientPreperationStep
+                    .Include(x => x.Preperation)
                     .Include(x => x.Ingredient)
                     .ToListAsync()
             };
@@ -124,20 +125,27 @@ namespace DelikatessenDrehbuch.Controllers
             if (ingredientIds.Count == 0)
                 return BadRequest("Bitte mindestens eine Zutat auswählen.");
 
-            var existingRows = await _context.JoinIngredientPREPERATIONstep
-                .Where(x => x.PreperationStepId == selectedStepId)
+            var existingRows = await _context.JoinIngredientPreperationStep
+                .Where(x => x.Preperation.Id == selectedStepId)
                 .ToListAsync();
 
             if (existingRows.Count > 0)
-                _context.JoinIngredientPREPERATIONstep.RemoveRange(existingRows);
+                _context.JoinIngredientPreperationStep.RemoveRange(existingRows);
 
-            var newRows = ingredientIds.Select(ingredientId => new JoinIngredientPREPERATIONstep
+           
+            var newRows = new List<JoinIngredientPreperationStep>();
+            foreach (var ingredientId in ingredientIds)
             {
-                PreperationStepId = selectedStepId,
-                IngredientId = ingredientId
-            });
+                var preperation = await _context.RecipePreperationSteps.FindAsync(selectedStepId);
+                var ingredient = await _context.IngredientsAndNutrients.FindAsync(ingredientId);
+                newRows.Add(new JoinIngredientPreperationStep
+                {
+                    Preperation = preperation,
+                    Ingredient = ingredient
+                });
+            }
 
-            await _context.JoinIngredientPREPERATIONstep.AddRangeAsync(newRows);
+            await _context.JoinIngredientPreperationStep.AddRangeAsync(newRows);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(JoinIngredientPreperationStep));
