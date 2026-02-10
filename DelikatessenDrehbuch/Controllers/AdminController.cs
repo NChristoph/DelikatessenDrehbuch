@@ -153,8 +153,7 @@ namespace DelikatessenDrehbuch.Controllers
                     {
                         x.Id,
                         x.Name_DE,
-                        x.Calories_a_100g,
-                        x.Groupe
+                     
                     })
                     .ToListAsync();
 

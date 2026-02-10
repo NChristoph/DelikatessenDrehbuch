@@ -4,10 +4,11 @@
 @{
     ViewData["Title"] = "Mein Profil";
     Layout = "_MiniAppLayout";
-    bool isOrb = Model.User.IsVerified == "orb" || Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
-    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
 
-    // Zentrale Übersetzungsfunktion
+    bool isOrb = Model.User.IsVerified == "orb"
+        || Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+
+    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
     string T(string de, string en, string es, string pt) => language switch
     {
         "en" => en,
@@ -16,9 +17,18 @@
         _ => de
     };
 
+    string ShortHash(string h)
+    {
+        if (string.IsNullOrWhiteSpace(h)) return "0x00";
+        return h.Length >= 8 ? h.Substring(0, 8) : h;
+    }
+
     string DeleteConfirmText(string title)
     {
-        var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?", $"Do you really want to delete the plan \"{title}\"?", "¿Quieres eliminar el plan?", "Quer mesmo apagar o plano?");
+        var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?",
+                     $"Do you really want to delete the plan \"{title}\"?",
+                     "¿Quieres eliminar el plan?",
+                     "Quer mesmo apagar o plano?");
         return text.Replace("'", "\\'");
     }
 }
@@ -29,170 +39,255 @@
     :root {
         --deli-primary: #2D4F1E;
         --deli-gold: #D4AF37;
+        /* Theme-able surfaces (wichtig: Header + Settings sollen NICHT fix rosa/grün sein) */
+        --surface: rgba(255,255,255,0.88);
+        --surface-2: rgba(255,255,255,0.72);
+        --text: #1A1A1A;
+        --muted: rgba(0,0,0,0.55);
+        --border: rgba(0,0,0,0.06);
+        --shadow: 0 10px 30px rgba(0,0,0,0.04);
+        /* Akzent, wird per Theme gesetzt */
+        --accent: #2D4F1E;
+        --accent-contrast: #ffffff;
+        /* Header Background, wird per Theme gesetzt */
+        --header-bg: linear-gradient(135deg, rgba(45,79,30,0.12) 0%, rgba(255, 153, 102, 0.12) 100%);
     }
 
     body {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        transition: background 0.3s ease, color 0.3s ease;
+        background: #F8FAF7;
+        color: var(--text);
+        transition: background 0.25s ease, color 0.25s ease;
     }
 
-        /* --- Themes --- */
+        /* --- Themes: setzen Variablen statt fixen Farben --- */
         body.profile-theme-color {
             background: #F8FAF7;
-            color: #1A1A1A;
+            --accent: #2D4F1E;
+            --accent-contrast: #ffffff;
+            --surface: rgba(255,255,255,0.88);
+            --surface-2: rgba(255,255,255,0.72);
+            --text: #1A1A1A;
+            --muted: rgba(0,0,0,0.55);
+            --border: rgba(0,0,0,0.06);
+            --header-bg: linear-gradient(135deg, rgba(45,79,30,0.12) 0%, rgba(255,153,102,0.12) 100%);
         }
 
         body.profile-theme-black {
-            background: #000000;
-            color: #ffffff;
+            background: #000;
+            --accent: #ffffff;
+            --accent-contrast: #000;
+            --surface: #111;
+            --surface-2: #111;
+            --text: #ffffff;
+            --muted: rgba(255,255,255,0.65);
+            --border: rgba(255,255,255,0.10);
+            --shadow: none;
+            --header-bg: #111;
         }
 
         body.profile-theme-white {
-            background: #ffffff;
-            color: #1A1A1A;
+            background: #fff;
+            --accent: #111;
+            --accent-contrast: #ffffff;
+            --surface: rgba(247,247,247,0.92);
+            --surface-2: rgba(245,245,245,0.85);
+            --text: #1A1A1A;
+            --muted: rgba(0,0,0,0.55);
+            --border: rgba(0,0,0,0.06);
+            --header-bg: linear-gradient(135deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 100%);
         }
 
-        /* Fix für Black Theme: Kein Glass bei Stats */
-        body.profile-theme-black .profile-card {
-            background: #111 !important;
-            border: 1px solid #222;
-            box-shadow: none !important;
-        }
-
-        body.profile-theme-black .nav-link.active {
-            background: #333 !important;
-            color: #fff !important;
-        }
-
-        body.profile-theme-black .list-group-item,
-        body.profile-theme-black .plan-card {
-            background: #111 !important;
-            color: white !important;
-            border-color: #222 !important;
-        }
-
-        /* --- Neue Feminine Themes --- */
         body.profile-theme-rose {
             background: linear-gradient(135deg, #FFF5F7 0%, #FEE2E7 100%);
-            color: #852D3E;
+            --accent: #FFB6C1;
+            --accent-contrast: #3b0a14;
+            --surface: rgba(255,255,255,0.88);
+            --surface-2: rgba(255,255,255,0.72);
+            --text: #852D3E;
+            --muted: rgba(133,45,62,0.60);
+            --border: rgba(0,0,0,0.05);
+            --header-bg: linear-gradient(135deg, rgba(255,182,193,0.22) 0%, rgba(255,182,193,0.10) 100%);
         }
-
-            body.profile-theme-rose .profile-card {
-                background: #FFFFFF;
-                color: #852D3E;
-            }
-
-            body.profile-theme-rose .nav-link.active {
-                background: #FFB6C1 !important;
-                color: white !important;
-            }
-
-            body.profile-theme-rose .btn-action {
-                background: #FFB6C1;
-            }
 
         body.profile-theme-lavender {
             background: linear-gradient(135deg, #F3F0FF 0%, #EBE4FF 100%);
-            color: #4B3D8A;
+            --accent: #A78BFA;
+            --accent-contrast: #160b2d;
+            --surface: rgba(255,255,255,0.88);
+            --surface-2: rgba(255,255,255,0.72);
+            --text: #4B3D8A;
+            --muted: rgba(75,61,138,0.60);
+            --border: rgba(0,0,0,0.05);
+            --header-bg: linear-gradient(135deg, rgba(167,139,250,0.22) 0%, rgba(167,139,250,0.10) 100%);
         }
-
-            body.profile-theme-lavender .profile-card {
-                background: #FFFFFF;
-                color: #4B3D8A;
-            }
-
-            body.profile-theme-lavender .nav-link.active {
-                background: #A78BFA !important;
-                color: white !important;
-            }
-
-            body.profile-theme-lavender .btn-action {
-                background: #A78BFA;
-            }
-
-            /* Dark-Fix Ergänzung für die neuen Themes */
-            body.profile-theme-rose .list-group-item, body.profile-theme-rose .plan-card,
-            body.profile-theme-lavender .list-group-item, body.profile-theme-lavender .plan-card {
-                background: rgba(255, 255, 255, 0.5) !important;
-                border-color: rgba(0, 0, 0, 0.05) !important;
-            }
 
     .profile-wrap {
         max-width: 500px;
         margin: 0 auto;
-        padding: 20px 15px 100px;
+        padding: 14px 15px 110px;
     }
 
+    /* Zurück Button: oben links & scrollt mit */
     .back-to-feed {
+        position: sticky;
+        top: 10px;
+        z-index: 999;
         display: inline-flex;
         align-items: center;
         gap: 6px;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 800;
         font-size: 0.9rem;
-        color: inherit;
-        opacity: 0.8;
+        color: var(--text);
+        opacity: 0.9;
+        padding: 8px 10px;
+        border-radius: 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
         margin-bottom: 12px;
     }
 
-        .back-to-feed:hover {
-            opacity: 1;
-        }
-
-    /* --- Profile Card --- */
     .profile-card {
-        padding: 30px 20px;
-        text-align: center;
+        padding: 18px 16px 16px;
         border-radius: 35px;
-        margin-bottom: 25px;
-        background: white;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-        transition: all 0.3s ease;
+        margin-bottom: 22px;
+        background: var(--header-bg);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        transition: all 0.25s ease;
+        backdrop-filter: blur(10px);
     }
 
-    .avatar-container {
-        position: relative;
-        display: inline-block;
-        margin-bottom: 15px;
+    /* Header layout genau wie du willst:
+           Links Avatar, rechts Orb -> darunter Name -> darunter Hash -> darunter Stats -> darunter Settings */
+    .profile-top-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
     }
 
     .avatar-main {
-        width: 110px;
-        height: 110px;
-        border-radius: 35px; /* Squircle Look */
+        width: 88px;
+        height: 88px;
+        border-radius: 26px;
         object-fit: cover;
-        border: 4px solid white;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        border: 3px solid rgba(255,255,255,0.85);
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+        flex: 0 0 auto;
     }
 
-    /* --- Stats Section --- */
+    .profile-right {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+        padding-top: 2px;
+    }
+
+    .orb-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 0.72rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+        margin-bottom: 8px;
+    }
+
+    .profile-name {
+        font-weight: 900;
+        font-size: 1.25rem;
+        line-height: 1.15;
+        margin: 0 0 4px 0;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .profile-hash {
+        font-size: 0.78rem;
+        font-weight: 800;
+        opacity: 0.7;
+        color: var(--text);
+        margin-bottom: 12px;
+    }
+
     .stats-container {
         display: flex;
-        justify-content: center;
-        gap: 30px;
-        margin: 20px 0;
+        justify-content: flex-start;
+        gap: 18px;
+        margin: 10px 0 14px;
+        flex-wrap: wrap;
     }
 
     .stat-item {
-        text-align: center;
+        text-align: left;
     }
 
     .stat-val {
-        font-size: 1.4rem;
-        font-weight: 800;
+        font-size: 1.3rem;
+        font-weight: 900;
         display: block;
-        line-height: 1.2;
+        line-height: 1.1;
+        color: var(--text);
     }
 
     .stat-lbl {
         font-size: 0.7rem;
-        opacity: 0.6;
+        opacity: 0.65;
         text-transform: uppercase;
-        letter-spacing: 1.2px;
-        font-weight: 600;
+        letter-spacing: 1.1px;
+        font-weight: 800;
+        color: var(--text);
     }
 
-    /* --- Navigation Tabs --- */
+    .btn-action {
+        background: var(--accent);
+        color: var(--accent-contrast) !important;
+        border-radius: 18px;
+        padding: 12px;
+        width: 100%;
+        border: none;
+        font-weight: 900;
+        font-size: 0.95rem;
+        transition: transform 0.2s;
+    }
+
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+
+    .theme-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: 0.2s;
+    }
+
+        .theme-dot:hover {
+            transform: scale(1.1);
+        }
+
+    /* Settings Box: ebenfalls theme-fähig */
+    .settings-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 12px;
+        color: var(--text);
+    }
+
+    /* --- Tabs: unverändert in Stil wie bei dir --- */
     .nav-custom {
         display: flex;
         background: rgba(128,128,128,0.1);
@@ -224,8 +319,8 @@
         }
 
             .nav-custom .nav-link.active {
-                background: white;
-                color: var(--deli-primary);
+                background: var(--surface);
+                color: var(--accent);
                 opacity: 1;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.08);
                 transform: scale(1.02);
@@ -293,98 +388,102 @@
         background: var(--deli-primary);
         color: white !important;
         border-radius: 18px;
-        padding: 12px;
-        width: 100%;
-        border: none;
-        font-weight: 700;
-        font-size: 0.9rem;
-        transition: transform 0.2s;
+        color: var(--text);
     }
 
-        .btn-action:active {
-            transform: scale(0.98);
-        }
-
-    .theme-dot {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid transparent;
-        transition: 0.2s;
+    body.profile-theme-black .plan-card,
+    body.profile-theme-black .list-group-item {
+        background: #111 !important;
+        color: #fff !important;
+        border-color: #222 !important;
     }
-
-        .theme-dot:hover {
-            transform: scale(1.1);
-        }
 </style>
 
 <div class="profile-wrap">
-    <a class="back-to-feed" href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
+
+    <a class="back-to-feed"
+       href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
         <i class="bi bi-arrow-left"></i>
         @T("Zurück zum Feed", "Back to feed", "Volver al feed", "Voltar ao feed")
     </a>
 
     <div class="profile-card">
-        <div class="avatar-container">
-            <img src="https://ui-avatars.com/api/?name=@(string.IsNullOrWhiteSpace(Model.User.UserName) ? "User" : Model.User.UserName)&background=random&size=200" class="avatar-main">
-        </div>
+        <div class="profile-top-row">
+            <img src="https://ui-avatars.com/api/?name=@(string.IsNullOrWhiteSpace(Model.User.UserName) ? "User" : Model.User.UserName)&background=random&size=200"
+                 class="avatar-main"
+                 alt="Avatar" />
 
-        <h3 class="fw-800 mb-0">@(string.IsNullOrWhiteSpace(Model.User.UserName) ? "User" : Model.User.UserName)</h3>
-        <div class="small opacity-50 mb-3">@@@((Model.User.UserHash ?? "0x00").Substring(0, 8))</div>
+            <div class="profile-right">
+                @if (isOrb)
+                {
+                    <div class="orb-badge">
+                        <i class="bi bi-patch-check-fill"></i>
+                        ORB VERIFIED
+                    </div>
+                }
 
-        <div class="stats-container">
-            <div class="stat-item">
-                <span class="stat-val counter" data-target="@Model.Following.Count">0</span>
-                <span class="stat-lbl">@T("Abos", "Following", "Siguiendo", "Seguindo")</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-val counter" data-target="@Model.LikedRecipes.Count">0</span>
-                <span class="stat-lbl">@T("Likes", "Likes", "Me gusta", "Curtidas")</span>
-            </div>
-            @if (isOrb)
-            {
-                <div class="stat-item">
-                    <span class="stat-val counter" data-target="@Model.FollowerCount">0</span>
-                    <span class="stat-lbl">@T("Follower", "Followers", "Seguidores", "Seguidores")</span>
+                <div class="profile-name">
+                    @(string.IsNullOrWhiteSpace(Model.User.UserName) ? "User" : Model.User.UserName)
                 </div>
-            }
-        </div>
 
+                <div class="profile-hash">
+                    @@@ShortHash(Model.User.UserHash)
+                </div>
+
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-val counter" data-target="@Model.Following.Count">0</span>
+                        <span class="stat-lbl">@T("Abos", "Following", "Siguiendo", "Seguindo")</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val counter" data-target="@Model.LikedRecipes.Count">0</span>
+                        <span class="stat-lbl">@T("Likes", "Likes", "Me gusta", "Curtidas")</span>
+                    </div>
+                    @if (isOrb)
+                    {
+                        <div class="stat-item">
+                            <span class="stat-val counter" data-target="@Model.FollowerCount">0</span>
+                            <span class="stat-lbl">@T("Follower", "Followers", "Seguidores", "Seguidores")</span>
+                        </div>
+                    }
+                </div>
+
+                
+
+            </div>
+        </div>
         <button class="btn-action shadow-sm" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
             <i class="bi bi-gear-fill me-2"></i> @T("Einstellungen", "Settings", "Ajustes", "Ajustes")
         </button>
 
-        <div class="collapse mt-3 text-start" id="settingsCollapse">
-            <div class="p-3 bg-light rounded-4 text-dark shadow-sm">
-                <div class="mb-3">
-                    <form method="post" action="@Url.Action("UpdateProfile", "Feed", new { area = "WorldMiniApp" })">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="userHash" value="@Model.User.UserHash" />
-
-                        <label class="form-label small fw-bold">@T("Anzeigename", "Display Name", "Nombre", "Nome")</label>
-                        <div class="input-group">
-                            <input class="form-control rounded-3" name="userName" maxlength="80" value="@Model.User.UserName" />
-                            <button class="btn btn-dark" type="submit">@T("Speichern", "Save", "Guardar", "Salvar")</button>
-                        </div>
-                    </form>
+        <div class="collapse mt-2" id="settingsCollapse">
+            <div class="settings-box">
+                <label class="small fw-800 mb-2 d-block text-uppercase opacity-75">@T("Design", "Design", "Diseño", "Design")</label>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="theme-dot bg-dark" onclick="setTheme('black')" title="Black"></div>
+                    <div class="theme-dot bg-white border" onclick="setTheme('white')" title="White"></div>
+                    <div class="theme-dot bg-success" onclick="setTheme('color')" title="Green"></div>
+                    <div class="theme-dot" style="background: #FFB6C1;" onclick="setTheme('rose')" title="Rose"></div>
+                    <div class="theme-dot" style="background: #A78BFA;" onclick="setTheme('lavender')" title="Lavender"></div>
                 </div>
-                <hr class="opacity-10">
-                <div>
-                    <label class="small fw-800 mb-2 d-block text-uppercase opacity-50">@T("Design", "Design", "Diseño", "Design")</label>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <div class="theme-dot bg-dark" onclick="setTheme('black')" title="Black"></div>
-                        <div class="theme-dot bg-white border" onclick="setTheme('white')" title="White"></div>
-                        <div class="theme-dot bg-success" onclick="setTheme('color')" title="Green"></div>
 
-                        <div class="theme-dot" style="background: #FFB6C1;" onclick="setTheme('rose')" title="Rose"></div>
-                        <div class="theme-dot" style="background: #A78BFA;" onclick="setTheme('lavender')" title="Lavender"></div>
+                <hr class="opacity-25 my-3" />
+
+                <form method="post" action="@Url.Action("UpdateProfile", "Feed", new { area = "WorldMiniApp" })">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userHash" value="@Model.User.UserHash" />
+
+                    <label class="form-label small fw-bold">@T("Anzeigename", "Display Name", "Nombre", "Nome")</label>
+                    <div class="input-group">
+                        <input class="form-control rounded-3" name="userName" maxlength="80" value="@Model.User.UserName" />
+                        <button class="btn btn-dark" type="submit">@T("Speichern", "Save", "Guardar", "Salvar")</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 
+    <!-- Tabs (wie vorher) -->
     <ul class="nav nav-custom" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-likes">
@@ -412,6 +511,7 @@
     </ul>
 
     <div class="tab-content">
+
         <div class="tab-pane fade show active" id="tab-likes">
             <div class="video-grid">
                 @foreach (var recipe in Model.LikedRecipes)
@@ -441,13 +541,15 @@
         <div class="tab-pane fade" id="tab-plans">
             @foreach (var plan in Model.MealPlans)
             {
-                <div class="plan-card p-3 rounded-4 mb-2 d-flex justify-content-between align-items-center shadow-sm" style="background: rgba(128,128,128,0.05);">
+                <div class="plan-card p-3 mb-2 d-flex justify-content-between align-items-center shadow-sm">
                     <div>
                         <div class="fw-bold">@plan.Title</div>
                         <div class="small opacity-50">@plan.CreationTime.ToShortDateString()</div>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })" class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
+                        <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
+                           class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
+
                         <a href="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp", userHash = plan.UserHash, id = plan.Id })"
                            onclick="return confirm('@DeleteConfirmText(plan.Title)');"
                            class="btn btn-sm btn-outline-danger rounded-pill px-3"
@@ -479,17 +581,18 @@
                 </div>
             </div>
         }
+
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // --- Counter Animation ---
+        // Counter Animation
         function animateCounters() {
             const counters = document.querySelectorAll('.counter');
             counters.forEach(counter => {
                 const target = +counter.getAttribute('data-target');
-                const speed = 40; // Geschwindigkeit
+                const speed = 40;
                 const updateCount = () => {
                     const count = +counter.innerText;
                     const inc = target / speed;
@@ -504,18 +607,8 @@
             });
         }
 
-        // --- Sprache setzen ---
-        function setLanguage(lang) {
-            const date = new Date();
-            date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
-            document.cookie = "deli-lang=" + lang + "; expires=" + date.toUTCString() + "; path=/";
-            window.location.reload();
-        }
-
-        // --- Theme setzen ---
-                // --- Theme setzen ---
+        // Theme setzen (wie vorher, aber sauber)
         function setTheme(t) {
-            // Hier MÜSSEN alle Namen der verfügbaren Themes stehen, damit sie sauber gelöscht werden
             document.body.classList.remove(
                 'profile-theme-black',
                 'profile-theme-white',
@@ -523,15 +616,11 @@
                 'profile-theme-rose',
                 'profile-theme-lavender'
             );
-
-            // Fügt das neu gewählte Theme hinzu
             document.body.classList.add(`profile-theme-${t}`);
-
-            // Speichert die Wahl dauerhaft
             localStorage.setItem('profile_theme', t);
         }
 
-        // --- Feed Navigation ---
+        // Feed Navigation (wie vorher)
         function openFeed(filterMode, scrollToId, targetUserHash = "") {
             const myUserHash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken") || "@Model.User.UserHash";
             let url = `/WorldMiniApp/Feed/Index?filter=${filterMode}&scrollToId=${scrollToId}&userHash=${myUserHash}`;

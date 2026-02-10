@@ -329,7 +329,7 @@
                 .replace(/\n/g, ' ');
         }
         function ensureIngredientsTableHeader() {
-            const requiredHeaders = ['Zutat', 'Menge + Einheit', 'Gruppe', 'Wählen'];
+            const requiredHeaders = ['Zutat', 'Menge + Einheit', 'Wählen'];
             const headerRow = document.querySelector('#ingredientsDbTable thead tr');
             if (!headerRow) return;
 
@@ -364,7 +364,7 @@
                     }
                 },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
-                pageLength: 5,
+                pageLength: 15,
                 lengthMenu: [5, 10, 25],
                 columnDefs: [ { orderable: false, targets: [1, 2] } ],
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
