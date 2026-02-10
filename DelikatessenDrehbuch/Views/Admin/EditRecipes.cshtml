@@ -328,11 +328,40 @@
                 .replace(/\r/g, '')
                 .replace(/\n/g, ' ');
         }
+        function ensureIngredientsTableHeader() {
+            const requiredHeaders = ['Zutat', 'Menge + Einheit', 'Gruppe', 'Wählen'];
+            const headerRow = document.querySelector('#ingredientsDbTable thead tr');
+            if (!headerRow) return;
+
+            while (headerRow.children.length < requiredHeaders.length) {
+                const th = document.createElement('th');
+                th.textContent = requiredHeaders[headerRow.children.length];
+                headerRow.appendChild(th);
+            }
+
+            const lastHeader = headerRow.children[requiredHeaders.length - 1];
+            if (lastHeader) {
+                lastHeader.classList.add('text-end');
+            }
+        }
+
+        function normalizeIngredientRows(rawRows) {
+            if (!Array.isArray(rawRows)) return [];
+            return rawRows
+                .filter(row => row != null)
+                .map(row => ({
+                    ...row,
+                    groupe: row.groupe ?? row.group ?? row.Group ?? ''
+                }));
+        }
+
         $(document).ready(function() {
             ingredientsTable = new DataTable('#ingredientsDbTable', {
                 ajax: {
                     url: '@Url.Action("GetIngredientTableData", "Admin")',
-                    dataSrc: ''
+                    dataSrc: function(json) {
+                        return normalizeIngredientRows(json);
+                    }
                 },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
                 pageLength: 5,
