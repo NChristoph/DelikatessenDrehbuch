@@ -139,6 +139,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
                 ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
+                IngredientStepJoins = await _context.JoinIngredientPreperationStep
+                    .Include(x => x.Preperation)
+                    .Include(x => x.Ingredient)
+                    .ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
                 ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };

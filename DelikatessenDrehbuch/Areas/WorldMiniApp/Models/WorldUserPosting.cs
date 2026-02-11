@@ -34,6 +34,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         [NotMapped]
         public List<Keyword> ToSelectKeywords { get; set; }
 
+
+        [NotMapped]
+        public List<JoinIngredientPreperationStep> IngredientStepJoins { get; set; } = new();
+
         [NotMapped]
         public List<int> SelectedKeywordIds { get; set; }
     }
