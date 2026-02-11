@@ -129,22 +129,28 @@
                                     foreach (var item in Model.ToSelectIngredientsAndNutrients)
                                     {
                                         <tr class="ingredient-db-row" data-name-de="@item.Name_DE" data-name-en="@item.Name_EN" data-name-esp="@item.Name_ESP" data-name-prt="@item.Name_PRT">
-                                            <td class="fw-bold display-name">@item.Name_DE</td>
                                             <td>
-                                                <input type="text" inputmode="decimal" class="form-control form-control-sm js-db-qty js-decimal-input" value="0" />
+                                                <div class="fw-bold display-name">@item.Name_DE</div>
+                                                <div class="row g-2 mt-1 ingredient-inline-inputs">
+                                                    <div class="col-6">
+                                                        <label class="small text-muted">Menge</label>
+                                                        <input type="text" inputmode="decimal" class="form-control form-control-sm js-db-qty js-decimal-input" value="0" />
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="small text-muted">Einheit</label>
+                                                        <select class="form-select form-select-sm js-db-unit">
+                                                            @if (Model.Measure != null)
+                                                            {
+                                                                foreach (var measure in Model.Measure)
+                                                                {
+                                                                    <option value="@measure.UnitOfMeasurement">@measure.UnitOfMeasurement</option>
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td>
-                                                <select class="form-select form-select-sm js-db-unit">
-                                                    @if (Model.Measure != null)
-                                                    {
-                                                        foreach (var measure in Model.Measure)
-                                                        {
-                                                            <option value="@measure.UnitOfMeasurement">@measure.UnitOfMeasurement</option>
-                                                        }
-                                                    }
-                                                </select>
-                                            </td>
-                                            <td class="text-end">
+                                            <td class="text-end align-top">
                                                 <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)"><i class="bi bi-plus"></i></button>
                                             </td>
                                         </tr>
@@ -196,6 +202,14 @@
                                         <div class="fw-bold small">Verknüpfte Schritte</div>
                                         <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
                                     </div>
+                                    <ul class="nav nav-pills nav-fill mb-2" id="sandboxStepTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" type="button" data-sandbox-tab="linked">Verknüpft</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" type="button" data-sandbox-tab="unbound">Nicht gebunden</button>
+                                        </li>
+                                    </ul>
                                     <div id="sandboxStepCandidates" class="d-flex flex-column gap-2">
                                         <div class="text-muted small">Wähle links eine Zutat aus.</div>
                                     </div>
@@ -331,6 +345,16 @@
         text-align: left;
     }
 
+    #ingredientsDbTable .ingredient-inline-inputs .form-control,
+    #ingredientsDbTable .ingredient-inline-inputs .form-select {
+        min-height: 38px;
+    }
+
+    #sandboxStepTabs .nav-link {
+        font-size: .8rem;
+        border-radius: 999px;
+    }
+
     .sandbox-current-step {
         border-left: 4px solid #8b5cf6;
         background: #f5f3ff;
@@ -367,6 +391,7 @@
         let stepsTable;
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
+        let activeSandboxTab = 'linked';
         const stepIngredientBindings = @Html.Raw(JsonSerializer.Serialize(stepIngredientBindings));
 
         function setDataTableLoading(isLoading) {
@@ -413,6 +438,7 @@
             refreshStepsByIngredientSelection();
             renderSandboxIngredientList();
             refreshSandboxProgress();
+            renderSandboxStepTab();
             setDataTableLoading(false);
         });
 
@@ -432,12 +458,12 @@
             }).get();
         }
 
-        function renderSandboxStepCandidates(stepIds) {
+        function renderSandboxStepCandidates(stepIds, emptyText = 'Keine verknüpften Schritte gefunden.') {
             const container = $('#sandboxStepCandidates');
             container.empty();
 
             if (!stepIds || !stepIds.length) {
-                container.append('<div class="text-muted small">Keine verknüpften Schritte gefunden.</div>');
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
                 return;
             }
 
@@ -452,8 +478,32 @@
             });
 
             if (!container.children().length) {
-                container.append('<div class="text-muted small">Keine verknüpften Schritte gefunden.</div>');
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
             }
+        }
+
+        function loadSandboxUnboundSteps() {
+            const allStepIds = $('#stepsDbTable .step-db-row').map(function() {
+                return parseInt($(this).attr('data-step-id'), 10);
+            }).get().filter(x => !isNaN(x));
+
+            const unboundStepIds = allStepIds.filter(stepId => {
+                const boundIngredientIds = stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId.toString()] ?? [];
+                return !Array.isArray(boundIngredientIds) || boundIngredientIds.length === 0;
+            });
+
+            renderSandboxStepCandidates(unboundStepIds, 'Keine ungebundenen Schritte gefunden.');
+        }
+
+        function renderSandboxStepTab() {
+            if (activeSandboxTab === 'unbound') {
+                $('#sandboxActiveIngredientLabel').text('Ungebundene Schritte');
+                loadSandboxUnboundSteps();
+                return;
+            }
+
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine aktive Zutat');
+            loadSandboxStepsForActiveIngredient();
         }
 
         function loadSandboxStepsForActiveIngredient() {
@@ -478,9 +528,13 @@
             if (!selectedIngredients.length) {
                 activeSandboxIngredientId = null;
                 activeSandboxIngredientName = '';
-                $('#sandboxActiveIngredientLabel').text('Keine aktive Zutat');
                 container.append('<div class="text-muted small">Noch keine Zutat ausgewählt.</div>');
-                renderSandboxStepCandidates([]);
+                if (activeSandboxTab === 'unbound') {
+                    renderSandboxStepTab();
+                } else {
+                    $('#sandboxActiveIngredientLabel').text('Keine aktive Zutat');
+                    renderSandboxStepCandidates([]);
+                }
                 return;
             }
 
@@ -495,8 +549,7 @@
                 container.append(btn);
             });
 
-            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine aktive Zutat');
-            loadSandboxStepsForActiveIngredient();
+            renderSandboxStepTab();
         }
 
         function refreshSandboxProgress() {
@@ -574,6 +627,8 @@
             $('.keyword-pill').each(function() {
                 $(this).find('.keyword-text').text($(this).data('word-' + langKey));
             });
+
+            renderSandboxStepTab();
         }
 
         // Video Preview Logic
@@ -782,10 +837,19 @@
         $('#sandboxIngredientList').on('click', '.sandbox-ingredient-btn', function() {
             activeSandboxIngredientId = $(this).data('id')?.toString() || null;
             activeSandboxIngredientName = $(this).data('name')?.toString() || '';
+            activeSandboxTab = 'linked';
+            $('#sandboxStepTabs .nav-link').removeClass('active');
+            $('#sandboxStepTabs .nav-link[data-sandbox-tab="linked"]').addClass('active');
             $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
             $(this).addClass('active');
-            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine aktive Zutat');
-            loadSandboxStepsForActiveIngredient();
+            renderSandboxStepTab();
+        });
+
+        $('#sandboxStepTabs').on('click', '.nav-link', function() {
+            activeSandboxTab = $(this).data('sandbox-tab')?.toString() || 'linked';
+            $('#sandboxStepTabs .nav-link').removeClass('active');
+            $(this).addClass('active');
+            renderSandboxStepTab();
         });
 
             document.addEventListener("DOMContentLoaded", function() {
