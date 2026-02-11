@@ -108,6 +108,27 @@
         min-width: 130px;
     }
 
+    .sandbox-ingredient-btn.active {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+        color: #0b3d91;
+    }
+
+    .sandbox-step-candidate {
+        cursor: pointer;
+        transition: all .15s ease-in-out;
+    }
+
+    .sandbox-step-candidate:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 .2rem .45rem rgba(13, 110, 253, .15);
+    }
+
+    .sandbox-current-step {
+        border-left: 5px solid #0d6efd;
+        background: #f8fbff;
+    }
+
     /* Eingabefelder auf Mobile */
     @@media (max-width: 768px) {
         .recipe-card, .recipe-card-blue
@@ -293,6 +314,39 @@
         </div>
 
         <div class="recipe-card-blue">
+            <h3 class="section-title text-blue"><i class="fa-solid fa-cubes"></i>Sandbox-Modus (Zutat ➜ Schritt)</h3>
+            <p class="text-muted mb-3">Wähle links eine Zutat aus. Rechts siehst du die verknüpften Schritte für genau diese Zutat und kannst sie direkt in den Ablauf übernehmen.</p>
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <h6 class="fw-bold mb-2">Ausgewählte Zutaten</h6>
+                        <div id="sandboxIngredientList" class="d-flex flex-column gap-2">
+                            <div class="text-muted small">Noch keine Zutaten ausgewählt.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="border rounded p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                            <h6 class="fw-bold mb-0">Verknüpfte Schritte</h6>
+                            <span id="sandboxActiveIngredientLabel" class="badge bg-light text-dark border">Keine Zutat aktiv</span>
+                        </div>
+                        <div id="sandboxStepCandidates" class="d-flex flex-column gap-2">
+                            <div class="text-muted small">Wähle eine Zutat, um passende Schritte anzuzeigen.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 border rounded p-3">
+                <h6 class="fw-bold">Schritt-Fortschritt</h6>
+                <div id="sandboxCurrentStep" class="sandbox-current-step rounded p-3 mb-2 text-muted">Aktueller Schritt: noch keiner gewählt.</div>
+                <div id="sandboxPreviousSteps" class="d-flex flex-column gap-2">
+                    <div class="text-muted small">Vorherige Schritte erscheinen hier automatisch.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recipe-card-blue">
             <h3 class="section-title text-blue"><i class="fa-solid fa-sort-numeric-down"></i>Finaler Ablaufplan</h3>
 
             <div id="newStepsList">
@@ -318,6 +372,9 @@
 
         let ingredientsTable;
         let stepsTable;
+        let activeSandboxIngredientId = null;
+        let activeSandboxIngredientName = '';
+        const sandboxStepCache = new Map();
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -361,6 +418,134 @@
                 .get()
                 .filter(id => id && id !== '0')
                 .join(',');
+        }
+
+        function getActiveIngredientIdsForStepFilter() {
+            if (activeSandboxIngredientId && activeSandboxIngredientId !== '0') {
+                return activeSandboxIngredientId.toString();
+            }
+
+            return getSelectedIngredientIdsForStepFilter();
+        }
+
+        function getSelectedIngredientsForSandbox() {
+            return $('#newIngredientsList .ingredient-row').map(function() {
+                const row = $(this);
+                const id = row.find('.field-id').val()?.toString() || '0';
+                const name = row.find('input[name*="IngredientsAndNutrients.Name_DE"]').val()?.toString().trim() || 'Manuelle Zutat';
+                return { id, name };
+            }).get();
+        }
+
+        function renderSandboxIngredientList() {
+            const container = $('#sandboxIngredientList');
+            const ingredients = getSelectedIngredientsForSandbox();
+            container.empty();
+
+            if (!ingredients.length) {
+                activeSandboxIngredientId = null;
+                activeSandboxIngredientName = '';
+                $('#sandboxActiveIngredientLabel').text('Keine Zutat aktiv');
+                container.append('<div class="text-muted small">Noch keine Zutaten ausgewählt.</div>');
+                renderSandboxStepCandidates([]);
+                return;
+            }
+
+            const activeStillExists = ingredients.some(x => x.id === activeSandboxIngredientId);
+            if (!activeStillExists) {
+                const first = ingredients[0];
+                activeSandboxIngredientId = first.id;
+                activeSandboxIngredientName = first.name;
+            }
+
+            ingredients.forEach(item => {
+                const isActive = item.id === activeSandboxIngredientId;
+                const button = $(`<button type="button" class="btn btn-outline-secondary text-start sandbox-ingredient-btn ${isActive ? 'active' : ''}" data-id="${item.id}" data-name="${item.name}">
+                    <i class="fa-solid fa-carrot me-2"></i>${item.name}
+                </button>`);
+                container.append(button);
+            });
+
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine Zutat aktiv');
+            loadSandboxStepsForActiveIngredient();
+        }
+
+        function renderSandboxStepCandidates(steps) {
+            const container = $('#sandboxStepCandidates');
+            container.empty();
+
+            if (!steps || !steps.length) {
+                container.append('<div class="text-muted small">Keine verknüpften Schritte gefunden.</div>');
+                return;
+            }
+
+            steps.forEach(step => {
+                const card = $(`<button type="button" class="btn btn-outline-primary text-start sandbox-step-candidate" data-id="${step.id}">
+                    <span class="badge bg-primary me-2">${step.id}</span>${step.step_DE}
+                </button>`);
+                card.on('click', function() {
+                    addJoinStep(step.id, step.step_DE);
+                });
+                container.append(card);
+            });
+        }
+
+        function loadSandboxStepsForActiveIngredient() {
+            if (!activeSandboxIngredientId || activeSandboxIngredientId === '0') {
+                renderSandboxStepCandidates([]);
+                stepsTable?.ajax.reload(null, true);
+                return;
+            }
+
+            const cacheKey = activeSandboxIngredientId.toString();
+            if (sandboxStepCache.has(cacheKey)) {
+                renderSandboxStepCandidates(sandboxStepCache.get(cacheKey));
+                stepsTable?.ajax.reload(null, true);
+                return;
+            }
+
+            $.get('@Url.Action("GetPreparationStepTableData", "Admin")', { selectedIngredientIds: cacheKey })
+                .done(function(data) {
+                    sandboxStepCache.set(cacheKey, data || []);
+                    renderSandboxStepCandidates(data || []);
+                })
+                .fail(function() {
+                    renderSandboxStepCandidates([]);
+                })
+                .always(function() {
+                    stepsTable?.ajax.reload(null, true);
+                });
+        }
+
+        function refreshSandboxProgress() {
+            const rows = $('#newStepsList .step-row');
+            const currentPanel = $('#sandboxCurrentStep');
+            const previousPanel = $('#sandboxPreviousSteps');
+            previousPanel.empty();
+
+            if (!rows.length) {
+                currentPanel.text('Aktueller Schritt: noch keiner gewählt.').addClass('text-muted');
+                previousPanel.append('<div class="text-muted small">Vorherige Schritte erscheinen hier automatisch.</div>');
+                return;
+            }
+
+            const lastRow = rows.last();
+            const currentText = lastRow.find('input[type="text"]').val() || '';
+            const currentNumber = lastRow.find('.field-stepindex').val() || rows.length;
+            currentPanel.removeClass('text-muted').html(`<strong>Aktueller Schritt ${currentNumber}:</strong> ${currentText}`);
+
+            const previousRows = rows.slice(0, -1).get().reverse();
+            if (!previousRows.length) {
+                previousPanel.append('<div class="text-muted small">Noch keine vorherigen Schritte vorhanden.</div>');
+                return;
+            }
+
+            previousRows.forEach(function(rowElement) {
+                const row = $(rowElement);
+                const number = row.find('.field-stepindex').val() || '';
+                const text = row.find('input[type="text"]').val() || '';
+                previousPanel.append(`<div class="border rounded p-2 bg-light"><strong>Schritt ${number}:</strong> ${text}</div>`);
+            });
         }
 
         function refreshStepsTableBySelectedIngredients() {
@@ -410,7 +595,7 @@
                 ajax: {
                     url: '@Url.Action("GetPreparationStepTableData", "Admin")',
                     data: function(d) {
-                        d.selectedIngredientIds = getSelectedIngredientIdsForStepFilter();
+                        d.selectedIngredientIds = getActiveIngredientIdsForStepFilter();
                     },
                     dataSrc: ''
                 },
@@ -442,6 +627,7 @@
             });
 
             refreshStepsTableBySelectedIngredients();
+            renderSandboxIngredientList();
         });
 
         // ----------------------------------------------------
@@ -468,6 +654,7 @@
                 // Indizes werden beim Submit neu berechnet,
                 // aber wir könnten es auch hier tun, wenn nötig.
                 refreshStepsTableBySelectedIngredients();
+                renderSandboxIngredientList();
             });
         }
 
@@ -537,6 +724,7 @@
 
             $(html).hide().appendTo('#newIngredientsList').fadeIn(400);
             refreshStepsTableBySelectedIngredients();
+            renderSandboxIngredientList();
         }
 
         // ----------------------------------------------------
@@ -604,6 +792,8 @@
             `;
 
             $(html).hide().appendTo('#newStepsList').fadeIn(400);
+            recalcStepNumbers();
+            refreshSandboxProgress();
         }
 
         // Visuelle Nummern aktualisieren (falls man zwischendrin was löscht)
@@ -611,6 +801,7 @@
             $('#newStepsList .step-row').each(function(index) {
                 $(this).find('.field-stepindex').val(index + 1);
             });
+            refreshSandboxProgress();
         }
 
         function moveStepRow(btn, direction) {
@@ -648,6 +839,15 @@
                 $(this).before(draggedStepRow);
             }
             recalcStepNumbers();
+        });
+
+        $('#sandboxIngredientList').on('click', '.sandbox-ingredient-btn', function() {
+            activeSandboxIngredientId = $(this).data('id')?.toString() || null;
+            activeSandboxIngredientName = $(this).data('name')?.toString() || '';
+            $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
+            $(this).addClass('active');
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine Zutat aktiv');
+            loadSandboxStepsForActiveIngredient();
         });
 
         // ----------------------------------------------------
