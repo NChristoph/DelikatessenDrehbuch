@@ -1,4 +1,14 @@
 ﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+@using System.Text.Json
+
+@{
+    var stepIngredientBindings = Model.IngredientStepJoins
+        .Where(x => x.Preperation != null && x.Ingredient != null)
+        .GroupBy(x => x.Preperation.Id)
+        .ToDictionary(
+            group => group.Key,
+            group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
+}
 @using Newtonsoft.Json
 @{
     ViewData["Title"] = "Rezept Erstellen";
@@ -144,7 +154,7 @@
                                 {
                                     foreach (var step in Model.ToSelectRecipePreperationSteps)
                                     {
-                                        <tr class="step-db-row" data-step-de="@step.Step_DE" data-step-en="@step.Step_EN" data-step-esp="@step.Step_ESP" data-step-prt="@step.Step_PRT">
+                                        <tr class="step-db-row" data-step-id="@step.Id" data-step-de="@step.Step_DE" data-step-en="@step.Step_EN" data-step-esp="@step.Step_ESP" data-step-prt="@step.Step_PRT">
                                             <td class="small display-step text-muted">@step.Step_DE</td>
                                             <td class="text-end">
                                                 <button type="button" class="btn btn-sm candy-pink rounded-circle shadow-sm" onclick="addStep('@step.Id', this)"><i class="bi bi-arrow-down"></i></button>
@@ -287,6 +297,7 @@
 
         let ingredientsTable;
         let stepsTable;
+        const stepIngredientBindings = @Html.Raw(JsonSerializer.Serialize(stepIngredientBindings));
 
         function setDataTableLoading(isLoading) {
             const overlay = document.getElementById('datatableLoadingOverlay');
@@ -306,6 +317,21 @@
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' }
             });
 
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'stepsDbTable') {
+                    return true;
+                }
+
+                const rowNode = stepsTable.row(dataIndex).node();
+                const stepId = parseInt($(rowNode).attr('data-step-id'), 10);
+                if (isNaN(stepId)) {
+                    return true;
+                }
+
+                const selectedIngredientIds = getSelectedIngredientIds();
+                return isStepBoundToSelectedIngredients(stepId, selectedIngredientIds);
+            });
+
             ingredientsTable.on('draw', function() {
                 updateLanguageLabels();
             });
@@ -314,8 +340,37 @@
             });
 
             updateLanguageLabels();
+            refreshStepsByIngredientSelection();
             setDataTableLoading(false);
         });
+
+        function getSelectedIngredientIds() {
+            return $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]')
+                .map(function() { return parseInt($(this).val(), 10); })
+                .get()
+                .filter(id => !isNaN(id));
+        }
+
+        function isStepBoundToSelectedIngredients(stepId, selectedIngredientIds) {
+            if (!Array.isArray(selectedIngredientIds) || selectedIngredientIds.length === 0) {
+                return true;
+            }
+
+            const boundIngredientIds = stepIngredientBindings[stepId] ?? [];
+            if (boundIngredientIds.length === 0) {
+                return false;
+            }
+
+            return boundIngredientIds.some(boundId => selectedIngredientIds.includes(boundId));
+        }
+
+        function refreshStepsByIngredientSelection() {
+            if (!stepsTable) {
+                return;
+            }
+
+            stepsTable.draw();
+        }
 
         function updateLanguageLabels() {
             const langKey = resolveLangKey(currentLang);
@@ -389,7 +444,7 @@
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 small fw-bold display-name-selected text-dark">${name}</div>
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="$(this).closest('.ingredient-row').remove()"><i class="bi bi-trash3"></i></button>
+                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeIngredientRow(this)"><i class="bi bi-trash3"></i></button>
                 </div>
                 <div class="d-flex gap-2 mt-2">
                     <input type="text" inputmode="decimal" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="form-control form-control-sm border-0 candy-purple rounded-3 fw-bold text-center js-decimal-input" style="width:90px" placeholder="0,0" />
@@ -399,6 +454,12 @@
                 </div>
             </div>`;
             $('#selectedIngredients').append(html);
+            refreshStepsByIngredientSelection();
+        }
+
+        function removeIngredientRow(btn) {
+            $(btn).closest('.ingredient-row').remove();
+            refreshStepsByIngredientSelection();
         }
 
         // Schritt hinzufügen

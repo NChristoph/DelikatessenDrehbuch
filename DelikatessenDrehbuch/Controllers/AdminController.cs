@@ -181,11 +181,32 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPreparationStepTableData()
+        public async Task<IActionResult> GetPreparationStepTableData(string selectedIngredientIds = "")
         {
             try
             {
-                var preparationSteps = await _context.RecipePreperationSteps
+                var ingredientIds = (selectedIngredientIds ?? string.Empty)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => int.TryParse(x, out var id) ? id : 0)
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .ToList();
+
+                IQueryable<RecipePreperationSteps> query = _context.RecipePreperationSteps;
+
+                if (ingredientIds.Count > 0)
+                {
+                    var stepIds = await _context.JoinIngredientPreperationStep
+                        .Where(x => x.Preperation != null && x.Ingredient != null && ingredientIds.Contains(x.Ingredient.Id))
+                        .Select(x => x.Preperation.Id)
+                        .Distinct()
+                        .ToListAsync();
+
+                    query = query.Where(x => stepIds.Contains(x.Id));
+                }
+
+                var preparationSteps = await query
+                    .OrderBy(x => x.Id)
                     .Select(x => new
                     {
                         x.Id,

@@ -355,6 +355,22 @@
                 }));
         }
 
+        function getSelectedIngredientIdsForStepFilter() {
+            return $('#newIngredientsList .ingredient-row .field-id')
+                .map(function() { return $(this).val()?.toString(); })
+                .get()
+                .filter(id => id && id !== '0')
+                .join(',');
+        }
+
+        function refreshStepsTableBySelectedIngredients() {
+            if (!stepsTable || !stepsTable.ajax) {
+                return;
+            }
+
+            stepsTable.ajax.reload(null, true);
+        }
+
         $(document).ready(function() {
             ingredientsTable = new DataTable('#ingredientsDbTable', {
                 ajax: {
@@ -393,6 +409,9 @@
             stepsTable = new DataTable('#stepsDbTable', {
                 ajax: {
                     url: '@Url.Action("GetPreparationStepTableData", "Admin")',
+                    data: function(d) {
+                        d.selectedIngredientIds = getSelectedIngredientIdsForStepFilter();
+                    },
                     dataSrc: ''
                 },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
@@ -421,6 +440,8 @@
             $('#refreshStepsTableBtn').on('click', function() {
                 stepsTable.ajax.reload(null, false);
             });
+
+            refreshStepsTableBySelectedIngredients();
         });
 
         // ----------------------------------------------------
@@ -446,6 +467,7 @@
                 if ($('#newIngredientsList').children().length === 0) $('#emptyIngredientsMsg').fadeIn();
                 // Indizes werden beim Submit neu berechnet,
                 // aber wir könnten es auch hier tun, wenn nötig.
+                refreshStepsTableBySelectedIngredients();
             });
         }
 
@@ -514,6 +536,7 @@
                 </div>`;
 
             $(html).hide().appendTo('#newIngredientsList').fadeIn(400);
+            refreshStepsTableBySelectedIngredients();
         }
 
         // ----------------------------------------------------
