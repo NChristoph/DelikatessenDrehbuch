@@ -98,7 +98,10 @@ namespace DelikatessenDrehbuch.Controllers
             var model = new JoinIngredientPreparationStepViewModel
             {
                 PreparationSteps = await _context.RecipePreperationSteps.OrderBy(x => x.Id).ToListAsync(),
-                Ingredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
+                Ingredients = await _context.IngredientsAndNutrients
+                    .Include(x => x.Group)
+                    .OrderBy(x => x.Name_DE)
+                    .ToListAsync(),
                 ExistingJoins = await _context.JoinIngredientPreperationStep
                     .Include(x => x.Preperation)
                     .Include(x => x.Ingredient)
