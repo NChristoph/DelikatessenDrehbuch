@@ -158,6 +158,7 @@
     const selectedIngredients = new Map();
     const stepBindings = @Html.Raw(JsonSerializer.Serialize(stepBindings));
     const ingredientGroups = @Html.Raw(JsonSerializer.Serialize(ingredientGroups));
+    const onlyUnboundStepsStorageKey = 'join-ingredient-only-unbound-steps';
 
     function selectStep(stepId, stepText) {
         document.getElementById('selectedStepId').value = stepId;
@@ -253,16 +254,28 @@
     }
 
     $(document).ready(function () {
+        const onlyUnboundStepsToggle = document.getElementById('onlyUnboundSteps');
+        const storedOnlyUnboundValue = localStorage.getItem(onlyUnboundStepsStorageKey);
+        if (storedOnlyUnboundValue !== null) {
+            onlyUnboundStepsToggle.checked = storedOnlyUnboundValue === 'true';
+        }
+
         const prepStepsTable = $('#prepStepsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
         $('#ingredientsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
         $('#existingJoinTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+
+        const normalizeDataTablePagingButtons = () => {
+            document.querySelectorAll('#prepStepsTable_wrapper .dt-paging-button, #prepStepsTable_wrapper .paginate_button').forEach(button => {
+                button.setAttribute('type', 'button');
+            });
+        };
 
         $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
             if (settings.nTable.id !== 'prepStepsTable') {
                 return true;
             }
 
-            const showOnlyUnboundSteps = document.getElementById('onlyUnboundSteps').checked;
+            const showOnlyUnboundSteps = onlyUnboundStepsToggle.checked;
             if (!showOnlyUnboundSteps) {
                 return true;
             }
@@ -273,10 +286,28 @@
             return !hasBinding;
         });
 
-        document.getElementById('onlyUnboundSteps').addEventListener('change', function () {
+        onlyUnboundStepsToggle.addEventListener('change', function () {
+            localStorage.setItem(onlyUnboundStepsStorageKey, this.checked ? 'true' : 'false');
             prepStepsTable.draw();
+            normalizeDataTablePagingButtons();
         });
 
+        $('#prepStepsTable').on('draw.dt', function () {
+            normalizeDataTablePagingButtons();
+        });
+
+        document.querySelector('#prepStepsTable_wrapper')?.addEventListener('click', function (event) {
+            const pagingButton = event.target.closest('.dt-paging-button, .paginate_button');
+            if (!pagingButton) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+        });
+
+        prepStepsTable.draw();
+        normalizeDataTablePagingButtons();
         updateSelectedIngredientsPreview();
     });
 </script>
