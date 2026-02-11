@@ -85,8 +85,9 @@
                                     }
                                 </select>
                             </div>
-                            <div class="col-md-4 d-grid">
+                            <div class="col-md-4 d-grid gap-2">
                                 <button type="button" class="btn btn-outline-success btn-sm" onclick="addGroupIngredients()">Gruppe hinzufügen</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeGroupIngredients()">Gruppe entfernen</button>
                             </div>
                         </div>
 
@@ -103,7 +104,7 @@
                                         <td>@ingredient.Name_DE</td>
                                         <td>@groupName</td>
                                         <td>
-                                            <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleIngredient(@ingredient.Id, '@Html.Raw((ingredient.Name_DE ?? string.Empty).Replace("'", "\\'"))')">Hinzufügen</button>
+                                            <button type="button" class="btn btn-outline-success btn-sm ingredient-toggle-btn" data-ingredient-id="@ingredient.Id" onclick="toggleIngredient(@ingredient.Id, '@Html.Raw((ingredient.Name_DE ?? string.Empty).Replace("'", "\\'"))')">Hinzufügen</button>
                                         </td>
                                     </tr>
                                 }
@@ -121,7 +122,7 @@
                 <div id="selectedStepBindingInfo" class="small text-muted mt-2">Keine bestehende Verknüpfung gefunden.</div>
                 <hr />
                 <h5 class="fw-bold">Ausgewählte Zutaten</h5>
-                <ul id="selectedIngredientsPreview" class="mb-0"></ul>
+                <ul id="selectedIngredientsPreview" class="list-group list-group-flush"></ul>
             </div>
         </div>
 
@@ -176,6 +177,21 @@
         bindingInfo.textContent = `Bereits verknüpft mit: ${existingIngredientText}`;
     }
 
+    function updateIngredientToggleButtons() {
+        document.querySelectorAll('.ingredient-toggle-btn').forEach(button => {
+            const ingredientId = Number(button.dataset.ingredientId);
+            const isSelected = selectedIngredients.has(ingredientId);
+            button.classList.toggle('btn-outline-success', !isSelected);
+            button.classList.toggle('btn-outline-danger', isSelected);
+            button.textContent = isSelected ? 'Entfernen' : 'Hinzufügen';
+        });
+    }
+
+    function removeSelectedIngredient(ingredientId) {
+        selectedIngredients.delete(Number(ingredientId));
+        updateSelectedIngredientsPreview();
+    }
+
     function updateSelectedIngredientsPreview() {
         document.getElementById('selectedIngredientIds').value = Array.from(selectedIngredients.keys()).join(',');
 
@@ -183,15 +199,19 @@
         preview.innerHTML = '';
 
         if (selectedIngredients.size === 0) {
-            preview.innerHTML = '<li class="text-muted">Noch keine Zutaten ausgewählt.</li>';
+            preview.innerHTML = '<li class="list-group-item text-muted">Noch keine Zutaten ausgewählt.</li>';
+            updateIngredientToggleButtons();
             return;
         }
 
         selectedIngredients.forEach((name, id) => {
             const li = document.createElement('li');
-            li.textContent = `${id}: ${name}`;
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<span>${id}: ${name}</span><button type="button" class="btn btn-outline-danger btn-sm" onclick="removeSelectedIngredient(${id})">Entfernen</button>`;
             preview.appendChild(li);
         });
+
+        updateIngredientToggleButtons();
     }
 
     function toggleIngredient(ingredientId, ingredientName) {
@@ -213,6 +233,20 @@
         const ingredients = ingredientGroups[selectedGroupName] ?? [];
         ingredients.forEach(ingredient => {
             selectedIngredients.set(ingredient.id, ingredient.name);
+        });
+
+        updateSelectedIngredientsPreview();
+    }
+
+    function removeGroupIngredients() {
+        const selectedGroupName = document.getElementById('ingredientGroupSelect').value;
+        if (!selectedGroupName) {
+            return;
+        }
+
+        const ingredients = ingredientGroups[selectedGroupName] ?? [];
+        ingredients.forEach(ingredient => {
+            selectedIngredients.delete(ingredient.id);
         });
 
         updateSelectedIngredientsPreview();
