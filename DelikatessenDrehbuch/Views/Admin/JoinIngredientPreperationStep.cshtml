@@ -1,4 +1,18 @@
 @model DelikatessenDrehbuch.Models.JoinIngredientPreparationStepViewModel
+@using System.Text.Json
+
+@{
+    var stepBindings = Model.ExistingJoins
+        .Where(x => x.Preperation != null && x.Ingredient != null)
+        .GroupBy(x => x.Preperation.Id)
+        .ToDictionary(
+            group => group.Key,
+            group => group
+                .Select(x => new { id = x.Ingredient!.Id, name = x.Ingredient.Name_DE })
+                .Distinct()
+                .OrderBy(x => x.name)
+                .ToList());
+}
 
 <div class="recipe-card minWidth90 mobieleWidth90 mx-auto" style="border-left-color: #dc3545;">
     <h3 class="section-title" style="color: #dc3545;">
@@ -17,6 +31,12 @@
                 <div class="card shadow-sm h-100">
                     <div class="card-header fw-bold">Zubereitungsschritte</div>
                     <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="onlyUnboundSteps" />
+                            <label class="form-check-label" for="onlyUnboundSteps">
+                                Nur Schritte ohne Zutaten-Verknüpfung anzeigen
+                            </label>
+                        </div>
                         <table id="prepStepsTable" class="table table-sm table-hover w-100">
                             <thead>
                                 <tr><th>ID</th><th>Text</th><th>Aktion</th></tr>
@@ -24,8 +44,9 @@
                             <tbody>
                                 @foreach (var step in Model.PreparationSteps)
                                 {
+                                    var hasBindings = stepBindings.ContainsKey(step.Id);
                                     <tr>
-                                        <td>@step.Id</td>
+                                        <td data-has-binding="@hasBindings.ToString().ToLowerInvariant()">@step.Id</td>
                                         <td>@step.Step_DE</td>
                                         <td>
                                             <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectStep(@step.Id, '@Html.Raw((step.Step_DE ?? string.Empty).Replace("'", "\\'"))')">Auswählen</button>
@@ -68,6 +89,7 @@
             <div class="card-body">
                 <h5 class="fw-bold">Ausgewählter Zubereitungsschritt</h5>
                 <div id="selectedStepPreview" class="text-muted">Noch kein Schritt ausgewählt.</div>
+                <div id="selectedStepBindingInfo" class="small text-muted mt-2">Keine bestehende Verknüpfung gefunden.</div>
                 <hr />
                 <h5 class="fw-bold">Ausgewählte Zutaten</h5>
                 <ul id="selectedIngredientsPreview" class="mb-0"></ul>
@@ -104,10 +126,24 @@
 
 <script>
     const selectedIngredients = new Map();
+    const stepBindings = @Html.Raw(JsonSerializer.Serialize(stepBindings));
 
     function selectStep(stepId, stepText) {
         document.getElementById('selectedStepId').value = stepId;
         document.getElementById('selectedStepPreview').textContent = `${stepId}: ${stepText}`;
+
+        const bindingInfo = document.getElementById('selectedStepBindingInfo');
+        const bindings = stepBindings[stepId] ?? [];
+
+        if (bindings.length === 0) {
+            bindingInfo.className = 'small text-muted mt-2';
+            bindingInfo.textContent = 'Für diesen Schritt gibt es noch keine gespeicherten Zutaten-Verknüpfungen.';
+            return;
+        }
+
+        const existingIngredientText = bindings.map(binding => `${binding.id}: ${binding.name}`).join(', ');
+        bindingInfo.className = 'small text-success mt-2';
+        bindingInfo.textContent = `Bereits verknüpft mit: ${existingIngredientText}`;
     }
 
     function toggleIngredient(ingredientId, ingredientName) {
@@ -135,8 +171,28 @@
     }
 
     $(document).ready(function () {
-        $('#prepStepsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+        const prepStepsTable = $('#prepStepsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
         $('#ingredientsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
         $('#existingJoinTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (settings.nTable.id !== 'prepStepsTable') {
+                return true;
+            }
+
+            const showOnlyUnboundSteps = document.getElementById('onlyUnboundSteps').checked;
+            if (!showOnlyUnboundSteps) {
+                return true;
+            }
+
+            const rowNode = prepStepsTable.row(dataIndex).node();
+            const hasBinding = rowNode?.querySelector('td[data-has-binding]')?.dataset.hasBinding === 'true';
+
+            return !hasBinding;
+        });
+
+        document.getElementById('onlyUnboundSteps').addEventListener('change', function () {
+            prepStepsTable.draw();
+        });
     });
 </script>
