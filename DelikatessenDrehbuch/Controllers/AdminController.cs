@@ -113,10 +113,20 @@ namespace DelikatessenDrehbuch.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveJoinIngredientPreperationStep(int selectedStepId, string selectedIngredientIds)
+        public async Task<IActionResult> SaveJoinIngredientPreperationStep(int selectedStepId, string selectedStepIds, string selectedIngredientIds)
         {
-            if (selectedStepId <= 0)
-                return BadRequest("Bitte einen Zubereitungsschritt auswählen.");
+            var stepIds = (selectedStepIds ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : 0)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (stepIds.Count == 0 && selectedStepId > 0)
+                stepIds.Add(selectedStepId);
+
+            if (stepIds.Count == 0)
+                return BadRequest("Bitte mindestens einen Zubereitungsschritt auswählen.");
 
             var ingredientIds = (selectedIngredientIds ?? string.Empty)
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -129,26 +139,42 @@ namespace DelikatessenDrehbuch.Controllers
                 return BadRequest("Bitte mindestens eine Zutat auswählen.");
 
             var existingRows = await _context.JoinIngredientPreperationStep
-                .Where(x => x.Preperation.Id == selectedStepId)
+                .Where(x => x.Preperation != null && stepIds.Contains(x.Preperation.Id))
                 .ToListAsync();
 
             if (existingRows.Count > 0)
                 _context.JoinIngredientPreperationStep.RemoveRange(existingRows);
 
-           
+            var preparations = await _context.RecipePreperationSteps
+                .Where(x => stepIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+
+            var ingredients = await _context.IngredientsAndNutrients
+                .Where(x => ingredientIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+
             var newRows = new List<JoinIngredientPreperationStep>();
-            foreach (var ingredientId in ingredientIds)
+            foreach (var stepId in stepIds)
             {
-                var preperation = await _context.RecipePreperationSteps.FindAsync(selectedStepId);
-                var ingredient = await _context.IngredientsAndNutrients.FindAsync(ingredientId);
-                newRows.Add(new JoinIngredientPreperationStep
+                if (!preparations.TryGetValue(stepId, out var preperation))
+                    continue;
+
+                foreach (var ingredientId in ingredientIds)
                 {
-                    Preperation = preperation,
-                    Ingredient = ingredient
-                });
+                    if (!ingredients.TryGetValue(ingredientId, out var ingredient))
+                        continue;
+
+                    newRows.Add(new JoinIngredientPreperationStep
+                    {
+                        Preperation = preperation,
+                        Ingredient = ingredient
+                    });
+                }
             }
 
-            await _context.JoinIngredientPreperationStep.AddRangeAsync(newRows);
+            if (newRows.Count > 0)
+                await _context.JoinIngredientPreperationStep.AddRangeAsync(newRows);
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(JoinIngredientPreperationStep));
