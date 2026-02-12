@@ -490,14 +490,25 @@
             });
         }
 
+        function buildStepMatchCount(step, selectedIngredientIds) {
+            const stepIngredientIds = (step?.ingredientIds || []).map(x => x.toString());
+            if (!stepIngredientIds.length) {
+                return 0;
+            }
+
+            const normalizedSelectedIds = (selectedIngredientIds || []).map(x => x.toString());
+            return normalizedSelectedIds.filter(id => stepIngredientIds.includes(id)).length;
+        }
+
         function loadSandboxStepsForActiveIngredient() {
-            if (!activeSandboxIngredientId || activeSandboxIngredientId === '0') {
+            const selectedIngredientIds = getSelectedIngredientIdsForStepFilter();
+            if (!selectedIngredientIds.length) {
                 renderSandboxStepCandidates([]);
                 stepsTable?.ajax.reload(null, true);
                 return;
             }
 
-            const cacheKey = activeSandboxIngredientId.toString();
+            const cacheKey = selectedIngredientIds.slice().sort((a, b) => a - b).join(',');
             if (sandboxStepCache.has(cacheKey)) {
                 renderSandboxStepCandidates(sandboxStepCache.get(cacheKey));
                 stepsTable?.ajax.reload(null, true);
@@ -506,8 +517,21 @@
 
             $.get('@Url.Action("GetPreparationStepTableData", "Admin")', { selectedIngredientIds: cacheKey })
                 .done(function(data) {
-                    sandboxStepCache.set(cacheKey, data || []);
-                    renderSandboxStepCandidates(data || []);
+                    const sortedData = (data || [])
+                        .slice()
+                        .sort(function(a, b) {
+                            const matchA = buildStepMatchCount(a, selectedIngredientIds);
+                            const matchB = buildStepMatchCount(b, selectedIngredientIds);
+
+                            if (matchB !== matchA) {
+                                return matchB - matchA;
+                            }
+
+                            return (a.id || 0) - (b.id || 0);
+                        });
+
+                    sandboxStepCache.set(cacheKey, sortedData);
+                    renderSandboxStepCandidates(sortedData);
                 })
                 .fail(function() {
                     renderSandboxStepCandidates([]);
