@@ -500,38 +500,49 @@
             return normalizedSelectedIds.filter(id => stepIngredientIds.includes(id)).length;
         }
 
+        function sortSandboxStepRows(rows, selectedIngredientIds) {
+            return rows.sort(function(a, b) {
+                const matchA = buildStepMatchCount(a, selectedIngredientIds);
+                const matchB = buildStepMatchCount(b, selectedIngredientIds);
+
+                if (matchB !== matchA) {
+                    return matchB - matchA;
+                }
+
+                return (a.id || 0) - (b.id || 0);
+            });
+        }
+
         function loadSandboxStepsForActiveIngredient() {
             const selectedIngredientIds = getSelectedIngredientIdsForStepFilter();
-            if (!selectedIngredientIds.length) {
+            const activeIngredientId = activeSandboxIngredientId?.toString() || '';
+
+            if (!selectedIngredientIds.length && !activeIngredientId) {
                 renderSandboxStepCandidates([]);
                 stepsTable?.ajax.reload(null, true);
                 return;
             }
 
-            const cacheKey = selectedIngredientIds.slice().sort((a, b) => a - b).join(',');
+            const cacheKey = `${selectedIngredientIds.slice().sort((a, b) => a - b).join(',')}|${activeIngredientId}`;
             if (sandboxStepCache.has(cacheKey)) {
                 renderSandboxStepCandidates(sandboxStepCache.get(cacheKey));
                 stepsTable?.ajax.reload(null, true);
                 return;
             }
 
-            $.get('@Url.Action("GetPreparationStepTableData", "Admin")', { selectedIngredientIds: cacheKey })
+            $.get('@Url.Action("GetPreparationStepTableData", "Admin")')
                 .done(function(data) {
-                    const sortedData = (data || [])
-                        .slice()
-                        .sort(function(a, b) {
-                            const matchA = buildStepMatchCount(a, selectedIngredientIds);
-                            const matchB = buildStepMatchCount(b, selectedIngredientIds);
+                    const allRows = (data || []).slice();
+                    const boundToActive = sortSandboxStepRows(
+                        allRows.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
+                        selectedIngredientIds);
+                    const remaining = sortSandboxStepRows(
+                        allRows.filter(x => !(x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
+                        selectedIngredientIds);
 
-                            if (matchB !== matchA) {
-                                return matchB - matchA;
-                            }
-
-                            return (a.id || 0) - (b.id || 0);
-                        });
-
-                    sandboxStepCache.set(cacheKey, sortedData);
-                    renderSandboxStepCandidates(sortedData);
+                    const orderedRows = [...boundToActive, ...remaining];
+                    sandboxStepCache.set(cacheKey, orderedRows);
+                    renderSandboxStepCandidates(orderedRows);
                 })
                 .fail(function() {
                     renderSandboxStepCandidates([]);
