@@ -966,6 +966,10 @@
                                 <label class="form-label small mb-1">Plan-Name</label>
                                 <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
                             </div>
+                            <div class="col-5">
+                                <label class="form-label small mb-1">Personen</label>
+                                <input id="planPersonCount" type="number" min="1" step="1" value="1" class="form-control form-control-sm" />
+                            </div>
 
                             <div class="d-flex gap-2 mt-2">
                                 <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
@@ -1523,7 +1527,9 @@
             const recipeIds = getPlanRecipeIds(payload);
             if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
 
-            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+            const personCountInput = document.getElementById('planPersonCount');
+            const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
+            if (personCountInput) personCountInput.value = personCount;
 
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
@@ -1534,6 +1540,24 @@
 
             const data = await response.json();
             document.getElementById('shoppingListEditor').value = data.text || '';
+        }
+
+        function handlePlanPersonCountChange() {
+            const personInput = document.getElementById('planPersonCount');
+            if (!personInput) return;
+
+            const normalized = Math.max(1, parseInt(personInput.value || '1', 10) || 1);
+            personInput.value = normalized;
+
+            scheduleNutritionUpdate();
+            scheduleDraftSave();
+
+            const shoppingEditor = document.getElementById('shoppingListEditor');
+            if (shoppingEditor && shoppingEditor.value.trim().length > 0) {
+                prepareShoppingList().catch(() => {
+                    // noop: Fehler wird bereits in prepareShoppingList angezeigt.
+                });
+            }
         }
 
         let nutritionTimer = null;
@@ -1787,7 +1811,8 @@
             applyPlanThemeFromProfile();
             const personInput = document.getElementById('planPersonCount');
             if (personInput) {
-                personInput.addEventListener('input', () => scheduleNutritionUpdate());
+                personInput.addEventListener('input', handlePlanPersonCountChange);
+                personInput.addEventListener('change', handlePlanPersonCountChange);
             }
             const nutritionToggle = document.getElementById('planNutritionToggle');
             if (nutritionToggle) {

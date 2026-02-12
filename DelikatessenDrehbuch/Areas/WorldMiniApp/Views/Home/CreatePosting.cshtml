@@ -361,6 +361,76 @@
         border-radius: 10px;
         padding: 10px;
     }
+
+    @media (max-width: 576px) {
+        .table-responsive {
+            overflow-x: visible;
+        }
+
+        #ingredientsDbTable,
+        #stepsDbTable {
+            min-width: 0;
+        }
+
+            #ingredientsDbTable thead,
+            #stepsDbTable thead {
+                display: none;
+            }
+
+            #ingredientsDbTable tbody tr,
+            #stepsDbTable tbody tr {
+                display: block;
+                margin-bottom: 12px;
+                background: #ffffff;
+                border-radius: 16px;
+                padding: 12px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            }
+
+            #ingredientsDbTable tbody td,
+            #stepsDbTable tbody td {
+                display: block;
+                border: 0;
+                padding: 0;
+            }
+
+                #ingredientsDbTable tbody td + td,
+                #stepsDbTable tbody td + td {
+                    margin-top: 10px;
+                    text-align: right !important;
+                }
+
+        #ingredientsDbTable .ingredient-inline-inputs {
+            row-gap: .5rem;
+        }
+
+            #ingredientsDbTable .ingredient-inline-inputs .col-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+        #stepsDbTable .display-step {
+            font-size: .9rem;
+            line-height: 1.4;
+        }
+
+        #sandboxStepTabs {
+            gap: .5rem;
+        }
+
+            #sandboxStepTabs .nav-item {
+                flex: 1 1 100%;
+            }
+
+        .dataTables_wrapper .row {
+            row-gap: .5rem;
+        }
+
+            .dataTables_wrapper .row > div {
+                width: 100%;
+                text-align: center;
+            }
+    }
 </style>
 
 @section Scripts {
@@ -402,6 +472,8 @@
 
         $(document).ready(function() {
             setDataTableLoading(true);
+            activeSandboxTab = $('#sandboxStepTabs .nav-link.active').data('sandbox-tab')?.toString() || 'linked';
+
             // DataTables initialisieren
             ingredientsTable = $('#ingredientsDbTable').DataTable({
                 pageLength: 9, lengthChange: false, info: false, searching: true,
@@ -500,6 +572,9 @@
         }
 
         function renderSandboxStepTab() {
+            $('#sandboxStepTabs .nav-link').removeClass('active');
+            $(`#sandboxStepTabs .nav-link[data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
+
             if (activeSandboxTab === 'unbound') {
                 $('#sandboxActiveIngredientLabel').text('Ungebundene Schritte');
                 loadSandboxUnboundSteps();
