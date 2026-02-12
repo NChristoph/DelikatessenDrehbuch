@@ -93,16 +93,14 @@
 
                         <table id="ingredientsTable" class="table table-sm table-hover w-100">
                             <thead>
-                                <tr><th>ID</th><th>Name</th><th>Gruppe</th><th>Aktion</th></tr>
+                                <tr><th>ID</th><th>Name</th><th>Aktion</th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var ingredient in Model.Ingredients)
                                 {
-                                    var groupName = ingredient.Group?.Name ?? "Ohne Gruppe";
                                     <tr>
                                         <td>@ingredient.Id</td>
                                         <td>@ingredient.Name_DE</td>
-                                        <td>@groupName</td>
                                         <td>
                                             <button type="button" class="btn btn-outline-success btn-sm ingredient-toggle-btn" data-ingredient-id="@ingredient.Id" onclick="toggleIngredient(@ingredient.Id, '@Html.Raw((ingredient.Name_DE ?? string.Empty).Replace("'", "\\'"))')">Hinzufügen</button>
                                         </td>
@@ -275,22 +273,23 @@
                 return true;
             }
 
-            const showOnlyUnboundSteps = onlyUnboundStepsToggle.checked;
-            if (!showOnlyUnboundSteps) {
+            if (!onlyUnboundStepsToggle.checked) {
                 return true;
             }
 
-            const rowNode = prepStepsTable.row(dataIndex).node();
+            const rowNode = settings.aoData[dataIndex]?.nTr;
             const hasBinding = rowNode?.querySelector('td[data-has-binding]')?.dataset.hasBinding === 'true';
 
             return !hasBinding;
         });
 
-        onlyUnboundStepsToggle.addEventListener('change', function () {
-            localStorage.setItem(onlyUnboundStepsStorageKey, this.checked ? 'true' : 'false');
+        const applyOnlyUnboundStepsFilter = () => {
+            localStorage.setItem(onlyUnboundStepsStorageKey, onlyUnboundStepsToggle.checked ? 'true' : 'false');
             prepStepsTable.draw();
             normalizeDataTablePagingButtons();
-        });
+        };
+
+        onlyUnboundStepsToggle.addEventListener('change', applyOnlyUnboundStepsFilter);
 
         $('#prepStepsTable').on('draw.dt', function () {
             normalizeDataTablePagingButtons();
@@ -306,8 +305,7 @@
             event.stopPropagation();
         });
 
-        prepStepsTable.draw();
-        normalizeDataTablePagingButtons();
+        applyOnlyUnboundStepsFilter();
         updateSelectedIngredientsPreview();
     });
 </script>
