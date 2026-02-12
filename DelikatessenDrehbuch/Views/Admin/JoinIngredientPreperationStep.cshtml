@@ -30,11 +30,12 @@
         <i class="fa-solid fa-link me-2"></i>Zutaten mit Zubereitungsschritt verknüpfen
     </h3>
 
-    <p class="text-muted">Schritt auswählen, Zutaten markieren und gemeinsam speichern.</p>
+    <p class="text-muted">Schritte auswählen, Zutaten markieren und gemeinsam speichern.</p>
 
     <form asp-action="SaveJoinIngredientPreperationStep" asp-controller="Admin" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" id="selectedStepId" name="selectedStepId" />
+        <input type="hidden" id="selectedStepIds" name="selectedStepIds" />
         <input type="hidden" id="selectedIngredientIds" name="selectedIngredientIds" />
 
         <div class="row g-3">
@@ -60,7 +61,7 @@
                                         <td data-has-binding="@hasBindings.ToString().ToLowerInvariant()">@step.Id</td>
                                         <td>@step.Step_DE</td>
                                         <td>
-                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectStep(@step.Id, '@Html.Raw((step.Step_DE ?? string.Empty).Replace("'", "\\'"))')">Auswählen</button>
+                                            <button type="button" class="btn btn-outline-primary btn-sm step-toggle-btn" data-step-id="@step.Id" onclick="toggleStep(@step.Id, '@Html.Raw((step.Step_DE ?? string.Empty).Replace("'", "\\'"))')">Hinzufügen</button>
                                         </td>
                                     </tr>
                                 }
@@ -93,16 +94,14 @@
 
                         <table id="ingredientsTable" class="table table-sm table-hover w-100">
                             <thead>
-                                <tr><th>ID</th><th>Name</th><th>Gruppe</th><th>Aktion</th></tr>
+                                <tr><th>ID</th><th>Name</th><th>Aktion</th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var ingredient in Model.Ingredients)
                                 {
-                                    var groupName = ingredient.Group?.Name ?? "Ohne Gruppe";
                                     <tr>
                                         <td>@ingredient.Id</td>
                                         <td>@ingredient.Name_DE</td>
-                                        <td>@groupName</td>
                                         <td>
                                             <button type="button" class="btn btn-outline-success btn-sm ingredient-toggle-btn" data-ingredient-id="@ingredient.Id" onclick="toggleIngredient(@ingredient.Id, '@Html.Raw((ingredient.Name_DE ?? string.Empty).Replace("'", "\\'"))')">Hinzufügen</button>
                                         </td>
@@ -117,9 +116,9 @@
 
         <div class="card mt-3 shadow-sm">
             <div class="card-body">
-                <h5 class="fw-bold">Ausgewählter Zubereitungsschritt</h5>
-                <div id="selectedStepPreview" class="text-muted">Noch kein Schritt ausgewählt.</div>
-                <div id="selectedStepBindingInfo" class="small text-muted mt-2">Keine bestehende Verknüpfung gefunden.</div>
+                <h5 class="fw-bold">Ausgewählte Zubereitungsschritte</h5>
+                <ul id="selectedStepPreview" class="list-group list-group-flush"><li class="list-group-item text-muted">Noch kein Schritt ausgewählt.</li></ul>
+                <div id="selectedStepBindingInfo" class="small text-muted mt-2">Keine Schritte ausgewählt.</div>
                 <hr />
                 <h5 class="fw-bold">Ausgewählte Zutaten</h5>
                 <ul id="selectedIngredientsPreview" class="list-group list-group-flush"></ul>
@@ -156,26 +155,65 @@
 
 <script>
     const selectedIngredients = new Map();
+    const selectedSteps = new Map();
     const stepBindings = @Html.Raw(JsonSerializer.Serialize(stepBindings));
     const ingredientGroups = @Html.Raw(JsonSerializer.Serialize(ingredientGroups));
     const onlyUnboundStepsStorageKey = 'join-ingredient-only-unbound-steps';
 
-    function selectStep(stepId, stepText) {
-        document.getElementById('selectedStepId').value = stepId;
-        document.getElementById('selectedStepPreview').textContent = `${stepId}: ${stepText}`;
+    function updateStepToggleButtons() {
+        document.querySelectorAll('.step-toggle-btn').forEach(button => {
+            const stepId = Number(button.dataset.stepId);
+            const isSelected = selectedSteps.has(stepId);
+            button.classList.toggle('btn-outline-primary', !isSelected);
+            button.classList.toggle('btn-outline-danger', isSelected);
+            button.textContent = isSelected ? 'Entfernen' : 'Hinzufügen';
+        });
+    }
 
+    function updateSelectedStepsPreview() {
+        const selectedStepIds = Array.from(selectedSteps.keys());
+        document.getElementById('selectedStepIds').value = selectedStepIds.join(',');
+        document.getElementById('selectedStepId').value = selectedStepIds[0] ?? '';
+
+        const preview = document.getElementById('selectedStepPreview');
         const bindingInfo = document.getElementById('selectedStepBindingInfo');
-        const bindings = stepBindings[stepId] ?? [];
+        preview.innerHTML = '';
 
-        if (bindings.length === 0) {
+        if (selectedSteps.size === 0) {
+            preview.innerHTML = '<li class="list-group-item text-muted">Noch kein Schritt ausgewählt.</li>';
             bindingInfo.className = 'small text-muted mt-2';
-            bindingInfo.textContent = 'Für diesen Schritt gibt es noch keine gespeicherten Zutaten-Verknüpfungen.';
+            bindingInfo.textContent = 'Keine Schritte ausgewählt.';
+            updateStepToggleButtons();
             return;
         }
 
-        const existingIngredientText = bindings.map(binding => `${binding.id}: ${binding.name}`).join(', ');
-        bindingInfo.className = 'small text-success mt-2';
-        bindingInfo.textContent = `Bereits verknüpft mit: ${existingIngredientText}`;
+        selectedSteps.forEach((stepText, stepId) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = `${stepId}: ${stepText}`;
+            preview.appendChild(li);
+        });
+
+        const stepsWithoutBindings = selectedStepIds.filter(stepId => (stepBindings[stepId] ?? []).length === 0);
+        if (stepsWithoutBindings.length === selectedStepIds.length) {
+            bindingInfo.className = 'small text-muted mt-2';
+            bindingInfo.textContent = 'Für die ausgewählten Schritte gibt es noch keine gespeicherten Zutaten-Verknüpfungen.';
+        } else {
+            bindingInfo.className = 'small text-success mt-2';
+            bindingInfo.textContent = 'Bei erneutem Speichern werden bestehende Verknüpfungen der gewählten Schritte ersetzt.';
+        }
+
+        updateStepToggleButtons();
+    }
+
+    function toggleStep(stepId, stepText) {
+        if (selectedSteps.has(stepId)) {
+            selectedSteps.delete(stepId);
+        } else {
+            selectedSteps.set(stepId, stepText);
+        }
+
+        updateSelectedStepsPreview();
     }
 
     function updateIngredientToggleButtons() {
@@ -275,22 +313,23 @@
                 return true;
             }
 
-            const showOnlyUnboundSteps = onlyUnboundStepsToggle.checked;
-            if (!showOnlyUnboundSteps) {
+            if (!onlyUnboundStepsToggle.checked) {
                 return true;
             }
 
-            const rowNode = prepStepsTable.row(dataIndex).node();
+            const rowNode = settings.aoData[dataIndex]?.nTr;
             const hasBinding = rowNode?.querySelector('td[data-has-binding]')?.dataset.hasBinding === 'true';
 
             return !hasBinding;
         });
 
-        onlyUnboundStepsToggle.addEventListener('change', function () {
-            localStorage.setItem(onlyUnboundStepsStorageKey, this.checked ? 'true' : 'false');
+        const applyOnlyUnboundStepsFilter = () => {
+            localStorage.setItem(onlyUnboundStepsStorageKey, onlyUnboundStepsToggle.checked ? 'true' : 'false');
             prepStepsTable.draw();
             normalizeDataTablePagingButtons();
-        });
+        };
+
+        onlyUnboundStepsToggle.addEventListener('change', applyOnlyUnboundStepsFilter);
 
         $('#prepStepsTable').on('draw.dt', function () {
             normalizeDataTablePagingButtons();
@@ -306,8 +345,8 @@
             event.stopPropagation();
         });
 
-        prepStepsTable.draw();
-        normalizeDataTablePagingButtons();
+        applyOnlyUnboundStepsFilter();
+        updateSelectedStepsPreview();
         updateSelectedIngredientsPreview();
     });
 </script>
