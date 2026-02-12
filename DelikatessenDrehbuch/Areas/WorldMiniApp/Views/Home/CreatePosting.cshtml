@@ -558,6 +558,18 @@
             }
         }
 
+        function getStepMatchCountForSelectedIngredients(stepId, selectedIngredientIds) {
+            const normalizedSelectedIds = (selectedIngredientIds || []).map(id => id.toString());
+            if (!normalizedSelectedIds.length) {
+                return 0;
+            }
+
+            const boundIngredientIds = (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? [])
+                .map(id => id.toString());
+
+            return normalizedSelectedIds.filter(selectedId => boundIngredientIds.includes(selectedId)).length;
+        }
+
         function loadSandboxUnboundSteps() {
             const allStepIds = $('#stepsDbTable .step-db-row').map(function() {
                 return parseInt($(this).attr('data-step-id'), 10);
@@ -586,14 +598,35 @@
         }
 
         function loadSandboxStepsForActiveIngredient() {
-            if (!activeSandboxIngredientId) {
+            const selectedIngredientIds = getSelectedIngredientIds();
+            if (!selectedIngredientIds.length) {
                 renderSandboxStepCandidates([]);
                 return;
             }
 
             const stepIds = Object.entries(stepIngredientBindings)
-                .filter(([_, ingredientIds]) => Array.isArray(ingredientIds) && ingredientIds.map(x => x.toString()).includes(activeSandboxIngredientId.toString()))
-                .map(([stepId, _]) => parseInt(stepId, 10))
+                .map(([stepId, ingredientIds]) => {
+                    const parsedStepId = parseInt(stepId, 10);
+                    if (isNaN(parsedStepId) || !Array.isArray(ingredientIds)) {
+                        return null;
+                    }
+
+                    const matchCount = getStepMatchCountForSelectedIngredients(parsedStepId, selectedIngredientIds);
+                    if (matchCount <= 0) {
+                        return null;
+                    }
+
+                    return { stepId: parsedStepId, matchCount };
+                })
+                .filter(x => x !== null)
+                .sort((a, b) => {
+                    if (b.matchCount !== a.matchCount) {
+                        return b.matchCount - a.matchCount;
+                    }
+
+                    return a.stepId - b.stepId;
+                })
+                .map(x => x.stepId)
                 .filter(x => !isNaN(x));
 
             renderSandboxStepCandidates(stepIds);
