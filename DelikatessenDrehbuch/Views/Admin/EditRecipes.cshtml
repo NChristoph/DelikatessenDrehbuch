@@ -490,24 +490,59 @@
             });
         }
 
+        function buildStepMatchCount(step, selectedIngredientIds) {
+            const stepIngredientIds = (step?.ingredientIds || []).map(x => x.toString());
+            if (!stepIngredientIds.length) {
+                return 0;
+            }
+
+            const normalizedSelectedIds = (selectedIngredientIds || []).map(x => x.toString());
+            return normalizedSelectedIds.filter(id => stepIngredientIds.includes(id)).length;
+        }
+
+        function sortSandboxStepRows(rows, selectedIngredientIds) {
+            return rows.sort(function(a, b) {
+                const matchA = buildStepMatchCount(a, selectedIngredientIds);
+                const matchB = buildStepMatchCount(b, selectedIngredientIds);
+
+                if (matchB !== matchA) {
+                    return matchB - matchA;
+                }
+
+                return (a.id || 0) - (b.id || 0);
+            });
+        }
+
         function loadSandboxStepsForActiveIngredient() {
-            if (!activeSandboxIngredientId || activeSandboxIngredientId === '0') {
+            const selectedIngredientIds = getSelectedIngredientIdsForStepFilter();
+            const activeIngredientId = activeSandboxIngredientId?.toString() || '';
+
+            if (!selectedIngredientIds.length && !activeIngredientId) {
                 renderSandboxStepCandidates([]);
                 stepsTable?.ajax.reload(null, true);
                 return;
             }
 
-            const cacheKey = activeSandboxIngredientId.toString();
+            const cacheKey = `${selectedIngredientIds.slice().sort((a, b) => a - b).join(',')}|${activeIngredientId}`;
             if (sandboxStepCache.has(cacheKey)) {
                 renderSandboxStepCandidates(sandboxStepCache.get(cacheKey));
                 stepsTable?.ajax.reload(null, true);
                 return;
             }
 
-            $.get('@Url.Action("GetPreparationStepTableData", "Admin")', { selectedIngredientIds: cacheKey })
+            $.get('@Url.Action("GetPreparationStepTableData", "Admin")')
                 .done(function(data) {
-                    sandboxStepCache.set(cacheKey, data || []);
-                    renderSandboxStepCandidates(data || []);
+                    const allRows = (data || []).slice();
+                    const boundToActive = sortSandboxStepRows(
+                        allRows.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
+                        selectedIngredientIds);
+                    const remaining = sortSandboxStepRows(
+                        allRows.filter(x => !(x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
+                        selectedIngredientIds);
+
+                    const orderedRows = [...boundToActive, ...remaining];
+                    sandboxStepCache.set(cacheKey, orderedRows);
+                    renderSandboxStepCandidates(orderedRows);
                 })
                 .fail(function() {
                     renderSandboxStepCandidates([]);
