@@ -236,7 +236,12 @@ namespace DelikatessenDrehbuch.Controllers
                     .Select(x => new
                     {
                         x.Id,
-                        x.Step_DE
+                        x.Step_DE,
+                        IngredientIds = _context.JoinIngredientPreperationStep
+                            .Where(join => join.Preperation != null && join.Ingredient != null && join.Preperation.Id == x.Id)
+                            .Select(join => join.Ingredient.Id)
+                            .Distinct()
+                            .ToList()
                     })
                     .ToListAsync();
 
