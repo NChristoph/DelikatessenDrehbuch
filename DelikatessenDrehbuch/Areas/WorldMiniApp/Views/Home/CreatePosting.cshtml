@@ -508,6 +508,10 @@
     }
 
     /* ---------- Topbar ---------- */
+    body > .position-fixed.top-0.end-0.m-3.dropdown {
+        z-index: 2601 !important;
+    }
+
     .creator-topbar {
         position: sticky;
         top: 0;
@@ -1088,7 +1092,7 @@
                 return;
             }
 
-            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine aktive Zutat');
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Alle Schritte');
             loadSandboxStepsForActiveIngredient();
         }
 
@@ -1101,11 +1105,7 @@
                 activeSandboxIngredientId = null;
                 activeSandboxIngredientName = '';
                 container.append('<div class="text-muted small">Noch keine Zutat ausgewählt.</div>');
-                if (activeSandboxTab === 'unbound') renderSandboxStepTab();
-                else {
-                    $('#sandboxActiveIngredientLabel').text('Keine aktive Zutat');
-                    renderSandboxStepCandidates([]);
-                }
+                renderSandboxStepTab();
                 return;
             }
 
