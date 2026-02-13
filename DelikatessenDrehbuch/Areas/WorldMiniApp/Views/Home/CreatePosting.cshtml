@@ -755,7 +755,7 @@
         overflow: hidden;
         border: 1px solid rgba(0,0,0,0.06);
         background: rgba(255,255,255,0.70);
-        max-height: 26rem;
+        height: 22rem;
         overflow-y: auto;
     }
 
@@ -912,11 +912,12 @@
         }
 
         .creator-table-wrap {
-            overflow: visible;
+            height: 20rem;
+            overflow-y: auto;
         }
 
         .table-responsive {
-            overflow-x: visible;
+            overflow-x: hidden;
         }
 
         #ingredientsDbTable thead, #stepsDbTable thead {
@@ -993,6 +994,7 @@
         }
 
         function syncIngredientSourceVisibility() {
+            const query = ($('#ingredientSearch').val() || '').toString().trim().toLowerCase();
             const selectedIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
                 return $(this).val()?.toString();
             }).get();
@@ -1000,7 +1002,10 @@
             $('.ingredient-db-row').each(function () {
                 const row = $(this);
                 const id = row.data('ingredient-id')?.toString() || '';
-                row.toggle(!id || !selectedIds.includes(id));
+                const text = ((row.data('name-' + currentLang) || row.data('name-de') || '') + '').toLowerCase();
+                const isSelected = !!id && selectedIds.includes(id);
+                const matchesSearch = !query || text.includes(query);
+                row.toggle(!isSelected && matchesSearch);
             });
         }
 
@@ -1090,10 +1095,11 @@
                 };
             });
 
-            const boundToActive = sortSandboxStepItems(scoredSteps.filter(x => x.isBoundToActive));
-            const remaining = sortSandboxStepItems(scoredSteps.filter(x => !x.isBoundToActive));
-            const orderedStepIds = [...boundToActive, ...remaining].map(x => x.stepId);
-            renderSandboxStepCandidates(orderedStepIds);
+            const matchingSteps = sortSandboxStepItems(scoredSteps.filter(x => x.isBoundToActive));
+            renderSandboxStepCandidates(
+                matchingSteps.map(x => x.stepId),
+                'Keine passenden Schritte für die gewählte Zutat gefunden.'
+            );
         }
 
         function renderSandboxStepTab() {
@@ -1347,11 +1353,7 @@
             activeSandboxTab = $('#sandboxStepTabs .nav-link.active, #sandboxStepTabs .sandbox-tab.active').first().data('sandbox-tab')?.toString() || 'linked';
 
             $('#ingredientSearch').on('input', function () {
-                const q = ($(this).val() || '').toString().trim().toLowerCase();
-                $('.ingredient-db-row').each(function () {
-                    const text = (($(this).data('name-' + currentLang) || $(this).data('name-de') || '') + '').toLowerCase();
-                    $(this).toggle(!q || text.includes(q));
-                });
+                syncIngredientSourceVisibility();
             });
 
             $('#stepSearch').on('input', function () {
