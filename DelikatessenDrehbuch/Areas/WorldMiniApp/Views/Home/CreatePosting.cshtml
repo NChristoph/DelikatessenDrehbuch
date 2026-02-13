@@ -3,7 +3,9 @@
 @using System.Linq
 @using Newtonsoft.Json
 
+
 @{
+   
     var stepIngredientBindings = Model.IngredientStepJoins
         .Where(x => x.Preperation != null && x.Ingredient != null)
         .GroupBy(x => x.Preperation.Id)
@@ -11,14 +13,15 @@
             group => group.Key,
             group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
 
-    var stepCatalogJson = JsonSerializer.Serialize(
+    var stepCatalogJson = System.Text.Json.JsonSerializer.Serialize(
         Model.ToSelectRecipePreperationSteps?.Select(step => new
         {
             id = step.Id,
             de = step.Step_DE,
             en = step.Step_EN,
             esp = step.Step_ESP,
-            prt = step.Step_PRT
+            prt = step.Step_PRT,
+            phase = step.Phase
         }) ?? Enumerable.Empty<object>());
 
     ViewData["Title"] = "Rezept Erstellen";
@@ -338,8 +341,9 @@
                         </table>
                     </div>
 
-                    <div id="selectedIngredients" class="mt-3 selected-zone"></div>
+                    
                 </div>
+                <div id="selectedIngredients" class="mt-3 selected-zone"></div>
             </section>
 
             <!-- 4) STEPS + SANDBOX -->
@@ -365,7 +369,12 @@
                                 <div class="sandbox-title">Sandbox Studio</div>
                                 <div class="sandbox-sub">Schnelles Verknüpfen wie in einem Creator-Workflow</div>
                             </div>
-                            <span class="badge text-bg-light border">Beta</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" id="btnSuggestSteps" class="btn btn-sm btn-outline-primary rounded-pill" onclick="suggestSteps()" disabled>
+                                    <i class="bi bi-magic me-1"></i>Schritte vorschlagen
+                                </button>
+                                <span class="badge text-bg-light border">Beta</span>
+                            </div>
                         </div>
 
                         <div class="row g-3 mt-1">
@@ -759,6 +768,38 @@
         overflow-y: auto;
     }
 
+    /* Der Bereich, in dem die ausgewählten Zutaten landen */
+    #selectedIngredients {
+        display: flex !important;
+        flex-direction: column !important; /* Zwingt Elemente untereinander */
+        gap: 15px; /* Erzeugt den Abstand zwischen den Karten */
+        width: 100%;
+        position: relative;
+        padding: 5px;
+    }
+
+    /* Die einzelne Zutat-Karte */
+    .ingredient-row.dynamic-item {
+        display: block !important; /* Kein Flex-Layout für die äußere Box */
+        position: relative !important; /* Verhindert das Übereinanderstapeln (absolute) */
+        width: 100% !important;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 15px;
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin: 0 !important; /* Abstand wird über 'gap' im Parent geregelt */
+    }
+
+    /* Design-Anpassung für die Inputs innerhalb der Karte */
+    .candy-purple-input {
+        border: none !important;
+        background-color: rgba(139, 92, 246, 0.08) !important;
+        color: #7c3aed !important;
+        font-weight: bold;
+        border-radius: 10px !important;
+    }
+
     .selected-zone {
         padding-top: 6px;
     }
@@ -852,6 +893,21 @@
         overflow-y: auto;
         padding-right: .2rem;
     }
+
+    .phase-badge {
+        font-size: .68rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 5px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .phase-badge-1 { background: rgba(34,197,94,.12); color: #15803d; }
+    .phase-badge-2 { background: rgba(239,68,68,.12); color: #dc2626; }
+    .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
+    .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
 
     /* ---------- Bottom Bar ---------- */
     .creator-bottom {
@@ -952,14 +1008,14 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script>
-        var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
-        const stepIngredientBindings = @Html.Raw(JsonSerializer.Serialize(stepIngredientBindings));
         const stepCatalog = @Html.Raw(stepCatalogJson);
+         const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
+         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
 
-        function getCookieValue(name) {
-            const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
-            return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
-        }
+         function getCookieValue(name) {
+             const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
+             return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+         }
 
         function resolveLangKey(value) {
             const normalized = (value || 'de').toLowerCase();
@@ -975,6 +1031,67 @@
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
+        }
+
+        function getPhaseLabel(phase) {
+            const map = {
+                1: { text: 'Vorb.', cls: 'phase-badge-1' },
+                2: { text: 'Kochen', cls: 'phase-badge-2' },
+                3: { text: 'Würzen', cls: 'phase-badge-3' },
+                4: { text: 'Finish', cls: 'phase-badge-4' }
+            };
+            const info = map[phase];
+            if (!info) return '';
+            return `<span class="phase-badge ${info.cls}">${info.text}</span>`;
+        }
+
+        function updateSuggestButtonState() {
+            const hasIngredients = getSelectedIngredientIds().length > 0;
+            $('#btnSuggestSteps').prop('disabled', !hasIngredients);
+        }
+
+        function suggestSteps() {
+            const selectedIds = getSelectedIngredientIds();
+            if (!selectedIds.length) return;
+
+            const existingSteps = $('#selectedSteps .step-row').length;
+            if (existingSteps > 0) {
+                if (!confirm('Bestehende Schritte ersetzen?')) return;
+            }
+
+            // Find all steps bound to at least one selected ingredient
+            const allSteps = getAllStepRows();
+            const seen = new Set();
+            const matched = [];
+
+            allSteps.forEach(step => {
+                const stepId = step.id;
+                if (seen.has(stepId)) return;
+                const boundIds = (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
+                if (!boundIds.length) return;
+                const matchCount = boundIds.filter(bid => selectedIds.includes(bid)).length;
+                if (matchCount === 0) return;
+                seen.add(stepId);
+                matched.push({ stepId, phase: step.phase || 0, matchCount });
+            });
+
+            // Sort: phase 1→2→3→4→0, then by matchCount desc
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            matched.sort((a, b) => {
+                const pa = phaseOrder[a.phase] ?? 4;
+                const pb = phaseOrder[b.phase] ?? 4;
+                if (pa !== pb) return pa - pb;
+                return b.matchCount - a.matchCount;
+            });
+
+            // Clear existing and add suggested
+            $('#selectedSteps').empty();
+            matched.forEach(item => {
+                const sourceRow = allSteps.find(x => x.id === item.stepId);
+                const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
+                addStep(item.stepId.toString(), null, label);
+            });
+            updateStepIndices();
         }
 
         function getSelectedIngredientIds() {
@@ -1040,7 +1157,8 @@
                 if (!label) return;
                 if (search && !label.toLowerCase().includes(search)) return;
 
-                const btn = $(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-step-candidate"><i class="bi bi-plus-circle me-1"></i>${label}</button>`);
+                const phaseBadge = getPhaseLabel(sourceRow.phase);
+                const btn = $(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-step-candidate">${phaseBadge}<i class="bi bi-plus-circle me-1"></i>${label}</button>`);
                 btn.on('click', function () { addStep(stepId.toString(), null, label); });
                 container.append(btn);
             });
@@ -1120,6 +1238,7 @@
             const container = $('#sandboxIngredientList');
             const selectedIngredients = getSelectedIngredientsForSandbox();
             container.empty();
+            updateSuggestButtonState();
 
             if (!selectedIngredients.length) {
                 activeSandboxIngredientId = null;
@@ -1217,10 +1336,11 @@
             return value.toString().trim().replace(/\s/g, '').replace(',', '.');
         }
 
-        function addIngredient(id, btn) {
+               function addIngredient(id, btn) {
             const existing = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').filter(function () {
                 return $(this).val()?.toString() === id.toString();
             }).length > 0;
+
             if (existing) return;
 
             const row = $(btn).closest('.ingredient-db-row');
@@ -1229,20 +1349,43 @@
             const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
             const unitOptions = dbUnits.map(u => `<option value="${u}" ${u === selectedUnit ? 'selected' : ''}>${u}</option>`).join('');
 
-            $('#selectedIngredients').append(`<div class="dynamic-item ingredient-row">
+            // Neues Element erstellen
+            const newIngredient = `
+            <div class="dynamic-item ingredient-row shadow-sm">
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 small fw-bold display-name-selected text-dark">${name}</div>
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeIngredientRow(this)"><i class="bi bi-trash3"></i></button>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="fw-bold display-name-selected text-dark">${name}</div>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="removeIngredientRow(this)">
+                        <i class="bi bi-trash3"></i>
+                    </button>
                 </div>
-                <div class="d-flex gap-2 mt-2">
-                    <input type="text" inputmode="decimal" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="form-control form-control-sm border-0 candy-purple rounded-3 fw-bold text-center js-decimal-input" style="width:90px" placeholder="0,0" value="${selectedQuantity}" />
-                    <select name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement" class="form-select form-select-sm border-0 candy-purple rounded-3 fw-bold">${unitOptions}</select>
+
+                <div class="row g-2 align-items-center">
+                    <div class="col-5">
+                        <label class="small text-muted d-block mb-1">Menge</label>
+                        <input type="text" inputmode="decimal"
+                               name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys"
+                               class="form-control form-control-sm js-decimal-input candy-purple-input"
+                               value="${selectedQuantity}" />
+                    </div>
+                    <div class="col-7">
+                        <label class="small text-muted d-block mb-1">Einheit</label>
+                        <select name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement"
+                                class="form-select form-select-sm candy-purple-input">
+                            ${unitOptions}
+                        </select>
+                    </div>
                 </div>
-            </div>`);
+            </div>`;
+
+            // Am Ende des Containers anfügen
+            $('#selectedIngredients').append(newIngredient);
 
             renderSandboxIngredientList();
-            syncIngredientSourceVisibility();
+            if (typeof syncIngredientSourceVisibility === "function") {
+                syncIngredientSourceVisibility();
+            }
         }
 
         function removeIngredientRow(btn) {
