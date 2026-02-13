@@ -1,5 +1,6 @@
 ﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
 @using System.Text.Json
+@using Newtonsoft.Json
 
 @{
     var stepIngredientBindings = Model.IngredientStepJoins
@@ -8,18 +9,17 @@
         .ToDictionary(
             group => group.Key,
             group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
-}
-@using Newtonsoft.Json
-@{
+
     ViewData["Title"] = "Rezept Erstellen";
     Layout = "_MiniAppLayout";
 }
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 
-<div class="min-vh-100 pb-5 position-relative" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
-    <div id="datatableLoadingOverlay" class="datatable-loading d-none">
-        <div class="datatable-loading-card">
+<div class="creator-bg min-vh-100 position-relative">
+    <!-- Loading Overlay -->
+    <div id="datatableLoadingOverlay" class="creator-loading d-none">
+        <div class="creator-loading-card">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Lade...</span>
             </div>
@@ -28,115 +28,270 @@
         </div>
     </div>
 
-    <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-start">
-        <div>
-            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
-                <i class="bi bi-arrow-left"></i> Zurück
-            </a>
-            <h2 class="fw-bold mb-1" style="color: #2c3e50;">Creator Studio 🥑</h2>
+    <!-- Topbar (Social Creator) -->
+    <div class="creator-topbar px-3 py-3">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+
+        <div class="topbar-title">
+            <div class="fw-bold text-truncate">Creator Studio</div>
+            <div class="small text-muted text-truncate">Neuer Upload · Rezeptpost</div>
         </div>
+
+        <!-- Optional: Quick Publish -->
+        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="Veröffentlichen">
+            <i class="bi bi-send-fill"></i>
+        </button>
     </div>
 
-    <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()" class="pb-5">
-        <div class="container px-4">
+    <div class="feed-shell mx-auto">
+        <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
-            <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Basis Informationen" data-en="Basic Info" data-esp="Información básica" data-prt="Informação básica">Basis Informationen</label>
 
-                <div class="card border-0 shadow-sm p-1 rounded-4 bg-white mb-3">
-                    <div class="d-flex align-items-center px-3">
-                        <div class="icon-box-small text-muted"><i class="bi bi-fonts"></i></div>
-                        <input asp-for="Title" class="form-control border-0 bg-transparent py-3 fw-bold text-dark shadow-none lang-ph"
-                               placeholder="Titel"
-                               data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título" required />
+            <!-- HERO CARD -->
+            <div class="creator-hero mb-3">
+                <div class="creator-hero-left">
+                    <div class="creator-hero-badge">
+                        <i class="bi bi-stars me-2"></i>
+                        <span class="label-lang" data-de="Upload ready" data-en="Upload ready" data-esp="Listo para subir" data-prt="Pronto para envio">Upload ready</span>
                     </div>
+
+                    <h1 class="creator-hero-title mb-1">Neuen Content erstellen</h1>
+                    <p class="creator-hero-sub mb-0">
+                        Erstelle einen Social-Post wie im Feed: Media + Zutaten + Schritte + Keywords.
+                    </p>
                 </div>
 
-                <div class="row g-2 mb-2">
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white h-100 d-flex justify-content-center">
-                            <select asp-for="Recipe.Category" class="form-select border-0 bg-transparent text-center small fw-bold shadow-none cursor-pointer">
-                                <option value="" selected disabled class="lang-opt" data-txt-de="Kategorie" data-txt-en="Category" data-txt-esp="Categoría" data-txt-prt="Categoria">Kategorie</option>
-                                <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer" data-txt-esp="Entrada" data-txt-prt="Entrada">Vorspeise</option>
-                                <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course" data-txt-esp="Plato principal" data-txt-prt="Prato principal">Hauptspeise</option>
-                                <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert" data-txt-esp="Postre" data-txt-prt="Sobremesa">Dessert</option>
-                            </select>
+                <div class="creator-hero-right">
+                    <div class="progress-dots" aria-hidden="true">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="small text-muted mt-2">5 Schritte</div>
+                </div>
+            </div>
+
+            <!-- 1) BASICS -->
+            <section class="creator-card mb-3" id="card-basics">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
+                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
+                                Titel, Kategorie, Personen, Dauer
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white h-100 d-flex justify-content-center">
-                            <select asp-for="Recipe.Preferences" class="form-select border-0 bg-transparent text-center small fw-bold shadow-none cursor-pointer">
-                                <option value="" selected disabled class="lang-opt" data-txt-de="Präferenz" data-txt-en="Preference" data-txt-esp="Preferencia" data-txt-prt="Preferência">Präferenz</option>
-                                <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan" data-txt-esp="Vegano" data-txt-prt="Vegano">Vegan</option>
-                                <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian" data-txt-esp="Vegetariano" data-txt-prt="Vegetariano">Vegetarisch</option>
-                                <option value="Fish" class="lang-opt" data-txt-de="Fisch" data-txt-en="Fish" data-txt-esp="Pescado" data-txt-prt="Peixe">Fisch</option>
-                                <option value="Pork" class="lang-opt" data-txt-de="Schwein" data-txt-en="Pork" data-txt-esp="Cerdo" data-txt-prt="Porco">Schwein</option>
-                                <option value="Beef" class="lang-opt" data-txt-de="Rind" data-txt-en="Beef" data-txt-esp="Res" data-txt-prt="Carne">Rind</option>
-                                <option value="OtherMeat" class="lang-opt" data-txt-de="Anderes Fleisch" data-txt-en="Other Meat" data-txt-esp="Otra carne" data-txt-prt="Outra carne">Anderes Fleisch</option>
-                            </select>
-                        </div>
-                    </div>
+                    <span class="badge rounded-pill text-bg-light border">1/5</span>
                 </div>
 
-                <div class="row g-2">
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white">
-                            <input asp-for="Recipe.PersonCount" type="number" class="form-control border-0 bg-transparent py-2 text-center small fw-bold shadow-none lang-ph"
-                                   placeholder="Personen"
-                                   data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" />
+                <div class="creator-card-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted mb-2 label-lang"
+                               data-de="Titel"
+                               data-en="Title"
+                               data-esp="Título"
+                               data-prt="Título">Titel</label>
+
+                        <div class="input-pill">
+                            <i class="bi bi-fonts text-muted"></i>
+                            <input asp-for="Title"
+                                   class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
+                                   placeholder="Titel"
+                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título"
+                                   required />
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm p-1 rounded-4 bg-white">
-                            <div class="d-flex align-items-center justify-content-center">
-                                <input asp-for="Recipe.PreperationTime" type="number" class="form-control border-0 bg-transparent py-2 text-center small fw-bold shadow-none lang-ph"
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Kategorie"
+                                   data-en="Category"
+                                   data-esp="Categoría"
+                                   data-prt="Categoria">Kategorie</label>
+
+                            <div class="select-pill">
+                                <i class="bi bi-grid text-muted"></i>
+                                <select asp-for="Recipe.Category" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
+                                    <option value="" selected disabled class="lang-opt"
+                                            data-txt-de="Kategorie"
+                                            data-txt-en="Category"
+                                            data-txt-esp="Categoría"
+                                            data-txt-prt="Categoria">Kategorie</option>
+
+                                    <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer" data-txt-esp="Entrada" data-txt-prt="Entrada">Vorspeise</option>
+                                    <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course" data-txt-esp="Plato principal" data-txt-prt="Prato principal">Hauptspeise</option>
+                                    <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert" data-txt-esp="Postre" data-txt-prt="Sobremesa">Dessert</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Präferenz"
+                                   data-en="Preference"
+                                   data-esp="Preferencia"
+                                   data-prt="Preferência">Präferenz</label>
+
+                            <div class="select-pill">
+                                <i class="bi bi-heart text-muted"></i>
+                                <select asp-for="Recipe.Preferences" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
+                                    <option value="" selected disabled class="lang-opt"
+                                            data-txt-de="Präferenz"
+                                            data-txt-en="Preference"
+                                            data-txt-esp="Preferencia"
+                                            data-txt-prt="Preferência">Präferenz</option>
+
+                                    <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan" data-txt-esp="Vegano" data-txt-prt="Vegano">Vegan</option>
+                                    <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian" data-txt-esp="Vegetariano" data-txt-prt="Vegetariano">Vegetarisch</option>
+                                    <option value="Fish" class="lang-opt" data-txt-de="Fisch" data-txt-en="Fish" data-txt-esp="Pescado" data-txt-prt="Peixe">Fisch</option>
+                                    <option value="Pork" class="lang-opt" data-txt-de="Schwein" data-txt-en="Pork" data-txt-esp="Cerdo" data-txt-prt="Porco">Schwein</option>
+                                    <option value="Beef" class="lang-opt" data-txt-de="Rind" data-txt-en="Beef" data-txt-esp="Res" data-txt-prt="Carne">Rind</option>
+                                    <option value="OtherMeat" class="lang-opt" data-txt-de="Anderes Fleisch" data-txt-en="Other Meat" data-txt-esp="Otra carne" data-txt-prt="Outra carne">Anderes Fleisch</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Personen"
+                                   data-en="Persons"
+                                   data-esp="Personas"
+                                   data-prt="Pessoas">Personen</label>
+
+                            <div class="input-pill">
+                                <i class="bi bi-people text-muted"></i>
+                                <input asp-for="Recipe.PersonCount"
+                                       type="number"
+                                       class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
+                                       placeholder="Personen"
+                                       data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" />
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Dauer (Min)"
+                                   data-en="Time (min)"
+                                   data-esp="Tiempo (min)"
+                                   data-prt="Tempo (min)">Dauer (Min)</label>
+
+                            <div class="input-pill">
+                                <i class="bi bi-clock text-muted"></i>
+                                <input asp-for="Recipe.PreperationTime"
+                                       type="number"
+                                       class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
                                        placeholder="Minuten"
                                        data-ph-de="Minuten" data-ph-en="Minutes" data-ph-esp="Minutos" data-ph-prt="Minutos" />
-                                <span class="small text-muted me-3 opacity-50"><i class="bi bi-clock"></i></span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Media-Drehbuch" data-en="Media Script" data-esp="Guion de medios" data-prt="Roteiro de mídia">Media-Drehbuch</label>
-                <div id="videoPreviewContainer" class="d-none mb-3">
-                    <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative bg-dark">
-                        <img id="imagePreview" class="w-100 d-none" style="max-height: 250px; object-fit: cover;" alt="Preview" />
-                        <video id="videoPreview" class="w-100" style="max-height: 250px; object-fit: cover;" controls></video>
-                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle" onclick="resetVideo()"><i class="bi bi-x"></i></button>
+            <!-- 2) MEDIA -->
+            <section class="creator-card mb-3" id="card-media">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
+                            <div class="creator-card-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
+                                Video oder Bild für den Feed
+                            </div>
+                        </div>
                     </div>
+                    <span class="badge rounded-pill text-bg-light border">2/5</span>
                 </div>
-                <label id="uploadLabel" class="diet-card-upload card border-0 shadow-sm p-4 rounded-4 cursor-pointer text-center w-100" for="videoInput">
-                    <div class="icon-box mx-auto mb-2 rounded-circle candy-blue" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary"></i>
-                    </div>
-                    <span class="fw-bold label-lang" data-de="Video oder Bild wählen" data-en="Select Video or Image" data-esp="Seleccionar video o imagen" data-prt="Selecionar vídeo ou imagem">Video oder Bild wählen</span>
-                    <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
-                </label>
-            </div>
 
-            <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Zutaten wählen" data-en="Select Ingredients" data-esp="Seleccionar ingredientes" data-prt="Selecionar ingredientes">Zutaten wählen</label>
-                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
-                    <div class="table-responsive">
+                <div class="creator-card-body">
+                    <div id="videoPreviewContainer" class="d-none mb-3">
+                        <div class="media-preview">
+                            <img id="imagePreview" class="w-100 d-none" style="max-height: 320px; object-fit: cover;" alt="Preview" />
+                            <video id="videoPreview" class="w-100" style="max-height: 320px; object-fit: cover;" controls></video>
+                            <button type="button" class="btn btn-light btn-sm media-reset" onclick="resetVideo()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label id="uploadLabel" class="upload-drop" for="videoInput">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                        </div>
+                        <div class="fw-bold mb-1 label-lang"
+                             data-de="Upload starten"
+                             data-en="Start upload"
+                             data-esp="Iniciar subida"
+                             data-prt="Iniciar envio">
+                            Upload starten
+                        </div>
+
+                        <div class="small text-muted label-lang"
+                             data-de="Wähle ein Video oder Bild (Feed-Style)."
+                             data-en="Choose a video or image (feed style)."
+                             data-esp="Elige un video o imagen (estilo feed)."
+                             data-prt="Escolha um vídeo ou imagem (estilo feed).">
+                            Wähle ein Video oder Bild (Feed-Style).
+                        </div>
+
+                        <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
+                    </label>
+                </div>
+            </section>
+
+            <!-- 3) INGREDIENTS -->
+            <section class="creator-card mb-3" id="card-ingredients">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
+                            <div class="creator-card-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
+                                Suche + hinzufügen wie im Creator Flow
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">3/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <div class="table-responsive creator-table-wrap">
                         <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
-                            <thead><tr><th class="small text-muted">Zutat, Menge, Einheit</th><th class="d-none" aria-hidden="true"></th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th class="small text-muted">Zutat, Menge, Einheit</th>
+                                    <th class="d-none" aria-hidden="true"></th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 @if (Model.ToSelectIngredientsAndNutrients != null)
                                 {
                                     foreach (var item in Model.ToSelectIngredientsAndNutrients)
                                     {
-                                        <tr class="ingredient-db-row" data-name-de="@item.Name_DE" data-name-en="@item.Name_EN" data-name-esp="@item.Name_ESP" data-name-prt="@item.Name_PRT">
+                                        <tr class="ingredient-db-row"
+                                            data-name-de="@item.Name_DE"
+                                            data-name-en="@item.Name_EN"
+                                            data-name-esp="@item.Name_ESP"
+                                            data-name-prt="@item.Name_PRT">
                                             <td>
                                                 <div class="fw-bold display-name">@item.Name_DE</div>
-                                                <div class="row g-2 mt-1 ingredient-inline-inputs align-items-end">
-                                                    <div class="col-5">
+
+                                                <div class="row g-2 mt-2 ingredient-inline-inputs align-items-end">
+                                                    <div class="col-5" style="max-width: 26%">
                                                         <label class="small text-muted">Menge</label>
                                                         <input type="text" inputmode="decimal" class="form-control form-control-sm js-db-qty js-decimal-input" value="0" />
                                                     </div>
-                                                    <div class="col-5">
+
+                                                    <div class="col-5" style="max-width: 54%">
                                                         <label class="small text-muted">Einheit</label>
                                                         <select class="form-select form-select-sm js-db-unit">
                                                             @if (Model.Measure != null)
@@ -148,8 +303,11 @@
                                                             }
                                                         </select>
                                                     </div>
-                                                    <div class="col-2 text-end">
-                                                        <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)"><i class="bi bi-plus"></i></button>
+
+                                                    <div class="col-2 text-end" style="max-width: fit-content">
+                                                        <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </td>
@@ -160,25 +318,48 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="selectedIngredients" class="mt-3"></div>
-                </div>
-            </div>
 
-            <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</label>
-                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
-                    <div class="table-responsive">
+                    <div id="selectedIngredients" class="mt-3 selected-zone"></div>
+                </div>
+            </section>
+
+            <!-- 4) STEPS + SANDBOX -->
+            <section class="creator-card mb-3" id="card-steps">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                                Add & sortiere wie ein Script
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">4/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <div class="table-responsive creator-table-wrap">
                         <table id="stepsDbTable" class="table table-hover align-middle small border-0 w-100">
-                            <thead><tr class="d-none"><th>Text</th><th>Add</th></tr></thead>
+                            <thead>
+                                <tr class="d-none"><th>Text</th><th>Add</th></tr>
+                            </thead>
                             <tbody>
                                 @if (Model.ToSelectRecipePreperationSteps != null)
                                 {
                                     foreach (var step in Model.ToSelectRecipePreperationSteps)
                                     {
-                                        <tr class="step-db-row" data-step-id="@step.Id" data-step-de="@step.Step_DE" data-step-en="@step.Step_EN" data-step-esp="@step.Step_ESP" data-step-prt="@step.Step_PRT">
+                                        <tr class="step-db-row"
+                                            data-step-id="@step.Id"
+                                            data-step-de="@step.Step_DE"
+                                            data-step-en="@step.Step_EN"
+                                            data-step-esp="@step.Step_ESP"
+                                            data-step-prt="@step.Step_PRT">
                                             <td class="small display-step text-muted">@step.Step_DE</td>
                                             <td class="text-end">
-                                                <button type="button" class="btn btn-sm candy-pink rounded-circle shadow-sm" onclick="addStep('@step.Id', this)"><i class="bi bi-arrow-down"></i></button>
+                                                <button type="button" class="btn btn-sm candy-pink rounded-circle shadow-sm" onclick="addStep('@step.Id', this)">
+                                                    <i class="bi bi-arrow-down"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     }
@@ -186,51 +367,74 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3 border rounded-4 p-3 bg-white">
-                        <div class="small fw-bold text-uppercase text-muted mb-2">Sandbox Modus</div>
-                        <div class="row g-3">
+
+                    <!-- Sandbox Studio -->
+                    <div class="sandbox-studio mt-3">
+                        <div class="sandbox-head">
+                            <div>
+                                <div class="sandbox-title">Sandbox Studio</div>
+                                <div class="sandbox-sub">Schnelles Verknüpfen wie in einem Creator-Workflow</div>
+                            </div>
+                            <span class="badge text-bg-light border">Beta</span>
+                        </div>
+
+                        <div class="row g-3 mt-1">
                             <div class="col-md-5">
-                                <div class="sandbox-box h-100">
+                                <div class="sandbox-panel h-100">
                                     <div class="fw-bold small mb-2">Ausgewählte Zutaten</div>
                                     <div id="sandboxIngredientList" class="d-flex flex-column gap-2">
                                         <div class="text-muted small">Noch keine Zutat ausgewählt.</div>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-md-7">
-                                <div class="sandbox-box h-100">
+                                <div class="sandbox-panel h-100">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="fw-bold small">Verknüpfte Schritte</div>
+                                        <div class="fw-bold small">Vorschläge</div>
                                         <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
                                     </div>
-                                    <ul class="nav nav-pills nav-fill mb-2" id="sandboxStepTabs" role="tablist">
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" type="button" data-sandbox-tab="linked">Verknüpft</button>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" type="button" data-sandbox-tab="unbound">Nicht gebunden</button>
-                                        </li>
-                                    </ul>
-                                    <div id="sandboxStepCandidates" class="d-flex flex-column gap-2">
+
+                                    <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
+                                        <button class="sandbox-tab active" type="button" data-sandbox-tab="linked">Verknüpft</button>
+                                        <button class="sandbox-tab" type="button" data-sandbox-tab="unbound">Nicht gebunden</button>
+                                    </div>
+
+                                    <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2">
                                         <div class="text-muted small">Wähle links eine Zutat aus.</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <div class="mt-3">
-                            <div id="sandboxCurrentStep" class="sandbox-current-step text-muted">Aktueller Schritt: noch keiner.</div>
+                            <div id="sandboxCurrentStep" class="sandbox-current text-muted">Aktueller Schritt: noch keiner.</div>
                             <div id="sandboxPreviousSteps" class="mt-2 d-flex flex-column gap-2">
                                 <div class="text-muted small">Vorherige Schritte erscheinen hier.</div>
                             </div>
                         </div>
                     </div>
-                    <div id="selectedSteps" class="mt-3"></div>
-                </div>
-            </div>
 
-            <div class="mb-4">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50 label-lang" data-de="Keywords wählen" data-en="Select Keywords" data-esp="Seleccionar palabras clave" data-prt="Selecionar palavras-chave">Keywords wählen</label>
-                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white-glass">
+                    <div id="selectedSteps" class="mt-3 selected-zone"></div>
+                </div>
+            </section>
+
+            <!-- 5) KEYWORDS -->
+            <section class="creator-card mb-4" id="card-keywords">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
+                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
+                                Hilft beim Feed & bei Suche
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">5/5</span>
+                </div>
+
+                <div class="creator-card-body">
                     <div class="d-flex flex-wrap gap-2">
                         @if (Model.ToSelectKeywords != null)
                         {
@@ -249,101 +453,320 @@
                             }
                         }
                     </div>
-                    <div id="selectedKeywords" class="mt-3"></div>
+
+                    <div id="selectedKeywords" class="mt-3 selected-zone"></div>
+                </div>
+            </section>
+
+            <!-- Bottom Action Bar (Feed Style) -->
+            <div class="fixed-bottom creator-bottom p-3">
+                <div class="creator-bottom-inner">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bottom-hint">
+                            <div class="fw-bold">Bereit zum Posten?</div>
+                            <div class="small text-muted">Alles fühlt sich wie ein Feed-Upload an.</div>
+                        </div>
+
+                        <button type="submit" class="btn publish-btn w-100">
+                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
+                            <i class="bi bi-send-fill ms-2"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%); pointer-events: none;">
-            <div style="pointer-events: auto;">
-                <button type="submit" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg text-white" style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
-                    <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
-                    <i class="bi bi-send-fill ms-2"></i>
-                </button>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 <style>
-    .bg-white-glass {
-        background: rgba(255, 255, 255, 0.7);
+    /* ---------- Background / Shell ---------- */
+    .creator-bg {
+        background: radial-gradient(900px 420px at 20% 0%, rgba(255, 153, 102, .18), transparent 60%), radial-gradient(900px 520px at 80% 10%, rgba(139, 92, 246, .16), transparent 65%), #ffffff;
+    }
+
+    .feed-shell {
+        max-width: 720px;
+        padding: 12px 12px 120px 12px; /* space for bottom bar */
+    }
+
+    /* ---------- Loading Overlay ---------- */
+    .creator-loading {
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .creator-loading-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 20px 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* ---------- Topbar ---------- */
+    .creator-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 1500;
+        background: rgba(255,255,255,0.86);
         backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .topbar-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0,0,0,0.10);
+        background: #fff;
+        color: #111;
+        text-decoration: none;
+    }
+
+    .topbar-primary {
+        border: none;
+        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        color: #fff;
+    }
+
+    .topbar-title {
+        flex: 1;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    /* ---------- Hero ---------- */
+    .creator-hero {
+        border-radius: 26px;
+        background: rgba(255,255,255,0.82);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
+        padding: 18px;
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        overflow: hidden;
+    }
+
+    .creator-hero-title {
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: #111827;
+        letter-spacing: -0.01em;
+    }
+
+    .creator-hero-sub {
+        color: rgba(17,24,39,.70);
+        font-size: .95rem;
+    }
+
+    .creator-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 800;
+        font-size: .82rem;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 153, 102, .12);
+        border: 1px solid rgba(255, 153, 102, .25);
+        color: #7c2d12;
+        margin-bottom: 10px;
+        width: fit-content;
+    }
+
+    .progress-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.10);
+    }
+
+        .dot.active {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        }
+
+    /* ---------- Cards ---------- */
+    .creator-card {
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 26px;
+        background: rgba(255,255,255,0.86);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .creator-card-head {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .creator-card-body {
+        padding: 14px 16px 16px 16px;
+    }
+
+    .creator-card-title {
+        font-weight: 900;
+        font-size: 1.02rem;
+        color: #111827;
+    }
+
+    .creator-card-sub {
+        font-size: .84rem;
+        color: rgba(17,24,39,.60);
+        margin-top: 2px;
+    }
+
+    .card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0,0,0,0.06);
     }
 
     .candy-blue {
-        background-color: #e3f2fd !important;
+        background: rgba(59, 130, 246, .10);
+        color: #2563eb;
     }
 
     .candy-green {
         background-color: #f0fdf4 !important;
-        color: #22c55e !important;
+        color: #16a34a !important;
         border: none;
     }
 
     .candy-pink {
         background-color: #fdf2f8 !important;
-        color: #ec4899 !important;
+        color: #db2777 !important;
         border: none;
     }
 
     .candy-purple {
-        background-color: #f5f3ff !important;
-        color: #8b5cf6 !important;
+        background: rgba(139,92,246,.10);
+        color: #7c3aed;
     }
 
-    .dynamic-item {
-        background: white;
+    /* ---------- Inputs ---------- */
+    .input-pill, .select-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
         border-radius: 18px;
-        padding: 12px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(0,0,0,0.03);
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.08);
+        background: rgba(255,255,255,0.90);
+    }
+
+        .input-pill .form-control,
+        .select-pill .form-select {
+            padding: 0;
+            min-height: unset;
+        }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: none;
+        border-color: transparent;
     }
 
     .cursor-pointer {
         cursor: pointer;
     }
 
-    .datatable-loading {
+    /* ---------- Media ---------- */
+    .media-preview {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        background: #111;
+        border: 1px solid rgba(0,0,0,0.10);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+    }
+
+    .media-reset {
         position: absolute;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(6px);
+        top: 10px;
+        right: 10px;
+        border-radius: 999px;
+        border: none;
+        opacity: .9;
+    }
+
+    .upload-drop {
+        display: block;
+        border-radius: 22px;
+        border: 1.5px dashed rgba(0,0,0,0.14);
+        background: rgba(255,255,255,0.78);
+        padding: 18px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+        .upload-drop:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 34px rgba(0,0,0,0.08);
+        }
+
+    .upload-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 10px auto;
+        border-radius: 999px;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1050;
+        background: rgba(255, 153, 102, .14);
+        border: 1px solid rgba(255, 153, 102, .25);
+        color: #ea580c;
+        font-size: 1.6rem;
     }
 
-    .datatable-loading-card {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 20px 24px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-        text-align: center;
-    }
-    /* Verhindert den blauen Fokus-Rahmen bei Inputs für cleaneres Design */
-    .form-control:focus, .form-select:focus {
-        box-shadow: none;
-        border-color: transparent;
+    /* ---------- Tables / Selected Zone ---------- */
+    .creator-table-wrap {
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: rgba(255,255,255,0.70);
     }
 
-    .sandbox-box {
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 14px;
-        padding: 10px;
-        background: #fafafa;
+    .selected-zone {
+        padding-top: 6px;
     }
 
-    .sandbox-ingredient-btn.active {
-        border-color: #8b5cf6;
-        background: #f3e8ff;
-        color: #6d28d9;
-    }
-
-    .sandbox-step-candidate {
-        text-align: left;
+    .dynamic-item {
+        background: rgba(255,255,255,0.92);
+        border-radius: 18px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
     }
 
     #ingredientsDbTable .ingredient-inline-inputs .form-control,
@@ -351,88 +774,170 @@
         min-height: 38px;
     }
 
-    #sandboxStepTabs .nav-link {
-        font-size: .8rem;
-        border-radius: 999px;
+    /* ---------- Sandbox Studio ---------- */
+    .sandbox-studio {
+        border-radius: 22px;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: rgba(255,255,255,0.78);
+        padding: 14px;
     }
 
-    .sandbox-current-step {
+    .sandbox-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .sandbox-title {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .sandbox-sub {
+        font-size: .84rem;
+        color: rgba(17,24,39,.60);
+    }
+
+    .sandbox-panel {
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 18px;
+        padding: 12px;
+        background: #fafafa;
+    }
+
+    .sandbox-tabs {
+        display: flex;
+        gap: 8px;
+    }
+
+    .sandbox-tab {
+        flex: 1;
+        border-radius: 999px;
+        padding: 10px 12px;
+        border: 1px solid rgba(0,0,0,0.10);
+        background: #fff;
+        font-weight: 800;
+        font-size: .82rem;
+        color: rgba(17,24,39,.75);
+    }
+
+        .sandbox-tab.active {
+            border-color: rgba(139,92,246,.35);
+            background: rgba(139,92,246,.10);
+            color: #6d28d9;
+        }
+
+    .sandbox-ingredient-btn.active {
+        border-color: rgba(139,92,246,.40);
+        background: rgba(139,92,246,.10);
+        color: #6d28d9;
+        font-weight: 800;
+    }
+
+    .sandbox-current {
         border-left: 4px solid #8b5cf6;
-        background: #f5f3ff;
-        border-radius: 10px;
+        background: rgba(139,92,246,.08);
+        border-radius: 14px;
         padding: 10px;
     }
 
-    @media (max-width: 576px) {
+    /* ---------- Bottom Bar ---------- */
+    .creator-bottom {
+        left: 50% !important;
+        transform: translateX(-50%);
+        width: min(720px, 100%);
+        z-index: 1600;
+        background: linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.55) 60%, transparent 100%);
+        pointer-events: none;
+    }
+
+    .creator-bottom-inner {
+        pointer-events: auto;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 14px 36px rgba(0,0,0,0.10);
+        padding: 10px;
+    }
+
+    .bottom-hint {
+        min-width: 210px;
+        display: none;
+    }
+
+    .publish-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 14px 16px;
+        font-weight: 900;
+        color: #fff;
+        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        box-shadow: 0 14px 30px rgba(255, 94, 98, 0.28);
+    }
+
+    /* ---------- Responsive ---------- */
+    @@media (min-width: 768px) {
+        .bottom-hint {
+            display: block;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .feed-shell {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .creator-hero {
+            flex-direction: column;
+        }
+
+        .creator-hero-right {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .creator-table-wrap {
+            overflow: visible;
+        }
+
         .table-responsive {
             overflow-x: visible;
         }
 
-        #ingredientsDbTable,
-        #stepsDbTable {
-            min-width: 0;
+        #ingredientsDbTable thead, #stepsDbTable thead {
+            display: none;
         }
 
-            #ingredientsDbTable thead,
-            #stepsDbTable thead {
-                display: none;
-            }
-
-            #ingredientsDbTable tbody tr,
-            #stepsDbTable tbody tr {
-                display: block;
-                margin-bottom: 12px;
-                background: #ffffff;
-                border-radius: 16px;
-                padding: 12px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-            }
-
-            #ingredientsDbTable tbody td,
-            #stepsDbTable tbody td {
-                display: block;
-                border: 0;
-                padding: 0;
-            }
-
-                #ingredientsDbTable tbody td + td,
-                #stepsDbTable tbody td + td {
-                    margin-top: 10px;
-                    text-align: right !important;
-                }
-
-        #ingredientsDbTable .ingredient-inline-inputs {
-            row-gap: .5rem;
+        #ingredientsDbTable tbody tr, #stepsDbTable tbody tr {
+            display: block;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 18px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
         }
 
-            #ingredientsDbTable .ingredient-inline-inputs .col-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-
-        #stepsDbTable .display-step {
-            font-size: .9rem;
-            line-height: 1.4;
+        #ingredientsDbTable tbody td, #stepsDbTable tbody td {
+            display: block;
+            border: 0;
+            padding: 0;
         }
 
-        #sandboxStepTabs {
-            gap: .5rem;
-        }
-
-            #sandboxStepTabs .nav-item {
-                flex: 1 1 100%;
-            }
-
-        .dataTables_wrapper .row {
-            row-gap: .5rem;
-        }
-
-            .dataTables_wrapper .row > div {
-                width: 100%;
-                text-align: center;
+            #ingredientsDbTable tbody td + td,
+            #stepsDbTable tbody td + td {
+                margin-top: 10px;
+                text-align: right !important;
             }
     }
 </style>
+
+
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -463,7 +968,7 @@
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
         let activeSandboxTab = 'linked';
-        const stepIngredientBindings = @Html.Raw(JsonSerializer.Serialize(stepIngredientBindings));
+        const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
 
         function setDataTableLoading(isLoading) {
             const overlay = document.getElementById('datatableLoadingOverlay');
