@@ -566,8 +566,8 @@
         }
 
         function renderSandboxStepTab() {
-            $('#sandboxStepTabs .nav-link').removeClass('active');
-            $(`#sandboxStepTabs .nav-link[data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
+            $('#sandboxStepTabs [data-sandbox-tab]').removeClass('active');
+            $(`#sandboxStepTabs [data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
 
             if (activeSandboxTab === 'unbound') {
                 $('#sandboxActiveIngredientLabel').text('Ungebundene Schritte');
@@ -689,7 +689,7 @@
             }).length > 0;
             if (existing) return;
 
-            const row = $(btn).closest('tr');
+            const row = $(btn).closest('.ingredient-db-row, .picker-row, tr');
             const name = row.data('name-' + currentLang) || row.data('name-de');
             const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
             const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
@@ -818,11 +818,11 @@
             const token = sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken');
             if (token) $('#hiddenUserTokenField').val(token);
 
-            activeSandboxTab = $('#sandboxStepTabs .nav-link.active').data('sandbox-tab')?.toString() || 'linked';
+            activeSandboxTab = $('#sandboxStepTabs [data-sandbox-tab].active').data('sandbox-tab')?.toString() || 'linked';
 
             $('#ingredientSearch').on('input', function () {
                 const q = ($(this).val() || '').toString().trim().toLowerCase();
-                $('#ingredientsDbTable .ingredient-db-row').each(function () {
+                $('#ingredientsDbTable .ingredient-db-row, #ingredientsPickerList .ingredient-db-row').each(function () {
                     const text = (($(this).data('name-' + currentLang) || $(this).data('name-de') || '') + '').toLowerCase();
                     $(this).toggle(!q || text.includes(q));
                 });
@@ -836,16 +836,16 @@
                 activeSandboxIngredientId = $(this).data('id')?.toString() || null;
                 activeSandboxIngredientName = $(this).data('name')?.toString() || '';
                 activeSandboxTab = 'linked';
-                $('#sandboxStepTabs .nav-link').removeClass('active');
-                $('#sandboxStepTabs .nav-link[data-sandbox-tab="linked"]').addClass('active');
+                $('#sandboxStepTabs [data-sandbox-tab]').removeClass('active');
+                $('#sandboxStepTabs [data-sandbox-tab="linked"]').addClass('active');
                 $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
                 $(this).addClass('active');
                 renderSandboxStepTab();
             });
 
-            $('#sandboxStepTabs').on('click', '.nav-link', function () {
+            $('#sandboxStepTabs').on('click', '[data-sandbox-tab]', function () {
                 activeSandboxTab = $(this).data('sandbox-tab')?.toString() || 'linked';
-                $('#sandboxStepTabs .nav-link').removeClass('active');
+                $('#sandboxStepTabs [data-sandbox-tab]').removeClass('active');
                 $(this).addClass('active');
                 renderSandboxStepTab();
             });
