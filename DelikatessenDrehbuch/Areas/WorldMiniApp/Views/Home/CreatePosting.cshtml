@@ -1,5 +1,6 @@
 ﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
 @using System.Text.Json
+@using System.Linq
 @using Newtonsoft.Json
 
 @{
@@ -9,6 +10,16 @@
         .ToDictionary(
             group => group.Key,
             group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
+
+    var stepCatalogJson = JsonSerializer.Serialize(
+        Model.ToSelectRecipePreperationSteps?.Select(step => new
+        {
+            id = step.Id,
+            de = step.Step_DE,
+            en = step.Step_EN,
+            esp = step.Step_ESP,
+            prt = step.Step_PRT
+        }) ?? Enumerable.Empty<object>());
 
     ViewData["Title"] = "Rezept Erstellen";
     Layout = "_MiniAppLayout";
@@ -264,6 +275,13 @@
                 </div>
 
                 <div class="creator-card-body">
+                    <div class="mb-2">
+                        <input type="text"
+                               id="ingredientSearch"
+                               class="form-control form-control-sm"
+                               placeholder="Zutaten suchen..." />
+                    </div>
+
                     <div class="table-responsive creator-table-wrap">
                         <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
                             <thead>
@@ -278,6 +296,7 @@
                                     foreach (var item in Model.ToSelectIngredientsAndNutrients)
                                     {
                                         <tr class="ingredient-db-row"
+                                            data-ingredient-id="@item.Id"
                                             data-name-de="@item.Name_DE"
                                             data-name-en="@item.Name_EN"
                                             data-name-esp="@item.Name_ESP"
@@ -339,35 +358,6 @@
                 </div>
 
                 <div class="creator-card-body">
-                    <div class="table-responsive creator-table-wrap">
-                        <table id="stepsDbTable" class="table table-hover align-middle small border-0 w-100">
-                            <thead>
-                                <tr class="d-none"><th>Text</th><th>Add</th></tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.ToSelectRecipePreperationSteps != null)
-                                {
-                                    foreach (var step in Model.ToSelectRecipePreperationSteps)
-                                    {
-                                        <tr class="step-db-row"
-                                            data-step-id="@step.Id"
-                                            data-step-de="@step.Step_DE"
-                                            data-step-en="@step.Step_EN"
-                                            data-step-esp="@step.Step_ESP"
-                                            data-step-prt="@step.Step_PRT">
-                                            <td class="small display-step text-muted">@step.Step_DE</td>
-                                            <td class="text-end">
-                                                <button type="button" class="btn btn-sm candy-pink rounded-circle shadow-sm" onclick="addStep('@step.Id', this)">
-                                                    <i class="bi bi-arrow-down"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
                     <!-- Sandbox Studio -->
                     <div class="sandbox-studio mt-3">
                         <div class="sandbox-head">
@@ -395,12 +385,19 @@
                                         <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
                                     </div>
 
+                                    <div class="mb-2">
+                                        <input type="text"
+                                               id="stepSearch"
+                                               class="form-control form-control-sm"
+                                               placeholder="Schritte durchsuchen..." />
+                                    </div>
+
                                     <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
                                         <button class="sandbox-tab active" type="button" data-sandbox-tab="linked">Verknüpft</button>
                                         <button class="sandbox-tab" type="button" data-sandbox-tab="unbound">Nicht gebunden</button>
                                     </div>
 
-                                    <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2">
+                                    <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2 sandbox-step-list">
                                         <div class="text-muted small">Wähle links eine Zutat aus.</div>
                                     </div>
                                 </div>
@@ -512,6 +509,10 @@
     }
 
     /* ---------- Topbar ---------- */
+    body > .position-fixed.top-0.end-0.m-3.dropdown {
+        z-index: 2601 !important;
+    }
+
     .creator-topbar {
         position: sticky;
         top: 0;
@@ -754,6 +755,8 @@
         overflow: hidden;
         border: 1px solid rgba(0,0,0,0.06);
         background: rgba(255,255,255,0.70);
+        max-height: 26rem;
+        overflow-y: auto;
     }
 
     .selected-zone {
@@ -842,6 +845,12 @@
         background: rgba(139,92,246,.08);
         border-radius: 14px;
         padding: 10px;
+    }
+
+    .sandbox-step-list {
+        max-height: 22rem;
+        overflow-y: auto;
+        padding-right: .2rem;
     }
 
     /* ---------- Bottom Bar ---------- */
@@ -944,6 +953,7 @@
     <script>
         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
         const stepIngredientBindings = @Html.Raw(JsonSerializer.Serialize(stepIngredientBindings));
+        const stepCatalog = @Html.Raw(stepCatalogJson);
 
         function getCookieValue(name) {
             const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -961,10 +971,9 @@
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
         let activeSandboxTab = 'linked';
-        const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
 
         function getAllStepRows() {
-            return $('#stepDataSource .step-db-row');
+            return Array.isArray(stepCatalog) ? stepCatalog : [];
         }
 
         function getSelectedIngredientIds() {
@@ -983,6 +992,18 @@
             }).get();
         }
 
+        function syncIngredientSourceVisibility() {
+            const selectedIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                return $(this).val()?.toString();
+            }).get();
+
+            $('.ingredient-db-row').each(function () {
+                const row = $(this);
+                const id = row.data('ingredient-id')?.toString() || '';
+                row.toggle(!id || !selectedIds.includes(id));
+            });
+        }
+
         function isStepBoundToSelectedIngredients(stepId, selectedIngredientIds) {
             if (!Array.isArray(selectedIngredientIds) || selectedIngredientIds.length === 0) return true;
             const boundIngredientIds = (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
@@ -991,7 +1012,8 @@
         }
 
         function getStepLabelFromRow(row) {
-            return row.data('step-' + currentLang) || row.data('step-de') || `Step ${row.data('step-id')}`;
+            if (!row) return '';
+            return row[currentLang] || row.de || `Step ${row.id}`;
         }
 
         function renderSandboxStepCandidates(stepIds, emptyText = 'Keine verknüpften Schritte gefunden.') {
@@ -1006,10 +1028,11 @@
             const search = ($('#stepSearch').val() || '').toString().trim().toLowerCase();
 
             stepIds.forEach(stepId => {
-                const sourceRow = getAllStepRows().filter(`[data-step-id="${stepId}"]`).first();
-                if (!sourceRow.length) return;
+                const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === stepId.toString());
+                if (!sourceRow) return;
 
-                const label = getStepLabelFromRow(sourceRow);
+                const label = (getStepLabelFromRow(sourceRow) || '').toString();
+                if (!label) return;
                 if (search && !label.toLowerCase().includes(search)) return;
 
                 const btn = $(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-step-candidate"><i class="bi bi-plus-circle me-1"></i>${label}</button>`);
@@ -1038,12 +1061,10 @@
         }
 
         function loadSandboxUnboundSteps() {
-            const allStepIds = getAllStepRows().map(function () {
-                return parseInt($(this).attr('data-step-id'), 10);
-            }).get().filter(x => !isNaN(x));
+            const allStepIds = getAllStepRows().map(x => parseInt(x.id, 10)).filter(x => !isNaN(x));
 
             const unboundStepIds = allStepIds.filter(stepId => {
-                const boundIngredientIds = stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId.toString()] ?? [];
+                const boundIngredientIds = (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId.toString()] ?? []).map(id => id.toString());
                 return !Array.isArray(boundIngredientIds) || boundIngredientIds.length === 0;
             });
 
@@ -1052,9 +1073,7 @@
 
         function loadSandboxStepsForActiveIngredient() {
             const selectedIngredientIds = getSelectedIngredientIds();
-            const allStepIds = getAllStepRows().map(function () {
-                return parseInt($(this).attr('data-step-id'), 10);
-            }).get().filter(x => !isNaN(x));
+            const allStepIds = getAllStepRows().map(x => parseInt(x.id, 10)).filter(x => !isNaN(x));
 
             if (!allStepIds.length) {
                 renderSandboxStepCandidates([]);
@@ -1087,7 +1106,7 @@
                 return;
             }
 
-            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine aktive Zutat');
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Alle Schritte');
             loadSandboxStepsForActiveIngredient();
         }
 
@@ -1100,11 +1119,7 @@
                 activeSandboxIngredientId = null;
                 activeSandboxIngredientName = '';
                 container.append('<div class="text-muted small">Noch keine Zutat ausgewählt.</div>');
-                if (activeSandboxTab === 'unbound') renderSandboxStepTab();
-                else {
-                    $('#sandboxActiveIngredientLabel').text('Keine aktive Zutat');
-                    renderSandboxStepCandidates([]);
-                }
+                renderSandboxStepTab();
                 return;
             }
 
@@ -1158,6 +1173,7 @@
             $('.lang-ph').each(function () { $(this).attr('placeholder', $(this).data('ph-' + langKey)); });
             $('.lang-opt').each(function () { $(this).text($(this).data('txt-' + langKey)); });
             $('.ingredient-db-row').each(function () { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
+            syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             renderSandboxStepTab();
@@ -1220,11 +1236,13 @@
             </div>`);
 
             renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
         }
 
         function removeIngredientRow(btn) {
             $(btn).closest('.ingredient-row').remove();
             renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
         }
 
         function addStep(id, btn, manualText = null) {
@@ -1234,13 +1252,9 @@
             if (alreadySelected) return;
 
             let text = manualText;
-            if (!text && btn) {
-                const row = $(btn).closest('.step-db-row');
-                text = row.data('step-' + currentLang) || row.data('step-de');
-            }
             if (!text) {
-                const sourceRow = getAllStepRows().filter(`[data-step-id="${id}"]`).first();
-                text = sourceRow.length ? getStepLabelFromRow(sourceRow) : `Schritt ${id}`;
+                const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
+                text = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${id}`;
             }
 
             $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}">
@@ -1385,6 +1399,7 @@
 
             updateLanguageLabels();
             renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
             refreshSandboxProgress();
         });
     </script>
