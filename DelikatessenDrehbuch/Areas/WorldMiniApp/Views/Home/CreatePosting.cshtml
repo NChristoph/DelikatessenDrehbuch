@@ -275,6 +275,13 @@
                 </div>
 
                 <div class="creator-card-body">
+                    <div class="mb-2">
+                        <input type="text"
+                               id="ingredientSearch"
+                               class="form-control form-control-sm"
+                               placeholder="Zutaten suchen..." />
+                    </div>
+
                     <div class="table-responsive creator-table-wrap">
                         <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
                             <thead>
@@ -375,6 +382,13 @@
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="fw-bold small">Vorschläge</div>
                                         <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <input type="text"
+                                               id="stepSearch"
+                                               class="form-control form-control-sm"
+                                               placeholder="Schritte durchsuchen..." />
                                     </div>
 
                                     <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
@@ -736,6 +750,8 @@
         overflow: hidden;
         border: 1px solid rgba(0,0,0,0.06);
         background: rgba(255,255,255,0.70);
+        max-height: 26rem;
+        overflow-y: auto;
     }
 
     .selected-zone {
