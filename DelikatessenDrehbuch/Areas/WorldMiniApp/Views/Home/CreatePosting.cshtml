@@ -296,6 +296,7 @@
                                     foreach (var item in Model.ToSelectIngredientsAndNutrients)
                                     {
                                         <tr class="ingredient-db-row"
+                                            data-ingredient-id="@item.Id"
                                             data-name-de="@item.Name_DE"
                                             data-name-en="@item.Name_EN"
                                             data-name-esp="@item.Name_ESP"
@@ -991,6 +992,18 @@
             }).get();
         }
 
+        function syncIngredientSourceVisibility() {
+            const selectedIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                return $(this).val()?.toString();
+            }).get();
+
+            $('.ingredient-db-row').each(function () {
+                const row = $(this);
+                const id = row.data('ingredient-id')?.toString() || '';
+                row.toggle(!id || !selectedIds.includes(id));
+            });
+        }
+
         function isStepBoundToSelectedIngredients(stepId, selectedIngredientIds) {
             if (!Array.isArray(selectedIngredientIds) || selectedIngredientIds.length === 0) return true;
             const boundIngredientIds = (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
@@ -1018,7 +1031,8 @@
                 const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === stepId.toString());
                 if (!sourceRow) return;
 
-                const label = getStepLabelFromRow(sourceRow);
+                const label = (getStepLabelFromRow(sourceRow) || '').toString();
+                if (!label) return;
                 if (search && !label.toLowerCase().includes(search)) return;
 
                 const btn = $(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-step-candidate"><i class="bi bi-plus-circle me-1"></i>${label}</button>`);
@@ -1159,6 +1173,7 @@
             $('.lang-ph').each(function () { $(this).attr('placeholder', $(this).data('ph-' + langKey)); });
             $('.lang-opt').each(function () { $(this).text($(this).data('txt-' + langKey)); });
             $('.ingredient-db-row').each(function () { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
+            syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             renderSandboxStepTab();
@@ -1221,11 +1236,13 @@
             </div>`);
 
             renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
         }
 
         function removeIngredientRow(btn) {
             $(btn).closest('.ingredient-row').remove();
             renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
         }
 
         function addStep(id, btn, manualText = null) {
@@ -1382,6 +1399,7 @@
 
             updateLanguageLabels();
             renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
             refreshSandboxProgress();
         });
     </script>
