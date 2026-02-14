@@ -133,14 +133,29 @@
         <div class="card-body">
             <table id="existingJoinTable" class="table table-sm table-striped w-100">
                 <thead>
-                    <tr><th>Schritt</th><th>Zutat</th></tr>
+                    <tr><th>Schritt</th><th>Zutat</th><th class="text-end">Aktion</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var join in Model.ExistingJoins)
                     {
+                        var stepId = join.Preperation?.Id ?? 0;
+                        var ingredientId = join.Ingredient?.Id ?? 0;
                         <tr>
                             <td>@join.Preperation?.Step_DE</td>
                             <td>@join.Ingredient?.Name_DE</td>
+                            <td class="text-end">
+                                @if (stepId > 0 && ingredientId > 0)
+                                {
+                                    <form asp-action="DeleteJoinIngredientPreperationStep" asp-controller="Admin" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="stepId" value="@stepId" />
+                                        <input type="hidden" name="ingredientId" value="@ingredientId" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Diese Verknüpfung wirklich löschen?')">
+                                            <i class="fa-solid fa-trash"></i> Löschen
+                                        </button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
