@@ -325,7 +325,7 @@
 
         const prepStepsTable = $('#prepStepsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
         $('#ingredientsTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
-        $('#existingJoinTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
+        const existingJoinTable = $('#existingJoinTable').DataTable({ pageLength: 8, lengthChange: false, info: false });
 
         const normalizeDataTablePagingButtons = () => {
             document.querySelectorAll('#prepStepsTable_wrapper .dt-paging-button, #prepStepsTable_wrapper .paginate_button').forEach(button => {
@@ -372,9 +372,13 @@
 
 
         const updateBulkDeleteJoinState = () => {
-            const checked = Array.from(document.querySelectorAll('.join-select-checkbox:checked')).map(x => x.value);
+            const checked = existingJoinTable.$('.join-select-checkbox:checked').map(function() { return this.value; }).get();
             document.getElementById('selectedJoinIds').value = checked.join(',');
-            document.getElementById('bulkDeleteJoinBtn').disabled = checked.length === 0;
+            const btn = document.getElementById('bulkDeleteJoinBtn');
+            btn.disabled = checked.length === 0;
+            btn.innerHTML = checked.length > 0
+                ? '<i class="fa-solid fa-trash"></i> ' + checked.length + ' Verknüpfung' + (checked.length > 1 ? 'en' : '') + ' löschen'
+                : '<i class="fa-solid fa-trash"></i> Alle ausgewählten Verknüpfungen löschen';
         };
 
         $('#existingJoinTable').on('change', '.join-select-checkbox', function () {
