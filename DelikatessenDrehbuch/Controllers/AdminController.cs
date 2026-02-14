@@ -180,6 +180,26 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction(nameof(JoinIngredientPreperationStep));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteJoinIngredientPreperationStep(int stepId, int ingredientId)
+        {
+            if (stepId <= 0 || ingredientId <= 0)
+                return BadRequest("Ungültige Verknüpfung.");
+
+            var rows = await _context.JoinIngredientPreperationStep
+                .Where(x => x.Preperation != null && x.Ingredient != null && x.Preperation.Id == stepId && x.Ingredient.Id == ingredientId)
+                .ToListAsync();
+
+            if (rows.Count > 0)
+            {
+                _context.JoinIngredientPreperationStep.RemoveRange(rows);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(JoinIngredientPreperationStep));
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetIngredientTableData()
         {
