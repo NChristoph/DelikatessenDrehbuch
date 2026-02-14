@@ -1089,7 +1089,7 @@
             matched.forEach(item => {
                 const sourceRow = allSteps.find(x => x.id === item.stepId);
                 const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
-                addStep(item.stepId.toString(), null, label);
+                addStep(item.stepId.toString(), null, label, { enforceIngredientPhaseUniqueness: false });
             });
             updateStepIndices();
         }
@@ -1159,7 +1159,7 @@
 
                 const phaseBadge = getPhaseLabel(sourceRow.phase);
                 const btn = $(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-step-candidate">${phaseBadge}<i class="bi bi-plus-circle me-1"></i>${label}</button>`);
-                btn.on('click', function () { addStep(stepId.toString(), null, label); });
+                btn.on('click', function () { addStep(stepId.toString(), null, label, { enforceIngredientPhaseUniqueness: true }); });
                 container.append(btn);
             });
 
@@ -1394,11 +1394,47 @@
             syncIngredientSourceVisibility();
         }
 
-        function addStep(id, btn, manualText = null) {
+        function removeConflictingStepsForActiveIngredient(newStepId) {
+            const activeId = activeSandboxIngredientId?.toString();
+            if (!activeId) return;
+
+            const newStep = getAllStepRows().find(x => x && x.id?.toString() === newStepId.toString());
+            if (!newStep) return;
+
+            const newStepPhase = parseInt(newStep.phase ?? 0, 10);
+            if (!newStepPhase || newStepPhase < 1) return;
+
+            const newStepBoundIngredientIds = (stepIngredientBindings[newStepId] ?? stepIngredientBindings[newStepId?.toString?.()] ?? []).map(x => x.toString());
+            if (!newStepBoundIngredientIds.includes(activeId)) return;
+
+            $('#selectedSteps .step-row').each(function () {
+                const row = $(this);
+                const rowStepId = row.data('step-id')?.toString();
+                if (!rowStepId || rowStepId === newStepId.toString()) return;
+
+                const rowStep = getAllStepRows().find(x => x && x.id?.toString() === rowStepId);
+                if (!rowStep) return;
+
+                const rowPhase = parseInt(rowStep.phase ?? 0, 10);
+                if (rowPhase !== newStepPhase) return;
+
+                const rowBoundIngredientIds = (stepIngredientBindings[rowStepId] ?? stepIngredientBindings[rowStepId?.toString?.()] ?? []).map(x => x.toString());
+                if (!rowBoundIngredientIds.includes(activeId)) return;
+
+                row.remove();
+            });
+        }
+
+        function addStep(id, btn, manualText = null, options = {}) {
             const alreadySelected = $('#selectedSteps .step-row').filter(function () {
                 return $(this).data('step-id')?.toString() === id.toString();
             }).length > 0;
             if (alreadySelected) return;
+
+            const enforceIngredientPhaseUniqueness = options?.enforceIngredientPhaseUniqueness === true;
+            if (enforceIngredientPhaseUniqueness) {
+                removeConflictingStepsForActiveIngredient(id);
+            }
 
             let text = manualText;
             if (!text) {
