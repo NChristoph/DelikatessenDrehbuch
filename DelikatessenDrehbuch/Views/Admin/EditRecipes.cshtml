@@ -615,6 +615,25 @@
             });
         }
 
+        function renderSandboxStepCandidates(steps) {
+            renderStepCardList($('#sandboxLinkedStepCandidates'), steps, 'Keine verknüpften Schritte gefunden.');
+        }
+
+        function renderSandboxUnboundStepCandidates(searchTerm) {
+            const normalizedSearch = (searchTerm || '').trim().toLowerCase();
+            const filtered = sandboxUnboundSteps.filter(step => {
+                if (!normalizedSearch) {
+                    return true;
+                }
+
+                const text = (step?.step_DE || '').toString().toLowerCase();
+                const idText = (step?.id || '').toString();
+                return text.includes(normalizedSearch) || idText.includes(normalizedSearch);
+            });
+
+            renderStepCardList($('#sandboxUnboundStepCandidates'), filtered, 'Keine ungebundenen Schritte gefunden.');
+        }
+
         function buildStepMatchCount(step, selectedIngredientIds) {
             const stepIngredientIds = (step?.ingredientIds || []).map(x => x.toString());
             if (!stepIngredientIds.length) {
