@@ -414,7 +414,14 @@ namespace DelikatessenDrehbuch.Controllers
             if (recipeFromDb == null)
                 return BadRequest("Zu bearbeitendes Rezept nicht gefunden");
 
+            var joinRows = await _context.JoinIngredientPreperationStep
+                .Where(x => x.Preperation != null && x.Ingredient != null)
+                .Select(x => new { StepId = x.Preperation.Id, IngredientId = x.Ingredient.Id })
+                .ToListAsync();
 
+            ViewData["StepIngredientBindings"] = joinRows
+                .GroupBy(x => x.StepId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.IngredientId).Distinct().ToList());
 
             EditRecipesModel editRecipesModel = new()
             {

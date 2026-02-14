@@ -1,5 +1,21 @@
 ﻿@model EditRecipesModel
 @using Newtonsoft.Json
+@using System.Linq
+
+@{
+    var stepIngredientBindings = ViewData["StepIngredientBindings"] as Dictionary<int, List<int>>
+        ?? new Dictionary<int, List<int>>();
+
+    var stepCatalogJson = JsonConvert.SerializeObject(
+        Model.RecipePreperationSteps?.Select(step => new {
+            id = step.Id,
+            step_DE = step.Step_DE,
+            phase = step.Phase,
+            ingredientIds = stepIngredientBindings.ContainsKey(step.Id)
+                ? stepIngredientBindings[step.Id]
+                : new List<int>()
+        }) ?? Enumerable.Empty<object>());
+}
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
@@ -390,8 +406,9 @@
         let ingredientsTable;
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
-        const sandboxStepCache = new Map();
+        const stepCatalog = @Html.Raw(stepCatalogJson);
         const stepCatalogById = new Map();
+        stepCatalog.forEach(function(s) { stepCatalogById.set(s.id.toString(), s); });
         let sandboxUnboundSteps = [];
         let lastDeletedStep = null;
         let lastAddedStep = null;
@@ -615,25 +632,6 @@
             });
         }
 
-        function renderSandboxStepCandidates(steps) {
-            renderStepCardList($('#sandboxLinkedStepCandidates'), steps, 'Keine verknüpften Schritte gefunden.');
-        }
-
-        function renderSandboxUnboundStepCandidates(searchTerm) {
-            const normalizedSearch = (searchTerm || '').trim().toLowerCase();
-            const filtered = sandboxUnboundSteps.filter(step => {
-                if (!normalizedSearch) {
-                    return true;
-                }
-
-                const text = (step?.step_DE || '').toString().toLowerCase();
-                const idText = (step?.id || '').toString();
-                return text.includes(normalizedSearch) || idText.includes(normalizedSearch);
-            });
-
-            renderStepCardList($('#sandboxUnboundStepCandidates'), filtered, 'Keine ungebundenen Schritte gefunden.');
-        }
-
         function buildStepMatchCount(step, selectedIngredientIds) {
             const stepIngredientIds = (step?.ingredientIds || []).map(x => x.toString());
             if (!stepIngredientIds.length) {
@@ -724,42 +722,31 @@
             const existingSteps = $('#newStepsList .step-row').length;
             if (existingSteps > 0 && !confirm('Bestehende Schritte ersetzen?')) return;
 
-            $.get('@Url.Action("GetPreparationStepTableData", "Admin")', { selectedIngredientIds: selectedIdsCsv })
-                .done(function(data) {
-                    const rows = Array.isArray(data) ? data.slice() : [];
+            const matched = stepCatalog
+                .map(function(step) {
+                    const ingredientIds = (step.ingredientIds || []).map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+                    const matchCount = ingredientIds.filter(id => selectedIds.includes(id)).length;
+                    return { step, matchCount, phase: parseInt(step.phase ?? 0, 10) || 0 };
+                })
+                .filter(x => x.matchCount > 0);
 
-                    rows.forEach(function(step) {
-                        if (step?.id != null) {
-                            stepCatalogById.set(step.id.toString(), step);
-                        }
-                    });
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            matched.sort(function(a, b) {
+                const pa = phaseOrder[a.phase] ?? 4;
+                const pb = phaseOrder[b.phase] ?? 4;
+                if (pa !== pb) return pa - pb;
+                if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount;
+                return (a.step.id || 0) - (b.step.id || 0);
+            });
 
-                    const matched = rows
-                        .map(function(step) {
-                            const ingredientIds = (step.ingredientIds || []).map(x => parseInt(x, 10)).filter(x => !isNaN(x));
-                            const matchCount = ingredientIds.filter(id => selectedIds.includes(id)).length;
-                            return { step, matchCount, phase: parseInt(step.phase ?? 0, 10) || 0 };
-                        })
-                        .filter(x => x.matchCount > 0);
+            $('#newStepsList').empty();
+            $('#emptyStepsMsg').hide();
 
-                    const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
-                    matched.sort(function(a, b) {
-                        const pa = phaseOrder[a.phase] ?? 4;
-                        const pb = phaseOrder[b.phase] ?? 4;
-                        if (pa !== pb) return pa - pb;
-                        if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount;
-                        return (a.step.id || 0) - (b.step.id || 0);
-                    });
+            matched.forEach(function(item) {
+                addJoinStep(item.step.id, item.step.step_DE, { enforceIngredientPhaseUniqueness: false });
+            });
 
-                    $('#newStepsList').empty();
-                    $('#emptyStepsMsg').hide();
-
-                    matched.forEach(function(item) {
-                        addJoinStep(item.step.id, item.step.step_DE, { enforceIngredientPhaseUniqueness: false });
-                    });
-
-                    recalcStepNumbers();
-                });
+            recalcStepNumbers();
         }
 
         function loadSandboxStepsForActiveIngredient() {
@@ -778,44 +765,17 @@
                 return;
             }
 
-            const cacheKey = `${selectedIngredientIds.slice().sort((a, b) => a - b).join(',')}|${activeIngredientId}`;
-            if (sandboxStepCache.has(cacheKey)) {
-                const cached = sandboxStepCache.get(cacheKey) || { boundToActive: [], unbound: [] };
-                sandboxUnboundSteps = cached.unbound || [];
-                $('#sandboxUnboundSearch').val('');
-                renderSandboxStepCandidates(cached.boundToActive || []);
-                renderSandboxUnboundStepCandidates('');
-                return;
-            }
+            const boundToActive = sortSandboxStepRows(
+                stepCatalog.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
+                selectedIngredientIds);
+            const unbound = sortSandboxStepRows(
+                stepCatalog.filter(x => !(x.ingredientIds || []).length),
+                selectedIngredientIds);
 
-            $.get('@Url.Action("GetPreparationStepTableData", "Admin")')
-                .done(function(data) {
-                    const allRows = (data || []).slice();
-                    allRows.forEach(function(step) {
-                        if (step?.id != null) {
-                            stepCatalogById.set(step.id.toString(), step);
-                        }
-                    });
-
-                    const boundToActive = sortSandboxStepRows(
-                        allRows.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
-                        selectedIngredientIds);
-                    const unbound = sortSandboxStepRows(
-                        allRows.filter(x => !(x.ingredientIds || []).length),
-                        selectedIngredientIds);
-
-                    sandboxStepCache.set(cacheKey, { boundToActive, unbound });
-                    sandboxUnboundSteps = unbound;
-                    $('#sandboxUnboundSearch').val('');
-                    renderSandboxStepCandidates(boundToActive);
-                    renderSandboxUnboundStepCandidates('');
-                })
-                .fail(function() {
-                    sandboxUnboundSteps = [];
-                    $('#sandboxUnboundSearch').val('');
-                    renderSandboxStepCandidates([]);
-                    renderSandboxUnboundStepCandidates('');
-                });
+            sandboxUnboundSteps = unbound;
+            $('#sandboxUnboundSearch').val('');
+            renderSandboxStepCandidates(boundToActive);
+            renderSandboxUnboundStepCandidates('');
         }
 
         function refreshLastEditedStepBox() {
