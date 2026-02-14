@@ -124,6 +124,12 @@
         box-shadow: 0 .2rem .45rem rgba(13, 110, 253, .15);
     }
 
+    .sandbox-step-candidate.active {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+        color: #0b3d91;
+    }
+
     .sandbox-current-step {
         border-left: 5px solid #0d6efd;
         background: #f8fbff;
@@ -295,9 +301,11 @@
         <div class="recipe-card-blue">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <h3 class="section-title text-blue mb-0"><i class="fa-solid fa-list-check"></i>Arbeitsschritte auswählen</h3>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshStepsTableBtn">
-                    <i class="fa-solid fa-rotate"></i> Schritte aktualisieren
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshStepsTableBtn">
+                        <i class="fa-solid fa-rotate"></i> Schritte aktualisieren
+                    </button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="stepsDbTable" class="table table-hover w-100 align-middle">
@@ -314,7 +322,12 @@
         </div>
 
         <div class="recipe-card-blue">
-            <h3 class="section-title text-blue"><i class="fa-solid fa-cubes"></i>Sandbox-Modus (Zutat ➜ Schritt)</h3>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h3 class="section-title text-blue mb-0"><i class="fa-solid fa-cubes"></i>Sandbox-Modus (Zutat ➜ Schritt)</h3>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSuggestSteps">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Schritte vorschlagen
+                </button>
+            </div>
             <p class="text-muted mb-3">Wähle links eine Zutat aus. Rechts siehst du die verknüpften Schritte für genau diese Zutat und kannst sie direkt in den Ablauf übernehmen.</p>
             <div class="row g-3">
                 <div class="col-lg-5">
@@ -331,8 +344,26 @@
                             <h6 class="fw-bold mb-0">Verknüpfte Schritte</h6>
                             <span id="sandboxActiveIngredientLabel" class="badge bg-light text-dark border">Keine Zutat aktiv</span>
                         </div>
+                        <ul class="nav nav-pills gap-2 mb-2" id="sandboxStepTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button type="button" class="nav-link active" data-sandbox-tab="linked">Verknüpft</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button type="button" class="nav-link" data-sandbox-tab="unbound">Nicht gebunden</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button type="button" class="nav-link" data-sandbox-tab="suggested">Vorgeschlagen</button>
+                            </li>
+                        </ul>
+
                         <div id="sandboxStepCandidates" class="d-flex flex-column gap-2">
                             <div class="text-muted small">Wähle eine Zutat, um passende Schritte anzuzeigen.</div>
+                        </div>
+
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-primary btn-sm" id="btnApplySandboxStep" disabled>
+                                <i class="fa-solid fa-arrow-down"></i> Ausgewählten Vorschlag übernehmen
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -375,6 +406,11 @@
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
         const sandboxStepCache = new Map();
+        const stepCatalogById = new Map();
+        let allSandboxSteps = [];
+        let suggestedSandboxSteps = [];
+        let activeSandboxTab = 'linked';
+        let selectedSandboxStep = null;
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -441,6 +477,7 @@
             const container = $('#sandboxIngredientList');
             const ingredients = getSelectedIngredientsForSandbox();
             container.empty();
+            updateSuggestButtonState();
 
             if (!ingredients.length) {
                 activeSandboxIngredientId = null;
@@ -473,6 +510,8 @@
         function renderSandboxStepCandidates(steps) {
             const container = $('#sandboxStepCandidates');
             container.empty();
+            selectedSandboxStep = null;
+            $('#btnApplySandboxStep').prop('disabled', true);
 
             if (!steps || !steps.length) {
                 container.append('<div class="text-muted small">Keine verknüpften Schritte gefunden.</div>');
@@ -484,7 +523,10 @@
                     <span class="badge bg-primary me-2">${step.id}</span>${step.step_DE}
                 </button>`);
                 card.on('click', function() {
-                    addJoinStep(step.id, step.step_DE);
+                    $('#sandboxStepCandidates .sandbox-step-candidate').removeClass('active');
+                    $(this).addClass('active');
+                    selectedSandboxStep = { id: step.id, text: step.step_DE };
+                    $('#btnApplySandboxStep').prop('disabled', false);
                 });
                 container.append(card);
             });
@@ -513,8 +555,78 @@
             });
         }
 
+        function updateSuggestButtonState() {
+            const selected = getSelectedIngredientIdsForStepFilter();
+            $('#btnSuggestSteps').prop('disabled', !selected.length);
+        }
+
+        function removeConflictingStepsForActiveIngredient(newStepId) {
+            const activeId = activeSandboxIngredientId?.toString();
+            if (!activeId) return;
+
+            const newStep = stepCatalogById.get(newStepId?.toString());
+            if (!newStep) return;
+
+            const newStepPhase = parseInt(newStep.phase ?? 0, 10);
+            if (!newStepPhase || newStepPhase < 1) return;
+
+            const newStepIngredientIds = (newStep.ingredientIds || []).map(x => x.toString());
+            if (!newStepIngredientIds.includes(activeId)) return;
+
+            $('#newStepsList .step-row').each(function() {
+                const row = $(this);
+                const existingStepId = row.data('step-id')?.toString();
+                if (!existingStepId || existingStepId === newStepId.toString()) return;
+
+                const existingStep = stepCatalogById.get(existingStepId);
+                if (!existingStep) return;
+
+                const existingPhase = parseInt(existingStep.phase ?? 0, 10);
+                if (existingPhase !== newStepPhase) return;
+
+                const existingIngredientIds = (existingStep.ingredientIds || []).map(x => x.toString());
+                if (!existingIngredientIds.includes(activeId)) return;
+
+                row.remove();
+            });
+        }
+
+        function suggestStepsForSelectedIngredients() {
+            const selectedIdsCsv = getSelectedIngredientIdsForStepFilter();
+            if (!selectedIdsCsv || !selectedIdsCsv.length) return;
+
+            const selectedIds = selectedIdsCsv.split(',').map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+            if (!selectedIds.length) return;
+
+            const rows = allSandboxSteps.length ? allSandboxSteps.slice() : Array.from(stepCatalogById.values());
+            const matched = rows
+                .map(function(step) {
+                    const ingredientIds = (step.ingredientIds || []).map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+                    const matchCount = ingredientIds.filter(id => selectedIds.includes(id)).length;
+                    return { step, matchCount, phase: parseInt(step.phase ?? 0, 10) || 0 };
+                })
+                .filter(x => x.matchCount > 0);
+
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            matched.sort(function(a, b) {
+                const pa = phaseOrder[a.phase] ?? 4;
+                const pb = phaseOrder[b.phase] ?? 4;
+                if (pa !== pb) return pa - pb;
+                if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount;
+                return (a.step.id || 0) - (b.step.id || 0);
+            });
+
+            suggestedSandboxSteps = matched.map(x => x.step);
+            activeSandboxTab = 'suggested';
+            renderSandboxStepTab();
+        }
+
         function loadSandboxStepsForActiveIngredient() {
-            const selectedIngredientIds = getSelectedIngredientIdsForStepFilter();
+            const selectedIngredientIdsCsv = getSelectedIngredientIdsForStepFilter();
+            const selectedIngredientIds = selectedIngredientIdsCsv
+                .split(',')
+                .map(x => parseInt(x, 10))
+                .filter(x => !isNaN(x));
             const activeIngredientId = activeSandboxIngredientId?.toString() || '';
 
             if (!selectedIngredientIds.length && !activeIngredientId) {
@@ -533,16 +645,19 @@
             $.get('@Url.Action("GetPreparationStepTableData", "Admin")')
                 .done(function(data) {
                     const allRows = (data || []).slice();
+                    allSandboxSteps = allRows;
+                    allRows.forEach(function(step) {
+                        if (step?.id != null) {
+                            stepCatalogById.set(step.id.toString(), step);
+                        }
+                    });
+
                     const boundToActive = sortSandboxStepRows(
                         allRows.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
                         selectedIngredientIds);
-                    const remaining = sortSandboxStepRows(
-                        allRows.filter(x => !(x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
-                        selectedIngredientIds);
 
-                    const orderedRows = [...boundToActive, ...remaining];
-                    sandboxStepCache.set(cacheKey, orderedRows);
-                    renderSandboxStepCandidates(orderedRows);
+                    sandboxStepCache.set(cacheKey, boundToActive);
+                    renderSandboxStepCandidates(boundToActive);
                 })
                 .fail(function() {
                     renderSandboxStepCandidates([]);
@@ -550,6 +665,30 @@
                 .always(function() {
                     stepsTable?.ajax.reload(null, true);
                 });
+        }
+
+        function loadSandboxUnboundSteps() {
+            const unbound = (allSandboxSteps || []).filter(x => !Array.isArray(x.ingredientIds) || x.ingredientIds.length === 0);
+            renderSandboxStepCandidates(unbound);
+        }
+
+        function renderSandboxStepTab() {
+            $('#sandboxStepTabs .nav-link').removeClass('active');
+            $(`#sandboxStepTabs [data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
+
+            if (activeSandboxTab === 'suggested') {
+                renderSandboxStepCandidates(suggestedSandboxSteps);
+                return;
+            }
+
+            if (activeSandboxTab === 'unbound') {
+                $('#sandboxActiveIngredientLabel').text('Nicht gebunden');
+                loadSandboxUnboundSteps();
+                return;
+            }
+
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine Zutat aktiv');
+            loadSandboxStepsForActiveIngredient();
         }
 
         function refreshSandboxProgress() {
@@ -632,7 +771,15 @@
                     data: function(d) {
                         d.selectedIngredientIds = getActiveIngredientIdsForStepFilter();
                     },
-                    dataSrc: ''
+                    dataSrc: function(json) {
+                        const rows = Array.isArray(json) ? json : [];
+                        rows.forEach(function(step) {
+                            if (step?.id != null) {
+                                stepCatalogById.set(step.id.toString(), step);
+                            }
+                        });
+                        return rows;
+                    }
                 },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
                 pageLength: 5,
@@ -661,8 +808,25 @@
                 stepsTable.ajax.reload(null, false);
             });
 
+            $('#btnSuggestSteps').on('click', function() {
+                suggestStepsForSelectedIngredients();
+            });
+
+            $('#btnApplySandboxStep').on('click', function() {
+                if (!selectedSandboxStep) return;
+                addJoinStep(selectedSandboxStep.id, selectedSandboxStep.text, { enforceIngredientPhaseUniqueness: true });
+                selectedSandboxStep = null;
+                $('#btnApplySandboxStep').prop('disabled', true);
+            });
+
+            $('#sandboxStepTabs').on('click', '[data-sandbox-tab]', function() {
+                activeSandboxTab = $(this).data('sandbox-tab')?.toString() || 'linked';
+                renderSandboxStepTab();
+            });
+
             refreshStepsTableBySelectedIngredients();
             renderSandboxIngredientList();
+            updateSuggestButtonState();
         });
 
         // ----------------------------------------------------
@@ -773,13 +937,18 @@
             });
         }
 
-        function addJoinStep(stepId, stepText) {
+        function addJoinStep(stepId, stepText, options = {}) {
             const alreadySelected = $('#newStepsList .step-row').filter(function() {
                 return $(this).data('step-id')?.toString() === stepId.toString();
             }).length > 0;
 
             if (alreadySelected) {
                 return;
+            }
+
+            const enforceIngredientPhaseUniqueness = options?.enforceIngredientPhaseUniqueness === true;
+            if (enforceIngredientPhaseUniqueness) {
+                removeConflictingStepsForActiveIngredient(stepId);
             }
 
             $('#emptyStepsMsg').hide();
@@ -881,8 +1050,8 @@
             activeSandboxIngredientName = $(this).data('name')?.toString() || '';
             $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
             $(this).addClass('active');
-            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine Zutat aktiv');
-            loadSandboxStepsForActiveIngredient();
+            activeSandboxTab = 'linked';
+            renderSandboxStepTab();
         });
 
         // ----------------------------------------------------
