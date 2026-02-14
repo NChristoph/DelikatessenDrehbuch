@@ -128,19 +128,44 @@
         <button type="submit" class="btn bgRed Border-Gold mt-3" style="color:white">Verknüpfung speichern</button>
     </form>
 
+    <form asp-action="DeleteJoinIngredientPreperationStepsBulk" asp-controller="Admin" method="post" id="bulkDeleteJoinForm" class="mt-3 mb-2">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="selectedJoinIds" name="selectedJoinIds" />
+        <button type="submit" id="bulkDeleteJoinBtn" class="btn btn-danger btn-sm" disabled>
+            <i class="fa-solid fa-trash"></i> Alle ausgewählten Verknüpfungen löschen
+        </button>
+    </form>
     <div class="card mt-4 shadow-sm">
         <div class="card-header fw-bold">Bereits gespeicherte Verknüpfungen</div>
         <div class="card-body">
             <table id="existingJoinTable" class="table table-sm table-striped w-100">
                 <thead>
-                    <tr><th>Schritt</th><th>Zutat</th></tr>
+                    <tr><th>Auswahl</th><th>Schritt</th><th>Zutat</th><th class="text-end">Aktion</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var join in Model.ExistingJoins)
                     {
+                        var stepId = join.Preperation?.Id ?? 0;
+                        var ingredientId = join.Ingredient?.Id ?? 0;
                         <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input join-select-checkbox" value="@join.Id" />
+                            </td>
                             <td>@join.Preperation?.Step_DE</td>
                             <td>@join.Ingredient?.Name_DE</td>
+                            <td class="text-end">
+                                @if (stepId > 0 && ingredientId > 0)
+                                {
+                                    <form asp-action="DeleteJoinIngredientPreperationStep" asp-controller="Admin" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="stepId" value="@stepId" />
+                                        <input type="hidden" name="ingredientId" value="@ingredientId" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Diese Verknüpfung wirklich löschen?')">
+                                            <i class="fa-solid fa-trash"></i> Löschen
+                                        </button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -345,8 +370,32 @@
             event.stopPropagation();
         });
 
+
+        const updateBulkDeleteJoinState = () => {
+            const checked = Array.from(document.querySelectorAll('.join-select-checkbox:checked')).map(x => x.value);
+            document.getElementById('selectedJoinIds').value = checked.join(',');
+            document.getElementById('bulkDeleteJoinBtn').disabled = checked.length === 0;
+        };
+
+        $('#existingJoinTable').on('change', '.join-select-checkbox', function () {
+            updateBulkDeleteJoinState();
+        });
+
+        document.getElementById('bulkDeleteJoinForm')?.addEventListener('submit', function (event) {
+            const ids = document.getElementById('selectedJoinIds').value;
+            if (!ids) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!confirm('Alle ausgewählten Verknüpfungen wirklich löschen?')) {
+                event.preventDefault();
+                return;
+            }
+        });
         applyOnlyUnboundStepsFilter();
         updateSelectedStepsPreview();
         updateSelectedIngredientsPreview();
+        updateBulkDeleteJoinState();
     });
 </script>

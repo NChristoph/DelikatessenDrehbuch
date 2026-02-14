@@ -180,6 +180,53 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction(nameof(JoinIngredientPreperationStep));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteJoinIngredientPreperationStep(int stepId, int ingredientId)
+        {
+            if (stepId <= 0 || ingredientId <= 0)
+                return BadRequest("Ungültige Verknüpfung.");
+
+            var rows = await _context.JoinIngredientPreperationStep
+                .Where(x => x.Preperation != null && x.Ingredient != null && x.Preperation.Id == stepId && x.Ingredient.Id == ingredientId)
+                .ToListAsync();
+
+            if (rows.Count > 0)
+            {
+                _context.JoinIngredientPreperationStep.RemoveRange(rows);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(JoinIngredientPreperationStep));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteJoinIngredientPreperationStepsBulk(string selectedJoinIds)
+        {
+            var joinIds = (selectedJoinIds ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : 0)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (joinIds.Count == 0)
+                return RedirectToAction(nameof(JoinIngredientPreperationStep));
+
+            var rows = await _context.JoinIngredientPreperationStep
+                .Where(x => joinIds.Contains(x.Id))
+                .ToListAsync();
+
+            if (rows.Count > 0)
+            {
+                _context.JoinIngredientPreperationStep.RemoveRange(rows);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(JoinIngredientPreperationStep));
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetIngredientTableData()
         {
