@@ -124,6 +124,13 @@
         box-shadow: 0 .2rem .45rem rgba(13, 110, 253, .15);
     }
 
+    .sandbox-step-candidate.sandbox-step-selected {
+        border-color: #198754;
+        background: #eaf8ef;
+        color: #145c32;
+        box-shadow: inset 0 0 0 1px rgba(25, 135, 84, .25);
+    }
+
     .sandbox-current-step {
         border-left: 5px solid #0d6efd;
         background: #f8fbff;
@@ -366,11 +373,16 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-3 border rounded p-3">
-                <h6 class="fw-bold">Schritt-Fortschritt</h6>
-                <div id="sandboxCurrentStep" class="sandbox-current-step rounded p-3 mb-2 text-muted">Aktueller Schritt: noch keiner gewählt.</div>
-                <div id="sandboxPreviousSteps" class="d-flex flex-column gap-2">
-                    <div class="text-muted small">Vorherige Schritte erscheinen hier automatisch.</div>
+            <div class="mt-3 border rounded p-3 bg-light">
+                <h6 class="fw-bold mb-2">Letzter bearbeiteter Schritt</h6>
+                <div id="sandboxLastStepInfo" class="small text-muted mb-2">Noch keine Aktion bei den Schritten.</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnRestoreLastDeletedStep" disabled>
+                        <i class="fa-solid fa-rotate-left"></i> Letzten gelöschten Schritt wiederherstellen
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemoveLastAddedStep" disabled>
+                        <i class="fa-solid fa-trash"></i> Letzten hinzugefügten Schritt entfernen
+                    </button>
                 </div>
             </div>
         </div>
@@ -406,6 +418,8 @@
         const sandboxStepCache = new Map();
         const stepCatalogById = new Map();
         let sandboxUnboundSteps = [];
+        let lastDeletedStep = null;
+        let lastAddedStep = null;
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -514,11 +528,18 @@
             }
 
             steps.forEach(step => {
-                const card = $(`<button type="button" class="btn btn-outline-primary text-start sandbox-step-candidate" data-id="${step.id}">
-                    <span class="badge bg-primary me-2">${step.id}</span>${step.step_DE}
+                const isSelected = $('#newStepsList .step-row').filter(function() {
+                    return $(this).data('step-id')?.toString() === step.id.toString();
+                }).length > 0;
+
+                const card = $(`<button type="button" class="btn btn-outline-primary text-start sandbox-step-candidate ${isSelected ? 'sandbox-step-selected' : ''}" data-id="${step.id}">
+                    <span class="badge ${isSelected ? 'bg-success' : 'bg-primary'} me-2">${step.id}</span>
+                    ${step.step_DE}
+                    ${isSelected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
                 </button>`);
+
                 card.on('click', function() {
-                    addJoinStep(step.id, step.step_DE, { enforceIngredientPhaseUniqueness: true });
+                    addJoinStep(step.id, step.step_DE, { enforceIngredientPhaseUniqueness: false });
                 });
                 container.append(card);
             });
@@ -541,6 +562,34 @@
             });
 
             renderStepCardList($('#sandboxUnboundStepCandidates'), filtered, 'Keine ungebundenen Schritte gefunden.');
+        }
+
+        function refreshSandboxStepSelectionHighlight() {
+            const selectedStepIds = $('#newStepsList .step-row').map(function() {
+                return $(this).data('step-id')?.toString();
+            }).get();
+
+            $('.sandbox-step-candidate').each(function() {
+                const card = $(this);
+                const stepId = card.data('id')?.toString();
+                const isSelected = selectedStepIds.includes(stepId);
+
+                card.toggleClass('sandbox-step-selected', isSelected);
+
+                const idBadge = card.find('span.badge').first();
+                if (idBadge.length) {
+                    idBadge.removeClass('bg-primary bg-success').addClass(isSelected ? 'bg-success' : 'bg-primary');
+                }
+
+                const label = card.find('.sandbox-selected-label');
+                if (isSelected) {
+                    if (!label.length) {
+                        card.append('<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>');
+                    }
+                } else {
+                    label.remove();
+                }
+            });
         }
 
         function buildStepMatchCount(step, selectedIngredientIds) {
@@ -711,35 +760,34 @@
                 });
         }
 
-        function refreshSandboxProgress() {
-            const rows = $('#newStepsList .step-row');
-            const currentPanel = $('#sandboxCurrentStep');
-            const previousPanel = $('#sandboxPreviousSteps');
-            previousPanel.empty();
+        function refreshLastEditedStepBox() {
+            const info = $('#sandboxLastStepInfo');
+            const restoreBtn = $('#btnRestoreLastDeletedStep');
+            const removeLastBtn = $('#btnRemoveLastAddedStep');
 
-            if (!rows.length) {
-                currentPanel.text('Aktueller Schritt: noch keiner gewählt.').addClass('text-muted');
-                previousPanel.append('<div class="text-muted small">Vorherige Schritte erscheinen hier automatisch.</div>');
+            if (lastDeletedStep) {
+                restoreBtn.prop('disabled', false);
+            } else {
+                restoreBtn.prop('disabled', true);
+            }
+
+            if (lastAddedStep) {
+                removeLastBtn.prop('disabled', false);
+            } else {
+                removeLastBtn.prop('disabled', true);
+            }
+
+            if (lastDeletedStep) {
+                info.html(`<strong>Zuletzt gelöscht:</strong> #${lastDeletedStep.id} ${lastDeletedStep.text}`);
                 return;
             }
 
-            const lastRow = rows.last();
-            const currentText = lastRow.find('input[type="text"]').val() || '';
-            const currentNumber = lastRow.find('.field-stepindex').val() || rows.length;
-            currentPanel.removeClass('text-muted').html(`<strong>Aktueller Schritt ${currentNumber}:</strong> ${currentText}`);
-
-            const previousRows = rows.slice(0, -1).get().reverse();
-            if (!previousRows.length) {
-                previousPanel.append('<div class="text-muted small">Noch keine vorherigen Schritte vorhanden.</div>');
+            if (lastAddedStep) {
+                info.html(`<strong>Zuletzt hinzugefügt:</strong> #${lastAddedStep.id} ${lastAddedStep.text}`);
                 return;
             }
 
-            previousRows.forEach(function(rowElement) {
-                const row = $(rowElement);
-                const number = row.find('.field-stepindex').val() || '';
-                const text = row.find('input[type="text"]').val() || '';
-                previousPanel.append(`<div class="border rounded p-2 bg-light"><strong>Schritt ${number}:</strong> ${text}</div>`);
-            });
+            info.text('Noch keine Aktion bei den Schritten.');
         }
 
         function refreshStepsTableBySelectedIngredients() {
@@ -938,8 +986,23 @@
         // LOGIK ARBEITSSCHRITTE
         // ----------------------------------------------------
         function removeStepRow(btn) {
-            $(btn).closest('.row').fadeOut(300, function() {
+            const row = $(btn).closest('.step-row');
+            const deletedStepId = row.data('step-id')?.toString();
+            const deletedStepText = row.find('input[type="text"]').val() || '';
+
+            row.fadeOut(300, function() {
                 $(this).remove();
+
+                if (deletedStepId) {
+                    lastDeletedStep = { id: deletedStepId, text: deletedStepText };
+                }
+
+                if (lastAddedStep?.id?.toString() === deletedStepId?.toString()) {
+                    lastAddedStep = null;
+                }
+
+                refreshLastEditedStepBox();
+                refreshSandboxStepSelectionHighlight();
                 if ($('#newStepsList').children().length === 0) $('#emptyStepsMsg').fadeIn();
                 recalcStepNumbers(); // Nummern sofort aktualisieren
             });
@@ -1004,8 +1067,10 @@
             `;
 
             $(html).hide().appendTo('#newStepsList').fadeIn(400);
+            lastAddedStep = { id: stepId, text: stepText };
+            refreshLastEditedStepBox();
             recalcStepNumbers();
-            refreshSandboxProgress();
+            refreshSandboxStepSelectionHighlight();
         }
 
         // Visuelle Nummern aktualisieren (falls man zwischendrin was löscht)
@@ -1013,7 +1078,7 @@
             $('#newStepsList .step-row').each(function(index) {
                 $(this).find('.field-stepindex').val(index + 1);
             });
-            refreshSandboxProgress();
+            refreshSandboxStepSelectionHighlight();
         }
 
         function moveStepRow(btn, direction) {
@@ -1066,6 +1131,36 @@
             renderSandboxUnboundStepCandidates($(this).val());
         });
 
+        $('#btnRestoreLastDeletedStep').on('click', function() {
+            if (!lastDeletedStep?.id) {
+                return;
+            }
+
+            addJoinStep(lastDeletedStep.id, lastDeletedStep.text, { enforceIngredientPhaseUniqueness: false });
+            lastDeletedStep = null;
+            refreshLastEditedStepBox();
+        });
+
+        $('#btnRemoveLastAddedStep').on('click', function() {
+            if (!lastAddedStep?.id) {
+                return;
+            }
+
+            const targetRow = $('#newStepsList .step-row').filter(function() {
+                return $(this).data('step-id')?.toString() === lastAddedStep.id.toString();
+            }).last();
+
+            if (!targetRow.length) {
+                lastAddedStep = null;
+                refreshLastEditedStepBox();
+                return;
+            }
+
+            removeStepRow(targetRow.find('button[onclick^="removeStepRow"]'));
+        });
+
+
+        refreshLastEditedStepBox();
         // ----------------------------------------------------
         // WICHTIG: FORM SUBMIT VORBEREITUNG
         // ----------------------------------------------------
