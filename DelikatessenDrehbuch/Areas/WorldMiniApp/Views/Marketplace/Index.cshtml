@@ -4,6 +4,10 @@
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var balance = (decimal)(ViewData["Balance"] ?? 0m);
+
+    var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
+    var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
+    var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
 }
 
 <style>
@@ -126,7 +130,7 @@
                                 <button class="buy-btn"
                                         onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
                                         @(balance < listing.Price ? "disabled" : "")>
-                                    <i class="bi bi-bag-plus me-1"></i>Kaufen
+                                    <i class="bi bi-wallet2 me-1"></i>Mit Wallet kaufen
                                 </button>
                             }
                         </div>
@@ -147,31 +151,63 @@
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 
-    async function buyListing(listingId, title, price) {
-        if (!confirm(`"${title}" für ${price} WildCoin kaufen?`)) return;
-
-        const hash = getUserHash();
+    async function finalizeOnBackend(hash, listingId, txHash, walletAddress) {
         const form = new FormData();
-        form.append('userHash', hash);
-        form.append('listingId', listingId);
+        form.append('UserHash', hash);
+        form.append('ListingId', listingId);
+        form.append('TxHash', txHash);
+        form.append('WalletAddress', walletAddress || '');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
 
+        const finalizeResp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form
+        });
+
+        return finalizeResp.json();
+    }
+
+    async function buyListing(listingId, title, price) {
+        if (!confirm(`"${title}" für ${price} WLD via World Wallet kaufen?`)) return;
+
+        const hash = getUserHash();
+        if (!hash) {
+            alert('Bitte zuerst mit World ID einloggen.');
+            return;
+        }
+
         try {
-            const resp = await fetch('@Url.Action("Buy", "Marketplace", new { area = "WorldMiniApp" })', {
-                method: 'POST',
-                body: form
+            if (!window.worldChainMarketplace?.buyListingWithWorldChain) {
+                alert('World Chain Wallet-Integration nicht geladen.');
+                return;
+            }
+
+            const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                listingId,
+                price,
+                buyerHash: hash
             });
-            const data = await resp.json();
+
+            const data = await finalizeOnBackend(hash, listingId, onChainResult.txHash, onChainResult.walletAddress);
             if (data.success) {
-                alert('Gekauft! Der Essensplan wurde zu deinen Plänen hinzugefügt.');
+                alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
                 location.reload();
             } else {
-                alert(data.error || 'Kauf fehlgeschlagen.');
+                alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
             }
-        } catch {
-            alert('Netzwerkfehler.');
+        } catch (error) {
+            alert(error?.message || 'Wallet/Netzwerkfehler.');
         }
     }
 </script>
+<script>
+    window.worldChainMarketplaceConfig = {
+        chainId: Number('@worldChainId'),
+        wldTokenAddress: '@worldChainWldToken',
+        marketplaceAddress: '@worldChainMarketplace'
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<script src="~/js/worldchain-marketplace.js"></script>
 @Html.AntiForgeryToken()
 }
