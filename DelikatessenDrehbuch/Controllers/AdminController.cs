@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 
@@ -80,6 +81,148 @@ namespace DelikatessenDrehbuch.Controllers
             var model = _adminControllerModelService.GetAdminControlerModel();
 
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExportRecipeJsonSchemaAsync()
+        {
+            var recipes = await _context.Recipes
+                .AsNoTracking()
+                .OrderBy(x => x.Id)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name,
+                    x.Preparation,
+                    x.Category
+                })
+                .ToListAsync();
+
+            var recipeIngredients = await _context.RecipesHandlers
+                .AsNoTracking()
+                .Where(x => x.IngredientHandler != null)
+                .Select(x => new
+                {
+                    RecipeId = x.Recipe.Id,
+                    IngredientId = x.IngredientHandler.Ingredient.Id,
+                    IngredientName = x.IngredientHandler.Ingredient.Name,
+                    Quantity = x.IngredientHandler.Quantity.Quantitys,
+                    Unit = x.IngredientHandler.Measure.UnitOfMeasurement
+                })
+                .ToListAsync();
+
+            var ingredientsByRecipe = recipeIngredients
+                .GroupBy(x => x.RecipeId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group
+                        .Select(x => new RecipeIngredientExportModel
+                        {
+                            IngredientId = x.IngredientId,
+                            IngredientName = x.IngredientName,
+                            Quantity = x.Quantity,
+                            Unit = x.Unit
+                        })
+                        .ToList());
+
+            var exportRecipes = recipes
+                .Select(recipe => new RecipeJsonExportModel
+                {
+                    Id = recipe.Id,
+                    Name = recipe.Name,
+                    Preparation = recipe.Preparation,
+                    Category = recipe.Category,
+                    CategoryShort = MapCategoryToCourse(recipe.Category),
+                    Ingredients = ingredientsByRecipe.TryGetValue(recipe.Id, out var ingredients)
+                        ? ingredients
+                        : new List<RecipeIngredientExportModel>()
+                })
+                .ToList();
+
+            var schema = new
+            {
+                schema_version = "1.0",
+                description = "Exportstruktur für Rezepte inkl. Zutaten-Mengen aus Recipes + RecipesHandlers.",
+                root_fields = new[]
+                {
+                    "exported_at_utc",
+                    "record_count",
+                    "recipes"
+                },
+                recipe_fields = new[]
+                {
+                    "id",
+                    "name",
+                    "preparation",
+                    "category",
+                    "category_short (vor|haupt|nach)",
+                    "ingredients[]"
+                },
+                ingredient_fields = new[]
+                {
+                    "ingredient_id",
+                    "ingredient_name",
+                    "quantity",
+                    "unit"
+                }
+            };
+
+            var payload = new
+            {
+                exported_at_utc = DateTime.UtcNow,
+                record_count = exportRecipes.Count,
+                schema,
+                recipes = exportRecipes
+            };
+
+            var exportDirectory = Path.Combine(Directory.GetCurrentDirectory(), "data", "exports");
+            Directory.CreateDirectory(exportDirectory);
+
+            var fileName = $"recipe_schema_export_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json";
+            var filePath = Path.Combine(exportDirectory, fileName);
+
+            var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            await System.IO.File.WriteAllTextAsync(filePath, json);
+
+            TempData["ExportJsonMessage"] = $"JSON Export erstellt: data/exports/{fileName}";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private static string MapCategoryToCourse(string? category)
+        {
+            if (string.IsNullOrWhiteSpace(category))
+                return "haupt";
+
+            var normalized = category.Trim().ToLower();
+            if (normalized.Contains("vor"))
+                return "vor";
+            if (normalized.Contains("nach") || normalized.Contains("dessert"))
+                return "nach";
+
+            return "haupt";
+        }
+
+        private sealed class RecipeJsonExportModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Preparation { get; set; } = string.Empty;
+            public string? Category { get; set; }
+            public string CategoryShort { get; set; } = string.Empty;
+            public List<RecipeIngredientExportModel> Ingredients { get; set; } = new();
+        }
+
+        private sealed class RecipeIngredientExportModel
+        {
+            public int IngredientId { get; set; }
+            public string IngredientName { get; set; } = string.Empty;
+            public double Quantity { get; set; }
+            public string Unit { get; set; } = string.Empty;
         }
 
         public IActionResult AddNewRecipes()

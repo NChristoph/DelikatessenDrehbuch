@@ -2,6 +2,12 @@
 
 <div class=" minWidth90  flex flexJustifyContendCenter" style="height:100vh">
     <div class="mobieleWidth90 minWidth90 maxWidth90 m Bg-Cream flexColumn">
+        @if (TempData["ExportJsonMessage"] != null)
+        {
+            <div class="alert alert-success mt-3 mb-0" role="alert">
+                @TempData["ExportJsonMessage"]
+            </div>
+        }
         @* Suportmassage div *@
         <div>
             <div class="accordion accordion-flush mt-3  Border-Gold" id="accordionFlushSupport">
@@ -164,6 +170,13 @@
         <a class="btn bgRed Border-Gold mt-3" asp-action="AddIngredient" asp-controller="Admin" style="color:white;width:150px">Add Ingredient</a>
         <a class="btn bgRed Border-Gold mt-3" asp-action="CreatePreperationStep" asp-controller="Admin" style="color:white;width:150px">Add Preperation step</a>
         <a class="btn bgRed Border-Gold mt-3" asp-action="JoinIngredientPreperationStep" asp-controller="Admin" style="color:white;width:220px">Join Ingredient + Step</a>
+
+        <form asp-action="ExportRecipeJsonSchemaAsync" asp-controller="Admin" method="post" class="mt-3">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn bgRed Border-Gold" style="color:white;width:280px">
+                JSON Schema + Daten exportieren
+            </button>
+        </form>
 
 
 
