@@ -65,6 +65,26 @@
             </div>
         </a>
 
+        <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })"
+           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative app-link"
+           style="background: linear-gradient(135deg, #F7971E 0%, #FFD200 100%);">
+
+            <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(20%, -20%);">
+                <i class="bi bi-shop-window" style="font-size: 8rem; color: white;"></i>
+            </div>
+
+            <div class="card-body p-4 d-flex align-items-center position-relative">
+                <div class="bg-white bg-opacity-25 rounded-3 d-flex align-items-center justify-content-center me-3"
+                     style="width: 50px; height: 50px; min-width: 50px;">
+                    <i class="bi bi-currency-exchange text-white fs-4"></i>
+                </div>
+                <div class="text-white">
+                    <h5 class="fw-bold mb-0">@T("Marketplace", "Marketplace", "Marketplace", "Marketplace")</h5>
+                    <small style="opacity: 0.9;">@T("Diätpläne kaufen & verkaufen", "Buy & sell diet plans", "Compra y vende planes de dieta", "Compre e venda planos de dieta")</small>
+                </div>
+            </div>
+        </a>
+
         <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })"
            class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect cursor-pointer app-link"
            style="background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%); cursor: pointer;">
