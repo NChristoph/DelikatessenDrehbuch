@@ -140,6 +140,21 @@ namespace DelikatessenDrehbuch.Controllers
                 })
                 .ToList();
 
+            var preparationSteps = await _context.RecipePreperationSteps
+                .AsNoTracking()
+                .OrderBy(x => x.Id)
+                .Select(x => new PreparationStepExportModel
+                {
+                    Id = x.Id,
+                    StepDe = x.Step_DE,
+                    StepEn = x.Step_EN,
+                    StepPrt = x.Step_PRT,
+                    StepEsp = x.Step_ESP,
+                    Phase = x.Phase,
+                    Equipment = x.Equipment
+                })
+                .ToListAsync();
+
             var schema = new
             {
                 schema_version = "1.0",
@@ -148,7 +163,8 @@ namespace DelikatessenDrehbuch.Controllers
                 {
                     "exported_at_utc",
                     "record_count",
-                    "recipes"
+                    "recipes",
+                    "preparation_steps"
                 },
                 recipe_fields = new[]
                 {
@@ -165,6 +181,16 @@ namespace DelikatessenDrehbuch.Controllers
                     "ingredient_name",
                     "quantity",
                     "unit"
+                },
+                preparation_step_fields = new[]
+                {
+                    "id",
+                    "step_de",
+                    "step_en",
+                    "step_prt",
+                    "step_esp",
+                    "phase",
+                    "equipment"
                 }
             };
 
@@ -173,7 +199,8 @@ namespace DelikatessenDrehbuch.Controllers
                 exported_at_utc = DateTime.UtcNow,
                 record_count = exportRecipes.Count,
                 schema,
-                recipes = exportRecipes
+                recipes = exportRecipes,
+                preparation_steps = preparationSteps
             };
 
             var exportDirectory = Path.Combine(Directory.GetCurrentDirectory(), "data", "exports");
@@ -223,6 +250,17 @@ namespace DelikatessenDrehbuch.Controllers
             public string IngredientName { get; set; } = string.Empty;
             public double Quantity { get; set; }
             public string Unit { get; set; } = string.Empty;
+        }
+
+        private sealed class PreparationStepExportModel
+        {
+            public int Id { get; set; }
+            public string StepDe { get; set; } = string.Empty;
+            public string StepEn { get; set; } = string.Empty;
+            public string StepPrt { get; set; } = string.Empty;
+            public string StepEsp { get; set; } = string.Empty;
+            public int Phase { get; set; }
+            public int Equipment { get; set; }
         }
 
         public IActionResult AddNewRecipes()
