@@ -285,6 +285,7 @@ namespace DelikatessenDrehbuch.Controllers
                         x.Id,
                         x.Step_DE,
                         x.Phase,
+                        x.Equipment,
                         IngredientIds = _context.JoinIngredientPreperationStep
                             .Where(join => join.Preperation != null && join.Ingredient != null && join.Preperation.Id == x.Id)
                             .Select(join => join.Ingredient.Id)
