@@ -11,11 +11,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     {
         private readonly IWildCoinService _coinService;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context)
+        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration)
         {
             _coinService = coinService;
             _context = context;
+            _configuration = configuration;
+        }
+
+
+        private void SetWorldChainConfig()
+        {
+            ViewData["WorldChainId"] = _configuration["WorldChain:ChainId"] ?? "480";
+            ViewData["WorldChainWldToken"] = _configuration["WorldChain:WldTokenAddress"] ?? "";
+            ViewData["WorldChainMarketplace"] = _configuration["WorldChain:MarketplaceContractAddress"] ?? "";
         }
 
         private string? ResolveUserHash(string? userHash)
@@ -34,6 +44,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             ViewData["UserHash"] = userHash;
             ViewData["Balance"] = balance;
+            SetWorldChainConfig();
             return View(listings);
         }
 
@@ -48,6 +59,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             ViewData["UserHash"] = userHash;
             ViewData["Balance"] = balance;
+            SetWorldChainConfig();
             return View(listings);
         }
 
@@ -115,6 +127,34 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var success = await _coinService.DeactivateListing(userHash, listingId);
             return Json(new { success });
+        }
+
+
+        public class FinalizeWorldChainPurchaseRequest
+        {
+            public string UserHash { get; set; } = string.Empty;
+            public int ListingId { get; set; }
+            public string TxHash { get; set; } = string.Empty;
+            public string WalletAddress { get; set; } = string.Empty;
+        }
+
+        // POST: World Chain Kauf finalisieren (nach erfolgreicher On-Chain TX)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinalizeWorldChainPurchase([FromForm] FinalizeWorldChainPurchaseRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, error = "Nicht eingeloggt." });
+
+            if (string.IsNullOrWhiteSpace(request.TxHash))
+                return Json(new { success = false, error = "TxHash fehlt." });
+
+            var purchase = await _coinService.FinalizeWorldChainPurchase(userHash, request.ListingId, request.TxHash, request.WalletAddress);
+            if (purchase == null)
+                return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
+
+            return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
         }
 
         // GET: Transaktionshistorie
