@@ -57,3 +57,74 @@ GO
 -- 6) Verify
 SELECT Phase, COUNT(*) AS Anzahl FROM RecipePreperationSteps GROUP BY Phase ORDER BY Phase;
 GO
+
+-- =============================================
+-- Migration: AddEquipmentToPreperationSteps
+-- Adds Equipment column and classifies steps by
+-- kitchen equipment needed (for unbound-step filtering)
+-- Equipment: 0=Keins, 1=Backofen, 2=Pfanne, 3=Topf, 4=Bräter, 5=Kochfeld
+-- =============================================
+
+-- 1) Add Equipment column (default 0 = Kein spezielles Gerät)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'RecipePreperationSteps' AND COLUMN_NAME = 'Equipment'
+)
+BEGIN
+    ALTER TABLE [RecipePreperationSteps] ADD [Equipment] int NOT NULL DEFAULT 0;
+END
+GO
+
+-- 2) Equipment 1 = Backofen
+UPDATE RecipePreperationSteps SET Equipment = 1
+WHERE Equipment = 0 AND (
+    Step_DE LIKE '%backofen%' OR Step_DE LIKE '%ofen%'
+    OR Step_DE LIKE N'%überback%' OR Step_DE LIKE '%gratini%'
+    OR Step_DE LIKE '%vorheiz%' OR Step_DE LIKE '%auflaufform%'
+    OR Step_DE LIKE '%backblech%' OR Step_DE LIKE '%backform%'
+    OR Step_DE LIKE '%umluft%' OR Step_DE LIKE '%oberhitze%'
+    OR Step_DE LIKE '%unterhitze%' OR Step_DE LIKE '%grillfunktion%'
+);
+GO
+
+-- 3) Equipment 2 = Pfanne
+UPDATE RecipePreperationSteps SET Equipment = 2
+WHERE Equipment = 0 AND (
+    Step_DE LIKE '%pfanne%' OR Step_DE LIKE '%anbrat%'
+    OR Step_DE LIKE '%anbraten%' OR Step_DE LIKE '%scharf anbrat%'
+    OR Step_DE LIKE N'%schwenk%' OR Step_DE LIKE '%wok%'
+    OR Step_DE LIKE '%bratpfanne%'
+);
+GO
+
+-- 4) Equipment 3 = Topf
+UPDATE RecipePreperationSteps SET Equipment = 3
+WHERE Equipment = 0 AND (
+    Step_DE LIKE '%topf%' OR Step_DE LIKE '%aufkochen%'
+    OR Step_DE LIKE '%simmern%' OR Step_DE LIKE '%kochwasser%'
+    OR Step_DE LIKE '%abseihen%' OR Step_DE LIKE '%abgie%'
+    OR Step_DE LIKE '%blanchier%' OR Step_DE LIKE '%siedend%'
+);
+GO
+
+-- 5) Equipment 4 = Bräter
+UPDATE RecipePreperationSteps SET Equipment = 4
+WHERE Equipment = 0 AND (
+    Step_DE LIKE N'%bräter%' OR Step_DE LIKE '%schmortopf%'
+    OR Step_DE LIKE '%schmoren%' OR Step_DE LIKE '%schmore%'
+    OR Step_DE LIKE N'%dutch%oven%'
+);
+GO
+
+-- 6) Equipment 5 = Kochfeld
+UPDATE RecipePreperationSteps SET Equipment = 5
+WHERE Equipment = 0 AND (
+    Step_DE LIKE '%kochfeld%' OR Step_DE LIKE '%herdplatte%'
+    OR Step_DE LIKE '%herd%' OR Step_DE LIKE '%ceranfeld%'
+    OR Step_DE LIKE '%induktion%' OR Step_DE LIKE '%kochstelle%'
+);
+GO
+
+-- 7) Verify Equipment
+SELECT Equipment, COUNT(*) AS Anzahl FROM RecipePreperationSteps GROUP BY Equipment ORDER BY Equipment;
+GO

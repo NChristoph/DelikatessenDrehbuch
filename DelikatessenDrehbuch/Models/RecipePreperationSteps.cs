@@ -8,6 +8,7 @@
         public string Step_PRT { get; set; }
         public string Step_ESP { get; set; }
         public int Phase { get; set; }
+        public int Equipment { get; set; }
 
     }
 }

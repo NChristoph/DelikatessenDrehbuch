@@ -21,7 +21,8 @@
             en = step.Step_EN,
             esp = step.Step_ESP,
             prt = step.Step_PRT,
-            phase = step.Phase
+            phase = step.Phase,
+            equipment = step.Equipment
         }) ?? Enumerable.Empty<object>());
 
     ViewData["Title"] = "Rezept Erstellen";
@@ -412,6 +413,26 @@
                                                id="sandboxUnboundSearch"
                                                class="form-control form-control-sm"
                                                placeholder="Ungebundene Schritte durchsuchen..." />
+                                        <div class="d-flex flex-wrap gap-1 mt-2" id="equipmentFilterBar">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill equipment-filter-btn active" data-equipment="all" style="font-size:.78rem;">
+                                                <i class="bi bi-grid me-1"></i>Alle
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill equipment-filter-btn" data-equipment="1" style="font-size:.78rem;">
+                                                <i class="bi bi-thermometer-high me-1"></i>Backofen
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning btn-sm rounded-pill equipment-filter-btn" data-equipment="2" style="font-size:.78rem;">
+                                                <i class="bi bi-fire me-1"></i>Pfanne
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill equipment-filter-btn" data-equipment="3" style="font-size:.78rem;">
+                                                <i class="bi bi-cup-hot me-1"></i>Topf
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill equipment-filter-btn" data-equipment="4" style="font-size:.78rem;">
+                                                <i class="bi bi-fire me-1"></i>Bräter
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill equipment-filter-btn" data-equipment="5" style="font-size:.78rem;">
+                                                <i class="bi bi-lightning me-1"></i>Kochfeld
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2 sandbox-step-list">
@@ -924,6 +945,26 @@
         border-bottom: 1px solid rgba(0,0,0,0.04);
     }
 
+    .equipment-filter-btn.active {
+        font-weight: 800;
+    }
+
+    .equipment-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 4px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .equip-badge-1 { background: rgba(220,53,69,.12); color: #dc3545; }
+    .equip-badge-2 { background: rgba(255,193,7,.15); color: #b45309; }
+    .equip-badge-3 { background: rgba(13,202,240,.12); color: #0891b2; }
+    .equip-badge-4 { background: rgba(25,135,84,.12); color: #198754; }
+    .equip-badge-5 { background: rgba(13,110,253,.12); color: #0d6efd; }
+
 
     .sandbox-step-card {
         border-color: rgba(0,0,0,0.08) !important;
@@ -1060,6 +1101,7 @@
         let activeSandboxIngredientName = '';
         let activeSandboxTab = 'linked';
         let sandboxUnboundSteps = [];
+        let activeEquipmentFilter = 'all';
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1075,6 +1117,19 @@
             const info = map[phase];
             if (!info) return '';
             return `<span class="phase-badge ${info.cls}">${info.text}</span>`;
+        }
+
+        function getEquipmentLabel(equipment) {
+            const map = {
+                1: { text: 'Backofen', cls: 'equip-badge-1', icon: 'bi-thermometer-high' },
+                2: { text: 'Pfanne', cls: 'equip-badge-2', icon: 'bi-fire' },
+                3: { text: 'Topf', cls: 'equip-badge-3', icon: 'bi-cup-hot' },
+                4: { text: 'Bräter', cls: 'equip-badge-4', icon: 'bi-fire' },
+                5: { text: 'Kochfeld', cls: 'equip-badge-5', icon: 'bi-lightning' }
+            };
+            const info = map[equipment];
+            if (!info) return '';
+            return `<span class="equipment-badge ${info.cls}"><i class="bi ${info.icon} me-1"></i>${info.text}</span>`;
         }
 
         function updateSuggestButtonState() {
@@ -1223,6 +1278,7 @@
                 ? ($('#sandboxUnboundSearch').val() || '')
                 : ($('#stepSearch').val() || '')).toString().trim().toLowerCase();
             const activeId = activeSandboxIngredientId?.toString() || '';
+            const isUnbound = activeSandboxTab === 'unbound';
 
             const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
             const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
@@ -1231,15 +1287,21 @@
                 const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === item.stepId.toString());
                 if (!sourceRow) return;
 
+                // Equipment filter (only for unbound tab)
+                if (isUnbound && activeEquipmentFilter !== 'all') {
+                    const equipVal = parseInt(sourceRow.equipment ?? 0, 10);
+                    if (equipVal.toString() !== activeEquipmentFilter) return;
+                }
+
                 const label = (getStepLabelFromRow(sourceRow) || '').toString();
                 if (!label) return;
                 if (search && !label.toLowerCase().includes(search)) return;
 
                 const phase = parseInt(sourceRow.phase ?? 0, 10);
-                if (activeSandboxTab !== 'unbound' && activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
+                if (!isUnbound && activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
 
                 const group = phaseGroups[phase] ?? phaseGroups[0];
-                group.push({ stepId: item.stepId, label, phase, matchCount: item.matchCount || 0 });
+                group.push({ stepId: item.stepId, label, phase, matchCount: item.matchCount || 0, equipment: parseInt(sourceRow.equipment ?? 0, 10) });
             });
 
             let totalRendered = 0;
@@ -1250,17 +1312,20 @@
                 const phaseBadge = getPhaseLabel(phase);
                 if (phaseBadge) {
                     container.append(`<div class="sandbox-phase-header mt-1 mb-1">${phaseBadge} <span class="text-muted small">${phaseNames[phase]}</span></div>`);
+                } else {
+                    container.append(`<div class="sandbox-phase-header mt-1 mb-1 text-muted small">Sonstige</div>`);
                 }
 
                 items.forEach(item => {
                     const selected = isStepAlreadySelected(item.stepId);
+                    const equipBadge = isUnbound ? getEquipmentLabel(item.equipment) : '';
                     const hint = item.matchCount > 0
                         ? `<span class="small text-muted">Matches: ${item.matchCount}</span>`
-                        : '<span class="small text-muted">Ungebundener Schritt</span>';
+                        : (equipBadge ? equipBadge : '<span class="small text-muted">Ungebundener Schritt</span>');
 
                     const card = $(`<div class="border rounded p-2 sandbox-step-card bg-white">
                         <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-start sandbox-step-candidate" data-id="${item.stepId}">
-                            <i class="bi bi-journal-check me-1"></i>${item.label}
+                            <i class="bi bi-journal-check me-1"></i>${equipBadge}${item.label}
                             ${selected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
                         </button>
                         <div class="d-flex justify-content-between align-items-center mt-2">
@@ -1274,7 +1339,7 @@
                     });
 
                     card.find('.sandbox-accept-step-btn').on('click', function () {
-                        addStep(item.stepId.toString(), null, item.label, { enforceIngredientPhaseUniqueness: activeSandboxTab !== 'unbound' });
+                        addStep(item.stepId.toString(), null, item.label, { enforceIngredientPhaseUniqueness: !isUnbound });
                     });
 
                     container.append(card);
@@ -1285,7 +1350,7 @@
             if (!totalRendered) {
                 container.empty();
                 const activeHasSteps = activeId && $('#selectedSteps .step-row').length > 0;
-                const msg = activeHasSteps && activeSandboxTab !== 'unbound'
+                const msg = activeHasSteps && !isUnbound
                     ? 'Alle Phasen für diese Zutat sind abgedeckt.'
                     : emptyText;
                 container.append(`<div class="text-muted small">${msg}</div>`);
@@ -1695,6 +1760,19 @@
                 activeSandboxTab = $(this).data('sandbox-tab')?.toString() || 'linked';
                 $('#sandboxStepTabs .sandbox-tab').removeClass('active');
                 $(this).addClass('active');
+                // Reset equipment filter when switching away from unbound
+                if (activeSandboxTab !== 'unbound') {
+                    activeEquipmentFilter = 'all';
+                    $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
+                    $('#equipmentFilterBar [data-equipment="all"]').addClass('active');
+                }
+                renderSandboxStepTab();
+            });
+
+            $('#equipmentFilterBar').on('click', '.equipment-filter-btn', function () {
+                $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
+                $(this).addClass('active');
+                activeEquipmentFilter = $(this).data('equipment')?.toString() || 'all';
                 renderSandboxStepTab();
             });
 

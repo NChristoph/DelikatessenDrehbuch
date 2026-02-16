@@ -11,6 +11,7 @@
             id = step.Id,
             step_DE = step.Step_DE,
             phase = step.Phase,
+            equipment = step.Equipment,
             ingredientIds = stepIngredientBindings.ContainsKey(step.Id)
                 ? stepIngredientBindings[step.Id]
                 : new List<int>()
@@ -154,6 +155,41 @@
     .sandbox-tabs .nav-link {
         font-size: .9rem;
     }
+
+    .equipment-filter-btn.active {
+        font-weight: 700;
+    }
+
+    .equipment-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 4px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .equip-badge-1 { background: rgba(220,53,69,.12); color: #dc3545; }
+    .equip-badge-2 { background: rgba(255,193,7,.15); color: #b45309; }
+    .equip-badge-3 { background: rgba(13,202,240,.12); color: #0891b2; }
+    .equip-badge-4 { background: rgba(25,135,84,.12); color: #198754; }
+    .equip-badge-5 { background: rgba(13,110,253,.12); color: #0d6efd; }
+
+    .phase-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 4px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .phase-badge-1 { background: rgba(34,197,94,.12); color: #15803d; }
+    .phase-badge-2 { background: rgba(239,68,68,.12); color: #dc2626; }
+    .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
+    .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
 
     /* Eingabefelder auf Mobile */
     @@media (max-width: 768px) {
@@ -357,6 +393,26 @@
                             </div>
                             <div class="tab-pane fade" id="sandbox-unbound-pane" role="tabpanel" aria-labelledby="sandbox-unbound-tab">
                                 <input type="search" id="sandboxUnboundSearch" class="form-control form-control-sm mb-2" placeholder="Ungebundene Schritte durchsuchen..." />
+                                <div class="d-flex flex-wrap gap-1 mb-2" id="equipmentFilterBar">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill equipment-filter-btn active" data-equipment="all">
+                                        <i class="fa-solid fa-border-all me-1"></i>Alle
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill equipment-filter-btn" data-equipment="1">
+                                        <i class="fa-solid fa-temperature-high me-1"></i>Backofen
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill equipment-filter-btn" data-equipment="2">
+                                        <i class="fa-solid fa-fire-burner me-1"></i>Pfanne
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm rounded-pill equipment-filter-btn" data-equipment="3">
+                                        <i class="fa-solid fa-bowl-food me-1"></i>Topf
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill equipment-filter-btn" data-equipment="4">
+                                        <i class="fa-solid fa-fire me-1"></i>Bräter
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill equipment-filter-btn" data-equipment="5">
+                                        <i class="fa-solid fa-kitchen-set me-1"></i>Kochfeld
+                                    </button>
+                                </div>
                                 <div id="sandboxUnboundStepCandidates" class="d-flex flex-column gap-2">
                                     <div class="text-muted small">Ungebundene Schritte werden hier angezeigt.</div>
                                 </div>
@@ -413,6 +469,7 @@
         let lastDeletedStep = null;
         let lastAddedStep = null;
         const acceptedStepByIngredientPhase = new Map();
+        let activeEquipmentFilter = 'all';
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -591,19 +648,122 @@
             renderStepCardList($('#sandboxLinkedStepCandidates'), steps, 'Keine verknüpften Schritte gefunden.');
         }
 
+        function getEquipmentLabel(equipment) {
+            const map = {
+                1: { text: 'Backofen', cls: 'equip-badge-1', icon: 'fa-temperature-high' },
+                2: { text: 'Pfanne', cls: 'equip-badge-2', icon: 'fa-fire-burner' },
+                3: { text: 'Topf', cls: 'equip-badge-3', icon: 'fa-bowl-food' },
+                4: { text: 'Bräter', cls: 'equip-badge-4', icon: 'fa-fire' },
+                5: { text: 'Kochfeld', cls: 'equip-badge-5', icon: 'fa-kitchen-set' }
+            };
+            const info = map[equipment];
+            if (!info) return '';
+            return `<span class="equipment-badge ${info.cls}"><i class="fa-solid ${info.icon} me-1"></i>${info.text}</span>`;
+        }
+
+        function getPhaseLabel(phase) {
+            const map = {
+                1: { text: 'Vorb.', cls: 'phase-badge-1' },
+                2: { text: 'Kochen', cls: 'phase-badge-2' },
+                3: { text: 'Würzen', cls: 'phase-badge-3' },
+                4: { text: 'Finish', cls: 'phase-badge-4' }
+            };
+            const info = map[phase];
+            if (!info) return '';
+            return `<span class="phase-badge ${info.cls}">${info.text}</span>`;
+        }
+
         function renderSandboxUnboundStepCandidates(searchTerm) {
             const normalizedSearch = (searchTerm || '').trim().toLowerCase();
             const filtered = sandboxUnboundSteps.filter(step => {
-                if (!normalizedSearch) {
-                    return true;
+                if (activeEquipmentFilter !== 'all') {
+                    const equipVal = parseInt(step?.equipment ?? 0, 10);
+                    if (equipVal.toString() !== activeEquipmentFilter) return false;
                 }
+
+                if (!normalizedSearch) return true;
 
                 const text = (step?.step_DE || '').toString().toLowerCase();
                 const idText = (step?.id || '').toString();
                 return text.includes(normalizedSearch) || idText.includes(normalizedSearch);
             });
 
-            renderStepCardList($('#sandboxUnboundStepCandidates'), filtered, 'Keine ungebundenen Schritte gefunden.');
+            // Sort by phase: Vorbereitung → Kochen → Würzen → Finish → Sonstige
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            filtered.sort(function(a, b) {
+                const pa = phaseOrder[parseInt(a?.phase ?? 0, 10)] ?? 4;
+                const pb = phaseOrder[parseInt(b?.phase ?? 0, 10)] ?? 4;
+                if (pa !== pb) return pa - pb;
+                return (a.id || 0) - (b.id || 0);
+            });
+
+            renderUnboundStepCardListGrouped($('#sandboxUnboundStepCandidates'), filtered, 'Keine ungebundenen Schritte gefunden.');
+        }
+
+        function renderUnboundStepCardListGrouped(container, steps, emptyText) {
+            container.empty();
+
+            if (!steps || !steps.length) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+                return;
+            }
+
+            const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
+            const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
+
+            steps.forEach(step => {
+                const phase = parseInt(step?.phase ?? 0, 10);
+                (phaseGroups[phase] ?? phaseGroups[0]).push(step);
+            });
+
+            let renderedCount = 0;
+            [1, 2, 3, 4, 0].forEach(phase => {
+                const items = phaseGroups[phase];
+                if (!items.length) return;
+
+                const phaseBadge = getPhaseLabel(phase);
+                if (phaseBadge) {
+                    container.append(`<div class="fw-bold small mt-2 mb-1 border-bottom pb-1">${phaseBadge} ${phaseNames[phase]}</div>`);
+                } else {
+                    container.append(`<div class="fw-bold small mt-2 mb-1 border-bottom pb-1 text-muted">Sonstige</div>`);
+                }
+
+                items.forEach(step => {
+                    if (!shouldShowStepInSandboxSelection(step)) return;
+
+                    const stepId = step.id?.toString();
+                    const isSelected = $('#newStepsList .step-row').filter(function() {
+                        return $(this).data('step-id')?.toString() === stepId;
+                    }).length > 0;
+
+                    const equipBadge = getEquipmentLabel(parseInt(step?.equipment ?? 0, 10));
+
+                    const card = $(`<div class="border rounded p-2 sandbox-step-card">
+                        <button type="button" class="btn btn-outline-primary text-start sandbox-step-candidate w-100" data-id="${step.id}">
+                            <span class="badge ${isSelected ? 'bg-success' : 'bg-primary'} me-2">${step.id}</span>
+                            ${equipBadge}
+                            ${step.step_DE}
+                            ${isSelected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
+                        </button>
+                        <div class="d-flex justify-content-end mt-2">
+                            <button type="button" class="btn btn-success btn-sm sandbox-accept-step-btn" data-id="${step.id}">Akzeptieren</button>
+                        </div>
+                    </div>`);
+
+                    card.find('.sandbox-step-candidate').on('click', function() {
+                        addJoinStep(step.id, step.step_DE, { enforceIngredientPhaseUniqueness: false });
+                    });
+                    card.find('.sandbox-accept-step-btn').on('click', function() {
+                        acceptStepForActiveIngredient(step.id, step.step_DE);
+                    });
+                    container.append(card);
+                    renderedCount += 1;
+                });
+            });
+
+            if (!renderedCount) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+            }
         }
 
         function refreshSandboxStepSelectionHighlight() {
@@ -768,9 +928,15 @@
             const boundToActive = sortSandboxStepRows(
                 stepCatalog.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
                 selectedIngredientIds);
-            const unbound = sortSandboxStepRows(
-                stepCatalog.filter(x => !(x.ingredientIds || []).length),
-                selectedIngredientIds);
+            const unbound = stepCatalog
+                .filter(x => !(x.ingredientIds || []).length)
+                .sort(function(a, b) {
+                    const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+                    const pa = phaseOrder[parseInt(a.phase ?? 0, 10)] ?? 4;
+                    const pb = phaseOrder[parseInt(b.phase ?? 0, 10)] ?? 4;
+                    if (pa !== pb) return pa - pb;
+                    return (a.id || 0) - (b.id || 0);
+                });
 
             sandboxUnboundSteps = unbound;
             $('#sandboxUnboundSearch').val('');
@@ -1117,6 +1283,13 @@
 
         $('#sandboxUnboundSearch').on('input', function() {
             renderSandboxUnboundStepCandidates($(this).val());
+        });
+
+        $('#equipmentFilterBar').on('click', '.equipment-filter-btn', function() {
+            $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
+            $(this).addClass('active');
+            activeEquipmentFilter = $(this).data('equipment')?.toString() || 'all';
+            renderSandboxUnboundStepCandidates($('#sandboxUnboundSearch').val());
         });
 
         $('#btnRestoreLastDeletedStep').on('click', function() {
