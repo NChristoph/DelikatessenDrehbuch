@@ -20,7 +20,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
-    //TODO:Essensplan teilen noch machen die anzeige view überarbeiten usw schau das ganze essensplander ding an und mach es besser
+    //TODO:in claud weiter machen
     [Area("WorldMiniApp")]
     public class HomeController : Controller
     {

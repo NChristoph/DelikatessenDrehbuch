@@ -84,7 +84,7 @@ namespace DelikatessenDrehbuch.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ExportRecipeJsonSchemaAsync()
         {
             var recipes = await _context.Recipes
