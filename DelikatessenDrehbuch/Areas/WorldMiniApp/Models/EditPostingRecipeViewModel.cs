@@ -19,9 +19,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public IFormFile? NewContent { get; set; }
 
         public List<EditPostingIngredientRowViewModel> Ingredients { get; set; } = new();
+        public List<EditPostingStepRowViewModel> Steps { get; set; } = new();
+        public List<int> SelectedKeywordIds { get; set; } = new();
 
         public List<IngredientsAndNutrients> AvailableIngredients { get; set; } = new();
         public List<Measure> AvailableMeasures { get; set; } = new();
+        public List<RecipePreperationSteps> AvailableSteps { get; set; } = new();
+        public List<Keyword> AvailableKeywords { get; set; } = new();
+        public List<JoinIngredientPreperationStep> IngredientStepJoins { get; set; } = new();
     }
 
     public class EditPostingIngredientRowViewModel
@@ -29,5 +34,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public int IngredientId { get; set; }
         public int MeasureId { get; set; }
         public double Quantity { get; set; }
+    }
+
+    public class EditPostingStepRowViewModel
+    {
+        public int PreperationStepId { get; set; }
+        public int StepIndex { get; set; }
     }
 }
