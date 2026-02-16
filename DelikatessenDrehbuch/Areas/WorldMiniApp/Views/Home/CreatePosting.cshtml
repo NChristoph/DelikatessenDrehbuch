@@ -404,6 +404,14 @@
                                     <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
                                         <button class="sandbox-tab active" type="button" data-sandbox-tab="linked">Aktive Zutat</button>
                                         <button class="sandbox-tab" type="button" data-sandbox-tab="all">Alle Zutaten</button>
+                                        <button class="sandbox-tab" type="button" data-sandbox-tab="unbound">Ohne Binding</button>
+                                    </div>
+
+                                    <div class="mt-2 d-none" id="sandboxUnboundSearchWrap">
+                                        <input type="text"
+                                               id="sandboxUnboundSearch"
+                                               class="form-control form-control-sm"
+                                               placeholder="Ungebundene Schritte durchsuchen..." />
                                     </div>
 
                                     <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2 sandbox-step-list">
@@ -916,6 +924,22 @@
         border-bottom: 1px solid rgba(0,0,0,0.04);
     }
 
+
+    .sandbox-step-card {
+        border-color: rgba(0,0,0,0.08) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .sandbox-step-candidate {
+        font-weight: 600;
+    }
+
+    .sandbox-accept-step-btn:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+    }
+
+
     /* ---------- Bottom Bar ---------- */
     .creator-bottom {
         left: 50% !important;
@@ -1035,6 +1059,7 @@
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
         let activeSandboxTab = 'linked';
+        let sandboxUnboundSteps = [];
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1194,10 +1219,11 @@
                 return;
             }
 
-            const search = ($('#stepSearch').val() || '').toString().trim().toLowerCase();
+            const search = (activeSandboxTab === 'unbound'
+                ? ($('#sandboxUnboundSearch').val() || '')
+                : ($('#stepSearch').val() || '')).toString().trim().toLowerCase();
             const activeId = activeSandboxIngredientId?.toString() || '';
 
-            // Gruppiere nach Phase für übersichtliche Darstellung
             const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
             const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
 
@@ -1209,35 +1235,49 @@
                 if (!label) return;
                 if (search && !label.toLowerCase().includes(search)) return;
 
-                // Step bereits ausgewählt? → nicht mehr als Kandidat zeigen
-                if (isStepAlreadySelected(item.stepId)) return;
-
-                // Zutat+Phase schon abgedeckt? → ausblenden
                 const phase = parseInt(sourceRow.phase ?? 0, 10);
-                if (activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
+                if (activeSandboxTab !== 'unbound' && activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
 
                 const group = phaseGroups[phase] ?? phaseGroups[0];
                 group.push({ stepId: item.stepId, label, phase, matchCount: item.matchCount || 0 });
             });
 
-            // Rendern nach Phase-Gruppen
             let totalRendered = 0;
             [1, 2, 3, 4, 0].forEach(phase => {
                 const items = phaseGroups[phase];
                 if (!items.length) return;
 
-                // Phase-Header
                 const phaseBadge = getPhaseLabel(phase);
                 if (phaseBadge) {
                     container.append(`<div class="sandbox-phase-header mt-1 mb-1">${phaseBadge} <span class="text-muted small">${phaseNames[phase]}</span></div>`);
                 }
 
                 items.forEach(item => {
-                    const btn = $(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-step-candidate"><i class="bi bi-plus-circle me-1"></i>${item.label}</button>`);
-                    btn.on('click', function () {
-                        addStep(item.stepId.toString(), null, item.label, { enforceIngredientPhaseUniqueness: true });
+                    const selected = isStepAlreadySelected(item.stepId);
+                    const hint = item.matchCount > 0
+                        ? `<span class="small text-muted">Matches: ${item.matchCount}</span>`
+                        : '<span class="small text-muted">Ungebundener Schritt</span>';
+
+                    const card = $(`<div class="border rounded p-2 sandbox-step-card bg-white">
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-start sandbox-step-candidate" data-id="${item.stepId}">
+                            <i class="bi bi-journal-check me-1"></i>${item.label}
+                            ${selected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
+                        </button>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            ${hint}
+                            <button type="button" class="btn btn-success btn-sm sandbox-accept-step-btn" data-id="${item.stepId}" ${selected ? 'disabled' : ''}>Akzeptieren</button>
+                        </div>
+                    </div>`);
+
+                    card.find('.sandbox-step-candidate').on('click', function () {
+                        $('#sandboxCurrentStep').removeClass('text-muted').html(`<strong>Ausgewählt:</strong> ${item.label}`);
                     });
-                    container.append(btn);
+
+                    card.find('.sandbox-accept-step-btn').on('click', function () {
+                        addStep(item.stepId.toString(), null, item.label, { enforceIngredientPhaseUniqueness: activeSandboxTab !== 'unbound' });
+                    });
+
+                    container.append(card);
                     totalRendered++;
                 });
             });
@@ -1245,7 +1285,7 @@
             if (!totalRendered) {
                 container.empty();
                 const activeHasSteps = activeId && $('#selectedSteps .step-row').length > 0;
-                const msg = activeHasSteps
+                const msg = activeHasSteps && activeSandboxTab !== 'unbound'
                     ? 'Alle Phasen für diese Zutat sind abgedeckt.'
                     : emptyText;
                 container.append(`<div class="text-muted small">${msg}</div>`);
@@ -1257,12 +1297,26 @@
             const allSteps = getAllStepRows();
             const activeId = activeSandboxIngredientId?.toString() || '';
 
+            if (activeSandboxTab === 'unbound') {
+                sandboxUnboundSteps = allSteps
+                    .map(step => {
+                        const stepId = parseInt(step.id, 10);
+                        if (isNaN(stepId)) return null;
+                        const boundIds = getStepBoundIngredientIds(stepId).map(x => x.toString());
+                        if (boundIds.length) return null;
+                        return { stepId, matchCount: 0 };
+                    })
+                    .filter(Boolean);
+
+                renderSandboxStepCandidates(sandboxUnboundSteps, 'Keine ungebundenen Schritte gefunden.');
+                return;
+            }
+
             if (!allSteps.length || !activeId) {
                 renderSandboxStepCandidates([], 'Wähle links eine Zutat aus.');
                 return;
             }
 
-            // Alle Steps die an die aktive Zutat gebunden sind
             const candidates = [];
             allSteps.forEach(step => {
                 const stepId = parseInt(step.id, 10);
@@ -1270,13 +1324,11 @@
                 const boundIds = getStepBoundIngredientIds(stepId).map(x => x.toString());
 
                 if (activeSandboxTab === 'all') {
-                    // Alle Steps die an irgendeine ausgewählte Zutat gebunden sind
                     const matchCount = selectedIngredientIds.filter(sid => boundIds.includes(sid.toString())).length;
                     if (matchCount > 0) {
                         candidates.push({ stepId, matchCount });
                     }
                 } else {
-                    // Nur Steps für die aktive Zutat
                     if (boundIds.includes(activeId)) {
                         const matchCount = selectedIngredientIds.filter(sid => boundIds.includes(sid.toString())).length;
                         candidates.push({ stepId, matchCount });
@@ -1284,7 +1336,6 @@
                 }
             });
 
-            // Sortieren: höchster matchCount zuerst
             candidates.sort((a, b) => b.matchCount - a.matchCount);
 
             renderSandboxStepCandidates(
@@ -1296,8 +1347,16 @@
         function renderSandboxStepTab() {
             $('#sandboxStepTabs .sandbox-tab').removeClass('active');
             $(`#sandboxStepTabs [data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
+
+            const showUnboundSearch = activeSandboxTab === 'unbound';
+            $('#sandboxUnboundSearchWrap').toggleClass('d-none', !showUnboundSearch);
+
             $('#sandboxActiveIngredientLabel').text(
-                activeSandboxTab === 'all' ? 'Alle Zutaten' : (activeSandboxIngredientName || 'Keine Zutat')
+                activeSandboxTab === 'all'
+                    ? 'Alle Zutaten'
+                    : activeSandboxTab === 'unbound'
+                        ? 'Ohne Binding'
+                        : (activeSandboxIngredientName || 'Keine Zutat')
             );
             loadSandboxSteps();
         }
@@ -1613,6 +1672,12 @@
 
             $('#stepSearch').on('input', function () {
                 renderSandboxStepTab();
+            });
+
+            $('#sandboxUnboundSearch').on('input', function () {
+                if (activeSandboxTab === 'unbound') {
+                    renderSandboxStepTab();
+                }
             });
 
             $('#sandboxIngredientList').on('click', '.sandbox-ingredient-btn', function () {
