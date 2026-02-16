@@ -404,6 +404,8 @@
                                     <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
                                         <button class="sandbox-tab active" type="button" data-sandbox-tab="linked">Aktive Zutat</button>
                                         <button class="sandbox-tab" type="button" data-sandbox-tab="all">Alle Zutaten</button>
+                                        <button class="sandbox-tab" type="button" data-sandbox-tab="unbound">Allgemein</button>
+                                        <button class="sandbox-tab" type="button" data-sandbox-tab="emergency">Notfälle</button>
                                     </div>
 
                                     <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2 sandbox-step-list">
@@ -1212,9 +1214,9 @@
                 // Step bereits ausgewählt? → nicht mehr als Kandidat zeigen
                 if (isStepAlreadySelected(item.stepId)) return;
 
-                // Zutat+Phase schon abgedeckt? → ausblenden
+                // Zutat+Phase schon abgedeckt? → ausblenden (nicht bei Notfälle/Allgemein)
                 const phase = parseInt(sourceRow.phase ?? 0, 10);
-                if (activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
+                if (activeSandboxTab !== 'emergency' && activeSandboxTab !== 'unbound' && activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
 
                 const group = phaseGroups[phase] ?? phaseGroups[0];
                 group.push({ stepId: item.stepId, label, phase, matchCount: item.matchCount || 0 });
@@ -1257,6 +1259,33 @@
             const allSteps = getAllStepRows();
             const activeId = activeSandboxIngredientId?.toString() || '';
 
+            // Notfälle-Tab: zeigt ALLE Steps aus dem Katalog
+            if (activeSandboxTab === 'emergency') {
+                const candidates = [];
+                allSteps.forEach(step => {
+                    const stepId = parseInt(step.id, 10);
+                    if (isNaN(stepId)) return;
+                    candidates.push({ stepId, matchCount: 0 });
+                });
+                renderSandboxStepCandidates(candidates, 'Keine Schritte im Katalog vorhanden.');
+                return;
+            }
+
+            // Allgemein-Tab: zeigt Steps die NICHT an eine Zutat gebunden sind
+            if (activeSandboxTab === 'unbound') {
+                const candidates = [];
+                allSteps.forEach(step => {
+                    const stepId = parseInt(step.id, 10);
+                    if (isNaN(stepId)) return;
+                    const boundIds = getStepBoundIngredientIds(stepId);
+                    if (boundIds.length === 0) {
+                        candidates.push({ stepId, matchCount: 0 });
+                    }
+                });
+                renderSandboxStepCandidates(candidates, 'Keine allgemeinen Schritte gefunden.');
+                return;
+            }
+
             if (!allSteps.length || !activeId) {
                 renderSandboxStepCandidates([], 'Wähle links eine Zutat aus.');
                 return;
@@ -1296,8 +1325,14 @@
         function renderSandboxStepTab() {
             $('#sandboxStepTabs .sandbox-tab').removeClass('active');
             $(`#sandboxStepTabs [data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
+
+            const tabLabels = {
+                'all': 'Alle Zutaten',
+                'unbound': 'Allgemein (ohne Zutat)',
+                'emergency': 'Notfälle (alle Schritte)'
+            };
             $('#sandboxActiveIngredientLabel').text(
-                activeSandboxTab === 'all' ? 'Alle Zutaten' : (activeSandboxIngredientName || 'Keine Zutat')
+                tabLabels[activeSandboxTab] || (activeSandboxIngredientName || 'Keine Zutat')
             );
             loadSandboxSteps();
         }
