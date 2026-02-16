@@ -32,11 +32,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<HomeController> _logger;
+        private readonly IRecipeDecisionService _recipeDecisionService;
         private const int UploadRateLimit = 5;
         private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
 
 
-        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IMemoryCache memoryCache, ILogger<HomeController> logger)
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IMemoryCache memoryCache, ILogger<HomeController> logger, IRecipeDecisionService recipeDecisionService)
         {
             _recipesService = recipesService;
             _worldAppMealPlanService = worldUserMealPlanService;
@@ -45,6 +46,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _saveNewRecipeService = saveNewRecipeService;
             _memoryCache = memoryCache;
             _logger = logger;
+            _recipeDecisionService = recipeDecisionService;
         }
 
         // Die Startseite (Das Menü von oben)
@@ -1288,6 +1290,25 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             public int Count { get; set; }
             public DateTimeOffset WindowStart { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetDecisionHelp([FromBody] DecisionHelpRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Title))
+                return Json(new { matched = false });
+
+            var result = await _recipeDecisionService.GetStepSuggestionsAsync(
+                request.Title,
+                request.IngredientIds ?? new List<int>());
+
+            return Json(result);
+        }
+
+        public class DecisionHelpRequest
+        {
+            public string Title { get; set; }
+            public List<int> IngredientIds { get; set; } = new();
         }
     }
 }

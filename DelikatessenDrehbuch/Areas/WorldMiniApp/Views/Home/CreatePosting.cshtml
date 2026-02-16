@@ -371,6 +371,9 @@
                                 <div class="sandbox-sub">Schnelles Verknüpfen wie in einem Creator-Workflow</div>
                             </div>
                             <div class="d-flex align-items-center gap-2">
+                                <button type="button" id="btnDecisionHelper" class="btn btn-sm btn-outline-success rounded-pill" onclick="runDecisionHelper()" disabled>
+                                    <i class="bi bi-lightbulb me-1"></i><span class="label-lang" data-de="Entscheidungshilfe" data-en="Decision Helper" data-esp="Ayuda de decisión" data-prt="Ajuda de decisão">Entscheidungshilfe</span>
+                                </button>
                                 <button type="button" id="btnSuggestSteps" class="btn btn-sm btn-outline-primary rounded-pill" onclick="suggestSteps()" disabled>
                                     <i class="bi bi-magic me-1"></i>Schritte vorschlagen
                                 </button>
@@ -439,6 +442,23 @@
                                         <div class="text-muted small">Wähle links eine Zutat aus.</div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Decision Helper Result -->
+                        <div id="decisionHelperResult" class="mt-3 d-none">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div>
+                                        <i class="bi bi-lightbulb text-success me-1"></i>
+                                        <strong id="decisionDishType"></strong>
+                                        <span class="badge bg-success ms-2" id="decisionConfidence"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill" id="btnApplyDecision" onclick="applyDecisionSteps()">
+                                        <i class="bi bi-check2-all me-1"></i><span class="label-lang" data-de="Alle übernehmen" data-en="Apply all" data-esp="Aplicar todo" data-prt="Aplicar tudo">Alle übernehmen</span>
+                                    </button>
+                                </div>
+                                <div id="decisionStepsList" class="d-flex flex-column gap-1"></div>
                             </div>
                         </div>
 
@@ -1134,7 +1154,100 @@
 
         function updateSuggestButtonState() {
             const hasIngredients = getSelectedIngredientIds().length > 0;
+            const hasTitle = ($('input[name="Title"]').val() || '').trim().length > 0;
             $('#btnSuggestSteps').prop('disabled', !hasIngredients);
+            $('#btnDecisionHelper').prop('disabled', !(hasIngredients || hasTitle));
+        }
+
+        let lastDecisionResult = null;
+
+        function runDecisionHelper() {
+            const title = ($('input[name="Title"]').val() || '').trim();
+            const ingredientIds = getSelectedIngredientIds();
+
+            if (!title && !ingredientIds.length) return;
+
+            const btn = $('#btnDecisionHelper');
+            btn.prop('disabled', true).find('i').removeClass('bi-lightbulb').addClass('bi-hourglass-split');
+
+            $.ajax({
+                url: '@Url.Action("GetDecisionHelp", "Home", new { area = "WorldMiniApp" })',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ title: title, ingredientIds: ingredientIds }),
+                success: function (data) {
+                    lastDecisionResult = data;
+                    renderDecisionResult(data);
+                },
+                error: function () {
+                    $('#decisionHelperResult').addClass('d-none');
+                },
+                complete: function () {
+                    btn.prop('disabled', false).find('i').removeClass('bi-hourglass-split').addClass('bi-lightbulb');
+                }
+            });
+        }
+
+        function renderDecisionResult(data) {
+            const container = $('#decisionHelperResult');
+            const list = $('#decisionStepsList');
+            list.empty();
+
+            if (!data || !data.matched || !data.suggestedSteps || !data.suggestedSteps.length) {
+                container.addClass('d-none');
+                return;
+            }
+
+            $('#decisionDishType').text(data.dishType || data.patternId);
+            const pct = Math.round((data.confidence || 0) * 100);
+            $('#decisionConfidence').text(pct + '% Match');
+
+            const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish' };
+
+            data.suggestedSteps.forEach(function (step, i) {
+                const phaseBadge = getPhaseLabel(step.phase);
+                const alreadySelected = isStepAlreadySelected(step.stepId);
+                const statusIcon = alreadySelected
+                    ? '<span class="badge bg-secondary ms-1">schon gewählt</span>'
+                    : '';
+
+                list.append(`<div class="d-flex align-items-center gap-2 border rounded p-2 bg-white decision-step-row" data-step-id="${step.stepId}">
+                    <span class="badge candy-purple rounded-pill">${i + 1}</span>
+                    ${phaseBadge}
+                    <span class="small flex-grow-1">${step.label}</span>
+                    ${statusIcon}
+                    <button type="button" class="btn btn-sm btn-outline-success decision-accept-btn" ${alreadySelected ? 'disabled' : ''} onclick="acceptDecisionStep(${step.stepId}, '${(step.label || '').replace(/'/g, "\\'")}')">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                </div>`);
+            });
+
+            container.removeClass('d-none');
+        }
+
+        function acceptDecisionStep(stepId, label) {
+            if (isStepAlreadySelected(stepId)) return;
+            addStep(stepId.toString(), null, label);
+            renderDecisionResult(lastDecisionResult);
+        }
+
+        function applyDecisionSteps() {
+            if (!lastDecisionResult || !lastDecisionResult.suggestedSteps) return;
+
+            const existingSteps = $('#selectedSteps .step-row').length;
+            if (existingSteps > 0) {
+                if (!confirm('Bestehende Schritte ersetzen?')) return;
+                $('#selectedSteps').empty();
+            }
+
+            lastDecisionResult.suggestedSteps.forEach(function (step) {
+                if (!isStepAlreadySelected(step.stepId)) {
+                    addStep(step.stepId.toString(), null, step.label, { skipRender: true });
+                }
+            });
+            updateStepIndices();
+            renderSandboxStepTab();
+            renderDecisionResult(lastDecisionResult);
         }
 
         // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
@@ -1730,6 +1843,10 @@
             if (token) $('#hiddenUserTokenField').val(token);
 
             activeSandboxTab = $('#sandboxStepTabs .sandbox-tab.active').first().data('sandbox-tab')?.toString() || 'linked';
+
+            $('input[name="Title"]').on('input', function () {
+                updateSuggestButtonState();
+            });
 
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();

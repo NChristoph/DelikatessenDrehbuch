@@ -1,0 +1,327 @@
+{
+  "version": "1.0",
+  "description": "Entscheidungshilfe: Erkennt Gerichtstyp anhand Titel + Zutaten und schlägt Step-Reihenfolge vor",
+  "patterns": [
+    {
+      "id": "lasagne",
+      "namePatterns": ["lasagne", "lasagna"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Lasagneplatten", "Hackfleisch", "Tomatenmark", "Bechamelsauce", "Mozzarella", "Parmesan", "Zwiebel", "Knoblauch"],
+      "minIngredientMatch": 3,
+      "category": "Hauptspeise",
+      "dishType": "Schichtgericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Gemüse schneiden und Zutaten vorbereiten", "equipment": 0 },
+        { "phase": 2, "description": "Hackfleisch-Sauce kochen", "equipment": 3 },
+        { "phase": 2, "description": "Bechamelsauce zubereiten", "equipment": 3 },
+        { "phase": 3, "description": "Sauce abschmecken", "equipment": 0 },
+        { "phase": 2, "description": "Lasagne schichten und backen", "equipment": 1 },
+        { "phase": 4, "description": "Anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "würfel", "hack", "schäl"],
+        "2": ["anbrat", "koch", "back", "schicht", "rühr", "schmor"],
+        "3": ["salz", "pfeff", "würz", "abschmeck"],
+        "4": ["anricht", "servier", "garnier"]
+      }
+    },
+    {
+      "id": "kartoffelauflauf",
+      "namePatterns": ["kartoffelauflauf", "kartoffelgratin", "gratin", "auflauf"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Kartoffeln", "Sahne", "Käse", "Milch", "Butter", "Muskatnuss", "Zwiebel", "Knoblauch"],
+      "minIngredientMatch": 2,
+      "category": "Hauptspeise",
+      "dishType": "Auflauf",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Kartoffeln schälen und in Scheiben schneiden", "equipment": 0 },
+        { "phase": 1, "description": "Gemüse vorbereiten", "equipment": 0 },
+        { "phase": 2, "description": "Sahne-Mischung aufkochen", "equipment": 3 },
+        { "phase": 3, "description": "Mit Muskatnuss und Gewürzen abschmecken", "equipment": 0 },
+        { "phase": 2, "description": "Schichten und im Ofen backen", "equipment": 1 },
+        { "phase": 4, "description": "Anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schäl", "schneid", "hobel"],
+        "2": ["koch", "back", "aufkochen", "garen"],
+        "3": ["muskat", "salz", "pfeff", "abschmeck"],
+        "4": ["anricht", "servier"]
+      }
+    },
+    {
+      "id": "pasta",
+      "namePatterns": ["pasta", "spaghetti", "penne", "rigatoni", "tagliatelle", "nudel", "fettuccine", "carbonara", "bolognese", "aglio"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Spaghetti", "Pasta", "Nudeln", "Penne", "Rigatoni", "Tagliatelle", "Parmesan", "Olivenöl", "Knoblauch"],
+      "minIngredientMatch": 2,
+      "category": "Hauptspeise",
+      "dishType": "Nudelgericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Zutaten schneiden und vorbereiten", "equipment": 0 },
+        { "phase": 2, "description": "Nudeln kochen", "equipment": 3 },
+        { "phase": 2, "description": "Sauce zubereiten", "equipment": 2 },
+        { "phase": 3, "description": "Abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Nudeln mit Sauce vermischen und anrichten", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "würfel", "hack", "schäl"],
+        "2": ["koch", "anbrat", "dünst", "simmern"],
+        "3": ["salz", "pfeff", "würz", "abschmeck"],
+        "4": ["anricht", "servier", "vermisch"]
+      }
+    },
+    {
+      "id": "suppe",
+      "namePatterns": ["suppe", "eintopf", "brühe", "cremesuppe", "soup"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Brühe", "Gemüsebrühe", "Hühnerbrühe", "Zwiebel", "Kartoffeln", "Sahne", "Karotten", "Lauch", "Sellerie"],
+      "minIngredientMatch": 2,
+      "category": "Vorspeise",
+      "dishType": "Suppe",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Gemüse schälen, waschen und schneiden", "equipment": 0 },
+        { "phase": 2, "description": "Gemüse andünsten", "equipment": 3 },
+        { "phase": 2, "description": "Mit Brühe aufgießen und kochen", "equipment": 3 },
+        { "phase": 3, "description": "Abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Anrichten und garnieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "schäl", "wasch", "würfel"],
+        "2": ["dünst", "koch", "aufkochen", "simmern", "pürieren"],
+        "3": ["salz", "pfeff", "abschmeck"],
+        "4": ["anricht", "garnier", "servier"]
+      }
+    },
+    {
+      "id": "salat",
+      "namePatterns": ["salat", "bowl", "salade"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Salat", "Eisbergsalat", "Rucola", "Feldsalat", "Essig", "Olivenöl", "Tomate", "Gurke", "Paprika"],
+      "minIngredientMatch": 2,
+      "category": "Vorspeise",
+      "dishType": "Salat",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Salat waschen und Gemüse schneiden", "equipment": 0 },
+        { "phase": 1, "description": "Dressing zubereiten", "equipment": 0 },
+        { "phase": 3, "description": "Dressing abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Salat anrichten und Dressing darübergeben", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["wasch", "schneid", "zerklein"],
+        "3": ["abschmeck", "würz"],
+        "4": ["anricht", "servier", "beträufel"]
+      }
+    },
+    {
+      "id": "pizza",
+      "namePatterns": ["pizza", "flammkuchen", "focaccia"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Mehl", "Hefe", "Tomatenmark", "Mozzarella", "Olivenöl", "Basilikum"],
+      "minIngredientMatch": 3,
+      "category": "Hauptspeise",
+      "dishType": "Teig-Ofengericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Teig zubereiten und gehen lassen", "equipment": 0 },
+        { "phase": 1, "description": "Belag vorbereiten und schneiden", "equipment": 0 },
+        { "phase": 2, "description": "Pizza belegen und backen", "equipment": 1 },
+        { "phase": 4, "description": "Aus dem Ofen nehmen und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["kneten", "schneid", "vorbereite"],
+        "2": ["back", "beleg"],
+        "4": ["anricht", "servier"]
+      }
+    },
+    {
+      "id": "steak",
+      "namePatterns": ["steak", "schnitzel", "filet", "braten", "kotelett", "stück fleisch"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Rindfleisch", "Schweinefleisch", "Hähnchenbrustfilet", "Öl", "Butter", "Rosmarin", "Thymian"],
+      "minIngredientMatch": 1,
+      "category": "Hauptspeise",
+      "dishType": "Bratgericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Fleisch vorbereiten und würzen", "equipment": 0 },
+        { "phase": 2, "description": "Fleisch scharf anbraten", "equipment": 2 },
+        { "phase": 2, "description": "Beilage zubereiten", "equipment": 3 },
+        { "phase": 3, "description": "Abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["vorbereite", "würz", "marinier"],
+        "2": ["anbrat", "brat", "grill", "garen"],
+        "3": ["salz", "pfeff", "abschmeck"],
+        "4": ["anricht", "servier"]
+      }
+    },
+    {
+      "id": "curry",
+      "namePatterns": ["curry", "dal", "tikka", "masala", "korma"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Currypulver", "Kokosmilch", "Ingwer", "Knoblauch", "Zwiebel", "Kurkuma", "Koriander", "Chili"],
+      "minIngredientMatch": 2,
+      "category": "Hauptspeise",
+      "dishType": "Curry",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Gemüse und Gewürze vorbereiten", "equipment": 0 },
+        { "phase": 2, "description": "Gewürze anrösten und Gemüse andünsten", "equipment": 2 },
+        { "phase": 2, "description": "Mit Kokosmilch/Sauce aufgießen und köcheln", "equipment": 3 },
+        { "phase": 3, "description": "Abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Mit Reis anrichten", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "schäl", "würfel"],
+        "2": ["anbrat", "röst", "dünst", "köcheln", "simmern"],
+        "3": ["abschmeck", "würz"],
+        "4": ["anricht", "servier"]
+      }
+    },
+    {
+      "id": "risotto",
+      "namePatterns": ["risotto"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Risottoreis", "Arborio", "Brühe", "Parmesan", "Butter", "Weißwein", "Zwiebel"],
+      "minIngredientMatch": 2,
+      "category": "Hauptspeise",
+      "dishType": "Reisgericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Zutaten vorbereiten, Brühe erhitzen", "equipment": 3 },
+        { "phase": 2, "description": "Zwiebeln andünsten und Reis anschwitzen", "equipment": 3 },
+        { "phase": 2, "description": "Brühe portionsweise zugeben und rühren", "equipment": 3 },
+        { "phase": 3, "description": "Mit Parmesan und Butter verfeinern", "equipment": 0 },
+        { "phase": 4, "description": "Anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "vorbereite"],
+        "2": ["dünst", "anschwitz", "rühr", "koch"],
+        "3": ["abschmeck", "verfeiner"],
+        "4": ["anricht", "servier"]
+      }
+    },
+    {
+      "id": "pfannkuchen",
+      "namePatterns": ["pfannkuchen", "pancake", "crepe", "crêpe", "eierkuchen"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Mehl", "Ei", "Milch", "Zucker", "Butter"],
+      "minIngredientMatch": 3,
+      "category": "Dessert",
+      "dishType": "Pfannengericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Teig anrühren", "equipment": 0 },
+        { "phase": 2, "description": "Pfannkuchen in Butter ausbacken", "equipment": 2 },
+        { "phase": 4, "description": "Mit Topping anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["rühr", "vermengen", "misch"],
+        "2": ["brat", "back", "ausback"],
+        "4": ["anricht", "servier", "bestreuen"]
+      }
+    },
+    {
+      "id": "kuchen",
+      "namePatterns": ["kuchen", "torte", "muffin", "brownie", "cake", "biskuit", "gugelhupf"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Mehl", "Zucker", "Ei", "Butter", "Backpulver", "Vanillezucker", "Kakao"],
+      "minIngredientMatch": 3,
+      "category": "Dessert",
+      "dishType": "Backwerk",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Zutaten abmessen und Ofen vorheizen", "equipment": 1 },
+        { "phase": 1, "description": "Trockene und nasse Zutaten getrennt mischen", "equipment": 0 },
+        { "phase": 2, "description": "Teig zusammenrühren und in Form füllen", "equipment": 0 },
+        { "phase": 2, "description": "Im Ofen backen", "equipment": 1 },
+        { "phase": 4, "description": "Auskühlen lassen und dekorieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["rühr", "misch", "vermengen", "vorbereite"],
+        "2": ["back", "rühr"],
+        "4": ["auskühlen", "dekorier", "servier"]
+      }
+    },
+    {
+      "id": "smoothie",
+      "namePatterns": ["smoothie", "shake", "drink", "saft"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Banane", "Beeren", "Milch", "Joghurt", "Honig", "Eis"],
+      "minIngredientMatch": 2,
+      "category": "Dessert",
+      "dishType": "Getränk",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Obst waschen und schneiden", "equipment": 0 },
+        { "phase": 2, "description": "Alle Zutaten pürieren", "equipment": 0 },
+        { "phase": 4, "description": "In Gläser füllen und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["wasch", "schneid", "schäl"],
+        "2": ["pürieren", "mixen", "misch"],
+        "4": ["servier", "anricht"]
+      }
+    },
+    {
+      "id": "wok",
+      "namePatterns": ["wok", "stir fry", "stir-fry", "pfannengemüse", "asia"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Sojasauce", "Sesamöl", "Ingwer", "Knoblauch", "Paprika", "Frühlingszwiebel", "Reis"],
+      "minIngredientMatch": 2,
+      "category": "Hauptspeise",
+      "dishType": "Pfannengericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Gemüse waschen und klein schneiden", "equipment": 0 },
+        { "phase": 2, "description": "Wok erhitzen und Zutaten portionsweise anbraten", "equipment": 2 },
+        { "phase": 3, "description": "Mit Sojasauce und Gewürzen abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Auf Reis anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "wasch", "würfel"],
+        "2": ["anbrat", "brat", "schwenk"],
+        "3": ["abschmeck", "würz"],
+        "4": ["anricht", "servier"]
+      }
+    },
+    {
+      "id": "fisch",
+      "namePatterns": ["lachs", "forelle", "dorsch", "kabeljau", "thunfisch", "fischfilet", "garnelen", "shrimp"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Lachs", "Fischfilet", "Garnelen", "Zitrone", "Dill", "Butter", "Olivenöl"],
+      "minIngredientMatch": 1,
+      "category": "Hauptspeise",
+      "dishType": "Fischgericht",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Fisch vorbereiten und würzen", "equipment": 0 },
+        { "phase": 1, "description": "Beilage vorbereiten", "equipment": 0 },
+        { "phase": 2, "description": "Fisch braten oder im Ofen garen", "equipment": 2 },
+        { "phase": 3, "description": "Mit Zitrone und Kräutern abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["vorbereite", "wasch", "filetier"],
+        "2": ["brat", "anbrat", "garen", "back", "dampf"],
+        "3": ["beträufel", "abschmeck", "würz"],
+        "4": ["anricht", "servier", "garnier"]
+      }
+    },
+    {
+      "id": "eintopf",
+      "namePatterns": ["eintopf", "gulasch", "ragout", "chili con", "stew"],
+      "requiredIngredients": [],
+      "signatureIngredients": ["Kartoffeln", "Karotten", "Zwiebel", "Brühe", "Fleisch", "Bohnen", "Tomaten"],
+      "minIngredientMatch": 3,
+      "category": "Hauptspeise",
+      "dishType": "Eintopf",
+      "phaseTemplate": [
+        { "phase": 1, "description": "Gemüse und Fleisch schneiden", "equipment": 0 },
+        { "phase": 2, "description": "Fleisch anbraten", "equipment": 3 },
+        { "phase": 2, "description": "Gemüse dazugeben und mit Brühe aufgießen", "equipment": 3 },
+        { "phase": 2, "description": "Auf kleiner Flamme schmoren lassen", "equipment": 3 },
+        { "phase": 3, "description": "Abschmecken", "equipment": 0 },
+        { "phase": 4, "description": "Anrichten und servieren", "equipment": 0 }
+      ],
+      "stepKeywords": {
+        "1": ["schneid", "würfel", "schäl"],
+        "2": ["anbrat", "schmor", "koch", "simmern", "dünst"],
+        "3": ["abschmeck", "würz", "salz"],
+        "4": ["anricht", "servier"]
+      }
+    }
+  ]
+}

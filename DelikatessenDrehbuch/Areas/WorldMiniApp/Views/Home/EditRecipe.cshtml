@@ -1,7 +1,27 @@
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.EditPostingRecipeViewModel
+@using Newtonsoft.Json
 @{
     ViewData["Title"] = "Rezept bearbeiten";
     Layout = "_MiniAppLayout";
+
+    var stepIngredientBindings = Model.IngredientStepJoins
+        .Where(x => x.Preperation != null && x.Ingredient != null)
+        .GroupBy(x => x.Preperation.Id)
+        .ToDictionary(
+            group => group.Key,
+            group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
+
+    var stepCatalogJson = System.Text.Json.JsonSerializer.Serialize(
+        Model.AvailableSteps?.Select(step => new
+        {
+            id = step.Id,
+            de = step.Step_DE,
+            en = step.Step_EN,
+            esp = step.Step_ESP,
+            prt = step.Step_PRT,
+            phase = step.Phase,
+            equipment = step.Equipment
+        }) ?? Enumerable.Empty<object>());
 }
 
 <div class="container py-4" style="max-width: 720px;">
@@ -12,7 +32,7 @@
     <div class="card border-0 shadow-sm rounded-4 mb-3">
         <div class="card-body p-4">
             <h4 class="fw-bold mb-1">Rezept bearbeiten</h4>
-            <p class="text-muted small mb-0">Jetzt kannst du auch Zutaten, Mengen und das Bild/Video ändern.</p>
+            <p class="text-muted small mb-0">Zutaten, Schritte, Mengen und das Bild/Video ändern.</p>
         </div>
     </div>
 
@@ -121,6 +141,68 @@
                 }
             </div>
 
+            <hr class="my-4" />
+
+            <!-- Zubereitungsschritte -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-semibold mb-0">Zubereitungsschritte</label>
+                <div class="d-flex gap-2">
+                    <button type="button" id="btnDecisionHelper" class="btn btn-sm btn-outline-success rounded-pill" onclick="runDecisionHelper()">
+                        <i class="bi bi-lightbulb me-1"></i>Entscheidungshilfe
+                    </button>
+                    <button type="button" id="btnSuggestSteps" class="btn btn-sm btn-outline-primary rounded-pill" onclick="suggestSteps()">
+                        <i class="bi bi-magic me-1"></i>Vorschlagen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Decision Helper Result -->
+            <div id="decisionHelperResult" class="mb-3 d-none">
+                <div class="border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div>
+                            <i class="bi bi-lightbulb text-success me-1"></i>
+                            <strong id="decisionDishType"></strong>
+                            <span class="badge bg-success ms-2" id="decisionConfidence"></span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-success rounded-pill" onclick="applyDecisionSteps()">
+                            <i class="bi bi-check2-all me-1"></i>Alle übernehmen
+                        </button>
+                    </div>
+                    <div id="decisionStepsList" class="d-flex flex-column gap-1"></div>
+                </div>
+            </div>
+
+            <!-- Step Catalog Search -->
+            <div class="mb-2">
+                <input type="text" id="editStepSearch" class="form-control form-control-sm rounded-3" placeholder="Schritt suchen..." />
+            </div>
+
+            <!-- Step Catalog -->
+            <div id="editStepCatalog" class="mb-3 border rounded-3 p-2" style="max-height:250px; overflow-y:auto;">
+            </div>
+
+            <!-- Selected Steps -->
+            <div id="selectedSteps" class="d-flex flex-column gap-2 mb-3">
+                @for (var i = 0; i < Model.Steps.Count; i++)
+                {
+                    var step = Model.AvailableSteps.FirstOrDefault(s => s.Id == Model.Steps[i].PreperationStepId);
+                    var label = step?.Step_DE ?? $"Schritt {Model.Steps[i].PreperationStepId}";
+                    var phase = step?.Phase ?? 0;
+                    <div class="d-flex align-items-center gap-2 border rounded p-2 step-row" draggable="true" data-step-id="@Model.Steps[i].PreperationStepId">
+                        <input type="hidden" name="Steps[@i].PreperationStepId" value="@Model.Steps[i].PreperationStepId" />
+                        <input type="hidden" class="step-index-input" name="Steps[@i].StepIndex" value="@Model.Steps[i].StepIndex" />
+                        <span class="badge bg-dark rounded-pill step-badge">@Model.Steps[i].StepIndex</span>
+                        <span class="small flex-grow-1 display-step-selected">@label</span>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeStep(this)"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                }
+            </div>
+
             <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-dark rounded-pill py-2 fw-semibold">
                     Änderungen speichern
@@ -159,6 +241,252 @@
 
 @section Scripts {
 <script>
+    const stepCatalog = @Html.Raw(stepCatalogJson);
+    const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
+
+    function getPhaseLabel(phase) {
+        const map = {
+            1: { text: 'Vorb.', cls: 'bg-info' },
+            2: { text: 'Kochen', cls: 'bg-warning text-dark' },
+            3: { text: 'Würzen', cls: 'bg-success' },
+            4: { text: 'Finish', cls: 'bg-secondary' }
+        };
+        const info = map[phase];
+        if (!info) return '';
+        return `<span class="badge ${info.cls} me-1">${info.text}</span>`;
+    }
+
+    function isStepAlreadySelected(stepId) {
+        return $('#selectedSteps .step-row').filter(function () {
+            return $(this).data('step-id')?.toString() === stepId.toString();
+        }).length > 0;
+    }
+
+    function getSelectedIngredientIds() {
+        return $('#ingredientRows select[name$="IngredientId"]').map(function () {
+            return parseInt($(this).val(), 10);
+        }).get().filter(id => !isNaN(id));
+    }
+
+    function getStepBoundIngredientIds(stepId) {
+        return (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
+    }
+
+    // Step Catalog rendering
+    function renderStepCatalog() {
+        const container = $('#editStepCatalog');
+        const search = ($('#editStepSearch').val() || '').trim().toLowerCase();
+        const selectedIds = getSelectedIngredientIds();
+        container.empty();
+
+        const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
+        const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
+
+        stepCatalog.forEach(step => {
+            const label = step.de || '';
+            if (search && !label.toLowerCase().includes(search)) return;
+            if (isStepAlreadySelected(step.id)) return;
+
+            const boundIds = getStepBoundIngredientIds(step.id);
+            const matchCount = boundIds.filter(bid => selectedIds.includes(bid)).length;
+            const phase = parseInt(step.phase ?? 0, 10);
+            const group = phaseGroups[phase] ?? phaseGroups[0];
+            group.push({ id: step.id, label, phase, matchCount });
+        });
+
+        let count = 0;
+        [1, 2, 3, 4, 0].forEach(phase => {
+            const items = phaseGroups[phase];
+            if (!items.length) return;
+
+            items.sort((a, b) => b.matchCount - a.matchCount);
+
+            container.append(`<div class="small fw-bold text-muted mt-1 mb-1">${phaseNames[phase]}</div>`);
+            items.forEach(item => {
+                const hint = item.matchCount > 0 ? `<span class="badge bg-info ms-1">${item.matchCount} Zutaten</span>` : '';
+                container.append(`<div class="d-flex align-items-center gap-2 py-1 border-bottom">
+                    <span class="small flex-grow-1">${getPhaseLabel(item.phase)}${item.label}${hint}</span>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="addEditStep(${item.id}, '${item.label.replace(/'/g, "\\'")}')"><i class="bi bi-plus"></i></button>
+                </div>`);
+                count++;
+            });
+        });
+
+        if (!count) {
+            container.append('<div class="text-muted small">Keine passenden Schritte gefunden.</div>');
+        }
+    }
+
+    function addEditStep(stepId, label) {
+        if (isStepAlreadySelected(stepId)) return;
+
+        const index = $('#selectedSteps .step-row').length;
+        const step = stepCatalog.find(s => s.id === stepId);
+        const phaseBadge = step ? getPhaseLabel(step.phase) : '';
+
+        $('#selectedSteps').append(`<div class="d-flex align-items-center gap-2 border rounded p-2 step-row" draggable="true" data-step-id="${stepId}">
+            <input type="hidden" name="Steps[${index}].PreperationStepId" value="${stepId}" />
+            <input type="hidden" class="step-index-input" name="Steps[${index}].StepIndex" value="${index + 1}" />
+            <span class="badge bg-dark rounded-pill step-badge">${index + 1}</span>
+            <span class="small flex-grow-1 display-step-selected">${phaseBadge}${label}</span>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeStep(this)"><i class="bi bi-trash"></i></button>
+            </div>
+        </div>`);
+
+        updateStepIndices();
+        renderStepCatalog();
+    }
+
+    function removeStep(btn) {
+        $(btn).closest('.step-row').remove();
+        updateStepIndices();
+        renderStepCatalog();
+    }
+
+    function moveStepRow(btn, direction) {
+        const row = $(btn).closest('.step-row');
+        if (direction < 0) {
+            const prev = row.prev('.step-row');
+            if (prev.length) prev.before(row);
+        } else {
+            const next = row.next('.step-row');
+            if (next.length) next.after(row);
+        }
+        updateStepIndices();
+    }
+
+    function updateStepIndices() {
+        $('#selectedSteps .step-row').each(function (i) {
+            $(this).find('.step-badge').text(i + 1);
+            $(this).find('.step-index-input').val(i + 1);
+            $(this).find('input[name$=".PreperationStepId"]').attr('name', `Steps[${i}].PreperationStepId`);
+            $(this).find('input[name$=".StepIndex"]').attr('name', `Steps[${i}].StepIndex`);
+        });
+    }
+
+    // Suggest steps based on ingredient bindings
+    function suggestSteps() {
+        const selectedIds = getSelectedIngredientIds();
+        if (!selectedIds.length) return;
+
+        const existingSteps = $('#selectedSteps .step-row').length;
+        if (existingSteps > 0 && !confirm('Bestehende Schritte ersetzen?')) return;
+
+        const bestPerCombo = new Map();
+        stepCatalog.forEach(step => {
+            const phase = parseInt(step.phase ?? 0, 10);
+            if (phase < 1) return;
+            const boundIds = getStepBoundIngredientIds(step.id);
+            if (!boundIds.length) return;
+            const matching = boundIds.filter(bid => selectedIds.includes(bid));
+            if (!matching.length) return;
+
+            matching.forEach(ingId => {
+                const key = `${ingId}_${phase}`;
+                const existing = bestPerCombo.get(key);
+                if (!existing || matching.length > existing.matchCount) {
+                    bestPerCombo.set(key, { stepId: step.id, phase, matchCount: matching.length, label: step.de });
+                }
+            });
+        });
+
+        const unique = new Map();
+        bestPerCombo.forEach(item => { if (!unique.has(item.stepId)) unique.set(item.stepId, item); });
+        const sorted = [...unique.values()].sort((a, b) => a.phase - b.phase || b.matchCount - a.matchCount);
+
+        $('#selectedSteps').empty();
+        sorted.forEach(item => addEditStep(item.stepId, item.label));
+        updateStepIndices();
+        renderStepCatalog();
+    }
+
+    // Decision Helper
+    let lastDecisionResult = null;
+
+    function runDecisionHelper() {
+        const title = ($('#Title').val() || '').trim();
+        const ingredientIds = getSelectedIngredientIds();
+        if (!title && !ingredientIds.length) return;
+
+        const btn = $('#btnDecisionHelper');
+        btn.prop('disabled', true).find('i').removeClass('bi-lightbulb').addClass('bi-hourglass-split');
+
+        $.ajax({
+            url: '@Url.Action("GetDecisionHelp", "Home", new { area = "WorldMiniApp" })',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ title: title, ingredientIds: ingredientIds }),
+            success: function (data) {
+                lastDecisionResult = data;
+                renderDecisionResult(data);
+            },
+            error: function () {
+                $('#decisionHelperResult').addClass('d-none');
+            },
+            complete: function () {
+                btn.prop('disabled', false).find('i').removeClass('bi-hourglass-split').addClass('bi-lightbulb');
+            }
+        });
+    }
+
+    function renderDecisionResult(data) {
+        const container = $('#decisionHelperResult');
+        const list = $('#decisionStepsList');
+        list.empty();
+
+        if (!data || !data.matched || !data.suggestedSteps || !data.suggestedSteps.length) {
+            container.addClass('d-none');
+            return;
+        }
+
+        $('#decisionDishType').text(data.dishType || data.patternId);
+        const pct = Math.round((data.confidence || 0) * 100);
+        $('#decisionConfidence').text(pct + '% Match');
+
+        data.suggestedSteps.forEach(function (step, i) {
+            const phaseBadge = getPhaseLabel(step.phase);
+            const alreadySelected = isStepAlreadySelected(step.stepId);
+            const statusBadge = alreadySelected ? '<span class="badge bg-secondary ms-1">schon gewählt</span>' : '';
+
+            list.append(`<div class="d-flex align-items-center gap-2 border rounded p-2 bg-white">
+                <span class="badge bg-dark rounded-pill">${i + 1}</span>
+                ${phaseBadge}
+                <span class="small flex-grow-1">${step.label}</span>
+                ${statusBadge}
+                <button type="button" class="btn btn-sm btn-outline-success" ${alreadySelected ? 'disabled' : ''} onclick="acceptDecisionStep(${step.stepId}, '${(step.label || '').replace(/'/g, "\\'")}')">
+                    <i class="bi bi-plus-circle"></i>
+                </button>
+            </div>`);
+        });
+
+        container.removeClass('d-none');
+    }
+
+    function acceptDecisionStep(stepId, label) {
+        if (isStepAlreadySelected(stepId)) return;
+        addEditStep(stepId, label);
+        renderDecisionResult(lastDecisionResult);
+    }
+
+    function applyDecisionSteps() {
+        if (!lastDecisionResult || !lastDecisionResult.suggestedSteps) return;
+        const existing = $('#selectedSteps .step-row').length;
+        if (existing > 0 && !confirm('Bestehende Schritte ersetzen?')) return;
+        if (existing > 0) $('#selectedSteps').empty();
+
+        lastDecisionResult.suggestedSteps.forEach(function (step) {
+            if (!isStepAlreadySelected(step.stepId)) {
+                addEditStep(step.stepId, step.label);
+            }
+        });
+        updateStepIndices();
+        renderDecisionResult(lastDecisionResult);
+    }
+
+    // Standard functions
     function addIngredientRow() {
         const container = document.getElementById('ingredientRows');
         const tpl = document.getElementById('ingredientRowTemplate');
@@ -176,6 +504,7 @@
         const row = btn.closest('.ingredient-row');
         row.remove();
         reindexIngredientRows();
+        renderStepCatalog();
     }
 
     function reindexIngredientRows() {
@@ -190,19 +519,48 @@
     function normalizeDecimalInputs(scopeSelector) {
         const container = document.querySelector(scopeSelector);
         if (!container) return;
-
         container.querySelectorAll('.js-decimal-input').forEach(input => {
             const raw = (input.value || '').trim();
             if (!raw) return;
-
-            // erlaubt sowohl "1,5" als auch "1.5" -> normalisiert auf Punkt für serverseitiges Binding
             input.value = raw.replace(/\s/g, '').replace(',', '.');
         });
     }
 
-    document.getElementById('editRecipeForm')?.addEventListener('submit', function () {
-        normalizeDecimalInputs('#editRecipeForm');
+    // Drag & Drop for steps
+    let draggedStepRow = null;
+
+    $(document).ready(function () {
+        renderStepCatalog();
+
+        $('#editStepSearch').on('input', function () {
+            renderStepCatalog();
+        });
+
+        $('#selectedSteps').on('dragstart', '.step-row', function (e) {
+            draggedStepRow = this;
+            e.originalEvent.dataTransfer.effectAllowed = 'move';
+            $(this).addClass('opacity-50');
+        });
+
+        $('#selectedSteps').on('dragend', '.step-row', function () {
+            $(this).removeClass('opacity-50');
+            draggedStepRow = null;
+        });
+
+        $('#selectedSteps').on('dragover', '.step-row', function (e) {
+            e.preventDefault();
+            if (!draggedStepRow || draggedStepRow === this) return;
+            const rect = this.getBoundingClientRect();
+            const offset = e.originalEvent.clientY - rect.top;
+            if (offset > rect.height / 2) $(this).after(draggedStepRow);
+            else $(this).before(draggedStepRow);
+            updateStepIndices();
+        });
     });
 
+    document.getElementById('editRecipeForm')?.addEventListener('submit', function () {
+        normalizeDecimalInputs('#editRecipeForm');
+        updateStepIndices();
+    });
 </script>
 }
