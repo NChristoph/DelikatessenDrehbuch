@@ -1,0 +1,172 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserMealPlan>
+@{
+    ViewData["Title"] = "Plan verkaufen";
+    Layout = "_MiniAppLayout";
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+}
+
+<style>
+    .sell-card {
+        background: #fff;
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .plan-option {
+        border: 2px solid transparent;
+        border-radius: .75rem;
+        padding: .75rem;
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+        background: rgba(0,0,0,.02);
+    }
+    .plan-option:hover { background: rgba(0,0,0,.04); }
+    .plan-option.selected {
+        border-color: #f59e0b;
+        background: rgba(245,158,11,.06);
+    }
+    .sell-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        border-radius: .75rem;
+        padding: .6rem 1.5rem;
+    }
+    .sell-btn:hover { filter: brightness(1.1); color: #fff; }
+    .sell-btn:disabled { opacity: .5; }
+    .price-input {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: .75rem;
+        max-width: 140px;
+    }
+    .price-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); outline: none; }
+</style>
+
+<div class="container py-4" style="max-width:720px;">
+    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zum Marketplace
+    </a>
+
+    <div class="sell-card p-4 mb-3">
+        <h4 class="fw-bold mb-1">Essensplan verkaufen</h4>
+        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WildCoin fest.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted"></i>
+            <p class="text-muted mt-2">Du hast noch keine Essenspläne.</p>
+            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="btn btn-outline-dark btn-sm rounded-pill">Plan erstellen</a>
+        </div>
+    }
+    else
+    {
+        <div class="sell-card p-4">
+            <!-- Plan auswählen -->
+            <label class="fw-semibold mb-2 d-block">1. Plan auswählen</label>
+            <div class="d-flex flex-column gap-2 mb-4" id="planList">
+                @foreach (var plan in Model)
+                {
+                    <div class="plan-option" data-plan-id="@plan.Id" onclick="selectPlan(this, @plan.Id, '@(plan.Title?.Replace("'", "\\'") ?? "Essensplan")')">
+                        <div class="fw-bold">@(plan.Title ?? "Essensplan")</div>
+                        <div class="text-muted small">Erstellt: @plan.CreationTime.ToString("dd.MM.yyyy")</div>
+                    </div>
+                }
+            </div>
+
+            <!-- Titel & Beschreibung -->
+            <label class="fw-semibold mb-2 d-block">2. Angebot beschreiben</label>
+            <div class="mb-2">
+                <input type="text" id="listingTitle" class="form-control rounded-3" placeholder="Titel für dein Angebot" maxlength="100" />
+            </div>
+            <div class="mb-4">
+                <textarea id="listingDescription" class="form-control rounded-3" rows="2" placeholder="Kurze Beschreibung (optional)" maxlength="300"></textarea>
+            </div>
+
+            <!-- Preis -->
+            <label class="fw-semibold mb-2 d-block">3. Preis festlegen</label>
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" />
+                <span class="fw-bold text-muted">WildCoin</span>
+            </div>
+
+            <!-- Submit -->
+            <button class="sell-btn w-100" id="btnSell" onclick="createListing()" disabled>
+                <i class="bi bi-tag me-2"></i>Jetzt verkaufen
+            </button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    let selectedPlanId = null;
+
+    function getUserHash() {
+        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
+    }
+
+    function selectPlan(el, planId, planTitle) {
+        document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedPlanId = planId;
+
+        const titleInput = document.getElementById('listingTitle');
+        if (!titleInput.value.trim()) {
+            titleInput.value = planTitle;
+        }
+
+        document.getElementById('btnSell').disabled = false;
+    }
+
+    async function createListing() {
+        if (!selectedPlanId) return;
+
+        const title = document.getElementById('listingTitle').value.trim();
+        const description = document.getElementById('listingDescription').value.trim();
+        const price = parseFloat(document.getElementById('listingPrice').value) || 0;
+
+        if (!title) { alert('Bitte gib einen Titel ein.'); return; }
+        if (price < 1 || price > 1000) { alert('Preis muss zwischen 1 und 1000 WildCoin liegen.'); return; }
+
+        const form = new FormData();
+        form.append('userHash', getUserHash());
+        form.append('mealPlanId', selectedPlanId);
+        form.append('title', title);
+        form.append('description', description);
+        form.append('price', price);
+        form.append('__RequestVerificationToken',
+            document.querySelector('input[name="__RequestVerificationToken"]')?.value || '');
+
+        const btn = document.getElementById('btnSell');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Wird erstellt...';
+
+        try {
+            const resp = await fetch('@Url.Action("CreateListing", "Marketplace", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                body: form
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert('Angebot erstellt!');
+                window.location.href = '@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })';
+            } else {
+                alert(data.error || 'Fehler beim Erstellen.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-tag me-2"></i>Jetzt verkaufen';
+            }
+        } catch {
+            alert('Netzwerkfehler.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-tag me-2"></i>Jetzt verkaufen';
+        }
+    }
+</script>
+@Html.AntiForgeryToken()
+}

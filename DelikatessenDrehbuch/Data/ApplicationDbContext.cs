@@ -46,6 +46,9 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
         public DbSet<JoinIngredientPreperationStep> JoinIngredientPreperationStep { get; set; }
+        public DbSet<MealPlanListing> MealPlanListings { get; set; }
+        public DbSet<WildCoinTransaction> WildCoinTransactions { get; set; }
+        public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

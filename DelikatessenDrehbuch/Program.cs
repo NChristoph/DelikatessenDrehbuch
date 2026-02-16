@@ -74,6 +74,7 @@ builder.Services.AddScoped<IUserManager, UserManager>();
 builder.Services.AddScoped<IBlobUploadService, BlobUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
+builder.Services.AddScoped<IWildCoinService, WildCoinService>();
 
 
 builder.Services.AddHttpContextAccessor();

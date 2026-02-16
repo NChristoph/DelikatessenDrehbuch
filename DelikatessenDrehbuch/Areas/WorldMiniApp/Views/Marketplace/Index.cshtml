@@ -1,0 +1,177 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanListing>
+@{
+    ViewData["Title"] = "Marketplace";
+    Layout = "_MiniAppLayout";
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var balance = (decimal)(ViewData["Balance"] ?? 0m);
+}
+
+<style>
+    .mp-card {
+        background: #fff;
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        transition: transform .15s, box-shadow .15s;
+    }
+    .mp-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.1); }
+
+    .coin-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-weight: 700;
+        border-radius: .6rem;
+        padding: .25rem .6rem;
+        font-size: .85rem;
+    }
+    .coin-balance-bar {
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: #fff;
+        border-radius: 1rem;
+        padding: .75rem 1.25rem;
+    }
+    .seller-badge { font-size: .75rem; color: #6b7280; }
+    .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: .75rem;
+        background: rgba(0,0,0,.04);
+        border-radius: 1rem;
+        padding: 2px 8px;
+        color: #6b7280;
+    }
+    .buy-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: .6rem;
+        padding: .4rem 1rem;
+        font-size: .85rem;
+    }
+    .buy-btn:hover { filter: brightness(1.1); color: #fff; }
+    .buy-btn:disabled { opacity: .5; }
+</style>
+
+<div class="container py-4" style="max-width:720px;">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Marketplace</h4>
+            <p class="text-muted small mb-0">Essenspläne kaufen & verkaufen</p>
+        </div>
+        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
+           class="btn btn-dark btn-sm rounded-pill">
+            <i class="bi bi-plus-lg me-1"></i>Verkaufen
+        </a>
+    </div>
+
+    <!-- Balance Bar -->
+    <div class="coin-balance-bar d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="small opacity-75">Dein Guthaben</div>
+            <div class="fs-5 fw-bold" id="userBalance">@balance.ToString("0.##") WC</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
+               class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
+        </div>
+    </div>
+
+    <!-- Listings -->
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-shop fs-1 text-muted"></i>
+            <p class="text-muted mt-2">Noch keine Angebote vorhanden.</p>
+            <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
+               class="btn btn-outline-dark btn-sm rounded-pill">Ersten Plan verkaufen</a>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var listing in Model)
+            {
+                var isOwn = listing.SellerHash == userHash;
+                <div class="mp-card p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">@listing.Title</div>
+                            <div class="seller-badge">
+                                <i class="bi bi-person-circle me-1"></i>@listing.SellerName
+                                @if (listing.SoldCount > 0)
+                                {
+                                    <span class="ms-2"><i class="bi bi-bag-check"></i> @listing.SoldCount</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(listing.Description))
+                            {
+                                <p class="small text-muted mt-1 mb-1">@listing.Description</p>
+                            }
+                            <div class="mt-1">
+                                <span class="stat-pill"><i class="bi bi-calendar3"></i> @listing.DayCount Tage</span>
+                                <span class="stat-pill"><i class="bi bi-journal-text"></i> @listing.RecipeCount Rezepte</span>
+                            </div>
+                        </div>
+                        <div class="text-end ms-3">
+                            <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WC</div>
+                            @if (isOwn)
+                            {
+                                <div class="small text-muted">Dein Angebot</div>
+                            }
+                            else if (!string.IsNullOrEmpty(userHash))
+                            {
+                                <button class="buy-btn"
+                                        onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                                        @(balance < listing.Price ? "disabled" : "")>
+                                    <i class="bi bi-bag-plus me-1"></i>Kaufen
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    function getUserHash() {
+        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
+    }
+
+    function getAntiForgeryToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
+    async function buyListing(listingId, title, price) {
+        if (!confirm(`"${title}" für ${price} WildCoin kaufen?`)) return;
+
+        const hash = getUserHash();
+        const form = new FormData();
+        form.append('userHash', hash);
+        form.append('listingId', listingId);
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        try {
+            const resp = await fetch('@Url.Action("Buy", "Marketplace", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                body: form
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert('Gekauft! Der Essensplan wurde zu deinen Plänen hinzugefügt.');
+                location.reload();
+            } else {
+                alert(data.error || 'Kauf fehlgeschlagen.');
+            }
+        } catch {
+            alert('Netzwerkfehler.');
+        }
+    }
+</script>
+@Html.AntiForgeryToken()
+}
