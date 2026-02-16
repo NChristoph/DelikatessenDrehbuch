@@ -19,6 +19,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public MealPlanListing Listing { get; set; }
         public int CreatedMealPlanId { get; set; }
         public decimal PricePaid { get; set; }
+        public string? ReferenceTxHash { get; set; }
+        public string? BuyerWalletAddress { get; set; }
         public DateTime PurchasedAt { get; set; } = DateTime.Now;
     }
 }
