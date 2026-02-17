@@ -1173,41 +1173,58 @@
 
         /** Live recipe type detection when ingredients change */
         function updateRecipeTypeDetection() {
-            if (!RecipeStepSuggest.isLoaded()) {
-                RecipeStepSuggest.loadMapping().then(() => updateRecipeTypeDetection());
-                return;
-            }
             const selectedIds = getSelectedIngredientIds();
             const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
             const scoreBar = $('#recipeTypeScoreBar');
             const badges = $('#recipeTypeBadges');
             const masterBox = $('#masterStepPreviewBox');
             const masterList = $('#masterStepPreviewList');
+
             if (!selectedIds.length) {
                 scoreBar.addClass('d-none');
                 masterBox.addClass('d-none');
                 return;
             }
-            const hasSuggest = typeof window.RecipeStepSuggest !== 'undefined';
-            const types = hasSuggest && typeof RecipeStepSuggest.detectRecipeTypes === 'function'
-                ? RecipeStepSuggest.detectRecipeTypes(selectedIds)
+
+            const suggest = window.RecipeStepSuggest;
+            if (suggest && typeof suggest.isLoaded === 'function' && !suggest.isLoaded() && typeof suggest.loadMapping === 'function') {
+                suggest.loadMapping().then(() => updateRecipeTypeDetection());
+                return;
+            }
+
+            const types = suggest && typeof suggest.detectRecipeTypes === 'function'
+                ? suggest.detectRecipeTypes(selectedIds)
                 : [];
-            if (types.length && typeof RecipeStepSuggest.renderRecipeTypeBadges === 'function') {
-                badges.html(RecipeStepSuggest.renderRecipeTypeBadges(types, 3));
+
+            if (types.length && suggest && typeof suggest.renderRecipeTypeBadges === 'function') {
+                badges.html(suggest.renderRecipeTypeBadges(types, 3));
                 scoreBar.removeClass('d-none');
             } else {
                 scoreBar.addClass('d-none');
             }
 
-            const preview = hasSuggest && typeof RecipeStepSuggest.getMasterStepPreview === 'function'
-                ? RecipeStepSuggest.getMasterStepPreview(selectedNames, { lang: currentLang, maxItems: 5 })
-                : [];
-            if (preview.length) {
-                masterList.empty();
-                preview.forEach(item => {
-                    masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text}</div>`);
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.suggestForIngredient === 'function' && typeof MasterStepRenderer.render === 'function') {
+                const previews = [];
+                selectedNames.slice(0, 2).forEach(name => {
+                    const steps = MasterStepRenderer.suggestForIngredient(name).slice(0, 3);
+                    steps.forEach(step => {
+                        const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, { ingredientName: name, recipeCategory: $('#Recipe_Category').val() });
+                        const text = MasterStepRenderer.render(step.master_id, defaults, currentLang);
+                        if (text) {
+                            previews.push({ phase: parseInt(step.phase || 0, 10), text });
+                        }
+                    });
                 });
-                masterBox.removeClass('d-none');
+
+                if (previews.length) {
+                    masterList.empty();
+                    previews.slice(0, 5).forEach(item => {
+                        masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text}</div>`);
+                    });
+                    masterBox.removeClass('d-none');
+                } else {
+                    masterBox.addClass('d-none');
+                }
             } else {
                 masterBox.addClass('d-none');
             }
