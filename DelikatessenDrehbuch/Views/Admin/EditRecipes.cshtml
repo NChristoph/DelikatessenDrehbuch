@@ -16,6 +16,25 @@
                 ? stepIngredientBindings[step.Id]
                 : new List<int>()
         }) ?? Enumerable.Empty<object>());
+
+    var ingredientLookupByName = (Model.IngredientsAndNutrients ?? new List<IngredientsAndNutrients>())
+        .Where(x => !string.IsNullOrWhiteSpace(x.Name_DE))
+        .GroupBy(x => x.Name_DE.Trim().ToLowerInvariant())
+        .ToDictionary(g => g.Key, g => g.First().Id);
+
+    var initialIngredientsJson = JsonConvert.SerializeObject(
+        (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
+            .Select(old => {
+                var normalizedName = (old.Ingredient?.Name ?? string.Empty).Trim().ToLowerInvariant();
+                ingredientLookupByName.TryGetValue(normalizedName, out var mappedId);
+                return new {
+                    id = mappedId,
+                    name = old.Ingredient?.Name ?? string.Empty,
+                    quantity = old.Quantity?.Quantitys,
+                    unit = old.Measure?.UnitOfMeasurement ?? "Gramm"
+                };
+            })
+            .ToList());
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -470,6 +489,7 @@
         let activeSandboxIngredientId = null;
         let activeSandboxIngredientName = '';
         const stepCatalog = @Html.Raw(stepCatalogJson);
+        const initialRecipeIngredients = @Html.Raw(initialIngredientsJson);
         const stepCatalogById = new Map();
         stepCatalog.forEach(function(s) { stepCatalogById.set(s.id.toString(), s); });
         let sandboxUnboundSteps = [];
@@ -1053,6 +1073,19 @@
             info.text('Noch keine Aktion bei den Schritten.');
         }
 
+        function preloadExistingRecipeIngredients() {
+            if (!Array.isArray(initialRecipeIngredients) || !initialRecipeIngredients.length) return;
+
+            initialRecipeIngredients.forEach(function(item) {
+                const dbId = item?.id && Number(item.id) > 0 ? item.id.toString() : '0';
+                const name = (item?.name || '').toString();
+                const quantity = item?.quantity != null ? item.quantity.toString() : '';
+                const unit = (item?.unit || 'Gramm').toString();
+                if (!name && dbId === '0') return;
+                addNewIngredient(dbId, name, quantity, unit);
+            });
+        }
+
         $(document).ready(function() {
             ingredientsTable = new DataTable('#ingredientsDbTable', {
                 ajax: {
@@ -1096,6 +1129,7 @@
                 suggestStepsForSelectedIngredients();
             });
 
+            preloadExistingRecipeIngredients();
             renderSandboxIngredientList();
             updateSuggestButtonState();
         });
