@@ -383,6 +383,10 @@
                                 <span id="recipeTypeBadges"></span>
                             </div>
                         </div>
+                        <div id="masterStepPreviewBox" class="mt-2 d-none">
+                            <div class="small text-muted mb-1">Master-Step Vorschau:</div>
+                            <div id="masterStepPreviewList" class="d-flex flex-column gap-1"></div>
+                        </div>
 
                         <div class="row g-3 mt-1">
                             <div class="col-md-5">
@@ -457,6 +461,28 @@
                     </div>
 
                     <div id="selectedSteps" class="mt-3 selected-zone"></div>
+
+                    <div class="master-step-builder mt-3">
+                        <div class="fw-bold mb-2">Master Template Builder</div>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted mb-1">Zutat</label>
+                                <select id="masterIngredientSelect" class="form-select form-select-sm"></select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small text-muted mb-1">Template</label>
+                                <select id="masterTemplateSelect" class="form-select form-select-sm"></select>
+                            </div>
+                            <div class="col-md-3 d-grid">
+                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-check2-circle me-1"></i>Übernehmen
+                                </button>
+                            </div>
+                        </div>
+                        <div id="masterVariables" class="row g-2 mt-1"></div>
+                        <div class="small text-muted mt-2">Preview:</div>
+                        <div id="masterPreviewText" class="small border rounded px-2 py-2 bg-light">Noch kein Template gewählt.</div>
+                    </div>
                 </div>
             </section>
 
@@ -1086,6 +1112,7 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/master-step-renderer.js"></script>
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
@@ -1151,10 +1178,14 @@
                 return;
             }
             const selectedIds = getSelectedIngredientIds();
+            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
             const scoreBar = $('#recipeTypeScoreBar');
             const badges = $('#recipeTypeBadges');
+            const masterBox = $('#masterStepPreviewBox');
+            const masterList = $('#masterStepPreviewList');
             if (!selectedIds.length) {
                 scoreBar.addClass('d-none');
+                masterBox.addClass('d-none');
                 return;
             }
             const types = RecipeStepSuggest.detectRecipeTypes(selectedIds);
@@ -1163,6 +1194,17 @@
                 scoreBar.removeClass('d-none');
             } else {
                 scoreBar.addClass('d-none');
+            }
+
+            const preview = RecipeStepSuggest.getMasterStepPreview(selectedNames, { lang: currentLang, maxItems: 5 });
+            if (preview.length) {
+                masterList.empty();
+                preview.forEach(item => {
+                    masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text}</div>`);
+                });
+                masterBox.removeClass('d-none');
+            } else {
+                masterBox.addClass('d-none');
             }
         }
 
@@ -1310,6 +1352,159 @@
                     name: row.find('.display-name-selected').text()?.trim() || 'Zutat'
                 };
             }).get();
+        }
+
+        const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
+
+        function refreshMasterTemplateBuilder() {
+            const ingredientSelect = $('#masterIngredientSelect');
+            const ingredients = getSelectedIngredientsForSandbox();
+            ingredientSelect.empty();
+
+            if (!ingredients.length) {
+                ingredientSelect.append('<option value="">Keine Zutat gewählt</option>');
+                $('#masterTemplateSelect').html('<option value="">Keine Templates</option>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Noch kein Template gewählt.');
+                return;
+            }
+
+            ingredients.forEach(item => {
+                ingredientSelect.append(`<option value="${item.name}">${item.name}</option>`);
+            });
+
+            refreshMasterTemplateOptions();
+        }
+
+        function refreshMasterTemplateOptions() {
+            const ingredientName = $('#masterIngredientSelect').val() || '';
+            const templateSelect = $('#masterTemplateSelect');
+            templateSelect.empty();
+
+            if (!ingredientName || !window.MasterStepRenderer) {
+                templateSelect.append('<option value="">Keine Templates</option>');
+                return;
+            }
+
+            const suggestions = MasterStepRenderer.suggestForIngredient(ingredientName);
+            if (!suggestions.length) {
+                templateSelect.append('<option value="">Keine Templates gefunden</option>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Keine passenden Master-Templates gefunden.');
+                return;
+            }
+
+            suggestions.forEach(step => {
+                const label = step.description || step.master_id;
+                templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
+            });
+
+            renderMasterTemplateEditor();
+        }
+
+        function renderMasterTemplateEditor() {
+            const templateId = $('#masterTemplateSelect').val();
+            const ingredientName = $('#masterIngredientSelect').val() || '';
+            const box = $('#masterVariables');
+            box.empty();
+
+            if (!templateId || !window.MasterStepRenderer) {
+                $('#masterPreviewText').text('Noch kein Template gewählt.');
+                return;
+            }
+
+            const template = MasterStepRenderer.findTemplate(templateId);
+            if (!template) {
+                $('#masterPreviewText').text('Template nicht gefunden.');
+                return;
+            }
+
+            const vars = MasterStepRenderer.getSmartDefaults(templateId, {
+                ingredientName: ingredientName,
+                recipeCategory: $('#Recipe_Category').val()
+            });
+
+            (template.variables || []).forEach(key => {
+                const value = vars[key] || '';
+                box.append(`<div class="col-md-4"><label class="form-label small text-muted mb-1">${key}</label><input type="text" class="form-control form-control-sm master-var-input" data-var="${key}" value="${value}" /></div>`);
+            });
+
+            updateMasterPreview();
+        }
+
+        function collectMasterVariables() {
+            const vars = {};
+            $('#masterVariables .master-var-input').each(function () {
+                vars[$(this).data('var')] = $(this).val();
+            });
+            return vars;
+        }
+
+        function updateMasterPreview() {
+            const templateId = $('#masterTemplateSelect').val();
+            if (!templateId || !window.MasterStepRenderer) return;
+
+            const vars = collectMasterVariables();
+            const text = MasterStepRenderer.render(templateId, vars, currentLang);
+            $('#masterPreviewText').text(text || 'Keine Vorschau verfügbar.');
+        }
+
+        async function addRenderedMasterStep() {
+            const templateId = $('#masterTemplateSelect').val();
+            if (!templateId || !window.MasterStepRenderer) return;
+
+            const template = MasterStepRenderer.findTemplate(templateId);
+            if (!template) return;
+
+            const vars = collectMasterVariables();
+            const rendered = MasterStepRenderer.renderAll(templateId, vars);
+            const payload = {
+                de: rendered.de,
+                en: rendered.en,
+                esp: rendered.esp,
+                prt: rendered.prt,
+                phase: parseInt(template.phase || 0, 10),
+                equipment: parseInt(template.equipment || 0, 10)
+            };
+
+            try {
+                const userHash = getCookieValue('WorldMiniAppUserHash') || '';
+                const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upsert fehlgeschlagen');
+                }
+
+                const result = await response.json();
+                const newId = result?.id;
+                if (!newId) {
+                    throw new Error('Keine Step-ID erhalten');
+                }
+
+                const alreadyExists = getAllStepRows().some(x => x && x.id?.toString() === newId.toString());
+                if (!alreadyExists) {
+                    getAllStepRows().push({
+                        id: newId,
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
+                        phase: payload.phase,
+                        equipment: payload.equipment
+                    });
+                }
+
+                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true });
+                updateStepIndices();
+                renderSandboxStepTab();
+            } catch (error) {
+                alert('Master-Step konnte nicht übernommen werden.');
+            }
         }
 
         function syncIngredientSourceVisibility() {
@@ -1844,6 +2039,12 @@
                 }
                 renderSandboxStepTab();
             });
+
+            MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
+            $('#masterIngredientSelect').on('change', refreshMasterTemplateOptions);
+            $('#masterTemplateSelect').on('change', renderMasterTemplateEditor);
+            $('#masterVariables').on('input', '.master-var-input', updateMasterPreview);
+            $('#btnAddRenderedStep').on('click', addRenderedMasterStep);
 
             $('#equipmentFilterBar').on('click', '.equipment-filter-btn', function () {
                 $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');

@@ -13,6 +13,7 @@
 
     let mappingData = null;
     let categoryScoringData = null;
+    let masterStepsData = null;
     let mappingLoaded = false;
     let loadingPromise = null;
 
@@ -24,12 +25,16 @@
             fetch('/data/recipe_step_mapping.json').then(r => r.json()),
             fetch('/data/recipe_category_scoring.json')
                 .then(r => r.ok ? r.json() : null)
+                .catch(() => null),
+            fetch('/data/master_steps.json')
+                .then(r => r.ok ? r.json() : null)
                 .catch(() => null)
-        ]).then(([stepData, categoryData]) => {
+        ]).then(([stepData, categoryData, masterData]) => {
             mappingData = stepData;
             categoryScoringData = categoryData;
+            masterStepsData = masterData;
             mappingLoaded = true;
-            return { stepData, categoryData };
+            return { stepData, categoryData, masterData };
         });
 
         return loadingPromise;
@@ -334,12 +339,105 @@
         }).join('');
     }
 
+    function renderMasterTemplate(template, vars) {
+        if (!template) return '';
+        return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+            const raw = vars[key];
+            if (raw === null || raw === undefined || raw === '') {
+                return key;
+            }
+            return raw;
+        });
+    }
+
+    function getMasterTemplateDefaults(ingredientName) {
+        return {
+            ingredient: ingredientName || 'Zutat',
+            pronoun: 'sie',
+            tool: 'Messer',
+            shape: 'mundgerechte Stücke',
+            grind_size: 'fein',
+            marinade: 'Öl, Salz und Gewürzen',
+            duration: '10 Minuten',
+            liquid: 'Wasser',
+            quantity: 'etwas',
+            temperature: 'mittlerer Hitze',
+            heat: 'mittlerer Hitze',
+            spice_mix: 'Salz, Pfeffer und Gewürzen',
+            sauce: 'Sauce',
+            target_consistency: 'cremig',
+            garnish: 'frischen Kräutern',
+            serving_style: 'auf Tellern',
+            side: 'Beilage'
+        };
+    }
+
+    function getMasterStepPreview(selectedIngredientNames, options) {
+        options = options || {};
+        const lang = (options.lang || 'de').toLowerCase();
+        const maxIngredients = options.maxIngredients || 3;
+        const maxItems = options.maxItems || 6;
+
+        if (!masterStepsData || !Array.isArray(masterStepsData.master_steps)) {
+            return [];
+        }
+
+        const names = (selectedIngredientNames || [])
+            .map(n => (n || '').toString().trim())
+            .filter(Boolean)
+            .slice(0, maxIngredients);
+
+        if (!names.length) return [];
+
+        const preferredActions = ['wash', 'cut', 'mix', 'fry', 'boil', 'bake', 'season', 'serve'];
+        const selectedTemplates = [];
+
+        names.forEach(function (ingredientName) {
+            preferredActions.forEach(function (actionName) {
+                const match = masterStepsData.master_steps.find(function (step) {
+                    return step && step.action === actionName && Array.isArray(step.variables) && step.variables.includes('ingredient');
+                });
+
+                if (match) {
+                    selectedTemplates.push({
+                        ingredientName: ingredientName,
+                        step: match
+                    });
+                }
+            });
+        });
+
+        const seen = new Set();
+        const rendered = [];
+        selectedTemplates.forEach(function (item) {
+            const key = `${item.step.master_id}::${item.ingredientName}`;
+            if (seen.has(key) || rendered.length >= maxItems) return;
+            seen.add(key);
+
+            const templates = item.step.templates || {};
+            const template = templates[lang] || templates.de || templates.en || '';
+            const text = renderMasterTemplate(template, getMasterTemplateDefaults(item.ingredientName));
+            if (!text) return;
+
+            rendered.push({
+                masterId: item.step.master_id,
+                phase: parseInt(item.step.phase || 0, 10),
+                equipment: parseInt(item.step.equipment || 0, 10),
+                text: text
+            });
+        });
+
+        return rendered;
+    }
+
     // Export
     window.RecipeStepSuggest = {
         loadMapping: loadMapping,
         detectRecipeTypes: detectRecipeTypes,
         suggestStepsForIngredients: suggestStepsForIngredients,
         renderRecipeTypeBadges: renderRecipeTypeBadges,
+        getMasterStepPreview: getMasterStepPreview,
+        hasMasterSteps: function () { return !!(masterStepsData && Array.isArray(masterStepsData.master_steps) && masterStepsData.master_steps.length); },
         isLoaded: function () { return mappingLoaded; }
     };
 

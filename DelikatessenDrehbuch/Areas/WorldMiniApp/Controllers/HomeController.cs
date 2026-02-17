@@ -234,6 +234,68 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(model);
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> UpsertStep([FromBody] UpsertStepRequest request, string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            var isAdmin = User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+            if (!isAdmin && !await IsCreatorAllowedAsync(userHash))
+            {
+                return Forbid();
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.De) || string.IsNullOrWhiteSpace(request.En))
+            {
+                return BadRequest(new { message = "Ungültige Step-Daten." });
+            }
+
+            var de = request.De.Trim();
+            var en = request.En.Trim();
+            var esp = (request.Esp ?? string.Empty).Trim();
+            var prt = (request.Prt ?? string.Empty).Trim();
+            var phase = request.Phase;
+            var equipment = request.Equipment;
+
+            var existing = await _context.RecipePreperationSteps
+                .FirstOrDefaultAsync(x => x.Step_DE == de
+                    && x.Step_EN == en
+                    && x.Step_ESP == esp
+                    && x.Step_PRT == prt
+                    && x.Phase == phase
+                    && x.Equipment == equipment);
+
+            if (existing != null)
+            {
+                return Json(new { id = existing.Id, reused = true });
+            }
+
+            var step = new RecipePreperationSteps
+            {
+                Step_DE = de,
+                Step_EN = en,
+                Step_ESP = esp,
+                Step_PRT = prt,
+                Phase = phase,
+                Equipment = equipment
+            };
+
+            await _context.RecipePreperationSteps.AddAsync(step);
+            await _context.SaveChangesAsync();
+
+            return Json(new { id = step.Id, reused = false });
+        }
+
+        public sealed class UpsertStepRequest
+        {
+            public string De { get; set; } = string.Empty;
+            public string En { get; set; } = string.Empty;
+            public string Esp { get; set; } = string.Empty;
+            public string Prt { get; set; } = string.Empty;
+            public int Phase { get; set; }
+            public int Equipment { get; set; }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRecipe(EditPostingRecipeViewModel model, string userHash)
