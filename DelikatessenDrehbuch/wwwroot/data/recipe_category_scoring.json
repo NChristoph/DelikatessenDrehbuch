@@ -1351,6 +1351,427 @@
           "weight": 0.8
         }
       ]
+    },
+    {
+      "id": "sushi_poke",
+      "display_name": {
+        "de": "Sushi / Poke Bowl",
+        "en": "Sushi / Poke Bowl",
+        "prt": "Sushi / Poke Bowl",
+        "esp": "Sushi / Poke Bowl"
+      },
+      "typical_ingredients": [
+        655,
+        889,
+        116,
+        407,
+        340,
+        846,
+        420,
+        415,
+        100,
+        156
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 889,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 655,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 116,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 407,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 340,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 846,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 415,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 420,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 100,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 156,
+          "weight": 0.55
+        }
+      ]
+    },
+    {
+      "id": "ramen_pho",
+      "display_name": {
+        "de": "Ramen / Pho",
+        "en": "Ramen / Pho",
+        "prt": "Ramen / Pho",
+        "esp": "Ramen / Pho"
+      },
+      "typical_ingredients": [
+        858,
+        387,
+        468,
+        158,
+        267,
+        884,
+        56,
+        116,
+        156,
+        111
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 858,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 387,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 267,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 468,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 116,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 884,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 56,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 158,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 156,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 111,
+          "weight": 0.6
+        }
+      ]
+    },
+    {
+      "id": "shakshuka",
+      "display_name": {
+        "de": "Shakshuka",
+        "en": "Shakshuka",
+        "prt": "Shakshuka",
+        "esp": "Shakshuka"
+      },
+      "typical_ingredients": [
+        111,
+        57,
+        78,
+        522,
+        114,
+        14,
+        12,
+        232,
+        77,
+        23
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 111,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 78,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 57,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 522,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 14,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 232,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 12,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 77,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 23,
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "paella",
+      "display_name": {
+        "de": "Paella",
+        "en": "Paella",
+        "prt": "Paella",
+        "esp": "Paella"
+      },
+      "typical_ingredients": [
+        167,
+        655,
+        8,
+        460,
+        427,
+        522,
+        114,
+        57,
+        434,
+        12
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 167,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 655,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 460,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 8,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 427,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 522,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 57,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 434,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 12,
+          "weight": 0.55
+        }
+      ]
+    },
+    {
+      "id": "grill_bbq",
+      "display_name": {
+        "de": "Grill / BBQ",
+        "en": "Grill / BBQ",
+        "prt": "Grelha / Churrasco",
+        "esp": "Parrilla / BBQ"
+      },
+      "typical_ingredients": [
+        122,
+        299,
+        665,
+        450,
+        26,
+        794,
+        434,
+        11
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 122,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 299,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 665,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 450,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 26,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 794,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 434,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.45
+        }
+      ]
+    },
+    {
+      "id": "kuchen_backen",
+      "display_name": {
+        "de": "Kuchen / Backen",
+        "en": "Cake / Baking",
+        "prt": "Bolo / Confeitaria",
+        "esp": "Tarta / Repostería"
+      },
+      "typical_ingredients": [
+        65,
+        5,
+        4,
+        111,
+        30,
+        62,
+        38,
+        400,
+        538,
+        64
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 65,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 5,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 30,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 4,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 111,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 62,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 538,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 38,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 400,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 64,
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "sandwich_toast",
+      "display_name": {
+        "de": "Sandwich / Toast",
+        "en": "Sandwich / Toast",
+        "prt": "Sanduíche / Torrada",
+        "esp": "Sándwich / Tostada"
+      },
+      "typical_ingredients": [
+        198,
+        1217,
+        283,
+        51,
+        285,
+        1,
+        57,
+        30
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 198,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 1217,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 283,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 285,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 51,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 1,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 57,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 30,
+          "weight": 0.55
+        }
+      ]
     }
   ]
 }
