@@ -157,26 +157,11 @@ namespace DelikatessenDrehbuch.Controllers
 
             var ingredientsAndNutrients = await _context.IngredientsAndNutrients
                 .AsNoTracking()
-                .Include(x => x.Group)
                 .OrderBy(x => x.Id)
                 .Select(x => new IngredientNutrientExportModel
                 {
                     Id = x.Id,
-                    NameDe = x.Name_DE,
-                    NameEn = x.Name_EN,
-                    NamePrt = x.Name_PRT,
-                    NameEsp = x.Name_ESP,
-                    GroupId = x.Group != null ? x.Group.Id : (int?)null,
-                    GroupName = x.Group != null ? x.Group.Name : null,
-                    Calories_a_100g = x.Calories_a_100g,
-                    Weight_per_piece = x.Weight_per_piece,
-                    Fat_a_100g = x.Fat_a_100g,
-                    Saturated_fat_a_100g = x.Saturated_fat_a_100g,
-                    Carbohydrates_a_100g = x.Carbohydrates_a_100g,
-                    Sugar_a_100g = x.Sugar_a_100g,
-                    Salt_a_100g = x.Salt_a_100g,
-                    Protein_a_100g = x.Protein_a_100g,
-                    Fiber_a_100g = x.Fiber_a_100g
+                    Name = x.Name_DE
                 })
                 .ToListAsync();
 
@@ -221,21 +206,7 @@ namespace DelikatessenDrehbuch.Controllers
                 ingredient_nutrient_fields = new[]
                 {
                     "id",
-                    "name_de",
-                    "name_en",
-                    "name_prt",
-                    "name_esp",
-                    "group_id",
-                    "group_name",
-                    "calories_a_100g",
-                    "weight_per_piece",
-                    "fat_a_100g",
-                    "saturated_fat_a_100g",
-                    "carbohydrates_a_100g",
-                    "sugar_a_100g",
-                    "salt_a_100g",
-                    "protein_a_100g",
-                    "fiber_a_100g"
+                    "name"
                 }
             };
 
@@ -312,21 +283,7 @@ namespace DelikatessenDrehbuch.Controllers
         private sealed class IngredientNutrientExportModel
         {
             public int Id { get; set; }
-            public string NameDe { get; set; } = string.Empty;
-            public string NameEn { get; set; } = string.Empty;
-            public string NamePrt { get; set; } = string.Empty;
-            public string NameEsp { get; set; } = string.Empty;
-            public int? GroupId { get; set; }
-            public string? GroupName { get; set; }
-            public int Calories_a_100g { get; set; }
-            public int Weight_per_piece { get; set; }
-            public decimal Fat_a_100g { get; set; }
-            public decimal Saturated_fat_a_100g { get; set; }
-            public decimal Carbohydrates_a_100g { get; set; }
-            public decimal Sugar_a_100g { get; set; }
-            public decimal Salt_a_100g { get; set; }
-            public decimal Protein_a_100g { get; set; }
-            public decimal Fiber_a_100g { get; set; }
+            public string Name { get; set; } = string.Empty;
         }
 
         public IActionResult AddNewRecipes()
