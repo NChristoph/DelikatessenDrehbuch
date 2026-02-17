@@ -1,0 +1,4428 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Multilingual step templates (DE/EN/PT/ES) for 335 preparation steps from 1570 recipes",
+    "total_steps": 335,
+    "languages": [
+      "de",
+      "en",
+      "pt",
+      "es"
+    ],
+    "phases": {
+      "0": {
+        "de": "Vorbereitung",
+        "en": "Preparation",
+        "pt": "Preparação",
+        "es": "Preparación"
+      },
+      "1": {
+        "de": "Zubereitung",
+        "en": "Cooking",
+        "pt": "Cozimento",
+        "es": "Cocción"
+      },
+      "2": {
+        "de": "Fertigstellung",
+        "en": "Finishing",
+        "pt": "Finalização",
+        "es": "Acabado"
+      }
+    },
+    "actions_covered": [
+      "abgießen",
+      "abkühlen",
+      "ablöschen",
+      "abschmecken",
+      "abtropfen",
+      "anbraten",
+      "anrichten",
+      "anrösten",
+      "aufbauen",
+      "aufschlagen",
+      "backen",
+      "binden",
+      "blanchieren",
+      "dressing",
+      "dünsten",
+      "einritzen",
+      "einweichen",
+      "erhitzen",
+      "formen",
+      "frittieren",
+      "füllen",
+      "garnieren",
+      "glasieren",
+      "grillen",
+      "hacken",
+      "herausnehmen",
+      "hinzufügen",
+      "karamellisieren",
+      "klopfen",
+      "kochen",
+      "köcheln",
+      "marinieren",
+      "mischen",
+      "panieren",
+      "pürieren",
+      "reduzieren",
+      "reiben",
+      "risotto",
+      "ruhen",
+      "rühren",
+      "sauce",
+      "schichten",
+      "schmelzen",
+      "schmoren",
+      "schneiden",
+      "servieren",
+      "teig",
+      "trocknen",
+      "unterheben",
+      "vermengen",
+      "verquirlen",
+      "verrühren",
+      "vorbereiten",
+      "vorheizen",
+      "waschen",
+      "würzen",
+      "zerdrücken"
+    ],
+    "stats": {
+      "steps_with_ingredients": 251,
+      "steps_without_ingredients": 84
+    }
+  },
+  "step_templates": [
+    {
+      "id": 1,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 150 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 150 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 150 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 150 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 2,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 160 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 160 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 160 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 160 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 3,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 170 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 170 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 170 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 170 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 4,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 180 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 180 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 180 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 180 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 5,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 190 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 190 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 190 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 190 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 6,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 200 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 200 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 200 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 200 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 7,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 220 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 220 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 220 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 220 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 8,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 240 °C (Ober-/Unterhitze) vor.",
+      "en": "Preheat the oven to 240 °C (top/bottom heat).",
+      "pt": "Pré-aqueça o forno a 240 °C (calor superior/inferior).",
+      "es": "Precalienta el horno a 240 °C (calor arriba/abajo)."
+    },
+    {
+      "id": 9,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 150 °C (Umluft) vor.",
+      "en": "Preheat the oven to 150 °C (convection).",
+      "pt": "Pré-aqueça o forno a 150 °C (ventilado).",
+      "es": "Precalienta el horno a 150 °C (aire caliente)."
+    },
+    {
+      "id": 10,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 160 °C (Umluft) vor.",
+      "en": "Preheat the oven to 160 °C (convection).",
+      "pt": "Pré-aqueça o forno a 160 °C (ventilado).",
+      "es": "Precalienta el horno a 160 °C (aire caliente)."
+    },
+    {
+      "id": 11,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 170 °C (Umluft) vor.",
+      "en": "Preheat the oven to 170 °C (convection).",
+      "pt": "Pré-aqueça o forno a 170 °C (ventilado).",
+      "es": "Precalienta el horno a 170 °C (aire caliente)."
+    },
+    {
+      "id": 12,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 180 °C (Umluft) vor.",
+      "en": "Preheat the oven to 180 °C (convection).",
+      "pt": "Pré-aqueça o forno a 180 °C (ventilado).",
+      "es": "Precalienta el horno a 180 °C (aire caliente)."
+    },
+    {
+      "id": 13,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 200 °C (Umluft) vor.",
+      "en": "Preheat the oven to 200 °C (convection).",
+      "pt": "Pré-aqueça o forno a 200 °C (ventilado).",
+      "es": "Precalienta el horno a 200 °C (aire caliente)."
+    },
+    {
+      "id": 14,
+      "action": "vorheizen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Heize den Backofen auf 220 °C (Umluft) vor.",
+      "en": "Preheat the oven to 220 °C (convection).",
+      "pt": "Pré-aqueça o forno a 220 °C (ventilado).",
+      "es": "Precalienta el horno a 220 °C (aire caliente)."
+    },
+    {
+      "id": 15,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backblech"
+      ],
+      "de": "Lege ein Backblech mit Backpapier aus.",
+      "en": "Line a baking tray with parchment paper.",
+      "pt": "Forre um tabuleiro com papel vegetal.",
+      "es": "Forra una bandeja de horno con papel vegetal."
+    },
+    {
+      "id": 16,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Auflaufform"
+      ],
+      "de": "Fette eine Auflaufform ein.",
+      "en": "Grease a baking dish.",
+      "pt": "Unte uma forma refratária.",
+      "es": "Engrasa una fuente para horno."
+    },
+    {
+      "id": 17,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [
+        5
+      ],
+      "equipment": [
+        "Springform"
+      ],
+      "de": "Fette eine Springform ein und bestäube sie mit Mehl.",
+      "en": "Grease a springform pan and dust it with flour.",
+      "pt": "Unte uma forma de aro removível e polvilhe com farinha.",
+      "es": "Engrasa un molde desmontable y espolvoréalo con harina."
+    },
+    {
+      "id": 18,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Kastenform"
+      ],
+      "de": "Lege eine Kastenform mit Backpapier aus.",
+      "en": "Line a loaf pan with parchment paper.",
+      "pt": "Forre uma forma de bolo inglês com papel vegetal.",
+      "es": "Forra un molde rectangular con papel vegetal."
+    },
+    {
+      "id": 19,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [
+        "Muffinblech"
+      ],
+      "de": "Fette ein Muffinblech ein oder lege es mit Papierförmchen aus.",
+      "en": "Grease a muffin tin or line it with paper cases.",
+      "pt": "Unte uma forma de muffins ou forre com forminhas de papel.",
+      "es": "Engrasa un molde para muffins o fórralo con moldes de papel."
+    },
+    {
+      "id": 20,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Schäle die Zwiebel und schneide sie in feine Würfel.",
+      "en": "Peel the onion and dice it finely.",
+      "pt": "Descasque a cebola e corte em cubos pequenos.",
+      "es": "Pela la cebolla y córtala en cubos pequeños."
+    },
+    {
+      "id": 21,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Schäle die Zwiebel und schneide sie in grobe Würfel.",
+      "en": "Peel the onion and dice it coarsely.",
+      "pt": "Descasque a cebola e corte em cubos grandes.",
+      "es": "Pela la cebolla y córtala en cubos grandes."
+    },
+    {
+      "id": 22,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Schäle die Zwiebel und schneide sie in feine Ringe.",
+      "en": "Peel the onion and cut it into thin rings.",
+      "pt": "Descasque a cebola e corte em anéis finos.",
+      "es": "Pela la cebolla y córtala en aros finos."
+    },
+    {
+      "id": 23,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Schäle die Zwiebel und schneide sie in Ringe.",
+      "en": "Peel the onion and cut it into rings.",
+      "pt": "Descasque a cebola e corte em anéis.",
+      "es": "Pela la cebolla y córtala en aros."
+    },
+    {
+      "id": 24,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Schäle die Zwiebel und schneide sie in feine Streifen.",
+      "en": "Peel the onion and cut it into thin strips.",
+      "pt": "Descasque a cebola e corte em tiras finas.",
+      "es": "Pela la cebolla y córtala en tiras finas."
+    },
+    {
+      "id": 25,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        12
+      ],
+      "equipment": [],
+      "de": "Schäle die rote Zwiebel und schneide sie in feine Würfel.",
+      "en": "Peel the red onion and dice it finely.",
+      "pt": "Descasque a cebola roxa e corte em cubos pequenos.",
+      "es": "Pela la cebolla roja y córtala en cubos pequeños."
+    },
+    {
+      "id": 26,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        12
+      ],
+      "equipment": [],
+      "de": "Schäle die rote Zwiebel und schneide sie in feine Ringe.",
+      "en": "Peel the red onion and cut it into thin rings.",
+      "pt": "Descasque a cebola roxa e corte em anéis finos.",
+      "es": "Pela la cebolla roja y córtala en aros finos."
+    },
+    {
+      "id": 27,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        12
+      ],
+      "equipment": [],
+      "de": "Schäle die rote Zwiebel und schneide sie in feine Streifen.",
+      "en": "Peel the red onion and cut it into thin strips.",
+      "pt": "Descasque a cebola roxa e corte em tiras finas.",
+      "es": "Pela la cebolla roja y córtala en tiras finas."
+    },
+    {
+      "id": 28,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        50
+      ],
+      "equipment": [],
+      "de": "Wasche die Frühlingszwiebeln und schneide sie in feine Ringe.",
+      "en": "Wash the spring onions and cut them into thin rings.",
+      "pt": "Lave as cebolinhas e corte em anéis finos.",
+      "es": "Lava las cebolletas y córtalas en aros finos."
+    },
+    {
+      "id": 29,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        50
+      ],
+      "equipment": [],
+      "de": "Wasche die Frühlingszwiebeln und schneide sie in Ringe.",
+      "en": "Wash the spring onions and cut them into rings.",
+      "pt": "Lave as cebolinhas e corte em anéis.",
+      "es": "Lava las cebolletas y córtalas en aros."
+    },
+    {
+      "id": 30,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        198
+      ],
+      "equipment": [],
+      "de": "Schäle die Knoblauchzehen und hacke sie fein.",
+      "en": "Peel the garlic cloves and mince them finely.",
+      "pt": "Descasque os dentes de alho e pique-os finamente.",
+      "es": "Pela los dientes de ajo y pícalos finamente."
+    },
+    {
+      "id": 31,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        198
+      ],
+      "equipment": [],
+      "de": "Schäle die Knoblauchzehen und schneide sie in dünne Scheiben.",
+      "en": "Peel the garlic cloves and cut them into thin slices.",
+      "pt": "Descasque os dentes de alho e corte em fatias finas.",
+      "es": "Pela los dientes de ajo y córtalos en rodajas finas."
+    },
+    {
+      "id": 32,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": [],
+      "de": "Schäle die Karotten und schneide sie in dünne Scheiben.",
+      "en": "Peel the carrots and cut them into thin slices.",
+      "pt": "Descasque as cenouras e corte em rodelas finas.",
+      "es": "Pela las zanahorias y córtalas en rodajas finas."
+    },
+    {
+      "id": 33,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": [],
+      "de": "Schäle die Karotten und schneide sie in Scheiben.",
+      "en": "Peel the carrots and cut them into slices.",
+      "pt": "Descasque as cenouras e corte em rodelas.",
+      "es": "Pela las zanahorias y córtalas en rodajas."
+    },
+    {
+      "id": 34,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": [],
+      "de": "Schäle die Karotten und schneide sie in Stifte.",
+      "en": "Peel the carrots and cut them into sticks.",
+      "pt": "Descasque as cenouras e corte em palitos.",
+      "es": "Pela las zanahorias y córtalas en bastones."
+    },
+    {
+      "id": 35,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": [],
+      "de": "Schäle die Karotten und schneide sie in kleine Würfel.",
+      "en": "Peel the carrots and dice them into small cubes.",
+      "pt": "Descasque as cenouras e corte em cubos pequenos.",
+      "es": "Pela las zanahorias y córtalas en cubos pequeños."
+    },
+    {
+      "id": 36,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": [],
+      "de": "Schäle die Karotten und schneide sie in feine Streifen.",
+      "en": "Peel the carrots and cut them into thin strips.",
+      "pt": "Descasque as cenouras e corte em tiras finas.",
+      "es": "Pela las zanahorias y córtalas en tiras finas."
+    },
+    {
+      "id": 37,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Schäle die Kartoffeln und schneide sie in kleine Würfel.",
+      "en": "Peel the potatoes and dice them into small cubes.",
+      "pt": "Descasque as batatas e corte em cubos pequenos.",
+      "es": "Pela las patatas y córtalas en cubos pequeños."
+    },
+    {
+      "id": 38,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Schäle die Kartoffeln und schneide sie in dünne Scheiben.",
+      "en": "Peel the potatoes and cut them into thin slices.",
+      "pt": "Descasque as batatas e corte em fatias finas.",
+      "es": "Pela las patatas y córtalas en rodajas finas."
+    },
+    {
+      "id": 39,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Schäle die Kartoffeln und schneide sie in Spalten.",
+      "en": "Peel the potatoes and cut them into wedges.",
+      "pt": "Descasque as batatas e corte em gomos.",
+      "es": "Pela las patatas y córtalas en gajos."
+    },
+    {
+      "id": 40,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Schäle die Kartoffeln und schneide sie in grobe Stücke.",
+      "en": "Peel the potatoes and cut them into coarse pieces.",
+      "pt": "Descasque as batatas e corte em pedaços grandes.",
+      "es": "Pela las patatas y córtalas en trozos grandes."
+    },
+    {
+      "id": 41,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        155
+      ],
+      "equipment": [],
+      "de": "Schäle die Süßkartoffeln und schneide sie in kleine Würfel.",
+      "en": "Peel the sweet potatoes and dice them into small cubes.",
+      "pt": "Descasque as batatas-doces e corte em cubos pequenos.",
+      "es": "Pela los boniatos y córtalos en cubos pequeños."
+    },
+    {
+      "id": 42,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        155
+      ],
+      "equipment": [],
+      "de": "Schäle die Süßkartoffeln und schneide sie in Spalten.",
+      "en": "Peel the sweet potatoes and cut them into wedges.",
+      "pt": "Descasque as batatas-doces e corte em gomos.",
+      "es": "Pela los boniatos y córtalos en gajos."
+    },
+    {
+      "id": 43,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        155
+      ],
+      "equipment": [],
+      "de": "Schäle die Süßkartoffeln und schneide sie in Scheiben.",
+      "en": "Peel the sweet potatoes and cut them into slices.",
+      "pt": "Descasque as batatas-doces e corte em fatias.",
+      "es": "Pela los boniatos y córtalos en rodajas."
+    },
+    {
+      "id": 44,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        51
+      ],
+      "equipment": [],
+      "de": "Wasche die Tomaten und schneide sie in kleine Würfel.",
+      "en": "Wash the tomatoes and dice them into small cubes.",
+      "pt": "Lave os tomates e corte em cubos pequenos.",
+      "es": "Lava los tomates y córtalos en cubos pequeños."
+    },
+    {
+      "id": 45,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        51
+      ],
+      "equipment": [],
+      "de": "Wasche die Tomaten und schneide sie in Scheiben.",
+      "en": "Wash the tomatoes and cut them into slices.",
+      "pt": "Lave os tomates e corte em fatias.",
+      "es": "Lava los tomates y córtalos en rodajas."
+    },
+    {
+      "id": 46,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        52
+      ],
+      "equipment": [],
+      "de": "Wasche die Cherrytomaten und halbiere sie.",
+      "en": "Wash the cherry tomatoes and halve them.",
+      "pt": "Lave os tomates cereja e corte-os ao meio.",
+      "es": "Lava los tomates cherry y córtalos por la mitad."
+    },
+    {
+      "id": 47,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": [],
+      "de": "Wasche die Paprika, entkerne sie und schneide sie in Streifen.",
+      "en": "Wash the bell pepper, remove the seeds and cut it into strips.",
+      "pt": "Lave o pimentão, retire as sementes e corte em tiras.",
+      "es": "Lava el pimiento, quítale las semillas y córtalo en tiras."
+    },
+    {
+      "id": 48,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": [],
+      "de": "Wasche die Paprika, entkerne sie und schneide sie in kleine Würfel.",
+      "en": "Wash the bell pepper, remove the seeds and dice it into small cubes.",
+      "pt": "Lave o pimentão, retire as sementes e corte em cubos pequenos.",
+      "es": "Lava el pimiento, quítale las semillas y córtalo en cubos pequeños."
+    },
+    {
+      "id": 49,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": [],
+      "de": "Wasche die Paprika, entkerne sie und schneide sie in kleine Stücke.",
+      "en": "Wash the bell pepper, remove the seeds and cut it into small pieces.",
+      "pt": "Lave o pimentão, retire as sementes e corte em pedaços pequenos.",
+      "es": "Lava el pimiento, quítale las semillas y córtalo en trozos pequeños."
+    },
+    {
+      "id": 50,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": [],
+      "de": "Wasche die Zucchini und schneide sie in dünne Scheiben.",
+      "en": "Wash the zucchini and cut it into thin slices.",
+      "pt": "Lave a abobrinha e corte em rodelas finas.",
+      "es": "Lava el calabacín y córtalo en rodajas finas."
+    },
+    {
+      "id": 51,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": [],
+      "de": "Wasche die Zucchini und schneide sie in Scheiben.",
+      "en": "Wash the zucchini and cut it into slices.",
+      "pt": "Lave a abobrinha e corte em rodelas.",
+      "es": "Lava el calabacín y córtalo en rodajas."
+    },
+    {
+      "id": 52,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": [],
+      "de": "Wasche die Zucchini und schneide sie in kleine Würfel.",
+      "en": "Wash the zucchini and dice it into small cubes.",
+      "pt": "Lave a abobrinha e corte em cubos pequenos.",
+      "es": "Lava el calabacín y córtalo en cubos pequeños."
+    },
+    {
+      "id": 53,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": [],
+      "de": "Wasche die Zucchini und schneide sie in Streifen.",
+      "en": "Wash the zucchini and cut it into strips.",
+      "pt": "Lave a abobrinha e corte em tiras.",
+      "es": "Lava el calabacín y córtalo en tiras."
+    },
+    {
+      "id": 54,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        123
+      ],
+      "equipment": [],
+      "de": "Wasche die Aubergine und schneide sie in Scheiben.",
+      "en": "Wash the eggplant and cut it into slices.",
+      "pt": "Lave a beringela e corte em rodelas.",
+      "es": "Lava la berenjena y córtala en rodajas."
+    },
+    {
+      "id": 55,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        123
+      ],
+      "equipment": [],
+      "de": "Wasche die Aubergine und schneide sie in kleine Würfel.",
+      "en": "Wash the eggplant and dice it into small cubes.",
+      "pt": "Lave a beringela e corte em cubos pequenos.",
+      "es": "Lava la berenjena y córtala en cubos pequeños."
+    },
+    {
+      "id": 56,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        124
+      ],
+      "equipment": [],
+      "de": "Putze die Champignons und schneide sie in Scheiben.",
+      "en": "Clean the mushrooms and cut them into slices.",
+      "pt": "Limpe os cogumelos e corte em fatias.",
+      "es": "Limpia los champiñones y córtalos en láminas."
+    },
+    {
+      "id": 57,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        124
+      ],
+      "equipment": [],
+      "de": "Putze die Champignons und schneide sie in dünne Scheiben.",
+      "en": "Clean the mushrooms and cut them into thin slices.",
+      "pt": "Limpe os cogumelos e corte em fatias finas.",
+      "es": "Limpia los champiñones y córtalos en láminas finas."
+    },
+    {
+      "id": 58,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        77
+      ],
+      "equipment": [],
+      "de": "Wasche den Brokkoli und teile ihn in kleine Röschen.",
+      "en": "Wash the broccoli and divide it into small florets.",
+      "pt": "Lave os brócolos e divida em pequenos floretes.",
+      "es": "Lava el brócoli y divídelo en pequeños ramilletes."
+    },
+    {
+      "id": 59,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        145
+      ],
+      "equipment": [],
+      "de": "Wasche den Blumenkohl und teile ihn in kleine Röschen.",
+      "en": "Wash the cauliflower and divide it into small florets.",
+      "pt": "Lave a couve-flor e divida em pequenos floretes.",
+      "es": "Lava la coliflor y divídela en pequeños ramilletes."
+    },
+    {
+      "id": 60,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        149
+      ],
+      "equipment": [],
+      "de": "Wasche den Lauch gründlich und schneide ihn in feine Ringe.",
+      "en": "Wash the leek thoroughly and cut it into thin rings.",
+      "pt": "Lave bem o alho-francês e corte em anéis finos.",
+      "es": "Lava el puerro a fondo y córtalo en aros finos."
+    },
+    {
+      "id": 61,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        149
+      ],
+      "equipment": [],
+      "de": "Wasche den Lauch gründlich und schneide ihn in feine Streifen.",
+      "en": "Wash the leek thoroughly and cut it into thin strips.",
+      "pt": "Lave bem o alho-francês e corte em tiras finas.",
+      "es": "Lava el puerro a fondo y córtalo en tiras finas."
+    },
+    {
+      "id": 62,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        80
+      ],
+      "equipment": [],
+      "de": "Wasche den Sellerie und schneide ihn in kleine Würfel.",
+      "en": "Wash the celery and dice it into small cubes.",
+      "pt": "Lave o aipo e corte em cubos pequenos.",
+      "es": "Lava el apio y córtalo en cubos pequeños."
+    },
+    {
+      "id": 63,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        80
+      ],
+      "equipment": [],
+      "de": "Wasche den Sellerie und schneide ihn in dünne Scheiben.",
+      "en": "Wash the celery and cut it into thin slices.",
+      "pt": "Lave o aipo e corte em fatias finas.",
+      "es": "Lava el apio y córtalo en rodajas finas."
+    },
+    {
+      "id": 64,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        115
+      ],
+      "equipment": [],
+      "de": "Schäle den Knollensellerie und schneide ihn in kleine Würfel.",
+      "en": "Peel the celeriac and dice it into small cubes.",
+      "pt": "Descasque o aipo-rábano e corte em cubos pequenos.",
+      "es": "Pela el apio nabo y córtalo en cubos pequeños."
+    },
+    {
+      "id": 65,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        115
+      ],
+      "equipment": [],
+      "de": "Schäle den Knollensellerie und schneide ihn in Scheiben.",
+      "en": "Peel the celeriac and cut it into slices.",
+      "pt": "Descasque o aipo-rábano e corte em fatias.",
+      "es": "Pela el apio nabo y córtalo en rodajas."
+    },
+    {
+      "id": 66,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        84
+      ],
+      "equipment": [],
+      "de": "Wasche die Gurke und schneide sie in dünne Scheiben.",
+      "en": "Wash the cucumber and cut it into thin slices.",
+      "pt": "Lave o pepino e corte em rodelas finas.",
+      "es": "Lava el pepino y córtalo en rodajas finas."
+    },
+    {
+      "id": 67,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        84
+      ],
+      "equipment": [],
+      "de": "Wasche die Gurke und schneide sie in kleine Würfel.",
+      "en": "Wash the cucumber and dice it into small cubes.",
+      "pt": "Lave o pepino e corte em cubos pequenos.",
+      "es": "Lava el pepino y córtalo en cubos pequeños."
+    },
+    {
+      "id": 68,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        126
+      ],
+      "equipment": [],
+      "de": "Wasche den Spinat gründlich und lasse ihn abtropfen.",
+      "en": "Wash the spinach thoroughly and let it drain.",
+      "pt": "Lave bem o espinafre e deixe escorrer.",
+      "es": "Lava bien las espinacas y déjalas escurrir."
+    },
+    {
+      "id": 69,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        156
+      ],
+      "equipment": [],
+      "de": "Schäle den Kohlrabi und schneide ihn in Stifte.",
+      "en": "Peel the kohlrabi and cut it into sticks.",
+      "pt": "Descasque o couve-rábano e corte em palitos.",
+      "es": "Pela el colinabo y córtalo en bastones."
+    },
+    {
+      "id": 70,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        156
+      ],
+      "equipment": [],
+      "de": "Schäle den Kohlrabi und schneide ihn in dünne Scheiben.",
+      "en": "Peel the kohlrabi and cut it into thin slices.",
+      "pt": "Descasque o couve-rábano e corte em fatias finas.",
+      "es": "Pela el colinabo y córtalo en rodajas finas."
+    },
+    {
+      "id": 71,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        156
+      ],
+      "equipment": [],
+      "de": "Schäle den Kohlrabi und schneide ihn in kleine Würfel.",
+      "en": "Peel the kohlrabi and dice it into small cubes.",
+      "pt": "Descasque o couve-rábano e corte em cubos pequenos.",
+      "es": "Pela el colinabo y córtalo en cubos pequeños."
+    },
+    {
+      "id": 72,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        26
+      ],
+      "equipment": [],
+      "de": "Wasche den Hokkaido, entkerne ihn und schneide ihn in kleine Würfel.",
+      "en": "Wash the Hokkaido squash, remove the seeds and dice it into small cubes.",
+      "pt": "Lave a abóbora Hokkaido, retire as sementes e corte em cubos pequenos.",
+      "es": "Lava la calabaza Hokkaido, quítale las semillas y córtala en cubos pequeños."
+    },
+    {
+      "id": 73,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        26
+      ],
+      "equipment": [],
+      "de": "Wasche den Hokkaido, entkerne ihn und schneide ihn in Spalten.",
+      "en": "Wash the Hokkaido squash, remove the seeds and cut it into wedges.",
+      "pt": "Lave a abóbora Hokkaido, retire as sementes e corte em gomos.",
+      "es": "Lava la calabaza Hokkaido, quítale las semillas y córtala en gajos."
+    },
+    {
+      "id": 74,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        26
+      ],
+      "equipment": [],
+      "de": "Wasche den Hokkaido, entkerne ihn und schneide ihn in Scheiben.",
+      "en": "Wash the Hokkaido squash, remove the seeds and cut it into slices.",
+      "pt": "Lave a abóbora Hokkaido, retire as sementes e corte em fatias.",
+      "es": "Lava la calabaza Hokkaido, quítale las semillas y córtala en rodajas."
+    },
+    {
+      "id": 75,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        210
+      ],
+      "equipment": [],
+      "de": "Schäle den Butternuss-Kürbis, entkerne ihn und schneide ihn in kleine Würfel.",
+      "en": "Peel the butternut squash, remove the seeds and dice it into small cubes.",
+      "pt": "Descasque a abóbora butternut, retire as sementes e corte em cubos pequenos.",
+      "es": "Pela la calabaza butternut, quítale las semillas y córtala en cubos pequeños."
+    },
+    {
+      "id": 76,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": [],
+      "de": "Schäle den Ingwer und reibe ihn fein.",
+      "en": "Peel the ginger and grate it finely.",
+      "pt": "Descasque o gengibre e rale finamente.",
+      "es": "Pela el jengibre y rállalo finamente."
+    },
+    {
+      "id": 77,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": [],
+      "de": "Schäle den Ingwer und schneide ihn in feine Streifen.",
+      "en": "Peel the ginger and cut it into thin strips.",
+      "pt": "Descasque o gengibre e corte em tiras finas.",
+      "es": "Pela el jengibre y córtalo en tiras finas."
+    },
+    {
+      "id": 78,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": [],
+      "de": "Schäle den Ingwer und schneide ihn in kleine Würfel.",
+      "en": "Peel the ginger and dice it into small cubes.",
+      "pt": "Descasque o gengibre e corte em cubos pequenos.",
+      "es": "Pela el jengibre y córtalo en cubos pequeños."
+    },
+    {
+      "id": 79,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        278
+      ],
+      "equipment": [],
+      "de": "Wasche den Fenchel und schneide ihn in dünne Scheiben.",
+      "en": "Wash the fennel and cut it into thin slices.",
+      "pt": "Lave o funcho e corte em fatias finas.",
+      "es": "Lava el hinojo y córtalo en rodajas finas."
+    },
+    {
+      "id": 80,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        278
+      ],
+      "equipment": [],
+      "de": "Wasche den Fenchel und schneide ihn in Streifen.",
+      "en": "Wash the fennel and cut it into strips.",
+      "pt": "Lave o funcho e corte em tiras.",
+      "es": "Lava el hinojo y córtalo en tiras."
+    },
+    {
+      "id": 81,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        127
+      ],
+      "equipment": [],
+      "de": "Wasche die grünen Bohnen und schneide die Enden ab.",
+      "en": "Wash the green beans and trim the ends.",
+      "pt": "Lave o feijão-verde e corte as pontas.",
+      "es": "Lava las judías verdes y córtales las puntas."
+    },
+    {
+      "id": 82,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        211
+      ],
+      "equipment": [],
+      "de": "Wasche den grünen Spargel und schneide die holzigen Enden ab.",
+      "en": "Wash the green asparagus and trim the woody ends.",
+      "pt": "Lave os espargos verdes e corte as pontas lenhosas.",
+      "es": "Lava los espárragos verdes y corta los extremos leñosos."
+    },
+    {
+      "id": 83,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        212
+      ],
+      "equipment": [],
+      "de": "Schäle den weißen Spargel und schneide die holzigen Enden ab.",
+      "en": "Peel the white asparagus and trim the woody ends.",
+      "pt": "Descasque os espargos brancos e corte as pontas lenhosas.",
+      "es": "Pela los espárragos blancos y corta los extremos leñosos."
+    },
+    {
+      "id": 84,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        254
+      ],
+      "equipment": [],
+      "de": "Halbiere die Avocado, entferne den Kern und schneide sie in Scheiben.",
+      "en": "Halve the avocado, remove the pit and cut it into slices.",
+      "pt": "Corte o abacate ao meio, retire o caroço e corte em fatias.",
+      "es": "Corta el aguacate por la mitad, retira el hueso y córtalo en rodajas."
+    },
+    {
+      "id": 85,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        131
+      ],
+      "equipment": [],
+      "de": "Schäle die Mango, schneide das Fruchtfleisch vom Kern und würfle es.",
+      "en": "Peel the mango, cut the flesh from the pit and dice it.",
+      "pt": "Descasque a manga, corte a polpa do caroço e corte em cubos.",
+      "es": "Pela el mango, corta la pulpa del hueso y córtala en cubos."
+    },
+    {
+      "id": 86,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        21
+      ],
+      "equipment": [],
+      "de": "Wasche den Apfel, entkerne ihn und schneide ihn in dünne Scheiben.",
+      "en": "Wash the apple, remove the core and cut it into thin slices.",
+      "pt": "Lave a maçã, retire o caroço e corte em fatias finas.",
+      "es": "Lava la manzana, quítale el corazón y córtala en rodajas finas."
+    },
+    {
+      "id": 87,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        21
+      ],
+      "equipment": [],
+      "de": "Wasche den Apfel, entkerne ihn und schneide ihn in kleine Würfel.",
+      "en": "Wash the apple, remove the core and dice it into small cubes.",
+      "pt": "Lave a maçã, retire o caroço e corte em cubos pequenos.",
+      "es": "Lava la manzana, quítale el corazón y córtala en cubos pequeños."
+    },
+    {
+      "id": 88,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        230
+      ],
+      "equipment": [],
+      "de": "Schneide die Zitrone in Scheiben.",
+      "en": "Cut the lemon into slices.",
+      "pt": "Corte o limão em rodelas.",
+      "es": "Corta el limón en rodajas."
+    },
+    {
+      "id": 89,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        230
+      ],
+      "equipment": [],
+      "de": "Reibe die Zitronenschale fein ab.",
+      "en": "Finely grate the lemon zest.",
+      "pt": "Rale finamente a casca do limão.",
+      "es": "Ralla finamente la cáscara del limón."
+    },
+    {
+      "id": 90,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        54
+      ],
+      "equipment": [],
+      "de": "Presse den Saft der Limette aus.",
+      "en": "Squeeze the juice of the lime.",
+      "pt": "Esprema o sumo da lima.",
+      "es": "Exprime el zumo de la lima."
+    },
+    {
+      "id": 91,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        143
+      ],
+      "equipment": [],
+      "de": "Schäle die Rote Bete und schneide sie in dünne Scheiben.",
+      "en": "Peel the beetroot and cut it into thin slices.",
+      "pt": "Descasque a beterraba e corte em fatias finas.",
+      "es": "Pela la remolacha y córtala en rodajas finas."
+    },
+    {
+      "id": 92,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        143
+      ],
+      "equipment": [],
+      "de": "Schäle die Rote Bete und schneide sie in kleine Würfel.",
+      "en": "Peel the beetroot and dice it into small cubes.",
+      "pt": "Descasque a beterraba e corte em cubos pequenos.",
+      "es": "Pela la remolacha y córtala en cubos pequeños."
+    },
+    {
+      "id": 93,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        143
+      ],
+      "equipment": [],
+      "de": "Schäle die Rote Bete und schneide sie in Stifte.",
+      "en": "Peel the beetroot and cut it into sticks.",
+      "pt": "Descasque a beterraba e corte em palitos.",
+      "es": "Pela la remolacha y córtala en bastones."
+    },
+    {
+      "id": 94,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": [],
+      "de": "Schneide das Hähnchenbrustfilet in mundgerechte Stücke.",
+      "en": "Cut the chicken breast into bite-sized pieces.",
+      "pt": "Corte o peito de frango em pedaços pequenos.",
+      "es": "Corta la pechuga de pollo en trozos pequeños."
+    },
+    {
+      "id": 95,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": [],
+      "de": "Schneide das Hähnchenbrustfilet in Streifen.",
+      "en": "Cut the chicken breast into strips.",
+      "pt": "Corte o peito de frango em tiras.",
+      "es": "Corta la pechuga de pollo en tiras."
+    },
+    {
+      "id": 96,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": [],
+      "de": "Schneide das Hähnchenbrustfilet in dünne Scheiben.",
+      "en": "Cut the chicken breast into thin slices.",
+      "pt": "Corte o peito de frango em fatias finas.",
+      "es": "Corta la pechuga de pollo en rodajas finas."
+    },
+    {
+      "id": 97,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": [],
+      "de": "Schneide das Rinderfilet in Scheiben.",
+      "en": "Cut the beef fillet into slices.",
+      "pt": "Corte o filé de boi em fatias.",
+      "es": "Corta el solomillo de ternera en rodajas."
+    },
+    {
+      "id": 98,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": [],
+      "de": "Schneide das Rinderfilet in mundgerechte Stücke.",
+      "en": "Cut the beef fillet into bite-sized pieces.",
+      "pt": "Corte o filé de boi em pedaços pequenos.",
+      "es": "Corta el solomillo de ternera en trozos pequeños."
+    },
+    {
+      "id": 99,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": [],
+      "de": "Schneide das Rinderfilet in dünne Streifen.",
+      "en": "Cut the beef fillet into thin strips.",
+      "pt": "Corte o filé de boi em tiras finas.",
+      "es": "Corta el solomillo de ternera en tiras finas."
+    },
+    {
+      "id": 100,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        102
+      ],
+      "equipment": [],
+      "de": "Schneide das Schweinefilet in Scheiben.",
+      "en": "Cut the pork tenderloin into slices.",
+      "pt": "Corte o lombo de porco em fatias.",
+      "es": "Corta el solomillo de cerdo en rodajas."
+    },
+    {
+      "id": 101,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        102
+      ],
+      "equipment": [],
+      "de": "Schneide das Schweinefilet in mundgerechte Stücke.",
+      "en": "Cut the pork tenderloin into bite-sized pieces.",
+      "pt": "Corte o lombo de porco em pedaços pequenos.",
+      "es": "Corta el solomillo de cerdo en trozos pequeños."
+    },
+    {
+      "id": 102,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        106
+      ],
+      "equipment": [],
+      "de": "Schneide den Schweinebauch in Scheiben.",
+      "en": "Cut the pork belly into slices.",
+      "pt": "Corte a barriga de porco em fatias.",
+      "es": "Corta la panceta en rodajas."
+    },
+    {
+      "id": 103,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        106
+      ],
+      "equipment": [],
+      "de": "Schneide den Schweinebauch in Streifen.",
+      "en": "Cut the pork belly into strips.",
+      "pt": "Corte a barriga de porco em tiras.",
+      "es": "Corta la panceta en tiras."
+    },
+    {
+      "id": 104,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        98
+      ],
+      "equipment": [],
+      "de": "Schneide den Speck in feine Streifen.",
+      "en": "Cut the bacon into thin strips.",
+      "pt": "Corte o bacon em tiras finas.",
+      "es": "Corta el bacon en tiras finas."
+    },
+    {
+      "id": 105,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        98
+      ],
+      "equipment": [],
+      "de": "Schneide den Speck in kleine Würfel.",
+      "en": "Dice the bacon into small cubes.",
+      "pt": "Corte o bacon em cubos pequenos.",
+      "es": "Corta el bacon en cubos pequeños."
+    },
+    {
+      "id": 106,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        205
+      ],
+      "equipment": [],
+      "de": "Schneide die Chorizo in Scheiben.",
+      "en": "Cut the chorizo into slices.",
+      "pt": "Corte o chouriço em rodelas.",
+      "es": "Corta el chorizo en rodajas."
+    },
+    {
+      "id": 107,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        100
+      ],
+      "equipment": [],
+      "de": "Schneide das Lachsfilet in gleichmäßige Stücke.",
+      "en": "Cut the salmon fillet into even pieces.",
+      "pt": "Corte o filé de salmão em pedaços iguais.",
+      "es": "Corta el filete de salmón en trozos uniformes."
+    },
+    {
+      "id": 108,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        39
+      ],
+      "equipment": [],
+      "de": "Schneide den Mozzarella in Scheiben.",
+      "en": "Cut the mozzarella into slices.",
+      "pt": "Corte a mozzarella em fatias.",
+      "es": "Corta la mozzarella en rodajas."
+    },
+    {
+      "id": 109,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        19
+      ],
+      "equipment": [],
+      "de": "Zerbröckle den Feta.",
+      "en": "Crumble the feta.",
+      "pt": "Esmigalhe o queijo feta.",
+      "es": "Desmenuza el queso feta."
+    },
+    {
+      "id": 110,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": [],
+      "de": "Schneide den Tofu in kleine Würfel.",
+      "en": "Dice the tofu into small cubes.",
+      "pt": "Corte o tofu em cubos pequenos.",
+      "es": "Corta el tofu en cubos pequeños."
+    },
+    {
+      "id": 111,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": [],
+      "de": "Schneide den Tofu in Scheiben.",
+      "en": "Cut the tofu into slices.",
+      "pt": "Corte o tofu em fatias.",
+      "es": "Corta el tofu en rodajas."
+    },
+    {
+      "id": 112,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        17
+      ],
+      "equipment": [],
+      "de": "Wasche Petersilie, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "en": "Wash the parsley, shake it dry and finely chop the leaves.",
+      "pt": "Lave a salsa, sacuda para secar e pique as folhas finamente.",
+      "es": "Lava el perejil, sacúdelo para secarlo y pica las hojas finamente."
+    },
+    {
+      "id": 113,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        7
+      ],
+      "equipment": [],
+      "de": "Wasche Basilikum, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "en": "Wash the basil, shake it dry and finely chop the leaves.",
+      "pt": "Lave o manjericão, sacuda para secar e pique as folhas finamente.",
+      "es": "Lava la albahaca, sacúdela para secarla y pica las hojas finamente."
+    },
+    {
+      "id": 114,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        70
+      ],
+      "equipment": [],
+      "de": "Wasche Koriander, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "en": "Wash the cilantro, shake it dry and finely chop the leaves.",
+      "pt": "Lave o coentro, sacuda para secar e pique as folhas finamente.",
+      "es": "Lava el cilantro, sacúdelo para secarlo y pica las hojas finamente."
+    },
+    {
+      "id": 115,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        101
+      ],
+      "equipment": [],
+      "de": "Wasche Dill, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "en": "Wash the dill, shake it dry and finely chop the leaves.",
+      "pt": "Lave o endro, sacuda para secar e pique as folhas finamente.",
+      "es": "Lava el eneldo, sacúdelo para secarlo y pica las hojas finamente."
+    },
+    {
+      "id": 116,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        119
+      ],
+      "equipment": [],
+      "de": "Wasche Rosmarin, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "en": "Wash the rosemary, shake it dry and finely chop the leaves.",
+      "pt": "Lave o alecrim, sacuda para secar e pique as folhas finamente.",
+      "es": "Lava el romero, sacúdelo para secarlo y pica las hojas finamente."
+    },
+    {
+      "id": 117,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        78
+      ],
+      "equipment": [],
+      "de": "Wasche Thymian, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "en": "Wash the thyme, shake it dry and finely chop the leaves.",
+      "pt": "Lave o tomilho, sacuda para secar e pique as folhas finamente.",
+      "es": "Lava el tomillo, sacúdelo para secarlo y pica las hojas finamente."
+    },
+    {
+      "id": 118,
+      "action": "hacken",
+      "phase": 0,
+      "linked_ingredients": [
+        7,
+        17,
+        70,
+        101
+      ],
+      "equipment": [],
+      "de": "Wasche die frischen Kräuter, schüttle sie trocken und hacke sie fein.",
+      "en": "Wash the fresh herbs, shake them dry and chop them finely.",
+      "pt": "Lave as ervas frescas, sacuda para secar e pique finamente.",
+      "es": "Lava las hierbas frescas, sacúdelas para secarlas y pícalas finamente."
+    },
+    {
+      "id": 119,
+      "action": "waschen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Wasche das Gemüse gründlich unter fließendem Wasser.",
+      "en": "Wash the vegetables thoroughly under running water.",
+      "pt": "Lave os legumes bem em água corrente.",
+      "es": "Lava las verduras bien bajo el chorro de agua."
+    },
+    {
+      "id": 120,
+      "action": "waschen",
+      "phase": 0,
+      "linked_ingredients": [
+        7,
+        17,
+        70,
+        101
+      ],
+      "equipment": [],
+      "de": "Wasche die Kräuter und schüttle sie trocken.",
+      "en": "Wash the herbs and shake them dry.",
+      "pt": "Lave as ervas e sacuda para secar.",
+      "es": "Lava las hierbas y sacúdelas para secarlas."
+    },
+    {
+      "id": 121,
+      "action": "reiben",
+      "phase": 0,
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": [],
+      "de": "Reibe den Parmesan fein.",
+      "en": "Finely grate the Parmesan.",
+      "pt": "Rale finamente o parmesão.",
+      "es": "Ralla finamente el parmesano."
+    },
+    {
+      "id": 122,
+      "action": "reiben",
+      "phase": 0,
+      "linked_ingredients": [
+        41
+      ],
+      "equipment": [],
+      "de": "Reibe den Gouda grob.",
+      "en": "Coarsely grate the Gouda.",
+      "pt": "Rale grosseiramente o queijo Gouda.",
+      "es": "Ralla grueso el queso Gouda."
+    },
+    {
+      "id": 123,
+      "action": "reiben",
+      "phase": 0,
+      "linked_ingredients": [
+        40,
+        41,
+        42
+      ],
+      "equipment": [],
+      "de": "Reibe den Käse grob.",
+      "en": "Coarsely grate the cheese.",
+      "pt": "Rale grosseiramente o queijo.",
+      "es": "Ralla grueso el queso."
+    },
+    {
+      "id": 124,
+      "action": "reiben",
+      "phase": 0,
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": [],
+      "de": "Reibe den Ingwer fein.",
+      "en": "Finely grate the ginger.",
+      "pt": "Rale finamente o gengibre.",
+      "es": "Ralla finamente el jengibre."
+    },
+    {
+      "id": 125,
+      "action": "reiben",
+      "phase": 0,
+      "linked_ingredients": [
+        113
+      ],
+      "equipment": [],
+      "de": "Reibe die Muskatnuss fein.",
+      "en": "Finely grate the nutmeg.",
+      "pt": "Rale finamente a noz-moscada.",
+      "es": "Ralla finamente la nuez moscada."
+    },
+    {
+      "id": 126,
+      "action": "einweichen",
+      "phase": 0,
+      "linked_ingredients": [
+        116
+      ],
+      "equipment": [],
+      "de": "Weiche die Linsen in kaltem Wasser ein.",
+      "en": "Soak the lentils in cold water.",
+      "pt": "Deixe as lentilhas de molho em água fria.",
+      "es": "Remoja las lentejas en agua fría."
+    },
+    {
+      "id": 127,
+      "action": "einweichen",
+      "phase": 0,
+      "linked_ingredients": [
+        274
+      ],
+      "equipment": [],
+      "de": "Weiche die getrockneten Pilze in warmem Wasser ein.",
+      "en": "Soak the dried mushrooms in warm water.",
+      "pt": "Deixe os cogumelos secos de molho em água morna.",
+      "es": "Remoja las setas secas en agua tibia."
+    },
+    {
+      "id": 128,
+      "action": "einweichen",
+      "phase": 0,
+      "linked_ingredients": [
+        256
+      ],
+      "equipment": [],
+      "de": "Weiche die Reispapierblätter kurz in warmem Wasser ein.",
+      "en": "Briefly soak the rice paper wrappers in warm water.",
+      "pt": "Mergulhe brevemente as folhas de papel de arroz em água morna.",
+      "es": "Remoja brevemente las hojas de papel de arroz en agua tibia."
+    },
+    {
+      "id": 129,
+      "action": "einweichen",
+      "phase": 0,
+      "linked_ingredients": [
+        186
+      ],
+      "equipment": [],
+      "de": "Weiche die Reisnudeln nach Packungsanweisung in heißem Wasser ein.",
+      "en": "Soak the rice noodles in hot water according to package instructions.",
+      "pt": "Deixe os noodles de arroz de molho em água quente conforme as instruções.",
+      "es": "Remoja los fideos de arroz en agua caliente según las instrucciones del paquete."
+    },
+    {
+      "id": 130,
+      "action": "marinieren",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Mariniere das Fleisch mit Öl, Gewürzen und Kräutern und lasse es mindestens 30 Minuten ziehen.",
+      "en": "Marinate the meat with oil, spices and herbs and let it rest for at least 30 minutes.",
+      "pt": "Marine a carne com azeite, especiarias e ervas e deixe repousar pelo menos 30 minutos.",
+      "es": "Marina la carne con aceite, especias y hierbas y déjala reposar al menos 30 minutos."
+    },
+    {
+      "id": 131,
+      "action": "marinieren",
+      "phase": 0,
+      "linked_ingredients": [
+        22,
+        87,
+        63,
+        198
+      ],
+      "equipment": [],
+      "de": "Mariniere das Hähnchen mit Sojasoße, Ingwer und Knoblauch.",
+      "en": "Marinate the chicken with soy sauce, ginger and garlic.",
+      "pt": "Marine o frango com molho de soja, gengibre e alho.",
+      "es": "Marina el pollo con salsa de soja, jengibre y ajo."
+    },
+    {
+      "id": 132,
+      "action": "marinieren",
+      "phase": 0,
+      "linked_ingredients": [
+        154,
+        87,
+        195
+      ],
+      "equipment": [],
+      "de": "Mariniere den Tofu mit Sojasoße und Sesamöl.",
+      "en": "Marinate the tofu with soy sauce and sesame oil.",
+      "pt": "Marine o tofu com molho de soja e óleo de sésamo.",
+      "es": "Marina el tofu con salsa de soja y aceite de sésamo."
+    },
+    {
+      "id": 133,
+      "action": "trocknen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Tupfe das Fleisch mit Küchenpapier trocken.",
+      "en": "Pat the meat dry with kitchen paper.",
+      "pt": "Seque a carne com papel de cozinha.",
+      "es": "Seca la carne con papel de cocina."
+    },
+    {
+      "id": 134,
+      "action": "trocknen",
+      "phase": 0,
+      "linked_ingredients": [
+        100
+      ],
+      "equipment": [],
+      "de": "Tupfe den Fisch mit Küchenpapier trocken.",
+      "en": "Pat the fish dry with kitchen paper.",
+      "pt": "Seque o peixe com papel de cozinha.",
+      "es": "Seca el pescado con papel de cocina."
+    },
+    {
+      "id": 135,
+      "action": "würzen",
+      "phase": 0,
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Würze das Fleisch großzügig mit Salz und Pfeffer.",
+      "en": "Season the meat generously with salt and pepper.",
+      "pt": "Tempere a carne generosamente com sal e pimenta.",
+      "es": "Sazona la carne generosamente con sal y pimienta."
+    },
+    {
+      "id": 136,
+      "action": "würzen",
+      "phase": 0,
+      "linked_ingredients": [
+        276,
+        277,
+        9
+      ],
+      "equipment": [],
+      "de": "Würze den Fisch mit Salz, Pfeffer und einem Spritzer Zitronensaft.",
+      "en": "Season the fish with salt, pepper and a squeeze of lemon juice.",
+      "pt": "Tempere o peixe com sal, pimenta e um fio de sumo de limão.",
+      "es": "Sazona el pescado con sal, pimienta y un chorrito de zumo de limón."
+    },
+    {
+      "id": 137,
+      "action": "würzen",
+      "phase": 0,
+      "linked_ingredients": [
+        5
+      ],
+      "equipment": [],
+      "de": "Wende das Fleisch in Mehl.",
+      "en": "Coat the meat in flour.",
+      "pt": "Passe a carne por farinha.",
+      "es": "Reboza la carne en harina."
+    },
+    {
+      "id": 138,
+      "action": "panieren",
+      "phase": 0,
+      "linked_ingredients": [
+        5,
+        85,
+        43
+      ],
+      "equipment": [],
+      "de": "Paniere das Schnitzel: erst in Mehl, dann in verquirltem Ei, dann in Paniermehl.",
+      "en": "Bread the schnitzel: first in flour, then in beaten egg, then in breadcrumbs.",
+      "pt": "Pane o escalope: primeiro na farinha, depois no ovo batido, depois na farinha de rosca.",
+      "es": "Empana el escalope: primero en harina, luego en huevo batido, luego en pan rallado."
+    },
+    {
+      "id": 139,
+      "action": "verquirlen",
+      "phase": 0,
+      "linked_ingredients": [
+        85
+      ],
+      "equipment": [],
+      "de": "Verquirle die Eier in einer Schüssel.",
+      "en": "Whisk the eggs in a bowl.",
+      "pt": "Bata os ovos numa tigela.",
+      "es": "Bate los huevos en un bol."
+    },
+    {
+      "id": 140,
+      "action": "verrühren",
+      "phase": 0,
+      "linked_ingredients": [
+        85,
+        32,
+        276
+      ],
+      "equipment": [],
+      "de": "Verrühre die Eier mit Milch und einer Prise Salz.",
+      "en": "Mix the eggs with milk and a pinch of salt.",
+      "pt": "Misture os ovos com leite e uma pitada de sal.",
+      "es": "Mezcla los huevos con leche y una pizca de sal."
+    },
+    {
+      "id": 141,
+      "action": "mischen",
+      "phase": 0,
+      "linked_ingredients": [
+        5,
+        60,
+        276
+      ],
+      "equipment": [],
+      "de": "Mische Mehl, Backpulver und eine Prise Salz in einer Schüssel.",
+      "en": "Mix flour, baking powder and a pinch of salt in a bowl.",
+      "pt": "Misture a farinha, o fermento e uma pitada de sal numa tigela.",
+      "es": "Mezcla la harina, la levadura y una pizca de sal en un bol."
+    },
+    {
+      "id": 142,
+      "action": "mischen",
+      "phase": 0,
+      "linked_ingredients": [
+        5,
+        1,
+        60,
+        276
+      ],
+      "equipment": [],
+      "de": "Mische Mehl, Zucker, Backpulver und Salz in einer Schüssel.",
+      "en": "Mix flour, sugar, baking powder and salt in a bowl.",
+      "pt": "Misture a farinha, o açúcar, o fermento e o sal numa tigela.",
+      "es": "Mezcla la harina, el azúcar, la levadura y la sal en un bol."
+    },
+    {
+      "id": 143,
+      "action": "verrühren",
+      "phase": 0,
+      "linked_ingredients": [
+        27,
+        1
+      ],
+      "equipment": [],
+      "de": "Verrühre Butter und Zucker schaumig.",
+      "en": "Cream the butter and sugar together until fluffy.",
+      "pt": "Bata a manteiga com o açúcar até ficar fofo.",
+      "es": "Bate la mantequilla con el azúcar hasta que esté esponjosa."
+    },
+    {
+      "id": 144,
+      "action": "verrühren",
+      "phase": 0,
+      "linked_ingredients": [
+        85
+      ],
+      "equipment": [],
+      "de": "Gib die Eier einzeln dazu und rühre sie unter.",
+      "en": "Add the eggs one at a time, mixing after each addition.",
+      "pt": "Adicione os ovos um a um, mexendo após cada adição.",
+      "es": "Añade los huevos uno a uno, mezclando después de cada adición."
+    },
+    {
+      "id": 145,
+      "action": "mischen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Mische die trockenen Zutaten separat zusammen.",
+      "en": "Mix the dry ingredients separately.",
+      "pt": "Misture os ingredientes secos separadamente.",
+      "es": "Mezcla los ingredientes secos por separado."
+    },
+    {
+      "id": 146,
+      "action": "mischen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Hebe die trockenen Zutaten vorsichtig unter die feuchten Zutaten.",
+      "en": "Gently fold the dry ingredients into the wet ingredients.",
+      "pt": "Incorpore delicadamente os ingredientes secos nos ingredientes húmidos.",
+      "es": "Incorpora con cuidado los ingredientes secos a los húmedos."
+    },
+    {
+      "id": 147,
+      "action": "verrühren",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Rühre die Masse glatt, bis keine Klümpchen mehr vorhanden sind.",
+      "en": "Stir the mixture until smooth with no lumps remaining.",
+      "pt": "Mexa a mistura até ficar homogénea, sem grumos.",
+      "es": "Remueve la mezcla hasta que quede suave, sin grumos."
+    },
+    {
+      "id": 148,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [
+        176,
+        75,
+        1
+      ],
+      "equipment": [],
+      "de": "Löse die Hefe in lauwarmem Wasser mit einer Prise Zucker auf.",
+      "en": "Dissolve the yeast in lukewarm water with a pinch of sugar.",
+      "pt": "Dissolva o fermento em água morna com uma pitada de açúcar.",
+      "es": "Disuelve la levadura en agua tibia con una pizca de azúcar."
+    },
+    {
+      "id": 149,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [
+        74,
+        75,
+        1
+      ],
+      "equipment": [],
+      "de": "Löse die Trockenhefe in lauwarmem Wasser mit einer Prise Zucker auf.",
+      "en": "Dissolve the dry yeast in lukewarm water with a pinch of sugar.",
+      "pt": "Dissolva o fermento seco em água morna com uma pitada de açúcar.",
+      "es": "Disuelve la levadura seca en agua tibia con una pizca de azúcar."
+    },
+    {
+      "id": 150,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Knete den Teig etwa 10 Minuten, bis er glatt und geschmeidig ist.",
+      "en": "Knead the dough for about 10 minutes until smooth and elastic.",
+      "pt": "Amasse a massa durante cerca de 10 minutos até ficar lisa e elástica.",
+      "es": "Amasa la masa durante unos 10 minutos hasta que esté suave y elástica."
+    },
+    {
+      "id": 151,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse den Teig abgedeckt an einem warmen Ort etwa 1 Stunde gehen.",
+      "en": "Cover the dough and let it rise in a warm place for about 1 hour.",
+      "pt": "Cubra a massa e deixe levedar num local quente durante cerca de 1 hora.",
+      "es": "Cubre la masa y déjala reposar en un lugar cálido durante aproximadamente 1 hora."
+    },
+    {
+      "id": 152,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [
+        5
+      ],
+      "equipment": [],
+      "de": "Rolle den Teig auf einer bemehlten Fläche dünn aus.",
+      "en": "Roll out the dough thinly on a floured surface.",
+      "pt": "Estenda a massa finamente numa superfície enfarinhada.",
+      "es": "Estira la masa finamente sobre una superficie enharinada."
+    },
+    {
+      "id": 153,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Forme den Teig zu einer Kugel und lege ihn in eine Schüssel.",
+      "en": "Shape the dough into a ball and place it in a bowl.",
+      "pt": "Forme a massa numa bola e coloque-a numa tigela.",
+      "es": "Forma la masa en una bola y colócala en un bol."
+    },
+    {
+      "id": 154,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Drücke den Teig in die Form und forme einen Rand.",
+      "en": "Press the dough into the pan and shape a rim.",
+      "pt": "Pressione a massa na forma e faça uma borda.",
+      "es": "Presiona la masa en el molde y forma un borde."
+    },
+    {
+      "id": 155,
+      "action": "teig",
+      "phase": 0,
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": [],
+      "de": "Bestreiche den Teig mit Olivenöl.",
+      "en": "Brush the dough with olive oil.",
+      "pt": "Pincele a massa com azeite.",
+      "es": "Pincela la masa con aceite de oliva."
+    },
+    {
+      "id": 156,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": [
+        "Pfanne"
+      ],
+      "de": "Erhitze etwas Olivenöl in einer großen Pfanne bei mittlerer Hitze.",
+      "en": "Heat some olive oil in a large pan over medium heat.",
+      "pt": "Aqueça um pouco de azeite numa frigideira grande em fogo médio.",
+      "es": "Calienta un poco de aceite de oliva en una sartén grande a fuego medio."
+    },
+    {
+      "id": 157,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Pfanne"
+      ],
+      "de": "Erhitze etwas Öl in einer großen Pfanne bei mittlerer Hitze.",
+      "en": "Heat some oil in a large pan over medium heat.",
+      "pt": "Aqueça um pouco de óleo numa frigideira grande em fogo médio.",
+      "es": "Calienta un poco de aceite en una sartén grande a fuego medio."
+    },
+    {
+      "id": 158,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [
+        27
+      ],
+      "equipment": [
+        "Pfanne"
+      ],
+      "de": "Erhitze Butter in einer Pfanne bei mittlerer Hitze.",
+      "en": "Heat butter in a pan over medium heat.",
+      "pt": "Aqueça a manteiga numa frigideira em fogo médio.",
+      "es": "Calienta mantequilla en una sartén a fuego medio."
+    },
+    {
+      "id": 159,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [
+        44
+      ],
+      "equipment": [
+        "Pfanne"
+      ],
+      "de": "Erhitze Butterschmalz in einer Pfanne bei hoher Hitze.",
+      "en": "Heat clarified butter in a pan over high heat.",
+      "pt": "Aqueça a manteiga clarificada numa frigideira em fogo alto.",
+      "es": "Calienta mantequilla clarificada en una sartén a fuego fuerte."
+    },
+    {
+      "id": 160,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Topf"
+      ],
+      "de": "Erhitze etwas Öl in einem großen Topf bei mittlerer Hitze.",
+      "en": "Heat some oil in a large pot over medium heat.",
+      "pt": "Aqueça um pouco de óleo numa panela grande em fogo médio.",
+      "es": "Calienta un poco de aceite en una olla grande a fuego medio."
+    },
+    {
+      "id": 161,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": [
+        "Bräter"
+      ],
+      "de": "Erhitze Olivenöl in einem Bräter.",
+      "en": "Heat olive oil in a Dutch oven.",
+      "pt": "Aqueça azeite numa panela de ferro.",
+      "es": "Calienta aceite de oliva en una olla de hierro."
+    },
+    {
+      "id": 162,
+      "action": "erhitzen",
+      "phase": 1,
+      "linked_ingredients": [
+        195
+      ],
+      "equipment": [
+        "Wok"
+      ],
+      "de": "Erhitze das Sesamöl in einem Wok bei hoher Hitze.",
+      "en": "Heat the sesame oil in a wok over high heat.",
+      "pt": "Aqueça o óleo de sésamo num wok em fogo alto.",
+      "es": "Calienta el aceite de sésamo en un wok a fuego fuerte."
+    },
+    {
+      "id": 163,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Brate die Zwiebeln glasig an.",
+      "en": "Sauté the onions until translucent.",
+      "pt": "Refogue as cebolas até ficarem translúcidas.",
+      "es": "Sofríe las cebollas hasta que estén transparentes."
+    },
+    {
+      "id": 164,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        11,
+        198
+      ],
+      "equipment": [],
+      "de": "Brate die Zwiebeln und den Knoblauch glasig an.",
+      "en": "Sauté the onions and garlic until translucent.",
+      "pt": "Refogue as cebolas e o alho até ficarem translúcidos.",
+      "es": "Sofríe las cebollas y el ajo hasta que estén transparentes."
+    },
+    {
+      "id": 165,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Brate das Fleisch von allen Seiten scharf an, bis es gebräunt ist.",
+      "en": "Sear the meat on all sides until browned.",
+      "pt": "Sele a carne de todos os lados até dourar.",
+      "es": "Sella la carne por todos los lados hasta que esté dorada."
+    },
+    {
+      "id": 166,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": [],
+      "de": "Brate das Hähnchen von beiden Seiten goldbraun an.",
+      "en": "Fry the chicken until golden brown on both sides.",
+      "pt": "Frite o frango até dourar de ambos os lados.",
+      "es": "Fríe el pollo hasta que esté dorado por ambos lados."
+    },
+    {
+      "id": 167,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": [],
+      "de": "Brate die Hähnchenstücke von allen Seiten an, bis sie durchgegart sind.",
+      "en": "Fry the chicken pieces on all sides until cooked through.",
+      "pt": "Frite os pedaços de frango de todos os lados até estarem cozidos.",
+      "es": "Fríe los trozos de pollo por todos los lados hasta que estén cocidos."
+    },
+    {
+      "id": 168,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        98
+      ],
+      "equipment": [],
+      "de": "Brate den Speck knusprig an.",
+      "en": "Fry the bacon until crispy.",
+      "pt": "Frite o bacon até ficar crocante.",
+      "es": "Fríe el bacon hasta que esté crujiente."
+    },
+    {
+      "id": 169,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        124
+      ],
+      "equipment": [],
+      "de": "Brate die Champignons bei hoher Hitze an, bis sie goldbraun sind.",
+      "en": "Fry the mushrooms over high heat until golden brown.",
+      "pt": "Frite os cogumelos em fogo alto até dourarem.",
+      "es": "Fríe los champiñones a fuego fuerte hasta que estén dorados."
+    },
+    {
+      "id": 170,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": [],
+      "de": "Brate den Tofu von allen Seiten goldbraun an.",
+      "en": "Fry the tofu on all sides until golden brown.",
+      "pt": "Frite o tofu de todos os lados até dourar.",
+      "es": "Fríe el tofu por todos los lados hasta que esté dorado."
+    },
+    {
+      "id": 171,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        123
+      ],
+      "equipment": [],
+      "de": "Brate die Aubergine von beiden Seiten goldbraun an.",
+      "en": "Fry the eggplant on both sides until golden brown.",
+      "pt": "Frite a beringela de ambos os lados até dourar.",
+      "es": "Fríe la berenjena por ambos lados hasta que esté dorada."
+    },
+    {
+      "id": 172,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        220
+      ],
+      "equipment": [],
+      "de": "Brate das Hackfleisch krümelig an.",
+      "en": "Brown the ground meat until crumbly.",
+      "pt": "Frite a carne moída até ficar esfarelada.",
+      "es": "Fríe la carne picada hasta que esté desmenuzada."
+    },
+    {
+      "id": 173,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": [],
+      "de": "Brate das Rindfleisch scharf von allen Seiten an.",
+      "en": "Sear the beef on all sides.",
+      "pt": "Sele a carne de vaca de todos os lados.",
+      "es": "Sella la carne de ternera por todos los lados."
+    },
+    {
+      "id": 174,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        102
+      ],
+      "equipment": [],
+      "de": "Brate das Schweinefilet von allen Seiten an, bis es gebräunt ist.",
+      "en": "Sear the pork tenderloin on all sides until browned.",
+      "pt": "Sele o lombo de porco de todos os lados até dourar.",
+      "es": "Sella el solomillo de cerdo por todos los lados hasta que esté dorado."
+    },
+    {
+      "id": 175,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        106
+      ],
+      "equipment": [],
+      "de": "Brate den Schweinebauch von allen Seiten knusprig an.",
+      "en": "Fry the pork belly on all sides until crispy.",
+      "pt": "Frite a barriga de porco de todos os lados até ficar crocante.",
+      "es": "Fríe la panceta por todos los lados hasta que esté crujiente."
+    },
+    {
+      "id": 176,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        100
+      ],
+      "equipment": [],
+      "de": "Brate den Fisch von beiden Seiten goldbraun an.",
+      "en": "Fry the fish on both sides until golden brown.",
+      "pt": "Frite o peixe de ambos os lados até dourar.",
+      "es": "Fríe el pescado por ambos lados hasta que esté dorado."
+    },
+    {
+      "id": 177,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        6
+      ],
+      "equipment": [],
+      "de": "Brate die Garnelen von beiden Seiten ca. 2 Minuten an.",
+      "en": "Fry the shrimp for about 2 minutes on each side.",
+      "pt": "Frite os camarões cerca de 2 minutos de cada lado.",
+      "es": "Fríe las gambas unos 2 minutos por cada lado."
+    },
+    {
+      "id": 178,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Nimm das Fleisch aus der Pfanne und stelle es beiseite.",
+      "en": "Remove the meat from the pan and set it aside.",
+      "pt": "Retire a carne da frigideira e reserve.",
+      "es": "Retira la carne de la sartén y resérvala."
+    },
+    {
+      "id": 179,
+      "action": "dünsten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Dünste das Gemüse bei mittlerer Hitze, bis es weich wird.",
+      "en": "Sauté the vegetables over medium heat until soft.",
+      "pt": "Refogue os legumes em fogo médio até ficarem macios.",
+      "es": "Sofríe las verduras a fuego medio hasta que estén tiernas."
+    },
+    {
+      "id": 180,
+      "action": "dünsten",
+      "phase": 1,
+      "linked_ingredients": [
+        11,
+        15,
+        80
+      ],
+      "equipment": [],
+      "de": "Dünste die Zwiebeln, Karotten und den Sellerie ca. 5 Minuten an.",
+      "en": "Sauté the onions, carrots and celery for about 5 minutes.",
+      "pt": "Refogue as cebolas, cenouras e aipo durante cerca de 5 minutos.",
+      "es": "Sofríe las cebollas, zanahorias y apio durante unos 5 minutos."
+    },
+    {
+      "id": 181,
+      "action": "schmoren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Topf"
+      ],
+      "de": "Schmore das Fleisch im geschlossenen Topf bei niedriger Hitze, bis es zart ist.",
+      "en": "Braise the meat in the covered pot on low heat until tender.",
+      "pt": "Estufar a carne na panela tapada em fogo baixo até ficar macia.",
+      "es": "Estofa la carne en la olla tapada a fuego lento hasta que esté tierna."
+    },
+    {
+      "id": 182,
+      "action": "schmoren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Schmore das Gericht im vorgeheizten Backofen bei 160 °C für etwa 2 Stunden.",
+      "en": "Braise the dish in the preheated oven at 160 °C for about 2 hours.",
+      "pt": "Estufe o prato no forno pré-aquecido a 160 °C durante cerca de 2 horas.",
+      "es": "Estofa el plato en el horno precalentado a 160 °C durante unas 2 horas."
+    },
+    {
+      "id": 183,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": [],
+      "de": "Koche die Pasta in reichlich Salzwasser nach Packungsanweisung al dente.",
+      "en": "Cook the pasta al dente in plenty of salted water according to package instructions.",
+      "pt": "Cozinhe a massa al dente em bastante água salgada conforme as instruções.",
+      "es": "Cocina la pasta al dente en abundante agua con sal según las instrucciones del paquete."
+    },
+    {
+      "id": 184,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        3
+      ],
+      "equipment": [],
+      "de": "Koche den Reis nach Packungsanweisung.",
+      "en": "Cook the rice according to package instructions.",
+      "pt": "Cozinhe o arroz conforme as instruções.",
+      "es": "Cocina el arroz según las instrucciones del paquete."
+    },
+    {
+      "id": 185,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        257
+      ],
+      "equipment": [],
+      "de": "Koche den Basmatireis nach Packungsanweisung.",
+      "en": "Cook the basmati rice according to package instructions.",
+      "pt": "Cozinhe o arroz basmati conforme as instruções.",
+      "es": "Cocina el arroz basmati según las instrucciones del paquete."
+    },
+    {
+      "id": 186,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Koche die Kartoffeln in Salzwasser weich (ca. 15–20 Min.).",
+      "en": "Cook the potatoes in salted water until tender (about 15–20 min).",
+      "pt": "Cozinhe as batatas em água salgada até ficarem macias (cerca de 15–20 min).",
+      "es": "Cocina las patatas en agua con sal hasta que estén tiernas (unos 15–20 min)."
+    },
+    {
+      "id": 187,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        85
+      ],
+      "equipment": [],
+      "de": "Koche die Eier hart (ca. 10 Minuten).",
+      "en": "Hard-boil the eggs (about 10 minutes).",
+      "pt": "Cozinhe os ovos até ficarem duros (cerca de 10 minutos).",
+      "es": "Cuece los huevos hasta que estén duros (unos 10 minutos)."
+    },
+    {
+      "id": 188,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        116
+      ],
+      "equipment": [],
+      "de": "Koche die Linsen nach Packungsanweisung.",
+      "en": "Cook the lentils according to package instructions.",
+      "pt": "Cozinhe as lentilhas conforme as instruções.",
+      "es": "Cocina las lentejas según las instrucciones del paquete."
+    },
+    {
+      "id": 189,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": [],
+      "de": "Koche die Nudeln in Salzwasser al dente, gieße sie ab und fange etwas Kochwasser auf.",
+      "en": "Cook the pasta al dente in salted water, drain and reserve some pasta water.",
+      "pt": "Cozinhe a massa al dente em água salgada, escorra e reserve um pouco da água.",
+      "es": "Cocina la pasta al dente en agua con sal, escúrrela y reserva un poco del agua de cocción."
+    },
+    {
+      "id": 190,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        151
+      ],
+      "equipment": [],
+      "de": "Koche den Couscous nach Packungsanweisung.",
+      "en": "Cook the couscous according to package instructions.",
+      "pt": "Prepare o cuscuz conforme as instruções.",
+      "es": "Prepara el cuscús según las instrucciones del paquete."
+    },
+    {
+      "id": 191,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        153
+      ],
+      "equipment": [],
+      "de": "Koche den Bulgur nach Packungsanweisung.",
+      "en": "Cook the bulgur according to package instructions.",
+      "pt": "Cozinhe o bulgur conforme as instruções.",
+      "es": "Cocina el bulgur según las instrucciones del paquete."
+    },
+    {
+      "id": 192,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        141
+      ],
+      "equipment": [],
+      "de": "Koche die Quinoa nach Packungsanweisung.",
+      "en": "Cook the quinoa according to package instructions.",
+      "pt": "Cozinhe a quinoa conforme as instruções.",
+      "es": "Cocina la quinoa según las instrucciones del paquete."
+    },
+    {
+      "id": 193,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        127
+      ],
+      "equipment": [],
+      "de": "Koche die grünen Bohnen in Salzwasser bissfest (ca. 8 Min.).",
+      "en": "Cook the green beans in salted water until crisp-tender (about 8 min).",
+      "pt": "Cozinhe o feijão-verde em água salgada até ficar al dente (cerca de 8 min).",
+      "es": "Cocina las judías verdes en agua con sal hasta que estén al dente (unos 8 min)."
+    },
+    {
+      "id": 194,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        77
+      ],
+      "equipment": [],
+      "de": "Koche den Brokkoli in Salzwasser bissfest (ca. 3–5 Min.).",
+      "en": "Cook the broccoli in salted water until crisp-tender (about 3–5 min).",
+      "pt": "Cozinhe os brócolos em água salgada até ficarem al dente (cerca de 3–5 min).",
+      "es": "Cocina el brócoli en agua con sal hasta que esté al dente (unos 3–5 min)."
+    },
+    {
+      "id": 195,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        145
+      ],
+      "equipment": [],
+      "de": "Koche den Blumenkohl in Salzwasser weich (ca. 10 Min.).",
+      "en": "Cook the cauliflower in salted water until tender (about 10 min).",
+      "pt": "Cozinhe a couve-flor em água salgada até ficar macia (cerca de 10 min).",
+      "es": "Cocina la coliflor en agua con sal hasta que esté tierna (unos 10 min)."
+    },
+    {
+      "id": 196,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        162
+      ],
+      "equipment": [],
+      "de": "Koche die Spätzle in Salzwasser, bis sie oben schwimmen.",
+      "en": "Cook the Spätzle in salted water until they float to the top.",
+      "pt": "Cozinhe os Spätzle em água salgada até flutuarem.",
+      "es": "Cocina los Spätzle en agua con sal hasta que floten."
+    },
+    {
+      "id": 197,
+      "action": "ablöschen",
+      "phase": 1,
+      "linked_ingredients": [
+        28
+      ],
+      "equipment": [],
+      "de": "Lösche mit Weißwein ab und lasse ihn kurz einkochen.",
+      "en": "Deglaze with white wine and let it reduce briefly.",
+      "pt": "Deglaceie com vinho branco e deixe reduzir brevemente.",
+      "es": "Desgasa con vino blanco y deja que reduzca brevemente."
+    },
+    {
+      "id": 198,
+      "action": "ablöschen",
+      "phase": 1,
+      "linked_ingredients": [
+        81
+      ],
+      "equipment": [],
+      "de": "Lösche mit Rotwein ab und lasse ihn kurz einkochen.",
+      "en": "Deglaze with red wine and let it reduce briefly.",
+      "pt": "Deglaceie com vinho tinto e deixe reduzir brevemente.",
+      "es": "Desgasa con vino tinto y deja que reduzca brevemente."
+    },
+    {
+      "id": 199,
+      "action": "ablöschen",
+      "phase": 1,
+      "linked_ingredients": [
+        117
+      ],
+      "equipment": [],
+      "de": "Lösche mit Brühe ab.",
+      "en": "Deglaze with broth.",
+      "pt": "Deglaceie com caldo.",
+      "es": "Desgasa con caldo."
+    },
+    {
+      "id": 200,
+      "action": "ablöschen",
+      "phase": 1,
+      "linked_ingredients": [
+        117
+      ],
+      "equipment": [],
+      "de": "Gieße die Brühe an und bringe alles zum Kochen.",
+      "en": "Pour in the broth and bring everything to a boil.",
+      "pt": "Adicione o caldo e leve tudo a ferver.",
+      "es": "Añade el caldo y lleva todo a ebullición."
+    },
+    {
+      "id": 201,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        67
+      ],
+      "equipment": [],
+      "de": "Gieße die Kokosmilch dazu und rühre um.",
+      "en": "Pour in the coconut milk and stir.",
+      "pt": "Adicione o leite de coco e mexa.",
+      "es": "Añade la leche de coco y remueve."
+    },
+    {
+      "id": 202,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        114
+      ],
+      "equipment": [],
+      "de": "Gieße die passierten Tomaten dazu und rühre um.",
+      "en": "Pour in the strained tomatoes and stir.",
+      "pt": "Adicione o tomate triturado e mexa.",
+      "es": "Añade el tomate triturado y remueve."
+    },
+    {
+      "id": 203,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        213
+      ],
+      "equipment": [],
+      "de": "Gib die gehackten Tomaten (Dose) dazu.",
+      "en": "Add the canned chopped tomatoes.",
+      "pt": "Adicione os tomates em lata picados.",
+      "es": "Añade los tomates troceados en lata."
+    },
+    {
+      "id": 204,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        14
+      ],
+      "equipment": [],
+      "de": "Rühre das Tomatenmark ein und röste es kurz mit an.",
+      "en": "Stir in the tomato paste and roast it briefly.",
+      "pt": "Adicione o extrato de tomate e deixe torrar brevemente.",
+      "es": "Añade el concentrado de tomate y tuéstalo brevemente."
+    },
+    {
+      "id": 205,
+      "action": "köcheln",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse alles bei niedriger Hitze zugedeckt ca. 20 Minuten köcheln.",
+      "en": "Let everything simmer covered on low heat for about 20 minutes.",
+      "pt": "Deixe tudo cozinhar tapado em fogo baixo durante cerca de 20 minutos.",
+      "es": "Deja que todo cueza tapado a fuego lento durante unos 20 minutos."
+    },
+    {
+      "id": 206,
+      "action": "köcheln",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse alles bei niedriger Hitze zugedeckt ca. 30 Minuten köcheln.",
+      "en": "Let everything simmer covered on low heat for about 30 minutes.",
+      "pt": "Deixe tudo cozinhar tapado em fogo baixo durante cerca de 30 minutos.",
+      "es": "Deja que todo cueza tapado a fuego lento durante unos 30 minutos."
+    },
+    {
+      "id": 207,
+      "action": "köcheln",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse alles bei niedriger Hitze zugedeckt ca. 45 Minuten köcheln.",
+      "en": "Let everything simmer covered on low heat for about 45 minutes.",
+      "pt": "Deixe tudo cozinhar tapado em fogo baixo durante cerca de 45 minutos.",
+      "es": "Deja que todo cueza tapado a fuego lento durante unos 45 minutos."
+    },
+    {
+      "id": 208,
+      "action": "köcheln",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse die Sauce einkochen, bis sie die gewünschte Konsistenz hat.",
+      "en": "Let the sauce reduce until it reaches the desired consistency.",
+      "pt": "Deixe o molho reduzir até atingir a consistência desejada.",
+      "es": "Deja que la salsa reduzca hasta alcanzar la consistencia deseada."
+    },
+    {
+      "id": 209,
+      "action": "köcheln",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Rühre gelegentlich um, damit nichts anbrennt.",
+      "en": "Stir occasionally to prevent burning.",
+      "pt": "Mexa de vez em quando para não queimar.",
+      "es": "Remueve de vez en cuando para que no se pegue."
+    },
+    {
+      "id": 210,
+      "action": "köcheln",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Koche alles einmal auf und reduziere dann die Hitze.",
+      "en": "Bring to a boil, then reduce the heat.",
+      "pt": "Leve a ferver e depois reduza o fogo.",
+      "es": "Lleva a ebullición y luego reduce el fuego."
+    },
+    {
+      "id": 211,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Schiebe das Blech in den vorgeheizten Backofen.",
+      "en": "Place the tray in the preheated oven.",
+      "pt": "Coloque o tabuleiro no forno pré-aquecido.",
+      "es": "Mete la bandeja en el horno precalentado."
+    },
+    {
+      "id": 212,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Backe das Gericht im Ofen ca. 20 Minuten.",
+      "en": "Bake in the oven for about 20 minutes.",
+      "pt": "Asse no forno durante cerca de 20 minutos.",
+      "es": "Hornea durante unos 20 minutos."
+    },
+    {
+      "id": 213,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Backe das Gericht im Ofen ca. 30 Minuten.",
+      "en": "Bake in the oven for about 30 minutes.",
+      "pt": "Asse no forno durante cerca de 30 minutos.",
+      "es": "Hornea durante unos 30 minutos."
+    },
+    {
+      "id": 214,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Backe das Gericht im Ofen ca. 40 Minuten.",
+      "en": "Bake in the oven for about 40 minutes.",
+      "pt": "Asse no forno durante cerca de 40 minutos.",
+      "es": "Hornea durante unos 40 minutos."
+    },
+    {
+      "id": 215,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Backe das Gericht im Ofen ca. 60 Minuten.",
+      "en": "Bake in the oven for about 60 minutes.",
+      "pt": "Asse no forno durante cerca de 60 minutos.",
+      "es": "Hornea durante unos 60 minutos."
+    },
+    {
+      "id": 216,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Backe den Kuchen ca. 35–40 Minuten, bis ein Zahnstocher sauber herauskommt.",
+      "en": "Bake the cake for about 35–40 minutes until a toothpick comes out clean.",
+      "pt": "Asse o bolo durante cerca de 35–40 minutos até que um palito saia limpo.",
+      "es": "Hornea el pastel unos 35–40 minutos hasta que un palillo salga limpio."
+    },
+    {
+      "id": 217,
+      "action": "backen",
+      "phase": 1,
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Überbacke das Gericht im Ofen, bis der Käse geschmolzen und goldbraun ist.",
+      "en": "Bake until the cheese is melted and golden brown.",
+      "pt": "Asse até o queijo derreter e ficar dourado.",
+      "es": "Hornea hasta que el queso se derrita y esté dorado."
+    },
+    {
+      "id": 218,
+      "action": "sauce",
+      "phase": 1,
+      "linked_ingredients": [
+        27,
+        5
+      ],
+      "equipment": [],
+      "de": "Schmelze Butter in einem Topf und rühre das Mehl ein (Mehlschwitze).",
+      "en": "Melt butter in a pot and stir in the flour (roux).",
+      "pt": "Derreta a manteiga numa panela e adicione a farinha (roux).",
+      "es": "Derrite mantequilla en una olla y añade la harina (roux)."
+    },
+    {
+      "id": 219,
+      "action": "sauce",
+      "phase": 1,
+      "linked_ingredients": [
+        32
+      ],
+      "equipment": [],
+      "de": "Gieße nach und nach die Milch unter ständigem Rühren ein, bis eine glatte Sauce entsteht.",
+      "en": "Gradually pour in the milk while stirring constantly until a smooth sauce forms.",
+      "pt": "Adicione gradualmente o leite, mexendo constantemente, até obter um molho homogéneo.",
+      "es": "Añade gradualmente la leche, removiendo constantemente, hasta obtener una salsa suave."
+    },
+    {
+      "id": 220,
+      "action": "sauce",
+      "phase": 1,
+      "linked_ingredients": [
+        276,
+        277,
+        113
+      ],
+      "equipment": [],
+      "de": "Würze die Béchamel-Sauce mit Salz, Pfeffer und Muskatnuss.",
+      "en": "Season the béchamel sauce with salt, pepper and nutmeg.",
+      "pt": "Tempere o molho bechamel com sal, pimenta e noz-moscada.",
+      "es": "Sazona la salsa bechamel con sal, pimienta y nuez moscada."
+    },
+    {
+      "id": 221,
+      "action": "sauce",
+      "phase": 1,
+      "linked_ingredients": [
+        33
+      ],
+      "equipment": [],
+      "de": "Rühre die Sahne ein und lasse die Sauce kurz aufkochen.",
+      "en": "Stir in the cream and bring the sauce briefly to a boil.",
+      "pt": "Adicione as natas e leve o molho brevemente a ferver.",
+      "es": "Añade la nata y lleva la salsa brevemente a ebullición."
+    },
+    {
+      "id": 222,
+      "action": "sauce",
+      "phase": 1,
+      "linked_ingredients": [
+        34
+      ],
+      "equipment": [],
+      "de": "Rühre den Schmand ein.",
+      "en": "Stir in the sour cream.",
+      "pt": "Adicione o creme azedo e mexa.",
+      "es": "Añade la crema agria y remueve."
+    },
+    {
+      "id": 223,
+      "action": "sauce",
+      "phase": 1,
+      "linked_ingredients": [
+        35
+      ],
+      "equipment": [],
+      "de": "Rühre die Crème fraîche unter.",
+      "en": "Stir in the crème fraîche.",
+      "pt": "Adicione o crème fraîche e mexa.",
+      "es": "Añade la crème fraîche y remueve."
+    },
+    {
+      "id": 224,
+      "action": "risotto",
+      "phase": 1,
+      "linked_ingredients": [
+        135
+      ],
+      "equipment": [],
+      "de": "Röste den Arborio-Reis im Topf mit an, bis er glasig wird.",
+      "en": "Toast the Arborio rice in the pot until translucent.",
+      "pt": "Toste o arroz Arborio na panela até ficar translúcido.",
+      "es": "Tuesta el arroz Arborio en la olla hasta que esté translúcido."
+    },
+    {
+      "id": 225,
+      "action": "risotto",
+      "phase": 1,
+      "linked_ingredients": [
+        135,
+        117
+      ],
+      "equipment": [],
+      "de": "Gieße nach und nach Brühe zum Risotto und rühre ständig, bis der Reis die Flüssigkeit aufgenommen hat.",
+      "en": "Gradually add broth to the risotto, stirring constantly until the rice has absorbed the liquid.",
+      "pt": "Adicione gradualmente o caldo ao risoto, mexendo constantemente até o arroz absorver o líquido.",
+      "es": "Añade gradualmente el caldo al risotto, removiendo constantemente hasta que el arroz absorba el líquido."
+    },
+    {
+      "id": 226,
+      "action": "risotto",
+      "phase": 1,
+      "linked_ingredients": [
+        27,
+        40
+      ],
+      "equipment": [],
+      "de": "Rühre zum Schluss Butter und Parmesan unter den Risotto.",
+      "en": "Finally stir butter and Parmesan into the risotto.",
+      "pt": "Por fim, adicione manteiga e parmesão ao risoto e mexa.",
+      "es": "Finalmente, añade mantequilla y parmesano al risotto y remueve."
+    },
+    {
+      "id": 227,
+      "action": "pürieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Stabmixer"
+      ],
+      "de": "Püriere die Suppe mit einem Stabmixer glatt.",
+      "en": "Blend the soup until smooth using a hand blender.",
+      "pt": "Triture a sopa com uma varinha mágica até ficar homogénea.",
+      "es": "Tritura la sopa con una batidora de mano hasta que quede suave."
+    },
+    {
+      "id": 228,
+      "action": "pürieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Püriere die Sauce glatt.",
+      "en": "Blend the sauce until smooth.",
+      "pt": "Triture o molho até ficar homogéneo.",
+      "es": "Tritura la salsa hasta que quede suave."
+    },
+    {
+      "id": 229,
+      "action": "pürieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Mixer"
+      ],
+      "de": "Püriere die Zutaten im Mixer zu einem Smoothie.",
+      "en": "Blend the ingredients in a blender to make a smoothie.",
+      "pt": "Triture os ingredientes no liquidificador para fazer um smoothie.",
+      "es": "Tritura los ingredientes en la batidora para hacer un smoothie."
+    },
+    {
+      "id": 230,
+      "action": "zerdrücken",
+      "phase": 1,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Stampfe die Kartoffeln zu einem glatten Püree.",
+      "en": "Mash the potatoes into a smooth purée.",
+      "pt": "Esmague as batatas até obter um puré homogéneo.",
+      "es": "Aplasta las patatas hasta obtener un puré suave."
+    },
+    {
+      "id": 231,
+      "action": "schichten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Verteile eine Schicht Sauce auf dem Boden der Auflaufform.",
+      "en": "Spread a layer of sauce on the bottom of the baking dish.",
+      "pt": "Espalhe uma camada de molho no fundo da forma.",
+      "es": "Extiende una capa de salsa en el fondo de la fuente."
+    },
+    {
+      "id": 232,
+      "action": "schichten",
+      "phase": 1,
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": [],
+      "de": "Lege eine Schicht Lasagneblätter in die Form.",
+      "en": "Place a layer of lasagna sheets in the dish.",
+      "pt": "Coloque uma camada de folhas de lasanha na forma.",
+      "es": "Coloca una capa de láminas de lasaña en la fuente."
+    },
+    {
+      "id": 233,
+      "action": "schichten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Wiederhole die Schichten, bis alle Zutaten aufgebraucht sind.",
+      "en": "Repeat the layers until all ingredients are used up.",
+      "pt": "Repita as camadas até acabarem todos os ingredientes.",
+      "es": "Repite las capas hasta agotar todos los ingredientes."
+    },
+    {
+      "id": 234,
+      "action": "schichten",
+      "phase": 1,
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": [],
+      "de": "Bedecke die oberste Schicht mit Béchamel-Sauce und Käse.",
+      "en": "Cover the top layer with béchamel sauce and cheese.",
+      "pt": "Cubra a camada superior com molho bechamel e queijo.",
+      "es": "Cubre la capa superior con salsa bechamel y queso."
+    },
+    {
+      "id": 235,
+      "action": "formen",
+      "phase": 1,
+      "linked_ingredients": [
+        220
+      ],
+      "equipment": [],
+      "de": "Forme aus der Masse gleichmäßige Frikadellen/Patties.",
+      "en": "Shape the mixture into even meatballs/patties.",
+      "pt": "Forme a massa em almôndegas/hambúrgueres uniformes.",
+      "es": "Forma la masa en albóndigas/hamburguesas uniformes."
+    },
+    {
+      "id": 236,
+      "action": "formen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Forme aus dem Teig gleichmäßige Brötchen.",
+      "en": "Shape the dough into even rolls.",
+      "pt": "Forme a massa em pãezinhos uniformes.",
+      "es": "Forma la masa en panecillos uniformes."
+    },
+    {
+      "id": 237,
+      "action": "füllen",
+      "phase": 1,
+      "linked_ingredients": [
+        142
+      ],
+      "equipment": [],
+      "de": "Fülle die Tortillas mit der Füllung und rolle sie zusammen.",
+      "en": "Fill the tortillas with the filling and roll them up.",
+      "pt": "Recheie as tortilhas com o recheio e enrole-as.",
+      "es": "Rellena las tortillas con el relleno y enróllalas."
+    },
+    {
+      "id": 238,
+      "action": "füllen",
+      "phase": 1,
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": [],
+      "de": "Fülle die Paprika mit der Masse und setze sie in die Auflaufform.",
+      "en": "Stuff the peppers with the mixture and place them in the baking dish.",
+      "pt": "Recheie os pimentões com a mistura e coloque-os na forma.",
+      "es": "Rellena los pimientos con la mezcla y colócalos en la fuente."
+    },
+    {
+      "id": 239,
+      "action": "ruhen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Wickle das Fleisch in Alufolie ein und lasse es 10 Minuten ruhen.",
+      "en": "Wrap the meat in aluminium foil and let it rest for 10 minutes.",
+      "pt": "Embrulhe a carne em papel de alumínio e deixe repousar 10 minutos.",
+      "es": "Envuelve la carne en papel de aluminio y déjala reposar 10 minutos."
+    },
+    {
+      "id": 240,
+      "action": "rühren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Rühre alles gut durch und lasse es einige Minuten ziehen.",
+      "en": "Stir everything well and let it infuse for a few minutes.",
+      "pt": "Mexa tudo bem e deixe repousar alguns minutos.",
+      "es": "Remueve todo bien y déjalo reposar unos minutos."
+    },
+    {
+      "id": 241,
+      "action": "vermengen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Vermengle alle Zutaten in einer großen Schüssel.",
+      "en": "Combine all ingredients in a large bowl.",
+      "pt": "Misture todos os ingredientes numa tigela grande.",
+      "es": "Mezcla todos los ingredientes en un bol grande."
+    },
+    {
+      "id": 242,
+      "action": "vermengen",
+      "phase": 1,
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": [],
+      "de": "Schwenke die Pasta in der Sauce, bis sie gut überzogen ist.",
+      "en": "Toss the pasta in the sauce until well coated.",
+      "pt": "Misture a massa no molho até ficar bem envolvida.",
+      "es": "Mezcla la pasta en la salsa hasta que esté bien cubierta."
+    },
+    {
+      "id": 243,
+      "action": "vermengen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Hebe die Zutaten vorsichtig unter, damit nichts zerfällt.",
+      "en": "Gently fold in the ingredients so they don't break apart.",
+      "pt": "Incorpore delicadamente os ingredientes para não se desfazerem.",
+      "es": "Incorpora con cuidado los ingredientes para que no se deshagan."
+    },
+    {
+      "id": 244,
+      "action": "blanchieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Blanchiere das Gemüse kurz in kochendem Wasser und schrecke es in Eiswasser ab.",
+      "en": "Blanch the vegetables briefly in boiling water and plunge them into ice water.",
+      "pt": "Branqueie os legumes brevemente em água fervente e mergulhe-os em água gelada.",
+      "es": "Blanquea las verduras brevemente en agua hirviendo y sumérgelas en agua con hielo."
+    },
+    {
+      "id": 245,
+      "action": "abgießen",
+      "phase": 1,
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": [],
+      "de": "Gieße die Pasta ab und fange etwas Kochwasser auf.",
+      "en": "Drain the pasta and reserve some cooking water.",
+      "pt": "Escorra a massa e reserve um pouco da água de cozimento.",
+      "es": "Escurre la pasta y reserva un poco del agua de cocción."
+    },
+    {
+      "id": 246,
+      "action": "abgießen",
+      "phase": 1,
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": [],
+      "de": "Gieße die Kartoffeln ab und lasse sie kurz ausdampfen.",
+      "en": "Drain the potatoes and let them steam dry briefly.",
+      "pt": "Escorra as batatas e deixe-as secar ao vapor brevemente.",
+      "es": "Escurre las patatas y déjalas secar al vapor brevemente."
+    },
+    {
+      "id": 247,
+      "action": "abgießen",
+      "phase": 1,
+      "linked_ingredients": [
+        62,
+        150
+      ],
+      "equipment": [],
+      "de": "Lasse die Bohnen/Kichererbsen abtropfen und spüle sie kurz ab.",
+      "en": "Drain and rinse the beans/chickpeas briefly.",
+      "pt": "Escorra e passe brevemente por água o feijão/grão-de-bico.",
+      "es": "Escurre y enjuaga brevemente las judías/garbanzos."
+    },
+    {
+      "id": 248,
+      "action": "grillen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Grille das Fleisch bei direkter Hitze von jeder Seite ca. 3–4 Minuten.",
+      "en": "Grill the meat over direct heat for about 3–4 minutes per side.",
+      "pt": "Grelhe a carne sobre calor direto durante cerca de 3–4 minutos de cada lado.",
+      "es": "Asa la carne a fuego directo unos 3–4 minutos por cada lado."
+    },
+    {
+      "id": 249,
+      "action": "grillen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Grille das Gemüse, bis es leichte Röstspuren hat.",
+      "en": "Grill the vegetables until they have light char marks.",
+      "pt": "Grelhe os legumes até terem marcas ligeiras de grelha.",
+      "es": "Asa las verduras hasta que tengan ligeras marcas de parrilla."
+    },
+    {
+      "id": 250,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Schmecke das Gericht mit Salz und Pfeffer ab.",
+      "en": "Season the dish with salt and pepper to taste.",
+      "pt": "Tempere o prato com sal e pimenta a gosto.",
+      "es": "Sazona el plato con sal y pimienta al gusto."
+    },
+    {
+      "id": 251,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        276,
+        277,
+        113
+      ],
+      "equipment": [],
+      "de": "Schmecke das Gericht mit Salz, Pfeffer und Muskatnuss ab.",
+      "en": "Season the dish with salt, pepper and nutmeg to taste.",
+      "pt": "Tempere o prato com sal, pimenta e noz-moscada a gosto.",
+      "es": "Sazona el plato con sal, pimienta y nuez moscada al gusto."
+    },
+    {
+      "id": 252,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Schmecke das Gericht mit Salz, Pfeffer und Kräutern ab.",
+      "en": "Season the dish with salt, pepper and herbs to taste.",
+      "pt": "Tempere o prato com sal, pimenta e ervas a gosto.",
+      "es": "Sazona el plato con sal, pimienta y hierbas al gusto."
+    },
+    {
+      "id": 253,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Schmecke die Sauce mit Salz und Pfeffer ab.",
+      "en": "Season the sauce with salt and pepper to taste.",
+      "pt": "Tempere o molho com sal e pimenta a gosto.",
+      "es": "Sazona la salsa con sal y pimienta al gusto."
+    },
+    {
+      "id": 254,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Schmecke die Suppe mit Salz und Pfeffer ab.",
+      "en": "Season the soup with salt and pepper to taste.",
+      "pt": "Tempere a sopa com sal e pimenta a gosto.",
+      "es": "Sazona la sopa con sal y pimienta al gusto."
+    },
+    {
+      "id": 255,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        9
+      ],
+      "equipment": [],
+      "de": "Schmecke mit einem Spritzer Zitronensaft ab.",
+      "en": "Season with a squeeze of lemon juice.",
+      "pt": "Tempere com um fio de sumo de limão.",
+      "es": "Sazona con un chorrito de zumo de limón."
+    },
+    {
+      "id": 256,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        55
+      ],
+      "equipment": [],
+      "de": "Schmecke mit einem Spritzer Limettensaft ab.",
+      "en": "Season with a squeeze of lime juice.",
+      "pt": "Tempere com um fio de sumo de lima.",
+      "es": "Sazona con un chorrito de zumo de lima."
+    },
+    {
+      "id": 257,
+      "action": "abschmecken",
+      "phase": 2,
+      "linked_ingredients": [
+        16,
+        88
+      ],
+      "equipment": [],
+      "de": "Schmecke mit etwas Honig und Essig ab.",
+      "en": "Season with some honey and vinegar.",
+      "pt": "Tempere com um pouco de mel e vinagre.",
+      "es": "Sazona con un poco de miel y vinagre."
+    },
+    {
+      "id": 258,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        7,
+        17,
+        70,
+        101
+      ],
+      "equipment": [],
+      "de": "Garniere mit frischen Kräutern.",
+      "en": "Garnish with fresh herbs.",
+      "pt": "Decore com ervas frescas.",
+      "es": "Decora con hierbas frescas."
+    },
+    {
+      "id": 259,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        7
+      ],
+      "equipment": [],
+      "de": "Garniere mit frischem Basilikum.",
+      "en": "Garnish with fresh basil.",
+      "pt": "Decore com manjericão fresco.",
+      "es": "Decora con albahaca fresca."
+    },
+    {
+      "id": 260,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        17
+      ],
+      "equipment": [],
+      "de": "Garniere mit frischer Petersilie.",
+      "en": "Garnish with fresh parsley.",
+      "pt": "Decore com salsa fresca.",
+      "es": "Decora con perejil fresco."
+    },
+    {
+      "id": 261,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        70
+      ],
+      "equipment": [],
+      "de": "Garniere mit frischem Koriander.",
+      "en": "Garnish with fresh cilantro.",
+      "pt": "Decore com coentro fresco.",
+      "es": "Decora con cilantro fresco."
+    },
+    {
+      "id": 262,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        101
+      ],
+      "equipment": [],
+      "de": "Garniere mit frischem Dill.",
+      "en": "Garnish with fresh dill.",
+      "pt": "Decore com endro fresco.",
+      "es": "Decora con eneldo fresco."
+    },
+    {
+      "id": 263,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": [],
+      "de": "Bestreue das Gericht mit geriebenem Parmesan.",
+      "en": "Sprinkle grated Parmesan over the dish.",
+      "pt": "Polvilhe o prato com parmesão ralado.",
+      "es": "Espolvorea parmesano rallado sobre el plato."
+    },
+    {
+      "id": 264,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        326
+      ],
+      "equipment": [],
+      "de": "Bestreue das Gericht mit Sesam.",
+      "en": "Sprinkle sesame seeds over the dish.",
+      "pt": "Polvilhe o prato com sementes de sésamo.",
+      "es": "Espolvorea semillas de sésamo sobre el plato."
+    },
+    {
+      "id": 265,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        233
+      ],
+      "equipment": [],
+      "de": "Bestreue mit Chiliflocken.",
+      "en": "Sprinkle with chili flakes.",
+      "pt": "Polvilhe com flocos de chili.",
+      "es": "Espolvorea con copos de chile."
+    },
+    {
+      "id": 266,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": [],
+      "de": "Träufle etwas Olivenöl über das fertige Gericht.",
+      "en": "Drizzle some olive oil over the finished dish.",
+      "pt": "Regue o prato com um fio de azeite.",
+      "es": "Rocía un poco de aceite de oliva sobre el plato terminado."
+    },
+    {
+      "id": 267,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        159
+      ],
+      "equipment": [],
+      "de": "Träufle etwas Balsamico-Creme darüber.",
+      "en": "Drizzle some balsamic cream over it.",
+      "pt": "Regue com um fio de creme balsâmico.",
+      "es": "Rocía un poco de crema balsámica por encima."
+    },
+    {
+      "id": 268,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        35,
+        34
+      ],
+      "equipment": [],
+      "de": "Gib einen Klecks Crème fraîche oder Schmand darauf.",
+      "en": "Add a dollop of crème fraîche or sour cream on top.",
+      "pt": "Coloque uma colher de crème fraîche ou creme azedo por cima.",
+      "es": "Pon una cucharada de crème fraîche o crema agria encima."
+    },
+    {
+      "id": 269,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        177,
+        147
+      ],
+      "equipment": [],
+      "de": "Streue gehackte Nüsse darüber.",
+      "en": "Sprinkle chopped nuts over it.",
+      "pt": "Polvilhe com frutos secos picados.",
+      "es": "Espolvorea frutos secos picados por encima."
+    },
+    {
+      "id": 270,
+      "action": "anrichten",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Richte das Gericht auf vorgewärmten Tellern an.",
+      "en": "Plate the dish on prewarmed plates.",
+      "pt": "Emprate o prato em pratos pré-aquecidos.",
+      "es": "Emplata el plato en platos precalentados."
+    },
+    {
+      "id": 271,
+      "action": "servieren",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Serviere das Gericht sofort.",
+      "en": "Serve the dish immediately.",
+      "pt": "Sirva o prato imediatamente.",
+      "es": "Sirve el plato inmediatamente."
+    },
+    {
+      "id": 272,
+      "action": "servieren",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Serviere das Gericht mit frischem Brot.",
+      "en": "Serve the dish with fresh bread.",
+      "pt": "Sirva o prato com pão fresco.",
+      "es": "Sirve el plato con pan fresco."
+    },
+    {
+      "id": 273,
+      "action": "servieren",
+      "phase": 2,
+      "linked_ingredients": [
+        3
+      ],
+      "equipment": [],
+      "de": "Serviere das Gericht mit Reis.",
+      "en": "Serve the dish with rice.",
+      "pt": "Sirva o prato com arroz.",
+      "es": "Sirve el plato con arroz."
+    },
+    {
+      "id": 274,
+      "action": "servieren",
+      "phase": 2,
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": [],
+      "de": "Serviere das Gericht mit Pasta.",
+      "en": "Serve the dish with pasta.",
+      "pt": "Sirva o prato com massa.",
+      "es": "Sirve el plato con pasta."
+    },
+    {
+      "id": 275,
+      "action": "servieren",
+      "phase": 2,
+      "linked_ingredients": [
+        4
+      ],
+      "equipment": [],
+      "de": "Serviere das Gericht mit einem frischen Salat.",
+      "en": "Serve the dish with a fresh salad.",
+      "pt": "Sirva o prato com uma salada fresca.",
+      "es": "Sirve el plato con una ensalada fresca."
+    },
+    {
+      "id": 276,
+      "action": "ruhen",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse das Gericht vor dem Servieren einige Minuten ruhen.",
+      "en": "Let the dish rest for a few minutes before serving.",
+      "pt": "Deixe o prato repousar alguns minutos antes de servir.",
+      "es": "Deja reposar el plato unos minutos antes de servir."
+    },
+    {
+      "id": 277,
+      "action": "abkühlen",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse den Kuchen vollständig abkühlen, bevor du ihn anschneidest.",
+      "en": "Let the cake cool completely before cutting.",
+      "pt": "Deixe o bolo arrefecer completamente antes de cortar.",
+      "es": "Deja que el pastel se enfríe completamente antes de cortarlo."
+    },
+    {
+      "id": 278,
+      "action": "herausnehmen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ],
+      "de": "Nimm das Gericht aus dem Ofen und lasse es kurz ruhen.",
+      "en": "Remove the dish from the oven and let it rest briefly.",
+      "pt": "Retire o prato do forno e deixe repousar brevemente.",
+      "es": "Saca el plato del horno y déjalo reposar brevemente."
+    },
+    {
+      "id": 279,
+      "action": "abtropfen",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse das frittierte/gebratene Gut auf Küchenpapier abtropfen.",
+      "en": "Let the fried/sautéed food drain on kitchen paper.",
+      "pt": "Deixe o frito/salteado escorrer em papel de cozinha.",
+      "es": "Deja escurrir lo frito/salteado sobre papel de cocina."
+    },
+    {
+      "id": 280,
+      "action": "dressing",
+      "phase": 0,
+      "linked_ingredients": [
+        10,
+        88,
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Verrühre Olivenöl, Essig, Salz und Pfeffer zu einem Dressing.",
+      "en": "Whisk olive oil, vinegar, salt and pepper into a dressing.",
+      "pt": "Misture azeite, vinagre, sal e pimenta para fazer um molho.",
+      "es": "Mezcla aceite de oliva, vinagre, sal y pimienta para hacer un aliño."
+    },
+    {
+      "id": 281,
+      "action": "dressing",
+      "phase": 0,
+      "linked_ingredients": [
+        10,
+        9,
+        276,
+        277
+      ],
+      "equipment": [],
+      "de": "Verrühre Olivenöl, Zitronensaft, Salz und Pfeffer zu einem Dressing.",
+      "en": "Whisk olive oil, lemon juice, salt and pepper into a dressing.",
+      "pt": "Misture azeite, sumo de limão, sal e pimenta para fazer um molho.",
+      "es": "Mezcla aceite de oliva, zumo de limón, sal y pimienta para hacer un aliño."
+    },
+    {
+      "id": 282,
+      "action": "dressing",
+      "phase": 2,
+      "linked_ingredients": [
+        4
+      ],
+      "equipment": [],
+      "de": "Mische das Dressing unter den Salat und hebe alles vorsichtig durch.",
+      "en": "Toss the dressing into the salad and gently mix.",
+      "pt": "Adicione o molho à salada e misture delicadamente.",
+      "es": "Añade el aliño a la ensalada y mezcla con cuidado."
+    },
+    {
+      "id": 283,
+      "action": "karamellisieren",
+      "phase": 1,
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": [],
+      "de": "Karamellisiere die Zwiebeln langsam bei niedriger Hitze, bis sie goldbraun sind.",
+      "en": "Slowly caramelize the onions over low heat until golden brown.",
+      "pt": "Caramelize lentamente as cebolas em fogo baixo até ficarem douradas.",
+      "es": "Carameliza lentamente las cebollas a fuego lento hasta que estén doradas."
+    },
+    {
+      "id": 284,
+      "action": "karamellisieren",
+      "phase": 1,
+      "linked_ingredients": [
+        1
+      ],
+      "equipment": [],
+      "de": "Karamellisiere den Zucker in einem Topf, bis er goldbraun wird.",
+      "en": "Caramelize the sugar in a pot until golden brown.",
+      "pt": "Caramelize o açúcar numa panela até ficar dourado.",
+      "es": "Carameliza el azúcar en una olla hasta que esté dorado."
+    },
+    {
+      "id": 285,
+      "action": "frittieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Erhitze reichlich Öl in einem Topf auf ca. 170–180 °C zum Frittieren.",
+      "en": "Heat plenty of oil in a pot to about 170–180 °C for deep-frying.",
+      "pt": "Aqueça bastante óleo numa panela a cerca de 170–180 °C para fritar.",
+      "es": "Calienta abundante aceite en una olla a unos 170–180 °C para freír."
+    },
+    {
+      "id": 286,
+      "action": "frittieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Frittiere die Stücke portionsweise, bis sie goldbraun und knusprig sind.",
+      "en": "Deep-fry the pieces in batches until golden brown and crispy.",
+      "pt": "Frite as peças em porções até ficarem douradas e crocantes.",
+      "es": "Fríe los trozos en tandas hasta que estén dorados y crujientes."
+    },
+    {
+      "id": 287,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        117
+      ],
+      "equipment": [],
+      "de": "Gieße so viel Brühe an, bis das Gemüse knapp bedeckt ist.",
+      "en": "Pour in enough broth to just cover the vegetables.",
+      "pt": "Adicione caldo suficiente para cobrir os legumes.",
+      "es": "Añade caldo suficiente para cubrir las verduras."
+    },
+    {
+      "id": 288,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        33
+      ],
+      "equipment": [],
+      "de": "Gieße die Sahne dazu und lasse alles aufkochen.",
+      "en": "Pour in the cream and bring to a boil.",
+      "pt": "Adicione as natas e leve a ferver.",
+      "es": "Añade la nata y lleva a ebullición."
+    },
+    {
+      "id": 289,
+      "action": "hinzufügen",
+      "phase": 1,
+      "linked_ingredients": [
+        32
+      ],
+      "equipment": [],
+      "de": "Gib die Milch nach und nach unter ständigem Rühren hinzu.",
+      "en": "Gradually add the milk while stirring constantly.",
+      "pt": "Adicione o leite gradualmente, mexendo constantemente.",
+      "es": "Añade la leche gradualmente, removiendo constantemente."
+    },
+    {
+      "id": 290,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Brate das Gemüse bei hoher Hitze unter Rühren an (ca. 3–5 Min.).",
+      "en": "Stir-fry the vegetables over high heat (about 3–5 min).",
+      "pt": "Salteie os legumes em fogo alto (cerca de 3–5 min).",
+      "es": "Saltea las verduras a fuego fuerte (unos 3–5 min)."
+    },
+    {
+      "id": 291,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Gib das Gemüse portionsweise in die Pfanne, damit es brät und nicht dünstet.",
+      "en": "Add the vegetables in batches so they fry rather than steam.",
+      "pt": "Adicione os legumes em porções para que fritem em vez de cozinharem a vapor.",
+      "es": "Añade las verduras en tandas para que se frían en vez de cocerse al vapor."
+    },
+    {
+      "id": 292,
+      "action": "ruhen",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse das Fleisch vor dem Anschneiden 5–10 Minuten ruhen.",
+      "en": "Let the meat rest for 5–10 minutes before slicing.",
+      "pt": "Deixe a carne repousar 5–10 minutos antes de cortar.",
+      "es": "Deja reposar la carne 5–10 minutos antes de cortar."
+    },
+    {
+      "id": 293,
+      "action": "reduzieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lasse die Sauce bei mittlerer Hitze offen einkochen, bis sie sämig wird.",
+      "en": "Let the sauce reduce uncovered over medium heat until thickened.",
+      "pt": "Deixe o molho reduzir destapado em fogo médio até engrossar.",
+      "es": "Deja reducir la salsa destapada a fuego medio hasta que espese."
+    },
+    {
+      "id": 294,
+      "action": "aufschlagen",
+      "phase": 0,
+      "linked_ingredients": [
+        33
+      ],
+      "equipment": [],
+      "de": "Schlage die Sahne steif.",
+      "en": "Whip the cream until stiff.",
+      "pt": "Bata as natas até ficarem firmes.",
+      "es": "Monta la nata hasta que esté firme."
+    },
+    {
+      "id": 295,
+      "action": "aufschlagen",
+      "phase": 0,
+      "linked_ingredients": [
+        231
+      ],
+      "equipment": [],
+      "de": "Schlage das Eiweiß mit einer Prise Salz steif.",
+      "en": "Whip the egg whites with a pinch of salt until stiff.",
+      "pt": "Bata as claras com uma pitada de sal até ficarem firmes.",
+      "es": "Monta las claras con una pizca de sal hasta que estén firmes."
+    },
+    {
+      "id": 296,
+      "action": "unterheben",
+      "phase": 1,
+      "linked_ingredients": [
+        231
+      ],
+      "equipment": [],
+      "de": "Hebe das steif geschlagene Eiweiß vorsichtig unter den Teig.",
+      "en": "Gently fold the stiff egg whites into the batter.",
+      "pt": "Incorpore delicadamente as claras batidas na massa.",
+      "es": "Incorpora con cuidado las claras montadas a la masa."
+    },
+    {
+      "id": 297,
+      "action": "binden",
+      "phase": 1,
+      "linked_ingredients": [
+        134,
+        75
+      ],
+      "equipment": [],
+      "de": "Rühre die Speisestärke mit etwas kaltem Wasser glatt und gib sie zur Sauce, um sie zu binden.",
+      "en": "Mix the cornstarch with some cold water until smooth and add it to the sauce to thicken.",
+      "pt": "Misture o amido de milho com um pouco de água fria e adicione ao molho para engrossar.",
+      "es": "Mezcla la maicena con un poco de agua fría y añádela a la salsa para espesarla."
+    },
+    {
+      "id": 298,
+      "action": "glasieren",
+      "phase": 1,
+      "linked_ingredients": [
+        227
+      ],
+      "equipment": [],
+      "de": "Bestreiche das Gebäck mit verquirltem Eigelb.",
+      "en": "Brush the pastry with beaten egg yolk.",
+      "pt": "Pincele a massa com gema de ovo batida.",
+      "es": "Pincela la masa con yema de huevo batida."
+    },
+    {
+      "id": 299,
+      "action": "glasieren",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Überziehe den Kuchen mit der Glasur.",
+      "en": "Cover the cake with the glaze.",
+      "pt": "Cubra o bolo com a cobertura.",
+      "es": "Cubre el pastel con el glaseado."
+    },
+    {
+      "id": 300,
+      "action": "schmelzen",
+      "phase": 1,
+      "linked_ingredients": [
+        170
+      ],
+      "equipment": [],
+      "de": "Schmelze die Schokolade im Wasserbad.",
+      "en": "Melt the chocolate in a double boiler.",
+      "pt": "Derreta o chocolate em banho-maria.",
+      "es": "Derrite el chocolate al baño maría."
+    },
+    {
+      "id": 301,
+      "action": "schmelzen",
+      "phase": 1,
+      "linked_ingredients": [
+        27
+      ],
+      "equipment": [],
+      "de": "Schmelze die Butter in einem kleinen Topf.",
+      "en": "Melt the butter in a small pot.",
+      "pt": "Derreta a manteiga num pequeno tacho.",
+      "es": "Derrite la mantequilla en un cazo pequeño."
+    },
+    {
+      "id": 302,
+      "action": "aufbauen",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Lege das untere Brötchen auf den Teller und belege es mit den Zutaten.",
+      "en": "Place the bottom bun on the plate and layer with the ingredients.",
+      "pt": "Coloque o pão inferior no prato e cubra com os ingredientes.",
+      "es": "Coloca el pan inferior en el plato y cúbrelo con los ingredientes."
+    },
+    {
+      "id": 303,
+      "action": "aufbauen",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Setze das obere Brötchen auf den Burger.",
+      "en": "Place the top bun on the burger.",
+      "pt": "Coloque o pão de cima no hambúrguer.",
+      "es": "Coloca el pan de arriba sobre la hamburguesa."
+    },
+    {
+      "id": 304,
+      "action": "aufbauen",
+      "phase": 1,
+      "linked_ingredients": [
+        142
+      ],
+      "equipment": [],
+      "de": "Belege den Tortilla-Fladen mit der Füllung und rolle ihn eng zusammen.",
+      "en": "Fill the tortilla with the filling and roll it up tightly.",
+      "pt": "Recheie a tortilha com o recheio e enrole bem apertado.",
+      "es": "Rellena la tortilla con el relleno y enróllala bien apretada."
+    },
+    {
+      "id": 305,
+      "action": "aufbauen",
+      "phase": 1,
+      "linked_ingredients": [
+        39
+      ],
+      "equipment": [],
+      "de": "Belege den Pizzateig mit Sauce, Belag und Käse.",
+      "en": "Top the pizza dough with sauce, toppings and cheese.",
+      "pt": "Cubra a massa de pizza com molho, ingredientes e queijo.",
+      "es": "Cubre la masa de pizza con salsa, ingredientes y queso."
+    },
+    {
+      "id": 306,
+      "action": "formen",
+      "phase": 1,
+      "linked_ingredients": [
+        182
+      ],
+      "equipment": [],
+      "de": "Forme aus dem Teig kleine Gnocchi und drücke mit einer Gabel ein Muster hinein.",
+      "en": "Shape small gnocchi from the dough and press a pattern with a fork.",
+      "pt": "Forme pequenos gnocchi da massa e pressione um padrão com um garfo.",
+      "es": "Forma pequeños gnocchi de la masa y presiona un patrón con un tenedor."
+    },
+    {
+      "id": 307,
+      "action": "pürieren",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Mixer"
+      ],
+      "de": "Gib alle Zutaten in den Mixer und püriere sie zu einem cremigen Smoothie.",
+      "en": "Put all ingredients in the blender and blend into a creamy smoothie.",
+      "pt": "Coloque todos os ingredientes no liquidificador e triture até obter um smoothie cremoso.",
+      "es": "Pon todos los ingredientes en la batidora y tritura hasta obtener un smoothie cremoso."
+    },
+    {
+      "id": 308,
+      "action": "anrichten",
+      "phase": 2,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Gieße den Smoothie in eine Schüssel und garniere mit Toppings.",
+      "en": "Pour the smoothie into a bowl and garnish with toppings.",
+      "pt": "Despeje o smoothie numa tigela e decore com toppings.",
+      "es": "Vierte el smoothie en un bol y decora con toppings."
+    },
+    {
+      "id": 309,
+      "action": "einritzen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Ritze die Oberfläche mit einem scharfen Messer rautenförmig ein.",
+      "en": "Score the surface in a diamond pattern with a sharp knife.",
+      "pt": "Faça cortes em losango na superfície com uma faca afiada.",
+      "es": "Haz cortes en forma de rombo en la superficie con un cuchillo afilado."
+    },
+    {
+      "id": 310,
+      "action": "einritzen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Ritze den Brotteig vor dem Backen mit einem scharfen Messer ein.",
+      "en": "Score the bread dough with a sharp knife before baking.",
+      "pt": "Faça cortes na massa do pão com uma faca afiada antes de assar.",
+      "es": "Haz cortes en la masa de pan con un cuchillo afilado antes de hornear."
+    },
+    {
+      "id": 311,
+      "action": "kochen",
+      "phase": 1,
+      "linked_ingredients": [
+        140
+      ],
+      "equipment": [],
+      "de": "Rühre die Polenta langsam in die kochende Flüssigkeit und rühre ständig.",
+      "en": "Slowly stir the polenta into the boiling liquid, stirring constantly.",
+      "pt": "Adicione lentamente a polenta ao líquido fervente, mexendo constantemente.",
+      "es": "Añade lentamente la polenta al líquido hirviendo, removiendo constantemente."
+    },
+    {
+      "id": 312,
+      "action": "anrösten",
+      "phase": 1,
+      "linked_ingredients": [
+        68
+      ],
+      "equipment": [],
+      "de": "Röste die Currypaste/Gewürze kurz in Öl an, bis sie duften.",
+      "en": "Briefly toast the curry paste/spices in oil until fragrant.",
+      "pt": "Toste brevemente a pasta de caril/especiarias em azeite até ficarem aromáticas.",
+      "es": "Tuesta brevemente la pasta de curry/especias en aceite hasta que suelten aroma."
+    },
+    {
+      "id": 313,
+      "action": "anrösten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Röste die Gewürze kurz in einer trockenen Pfanne an, bis sie duften.",
+      "en": "Toast the spices briefly in a dry pan until fragrant.",
+      "pt": "Toste brevemente as especiarias numa frigideira seca até ficarem aromáticas.",
+      "es": "Tuesta brevemente las especias en una sartén seca hasta que suelten aroma."
+    },
+    {
+      "id": 314,
+      "action": "klopfen",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Klopfe das Fleisch zwischen Frischhaltefolie gleichmäßig flach.",
+      "en": "Flatten the meat evenly between cling film.",
+      "pt": "Aplaine a carne uniformemente entre película aderente.",
+      "es": "Aplana la carne uniformemente entre film transparente."
+    },
+    {
+      "id": 315,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [],
+      "equipment": [],
+      "de": "Binde den Braten mit Küchengarn zusammen, damit er beim Garen die Form behält.",
+      "en": "Tie the roast with kitchen twine so it keeps its shape during cooking.",
+      "pt": "Amarre o assado com fio de cozinha para manter a forma durante o cozimento.",
+      "es": "Ata el asado con hilo de cocina para que mantenga su forma durante la cocción."
+    },
+    {
+      "id": 316,
+      "action": "mischen",
+      "phase": 0,
+      "linked_ingredients": [
+        76,
+        32
+      ],
+      "equipment": [],
+      "de": "Mische Haferflocken, Milch und die übrigen Zutaten in einem Glas und lasse es über Nacht im Kühlschrank ziehen.",
+      "en": "Mix oats, milk and the remaining ingredients in a glass and let it soak in the fridge overnight.",
+      "pt": "Misture a aveia, o leite e os restantes ingredientes num copo e deixe repousar no frigorífico durante a noite.",
+      "es": "Mezcla la avena, la leche y los demás ingredientes en un vaso y déjalo reposar en la nevera durante la noche."
+    },
+    {
+      "id": 317,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [],
+      "equipment": [
+        "Wok"
+      ],
+      "de": "Brate die Zutaten im Wok bei höchster Hitze unter ständigem Rühren (ca. 2–3 Min.).",
+      "en": "Stir-fry the ingredients in the wok over highest heat, stirring constantly (about 2–3 min).",
+      "pt": "Salteie os ingredientes no wok em fogo máximo, mexendo constantemente (cerca de 2–3 min).",
+      "es": "Saltea los ingredientes en el wok a fuego máximo, removiendo constantemente (unos 2–3 min)."
+    },
+    {
+      "id": 318,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [
+        62,
+        150,
+        99
+      ],
+      "equipment": [],
+      "de": "Lasse die Kichererbsen/Bohnen aus der Dose abtropfen und spüle sie ab.",
+      "en": "Drain the canned chickpeas/beans and rinse them briefly.",
+      "pt": "Escorra o grão-de-bico/feijão da lata e passe por água.",
+      "es": "Escurre los garbanzos/judías de lata y enjuágalos brevemente."
+    },
+    {
+      "id": 319,
+      "action": "vorbereiten",
+      "phase": 0,
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": [],
+      "de": "Drücke den Tofu gut aus, um überschüssige Flüssigkeit zu entfernen.",
+      "en": "Press the tofu well to remove excess liquid.",
+      "pt": "Escorra bem o tofu para remover o excesso de líquido.",
+      "es": "Presiona bien el tofu para eliminar el exceso de líquido."
+    },
+    {
+      "id": 320,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        281
+      ],
+      "equipment": [],
+      "de": "Putze den Rosenkohl und halbiere größere Röschen.",
+      "en": "Trim the Brussels sprouts and halve the larger ones.",
+      "pt": "Limpe as couves-de-bruxelas e corte as maiores ao meio.",
+      "es": "Limpia las coles de Bruselas y corta las más grandes por la mitad."
+    },
+    {
+      "id": 321,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        166
+      ],
+      "equipment": [],
+      "de": "Schneide den Rotkohl in feine Streifen.",
+      "en": "Cut the red cabbage into thin strips.",
+      "pt": "Corte o repolho roxo em tiras finas.",
+      "es": "Corta la lombarda en tiras finas."
+    },
+    {
+      "id": 322,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        174
+      ],
+      "equipment": [],
+      "de": "Schneide den Weißkohl in feine Streifen.",
+      "en": "Cut the white cabbage into thin strips.",
+      "pt": "Corte o repolho branco em tiras finas.",
+      "es": "Corta el repollo en tiras finas."
+    },
+    {
+      "id": 323,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        228
+      ],
+      "equipment": [],
+      "de": "Schneide den Wirsing in Streifen.",
+      "en": "Cut the savoy cabbage into strips.",
+      "pt": "Corte a couve-de-saboia em tiras.",
+      "es": "Corta la col rizada en tiras."
+    },
+    {
+      "id": 324,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        185
+      ],
+      "equipment": [],
+      "de": "Wasche den Grünkohl, entferne die harten Stiele und zupfe die Blätter in Stücke.",
+      "en": "Wash the kale, remove the tough stems and tear the leaves into pieces.",
+      "pt": "Lave a couve kale, retire os talos duros e rasgue as folhas em pedaços.",
+      "es": "Lava la col kale, retira los tallos duros y trocea las hojas."
+    },
+    {
+      "id": 325,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        280
+      ],
+      "equipment": [],
+      "de": "Wasche den Pak Choi und halbiere ihn der Länge nach.",
+      "en": "Wash the pak choi and halve it lengthwise.",
+      "pt": "Lave o pak choi e corte ao meio no comprimento.",
+      "es": "Lava el pak choi y córtalo por la mitad a lo largo."
+    },
+    {
+      "id": 326,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        288
+      ],
+      "equipment": [],
+      "de": "Schneide den Spitzkohl in feine Streifen.",
+      "en": "Cut the pointed cabbage into thin strips.",
+      "pt": "Corte o repolho pontiagudo em tiras finas.",
+      "es": "Corta el repollo puntiagudo en tiras finas."
+    },
+    {
+      "id": 327,
+      "action": "waschen",
+      "phase": 0,
+      "linked_ingredients": [
+        144
+      ],
+      "equipment": [],
+      "de": "Wasche den Rucola und trockne ihn.",
+      "en": "Wash the arugula and dry it.",
+      "pt": "Lave a rúcula e seque-a.",
+      "es": "Lava la rúcula y sécala."
+    },
+    {
+      "id": 328,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        208
+      ],
+      "equipment": [],
+      "de": "Wasche die Radieschen und schneide sie in dünne Scheiben.",
+      "en": "Wash the radishes and cut them into thin slices.",
+      "pt": "Lave os rabanetes e corte em rodelas finas.",
+      "es": "Lava los rábanos y córtalos en rodajas finas."
+    },
+    {
+      "id": 329,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        282
+      ],
+      "equipment": [],
+      "de": "Schäle die Pastinaken und schneide sie in Scheiben.",
+      "en": "Peel the parsnips and cut them into slices.",
+      "pt": "Descasque as pastinacas e corte em rodelas.",
+      "es": "Pela las chirivías y córtalas en rodajas."
+    },
+    {
+      "id": 330,
+      "action": "schneiden",
+      "phase": 0,
+      "linked_ingredients": [
+        289
+      ],
+      "equipment": [],
+      "de": "Wasche die Okra und schneide die Stielenden ab.",
+      "en": "Wash the okra and trim the stem ends.",
+      "pt": "Lave os quiabos e corte as pontas dos talos.",
+      "es": "Lava la okra y corta los extremos de los tallos."
+    },
+    {
+      "id": 331,
+      "action": "anrösten",
+      "phase": 1,
+      "linked_ingredients": [
+        146
+      ],
+      "equipment": [],
+      "de": "Röste die Kürbiskerne kurz in einer trockenen Pfanne an.",
+      "en": "Briefly toast the pumpkin seeds in a dry pan.",
+      "pt": "Toste brevemente as sementes de abóbora numa frigideira seca.",
+      "es": "Tuesta brevemente las semillas de calabaza en una sartén seca."
+    },
+    {
+      "id": 332,
+      "action": "anrösten",
+      "phase": 1,
+      "linked_ingredients": [
+        139
+      ],
+      "equipment": [],
+      "de": "Röste die Pinienkerne kurz in einer trockenen Pfanne goldbraun an.",
+      "en": "Toast the pine nuts in a dry pan until golden brown.",
+      "pt": "Toste os pinhões numa frigideira seca até dourarem.",
+      "es": "Tuesta los piñones en una sartén seca hasta que estén dorados."
+    },
+    {
+      "id": 333,
+      "action": "anbraten",
+      "phase": 1,
+      "linked_ingredients": [
+        182,
+        27
+      ],
+      "equipment": [],
+      "de": "Brate die Gnocchi in Butter goldbraun an.",
+      "en": "Fry the gnocchi in butter until golden brown.",
+      "pt": "Frite os gnocchi na manteiga até dourarem.",
+      "es": "Fríe los gnocchi en mantequilla hasta que estén dorados."
+    },
+    {
+      "id": 334,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        50
+      ],
+      "equipment": [],
+      "de": "Bestreue mit Frühlingszwiebel-Ringen.",
+      "en": "Sprinkle with spring onion rings.",
+      "pt": "Polvilhe com anéis de cebolinha.",
+      "es": "Espolvorea con aros de cebolleta."
+    },
+    {
+      "id": 335,
+      "action": "garnieren",
+      "phase": 2,
+      "linked_ingredients": [
+        36,
+        34
+      ],
+      "equipment": [],
+      "de": "Gib einen Löffel Joghurt oder Schmand auf das Gericht.",
+      "en": "Add a spoonful of yogurt or sour cream on the dish.",
+      "pt": "Coloque uma colher de iogurte ou creme azedo no prato.",
+      "es": "Pon una cucharada de yogur o crema agria en el plato."
+    }
+  ]
+}
