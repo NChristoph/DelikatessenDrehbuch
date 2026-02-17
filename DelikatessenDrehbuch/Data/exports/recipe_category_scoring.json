@@ -774,6 +774,583 @@
           "weight": 0.4
         }
       ]
+    },
+    {
+      "id": "chili",
+      "display_name": {
+        "de": "Chili",
+        "en": "Chili",
+        "prt": "Chili",
+        "esp": "Chili"
+      },
+      "typical_ingredients": [
+        99,
+        150,
+        152,
+        218,
+        114,
+        14
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 99,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 150,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 152,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 218,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 14,
+          "weight": 0.7
+        }
+      ]
+    },
+    {
+      "id": "bolognese",
+      "display_name": {
+        "de": "Bolognese",
+        "en": "Bolognese",
+        "prt": "Bolonhesa",
+        "esp": "Boloñesa"
+      },
+      "typical_ingredients": [
+        2,
+        218,
+        114,
+        14,
+        11,
+        15
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 2,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 218,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 14,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 15,
+          "weight": 0.65
+        }
+      ]
+    },
+    {
+      "id": "bowl",
+      "display_name": {
+        "de": "Bowl",
+        "en": "Bowl",
+        "prt": "Bowl",
+        "esp": "Bowl"
+      },
+      "typical_ingredients": [
+        3,
+        257,
+        141,
+        151,
+        153,
+        154,
+        22,
+        254,
+        84
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 3,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 257,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 141,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 151,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 153,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 154,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 22,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 254,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 84,
+          "weight": 0.7
+        }
+      ]
+    },
+    {
+      "id": "wrap_burrito",
+      "display_name": {
+        "de": "Wrap / Burrito",
+        "en": "Wrap / Burrito",
+        "prt": "Wrap / Burrito",
+        "esp": "Wrap / Burrito"
+      },
+      "typical_ingredients": [
+        142,
+        163,
+        150,
+        218,
+        22,
+        209
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 142,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 163,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 150,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 218,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 22,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 209,
+          "weight": 0.7
+        }
+      ]
+    },
+    {
+      "id": "wok_gericht",
+      "display_name": {
+        "de": "Asiatisches Wokgericht",
+        "en": "Asian Wok Dish",
+        "prt": "Prato Asiático de Wok",
+        "esp": "Plato Asiático al Wok"
+      },
+      "typical_ingredients": [
+        87,
+        195,
+        186,
+        309,
+        308,
+        307,
+        63,
+        280
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 87,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 195,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 186,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 309,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 308,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 307,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 63,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 280,
+          "weight": 0.75
+        }
+      ]
+    },
+    {
+      "id": "vegetarischer_eintopf",
+      "display_name": {
+        "de": "Vegetarischer Eintopf",
+        "en": "Vegetarian Stew",
+        "prt": "Ensopado Vegetariano",
+        "esp": "Guiso Vegetariano"
+      },
+      "typical_ingredients": [
+        181,
+        267,
+        240,
+        62,
+        116
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 181,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 267,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 240,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 62,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 116,
+          "weight": 0.8
+        }
+      ]
+    },
+    {
+      "id": "hefeteig",
+      "display_name": {
+        "de": "Hefeteig",
+        "en": "Yeast Dough",
+        "prt": "Massa com Fermento",
+        "esp": "Masa con Levadura"
+      },
+      "typical_ingredients": [
+        74,
+        176,
+        5,
+        45,
+        306,
+        75
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 74,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 176,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 5,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 45,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 306,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 75,
+          "weight": 0.7
+        }
+      ]
+    },
+    {
+      "id": "quiche",
+      "display_name": {
+        "de": "Quiche",
+        "en": "Quiche",
+        "prt": "Quiche",
+        "esp": "Quiche"
+      },
+      "typical_ingredients": [
+        164,
+        85,
+        33,
+        40,
+        124
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 164,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 85,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 33,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 40,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 124,
+          "weight": 0.75
+        }
+      ]
+    },
+    {
+      "id": "muffins",
+      "display_name": {
+        "de": "Muffins",
+        "en": "Muffins",
+        "prt": "Muffins",
+        "esp": "Muffins"
+      },
+      "typical_ingredients": [
+        5,
+        60,
+        85,
+        1,
+        32
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 5,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 60,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 85,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 1,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 32,
+          "weight": 0.75
+        }
+      ]
+    },
+    {
+      "id": "cheesecake",
+      "display_name": {
+        "de": "Cheesecake",
+        "en": "Cheesecake",
+        "prt": "Cheesecake",
+        "esp": "Cheesecake"
+      },
+      "typical_ingredients": [
+        37,
+        38,
+        36,
+        200,
+        225,
+        85
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 37,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 38,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 36,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 200,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 225,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 85,
+          "weight": 0.7
+        }
+      ]
+    },
+    {
+      "id": "eis_parfait",
+      "display_name": {
+        "de": "Eis / Parfait",
+        "en": "Ice Cream / Parfait",
+        "prt": "Gelado / Parfait",
+        "esp": "Helado / Parfait"
+      },
+      "typical_ingredients": [
+        33,
+        85,
+        57,
+        170,
+        129
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 33,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 85,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 57,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 170,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 129,
+          "weight": 0.75
+        }
+      ]
+    },
+    {
+      "id": "steakgericht",
+      "display_name": {
+        "de": "Steakgericht",
+        "en": "Steak Dish",
+        "prt": "Prato de Bife",
+        "esp": "Plato de Steak"
+      },
+      "typical_ingredients": [
+        89,
+        90,
+        91
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 89,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 90,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 91,
+          "weight": 1.0
+        }
+      ]
+    },
+    {
+      "id": "fischgericht",
+      "display_name": {
+        "de": "Fischgericht",
+        "en": "Fish Dish",
+        "prt": "Prato de Peixe",
+        "esp": "Plato de Pescado"
+      },
+      "typical_ingredients": [
+        100,
+        265,
+        234,
+        270,
+        316
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 100,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 265,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 234,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 270,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 316,
+          "weight": 0.85
+        }
+      ]
+    },
+    {
+      "id": "taco",
+      "display_name": {
+        "de": "Taco",
+        "en": "Taco",
+        "prt": "Taco",
+        "esp": "Taco"
+      },
+      "typical_ingredients": [
+        163,
+        142,
+        205,
+        201
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 163,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 142,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 205,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 201,
+          "weight": 0.8
+        }
+      ]
     }
   ]
 }
