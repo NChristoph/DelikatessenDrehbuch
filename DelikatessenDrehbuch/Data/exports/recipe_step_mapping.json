@@ -1,16 +1,10 @@
 {
   "_meta": {
-    "version": "2.0",
-    "generated_from": "recipe_schema_export_20260217_085426.json",
-    "generated_at": "2026-02-17",
-    "description": "Mapping-Datei für \"Schritte vorschlagen\" in CreatePosting & EditRecipe.",
-    "ingredient_system": "IngredientsAndNutrients (neu) – IDs 1-327",
-    "usage": {
-      "ingredient_to_steps": "Zutat-ID (string) → Array von Step-IDs. Hauptmapping für die Vorschlagsfunktion.",
-      "recipe_type_templates": "Rezepttyp erkennen via signature_ingredients (specificity > 2.0 = typisch). suggested_step_sequence nach Phase sortiert.",
-      "ingredient_combos": "Häufige Zutatenpaarungen. shared_steps = gemeinsame Steps beider Zutaten.",
-      "algorithm": "1) Zutaten-IDs sammeln → ingredient_to_steps → Step-IDs. 2) Optional: Rezepttyp erkennen. 3) Steps nach Phase sortieren (0→4). 4) Duplikate weg, max ~15 Steps."
-    }
+    "version": "2.1",
+    "built_from": "recipe_schema_export_20260216_221020.json + IngredientsAndNutrients",
+    "total_old_recipes": 1570,
+    "classified_recipes": 865,
+    "note": "signature_ingredients computed from 1570 old recipes with old->new ID bridge mapping"
   },
   "phases": {
     "0": "Basis",
@@ -6423,7 +6417,80 @@
     "lasagne": {
       "name_pattern": "lasagne",
       "recipe_count": 56,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 2,
+          "ingredient_name": "Pasta",
+          "freq_in_type": 0.946,
+          "specificity": 5.25
+        },
+        {
+          "id": 114,
+          "ingredient_name": "Passierte Tomaten",
+          "freq_in_type": 0.446,
+          "specificity": 10.73
+        },
+        {
+          "id": 39,
+          "ingredient_name": "Mozzarella",
+          "freq_in_type": 0.268,
+          "specificity": 9.27
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 0.482,
+          "specificity": 3.26
+        },
+        {
+          "id": 113,
+          "ingredient_name": "Muskatnuss ",
+          "freq_in_type": 0.339,
+          "specificity": 3.37
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.714,
+          "specificity": 1.42
+        },
+        {
+          "id": 220,
+          "ingredient_name": "Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+          "freq_in_type": 0.232,
+          "specificity": 4.18
+        },
+        {
+          "id": 5,
+          "ingredient_name": "Mehl",
+          "freq_in_type": 0.464,
+          "specificity": 1.93
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.411,
+          "specificity": 2.14
+        },
+        {
+          "id": 7,
+          "ingredient_name": "Basilikum (frisch)",
+          "freq_in_type": 0.25,
+          "specificity": 3.23
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.643,
+          "specificity": 1.21
+        },
+        {
+          "id": 82,
+          "ingredient_name": "Oregano (getrocknet)",
+          "freq_in_type": 0.232,
+          "specificity": 3.0
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 172,
@@ -6521,7 +6588,56 @@
     "suppe": {
       "name_pattern": "suppe",
       "recipe_count": 91,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 117,
+          "ingredient_name": "Gemüsebrühe",
+          "freq_in_type": 0.791,
+          "specificity": 4.1
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.945,
+          "specificity": 1.78
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.736,
+          "specificity": 1.46
+        },
+        {
+          "id": 15,
+          "ingredient_name": "Karotten",
+          "freq_in_type": 0.286,
+          "specificity": 1.51
+        },
+        {
+          "id": 20,
+          "ingredient_name": "Kartoffeln",
+          "freq_in_type": 0.198,
+          "specificity": 1.86
+        },
+        {
+          "id": 33,
+          "ingredient_name": "Sahne",
+          "freq_in_type": 0.209,
+          "specificity": 1.4
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.176,
+          "specificity": 0.92
+        },
+        {
+          "id": 51,
+          "ingredient_name": "Tomaten",
+          "freq_in_type": 0.165,
+          "specificity": 0.89
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 196,
@@ -6607,7 +6723,80 @@
     "eintopf": {
       "name_pattern": "eintopf|gulasch|ragout|stew",
       "recipe_count": 44,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 216,
+          "ingredient_name": "Paprikapulver (edelsüß)",
+          "freq_in_type": 0.59,
+          "specificity": 4.29
+        },
+        {
+          "id": 161,
+          "ingredient_name": "Rinderbrühe",
+          "freq_in_type": 0.41,
+          "specificity": 5.82
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.872,
+          "specificity": 1.65
+        },
+        {
+          "id": 15,
+          "ingredient_name": "Karotten",
+          "freq_in_type": 0.513,
+          "specificity": 2.7
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.821,
+          "specificity": 1.63
+        },
+        {
+          "id": 117,
+          "ingredient_name": "Gemüsebrühe",
+          "freq_in_type": 0.487,
+          "specificity": 2.52
+        },
+        {
+          "id": 20,
+          "ingredient_name": "Kartoffeln",
+          "freq_in_type": 0.359,
+          "specificity": 3.38
+        },
+        {
+          "id": 14,
+          "ingredient_name": "Tomatenmark",
+          "freq_in_type": 0.333,
+          "specificity": 3.56
+        },
+        {
+          "id": 79,
+          "ingredient_name": "Thymian (getrocknet)",
+          "freq_in_type": 0.256,
+          "specificity": 4.18
+        },
+        {
+          "id": 51,
+          "ingredient_name": "Tomaten",
+          "freq_in_type": 0.436,
+          "specificity": 2.36
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.333,
+          "specificity": 2.53
+        },
+        {
+          "id": 17,
+          "ingredient_name": "Petersilie (frisch)",
+          "freq_in_type": 0.282,
+          "specificity": 2.71
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 128,
@@ -6705,7 +6894,74 @@
     "salat": {
       "name_pattern": "salat",
       "recipe_count": 37,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 84,
+          "ingredient_name": "Gurke",
+          "freq_in_type": 0.405,
+          "specificity": 7.31
+        },
+        {
+          "id": 19,
+          "ingredient_name": "Feta",
+          "freq_in_type": 0.216,
+          "specificity": 11.0
+        },
+        {
+          "id": 159,
+          "ingredient_name": "Balsamico-Essig",
+          "freq_in_type": 0.162,
+          "specificity": 12.75
+        },
+        {
+          "id": 9,
+          "ingredient_name": "Zitronensaft",
+          "freq_in_type": 0.405,
+          "specificity": 4.74
+        },
+        {
+          "id": 88,
+          "ingredient_name": "Essig",
+          "freq_in_type": 0.216,
+          "specificity": 6.93
+        },
+        {
+          "id": 52,
+          "ingredient_name": "Cherrytomate",
+          "freq_in_type": 0.162,
+          "specificity": 7.38
+        },
+        {
+          "id": 51,
+          "ingredient_name": "Tomaten",
+          "freq_in_type": 0.324,
+          "specificity": 1.75
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.27,
+          "specificity": 2.05
+        },
+        {
+          "id": 82,
+          "ingredient_name": "Oregano (getrocknet)",
+          "freq_in_type": 0.162,
+          "specificity": 2.09
+        },
+        {
+          "id": 2,
+          "ingredient_name": "Pasta",
+          "freq_in_type": 0.216,
+          "specificity": 1.2
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.243,
+          "specificity": 0.46
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 378,
@@ -6815,7 +7071,74 @@
     "pasta": {
       "name_pattern": "pasta|nudel|spaghetti|penne|tagliatelle|rigatoni|linguine|fettuccine",
       "recipe_count": 111,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 2,
+          "ingredient_name": "Pasta",
+          "freq_in_type": 0.864,
+          "specificity": 4.79
+        },
+        {
+          "id": 40,
+          "ingredient_name": "Parmesan",
+          "freq_in_type": 0.408,
+          "specificity": 5.19
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.835,
+          "specificity": 1.66
+        },
+        {
+          "id": 7,
+          "ingredient_name": "Basilikum (frisch)",
+          "freq_in_type": 0.272,
+          "specificity": 3.51
+        },
+        {
+          "id": 82,
+          "ingredient_name": "Oregano (getrocknet)",
+          "freq_in_type": 0.243,
+          "specificity": 3.13
+        },
+        {
+          "id": 51,
+          "ingredient_name": "Tomaten",
+          "freq_in_type": 0.34,
+          "specificity": 1.84
+        },
+        {
+          "id": 17,
+          "ingredient_name": "Petersilie (frisch)",
+          "freq_in_type": 0.252,
+          "specificity": 2.43
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.476,
+          "specificity": 0.9
+        },
+        {
+          "id": 33,
+          "ingredient_name": "Sahne",
+          "freq_in_type": 0.252,
+          "specificity": 1.69
+        },
+        {
+          "id": 14,
+          "ingredient_name": "Tomatenmark",
+          "freq_in_type": 0.175,
+          "specificity": 1.87
+        },
+        {
+          "id": 86,
+          "ingredient_name": "Zucchini",
+          "freq_in_type": 0.165,
+          "specificity": 1.96
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 148,
@@ -6925,7 +7248,80 @@
     "curry": {
       "name_pattern": "curry",
       "recipe_count": 36,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 69,
+          "ingredient_name": "Kurkuma (gemahlen)",
+          "freq_in_type": 0.457,
+          "specificity": 19.77
+        },
+        {
+          "id": 67,
+          "ingredient_name": "Kokosmilch",
+          "freq_in_type": 0.743,
+          "specificity": 11.08
+        },
+        {
+          "id": 68,
+          "ingredient_name": "Currypulver",
+          "freq_in_type": 0.343,
+          "specificity": 20.0
+        },
+        {
+          "id": 63,
+          "ingredient_name": "Ingwer",
+          "freq_in_type": 0.514,
+          "specificity": 11.71
+        },
+        {
+          "id": 70,
+          "ingredient_name": "Koriander (frisch)",
+          "freq_in_type": 0.629,
+          "specificity": 8.36
+        },
+        {
+          "id": 62,
+          "ingredient_name": "Kichererbsen (gekocht / aus der Dose)",
+          "freq_in_type": 0.343,
+          "specificity": 10.59
+        },
+        {
+          "id": 71,
+          "ingredient_name": "Kreuzkümmel (Cumin)",
+          "freq_in_type": 0.457,
+          "specificity": 4.35
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.829,
+          "specificity": 1.56
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.8,
+          "specificity": 1.59
+        },
+        {
+          "id": 3,
+          "ingredient_name": "Reis",
+          "freq_in_type": 0.229,
+          "specificity": 3.24
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.257,
+          "specificity": 1.95
+        },
+        {
+          "id": 117,
+          "ingredient_name": "Gemüsebrühe",
+          "freq_in_type": 0.286,
+          "specificity": 1.48
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 476,
@@ -7017,7 +7413,80 @@
     "auflauf": {
       "name_pattern": "auflauf|gratin",
       "recipe_count": 30,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 33,
+          "ingredient_name": "Sahne",
+          "freq_in_type": 0.714,
+          "specificity": 4.79
+        },
+        {
+          "id": 20,
+          "ingredient_name": "Kartoffeln",
+          "freq_in_type": 0.571,
+          "specificity": 5.37
+        },
+        {
+          "id": 113,
+          "ingredient_name": "Muskatnuss ",
+          "freq_in_type": 0.536,
+          "specificity": 5.33
+        },
+        {
+          "id": 26,
+          "ingredient_name": "Hokkaido",
+          "freq_in_type": 0.179,
+          "specificity": 11.88
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 0.357,
+          "specificity": 2.41
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.357,
+          "specificity": 1.86
+        },
+        {
+          "id": 17,
+          "ingredient_name": "Petersilie (frisch)",
+          "freq_in_type": 0.25,
+          "specificity": 2.4
+        },
+        {
+          "id": 220,
+          "ingredient_name": "Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+          "freq_in_type": 0.179,
+          "specificity": 3.22
+        },
+        {
+          "id": 22,
+          "ingredient_name": "Hähnchenbrustfilet",
+          "freq_in_type": 0.179,
+          "specificity": 2.91
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.5,
+          "specificity": 0.94
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.393,
+          "specificity": 0.78
+        },
+        {
+          "id": 85,
+          "ingredient_name": "Eier",
+          "freq_in_type": 0.179,
+          "specificity": 1.43
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 180,
@@ -7115,7 +7584,44 @@
     "schnitzel": {
       "name_pattern": "schnitzel|paniert",
       "recipe_count": 14,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 43,
+          "ingredient_name": "Paniermehl",
+          "freq_in_type": 1.0,
+          "specificity": 20.0
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 0.786,
+          "specificity": 5.31
+        },
+        {
+          "id": 5,
+          "ingredient_name": "Mehl",
+          "freq_in_type": 1.0,
+          "specificity": 4.16
+        },
+        {
+          "id": 47,
+          "ingredient_name": "Knoblauchpulver",
+          "freq_in_type": 0.214,
+          "specificity": 18.54
+        },
+        {
+          "id": 85,
+          "ingredient_name": "Eier",
+          "freq_in_type": 0.286,
+          "specificity": 2.29
+        },
+        {
+          "id": 216,
+          "ingredient_name": "Paprikapulver (edelsüß)",
+          "freq_in_type": 0.214,
+          "specificity": 1.56
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 306,
@@ -7147,7 +7653,80 @@
     "burger": {
       "name_pattern": "burger",
       "recipe_count": 47,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 4,
+          "ingredient_name": "Salat",
+          "freq_in_type": 0.681,
+          "specificity": 12.27
+        },
+        {
+          "id": 76,
+          "ingredient_name": "Haferflocken",
+          "freq_in_type": 0.468,
+          "specificity": 16.87
+        },
+        {
+          "id": 262,
+          "ingredient_name": "Pommes ",
+          "freq_in_type": 0.213,
+          "specificity": 18.4
+        },
+        {
+          "id": 71,
+          "ingredient_name": "Kreuzkümmel (Cumin)",
+          "freq_in_type": 0.574,
+          "specificity": 5.46
+        },
+        {
+          "id": 216,
+          "ingredient_name": "Paprikapulver (edelsüß)",
+          "freq_in_type": 0.617,
+          "specificity": 4.49
+        },
+        {
+          "id": 84,
+          "ingredient_name": "Gurke",
+          "freq_in_type": 0.383,
+          "specificity": 6.9
+        },
+        {
+          "id": 51,
+          "ingredient_name": "Tomaten",
+          "freq_in_type": 0.66,
+          "specificity": 3.57
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.766,
+          "specificity": 1.45
+        },
+        {
+          "id": 43,
+          "ingredient_name": "Paniermehl",
+          "freq_in_type": 0.17,
+          "specificity": 4.6
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.617,
+          "specificity": 1.23
+        },
+        {
+          "id": 254,
+          "ingredient_name": "Avocado",
+          "freq_in_type": 0.191,
+          "specificity": 3.6
+        },
+        {
+          "id": 220,
+          "ingredient_name": "Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+          "freq_in_type": 0.191,
+          "specificity": 3.45
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 118,
@@ -7239,7 +7818,44 @@
     "pizza": {
       "name_pattern": "pizza|flammkuchen",
       "recipe_count": 12,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 176,
+          "ingredient_name": "Hefe",
+          "freq_in_type": 0.417,
+          "specificity": 20.0
+        },
+        {
+          "id": 5,
+          "ingredient_name": "Mehl",
+          "freq_in_type": 0.833,
+          "specificity": 3.47
+        },
+        {
+          "id": 36,
+          "ingredient_name": "Joghurt (Natur)",
+          "freq_in_type": 0.25,
+          "specificity": 7.21
+        },
+        {
+          "id": 1,
+          "ingredient_name": "Zucker",
+          "freq_in_type": 0.583,
+          "specificity": 3.06
+        },
+        {
+          "id": 60,
+          "ingredient_name": "Backpulver",
+          "freq_in_type": 0.25,
+          "specificity": 3.79
+        },
+        {
+          "id": 74,
+          "ingredient_name": "Trockenhefe",
+          "freq_in_type": 0.167,
+          "specificity": 4.97
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 100,
@@ -7283,7 +7899,74 @@
     "risotto": {
       "name_pattern": "risotto",
       "recipe_count": 10,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 117,
+          "ingredient_name": "Gemüsebrühe",
+          "freq_in_type": 0.9,
+          "specificity": 4.66
+        },
+        {
+          "id": 40,
+          "ingredient_name": "Parmesan",
+          "freq_in_type": 0.5,
+          "specificity": 6.36
+        },
+        {
+          "id": 124,
+          "ingredient_name": "Champignons",
+          "freq_in_type": 0.3,
+          "specificity": 7.21
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 1.0,
+          "specificity": 1.89
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.5,
+          "specificity": 2.61
+        },
+        {
+          "id": 3,
+          "ingredient_name": "Reis",
+          "freq_in_type": 0.3,
+          "specificity": 4.25
+        },
+        {
+          "id": 113,
+          "ingredient_name": "Muskatnuss ",
+          "freq_in_type": 0.3,
+          "specificity": 2.98
+        },
+        {
+          "id": 17,
+          "ingredient_name": "Petersilie (frisch)",
+          "freq_in_type": 0.3,
+          "specificity": 2.88
+        },
+        {
+          "id": 230,
+          "ingredient_name": "Zitronen",
+          "freq_in_type": 0.2,
+          "specificity": 3.84
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.6,
+          "specificity": 1.19
+        },
+        {
+          "id": 28,
+          "ingredient_name": "Weiswein (trocken)",
+          "freq_in_type": 0.2,
+          "specificity": 3.2
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 196,
@@ -7393,7 +8076,80 @@
     "braten": {
       "name_pattern": "steak|braten|schmor",
       "recipe_count": 116,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 81,
+          "ingredient_name": "Rotwein",
+          "freq_in_type": 0.343,
+          "specificity": 6.44
+        },
+        {
+          "id": 13,
+          "ingredient_name": "Lorbeerblätter (getrocknet)",
+          "freq_in_type": 0.324,
+          "specificity": 5.39
+        },
+        {
+          "id": 161,
+          "ingredient_name": "Rinderbrühe",
+          "freq_in_type": 0.343,
+          "specificity": 4.86
+        },
+        {
+          "id": 80,
+          "ingredient_name": "Sellerie Stange ",
+          "freq_in_type": 0.352,
+          "specificity": 4.54
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.843,
+          "specificity": 1.59
+        },
+        {
+          "id": 15,
+          "ingredient_name": "Karotten",
+          "freq_in_type": 0.481,
+          "specificity": 2.54
+        },
+        {
+          "id": 79,
+          "ingredient_name": "Thymian (getrocknet)",
+          "freq_in_type": 0.269,
+          "specificity": 4.38
+        },
+        {
+          "id": 28,
+          "ingredient_name": "Weiswein (trocken)",
+          "freq_in_type": 0.269,
+          "specificity": 4.3
+        },
+        {
+          "id": 20,
+          "ingredient_name": "Kartoffeln",
+          "freq_in_type": 0.296,
+          "specificity": 2.79
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.574,
+          "specificity": 1.14
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.287,
+          "specificity": 1.5
+        },
+        {
+          "id": 117,
+          "ingredient_name": "Gemüsebrühe",
+          "freq_in_type": 0.278,
+          "specificity": 1.44
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 262,
@@ -7485,7 +8241,68 @@
     "kuchen": {
       "name_pattern": "kuchen|torte|brownie|muffin",
       "recipe_count": 83,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 1,
+          "ingredient_name": "Zucker",
+          "freq_in_type": 0.901,
+          "specificity": 4.72
+        },
+        {
+          "id": 60,
+          "ingredient_name": "Backpulver",
+          "freq_in_type": 0.494,
+          "specificity": 7.49
+        },
+        {
+          "id": 85,
+          "ingredient_name": "Eier",
+          "freq_in_type": 0.593,
+          "specificity": 4.75
+        },
+        {
+          "id": 5,
+          "ingredient_name": "Mehl",
+          "freq_in_type": 0.79,
+          "specificity": 3.29
+        },
+        {
+          "id": 57,
+          "ingredient_name": "Vanilleextrakt",
+          "freq_in_type": 0.296,
+          "specificity": 6.57
+        },
+        {
+          "id": 38,
+          "ingredient_name": "Mascarpone",
+          "freq_in_type": 0.235,
+          "specificity": 8.12
+        },
+        {
+          "id": 225,
+          "ingredient_name": "Vanillezucker",
+          "freq_in_type": 0.21,
+          "specificity": 9.08
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.556,
+          "specificity": 2.89
+        },
+        {
+          "id": 33,
+          "ingredient_name": "Sahne",
+          "freq_in_type": 0.272,
+          "specificity": 1.82
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 0.235,
+          "specificity": 1.59
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 238,
@@ -7559,7 +8376,44 @@
     "pfannkuchen": {
       "name_pattern": "pfannkuchen|pancake|crêpe|palatschinken",
       "recipe_count": 10,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 60,
+          "ingredient_name": "Backpulver",
+          "freq_in_type": 1.0,
+          "specificity": 15.18
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 1.0,
+          "specificity": 6.76
+        },
+        {
+          "id": 85,
+          "ingredient_name": "Eier",
+          "freq_in_type": 0.875,
+          "specificity": 7.01
+        },
+        {
+          "id": 1,
+          "ingredient_name": "Zucker",
+          "freq_in_type": 0.75,
+          "specificity": 3.93
+        },
+        {
+          "id": 5,
+          "ingredient_name": "Mehl",
+          "freq_in_type": 0.75,
+          "specificity": 3.12
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.625,
+          "specificity": 3.26
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 167,
@@ -7639,7 +8493,74 @@
     "wrap": {
       "name_pattern": "wrap|burrito|taco",
       "recipe_count": 34,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 142,
+          "ingredient_name": "Tortillas",
+          "freq_in_type": 0.515,
+          "specificity": 16.5
+        },
+        {
+          "id": 254,
+          "ingredient_name": "Avocado",
+          "freq_in_type": 0.455,
+          "specificity": 8.55
+        },
+        {
+          "id": 71,
+          "ingredient_name": "Kreuzkümmel (Cumin)",
+          "freq_in_type": 0.515,
+          "specificity": 4.9
+        },
+        {
+          "id": 216,
+          "ingredient_name": "Paprikapulver (edelsüß)",
+          "freq_in_type": 0.576,
+          "specificity": 4.19
+        },
+        {
+          "id": 70,
+          "ingredient_name": "Koriander (frisch)",
+          "freq_in_type": 0.364,
+          "specificity": 4.84
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.424,
+          "specificity": 3.22
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.788,
+          "specificity": 1.49
+        },
+        {
+          "id": 14,
+          "ingredient_name": "Tomatenmark",
+          "freq_in_type": 0.303,
+          "specificity": 3.24
+        },
+        {
+          "id": 51,
+          "ingredient_name": "Tomaten",
+          "freq_in_type": 0.394,
+          "specificity": 2.13
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.606,
+          "specificity": 1.21
+        },
+        {
+          "id": 36,
+          "ingredient_name": "Joghurt (Natur)",
+          "freq_in_type": 0.152,
+          "specificity": 4.37
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 164,
@@ -7725,7 +8646,80 @@
     "bowl": {
       "name_pattern": "bowl",
       "recipe_count": 9,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 141,
+          "ingredient_name": "Quinoa",
+          "freq_in_type": 0.625,
+          "specificity": 20.0
+        },
+        {
+          "id": 254,
+          "ingredient_name": "Avocado",
+          "freq_in_type": 0.5,
+          "specificity": 9.4
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.75,
+          "specificity": 5.69
+        },
+        {
+          "id": 326,
+          "ingredient_name": "Sesam",
+          "freq_in_type": 0.25,
+          "specificity": 15.45
+        },
+        {
+          "id": 195,
+          "ingredient_name": "Sesamöl",
+          "freq_in_type": 0.25,
+          "specificity": 12.01
+        },
+        {
+          "id": 52,
+          "ingredient_name": "Cherrytomate",
+          "freq_in_type": 0.25,
+          "specificity": 11.38
+        },
+        {
+          "id": 126,
+          "ingredient_name": "Blattspinat",
+          "freq_in_type": 0.375,
+          "specificity": 6.62
+        },
+        {
+          "id": 86,
+          "ingredient_name": "Zucchini",
+          "freq_in_type": 0.375,
+          "specificity": 4.44
+        },
+        {
+          "id": 15,
+          "ingredient_name": "Karotten",
+          "freq_in_type": 0.5,
+          "specificity": 2.64
+        },
+        {
+          "id": 84,
+          "ingredient_name": "Gurke",
+          "freq_in_type": 0.25,
+          "specificity": 4.51
+        },
+        {
+          "id": 3,
+          "ingredient_name": "Reis",
+          "freq_in_type": 0.25,
+          "specificity": 3.55
+        },
+        {
+          "id": 70,
+          "ingredient_name": "Koriander (frisch)",
+          "freq_in_type": 0.25,
+          "specificity": 3.33
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 498,
@@ -7835,7 +8829,74 @@
     "smoothie": {
       "name_pattern": "smoothie|shake",
       "recipe_count": 9,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 244,
+          "ingredient_name": "Chia-Samen",
+          "freq_in_type": 0.625,
+          "specificity": 20.0
+        },
+        {
+          "id": 16,
+          "ingredient_name": "Honig",
+          "freq_in_type": 0.625,
+          "specificity": 13.52
+        },
+        {
+          "id": 126,
+          "ingredient_name": "Blattspinat",
+          "freq_in_type": 0.625,
+          "specificity": 11.03
+        },
+        {
+          "id": 148,
+          "ingredient_name": "Blaubeeren",
+          "freq_in_type": 0.25,
+          "specificity": 20.0
+        },
+        {
+          "id": 185,
+          "ingredient_name": "Grünkohl ",
+          "freq_in_type": 0.25,
+          "specificity": 20.0
+        },
+        {
+          "id": 67,
+          "ingredient_name": "Kokosmilch",
+          "freq_in_type": 0.5,
+          "specificity": 7.46
+        },
+        {
+          "id": 55,
+          "ingredient_name": "Limettensaft ",
+          "freq_in_type": 0.25,
+          "specificity": 11.38
+        },
+        {
+          "id": 69,
+          "ingredient_name": "Kurkuma (gemahlen)",
+          "freq_in_type": 0.25,
+          "specificity": 10.81
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 0.5,
+          "specificity": 3.38
+        },
+        {
+          "id": 63,
+          "ingredient_name": "Ingwer",
+          "freq_in_type": 0.25,
+          "specificity": 5.69
+        },
+        {
+          "id": 254,
+          "ingredient_name": "Avocado",
+          "freq_in_type": 0.25,
+          "specificity": 4.7
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 142,
@@ -7909,7 +8970,50 @@
     "brot": {
       "name_pattern": "\\bbrot\\b|focaccia|ciabatta",
       "recipe_count": 26,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 74,
+          "ingredient_name": "Trockenhefe",
+          "freq_in_type": 0.96,
+          "specificity": 20.0
+        },
+        {
+          "id": 1,
+          "ingredient_name": "Zucker",
+          "freq_in_type": 1.0,
+          "specificity": 5.24
+        },
+        {
+          "id": 5,
+          "ingredient_name": "Mehl",
+          "freq_in_type": 1.0,
+          "specificity": 4.16
+        },
+        {
+          "id": 36,
+          "ingredient_name": "Joghurt (Natur)",
+          "freq_in_type": 0.36,
+          "specificity": 10.38
+        },
+        {
+          "id": 119,
+          "ingredient_name": "Rosmarin (frisch)",
+          "freq_in_type": 0.24,
+          "specificity": 7.69
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.16,
+          "specificity": 0.32
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.16,
+          "specificity": 0.3
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 100,
@@ -7953,7 +9057,50 @@
     "dessert": {
       "name_pattern": "dessert|mousse|pudding|panna cotta|tiramisu",
       "recipe_count": 54,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 57,
+          "ingredient_name": "Vanilleextrakt",
+          "freq_in_type": 0.294,
+          "specificity": 6.52
+        },
+        {
+          "id": 244,
+          "ingredient_name": "Chia-Samen",
+          "freq_in_type": 0.176,
+          "specificity": 10.18
+        },
+        {
+          "id": 16,
+          "ingredient_name": "Honig",
+          "freq_in_type": 0.275,
+          "specificity": 5.94
+        },
+        {
+          "id": 1,
+          "ingredient_name": "Zucker",
+          "freq_in_type": 0.549,
+          "specificity": 2.88
+        },
+        {
+          "id": 33,
+          "ingredient_name": "Sahne",
+          "freq_in_type": 0.294,
+          "specificity": 1.97
+        },
+        {
+          "id": 32,
+          "ingredient_name": "Milch",
+          "freq_in_type": 0.275,
+          "specificity": 1.86
+        },
+        {
+          "id": 67,
+          "ingredient_name": "Kokosmilch",
+          "freq_in_type": 0.176,
+          "specificity": 2.63
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 421,
@@ -8009,7 +9156,80 @@
     "reis": {
       "name_pattern": "\\breis\\b|fried rice|bibimbap|nasi",
       "recipe_count": 49,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 3,
+          "ingredient_name": "Reis",
+          "freq_in_type": 0.927,
+          "specificity": 13.14
+        },
+        {
+          "id": 195,
+          "ingredient_name": "Sesamöl",
+          "freq_in_type": 0.244,
+          "specificity": 11.72
+        },
+        {
+          "id": 326,
+          "ingredient_name": "Sesam",
+          "freq_in_type": 0.195,
+          "specificity": 12.06
+        },
+        {
+          "id": 86,
+          "ingredient_name": "Zucchini",
+          "freq_in_type": 0.366,
+          "specificity": 4.34
+        },
+        {
+          "id": 22,
+          "ingredient_name": "Hähnchenbrustfilet",
+          "freq_in_type": 0.293,
+          "specificity": 4.78
+        },
+        {
+          "id": 198,
+          "ingredient_name": "Knoblauchzehe",
+          "freq_in_type": 0.78,
+          "specificity": 1.55
+        },
+        {
+          "id": 15,
+          "ingredient_name": "Karotten",
+          "freq_in_type": 0.463,
+          "specificity": 2.44
+        },
+        {
+          "id": 126,
+          "ingredient_name": "Blattspinat",
+          "freq_in_type": 0.244,
+          "specificity": 4.31
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.366,
+          "specificity": 2.78
+        },
+        {
+          "id": 124,
+          "ingredient_name": "Champignons",
+          "freq_in_type": 0.171,
+          "specificity": 4.1
+        },
+        {
+          "id": 216,
+          "ingredient_name": "Paprikapulver (edelsüß)",
+          "freq_in_type": 0.293,
+          "specificity": 2.13
+        },
+        {
+          "id": 85,
+          "ingredient_name": "Eier",
+          "freq_in_type": 0.244,
+          "specificity": 1.95
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 107,
@@ -8101,7 +9321,80 @@
     "fisch": {
       "name_pattern": "lachs|forelle|kabeljau|thunfisch|garnele|fisch",
       "recipe_count": 43,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 100,
+          "ingredient_name": "Lachsfilet",
+          "freq_in_type": 0.458,
+          "specificity": 18.88
+        },
+        {
+          "id": 6,
+          "ingredient_name": "Garnelen",
+          "freq_in_type": 0.333,
+          "specificity": 20.0
+        },
+        {
+          "id": 101,
+          "ingredient_name": "Dill (frisch)",
+          "freq_in_type": 0.25,
+          "specificity": 12.72
+        },
+        {
+          "id": 55,
+          "ingredient_name": "Limettensaft ",
+          "freq_in_type": 0.25,
+          "specificity": 11.38
+        },
+        {
+          "id": 230,
+          "ingredient_name": "Zitronen",
+          "freq_in_type": 0.292,
+          "specificity": 5.61
+        },
+        {
+          "id": 233,
+          "ingredient_name": "Chiliflocken",
+          "freq_in_type": 0.25,
+          "specificity": 6.18
+        },
+        {
+          "id": 70,
+          "ingredient_name": "Koriander (frisch)",
+          "freq_in_type": 0.25,
+          "specificity": 3.33
+        },
+        {
+          "id": 84,
+          "ingredient_name": "Gurke",
+          "freq_in_type": 0.208,
+          "specificity": 3.75
+        },
+        {
+          "id": 9,
+          "ingredient_name": "Zitronensaft",
+          "freq_in_type": 0.208,
+          "specificity": 2.44
+        },
+        {
+          "id": 27,
+          "ingredient_name": "Butter",
+          "freq_in_type": 0.208,
+          "specificity": 1.09
+        },
+        {
+          "id": 11,
+          "ingredient_name": "Zwiebeln",
+          "freq_in_type": 0.333,
+          "specificity": 0.63
+        },
+        {
+          "id": 33,
+          "ingredient_name": "Sahne",
+          "freq_in_type": 0.167,
+          "specificity": 1.12
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 135,
@@ -8151,7 +9444,80 @@
     "stir_fry": {
       "name_pattern": "wok|stir.?fry|gebratene",
       "recipe_count": 20,
-      "signature_ingredients": [],
+      "signature_ingredients": [
+        {
+          "id": 195,
+          "ingredient_name": "Sesamöl",
+          "freq_in_type": 0.833,
+          "specificity": 20.0
+        },
+        {
+          "id": 63,
+          "ingredient_name": "Ingwer",
+          "freq_in_type": 0.833,
+          "specificity": 18.97
+        },
+        {
+          "id": 77,
+          "ingredient_name": "Brokkoli",
+          "freq_in_type": 0.667,
+          "specificity": 20.0
+        },
+        {
+          "id": 326,
+          "ingredient_name": "Sesam",
+          "freq_in_type": 0.5,
+          "specificity": 20.0
+        },
+        {
+          "id": 154,
+          "ingredient_name": "Tofu",
+          "freq_in_type": 0.333,
+          "specificity": 20.0
+        },
+        {
+          "id": 66,
+          "ingredient_name": "Paprika (grün)",
+          "freq_in_type": 0.333,
+          "specificity": 20.0
+        },
+        {
+          "id": 65,
+          "ingredient_name": "Paprika (rot)",
+          "freq_in_type": 0.833,
+          "specificity": 6.32
+        },
+        {
+          "id": 3,
+          "ingredient_name": "Reis",
+          "freq_in_type": 0.5,
+          "specificity": 7.09
+        },
+        {
+          "id": 50,
+          "ingredient_name": "Frühlingszwiebeln",
+          "freq_in_type": 0.167,
+          "specificity": 20.0
+        },
+        {
+          "id": 127,
+          "ingredient_name": "Grüne Bohnen",
+          "freq_in_type": 0.167,
+          "specificity": 20.0
+        },
+        {
+          "id": 106,
+          "ingredient_name": "Schweinebauch",
+          "freq_in_type": 0.167,
+          "specificity": 20.0
+        },
+        {
+          "id": 232,
+          "ingredient_name": "Zuckerschoten",
+          "freq_in_type": 0.167,
+          "specificity": 20.0
+        }
+      ],
       "suggested_step_sequence": [
         {
           "step_id": 248,
