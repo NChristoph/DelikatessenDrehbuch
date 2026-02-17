@@ -180,6 +180,35 @@ namespace DelikatessenDrehbuch.Controllers
                 })
                 .ToListAsync();
 
+            // Namens-Lookup: Name_DE (normalisiert) → IngredientsAndNutrients-ID
+            var newIngLookup = ingredientsAndNutrients
+                .GroupBy(x => x.NameDe.Trim().ToLowerInvariant())
+                .ToDictionary(g => g.Key, g => g.First().Id);
+
+            // Alle eindeutigen alten Zutaten aus RecipesHandlers
+            var allOldIngredients = recipeIngredients
+                .GroupBy(x => x.IngredientId)
+                .Select(g => new { OldId = g.Key, Name = g.First().IngredientName })
+                .ToList();
+
+            // Mapping: Alte Ingredient-ID → IngredientsAndNutrients-ID (wenn Name übereinstimmt)
+            var legacyIngredientIdMap = allOldIngredients
+                .Select(x => new LegacyIngredientMapModel
+                {
+                    OldId = x.OldId,
+                    Name = x.Name,
+                    NewId = newIngLookup.TryGetValue(x.Name.Trim().ToLowerInvariant(), out var newId) ? newId : (int?)null
+                })
+                .OrderBy(x => x.Name)
+                .ToList();
+
+            // Zutaten ohne Treffer im neuen System – für fehlende_zutaten.txt
+            var missingIngredients = legacyIngredientIdMap
+                .Where(x => x.NewId == null)
+                .OrderByDescending(x =>
+                    recipeIngredients.Count(r => r.IngredientId == x.OldId))
+                .ToList();
+
             var schema = new
             {
                 schema_version = "1.1",
@@ -236,6 +265,12 @@ namespace DelikatessenDrehbuch.Controllers
                     "salt_a_100g",
                     "protein_a_100g",
                     "fiber_a_100g"
+                },
+                legacy_ingredient_map_fields = new[]
+                {
+                    "old_id   (Ingredient.Id aus RecipesHandlers)",
+                    "name     (Zutatenname wie in Rezepten)",
+                    "new_id   (IngredientsAndNutrients.Id, null = noch nicht im neuen System)"
                 }
             };
 
@@ -243,10 +278,12 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 exported_at_utc = DateTime.UtcNow,
                 record_count = exportRecipes.Count,
+                missing_ingredient_count = missingIngredients.Count,
                 schema,
                 recipes = exportRecipes,
                 preparation_steps = preparationSteps,
-                ingredients_and_nutrients = ingredientsAndNutrients
+                ingredients_and_nutrients = ingredientsAndNutrients,
+                legacy_ingredient_id_map = legacyIngredientIdMap
             };
 
             var exportDirectory = Path.Combine(Directory.GetCurrentDirectory(), "data", "exports");
@@ -262,7 +299,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             await System.IO.File.WriteAllTextAsync(filePath, json);
 
-            TempData["ExportJsonMessage"] = $"JSON Export erstellt: data/exports/{fileName}";
+            TempData["ExportJsonMessage"] = $"JSON Export erstellt: data/exports/{fileName} | Zutaten (neu): {ingredientsAndNutrients.Count} | Ohne Zuordnung: {missingIngredients.Count}";
             return RedirectToAction(nameof(Index));
         }
 
@@ -327,6 +364,13 @@ namespace DelikatessenDrehbuch.Controllers
             public decimal Salt_a_100g { get; set; }
             public decimal Protein_a_100g { get; set; }
             public decimal Fiber_a_100g { get; set; }
+        }
+
+        private sealed class LegacyIngredientMapModel
+        {
+            public int OldId { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public int? NewId { get; set; }
         }
 
         public IActionResult AddNewRecipes()
