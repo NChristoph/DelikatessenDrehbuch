@@ -1188,15 +1188,20 @@
                 masterBox.addClass('d-none');
                 return;
             }
-            const types = RecipeStepSuggest.detectRecipeTypes(selectedIds);
-            if (types.length) {
+            const hasSuggest = typeof window.RecipeStepSuggest !== 'undefined';
+            const types = hasSuggest && typeof RecipeStepSuggest.detectRecipeTypes === 'function'
+                ? RecipeStepSuggest.detectRecipeTypes(selectedIds)
+                : [];
+            if (types.length && typeof RecipeStepSuggest.renderRecipeTypeBadges === 'function') {
                 badges.html(RecipeStepSuggest.renderRecipeTypeBadges(types, 3));
                 scoreBar.removeClass('d-none');
             } else {
                 scoreBar.addClass('d-none');
             }
 
-            const preview = RecipeStepSuggest.getMasterStepPreview(selectedNames, { lang: currentLang, maxItems: 5 });
+            const preview = hasSuggest && typeof RecipeStepSuggest.getMasterStepPreview === 'function'
+                ? RecipeStepSuggest.getMasterStepPreview(selectedNames, { lang: currentLang, maxItems: 5 })
+                : [];
             if (preview.length) {
                 masterList.empty();
                 preview.forEach(item => {
@@ -1345,11 +1350,22 @@
         }
 
         function getSelectedIngredientsForSandbox() {
-            return $('#selectedIngredients .ingredient-row').map(function () {
+            const fromSelected = $('#selectedIngredients .ingredient-row').map(function () {
                 const row = $(this);
+                const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
+                const name = row.find('.display-name-selected').text()?.trim() || '';
+                return { id, name };
+            }).get().filter(x => x.id || x.name);
+
+            if (fromSelected.length) {
+                return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
+            }
+
+            return $('#sandboxIngredientList .sandbox-ingredient-btn').map(function () {
+                const btn = $(this);
                 return {
-                    id: row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '',
-                    name: row.find('.display-name-selected').text()?.trim() || 'Zutat'
+                    id: btn.data('id')?.toString() || '',
+                    name: btn.data('name')?.toString() || 'Zutat'
                 };
             }).get();
         }

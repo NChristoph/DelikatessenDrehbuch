@@ -113,19 +113,26 @@
         const name = (ingredientName || '').toString().toLowerCase().trim();
         if (!name) return [];
 
-        const prepActions = ['wash', 'peel', 'cut', 'grate', 'mince', 'mix'];
-        const cookActions = ['fry', 'boil', 'bake', 'simmer', 'steam', 'season', 'serve'];
+        const all = getMasterSteps().filter(function (step) {
+            return step && Array.isArray(step.variables) && step.variables.includes('ingredient');
+        });
 
-        return getMasterSteps().filter(function (step) {
-            if (!step || !Array.isArray(step.variables) || !step.variables.includes('ingredient')) {
-                return false;
+        const pantryTerms = ['öl', 'oil', 'salz', 'pfeffer', 'gewürz', 'spice', 'zucker', 'sugar'];
+        const isPantryLike = pantryTerms.some(function (x) { return name.includes(x); });
+
+        return all.sort(function (a, b) {
+            const aCook = [2,3,4].includes(parseInt(a.phase || 0, 10));
+            const bCook = [2,3,4].includes(parseInt(b.phase || 0, 10));
+
+            if (isPantryLike && aCook !== bCook) {
+                return aCook ? -1 : 1;
             }
 
-            if (name.includes('öl') || name.includes('oil') || name.includes('salz') || name.includes('pfeffer')) {
-                return cookActions.includes(step.action);
-            }
+            const pa = parseInt(a.phase || 0, 10);
+            const pb = parseInt(b.phase || 0, 10);
+            if (pa !== pb) return pa - pb;
 
-            return prepActions.includes(step.action) || cookActions.includes(step.action);
+            return (a.master_id || '').localeCompare(b.master_id || '');
         });
     }
 

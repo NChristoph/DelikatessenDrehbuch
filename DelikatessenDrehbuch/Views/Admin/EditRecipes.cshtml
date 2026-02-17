@@ -575,11 +575,23 @@
         }
 
         function getSelectedIngredientsForSandbox() {
-            return $('#newIngredientsList .ingredient-row').map(function() {
+            const fromRows = $('#newIngredientsList .ingredient-row').map(function() {
                 const row = $(this);
                 const id = row.find('.field-id').val()?.toString() || '0';
-                const name = row.find('input[name*="IngredientsAndNutrients.Name_DE"]').val()?.toString().trim() || 'Manuelle Zutat';
+                const name = row.find('input[name*="IngredientsAndNutrients.Name_DE"]').val()?.toString().trim() || '';
                 return { id, name };
+            }).get().filter(x => x.id !== '0' || x.name);
+
+            if (fromRows.length) {
+                return fromRows.map(x => ({ id: x.id, name: x.name || 'Manuelle Zutat' }));
+            }
+
+            return $('#sandboxIngredientList .sandbox-ingredient-btn').map(function() {
+                const btn = $(this);
+                return {
+                    id: btn.data('id')?.toString() || '0',
+                    name: btn.data('name')?.toString() || 'Manuelle Zutat'
+                };
             }).get();
         }
 
@@ -1029,15 +1041,20 @@
                 return;
             }
             const selectedIds = selectedIdsCsv.split(',').map(function(x) { return parseInt(x, 10); }).filter(function(x) { return !isNaN(x); });
-            var types = RecipeStepSuggest.detectRecipeTypes(selectedIds);
-            if (types.length) {
+            const hasSuggest = typeof window.RecipeStepSuggest !== 'undefined';
+            var types = hasSuggest && typeof RecipeStepSuggest.detectRecipeTypes === 'function'
+                ? RecipeStepSuggest.detectRecipeTypes(selectedIds)
+                : [];
+            if (types.length && typeof RecipeStepSuggest.renderRecipeTypeBadges === 'function') {
                 badges.html(RecipeStepSuggest.renderRecipeTypeBadges(types, 3));
                 scoreBar.removeClass('d-none');
             } else {
                 scoreBar.addClass('d-none');
             }
 
-            const preview = RecipeStepSuggest.getMasterStepPreview(selectedNames, { lang: 'de', maxItems: 5 });
+            const preview = hasSuggest && typeof RecipeStepSuggest.getMasterStepPreview === 'function'
+                ? RecipeStepSuggest.getMasterStepPreview(selectedNames, { lang: 'de', maxItems: 5 })
+                : [];
             if (preview.length) {
                 masterList.empty();
                 preview.forEach(function(item) {
