@@ -1,0 +1,8579 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Grammatik-Metadaten für alle Zutaten (Genus, Artikel, Pronomen)",
+    "languages": [
+      "de",
+      "pt",
+      "es"
+    ],
+    "note_de": "m=maskulin, f=feminin, n=neutrum, pl=Plural",
+    "note_pt": "m=masculino, f=feminino",
+    "note_es": "m=masculino, f=femenino",
+    "total_ingredients": 327
+  },
+  "article_rules": {
+    "de": {
+      "m": {
+        "nom": "der",
+        "akk": "den",
+        "dat": "dem",
+        "pron": "ihn"
+      },
+      "f": {
+        "nom": "die",
+        "akk": "die",
+        "dat": "der",
+        "pron": "sie"
+      },
+      "n": {
+        "nom": "das",
+        "akk": "das",
+        "dat": "dem",
+        "pron": "es"
+      },
+      "pl": {
+        "nom": "die",
+        "akk": "die",
+        "dat": "den",
+        "pron": "sie"
+      }
+    },
+    "pt": {
+      "m": {
+        "art": "o",
+        "art_pl": "os"
+      },
+      "f": {
+        "art": "a",
+        "art_pl": "as"
+      },
+      "pl_m": {
+        "art": "os"
+      },
+      "pl_f": {
+        "art": "as"
+      }
+    },
+    "es": {
+      "m": {
+        "art": "el",
+        "art_pl": "los"
+      },
+      "f": {
+        "art": "la",
+        "art_pl": "las"
+      },
+      "pl_m": {
+        "art": "los"
+      },
+      "pl_f": {
+        "art": "las"
+      }
+    }
+  },
+  "ingredients": [
+    {
+      "id": 1,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Zucker",
+        "genus": "m",
+        "nom": "der Zucker",
+        "akk": "den Zucker",
+        "dat": "dem Zucker",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Sugar"
+      },
+      "pt": {
+        "name": "Açúcar",
+        "genus": "m",
+        "art": "o Açúcar"
+      },
+      "es": {
+        "name": "Azúcar",
+        "genus": "m",
+        "art": "el Azúcar"
+      }
+    },
+    {
+      "id": 2,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Pasta",
+        "genus": "f",
+        "nom": "die Pasta",
+        "akk": "die Pasta",
+        "dat": "der Pasta",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pasta"
+      },
+      "pt": {
+        "name": "Massa",
+        "genus": "f",
+        "art": "a Massa"
+      },
+      "es": {
+        "name": "Pasta",
+        "genus": "f",
+        "art": "la Pasta"
+      }
+    },
+    {
+      "id": 3,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Reis",
+        "genus": "m",
+        "nom": "der Reis",
+        "akk": "den Reis",
+        "dat": "dem Reis",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Rice"
+      },
+      "pt": {
+        "name": "Arroz",
+        "genus": "m",
+        "art": "o Arroz"
+      },
+      "es": {
+        "name": "Arroz",
+        "genus": "m",
+        "art": "el Arroz"
+      }
+    },
+    {
+      "id": 4,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Salat",
+        "genus": "m",
+        "nom": "der Salat",
+        "akk": "den Salat",
+        "dat": "dem Salat",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lettuce"
+      },
+      "pt": {
+        "name": "Alface",
+        "genus": "m",
+        "art": "o Alface"
+      },
+      "es": {
+        "name": "Lechuga",
+        "genus": "f",
+        "art": "la Lechuga"
+      }
+    },
+    {
+      "id": 5,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Mehl",
+        "genus": "n",
+        "nom": "das Mehl",
+        "akk": "das Mehl",
+        "dat": "dem Mehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Flour"
+      },
+      "pt": {
+        "name": "Farinha",
+        "genus": "f",
+        "art": "a Farinha"
+      },
+      "es": {
+        "name": "Harina",
+        "genus": "f",
+        "art": "la Harina"
+      }
+    },
+    {
+      "id": 6,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Garnelen",
+        "genus": "pl",
+        "nom": "die Garnelen",
+        "akk": "die Garnelen",
+        "dat": "den Garnelen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Shrimp"
+      },
+      "pt": {
+        "name": "Camarão",
+        "genus": "m",
+        "art": "o Camarão"
+      },
+      "es": {
+        "name": "Gambas",
+        "genus": "f",
+        "art": "la Gambas"
+      }
+    },
+    {
+      "id": 7,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Basilikum (frisch)",
+        "genus": "n",
+        "nom": "das Basilikum (frisch)",
+        "akk": "das Basilikum (frisch)",
+        "dat": "dem Basilikum (frisch)",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Basil"
+      },
+      "pt": {
+        "name": "Manjericão (Fresco)",
+        "genus": "m",
+        "art": "o Manjericão (Fresco)"
+      },
+      "es": {
+        "name": "Albahaca (Fresca)",
+        "genus": "f",
+        "art": "la Albahaca (Fresca)"
+      }
+    },
+    {
+      "id": 8,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Basilikum (getrocknet)",
+        "genus": "n",
+        "nom": "das Basilikum (getrocknet)",
+        "akk": "das Basilikum (getrocknet)",
+        "dat": "dem Basilikum (getrocknet)",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Dried Basil"
+      },
+      "pt": {
+        "name": "Manjericão seco",
+        "genus": "m",
+        "art": "o Manjericão seco"
+      },
+      "es": {
+        "name": "Albahaca seca",
+        "genus": "f",
+        "art": "la Albahaca seca"
+      }
+    },
+    {
+      "id": 9,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Zitronensaft",
+        "genus": "m",
+        "nom": "der Zitronensaft",
+        "akk": "den Zitronensaft",
+        "dat": "dem Zitronensaft",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lemon juice"
+      },
+      "pt": {
+        "name": "Sumo de limão",
+        "genus": "m",
+        "art": "o Sumo de limão"
+      },
+      "es": {
+        "name": "Zumo de limón",
+        "genus": "m",
+        "art": "el Zumo de limón"
+      }
+    },
+    {
+      "id": 10,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Olivenöl",
+        "genus": "n",
+        "nom": "das Olivenöl",
+        "akk": "das Olivenöl",
+        "dat": "dem Olivenöl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Olive oil"
+      },
+      "pt": {
+        "name": "Azeite (de oliva)",
+        "genus": "m",
+        "art": "o Azeite (de oliva)"
+      },
+      "es": {
+        "name": "Aceite de oliva",
+        "genus": "f",
+        "art": "la Aceite de oliva"
+      }
+    },
+    {
+      "id": 11,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Zwiebeln",
+        "genus": "pl",
+        "nom": "die Zwiebeln",
+        "akk": "die Zwiebeln",
+        "dat": "den Zwiebeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Onion"
+      },
+      "pt": {
+        "name": "Cebola",
+        "genus": "f",
+        "art": "a Cebola"
+      },
+      "es": {
+        "name": "Cebolla",
+        "genus": "f",
+        "art": "la Cebolla"
+      }
+    },
+    {
+      "id": 12,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Zwiebeln (rot)",
+        "genus": "pl",
+        "nom": "die Zwiebeln (rot)",
+        "akk": "die Zwiebeln (rot)",
+        "dat": "den Zwiebeln (rot)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Red onion"
+      },
+      "pt": {
+        "name": "Cebola roxa",
+        "genus": "f",
+        "art": "a Cebola roxa"
+      },
+      "es": {
+        "name": "Cebolla roja",
+        "genus": "f",
+        "art": "la Cebolla roja"
+      }
+    },
+    {
+      "id": 13,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Lorbeerblätter (getrocknet)",
+        "genus": "pl",
+        "nom": "die Lorbeerblätter (getrocknet)",
+        "akk": "die Lorbeerblätter (getrocknet)",
+        "dat": "den Lorbeerblätter (getrocknet)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Bay leaf"
+      },
+      "pt": {
+        "name": "Louro",
+        "genus": "m",
+        "art": "o Louro"
+      },
+      "es": {
+        "name": "Laurel",
+        "genus": "m",
+        "art": "el Laurel"
+      }
+    },
+    {
+      "id": 14,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Tomatenmark",
+        "genus": "n",
+        "nom": "das Tomatenmark",
+        "akk": "das Tomatenmark",
+        "dat": "dem Tomatenmark",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Tomato paste"
+      },
+      "pt": {
+        "name": "Extrato de tomate",
+        "genus": "m",
+        "art": "o Extrato de tomate"
+      },
+      "es": {
+        "name": "Concentrado de tomate",
+        "genus": "m",
+        "art": "el Concentrado de tomate"
+      }
+    },
+    {
+      "id": 15,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Karotten",
+        "genus": "pl",
+        "nom": "die Karotten",
+        "akk": "die Karotten",
+        "dat": "den Karotten",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Carrot"
+      },
+      "pt": {
+        "name": "Cenoura",
+        "genus": "f",
+        "art": "a Cenoura"
+      },
+      "es": {
+        "name": "Zanahoria",
+        "genus": "f",
+        "art": "la Zanahoria"
+      }
+    },
+    {
+      "id": 16,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Honig",
+        "genus": "m",
+        "nom": "der Honig",
+        "akk": "den Honig",
+        "dat": "dem Honig",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Honey"
+      },
+      "pt": {
+        "name": "Mel",
+        "genus": "m",
+        "art": "o Mel"
+      },
+      "es": {
+        "name": "Miel",
+        "genus": "m",
+        "art": "el Miel"
+      }
+    },
+    {
+      "id": 17,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Petersilie (frisch)",
+        "genus": "f",
+        "nom": "die Petersilie (frisch)",
+        "akk": "die Petersilie (frisch)",
+        "dat": "der Petersilie (frisch)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Parsley"
+      },
+      "pt": {
+        "name": "Salsa",
+        "genus": "f",
+        "art": "a Salsa"
+      },
+      "es": {
+        "name": "Perejil",
+        "genus": "m",
+        "art": "el Perejil"
+      }
+    },
+    {
+      "id": 18,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Petersilie (getrocknet)",
+        "genus": "f",
+        "nom": "die Petersilie (getrocknet)",
+        "akk": "die Petersilie (getrocknet)",
+        "dat": "der Petersilie (getrocknet)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Dried parsley"
+      },
+      "pt": {
+        "name": "Salsa seca",
+        "genus": "f",
+        "art": "a Salsa seca"
+      },
+      "es": {
+        "name": "Perejil seco",
+        "genus": "m",
+        "art": "el Perejil seco"
+      }
+    },
+    {
+      "id": 19,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Feta",
+        "genus": "m",
+        "nom": "der Feta",
+        "akk": "den Feta",
+        "dat": "dem Feta",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Feta cheese"
+      },
+      "pt": {
+        "name": "Queijo Feta",
+        "genus": "f",
+        "art": "a Queijo Feta"
+      },
+      "es": {
+        "name": "Queso Feta",
+        "genus": "f",
+        "art": "la Queso Feta"
+      }
+    },
+    {
+      "id": 20,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Kartoffeln",
+        "genus": "pl",
+        "nom": "die Kartoffeln",
+        "akk": "die Kartoffeln",
+        "dat": "den Kartoffeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Potato"
+      },
+      "pt": {
+        "name": "Batata",
+        "genus": "f",
+        "art": "a Batata"
+      },
+      "es": {
+        "name": "Patata",
+        "genus": "f",
+        "art": "la Patata"
+      }
+    },
+    {
+      "id": 21,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Apfel",
+        "genus": "m",
+        "nom": "der Apfel",
+        "akk": "den Apfel",
+        "dat": "dem Apfel",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Apple"
+      },
+      "pt": {
+        "name": "Maçã",
+        "genus": "m",
+        "art": "o Maçã"
+      },
+      "es": {
+        "name": "Manzana",
+        "genus": "f",
+        "art": "la Manzana"
+      }
+    },
+    {
+      "id": 22,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Hähnchenbrustfilet",
+        "genus": "n",
+        "nom": "das Hähnchenbrustfilet",
+        "akk": "das Hähnchenbrustfilet",
+        "dat": "dem Hähnchenbrustfilet",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Chicken breast"
+      },
+      "pt": {
+        "name": "Peito de frango",
+        "genus": "m",
+        "art": "o Peito de frango"
+      },
+      "es": {
+        "name": "Pechuga de pollo",
+        "genus": "m",
+        "art": "el Pechuga de pollo"
+      }
+    },
+    {
+      "id": 23,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Ganzes Hähnchen",
+        "genus": "n",
+        "nom": "das Ganzes Hähnchen",
+        "akk": "das Ganzes Hähnchen",
+        "dat": "dem Ganzes Hähnchen",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Whole Chicken"
+      },
+      "pt": {
+        "name": "Frango inteiro",
+        "genus": "m",
+        "art": "o Frango inteiro"
+      },
+      "es": {
+        "name": "Pollo entero",
+        "genus": "m",
+        "art": "el Pollo entero"
+      }
+    },
+    {
+      "id": 24,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Hähnchenschenkel",
+        "genus": "pl",
+        "nom": "die Hähnchenschenkel",
+        "akk": "die Hähnchenschenkel",
+        "dat": "den Hähnchenschenkel",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Chicken leg"
+      },
+      "pt": {
+        "name": "Coxa e sobrecoxa de frango",
+        "genus": "m",
+        "art": "o Coxa e sobrecoxa de frango"
+      },
+      "es": {
+        "name": "Trasero de pollo",
+        "genus": "m",
+        "art": "el Trasero de pollo"
+      }
+    },
+    {
+      "id": 25,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Hähnchenflügel",
+        "genus": "pl",
+        "nom": "die Hähnchenflügel",
+        "akk": "die Hähnchenflügel",
+        "dat": "den Hähnchenflügel",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Chicken wings"
+      },
+      "pt": {
+        "name": "Asas de frango",
+        "genus": "m",
+        "art": "o Asas de frango"
+      },
+      "es": {
+        "name": "Asas de frango",
+        "genus": "m",
+        "art": "el Asas de frango"
+      }
+    },
+    {
+      "id": 26,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Hokkaido",
+        "genus": "m",
+        "nom": "der Hokkaido",
+        "akk": "den Hokkaido",
+        "dat": "dem Hokkaido",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Hokkaido pumpkin"
+      },
+      "pt": {
+        "name": "Abóbora Hokkaido",
+        "genus": "m",
+        "art": "o Abóbora Hokkaido"
+      },
+      "es": {
+        "name": "Calabaza Hokkaido",
+        "genus": "m",
+        "art": "el Calabaza Hokkaido"
+      }
+    },
+    {
+      "id": 27,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Butter",
+        "genus": "f",
+        "nom": "die Butter",
+        "akk": "die Butter",
+        "dat": "der Butter",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Butter"
+      },
+      "pt": {
+        "name": " Manteiga",
+        "genus": "f",
+        "art": "a  Manteiga"
+      },
+      "es": {
+        "name": "Mantequilla",
+        "genus": "f",
+        "art": "la Mantequilla"
+      }
+    },
+    {
+      "id": 28,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Weiswein (trocken)",
+        "genus": "m",
+        "nom": "der Weiswein (trocken)",
+        "akk": "den Weiswein (trocken)",
+        "dat": "dem Weiswein (trocken)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "White wine"
+      },
+      "pt": {
+        "name": " Vinho branco",
+        "genus": "m",
+        "art": "o  Vinho branco"
+      },
+      "es": {
+        "name": "Vino blanco",
+        "genus": "m",
+        "art": "el Vino blanco"
+      }
+    },
+    {
+      "id": 29,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kürbiskernöl",
+        "genus": "n",
+        "nom": "das Kürbiskernöl",
+        "akk": "das Kürbiskernöl",
+        "dat": "dem Kürbiskernöl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Pumpkin seed oil"
+      },
+      "pt": {
+        "name": "Óleo de semente de abóbora",
+        "genus": "f",
+        "art": "a Óleo de semente de abóbora"
+      },
+      "es": {
+        "name": "Aceite de semillas de calabaza",
+        "genus": "f",
+        "art": "la Aceite de semillas de calabaza"
+      }
+    },
+    {
+      "id": 30,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Kalbschnitzel",
+        "genus": "n",
+        "nom": "das Kalbschnitzel",
+        "akk": "das Kalbschnitzel",
+        "dat": "dem Kalbschnitzel",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Veal cutlet"
+      },
+      "pt": {
+        "name": "Escalope de vitela",
+        "genus": "f",
+        "art": "a Escalope de vitela"
+      },
+      "es": {
+        "name": "Escalope de ternera",
+        "genus": "f",
+        "art": "la Escalope de ternera"
+      }
+    },
+    {
+      "id": 31,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Kalbshaxe",
+        "genus": "f",
+        "nom": "die Kalbshaxe",
+        "akk": "die Kalbshaxe",
+        "dat": "der Kalbshaxe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Veal knuckle "
+      },
+      "pt": {
+        "name": "Ossobuco de vitela",
+        "genus": "f",
+        "art": "a Ossobuco de vitela"
+      },
+      "es": {
+        "name": "Ossobuco de ternera",
+        "genus": "f",
+        "art": "la Ossobuco de ternera"
+      }
+    },
+    {
+      "id": 32,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Milch",
+        "genus": "f",
+        "nom": "die Milch",
+        "akk": "die Milch",
+        "dat": "der Milch",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Milk"
+      },
+      "pt": {
+        "name": "Leite",
+        "genus": "m",
+        "art": "o Leite"
+      },
+      "es": {
+        "name": "Leche ",
+        "genus": "m",
+        "art": "el Leche "
+      }
+    },
+    {
+      "id": 33,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Sahne",
+        "genus": "f",
+        "nom": "die Sahne",
+        "akk": "die Sahne",
+        "dat": "der Sahne",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Whipping cream"
+      },
+      "pt": {
+        "name": "Creme de leite ",
+        "genus": "m",
+        "art": "o Creme de leite "
+      },
+      "es": {
+        "name": "Nata",
+        "genus": "f",
+        "art": "la Nata"
+      }
+    },
+    {
+      "id": 34,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Schmand",
+        "genus": "m",
+        "nom": "der Schmand",
+        "akk": "den Schmand",
+        "dat": "dem Schmand",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Sour cream"
+      },
+      "pt": {
+        "name": "Creme azedo",
+        "genus": "m",
+        "art": "o Creme azedo"
+      },
+      "es": {
+        "name": "Crema agria",
+        "genus": "f",
+        "art": "la Crema agria"
+      }
+    },
+    {
+      "id": 35,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Crème fraîche",
+        "genus": "f",
+        "nom": "die Crème fraîche",
+        "akk": "die Crème fraîche",
+        "dat": "der Crème fraîche",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Crème fraîche"
+      },
+      "pt": {
+        "name": "Crème fraîche",
+        "genus": "m",
+        "art": "o Crème fraîche"
+      },
+      "es": {
+        "name": "Crème fraîche",
+        "genus": "m",
+        "art": "el Crème fraîche"
+      }
+    },
+    {
+      "id": 36,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Joghurt (Natur)",
+        "genus": "m",
+        "nom": "der Joghurt (Natur)",
+        "akk": "den Joghurt (Natur)",
+        "dat": "dem Joghurt (Natur)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Yogurt (Plain)"
+      },
+      "pt": {
+        "name": "Iogurte (Natural)",
+        "genus": "m",
+        "art": "o Iogurte (Natural)"
+      },
+      "es": {
+        "name": "Yogur (Natural)",
+        "genus": "m",
+        "art": "el Yogur (Natural)"
+      }
+    },
+    {
+      "id": 37,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Magerquark",
+        "genus": "m",
+        "nom": "der Magerquark",
+        "akk": "den Magerquark",
+        "dat": "dem Magerquark",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lean Curd cheese"
+      },
+      "pt": {
+        "name": "Queijo Quark magro",
+        "genus": "m",
+        "art": "o Queijo Quark magro"
+      },
+      "es": {
+        "name": "Queso batido 0%",
+        "genus": "m",
+        "art": "el Queso batido 0%"
+      }
+    },
+    {
+      "id": 38,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Mascarpone",
+        "genus": "m",
+        "nom": "der Mascarpone",
+        "akk": "den Mascarpone",
+        "dat": "dem Mascarpone",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Mascarpone"
+      },
+      "pt": {
+        "name": "Mascarpone",
+        "genus": "m",
+        "art": "o Mascarpone"
+      },
+      "es": {
+        "name": "Mascarpone",
+        "genus": "m",
+        "art": "el Mascarpone"
+      }
+    },
+    {
+      "id": 39,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Mozzarella",
+        "genus": "m",
+        "nom": "der Mozzarella",
+        "akk": "den Mozzarella",
+        "dat": "dem Mozzarella",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Mozzarella"
+      },
+      "pt": {
+        "name": "Mozzarela",
+        "genus": "f",
+        "art": "a Mozzarela"
+      },
+      "es": {
+        "name": "Mozzarella",
+        "genus": "f",
+        "art": "la Mozzarella"
+      }
+    },
+    {
+      "id": 40,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Parmesan",
+        "genus": "m",
+        "nom": "der Parmesan",
+        "akk": "den Parmesan",
+        "dat": "dem Parmesan",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Parmesan cheese"
+      },
+      "pt": {
+        "name": "Queijo Parmesão",
+        "genus": "m",
+        "art": "o Queijo Parmesão"
+      },
+      "es": {
+        "name": "Queso Parmesano",
+        "genus": "m",
+        "art": "el Queso Parmesano"
+      }
+    },
+    {
+      "id": 41,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Gouda",
+        "genus": "m",
+        "nom": "der Gouda",
+        "akk": "den Gouda",
+        "dat": "dem Gouda",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Gouda cheese"
+      },
+      "pt": {
+        "name": "Queijo Gouda",
+        "genus": "f",
+        "art": "a Queijo Gouda"
+      },
+      "es": {
+        "name": "Queso Gouda",
+        "genus": "f",
+        "art": "la Queso Gouda"
+      }
+    },
+    {
+      "id": 42,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Cheddar",
+        "genus": "m",
+        "nom": "der Cheddar",
+        "akk": "den Cheddar",
+        "dat": "dem Cheddar",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cheddar cheese"
+      },
+      "pt": {
+        "name": "Queijo Cheddar",
+        "genus": "m",
+        "art": "o Queijo Cheddar"
+      },
+      "es": {
+        "name": "Queso Cheddar",
+        "genus": "m",
+        "art": "el Queso Cheddar"
+      }
+    },
+    {
+      "id": 43,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Paniermehl",
+        "genus": "n",
+        "nom": "das Paniermehl",
+        "akk": "das Paniermehl",
+        "dat": "dem Paniermehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Breadcrumbs"
+      },
+      "pt": {
+        "name": "Farinha de rosca ",
+        "genus": "f",
+        "art": "a Farinha de rosca "
+      },
+      "es": {
+        "name": "Pan rallado",
+        "genus": "m",
+        "art": "el Pan rallado"
+      }
+    },
+    {
+      "id": 44,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Butterschmalz ",
+        "genus": "m",
+        "nom": "der Butterschmalz ",
+        "akk": "den Butterschmalz ",
+        "dat": "dem Butterschmalz ",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Clarified butter"
+      },
+      "pt": {
+        "name": "Manteiga clarificada",
+        "genus": "f",
+        "art": "a Manteiga clarificada"
+      },
+      "es": {
+        "name": "Mantequilla clarificada",
+        "genus": "f",
+        "art": "la Mantequilla clarificada"
+      }
+    },
+    {
+      "id": 45,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Dinkelmehl",
+        "genus": "n",
+        "nom": "das Dinkelmehl",
+        "akk": "das Dinkelmehl",
+        "dat": "dem Dinkelmehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Spelt flour"
+      },
+      "pt": {
+        "name": "Farinha de espelta",
+        "genus": "f",
+        "art": "a Farinha de espelta"
+      },
+      "es": {
+        "name": "Harina de espelta",
+        "genus": "f",
+        "art": "la Harina de espelta"
+      }
+    },
+    {
+      "id": 46,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Maisstärke",
+        "genus": "f",
+        "nom": "die Maisstärke",
+        "akk": "die Maisstärke",
+        "dat": "der Maisstärke",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cornflour"
+      },
+      "pt": {
+        "name": "Amido de milho",
+        "genus": "m",
+        "art": "o Amido de milho"
+      },
+      "es": {
+        "name": "Maicena",
+        "genus": "f",
+        "art": "la Maicena"
+      }
+    },
+    {
+      "id": 47,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Knoblauchpulver",
+        "genus": "n",
+        "nom": "das Knoblauchpulver",
+        "akk": "das Knoblauchpulver",
+        "dat": "dem Knoblauchpulver",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Garlic powder"
+      },
+      "pt": {
+        "name": "Alho em pó",
+        "genus": "m",
+        "art": "o Alho em pó"
+      },
+      "es": {
+        "name": "Ajo en polvo",
+        "genus": "m",
+        "art": "el Ajo en polvo"
+      }
+    },
+    {
+      "id": 48,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Majoran (frisch)",
+        "genus": "m",
+        "nom": "der Majoran (frisch)",
+        "akk": "den Majoran (frisch)",
+        "dat": "dem Majoran (frisch)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Fresh Marjoram"
+      },
+      "pt": {
+        "name": "Manjerona fresca",
+        "genus": "f",
+        "art": "a Manjerona fresca"
+      },
+      "es": {
+        "name": "Mejorana fresca",
+        "genus": "f",
+        "art": "la Mejorana fresca"
+      }
+    },
+    {
+      "id": 49,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Majoran (getrocknet)",
+        "genus": "m",
+        "nom": "der Majoran (getrocknet)",
+        "akk": "den Majoran (getrocknet)",
+        "dat": "dem Majoran (getrocknet)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Dried Marjoram"
+      },
+      "pt": {
+        "name": "Manjerona seca",
+        "genus": "f",
+        "art": "a Manjerona seca"
+      },
+      "es": {
+        "name": "Mejorana seca",
+        "genus": "f",
+        "art": "la Mejorana seca"
+      }
+    },
+    {
+      "id": 50,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Frühlingszwiebeln",
+        "genus": "pl",
+        "nom": "die Frühlingszwiebeln",
+        "akk": "die Frühlingszwiebeln",
+        "dat": "den Frühlingszwiebeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Spring onion"
+      },
+      "pt": {
+        "name": "Cebolinha (verde)",
+        "genus": "f",
+        "art": "a Cebolinha (verde)"
+      },
+      "es": {
+        "name": "Cebolleta",
+        "genus": "f",
+        "art": "la Cebolleta"
+      }
+    },
+    {
+      "id": 51,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Tomaten",
+        "genus": "pl",
+        "nom": "die Tomaten",
+        "akk": "die Tomaten",
+        "dat": "den Tomaten",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Tomato"
+      },
+      "pt": {
+        "name": "Tomate",
+        "genus": "m",
+        "art": "o Tomate"
+      },
+      "es": {
+        "name": "Tomate",
+        "genus": "m",
+        "art": "el Tomate"
+      }
+    },
+    {
+      "id": 52,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Cherrytomate",
+        "genus": "f",
+        "nom": "die Cherrytomate",
+        "akk": "die Cherrytomate",
+        "dat": "der Cherrytomate",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cherry tomato"
+      },
+      "pt": {
+        "name": "Tomate cereja",
+        "genus": "f",
+        "art": "a Tomate cereja"
+      },
+      "es": {
+        "name": "Tomate cherry",
+        "genus": "m",
+        "art": "el Tomate cherry"
+      }
+    },
+    {
+      "id": 53,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "getrocknete Tomaten",
+        "genus": "pl",
+        "nom": "die getrocknete Tomaten",
+        "akk": "die getrocknete Tomaten",
+        "dat": "den getrocknete Tomaten",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Sun-dried tomatoes"
+      },
+      "pt": {
+        "name": "Tomate seco",
+        "genus": "m",
+        "art": "o Tomate seco"
+      },
+      "es": {
+        "name": "Tomates secos",
+        "genus": "m",
+        "art": "el Tomates secos"
+      }
+    },
+    {
+      "id": 54,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Limette (frisch)",
+        "genus": "f",
+        "nom": "die Limette (frisch)",
+        "akk": "die Limette (frisch)",
+        "dat": "der Limette (frisch)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Lime"
+      },
+      "pt": {
+        "name": "Lima",
+        "genus": "f",
+        "art": "a Lima"
+      },
+      "es": {
+        "name": "Lima",
+        "genus": "f",
+        "art": "la Lima"
+      }
+    },
+    {
+      "id": 55,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Limettensaft ",
+        "genus": "m",
+        "nom": "der Limettensaft ",
+        "akk": "den Limettensaft ",
+        "dat": "dem Limettensaft ",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lime juice"
+      },
+      "pt": {
+        "name": "Sumo de lima",
+        "genus": "f",
+        "art": "a Sumo de lima"
+      },
+      "es": {
+        "name": "Zumo de lima",
+        "genus": "f",
+        "art": "la Zumo de lima"
+      }
+    },
+    {
+      "id": 56,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Ahornsirup",
+        "genus": "m",
+        "nom": "der Ahornsirup",
+        "akk": "den Ahornsirup",
+        "dat": "dem Ahornsirup",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Maple syrup"
+      },
+      "pt": {
+        "name": "Xarope de ácer",
+        "genus": "m",
+        "art": "o Xarope de ácer"
+      },
+      "es": {
+        "name": "Jarabe de arce",
+        "genus": "m",
+        "art": "el Jarabe de arce"
+      }
+    },
+    {
+      "id": 57,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Vanilleextrakt",
+        "genus": "m",
+        "nom": "der Vanilleextrakt",
+        "akk": "den Vanilleextrakt",
+        "dat": "dem Vanilleextrakt",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Vanilla extract"
+      },
+      "pt": {
+        "name": "Extrato de baunilha",
+        "genus": "f",
+        "art": "a Extrato de baunilha"
+      },
+      "es": {
+        "name": "Extracto de vainilla",
+        "genus": "f",
+        "art": "la Extracto de vainilla"
+      }
+    },
+    {
+      "id": 58,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Vollkornmehl",
+        "genus": "n",
+        "nom": "das Vollkornmehl",
+        "akk": "das Vollkornmehl",
+        "dat": "dem Vollkornmehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Whole wheat flour"
+      },
+      "pt": {
+        "name": "Farinha de trigo integral",
+        "genus": "m",
+        "art": "o Farinha de trigo integral"
+      },
+      "es": {
+        "name": "Harina de trigo integral",
+        "genus": "m",
+        "art": "el Harina de trigo integral"
+      }
+    },
+    {
+      "id": 59,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Backkakao",
+        "genus": "m",
+        "nom": "der Backkakao",
+        "akk": "den Backkakao",
+        "dat": "dem Backkakao",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cocoa powder (unsweetened)"
+      },
+      "pt": {
+        "name": "Cacau em pó (sem açúcar)",
+        "genus": "m",
+        "art": "o Cacau em pó (sem açúcar)"
+      },
+      "es": {
+        "name": "Cacao en polvo (sin azúcar)",
+        "genus": "m",
+        "art": "el Cacao en polvo (sin azúcar)"
+      }
+    },
+    {
+      "id": 60,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Backpulver",
+        "genus": "n",
+        "nom": "das Backpulver",
+        "akk": "das Backpulver",
+        "dat": "dem Backpulver",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Baking powder"
+      },
+      "pt": {
+        "name": "Fermento em pó",
+        "genus": "m",
+        "art": "o Fermento em pó"
+      },
+      "es": {
+        "name": "Levadura química",
+        "genus": "f",
+        "art": "la Levadura química"
+      }
+    },
+    {
+      "id": 61,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Natron",
+        "genus": "n",
+        "nom": "das Natron",
+        "akk": "das Natron",
+        "dat": "dem Natron",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Natron"
+      },
+      "pt": {
+        "name": "Bicarbonato de sódio",
+        "genus": "m",
+        "art": "o Bicarbonato de sódio"
+      },
+      "es": {
+        "name": "Bicarbonato de sodio",
+        "genus": "m",
+        "art": "el Bicarbonato de sodio"
+      }
+    },
+    {
+      "id": 62,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Kichererbsen (gekocht / aus der Dose)",
+        "genus": "m",
+        "nom": "der Kichererbsen (gekocht / aus der Dose)",
+        "akk": "den Kichererbsen (gekocht / aus der Dose)",
+        "dat": "dem Kichererbsen (gekocht / aus der Dose)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Chickpeas"
+      },
+      "pt": {
+        "name": "Grão-de-bico",
+        "genus": "m",
+        "art": "o Grão-de-bico"
+      },
+      "es": {
+        "name": "Garbanzos",
+        "genus": "m",
+        "art": "el Garbanzos"
+      }
+    },
+    {
+      "id": 63,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Ingwer",
+        "genus": "m",
+        "nom": "der Ingwer",
+        "akk": "den Ingwer",
+        "dat": "dem Ingwer",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Ginger"
+      },
+      "pt": {
+        "name": "Gengibre",
+        "genus": "m",
+        "art": "o Gengibre"
+      },
+      "es": {
+        "name": "Jengibre",
+        "genus": "m",
+        "art": "el Jengibre"
+      }
+    },
+    {
+      "id": 64,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Paprika (gelb)",
+        "genus": "f",
+        "nom": "die Paprika (gelb)",
+        "akk": "die Paprika (gelb)",
+        "dat": "der Paprika (gelb)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Yellow bell pepper"
+      },
+      "pt": {
+        "name": "Pimento amarelo",
+        "genus": "m",
+        "art": "o Pimento amarelo"
+      },
+      "es": {
+        "name": "Pimiento amarillo",
+        "genus": "m",
+        "art": "el Pimiento amarillo"
+      }
+    },
+    {
+      "id": 65,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Paprika (rot)",
+        "genus": "f",
+        "nom": "die Paprika (rot)",
+        "akk": "die Paprika (rot)",
+        "dat": "der Paprika (rot)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Red bell pepper"
+      },
+      "pt": {
+        "name": "Pimento vermelho",
+        "genus": "m",
+        "art": "o Pimento vermelho"
+      },
+      "es": {
+        "name": "Pimiento rojo",
+        "genus": "m",
+        "art": "el Pimiento rojo"
+      }
+    },
+    {
+      "id": 66,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Paprika (grün)",
+        "genus": "f",
+        "nom": "die Paprika (grün)",
+        "akk": "die Paprika (grün)",
+        "dat": "der Paprika (grün)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Green bell pepper"
+      },
+      "pt": {
+        "name": "Pimento verde",
+        "genus": "m",
+        "art": "o Pimento verde"
+      },
+      "es": {
+        "name": "Pimiento verde",
+        "genus": "m",
+        "art": "el Pimiento verde"
+      }
+    },
+    {
+      "id": 67,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kokosmilch",
+        "genus": "f",
+        "nom": "die Kokosmilch",
+        "akk": "die Kokosmilch",
+        "dat": "der Kokosmilch",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Coconut milk"
+      },
+      "pt": {
+        "name": "Leite de coco",
+        "genus": "m",
+        "art": "o Leite de coco"
+      },
+      "es": {
+        "name": "Leche de coco",
+        "genus": "m",
+        "art": "el Leche de coco"
+      }
+    },
+    {
+      "id": 68,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Currypulver",
+        "genus": "n",
+        "nom": "das Currypulver",
+        "akk": "das Currypulver",
+        "dat": "dem Currypulver",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Curry powder"
+      },
+      "pt": {
+        "name": "Caril em pó",
+        "genus": "m",
+        "art": "o Caril em pó"
+      },
+      "es": {
+        "name": "Curry en polvo",
+        "genus": "m",
+        "art": "el Curry en polvo"
+      }
+    },
+    {
+      "id": 69,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Kurkuma (gemahlen)",
+        "genus": "n",
+        "nom": "das Kurkuma (gemahlen)",
+        "akk": "das Kurkuma (gemahlen)",
+        "dat": "dem Kurkuma (gemahlen)",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Turmeric"
+      },
+      "pt": {
+        "name": "Cúrcuma",
+        "genus": "f",
+        "art": "a Cúrcuma"
+      },
+      "es": {
+        "name": "Cúrcuma",
+        "genus": "f",
+        "art": "la Cúrcuma"
+      }
+    },
+    {
+      "id": 70,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Koriander (frisch)",
+        "genus": "m",
+        "nom": "der Koriander (frisch)",
+        "akk": "den Koriander (frisch)",
+        "dat": "dem Koriander (frisch)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Fresh Coriander"
+      },
+      "pt": {
+        "name": "Coentro",
+        "genus": "m",
+        "art": "o Coentro"
+      },
+      "es": {
+        "name": "Cilantro",
+        "genus": "m",
+        "art": "el Cilantro"
+      }
+    },
+    {
+      "id": 71,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Kreuzkümmel (Cumin)",
+        "genus": "m",
+        "nom": "der Kreuzkümmel (Cumin)",
+        "akk": "den Kreuzkümmel (Cumin)",
+        "dat": "dem Kreuzkümmel (Cumin)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cumin"
+      },
+      "pt": {
+        "name": "Cominho",
+        "genus": "m",
+        "art": "o Cominho"
+      },
+      "es": {
+        "name": "Comino",
+        "genus": "m",
+        "art": "el Comino"
+      }
+    },
+    {
+      "id": 72,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Cayennepfeffer",
+        "genus": "m",
+        "nom": "der Cayennepfeffer",
+        "akk": "den Cayennepfeffer",
+        "dat": "dem Cayennepfeffer",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cayenne pepper"
+      },
+      "pt": {
+        "name": "Pimenta Caiena",
+        "genus": "f",
+        "art": "a Pimenta Caiena"
+      },
+      "es": {
+        "name": "Pimienta de Cayena",
+        "genus": "f",
+        "art": "la Pimienta de Cayena"
+      }
+    },
+    {
+      "id": 73,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Zimt",
+        "genus": "m",
+        "nom": "der Zimt",
+        "akk": "den Zimt",
+        "dat": "dem Zimt",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cinnamon"
+      },
+      "pt": {
+        "name": "Canela",
+        "genus": "f",
+        "art": "a Canela"
+      },
+      "es": {
+        "name": "Canela",
+        "genus": "f",
+        "art": "la Canela"
+      }
+    },
+    {
+      "id": 74,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Trockenhefe",
+        "genus": "f",
+        "nom": "die Trockenhefe",
+        "akk": "die Trockenhefe",
+        "dat": "der Trockenhefe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Dry yeast "
+      },
+      "pt": {
+        "name": "Fermento de padeiro seco",
+        "genus": "m",
+        "art": "o Fermento de padeiro seco"
+      },
+      "es": {
+        "name": "Levadura seca",
+        "genus": "f",
+        "art": "la Levadura seca"
+      }
+    },
+    {
+      "id": 75,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Wasser",
+        "genus": "m",
+        "nom": "der Wasser",
+        "akk": "den Wasser",
+        "dat": "dem Wasser",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Water"
+      },
+      "pt": {
+        "name": "Água",
+        "genus": "f",
+        "art": "a Água"
+      },
+      "es": {
+        "name": "Agua",
+        "genus": "f",
+        "art": "la Agua"
+      }
+    },
+    {
+      "id": 76,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Haferflocken",
+        "genus": "pl",
+        "nom": "die Haferflocken",
+        "akk": "die Haferflocken",
+        "dat": "den Haferflocken",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Rolled oats"
+      },
+      "pt": {
+        "name": "Flocos de aveia",
+        "genus": "f",
+        "art": "a Flocos de aveia"
+      },
+      "es": {
+        "name": "Copos de avena",
+        "genus": "f",
+        "art": "la Copos de avena"
+      }
+    },
+    {
+      "id": 77,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Brokkoli",
+        "genus": "m",
+        "nom": "der Brokkoli",
+        "akk": "den Brokkoli",
+        "dat": "dem Brokkoli",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Broccoli"
+      },
+      "pt": {
+        "name": "Brócolos",
+        "genus": "m",
+        "art": "o Brócolos"
+      },
+      "es": {
+        "name": "Brócoli ",
+        "genus": "m",
+        "art": "el Brócoli "
+      }
+    },
+    {
+      "id": 78,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Thymian (frisch)",
+        "genus": "m",
+        "nom": "der Thymian (frisch)",
+        "akk": "den Thymian (frisch)",
+        "dat": "dem Thymian (frisch)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Fresh Thyme"
+      },
+      "pt": {
+        "name": "Tomilho fresco",
+        "genus": "m",
+        "art": "o Tomilho fresco"
+      },
+      "es": {
+        "name": "Tomillo fresco",
+        "genus": "m",
+        "art": "el Tomillo fresco"
+      }
+    },
+    {
+      "id": 79,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Thymian (getrocknet)",
+        "genus": "m",
+        "nom": "der Thymian (getrocknet)",
+        "akk": "den Thymian (getrocknet)",
+        "dat": "dem Thymian (getrocknet)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Dried Thyme"
+      },
+      "pt": {
+        "name": "Tomilho seco",
+        "genus": "m",
+        "art": "o Tomilho seco"
+      },
+      "es": {
+        "name": "Tomillo seco",
+        "genus": "m",
+        "art": "el Tomillo seco"
+      }
+    },
+    {
+      "id": 80,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Sellerie Stange ",
+        "genus": "f",
+        "nom": "die Sellerie Stange ",
+        "akk": "die Sellerie Stange ",
+        "dat": "der Sellerie Stange ",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Celery (stalk)"
+      },
+      "pt": {
+        "name": "Aipo",
+        "genus": "m",
+        "art": "o Aipo"
+      },
+      "es": {
+        "name": "Apio",
+        "genus": "m",
+        "art": "el Apio"
+      }
+    },
+    {
+      "id": 81,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Rotwein",
+        "genus": "m",
+        "nom": "der Rotwein",
+        "akk": "den Rotwein",
+        "dat": "dem Rotwein",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Red wine"
+      },
+      "pt": {
+        "name": "Vinho tinto",
+        "genus": "m",
+        "art": "o Vinho tinto"
+      },
+      "es": {
+        "name": "Vino tinto",
+        "genus": "m",
+        "art": "el Vino tinto"
+      }
+    },
+    {
+      "id": 82,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Oregano (getrocknet)",
+        "genus": "m",
+        "nom": "der Oregano (getrocknet)",
+        "akk": "den Oregano (getrocknet)",
+        "dat": "dem Oregano (getrocknet)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Oregano"
+      },
+      "pt": {
+        "name": "Orégãos",
+        "genus": "m",
+        "art": "o Orégãos"
+      },
+      "es": {
+        "name": "Orégano",
+        "genus": "m",
+        "art": "el Orégano"
+      }
+    },
+    {
+      "id": 83,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Rote Zwiebeln",
+        "genus": "pl",
+        "nom": "die Rote Zwiebeln",
+        "akk": "die Rote Zwiebeln",
+        "dat": "den Rote Zwiebeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Red onion"
+      },
+      "pt": {
+        "name": "Cebola roxa",
+        "genus": "f",
+        "art": "a Cebola roxa"
+      },
+      "es": {
+        "name": "Cebolla roja",
+        "genus": "f",
+        "art": "la Cebolla roja"
+      }
+    },
+    {
+      "id": 84,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Gurke",
+        "genus": "f",
+        "nom": "die Gurke",
+        "akk": "die Gurke",
+        "dat": "der Gurke",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cucumber"
+      },
+      "pt": {
+        "name": "Pepino",
+        "genus": "m",
+        "art": "o Pepino"
+      },
+      "es": {
+        "name": "Pepino",
+        "genus": "m",
+        "art": "el Pepino"
+      }
+    },
+    {
+      "id": 85,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Eier",
+        "genus": "pl",
+        "nom": "die Eier",
+        "akk": "die Eier",
+        "dat": "den Eier",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Egg"
+      },
+      "pt": {
+        "name": "Ovo",
+        "genus": "m",
+        "art": "o Ovo"
+      },
+      "es": {
+        "name": "Huevo",
+        "genus": "m",
+        "art": "el Huevo"
+      }
+    },
+    {
+      "id": 86,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Zucchini",
+        "genus": "f",
+        "nom": "die Zucchini",
+        "akk": "die Zucchini",
+        "dat": "der Zucchini",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Courgette"
+      },
+      "pt": {
+        "name": "Abobrinha",
+        "genus": "f",
+        "art": "a Abobrinha"
+      },
+      "es": {
+        "name": "Calabacín",
+        "genus": "m",
+        "art": "el Calabacín"
+      }
+    },
+    {
+      "id": 87,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Sojasoße",
+        "genus": "f",
+        "nom": "die Sojasoße",
+        "akk": "die Sojasoße",
+        "dat": "der Sojasoße",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Soy sauce"
+      },
+      "pt": {
+        "name": "Molho de soja",
+        "genus": "f",
+        "art": "a Molho de soja"
+      },
+      "es": {
+        "name": "Salsa de soja",
+        "genus": "f",
+        "art": "la Salsa de soja"
+      }
+    },
+    {
+      "id": 88,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Essig",
+        "genus": "m",
+        "nom": "der Essig",
+        "akk": "den Essig",
+        "dat": "dem Essig",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Vinegar"
+      },
+      "pt": {
+        "name": "Vinagre",
+        "genus": "m",
+        "art": "o Vinagre"
+      },
+      "es": {
+        "name": "Vinagre",
+        "genus": "m",
+        "art": "el Vinagre"
+      }
+    },
+    {
+      "id": 89,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rinderfilet",
+        "genus": "n",
+        "nom": "das Rinderfilet",
+        "akk": "das Rinderfilet",
+        "dat": "dem Rinderfilet",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Filet Mignon"
+      },
+      "pt": {
+        "name": "Filé mignon",
+        "genus": "m",
+        "art": "o Filé mignon"
+      },
+      "es": {
+        "name": "Solomillo de ternera",
+        "genus": "f",
+        "art": "la Solomillo de ternera"
+      }
+    },
+    {
+      "id": 90,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Entrecôte",
+        "genus": "f",
+        "nom": "die Entrecôte",
+        "akk": "die Entrecôte",
+        "dat": "der Entrecôte",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Ribeye steak"
+      },
+      "pt": {
+        "name": "Contrafilé",
+        "genus": "m",
+        "art": "o Contrafilé"
+      },
+      "es": {
+        "name": "Entrecot",
+        "genus": "m",
+        "art": "el Entrecot"
+      }
+    },
+    {
+      "id": 91,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rumpsteak",
+        "genus": "n",
+        "nom": "das Rumpsteak",
+        "akk": "das Rumpsteak",
+        "dat": "dem Rumpsteak",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Rumpsteak"
+      },
+      "pt": {
+        "name": "Alcatra",
+        "genus": "f",
+        "art": "a Alcatra"
+      },
+      "es": {
+        "name": "Lomo bajo",
+        "genus": "m",
+        "art": "el Lomo bajo"
+      }
+    },
+    {
+      "id": 92,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rinder-Oberschale",
+        "genus": "f",
+        "nom": "die Rinder-Oberschale",
+        "akk": "die Rinder-Oberschale",
+        "dat": "der Rinder-Oberschale",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Topside"
+      },
+      "pt": {
+        "name": "Chã de dentro",
+        "genus": "m",
+        "art": "o Chã de dentro"
+      },
+      "es": {
+        "name": "Tapa",
+        "genus": "f",
+        "art": "la Tapa"
+      }
+    },
+    {
+      "id": 93,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rinderhüfte",
+        "genus": "f",
+        "nom": "die Rinderhüfte",
+        "akk": "die Rinderhüfte",
+        "dat": "der Rinderhüfte",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Sirloin"
+      },
+      "pt": {
+        "name": "Alcatra",
+        "genus": "f",
+        "art": "a Alcatra"
+      },
+      "es": {
+        "name": "Cadera",
+        "genus": "f",
+        "art": "la Cadera"
+      }
+    },
+    {
+      "id": 94,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rinderwade",
+        "genus": "f",
+        "nom": "die Rinderwade",
+        "akk": "die Rinderwade",
+        "dat": "der Rinderwade",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Beef Shank"
+      },
+      "pt": {
+        "name": "Jarrete",
+        "genus": "m",
+        "art": "o Jarrete"
+      },
+      "es": {
+        "name": "Jarrete",
+        "genus": "m",
+        "art": "el Jarrete"
+      }
+    },
+    {
+      "id": 95,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rinderbrust",
+        "genus": "m",
+        "nom": "der Rinderbrust",
+        "akk": "den Rinderbrust",
+        "dat": "dem Rinderbrust",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Brisket"
+      },
+      "pt": {
+        "name": "Peito bovino",
+        "genus": "m",
+        "art": "o Peito bovino"
+      },
+      "es": {
+        "name": "Pecho de ternera",
+        "genus": "f",
+        "art": "la Pecho de ternera"
+      }
+    },
+    {
+      "id": 96,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Senf",
+        "genus": "m",
+        "nom": "der Senf",
+        "akk": "den Senf",
+        "dat": "dem Senf",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Mustard"
+      },
+      "pt": {
+        "name": "Mostarda",
+        "genus": "f",
+        "art": "a Mostarda"
+      },
+      "es": {
+        "name": "Mostaza",
+        "genus": "f",
+        "art": "la Mostaza"
+      }
+    },
+    {
+      "id": 97,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Ketchup",
+        "genus": "m",
+        "nom": "der Ketchup",
+        "akk": "den Ketchup",
+        "dat": "dem Ketchup",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Ketchup"
+      },
+      "pt": {
+        "name": "Ketchup",
+        "genus": "m",
+        "art": "o Ketchup"
+      },
+      "es": {
+        "name": "Ketchup",
+        "genus": "m",
+        "art": "el Ketchup"
+      }
+    },
+    {
+      "id": 98,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Speck",
+        "genus": "m",
+        "nom": "der Speck",
+        "akk": "den Speck",
+        "dat": "dem Speck",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Bacon"
+      },
+      "pt": {
+        "name": "Bacon",
+        "genus": "m",
+        "art": "o Bacon"
+      },
+      "es": {
+        "name": "Beicon",
+        "genus": "m",
+        "art": "el Beicon"
+      }
+    },
+    {
+      "id": 99,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Schwarze Bohnen",
+        "genus": "pl",
+        "nom": "die Schwarze Bohnen",
+        "akk": "die Schwarze Bohnen",
+        "dat": "den Schwarze Bohnen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Black beans"
+      },
+      "pt": {
+        "name": "Feijão preto",
+        "genus": "m",
+        "art": "o Feijão preto"
+      },
+      "es": {
+        "name": "Frijoles negros",
+        "genus": "m",
+        "art": "el Frijoles negros"
+      }
+    },
+    {
+      "id": 100,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Lachsfilet",
+        "genus": "n",
+        "nom": "das Lachsfilet",
+        "akk": "das Lachsfilet",
+        "dat": "dem Lachsfilet",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Salmon fillet"
+      },
+      "pt": {
+        "name": "Filé de salmão",
+        "genus": "m",
+        "art": "o Filé de salmão"
+      },
+      "es": {
+        "name": "Filete de salmón",
+        "genus": "m",
+        "art": "el Filete de salmón"
+      }
+    },
+    {
+      "id": 101,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Dill (frisch)",
+        "genus": "m",
+        "nom": "der Dill (frisch)",
+        "akk": "den Dill (frisch)",
+        "dat": "dem Dill (frisch)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Fresh Dill"
+      },
+      "pt": {
+        "name": "Endro fresco",
+        "genus": "m",
+        "art": "o Endro fresco"
+      },
+      "es": {
+        "name": "Eneldo fresco",
+        "genus": "m",
+        "art": "el Eneldo fresco"
+      }
+    },
+    {
+      "id": 102,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinefilet",
+        "genus": "n",
+        "nom": "das Schweinefilet",
+        "akk": "das Schweinefilet",
+        "dat": "dem Schweinefilet",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Pork tenderloin"
+      },
+      "pt": {
+        "name": "Lombinho de porco",
+        "genus": "m",
+        "art": "o Lombinho de porco"
+      },
+      "es": {
+        "name": "Solomillo de cerdo",
+        "genus": "m",
+        "art": "el Solomillo de cerdo"
+      }
+    },
+    {
+      "id": 103,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinelachs",
+        "genus": "m",
+        "nom": "der Schweinelachs",
+        "akk": "den Schweinelachs",
+        "dat": "dem Schweinelachs",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pork Loin"
+      },
+      "pt": {
+        "name": "Lombo de porco",
+        "genus": "m",
+        "art": "o Lombo de porco"
+      },
+      "es": {
+        "name": "Lomo de cerdo",
+        "genus": "m",
+        "art": "el Lomo de cerdo"
+      }
+    },
+    {
+      "id": 104,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinenacken",
+        "genus": "m",
+        "nom": "der Schweinenacken",
+        "akk": "den Schweinenacken",
+        "dat": "dem Schweinenacken",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pork Neck"
+      },
+      "pt": {
+        "name": "Copa Lombo",
+        "genus": "m",
+        "art": "o Copa Lombo"
+      },
+      "es": {
+        "name": "Aguja de cerdo ",
+        "genus": "m",
+        "art": "el Aguja de cerdo "
+      }
+    },
+    {
+      "id": 105,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweineschulter",
+        "genus": "m",
+        "nom": "der Schweineschulter",
+        "akk": "den Schweineschulter",
+        "dat": "dem Schweineschulter",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pork Shoulder"
+      },
+      "pt": {
+        "name": "Paleta",
+        "genus": "f",
+        "art": "a Paleta"
+      },
+      "es": {
+        "name": "Paleta",
+        "genus": "f",
+        "art": "la Paleta"
+      }
+    },
+    {
+      "id": 106,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinebauch",
+        "genus": "m",
+        "nom": "der Schweinebauch",
+        "akk": "den Schweinebauch",
+        "dat": "dem Schweinebauch",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pork Belly"
+      },
+      "pt": {
+        "name": "Barriga de porco",
+        "genus": "m",
+        "art": "o Barriga de porco"
+      },
+      "es": {
+        "name": "Barriga",
+        "genus": "f",
+        "art": "la Barriga"
+      }
+    },
+    {
+      "id": 107,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweine-Oberschale",
+        "genus": "f",
+        "nom": "die Schweine-Oberschale",
+        "akk": "die Schweine-Oberschale",
+        "dat": "der Schweine-Oberschale",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pork Topside"
+      },
+      "pt": {
+        "name": "Chã de dentro",
+        "genus": "m",
+        "art": "o Chã de dentro"
+      },
+      "es": {
+        "name": "Tapa de cerdo",
+        "genus": "m",
+        "art": "el Tapa de cerdo"
+      }
+    },
+    {
+      "id": 108,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinenuss",
+        "genus": "m",
+        "nom": "der Schweinenuss",
+        "akk": "den Schweinenuss",
+        "dat": "dem Schweinenuss",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Knuckle"
+      },
+      "pt": {
+        "name": "Alcatra",
+        "genus": "f",
+        "art": "a Alcatra"
+      },
+      "es": {
+        "name": "Babilla",
+        "genus": "f",
+        "art": "la Babilla"
+      }
+    },
+    {
+      "id": 109,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweine-Unterschale",
+        "genus": "f",
+        "nom": "die Schweine-Unterschale",
+        "akk": "die Schweine-Unterschale",
+        "dat": "der Schweine-Unterschale",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Silverside"
+      },
+      "pt": {
+        "name": "Chã de fora",
+        "genus": "f",
+        "art": "a Chã de fora"
+      },
+      "es": {
+        "name": "Contra",
+        "genus": "f",
+        "art": "la Contra"
+      }
+    },
+    {
+      "id": 110,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinshaxe",
+        "genus": "f",
+        "nom": "die Schweinshaxe",
+        "akk": "die Schweinshaxe",
+        "dat": "der Schweinshaxe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pork Knuckle"
+      },
+      "pt": {
+        "name": "Joelho de porco",
+        "genus": "m",
+        "art": "o Joelho de porco"
+      },
+      "es": {
+        "name": "Codillo de cerdo",
+        "genus": "m",
+        "art": "el Codillo de cerdo"
+      }
+    },
+    {
+      "id": 111,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinerippchen",
+        "genus": "n",
+        "nom": "das Schweinerippchen",
+        "akk": "das Schweinerippchen",
+        "dat": "dem Schweinerippchen",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Pork Ribs"
+      },
+      "pt": {
+        "name": "Costelinha de porco",
+        "genus": "m",
+        "art": "o Costelinha de porco"
+      },
+      "es": {
+        "name": "Costillas de cerdo",
+        "genus": "m",
+        "art": "el Costillas de cerdo"
+      }
+    },
+    {
+      "id": 112,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Margarine",
+        "genus": "f",
+        "nom": "die Margarine",
+        "akk": "die Margarine",
+        "dat": "der Margarine",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Margarine"
+      },
+      "pt": {
+        "name": "Margarina",
+        "genus": "f",
+        "art": "a Margarina"
+      },
+      "es": {
+        "name": "Margarina",
+        "genus": "f",
+        "art": "la Margarina"
+      }
+    },
+    {
+      "id": 113,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Muskatnuss ",
+        "genus": "f",
+        "nom": "die Muskatnuss ",
+        "akk": "die Muskatnuss ",
+        "dat": "der Muskatnuss ",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Nutmeg"
+      },
+      "pt": {
+        "name": "Noz-moscada",
+        "genus": "f",
+        "art": "a Noz-moscada"
+      },
+      "es": {
+        "name": "Nuez moscada",
+        "genus": "f",
+        "art": "la Nuez moscada"
+      }
+    },
+    {
+      "id": 114,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Passierte Tomaten",
+        "genus": "pl",
+        "nom": "die Passierte Tomaten",
+        "akk": "die Passierte Tomaten",
+        "dat": "den Passierte Tomaten",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Tomato purée"
+      },
+      "pt": {
+        "name": "Polpa de tomate",
+        "genus": "m",
+        "art": "o Polpa de tomate"
+      },
+      "es": {
+        "name": "Tomate triturado",
+        "genus": "m",
+        "art": "el Tomate triturado"
+      }
+    },
+    {
+      "id": 115,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Knollensellerie",
+        "genus": "m",
+        "nom": "der Knollensellerie",
+        "akk": "den Knollensellerie",
+        "dat": "dem Knollensellerie",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Celeriac"
+      },
+      "pt": {
+        "name": "Aipo rábano",
+        "genus": "m",
+        "art": "o Aipo rábano"
+      },
+      "es": {
+        "name": "Apio nabo",
+        "genus": "m",
+        "art": "el Apio nabo"
+      }
+    },
+    {
+      "id": 116,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Linsen",
+        "genus": "pl",
+        "nom": "die Linsen",
+        "akk": "die Linsen",
+        "dat": "den Linsen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Lentils"
+      },
+      "pt": {
+        "name": "Lentilhas",
+        "genus": "f",
+        "art": "a Lentilhas"
+      },
+      "es": {
+        "name": "Lentejas",
+        "genus": "f",
+        "art": "la Lentejas"
+      }
+    },
+    {
+      "id": 117,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Gemüsebrühe",
+        "genus": "f",
+        "nom": "die Gemüsebrühe",
+        "akk": "die Gemüsebrühe",
+        "dat": "der Gemüsebrühe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Vegetable Broth"
+      },
+      "pt": {
+        "name": "Caldo de legumes",
+        "genus": "m",
+        "art": "o Caldo de legumes"
+      },
+      "es": {
+        "name": "Caldo de verduras",
+        "genus": "f",
+        "art": "la Caldo de verduras"
+      }
+    },
+    {
+      "id": 118,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Erbsen",
+        "genus": "pl",
+        "nom": "die Erbsen",
+        "akk": "die Erbsen",
+        "dat": "den Erbsen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Peas"
+      },
+      "pt": {
+        "name": "Ervilhas",
+        "genus": "f",
+        "art": "a Ervilhas"
+      },
+      "es": {
+        "name": "Guisantes",
+        "genus": "m",
+        "art": "el Guisantes"
+      }
+    },
+    {
+      "id": 119,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Rosmarin (frisch)",
+        "genus": "m",
+        "nom": "der Rosmarin (frisch)",
+        "akk": "den Rosmarin (frisch)",
+        "dat": "dem Rosmarin (frisch)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Fresh Rosemary"
+      },
+      "pt": {
+        "name": "Alecrim fresco",
+        "genus": "m",
+        "art": "o Alecrim fresco"
+      },
+      "es": {
+        "name": "Romero fresco",
+        "genus": "m",
+        "art": "el Romero fresco"
+      }
+    },
+    {
+      "id": 120,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Rosmarin (getrocknet)",
+        "genus": "m",
+        "nom": "der Rosmarin (getrocknet)",
+        "akk": "den Rosmarin (getrocknet)",
+        "dat": "dem Rosmarin (getrocknet)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Dried Rosemary"
+      },
+      "pt": {
+        "name": "Alecrim seco",
+        "genus": "m",
+        "art": "o Alecrim seco"
+      },
+      "es": {
+        "name": "Romero seco",
+        "genus": "m",
+        "art": "el Romero seco"
+      }
+    },
+    {
+      "id": 121,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Seidentofu",
+        "genus": "m",
+        "nom": "der Seidentofu",
+        "akk": "den Seidentofu",
+        "dat": "dem Seidentofu",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Silken Tofu"
+      },
+      "pt": {
+        "name": "Tofu sedoso",
+        "genus": "m",
+        "art": "o Tofu sedoso"
+      },
+      "es": {
+        "name": "Tofu sedoso",
+        "genus": "m",
+        "art": "el Tofu sedoso"
+      }
+    },
+    {
+      "id": 122,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Kichererbsenmehl",
+        "genus": "n",
+        "nom": "das Kichererbsenmehl",
+        "akk": "das Kichererbsenmehl",
+        "dat": "dem Kichererbsenmehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Chickpea flour"
+      },
+      "pt": {
+        "name": "Farinha de grão-de-bico",
+        "genus": "m",
+        "art": "o Farinha de grão-de-bico"
+      },
+      "es": {
+        "name": "Harina de garbanzo",
+        "genus": "m",
+        "art": "el Harina de garbanzo"
+      }
+    },
+    {
+      "id": 123,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Aubergine",
+        "genus": "f",
+        "nom": "die Aubergine",
+        "akk": "die Aubergine",
+        "dat": "der Aubergine",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Aubergine"
+      },
+      "pt": {
+        "name": "Berinjela",
+        "genus": "f",
+        "art": "a Berinjela"
+      },
+      "es": {
+        "name": "Berenjena",
+        "genus": "f",
+        "art": "la Berenjena"
+      }
+    },
+    {
+      "id": 124,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Champignons",
+        "genus": "pl",
+        "nom": "die Champignons",
+        "akk": "die Champignons",
+        "dat": "den Champignons",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Mushrooms"
+      },
+      "pt": {
+        "name": "Cogumelos",
+        "genus": "m",
+        "art": "o Cogumelos"
+      },
+      "es": {
+        "name": "Champiñones",
+        "genus": "m",
+        "art": "el Champiñones"
+      }
+    },
+    {
+      "id": 125,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Mais",
+        "genus": "m",
+        "nom": "der Mais",
+        "akk": "den Mais",
+        "dat": "dem Mais",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Corn"
+      },
+      "pt": {
+        "name": "Milho",
+        "genus": "m",
+        "art": "o Milho"
+      },
+      "es": {
+        "name": "Maíz",
+        "genus": "m",
+        "art": "el Maíz"
+      }
+    },
+    {
+      "id": 126,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Blattspinat",
+        "genus": "m",
+        "nom": "der Blattspinat",
+        "akk": "den Blattspinat",
+        "dat": "dem Blattspinat",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Leaf Spinach"
+      },
+      "pt": {
+        "name": "Espinafre",
+        "genus": "m",
+        "art": "o Espinafre"
+      },
+      "es": {
+        "name": "Espinacas",
+        "genus": "f",
+        "art": "la Espinacas"
+      }
+    },
+    {
+      "id": 127,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Grüne Bohnen",
+        "genus": "pl",
+        "nom": "die Grüne Bohnen",
+        "akk": "die Grüne Bohnen",
+        "dat": "den Grüne Bohnen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Green Beans"
+      },
+      "pt": {
+        "name": "Vagem",
+        "genus": "m",
+        "art": "o Vagem"
+      },
+      "es": {
+        "name": "Judías verdes",
+        "genus": "m",
+        "art": "el Judías verdes"
+      }
+    },
+    {
+      "id": 128,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Apfelmus",
+        "genus": "m",
+        "nom": "der Apfelmus",
+        "akk": "den Apfelmus",
+        "dat": "dem Apfelmus",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Apple Sauce"
+      },
+      "pt": {
+        "name": "Purê de maçã",
+        "genus": "m",
+        "art": "o Purê de maçã"
+      },
+      "es": {
+        "name": "Puré de manzana",
+        "genus": "f",
+        "art": "la Puré de manzana"
+      }
+    },
+    {
+      "id": 129,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Erdbeeren",
+        "genus": "pl",
+        "nom": "die Erdbeeren",
+        "akk": "die Erdbeeren",
+        "dat": "den Erdbeeren",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Strawberries"
+      },
+      "pt": {
+        "name": "Morangos",
+        "genus": "m",
+        "art": "o Morangos"
+      },
+      "es": {
+        "name": "Fresas",
+        "genus": "f",
+        "art": "la Fresas"
+      }
+    },
+    {
+      "id": 130,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Agar-Agar",
+        "genus": "m",
+        "nom": "der Agar-Agar",
+        "akk": "den Agar-Agar",
+        "dat": "dem Agar-Agar",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Agar-Agar"
+      },
+      "pt": {
+        "name": "Ágar-ágar",
+        "genus": "m",
+        "art": "o Ágar-ágar"
+      },
+      "es": {
+        "name": "Agar-Agar",
+        "genus": "m",
+        "art": "el Agar-Agar"
+      }
+    },
+    {
+      "id": 131,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Mango",
+        "genus": "f",
+        "nom": "die Mango",
+        "akk": "die Mango",
+        "dat": "der Mango",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Mango"
+      },
+      "pt": {
+        "name": "Manga",
+        "genus": "f",
+        "art": "a Manga"
+      },
+      "es": {
+        "name": "Mango",
+        "genus": "m",
+        "art": "el Mango"
+      }
+    },
+    {
+      "id": 132,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Kardamom",
+        "genus": "m",
+        "nom": "der Kardamom",
+        "akk": "den Kardamom",
+        "dat": "dem Kardamom",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cardamom"
+      },
+      "pt": {
+        "name": "Cardamomo",
+        "genus": "m",
+        "art": "o Cardamomo"
+      },
+      "es": {
+        "name": "Cardamomo",
+        "genus": "m",
+        "art": "el Cardamomo"
+      }
+    },
+    {
+      "id": 133,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Kokosraspeln",
+        "genus": "m",
+        "nom": "der Kokosraspeln",
+        "akk": "den Kokosraspeln",
+        "dat": "dem Kokosraspeln",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Desiccated Coconut"
+      },
+      "pt": {
+        "name": "Coco ralado",
+        "genus": "m",
+        "art": "o Coco ralado"
+      },
+      "es": {
+        "name": "Coco rallado",
+        "genus": "m",
+        "art": "el Coco rallado"
+      }
+    },
+    {
+      "id": 134,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Speisestärke",
+        "genus": "f",
+        "nom": "die Speisestärke",
+        "akk": "die Speisestärke",
+        "dat": "der Speisestärke",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cornflour"
+      },
+      "pt": {
+        "name": "Amido de milho",
+        "genus": "m",
+        "art": "o Amido de milho"
+      },
+      "es": {
+        "name": "Almidón de maíz",
+        "genus": "m",
+        "art": "el Almidón de maíz"
+      }
+    },
+    {
+      "id": 135,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Arborio-Reis",
+        "genus": "m",
+        "nom": "der Arborio-Reis",
+        "akk": "den Arborio-Reis",
+        "dat": "dem Arborio-Reis",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Arborio rice"
+      },
+      "pt": {
+        "name": "Arroz para risoto",
+        "genus": "m",
+        "art": "o Arroz para risoto"
+      },
+      "es": {
+        "name": "Arroz para risotto",
+        "genus": "m",
+        "art": "el Arroz para risotto"
+      }
+    },
+    {
+      "id": 136,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Oliven (schwarz)",
+        "genus": "pl",
+        "nom": "die Oliven (schwarz)",
+        "akk": "die Oliven (schwarz)",
+        "dat": "den Oliven (schwarz)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Black olives"
+      },
+      "pt": {
+        "name": "Azeitonas pretas",
+        "genus": "f",
+        "art": "a Azeitonas pretas"
+      },
+      "es": {
+        "name": "Aceitunas negras",
+        "genus": "f",
+        "art": "la Aceitunas negras"
+      }
+    },
+    {
+      "id": 137,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Oliven (grün)",
+        "genus": "pl",
+        "nom": "die Oliven (grün)",
+        "akk": "die Oliven (grün)",
+        "dat": "den Oliven (grün)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Green olives"
+      },
+      "pt": {
+        "name": "Azeitonas verdes",
+        "genus": "m",
+        "art": "o Azeitonas verdes"
+      },
+      "es": {
+        "name": "Aceitunas verdes",
+        "genus": "m",
+        "art": "el Aceitunas verdes"
+      }
+    },
+    {
+      "id": 138,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Kapern",
+        "genus": "pl",
+        "nom": "die Kapern",
+        "akk": "die Kapern",
+        "dat": "den Kapern",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Capers"
+      },
+      "pt": {
+        "name": "Alcaparras",
+        "genus": "f",
+        "art": "a Alcaparras"
+      },
+      "es": {
+        "name": "Alcaparras",
+        "genus": "f",
+        "art": "la Alcaparras"
+      }
+    },
+    {
+      "id": 139,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Pinienkerne",
+        "genus": "pl",
+        "nom": "die Pinienkerne",
+        "akk": "die Pinienkerne",
+        "dat": "den Pinienkerne",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pine nuts"
+      },
+      "pt": {
+        "name": "Pinhões",
+        "genus": "m",
+        "art": "o Pinhões"
+      },
+      "es": {
+        "name": "Pinhões",
+        "genus": "m",
+        "art": "el Pinhões"
+      }
+    },
+    {
+      "id": 140,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Polenta",
+        "genus": "f",
+        "nom": "die Polenta",
+        "akk": "die Polenta",
+        "dat": "der Polenta",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Polenta"
+      },
+      "pt": {
+        "name": "Polenta",
+        "genus": "f",
+        "art": "a Polenta"
+      },
+      "es": {
+        "name": "Polenta",
+        "genus": "f",
+        "art": "la Polenta"
+      }
+    },
+    {
+      "id": 141,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Quinoa",
+        "genus": "f",
+        "nom": "die Quinoa",
+        "akk": "die Quinoa",
+        "dat": "der Quinoa",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Quinoa"
+      },
+      "pt": {
+        "name": "Quinoa",
+        "genus": "f",
+        "art": "a Quinoa"
+      },
+      "es": {
+        "name": "Quinoa",
+        "genus": "f",
+        "art": "la Quinoa"
+      }
+    },
+    {
+      "id": 142,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Tortillas",
+        "genus": "pl",
+        "nom": "die Tortillas",
+        "akk": "die Tortillas",
+        "dat": "den Tortillas",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Wheat Tortillas"
+      },
+      "pt": {
+        "name": "Tortilhas de trigo",
+        "genus": "m",
+        "art": "o Tortilhas de trigo"
+      },
+      "es": {
+        "name": "Tortillas de trigo",
+        "genus": "m",
+        "art": "el Tortillas de trigo"
+      }
+    },
+    {
+      "id": 143,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Rote Rübe",
+        "genus": "f",
+        "nom": "die Rote Rübe",
+        "akk": "die Rote Rübe",
+        "dat": "der Rote Rübe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Beetroot"
+      },
+      "pt": {
+        "name": "Beterraba",
+        "genus": "f",
+        "art": "a Beterraba"
+      },
+      "es": {
+        "name": "Remolacha",
+        "genus": "f",
+        "art": "la Remolacha"
+      }
+    },
+    {
+      "id": 144,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Rucola",
+        "genus": "m",
+        "nom": "der Rucola",
+        "akk": "den Rucola",
+        "dat": "dem Rucola",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Rocket"
+      },
+      "pt": {
+        "name": "Rúcula",
+        "genus": "f",
+        "art": "a Rúcula"
+      },
+      "es": {
+        "name": "Rúcula",
+        "genus": "f",
+        "art": "la Rúcula"
+      }
+    },
+    {
+      "id": 145,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Blumenkohl",
+        "genus": "m",
+        "nom": "der Blumenkohl",
+        "akk": "den Blumenkohl",
+        "dat": "dem Blumenkohl",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cauliflower"
+      },
+      "pt": {
+        "name": "Couve-flor",
+        "genus": "m",
+        "art": "o Couve-flor"
+      },
+      "es": {
+        "name": "Coliflor",
+        "genus": "m",
+        "art": "el Coliflor"
+      }
+    },
+    {
+      "id": 146,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kürbiskerne",
+        "genus": "pl",
+        "nom": "die Kürbiskerne",
+        "akk": "die Kürbiskerne",
+        "dat": "den Kürbiskerne",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pumpkin seeds"
+      },
+      "pt": {
+        "name": "Sementes de abóbora",
+        "genus": "f",
+        "art": "a Sementes de abóbora"
+      },
+      "es": {
+        "name": "Pipas de calabaza",
+        "genus": "f",
+        "art": "la Pipas de calabaza"
+      }
+    },
+    {
+      "id": 147,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Walnusskerne",
+        "genus": "pl",
+        "nom": "die Walnusskerne",
+        "akk": "die Walnusskerne",
+        "dat": "den Walnusskerne",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Walnuts"
+      },
+      "pt": {
+        "name": "Nozes",
+        "genus": "m",
+        "art": "o Nozes"
+      },
+      "es": {
+        "name": "Nueces",
+        "genus": "m",
+        "art": "el Nueces"
+      }
+    },
+    {
+      "id": 148,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Blaubeeren",
+        "genus": "pl",
+        "nom": "die Blaubeeren",
+        "akk": "die Blaubeeren",
+        "dat": "den Blaubeeren",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Blueberries"
+      },
+      "pt": {
+        "name": "Mirtilos",
+        "genus": "m",
+        "art": "o Mirtilos"
+      },
+      "es": {
+        "name": "Arándanos",
+        "genus": "m",
+        "art": "el Arándanos"
+      }
+    },
+    {
+      "id": 149,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Lauch",
+        "genus": "m",
+        "nom": "der Lauch",
+        "akk": "den Lauch",
+        "dat": "dem Lauch",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Leek"
+      },
+      "pt": {
+        "name": "Alho-francês",
+        "genus": "m",
+        "art": "o Alho-francês"
+      },
+      "es": {
+        "name": "Puerro",
+        "genus": "m",
+        "art": "el Puerro"
+      }
+    },
+    {
+      "id": 150,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Kidneybohnen",
+        "genus": "m",
+        "nom": "der Kidneybohnen",
+        "akk": "den Kidneybohnen",
+        "dat": "dem Kidneybohnen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Kidney beans"
+      },
+      "pt": {
+        "name": "Feijão vermelho",
+        "genus": "m",
+        "art": "o Feijão vermelho"
+      },
+      "es": {
+        "name": "Alubias rojas",
+        "genus": "f",
+        "art": "la Alubias rojas"
+      }
+    },
+    {
+      "id": 151,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Couscous",
+        "genus": "m",
+        "nom": "der Couscous",
+        "akk": "den Couscous",
+        "dat": "dem Couscous",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Couscous"
+      },
+      "pt": {
+        "name": "Cuscuz",
+        "genus": "m",
+        "art": "o Cuscuz"
+      },
+      "es": {
+        "name": "Cuscús",
+        "genus": "m",
+        "art": "el Cuscús"
+      }
+    },
+    {
+      "id": 152,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Chilipulver",
+        "genus": "n",
+        "nom": "das Chilipulver",
+        "akk": "das Chilipulver",
+        "dat": "dem Chilipulver",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Chili powder"
+      },
+      "pt": {
+        "name": "Chili em pó",
+        "genus": "m",
+        "art": "o Chili em pó"
+      },
+      "es": {
+        "name": "Chile en polvo",
+        "genus": "m",
+        "art": "el Chile en polvo"
+      }
+    },
+    {
+      "id": 153,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Bulgur",
+        "genus": "m",
+        "nom": "der Bulgur",
+        "akk": "den Bulgur",
+        "dat": "dem Bulgur",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Bulgur wheat"
+      },
+      "pt": {
+        "name": "Bulgur",
+        "genus": "m",
+        "art": "o Bulgur"
+      },
+      "es": {
+        "name": "Bulgur",
+        "genus": "m",
+        "art": "el Bulgur"
+      }
+    },
+    {
+      "id": 154,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Tofu",
+        "genus": "m",
+        "nom": "der Tofu",
+        "akk": "den Tofu",
+        "dat": "dem Tofu",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Tofu"
+      },
+      "pt": {
+        "name": "Tofu",
+        "genus": "m",
+        "art": "o Tofu"
+      },
+      "es": {
+        "name": "Tofu",
+        "genus": "m",
+        "art": "el Tofu"
+      }
+    },
+    {
+      "id": 155,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Süßkartoffeln",
+        "genus": "pl",
+        "nom": "die Süßkartoffeln",
+        "akk": "die Süßkartoffeln",
+        "dat": "den Süßkartoffeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Sweet potato"
+      },
+      "pt": {
+        "name": "Batata-doce",
+        "genus": "m",
+        "art": "o Batata-doce"
+      },
+      "es": {
+        "name": "Batata",
+        "genus": "f",
+        "art": "la Batata"
+      }
+    },
+    {
+      "id": 156,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Kohlrabi",
+        "genus": "m",
+        "nom": "der Kohlrabi",
+        "akk": "den Kohlrabi",
+        "dat": "dem Kohlrabi",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Kohlrabi"
+      },
+      "pt": {
+        "name": "Couve-rábano",
+        "genus": "m",
+        "art": "o Couve-rábano"
+      },
+      "es": {
+        "name": "Colinabo",
+        "genus": "m",
+        "art": "el Colinabo"
+      }
+    },
+    {
+      "id": 157,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Seitan",
+        "genus": "m",
+        "nom": "der Seitan",
+        "akk": "den Seitan",
+        "dat": "dem Seitan",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Seitan"
+      },
+      "pt": {
+        "name": "Seitan",
+        "genus": "m",
+        "art": "o Seitan"
+      },
+      "es": {
+        "name": "Seitán",
+        "genus": "m",
+        "art": "el Seitán"
+      }
+    },
+    {
+      "id": 158,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Hafermilch ",
+        "genus": "f",
+        "nom": "die Hafermilch ",
+        "akk": "die Hafermilch ",
+        "dat": "der Hafermilch ",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Oat-Milk"
+      },
+      "pt": {
+        "name": "Leite de aveia",
+        "genus": "f",
+        "art": "a Leite de aveia"
+      },
+      "es": {
+        "name": "Leche de avena",
+        "genus": "f",
+        "art": "la Leche de avena"
+      }
+    },
+    {
+      "id": 159,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Balsamico-Essig",
+        "genus": "m",
+        "nom": "der Balsamico-Essig",
+        "akk": "den Balsamico-Essig",
+        "dat": "dem Balsamico-Essig",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Balsamic vinegar"
+      },
+      "pt": {
+        "name": "Vinagre balsâmico",
+        "genus": "m",
+        "art": "o Vinagre balsâmico"
+      },
+      "es": {
+        "name": "Vinagre balsámico",
+        "genus": "m",
+        "art": "el Vinagre balsámico"
+      }
+    },
+    {
+      "id": 160,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Dunkelbier",
+        "genus": "m",
+        "nom": "der Dunkelbier",
+        "akk": "den Dunkelbier",
+        "dat": "dem Dunkelbier",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Dark beer"
+      },
+      "pt": {
+        "name": "Cerveja preta",
+        "genus": "f",
+        "art": "a Cerveja preta"
+      },
+      "es": {
+        "name": "Cerveza negra",
+        "genus": "f",
+        "art": "la Cerveza negra"
+      }
+    },
+    {
+      "id": 161,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Rinderbrühe",
+        "genus": "f",
+        "nom": "die Rinderbrühe",
+        "akk": "die Rinderbrühe",
+        "dat": "der Rinderbrühe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Beef broth"
+      },
+      "pt": {
+        "name": "Caldo de carne",
+        "genus": "m",
+        "art": "o Caldo de carne"
+      },
+      "es": {
+        "name": "Caldo de carne",
+        "genus": "m",
+        "art": "el Caldo de carne"
+      }
+    },
+    {
+      "id": 162,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Spätzle",
+        "genus": "f",
+        "nom": "die Spätzle",
+        "akk": "die Spätzle",
+        "dat": "der Spätzle",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Spaetzle"
+      },
+      "pt": {
+        "name": "Massa de ovo alemã",
+        "genus": "m",
+        "art": "o Massa de ovo alemã"
+      },
+      "es": {
+        "name": "Pasta al huevo alemana",
+        "genus": "f",
+        "art": "la Pasta al huevo alemana"
+      }
+    },
+    {
+      "id": 163,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Taco-Schalen",
+        "genus": "m",
+        "nom": "der Taco-Schalen",
+        "akk": "den Taco-Schalen",
+        "dat": "dem Taco-Schalen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Taco shells"
+      },
+      "pt": {
+        "name": "Conchas para tacos",
+        "genus": "m",
+        "art": "o Conchas para tacos"
+      },
+      "es": {
+        "name": "Conchas para tacos",
+        "genus": "m",
+        "art": "el Conchas para tacos"
+      }
+    },
+    {
+      "id": 164,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Blätterteig",
+        "genus": "m",
+        "nom": "der Blätterteig",
+        "akk": "den Blätterteig",
+        "dat": "dem Blätterteig",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Puff pastry"
+      },
+      "pt": {
+        "name": "Massa folhada",
+        "genus": "f",
+        "art": "a Massa folhada"
+      },
+      "es": {
+        "name": "Hojaldre",
+        "genus": "m",
+        "art": "el Hojaldre"
+      }
+    },
+    {
+      "id": 165,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Apfelsaft",
+        "genus": "m",
+        "nom": "der Apfelsaft",
+        "akk": "den Apfelsaft",
+        "dat": "dem Apfelsaft",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Apple juice"
+      },
+      "pt": {
+        "name": "Sumo de maçã",
+        "genus": "m",
+        "art": "o Sumo de maçã"
+      },
+      "es": {
+        "name": "Zumo de manzana",
+        "genus": "f",
+        "art": "la Zumo de manzana"
+      }
+    },
+    {
+      "id": 166,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Rotkohl",
+        "genus": "m",
+        "nom": "der Rotkohl",
+        "akk": "den Rotkohl",
+        "dat": "dem Rotkohl",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Red cabbage"
+      },
+      "pt": {
+        "name": "Repolho roxo",
+        "genus": "m",
+        "art": "o Repolho roxo"
+      },
+      "es": {
+        "name": "Lombarda",
+        "genus": "f",
+        "art": "la Lombarda"
+      }
+    },
+    {
+      "id": 167,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Kochschinken",
+        "genus": "m",
+        "nom": "der Kochschinken",
+        "akk": "den Kochschinken",
+        "dat": "dem Kochschinken",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cooked ham"
+      },
+      "pt": {
+        "name": "Fiambre",
+        "genus": "m",
+        "art": "o Fiambre"
+      },
+      "es": {
+        "name": "Jamón cocido",
+        "genus": "m",
+        "art": "el Jamón cocido"
+      }
+    },
+    {
+      "id": 168,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Putenschinken",
+        "genus": "m",
+        "nom": "der Putenschinken",
+        "akk": "den Putenschinken",
+        "dat": "dem Putenschinken",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Turkey ham"
+      },
+      "pt": {
+        "name": "Fiambre de peru",
+        "genus": "m",
+        "art": "o Fiambre de peru"
+      },
+      "es": {
+        "name": "Jamón de pavo",
+        "genus": "m",
+        "art": "el Jamón de pavo"
+      }
+    },
+    {
+      "id": 169,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Pflaumen",
+        "genus": "pl",
+        "nom": "die Pflaumen",
+        "akk": "die Pflaumen",
+        "dat": "den Pflaumen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Plums"
+      },
+      "pt": {
+        "name": "Ameixas",
+        "genus": "f",
+        "art": "a Ameixas"
+      },
+      "es": {
+        "name": "Ciruelas",
+        "genus": "f",
+        "art": "la Ciruelas"
+      }
+    },
+    {
+      "id": 170,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kochschokolade",
+        "genus": "f",
+        "nom": "die Kochschokolade",
+        "akk": "die Kochschokolade",
+        "dat": "der Kochschokolade",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cooking chocolate"
+      },
+      "pt": {
+        "name": "Chocolate de culinária",
+        "genus": "f",
+        "art": "a Chocolate de culinária"
+      },
+      "es": {
+        "name": "Chocolate para postres",
+        "genus": "m",
+        "art": "el Chocolate para postres"
+      }
+    },
+    {
+      "id": 171,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Vollmilchschokolade",
+        "genus": "f",
+        "nom": "die Vollmilchschokolade",
+        "akk": "die Vollmilchschokolade",
+        "dat": "der Vollmilchschokolade",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Milk chocolate"
+      },
+      "pt": {
+        "name": "Chocolate de leite",
+        "genus": "m",
+        "art": "o Chocolate de leite"
+      },
+      "es": {
+        "name": "Chocolate con leche",
+        "genus": "m",
+        "art": "el Chocolate con leche"
+      }
+    },
+    {
+      "id": 172,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Schokoladenkuvertüre (Zartbitter)",
+        "genus": "f",
+        "nom": "die Schokoladenkuvertüre (Zartbitter)",
+        "akk": "die Schokoladenkuvertüre (Zartbitter)",
+        "dat": "der Schokoladenkuvertüre (Zartbitter)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Couverture chocolate"
+      },
+      "pt": {
+        "name": "Chocolate de cobertura",
+        "genus": "f",
+        "art": "a Chocolate de cobertura"
+      },
+      "es": {
+        "name": "Chocolate de cobertura",
+        "genus": "f",
+        "art": "la Chocolate de cobertura"
+      }
+    },
+    {
+      "id": 173,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Rum",
+        "genus": "m",
+        "nom": "der Rum",
+        "akk": "den Rum",
+        "dat": "dem Rum",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Rum"
+      },
+      "pt": {
+        "name": "Rum",
+        "genus": "m",
+        "art": "o Rum"
+      },
+      "es": {
+        "name": "Rom",
+        "genus": "m",
+        "art": "el Rom"
+      }
+    },
+    {
+      "id": 174,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Weißkohl",
+        "genus": "m",
+        "nom": "der Weißkohl",
+        "akk": "den Weißkohl",
+        "dat": "dem Weißkohl",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "White cabbage"
+      },
+      "pt": {
+        "name": "Repolho",
+        "genus": "m",
+        "art": "o Repolho"
+      },
+      "es": {
+        "name": "Repollo",
+        "genus": "m",
+        "art": "el Repollo"
+      }
+    },
+    {
+      "id": 175,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Thunfischkonserve im eigenen Saft",
+        "genus": "m",
+        "nom": "der Thunfischkonserve im eigenen Saft",
+        "akk": "den Thunfischkonserve im eigenen Saft",
+        "dat": "dem Thunfischkonserve im eigenen Saft",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Tuna (canned in water)"
+      },
+      "pt": {
+        "name": "Atum (ao natural)",
+        "genus": "m",
+        "art": "o Atum (ao natural)"
+      },
+      "es": {
+        "name": "Atún (al natural)",
+        "genus": "m",
+        "art": "el Atún (al natural)"
+      }
+    },
+    {
+      "id": 176,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Hefe",
+        "genus": "f",
+        "nom": "die Hefe",
+        "akk": "die Hefe",
+        "dat": "der Hefe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Yeast"
+      },
+      "pt": {
+        "name": "Levedura",
+        "genus": "f",
+        "art": "a Levedura"
+      },
+      "es": {
+        "name": "Levadura",
+        "genus": "f",
+        "art": "la Levadura"
+      }
+    },
+    {
+      "id": 177,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Mandeln",
+        "genus": "pl",
+        "nom": "die Mandeln",
+        "akk": "die Mandeln",
+        "dat": "den Mandeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Almonds"
+      },
+      "pt": {
+        "name": "Amêndoas",
+        "genus": "f",
+        "art": "a Amêndoas"
+      },
+      "es": {
+        "name": "Almendras",
+        "genus": "f",
+        "art": "la Almendras"
+      }
+    },
+    {
+      "id": 178,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Cashewkerne",
+        "genus": "pl",
+        "nom": "die Cashewkerne",
+        "akk": "die Cashewkerne",
+        "dat": "den Cashewkerne",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cashew nuts"
+      },
+      "pt": {
+        "name": "Castanha",
+        "genus": "f",
+        "art": "a Castanha"
+      },
+      "es": {
+        "name": "Anacardos",
+        "genus": "m",
+        "art": "el Anacardos"
+      }
+    },
+    {
+      "id": 179,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Datteln",
+        "genus": "pl",
+        "nom": "die Datteln",
+        "akk": "die Datteln",
+        "dat": "den Datteln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Dates"
+      },
+      "pt": {
+        "name": "Tâmaras",
+        "genus": "f",
+        "art": "a Tâmaras"
+      },
+      "es": {
+        "name": "Dátiles",
+        "genus": "m",
+        "art": "el Dátiles"
+      }
+    },
+    {
+      "id": 180,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Erdnussbutter",
+        "genus": "f",
+        "nom": "die Erdnussbutter",
+        "akk": "die Erdnussbutter",
+        "dat": "der Erdnussbutter",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Peanut butter"
+      },
+      "pt": {
+        "name": "Manteiga de amendoim",
+        "genus": "m",
+        "art": "o Manteiga de amendoim"
+      },
+      "es": {
+        "name": "Mantequilla de cacahuete",
+        "genus": "m",
+        "art": "el Mantequilla de cacahuete"
+      }
+    },
+    {
+      "id": 181,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Rote Linsen",
+        "genus": "pl",
+        "nom": "die Rote Linsen",
+        "akk": "die Rote Linsen",
+        "dat": "den Rote Linsen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Red lentils"
+      },
+      "pt": {
+        "name": "Lentilhas vermelhas",
+        "genus": "f",
+        "art": "a Lentilhas vermelhas"
+      },
+      "es": {
+        "name": "Lentejas rojas",
+        "genus": "f",
+        "art": "la Lentejas rojas"
+      }
+    },
+    {
+      "id": 182,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Gnocchi",
+        "genus": "pl",
+        "nom": "die Gnocchi",
+        "akk": "die Gnocchi",
+        "dat": "den Gnocchi",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Gnocchi"
+      },
+      "pt": {
+        "name": "Nhoque",
+        "genus": "m",
+        "art": "o Nhoque"
+      },
+      "es": {
+        "name": "Ñoquis",
+        "genus": "m",
+        "art": "el Ñoquis"
+      }
+    },
+    {
+      "id": 183,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Hirse",
+        "genus": "f",
+        "nom": "die Hirse",
+        "akk": "die Hirse",
+        "dat": "der Hirse",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Millet"
+      },
+      "pt": {
+        "name": "Painço",
+        "genus": "m",
+        "art": "o Painço"
+      },
+      "es": {
+        "name": "Mijo",
+        "genus": "m",
+        "art": "el Mijo"
+      }
+    },
+    {
+      "id": 184,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Rosinen",
+        "genus": "pl",
+        "nom": "die Rosinen",
+        "akk": "die Rosinen",
+        "dat": "den Rosinen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Raisins"
+      },
+      "pt": {
+        "name": "Uvas passas",
+        "genus": "f",
+        "art": "a Uvas passas"
+      },
+      "es": {
+        "name": "Uvas pasas",
+        "genus": "f",
+        "art": "la Uvas pasas"
+      }
+    },
+    {
+      "id": 185,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Grünkohl ",
+        "genus": "m",
+        "nom": "der Grünkohl ",
+        "akk": "den Grünkohl ",
+        "dat": "dem Grünkohl ",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Kale"
+      },
+      "pt": {
+        "name": "Couve kale",
+        "genus": "m",
+        "art": "o Couve kale"
+      },
+      "es": {
+        "name": "Col rizada",
+        "genus": "f",
+        "art": "la Col rizada"
+      }
+    },
+    {
+      "id": 186,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Reisnudeln",
+        "genus": "pl",
+        "nom": "die Reisnudeln",
+        "akk": "die Reisnudeln",
+        "dat": "den Reisnudeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Rice noodles"
+      },
+      "pt": {
+        "name": "Massa de arroz",
+        "genus": "m",
+        "art": "o Massa de arroz"
+      },
+      "es": {
+        "name": "Fideos de arroz",
+        "genus": "m",
+        "art": "el Fideos de arroz"
+      }
+    },
+    {
+      "id": 187,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Sauerkraut ",
+        "genus": "n",
+        "nom": "das Sauerkraut ",
+        "akk": "das Sauerkraut ",
+        "dat": "dem Sauerkraut ",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Pickled cabbage"
+      },
+      "pt": {
+        "name": "Chucrute",
+        "genus": "m",
+        "art": "o Chucrute"
+      },
+      "es": {
+        "name": "Chucrute",
+        "genus": "m",
+        "art": "el Chucrute"
+      }
+    },
+    {
+      "id": 188,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Tempeh (natur)",
+        "genus": "m",
+        "nom": "der Tempeh (natur)",
+        "akk": "den Tempeh (natur)",
+        "dat": "dem Tempeh (natur)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Tempeh"
+      },
+      "pt": {
+        "name": "Tempeh",
+        "genus": "m",
+        "art": "o Tempeh"
+      },
+      "es": {
+        "name": "Tempeh",
+        "genus": "m",
+        "art": "el Tempeh"
+      }
+    },
+    {
+      "id": 189,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Smelt",
+        "genus": "m",
+        "nom": "der Smelt",
+        "akk": "den Smelt",
+        "dat": "dem Smelt",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Smelt"
+      },
+      "pt": {
+        "name": "Eperlano",
+        "genus": "m",
+        "art": "o Eperlano"
+      },
+      "es": {
+        "name": "Eperlano",
+        "genus": "m",
+        "art": "el Eperlano"
+      }
+    },
+    {
+      "id": 190,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Jambu",
+        "genus": "m",
+        "nom": "der Jambu",
+        "akk": "den Jambu",
+        "dat": "dem Jambu",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Jambu"
+      },
+      "pt": {
+        "name": "Jambu",
+        "genus": "m",
+        "art": "o Jambu"
+      },
+      "es": {
+        "name": "Jambu",
+        "genus": "m",
+        "art": "el Jambu"
+      }
+    },
+    {
+      "id": 191,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Tucupi",
+        "genus": "m",
+        "nom": "der Tucupi",
+        "akk": "den Tucupi",
+        "dat": "dem Tucupi",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Tucupi"
+      },
+      "pt": {
+        "name": "Tucupi",
+        "genus": "m",
+        "art": "o Tucupi"
+      },
+      "es": {
+        "name": "Tucupi",
+        "genus": "m",
+        "art": "el Tucupi"
+      }
+    },
+    {
+      "id": 192,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Maniok Mehl ",
+        "genus": "n",
+        "nom": "das Maniok Mehl ",
+        "akk": "das Maniok Mehl ",
+        "dat": "dem Maniok Mehl ",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Cassava flour"
+      },
+      "pt": {
+        "name": "Farinha de mandioca",
+        "genus": "f",
+        "art": "a Farinha de mandioca"
+      },
+      "es": {
+        "name": "Harina de mandioca",
+        "genus": "f",
+        "art": "la Harina de mandioca"
+      }
+    },
+    {
+      "id": 193,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Sardinen (in öl)",
+        "genus": "pl",
+        "nom": "die Sardinen (in öl)",
+        "akk": "die Sardinen (in öl)",
+        "dat": "den Sardinen (in öl)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Sardines (in oil)"
+      },
+      "pt": {
+        "name": "Sardinhas",
+        "genus": "f",
+        "art": "a Sardinhas"
+      },
+      "es": {
+        "name": "Sardinas",
+        "genus": "f",
+        "art": "la Sardinas"
+      }
+    },
+    {
+      "id": 194,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Sardinen",
+        "genus": "pl",
+        "nom": "die Sardinen",
+        "akk": "die Sardinen",
+        "dat": "den Sardinen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Fresh sardines"
+      },
+      "pt": {
+        "name": "Sardinhas frescas",
+        "genus": "f",
+        "art": "a Sardinhas frescas"
+      },
+      "es": {
+        "name": "Sardinas frescas",
+        "genus": "f",
+        "art": "la Sardinas frescas"
+      }
+    },
+    {
+      "id": 195,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Sesamöl",
+        "genus": "n",
+        "nom": "das Sesamöl",
+        "akk": "das Sesamöl",
+        "dat": "dem Sesamöl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Sesame oil"
+      },
+      "pt": {
+        "name": "Óleo de sésamo",
+        "genus": "m",
+        "art": "o Óleo de sésamo"
+      },
+      "es": {
+        "name": "Aceite de sésamo",
+        "genus": "m",
+        "art": "el Aceite de sésamo"
+      }
+    },
+    {
+      "id": 196,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Erdnuss",
+        "genus": "m",
+        "nom": "der Erdnuss",
+        "akk": "den Erdnuss",
+        "dat": "dem Erdnuss",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Peanuts"
+      },
+      "pt": {
+        "name": "Amendoim (torrado)",
+        "genus": "m",
+        "art": "o Amendoim (torrado)"
+      },
+      "es": {
+        "name": "Cacahuetes",
+        "genus": "m",
+        "art": "el Cacahuetes"
+      }
+    },
+    {
+      "id": 197,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Venusmuscheln",
+        "genus": "m",
+        "nom": "der Venusmuscheln",
+        "akk": "den Venusmuscheln",
+        "dat": "dem Venusmuscheln",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Venus clams"
+      },
+      "pt": {
+        "name": "Amêijoas",
+        "genus": "f",
+        "art": "a Amêijoas"
+      },
+      "es": {
+        "name": "Almejas",
+        "genus": "f",
+        "art": "la Almejas"
+      }
+    },
+    {
+      "id": 198,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Knoblauchzehe",
+        "genus": "f",
+        "nom": "die Knoblauchzehe",
+        "akk": "die Knoblauchzehe",
+        "dat": "der Knoblauchzehe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Garlic"
+      },
+      "pt": {
+        "name": "Alho",
+        "genus": "m",
+        "art": "o Alho"
+      },
+      "es": {
+        "name": "Ajo",
+        "genus": "m",
+        "art": "el Ajo"
+      }
+    },
+    {
+      "id": 199,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Pancetta",
+        "genus": "f",
+        "nom": "die Pancetta",
+        "akk": "die Pancetta",
+        "dat": "der Pancetta",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pancetta"
+      },
+      "pt": {
+        "name": "Pancetta",
+        "genus": "f",
+        "art": "a Pancetta"
+      },
+      "es": {
+        "name": "Panceta",
+        "genus": "f",
+        "art": "la Panceta"
+      }
+    },
+    {
+      "id": 200,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Ricotta",
+        "genus": "m",
+        "nom": "der Ricotta",
+        "akk": "den Ricotta",
+        "dat": "dem Ricotta",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Ricotta cheese"
+      },
+      "pt": {
+        "name": "Ricota",
+        "genus": "f",
+        "art": "a Ricota"
+      },
+      "es": {
+        "name": "Requesón",
+        "genus": "m",
+        "art": "el Requesón"
+      }
+    },
+    {
+      "id": 201,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Poblano-Chilis",
+        "genus": "m",
+        "nom": "der Poblano-Chilis",
+        "akk": "den Poblano-Chilis",
+        "dat": "dem Poblano-Chilis",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Poblano pepper"
+      },
+      "pt": {
+        "name": "Pimenta Poblano",
+        "genus": "m",
+        "art": "o Pimenta Poblano"
+      },
+      "es": {
+        "name": "Chile poblano",
+        "genus": "m",
+        "art": "el Chile poblano"
+      }
+    },
+    {
+      "id": 202,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Jalapenjos ",
+        "genus": "m",
+        "nom": "der Jalapenjos ",
+        "akk": "den Jalapenjos ",
+        "dat": "dem Jalapenjos ",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Jalapeno pepper"
+      },
+      "pt": {
+        "name": "Jalapeño",
+        "genus": "m",
+        "art": "o Jalapeño"
+      },
+      "es": {
+        "name": "Jalapeño",
+        "genus": "m",
+        "art": "el Jalapeño"
+      }
+    },
+    {
+      "id": 203,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Hominy",
+        "genus": "m",
+        "nom": "der Hominy",
+        "akk": "den Hominy",
+        "dat": "dem Hominy",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Hominy"
+      },
+      "pt": {
+        "name": "Milho para canjica",
+        "genus": "f",
+        "art": "a Milho para canjica"
+      },
+      "es": {
+        "name": "Maíz pozolero",
+        "genus": "m",
+        "art": "el Maíz pozolero"
+      }
+    },
+    {
+      "id": 204,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Tomatillos",
+        "genus": "m",
+        "nom": "der Tomatillos",
+        "akk": "den Tomatillos",
+        "dat": "dem Tomatillos",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Tomatillos"
+      },
+      "pt": {
+        "name": "Tomatillo",
+        "genus": "m",
+        "art": "o Tomatillo"
+      },
+      "es": {
+        "name": "Tomatillo",
+        "genus": "m",
+        "art": "el Tomatillo"
+      }
+    },
+    {
+      "id": 205,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Chorizo",
+        "genus": "f",
+        "nom": "die Chorizo",
+        "akk": "die Chorizo",
+        "dat": "der Chorizo",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Chorizo (cured)"
+      },
+      "pt": {
+        "name": "Chouriço",
+        "genus": "m",
+        "art": "o Chouriço"
+      },
+      "es": {
+        "name": "Chorizo",
+        "genus": "m",
+        "art": "el Chorizo"
+      }
+    },
+    {
+      "id": 206,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Wiener Würstchen ",
+        "genus": "pl",
+        "nom": "die Wiener Würstchen ",
+        "akk": "die Wiener Würstchen ",
+        "dat": "den Wiener Würstchen ",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Vienna sausage"
+      },
+      "pt": {
+        "name": "Salsicha (tipo Viena)",
+        "genus": "f",
+        "art": "a Salsicha (tipo Viena)"
+      },
+      "es": {
+        "name": "Salchicha de Viena ",
+        "genus": "f",
+        "art": "la Salchicha de Viena "
+      }
+    },
+    {
+      "id": 207,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Hühnerbrühe",
+        "genus": "f",
+        "nom": "die Hühnerbrühe",
+        "akk": "die Hühnerbrühe",
+        "dat": "der Hühnerbrühe",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Chicken broth"
+      },
+      "pt": {
+        "name": "Caldo de galinha",
+        "genus": "f",
+        "art": "a Caldo de galinha"
+      },
+      "es": {
+        "name": "Caldo de pollo",
+        "genus": "m",
+        "art": "el Caldo de pollo"
+      }
+    },
+    {
+      "id": 208,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Radieschen",
+        "genus": "pl",
+        "nom": "die Radieschen",
+        "akk": "die Radieschen",
+        "dat": "den Radieschen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Radish"
+      },
+      "pt": {
+        "name": "Rabanete",
+        "genus": "m",
+        "art": "o Rabanete"
+      },
+      "es": {
+        "name": "Rábano",
+        "genus": "m",
+        "art": "el Rábano"
+      }
+    },
+    {
+      "id": 209,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Salsa Verde",
+        "genus": "f",
+        "nom": "die Salsa Verde",
+        "akk": "die Salsa Verde",
+        "dat": "der Salsa Verde",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Salsa Verde"
+      },
+      "pt": {
+        "name": "Molho Verde",
+        "genus": "m",
+        "art": "o Molho Verde"
+      },
+      "es": {
+        "name": "Salsa Verde",
+        "genus": "m",
+        "art": "el Salsa Verde"
+      }
+    },
+    {
+      "id": 210,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Butternuss-Kürbis ",
+        "genus": "m",
+        "nom": "der Butternuss-Kürbis ",
+        "akk": "den Butternuss-Kürbis ",
+        "dat": "dem Butternuss-Kürbis ",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Butternut squash"
+      },
+      "pt": {
+        "name": "Abóbora Butternut",
+        "genus": "m",
+        "art": "o Abóbora Butternut"
+      },
+      "es": {
+        "name": "Calabaza Butternut",
+        "genus": "m",
+        "art": "el Calabaza Butternut"
+      }
+    },
+    {
+      "id": 211,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Grünen Spargel",
+        "genus": "m",
+        "nom": "der Grünen Spargel",
+        "akk": "den Grünen Spargel",
+        "dat": "dem Grünen Spargel",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Green asparagus"
+      },
+      "pt": {
+        "name": "Espargos verdes",
+        "genus": "m",
+        "art": "o Espargos verdes"
+      },
+      "es": {
+        "name": "Espárragos verdes",
+        "genus": "m",
+        "art": "el Espárragos verdes"
+      }
+    },
+    {
+      "id": 212,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Weißen Spargel",
+        "genus": "m",
+        "nom": "der Weißen Spargel",
+        "akk": "den Weißen Spargel",
+        "dat": "dem Weißen Spargel",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "White asparagus"
+      },
+      "pt": {
+        "name": "Espargos brancos",
+        "genus": "m",
+        "art": "o Espargos brancos"
+      },
+      "es": {
+        "name": "Espárragos blancos",
+        "genus": "m",
+        "art": "el Espárragos blancos"
+      }
+    },
+    {
+      "id": 213,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Gehackte Tomaten (Dose, Natur)",
+        "genus": "pl",
+        "nom": "die Gehackte Tomaten (Dose, Natur)",
+        "akk": "die Gehackte Tomaten (Dose, Natur)",
+        "dat": "den Gehackte Tomaten (Dose, Natur)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Chopped tomatoes"
+      },
+      "pt": {
+        "name": "Tomate picado",
+        "genus": "m",
+        "art": "o Tomate picado"
+      },
+      "es": {
+        "name": "Tomate troceado",
+        "genus": "m",
+        "art": "el Tomate troceado"
+      }
+    },
+    {
+      "id": 214,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Mandelmehl",
+        "genus": "n",
+        "nom": "das Mandelmehl",
+        "akk": "das Mandelmehl",
+        "dat": "dem Mandelmehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Almond flour"
+      },
+      "pt": {
+        "name": "Farinha de amêndoa (desengordurada)",
+        "genus": "f",
+        "art": "a Farinha de amêndoa (desengordurada)"
+      },
+      "es": {
+        "name": "Harina de almendra",
+        "genus": "f",
+        "art": "la Harina de almendra"
+      }
+    },
+    {
+      "id": 215,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Sucuk",
+        "genus": "m",
+        "nom": "der Sucuk",
+        "akk": "den Sucuk",
+        "dat": "dem Sucuk",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Sucuk"
+      },
+      "pt": {
+        "name": "Sucuk",
+        "genus": "m",
+        "art": "o Sucuk"
+      },
+      "es": {
+        "name": "Sucuk",
+        "genus": "m",
+        "art": "el Sucuk"
+      }
+    },
+    {
+      "id": 216,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Paprikapulver (edelsüß)",
+        "genus": "n",
+        "nom": "das Paprikapulver (edelsüß)",
+        "akk": "das Paprikapulver (edelsüß)",
+        "dat": "dem Paprikapulver (edelsüß)",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Sweet Paprika"
+      },
+      "pt": {
+        "name": "Colorau",
+        "genus": "m",
+        "art": "o Colorau"
+      },
+      "es": {
+        "name": "Pimentón dulce",
+        "genus": "m",
+        "art": "el Pimentón dulce"
+      }
+    },
+    {
+      "id": 217,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Grüner Pfeffer",
+        "genus": "m",
+        "nom": "der Grüner Pfeffer",
+        "akk": "den Grüner Pfeffer",
+        "dat": "dem Grüner Pfeffer",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Green peppercorns"
+      },
+      "pt": {
+        "name": "Pimenta verde",
+        "genus": "m",
+        "art": "o Pimenta verde"
+      },
+      "es": {
+        "name": "Pimienta verde",
+        "genus": "m",
+        "art": "el Pimienta verde"
+      }
+    },
+    {
+      "id": 218,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Rinderhackfleisch",
+        "genus": "n",
+        "nom": "das Rinderhackfleisch",
+        "akk": "das Rinderhackfleisch",
+        "dat": "dem Rinderhackfleisch",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Minced beef"
+      },
+      "pt": {
+        "name": "Carne moída (de boi/vaca)",
+        "genus": "f",
+        "art": "a Carne moída (de boi/vaca)"
+      },
+      "es": {
+        "name": "Carne picada",
+        "genus": "f",
+        "art": "la Carne picada"
+      }
+    },
+    {
+      "id": 219,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Schweinehackfleisch",
+        "genus": "n",
+        "nom": "das Schweinehackfleisch",
+        "akk": "das Schweinehackfleisch",
+        "dat": "dem Schweinehackfleisch",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Pork mince"
+      },
+      "pt": {
+        "name": "Carne moída de porco",
+        "genus": "m",
+        "art": "o Carne moída de porco"
+      },
+      "es": {
+        "name": "Carne picada de cerdo",
+        "genus": "m",
+        "art": "el Carne picada de cerdo"
+      }
+    },
+    {
+      "id": 220,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+        "genus": "n",
+        "nom": "das Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+        "akk": "das Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+        "dat": "dem Gemischtes Hackfleisch (50% Rind / 50% Schwein)",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Mixed minced meat"
+      },
+      "pt": {
+        "name": "Carne moída mista (boi e porco)",
+        "genus": "f",
+        "art": "a Carne moída mista (boi e porco)"
+      },
+      "es": {
+        "name": "Carne picada mixta",
+        "genus": "f",
+        "art": "la Carne picada mixta"
+      }
+    },
+    {
+      "id": 221,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kokosmehl",
+        "genus": "n",
+        "nom": "das Kokosmehl",
+        "akk": "das Kokosmehl",
+        "dat": "dem Kokosmehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Coconut flour"
+      },
+      "pt": {
+        "name": "Farinha de coco",
+        "genus": "m",
+        "art": "o Farinha de coco"
+      },
+      "es": {
+        "name": "Harina de coco",
+        "genus": "m",
+        "art": "el Harina de coco"
+      }
+    },
+    {
+      "id": 222,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Kümmel (gemahlen)",
+        "genus": "m",
+        "nom": "der Kümmel (gemahlen)",
+        "akk": "den Kümmel (gemahlen)",
+        "dat": "dem Kümmel (gemahlen)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Caraway (ground)"
+      },
+      "pt": {
+        "name": "Alcaravia (moída)",
+        "genus": "f",
+        "art": "a Alcaravia (moída)"
+      },
+      "es": {
+        "name": "Alcaravea",
+        "genus": "f",
+        "art": "la Alcaravea"
+      }
+    },
+    {
+      "id": 223,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Reismehl",
+        "genus": "n",
+        "nom": "das Reismehl",
+        "akk": "das Reismehl",
+        "dat": "dem Reismehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Rice flour"
+      },
+      "pt": {
+        "name": "Farinha de arroz",
+        "genus": "m",
+        "art": "o Farinha de arroz"
+      },
+      "es": {
+        "name": "Harina de arroz",
+        "genus": "m",
+        "art": "el Harina de arroz"
+      }
+    },
+    {
+      "id": 224,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Apfelwein",
+        "genus": "m",
+        "nom": "der Apfelwein",
+        "akk": "den Apfelwein",
+        "dat": "dem Apfelwein",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cider"
+      },
+      "pt": {
+        "name": "Sidra",
+        "genus": "f",
+        "art": "a Sidra"
+      },
+      "es": {
+        "name": "Sidra",
+        "genus": "f",
+        "art": "la Sidra"
+      }
+    },
+    {
+      "id": 225,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Vanillezucker",
+        "genus": "m",
+        "nom": "der Vanillezucker",
+        "akk": "den Vanillezucker",
+        "dat": "dem Vanillezucker",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Vanilla sugar"
+      },
+      "pt": {
+        "name": "Açúcar baunilhado",
+        "genus": "m",
+        "art": "o Açúcar baunilhado"
+      },
+      "es": {
+        "name": "Azúcar avainillado",
+        "genus": "m",
+        "art": "el Azúcar avainillado"
+      }
+    },
+    {
+      "id": 226,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Puddingpulver (Vanille)",
+        "genus": "n",
+        "nom": "das Puddingpulver (Vanille)",
+        "akk": "das Puddingpulver (Vanille)",
+        "dat": "dem Puddingpulver (Vanille)",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Vanilla pudding powder"
+      },
+      "pt": {
+        "name": "Pudim em pó (sabor baunilha)",
+        "genus": "m",
+        "art": "o Pudim em pó (sabor baunilha)"
+      },
+      "es": {
+        "name": "Preparado para flan",
+        "genus": "m",
+        "art": "el Preparado para flan"
+      }
+    },
+    {
+      "id": 227,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Eigelb",
+        "genus": "n",
+        "nom": "das Eigelb",
+        "akk": "das Eigelb",
+        "dat": "dem Eigelb",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Egg yolk"
+      },
+      "pt": {
+        "name": "Gema (de ovo)",
+        "genus": "f",
+        "art": "a Gema (de ovo)"
+      },
+      "es": {
+        "name": "Yema (de huevo)",
+        "genus": "f",
+        "art": "la Yema (de huevo)"
+      }
+    },
+    {
+      "id": 228,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Wirsing",
+        "genus": "m",
+        "nom": "der Wirsing",
+        "akk": "den Wirsing",
+        "dat": "dem Wirsing",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Savoy cabbage"
+      },
+      "pt": {
+        "name": "Couve lombarda",
+        "genus": "f",
+        "art": "a Couve lombarda"
+      },
+      "es": {
+        "name": "Col de Milán",
+        "genus": "m",
+        "art": "el Col de Milán"
+      }
+    },
+    {
+      "id": 229,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Sojagranulat",
+        "genus": "m",
+        "nom": "der Sojagranulat",
+        "akk": "den Sojagranulat",
+        "dat": "dem Sojagranulat",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Soya mince"
+      },
+      "pt": {
+        "name": "Proteína de soja texturizada (fina)",
+        "genus": "f",
+        "art": "a Proteína de soja texturizada (fina)"
+      },
+      "es": {
+        "name": "Soja texturizada (fina)",
+        "genus": "f",
+        "art": "la Soja texturizada (fina)"
+      }
+    },
+    {
+      "id": 230,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Zitronen",
+        "genus": "m",
+        "nom": "der Zitronen",
+        "akk": "den Zitronen",
+        "dat": "dem Zitronen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lemon"
+      },
+      "pt": {
+        "name": "Limão",
+        "genus": "m",
+        "art": "o Limão"
+      },
+      "es": {
+        "name": "Limón",
+        "genus": "m",
+        "art": "el Limón"
+      }
+    },
+    {
+      "id": 231,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Eiweiß",
+        "genus": "n",
+        "nom": "das Eiweiß",
+        "akk": "das Eiweiß",
+        "dat": "dem Eiweiß",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Egg white"
+      },
+      "pt": {
+        "name": "Clara (de ovo)",
+        "genus": "f",
+        "art": "a Clara (de ovo)"
+      },
+      "es": {
+        "name": "Clara (de huevo)",
+        "genus": "f",
+        "art": "la Clara (de huevo)"
+      }
+    },
+    {
+      "id": 232,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Zuckerschoten",
+        "genus": "m",
+        "nom": "der Zuckerschoten",
+        "akk": "den Zuckerschoten",
+        "dat": "dem Zuckerschoten",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Snow peas"
+      },
+      "pt": {
+        "name": "Ervilha torta",
+        "genus": "f",
+        "art": "a Ervilha torta"
+      },
+      "es": {
+        "name": "Tirabeques",
+        "genus": "m",
+        "art": "el Tirabeques"
+      }
+    },
+    {
+      "id": 233,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Chiliflocken",
+        "genus": "pl",
+        "nom": "die Chiliflocken",
+        "akk": "die Chiliflocken",
+        "dat": "den Chiliflocken",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Chili flakes"
+      },
+      "pt": {
+        "name": "Pimenta calabresa",
+        "genus": "f",
+        "art": "a Pimenta calabresa"
+      },
+      "es": {
+        "name": "Hojuelas de chile",
+        "genus": "m",
+        "art": "el Hojuelas de chile"
+      }
+    },
+    {
+      "id": 234,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Dorade",
+        "genus": "f",
+        "nom": "die Dorade",
+        "akk": "die Dorade",
+        "dat": "der Dorade",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Gilt-head (sea) bream"
+      },
+      "pt": {
+        "name": "Dourada",
+        "genus": "f",
+        "art": "a Dourada"
+      },
+      "es": {
+        "name": "Dorada",
+        "genus": "f",
+        "art": "la Dorada"
+      }
+    },
+    {
+      "id": 235,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Entenkeule",
+        "genus": "f",
+        "nom": "die Entenkeule",
+        "akk": "die Entenkeule",
+        "dat": "der Entenkeule",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Duck leg"
+      },
+      "pt": {
+        "name": "Perna de pato",
+        "genus": "m",
+        "art": "o Perna de pato"
+      },
+      "es": {
+        "name": "Muslo de pato",
+        "genus": "m",
+        "art": "el Muslo de pato"
+      }
+    },
+    {
+      "id": 236,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Entenbrust",
+        "genus": "f",
+        "nom": "die Entenbrust",
+        "akk": "die Entenbrust",
+        "dat": "der Entenbrust",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Duck breast"
+      },
+      "pt": {
+        "name": "Peito de pato",
+        "genus": "m",
+        "art": "o Peito de pato"
+      },
+      "es": {
+        "name": "Pechuga de pato",
+        "genus": "m",
+        "art": "el Pechuga de pato"
+      }
+    },
+    {
+      "id": 237,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Salsiccia",
+        "genus": "m",
+        "nom": "der Salsiccia",
+        "akk": "den Salsiccia",
+        "dat": "dem Salsiccia",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Italian sausage"
+      },
+      "pt": {
+        "name": "Linguiça toscana",
+        "genus": "f",
+        "art": "a Linguiça toscana"
+      },
+      "es": {
+        "name": "Salchicha fresca",
+        "genus": "f",
+        "art": "la Salchicha fresca"
+      }
+    },
+    {
+      "id": 238,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Wolfsbarsch (Branzino)",
+        "genus": "m",
+        "nom": "der Wolfsbarsch (Branzino)",
+        "akk": "den Wolfsbarsch (Branzino)",
+        "dat": "dem Wolfsbarsch (Branzino)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Branzino"
+      },
+      "pt": {
+        "name": "Robalo",
+        "genus": "m",
+        "art": "o Robalo"
+      },
+      "es": {
+        "name": "Lubina",
+        "genus": "f",
+        "art": "la Lubina"
+      }
+    },
+    {
+      "id": 239,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Oktopus",
+        "genus": "m",
+        "nom": "der Oktopus",
+        "akk": "den Oktopus",
+        "dat": "dem Oktopus",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Octopus"
+      },
+      "pt": {
+        "name": "Polvo",
+        "genus": "m",
+        "art": "o Polvo"
+      },
+      "es": {
+        "name": "Pulpo",
+        "genus": "m",
+        "art": "el Pulpo"
+      }
+    },
+    {
+      "id": 240,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Weiße Bohnen",
+        "genus": "pl",
+        "nom": "die Weiße Bohnen",
+        "akk": "die Weiße Bohnen",
+        "dat": "den Weiße Bohnen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "White beans"
+      },
+      "pt": {
+        "name": "Feijão branco",
+        "genus": "m",
+        "art": "o Feijão branco"
+      },
+      "es": {
+        "name": "Alubias blancas",
+        "genus": "f",
+        "art": "la Alubias blancas"
+      }
+    },
+    {
+      "id": 241,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Putenkeule",
+        "genus": "f",
+        "nom": "die Putenkeule",
+        "akk": "die Putenkeule",
+        "dat": "der Putenkeule",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Turkey leg"
+      },
+      "pt": {
+        "name": "Coxa de peru",
+        "genus": "m",
+        "art": "o Coxa de peru"
+      },
+      "es": {
+        "name": "Muslo de pavo",
+        "genus": "m",
+        "art": "el Muslo de pavo"
+      }
+    },
+    {
+      "id": 242,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Rote Bohnenpaste",
+        "genus": "f",
+        "nom": "die Rote Bohnenpaste",
+        "akk": "die Rote Bohnenpaste",
+        "dat": "der Rote Bohnenpaste",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Red bean paste"
+      },
+      "pt": {
+        "name": "Doce de feijão azuki",
+        "genus": "m",
+        "art": "o Doce de feijão azuki"
+      },
+      "es": {
+        "name": "Pasta de judías rojas",
+        "genus": "f",
+        "art": "la Pasta de judías rojas"
+      }
+    },
+    {
+      "id": 243,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Mungbohnen",
+        "genus": "m",
+        "nom": "der Mungbohnen",
+        "akk": "den Mungbohnen",
+        "dat": "dem Mungbohnen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Mung beans"
+      },
+      "pt": {
+        "name": "Feijão-mungo",
+        "genus": "m",
+        "art": "o Feijão-mungo"
+      },
+      "es": {
+        "name": "Judía mungo",
+        "genus": "m",
+        "art": "el Judía mungo"
+      }
+    },
+    {
+      "id": 244,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Chia-Samen",
+        "genus": "m",
+        "nom": "der Chia-Samen",
+        "akk": "den Chia-Samen",
+        "dat": "dem Chia-Samen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Chia seeds"
+      },
+      "pt": {
+        "name": "Sementes de chia",
+        "genus": "f",
+        "art": "a Sementes de chia"
+      },
+      "es": {
+        "name": "Semillas de chía",
+        "genus": "f",
+        "art": "la Semillas de chía"
+      }
+    },
+    {
+      "id": 245,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Erythrit",
+        "genus": "m",
+        "nom": "der Erythrit",
+        "akk": "den Erythrit",
+        "dat": "dem Erythrit",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Erythritol"
+      },
+      "pt": {
+        "name": "Eritritol",
+        "genus": "m",
+        "art": "o Eritritol"
+      },
+      "es": {
+        "name": "Eritritol",
+        "genus": "m",
+        "art": "el Eritritol"
+      }
+    },
+    {
+      "id": 246,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Wacholderbeeren",
+        "genus": "pl",
+        "nom": "die Wacholderbeeren",
+        "akk": "die Wacholderbeeren",
+        "dat": "den Wacholderbeeren",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Juniper berries"
+      },
+      "pt": {
+        "name": "Bagas de zimbro",
+        "genus": "m",
+        "art": "o Bagas de zimbro"
+      },
+      "es": {
+        "name": "Bayas de enebro",
+        "genus": "m",
+        "art": "el Bayas de enebro"
+      }
+    },
+    {
+      "id": 247,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Geräucherter Lachs",
+        "genus": "m",
+        "nom": "der Geräucherter Lachs",
+        "akk": "den Geräucherter Lachs",
+        "dat": "dem Geräucherter Lachs",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Smoked salmon"
+      },
+      "pt": {
+        "name": "Salmão fumado",
+        "genus": "m",
+        "art": "o Salmão fumado"
+      },
+      "es": {
+        "name": "Salmón ahumado",
+        "genus": "m",
+        "art": "el Salmón ahumado"
+      }
+    },
+    {
+      "id": 248,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Perlzwiebeln",
+        "genus": "m",
+        "nom": "der Perlzwiebeln",
+        "akk": "den Perlzwiebeln",
+        "dat": "dem Perlzwiebeln",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pearl onions"
+      },
+      "pt": {
+        "name": "Cebolinha pérola",
+        "genus": "f",
+        "art": "a Cebolinha pérola"
+      },
+      "es": {
+        "name": "Cebollitas perla",
+        "genus": "f",
+        "art": "la Cebollitas perla"
+      }
+    },
+    {
+      "id": 249,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Geräucherter Tofu",
+        "genus": "m",
+        "nom": "der Geräucherter Tofu",
+        "akk": "den Geräucherter Tofu",
+        "dat": "dem Geräucherter Tofu",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Smoked tofu"
+      },
+      "pt": {
+        "name": "Tofu fumado",
+        "genus": "m",
+        "art": "o Tofu fumado"
+      },
+      "es": {
+        "name": "Tofu ahumado",
+        "genus": "m",
+        "art": "el Tofu ahumado"
+      }
+    },
+    {
+      "id": 250,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Jackfruit (aus der Dose)",
+        "genus": "m",
+        "nom": "der Jackfruit (aus der Dose)",
+        "akk": "den Jackfruit (aus der Dose)",
+        "dat": "dem Jackfruit (aus der Dose)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Young Green Jackfruit"
+      },
+      "pt": {
+        "name": "Jaca (verde)",
+        "genus": "f",
+        "art": "a Jaca (verde)"
+      },
+      "es": {
+        "name": "Yaca",
+        "genus": "f",
+        "art": "la Yaca"
+      }
+    },
+    {
+      "id": 251,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Grieß (Weizen)",
+        "genus": "m",
+        "nom": "der Grieß (Weizen)",
+        "akk": "den Grieß (Weizen)",
+        "dat": "dem Grieß (Weizen)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Semolina"
+      },
+      "pt": {
+        "name": "Sêmola (de trigo)",
+        "genus": "f",
+        "art": "a Sêmola (de trigo)"
+      },
+      "es": {
+        "name": "Sémola (de trigo)",
+        "genus": "f",
+        "art": "la Sémola (de trigo)"
+      }
+    },
+    {
+      "id": 252,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Kalbsnieren",
+        "genus": "m",
+        "nom": "der Kalbsnieren",
+        "akk": "den Kalbsnieren",
+        "dat": "dem Kalbsnieren",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Veal kidneys"
+      },
+      "pt": {
+        "name": "Rins de vitela",
+        "genus": "f",
+        "art": "a Rins de vitela"
+      },
+      "es": {
+        "name": "Riñones de ternera",
+        "genus": "f",
+        "art": "la Riñones de ternera"
+      }
+    },
+    {
+      "id": 253,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Muskat-Kürbis",
+        "genus": "m",
+        "nom": "der Muskat-Kürbis",
+        "akk": "den Muskat-Kürbis",
+        "dat": "dem Muskat-Kürbis",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Musquée de Provence pumpkin"
+      },
+      "pt": {
+        "name": "Abóbora almiscarada",
+        "genus": "f",
+        "art": "a Abóbora almiscarada"
+      },
+      "es": {
+        "name": "Calabaza moscada",
+        "genus": "f",
+        "art": "la Calabaza moscada"
+      }
+    },
+    {
+      "id": 254,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Avocado",
+        "genus": "f",
+        "nom": "die Avocado",
+        "akk": "die Avocado",
+        "dat": "der Avocado",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Avocado"
+      },
+      "pt": {
+        "name": "Palta",
+        "genus": "f",
+        "art": "a Palta"
+      },
+      "es": {
+        "name": "Aguacate",
+        "genus": "m",
+        "art": "el Aguacate"
+      }
+    },
+    {
+      "id": 255,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Zwiebelpulver",
+        "genus": "n",
+        "nom": "das Zwiebelpulver",
+        "akk": "das Zwiebelpulver",
+        "dat": "dem Zwiebelpulver",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Onion powder"
+      },
+      "pt": {
+        "name": "Cebola em pó",
+        "genus": "m",
+        "art": "o Cebola em pó"
+      },
+      "es": {
+        "name": "Cebolla en polvo",
+        "genus": "m",
+        "art": "el Cebolla en polvo"
+      }
+    },
+    {
+      "id": 256,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Reispapierblätter",
+        "genus": "m",
+        "nom": "der Reispapierblätter",
+        "akk": "den Reispapierblätter",
+        "dat": "dem Reispapierblätter",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Reispapierblätter"
+      },
+      "pt": {
+        "name": "Folha de arroz",
+        "genus": "m",
+        "art": "o Folha de arroz"
+      },
+      "es": {
+        "name": "Papel de arroz",
+        "genus": "m",
+        "art": "el Papel de arroz"
+      }
+    },
+    {
+      "id": 257,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Basmatireis",
+        "genus": "m",
+        "nom": "der Basmatireis",
+        "akk": "den Basmatireis",
+        "dat": "dem Basmatireis",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Basmati rice"
+      },
+      "pt": {
+        "name": "Arroz basmati",
+        "genus": "m",
+        "art": "o Arroz basmati"
+      },
+      "es": {
+        "name": "Arroz basmati",
+        "genus": "m",
+        "art": "el Arroz basmati"
+      }
+    },
+    {
+      "id": 258,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Aquafaba (Kichererbsenwasser)",
+        "genus": "m",
+        "nom": "der Aquafaba (Kichererbsenwasser)",
+        "akk": "den Aquafaba (Kichererbsenwasser)",
+        "dat": "dem Aquafaba (Kichererbsenwasser)",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Aquafaba"
+      },
+      "pt": {
+        "name": "Aquafaba",
+        "genus": "f",
+        "art": "a Aquafaba"
+      },
+      "es": {
+        "name": "Aquafaba",
+        "genus": "f",
+        "art": "la Aquafaba"
+      }
+    },
+    {
+      "id": 259,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Essiggurken",
+        "genus": "m",
+        "nom": "der Essiggurken",
+        "akk": "den Essiggurken",
+        "dat": "dem Essiggurken",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pickles"
+      },
+      "pt": {
+        "name": "Pepinos em conserva",
+        "genus": "f",
+        "art": "a Pepinos em conserva"
+      },
+      "es": {
+        "name": "Pepinillos",
+        "genus": "m",
+        "art": "el Pepinillos"
+      }
+    },
+    {
+      "id": 260,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Vorgekochte Maronen",
+        "genus": "m",
+        "nom": "der Vorgekochte Maronen",
+        "akk": "den Vorgekochte Maronen",
+        "dat": "dem Vorgekochte Maronen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cooked chestnuts"
+      },
+      "pt": {
+        "name": "Castanhas cozidas",
+        "genus": "f",
+        "art": "a Castanhas cozidas"
+      },
+      "es": {
+        "name": "Castañas cocidas",
+        "genus": "f",
+        "art": "la Castañas cocidas"
+      }
+    },
+    {
+      "id": 261,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Ochsenbäckchen",
+        "genus": "n",
+        "nom": "das Ochsenbäckchen",
+        "akk": "das Ochsenbäckchen",
+        "dat": "dem Ochsenbäckchen",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Beef cheeks"
+      },
+      "pt": {
+        "name": "Bochechas de boi",
+        "genus": "m",
+        "art": "o Bochechas de boi"
+      },
+      "es": {
+        "name": "Carrilleras de ternera",
+        "genus": "f",
+        "art": "la Carrilleras de ternera"
+      }
+    },
+    {
+      "id": 262,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Pommes ",
+        "genus": "m",
+        "nom": "der Pommes ",
+        "akk": "den Pommes ",
+        "dat": "dem Pommes ",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "French fries"
+      },
+      "pt": {
+        "name": "Batatas fritas (palito)",
+        "genus": "f",
+        "art": "a Batatas fritas (palito)"
+      },
+      "es": {
+        "name": "Patatas fritas",
+        "genus": "f",
+        "art": "la Patatas fritas"
+      }
+    },
+    {
+      "id": 263,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Paneer",
+        "genus": "m",
+        "nom": "der Paneer",
+        "akk": "den Paneer",
+        "dat": "dem Paneer",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Paneer"
+      },
+      "pt": {
+        "name": "Paneer",
+        "genus": "m",
+        "art": "o Paneer"
+      },
+      "es": {
+        "name": "Paneer",
+        "genus": "m",
+        "art": "el Paneer"
+      }
+    },
+    {
+      "id": 264,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Riesen-Champignon",
+        "genus": "m",
+        "nom": "der Riesen-Champignon",
+        "akk": "den Riesen-Champignon",
+        "dat": "dem Riesen-Champignon",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Portobello mushroom"
+      },
+      "pt": {
+        "name": "Cogumelo Portobello",
+        "genus": "m",
+        "art": "o Cogumelo Portobello"
+      },
+      "es": {
+        "name": "Champiñón Portobello",
+        "genus": "m",
+        "art": "el Champiñón Portobello"
+      }
+    },
+    {
+      "id": 265,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Kabeljaufilets",
+        "genus": "m",
+        "nom": "der Kabeljaufilets",
+        "akk": "den Kabeljaufilets",
+        "dat": "dem Kabeljaufilets",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Cod fillets"
+      },
+      "pt": {
+        "name": "Bacalhau fresco",
+        "genus": "m",
+        "art": "o Bacalhau fresco"
+      },
+      "es": {
+        "name": "Bacalao fresco",
+        "genus": "m",
+        "art": "el Bacalao fresco"
+      }
+    },
+    {
+      "id": 266,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Himbeeren",
+        "genus": "pl",
+        "nom": "die Himbeeren",
+        "akk": "die Himbeeren",
+        "dat": "den Himbeeren",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Raspberries"
+      },
+      "pt": {
+        "name": "Framboesas",
+        "genus": "f",
+        "art": "a Framboesas"
+      },
+      "es": {
+        "name": "Frambuesas",
+        "genus": "f",
+        "art": "la Frambuesas"
+      }
+    },
+    {
+      "id": 267,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Grüne Linsen",
+        "genus": "pl",
+        "nom": "die Grüne Linsen",
+        "akk": "die Grüne Linsen",
+        "dat": "den Grüne Linsen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Green lentils"
+      },
+      "pt": {
+        "name": "Lentilhas verdes",
+        "genus": "m",
+        "art": "o Lentilhas verdes"
+      },
+      "es": {
+        "name": "Lentejas verdes",
+        "genus": "m",
+        "art": "el Lentejas verdes"
+      }
+    },
+    {
+      "id": 268,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Jakobsmuscheln",
+        "genus": "pl",
+        "nom": "die Jakobsmuscheln",
+        "akk": "die Jakobsmuscheln",
+        "dat": "den Jakobsmuscheln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Scallops"
+      },
+      "pt": {
+        "name": "Vieiras",
+        "genus": "f",
+        "art": "a Vieiras"
+      },
+      "es": {
+        "name": "Vieiras",
+        "genus": "f",
+        "art": "la Vieiras"
+      }
+    },
+    {
+      "id": 269,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kadaif",
+        "genus": "m",
+        "nom": "der Kadaif",
+        "akk": "den Kadaif",
+        "dat": "dem Kadaif",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Kataifi pastry"
+      },
+      "pt": {
+        "name": "Massa Kataifi",
+        "genus": "m",
+        "art": "o Massa Kataifi"
+      },
+      "es": {
+        "name": "Masa Kataifi",
+        "genus": "m",
+        "art": "el Masa Kataifi"
+      }
+    },
+    {
+      "id": 270,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Zanderfilets",
+        "genus": "m",
+        "nom": "der Zanderfilets",
+        "akk": "den Zanderfilets",
+        "dat": "dem Zanderfilets",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pike-perch"
+      },
+      "pt": {
+        "name": "Lúcio-perca",
+        "genus": "f",
+        "art": "a Lúcio-perca"
+      },
+      "es": {
+        "name": "Lucioperca",
+        "genus": "f",
+        "art": "la Lucioperca"
+      }
+    },
+    {
+      "id": 271,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Grüner Kardamom",
+        "genus": "m",
+        "nom": "der Grüner Kardamom",
+        "akk": "den Grüner Kardamom",
+        "dat": "dem Grüner Kardamom",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Green Cardamom pods"
+      },
+      "pt": {
+        "name": "Cardamomo (em vagem)",
+        "genus": "m",
+        "art": "o Cardamomo (em vagem)"
+      },
+      "es": {
+        "name": "Cardamomo (en vaina)",
+        "genus": "m",
+        "art": "el Cardamomo (en vaina)"
+      }
+    },
+    {
+      "id": 272,
+      "group_id": 7,
+      "group_name": "Sonstiges",
+      "de": {
+        "name": "Kartoffelstärke",
+        "genus": "f",
+        "nom": "die Kartoffelstärke",
+        "akk": "die Kartoffelstärke",
+        "dat": "der Kartoffelstärke",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Potato starch "
+      },
+      "pt": {
+        "name": "Fécula de batata",
+        "genus": "f",
+        "art": "a Fécula de batata"
+      },
+      "es": {
+        "name": "Fécula de patata",
+        "genus": "f",
+        "art": "la Fécula de patata"
+      }
+    },
+    {
+      "id": 273,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Zitronenabrieb",
+        "genus": "m",
+        "nom": "der Zitronenabrieb",
+        "akk": "den Zitronenabrieb",
+        "dat": "dem Zitronenabrieb",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lemon zest"
+      },
+      "pt": {
+        "name": "Raspas de limão",
+        "genus": "m",
+        "art": "o Raspas de limão"
+      },
+      "es": {
+        "name": "Ralladura de limón",
+        "genus": "m",
+        "art": "el Ralladura de limón"
+      }
+    },
+    {
+      "id": 274,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Steinpilze",
+        "genus": "f",
+        "nom": "die Steinpilze",
+        "akk": "die Steinpilze",
+        "dat": "der Steinpilze",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Porcini mushrooms"
+      },
+      "pt": {
+        "name": "Cogumelos Porcini",
+        "genus": "m",
+        "art": "o Cogumelos Porcini"
+      },
+      "es": {
+        "name": "Boletus",
+        "genus": "m",
+        "art": "el Boletus"
+      }
+    },
+    {
+      "id": 275,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Seehecht",
+        "genus": "m",
+        "nom": "der Seehecht",
+        "akk": "den Seehecht",
+        "dat": "dem Seehecht",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Hake"
+      },
+      "pt": {
+        "name": "Pescada",
+        "genus": "f",
+        "art": "a Pescada"
+      },
+      "es": {
+        "name": "Merluza",
+        "genus": "f",
+        "art": "la Merluza"
+      }
+    },
+    {
+      "id": 276,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Salz",
+        "genus": "n",
+        "nom": "das Salz",
+        "akk": "das Salz",
+        "dat": "dem Salz",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Salt"
+      },
+      "pt": {
+        "name": "Sal",
+        "genus": "m",
+        "art": "o Sal"
+      },
+      "es": {
+        "name": "Sal",
+        "genus": "m",
+        "art": "el Sal"
+      }
+    },
+    {
+      "id": 277,
+      "group_id": 5,
+      "group_name": "Gewürze",
+      "de": {
+        "name": "Pfeffer",
+        "genus": "m",
+        "nom": "der Pfeffer",
+        "akk": "den Pfeffer",
+        "dat": "dem Pfeffer",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pepper"
+      },
+      "pt": {
+        "name": "Pimenta do reino",
+        "genus": "m",
+        "art": "o Pimenta do reino"
+      },
+      "es": {
+        "name": "Pimienta",
+        "genus": "f",
+        "art": "la Pimienta"
+      }
+    },
+    {
+      "id": 278,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Fenchel",
+        "genus": "m",
+        "nom": "der Fenchel",
+        "akk": "den Fenchel",
+        "dat": "dem Fenchel",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Fennel"
+      },
+      "pt": {
+        "name": "Funcho",
+        "genus": "m",
+        "art": "o Funcho"
+      },
+      "es": {
+        "name": "Hinojo",
+        "genus": "m",
+        "art": "el Hinojo"
+      }
+    },
+    {
+      "id": 279,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Artischocke",
+        "genus": "f",
+        "nom": "die Artischocke",
+        "akk": "die Artischocke",
+        "dat": "der Artischocke",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Artichoke"
+      },
+      "pt": {
+        "name": "Alcachofra",
+        "genus": "f",
+        "art": "a Alcachofra"
+      },
+      "es": {
+        "name": "Alcachofa",
+        "genus": "f",
+        "art": "la Alcachofa"
+      }
+    },
+    {
+      "id": 280,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Pak Choi",
+        "genus": "m",
+        "nom": "der Pak Choi",
+        "akk": "den Pak Choi",
+        "dat": "dem Pak Choi",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Bok choy"
+      },
+      "pt": {
+        "name": "Acelga chinesa",
+        "genus": "f",
+        "art": "a Acelga chinesa"
+      },
+      "es": {
+        "name": "Pak choi",
+        "genus": "m",
+        "art": "el Pak choi"
+      }
+    },
+    {
+      "id": 281,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Rosenkohl",
+        "genus": "m",
+        "nom": "der Rosenkohl",
+        "akk": "den Rosenkohl",
+        "dat": "dem Rosenkohl",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Brussels sprouts"
+      },
+      "pt": {
+        "name": "Couve-de-bruxelas",
+        "genus": "f",
+        "art": "a Couve-de-bruxelas"
+      },
+      "es": {
+        "name": "Coles de Bruselas",
+        "genus": "f",
+        "art": "la Coles de Bruselas"
+      }
+    },
+    {
+      "id": 282,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Pastinake",
+        "genus": "f",
+        "nom": "die Pastinake",
+        "akk": "die Pastinake",
+        "dat": "der Pastinake",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Parsnip"
+      },
+      "pt": {
+        "name": "Pastinaca",
+        "genus": "f",
+        "art": "a Pastinaca"
+      },
+      "es": {
+        "name": "Chirivía",
+        "genus": "f",
+        "art": "la Chirivía"
+      }
+    },
+    {
+      "id": 283,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Schwarzwurzel",
+        "genus": "m",
+        "nom": "der Schwarzwurzel",
+        "akk": "den Schwarzwurzel",
+        "dat": "dem Schwarzwurzel",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Salsify"
+      },
+      "pt": {
+        "name": "Salsifi",
+        "genus": "m",
+        "art": "o Salsifi"
+      },
+      "es": {
+        "name": "Salsifí",
+        "genus": "m",
+        "art": "el Salsifí"
+      }
+    },
+    {
+      "id": 284,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Schwarzer Rettich",
+        "genus": "m",
+        "nom": "der Schwarzer Rettich",
+        "akk": "den Schwarzer Rettich",
+        "dat": "dem Schwarzer Rettich",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Black radish"
+      },
+      "pt": {
+        "name": "Rabanete preto",
+        "genus": "m",
+        "art": "o Rabanete preto"
+      },
+      "es": {
+        "name": "Rábano negro",
+        "genus": "m",
+        "art": "el Rábano negro"
+      }
+    },
+    {
+      "id": 285,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Radicchio",
+        "genus": "m",
+        "nom": "der Radicchio",
+        "akk": "den Radicchio",
+        "dat": "dem Radicchio",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Radicchio"
+      },
+      "pt": {
+        "name": "Radicchio",
+        "genus": "m",
+        "art": "o Radicchio"
+      },
+      "es": {
+        "name": "Radicchio",
+        "genus": "m",
+        "art": "el Radicchio"
+      }
+    },
+    {
+      "id": 286,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Endivie",
+        "genus": "f",
+        "nom": "die Endivie",
+        "akk": "die Endivie",
+        "dat": "der Endivie",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Endive"
+      },
+      "pt": {
+        "name": "Endívia",
+        "genus": "f",
+        "art": "a Endívia"
+      },
+      "es": {
+        "name": "Endibia",
+        "genus": "f",
+        "art": "la Endibia"
+      }
+    },
+    {
+      "id": 287,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Chicorée",
+        "genus": "f",
+        "nom": "die Chicorée",
+        "akk": "die Chicorée",
+        "dat": "der Chicorée",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Belgian endive"
+      },
+      "pt": {
+        "name": "Chicória belga",
+        "genus": "f",
+        "art": "a Chicória belga"
+      },
+      "es": {
+        "name": "Endibia belga",
+        "genus": "f",
+        "art": "la Endibia belga"
+      }
+    },
+    {
+      "id": 288,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Spitzkohl",
+        "genus": "m",
+        "nom": "der Spitzkohl",
+        "akk": "den Spitzkohl",
+        "dat": "dem Spitzkohl",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pointed cabbage"
+      },
+      "pt": {
+        "name": "Couve pontiaguda",
+        "genus": "f",
+        "art": "a Couve pontiaguda"
+      },
+      "es": {
+        "name": "Col puntiaguda",
+        "genus": "f",
+        "art": "la Col puntiaguda"
+      }
+    },
+    {
+      "id": 289,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Okra",
+        "genus": "m",
+        "nom": "der Okra",
+        "akk": "den Okra",
+        "dat": "dem Okra",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Okra"
+      },
+      "pt": {
+        "name": "Quiabo",
+        "genus": "m",
+        "art": "o Quiabo"
+      },
+      "es": {
+        "name": "Okra",
+        "genus": "f",
+        "art": "la Okra"
+      }
+    },
+    {
+      "id": 290,
+      "group_id": 2,
+      "group_name": "Gemüse",
+      "de": {
+        "name": "Topinambur",
+        "genus": "m",
+        "nom": "der Topinambur",
+        "akk": "den Topinambur",
+        "dat": "dem Topinambur",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Jerusalem artichoke"
+      },
+      "pt": {
+        "name": "Topinambo",
+        "genus": "m",
+        "art": "o Topinambo"
+      },
+      "es": {
+        "name": "Topinambur",
+        "genus": "m",
+        "art": "el Topinambur"
+      }
+    },
+    {
+      "id": 291,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Rhabarber",
+        "genus": "m",
+        "nom": "der Rhabarber",
+        "akk": "den Rhabarber",
+        "dat": "dem Rhabarber",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Rhubarb"
+      },
+      "pt": {
+        "name": "Ruibarbo",
+        "genus": "m",
+        "art": "o Ruibarbo"
+      },
+      "es": {
+        "name": "Ruibarbo",
+        "genus": "m",
+        "art": "el Ruibarbo"
+      }
+    },
+    {
+      "id": 292,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Granatapfel",
+        "genus": "m",
+        "nom": "der Granatapfel",
+        "akk": "den Granatapfel",
+        "dat": "dem Granatapfel",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Pomegranate"
+      },
+      "pt": {
+        "name": "Romã",
+        "genus": "m",
+        "art": "o Romã"
+      },
+      "es": {
+        "name": "Granada",
+        "genus": "f",
+        "art": "la Granada"
+      }
+    },
+    {
+      "id": 293,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Kiwi",
+        "genus": "f",
+        "nom": "die Kiwi",
+        "akk": "die Kiwi",
+        "dat": "der Kiwi",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Kiwi"
+      },
+      "pt": {
+        "name": "Kiwi",
+        "genus": "m",
+        "art": "o Kiwi"
+      },
+      "es": {
+        "name": "Kiwi",
+        "genus": "m",
+        "art": "el Kiwi"
+      }
+    },
+    {
+      "id": 294,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Pfirsich",
+        "genus": "m",
+        "nom": "der Pfirsich",
+        "akk": "den Pfirsich",
+        "dat": "dem Pfirsich",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Peach"
+      },
+      "pt": {
+        "name": "Pêssego",
+        "genus": "m",
+        "art": "o Pêssego"
+      },
+      "es": {
+        "name": "Melocotón",
+        "genus": "m",
+        "art": "el Melocotón"
+      }
+    },
+    {
+      "id": 295,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Aprikose",
+        "genus": "f",
+        "nom": "die Aprikose",
+        "akk": "die Aprikose",
+        "dat": "der Aprikose",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Apricot"
+      },
+      "pt": {
+        "name": "Damasco",
+        "genus": "m",
+        "art": "o Damasco"
+      },
+      "es": {
+        "name": "Albaricoque",
+        "genus": "m",
+        "art": "el Albaricoque"
+      }
+    },
+    {
+      "id": 296,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Brombeeren",
+        "genus": "pl",
+        "nom": "die Brombeeren",
+        "akk": "die Brombeeren",
+        "dat": "den Brombeeren",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Blackberries"
+      },
+      "pt": {
+        "name": "Amoras",
+        "genus": "f",
+        "art": "a Amoras"
+      },
+      "es": {
+        "name": "Moras",
+        "genus": "f",
+        "art": "la Moras"
+      }
+    },
+    {
+      "id": 297,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Johannisbeeren",
+        "genus": "pl",
+        "nom": "die Johannisbeeren",
+        "akk": "die Johannisbeeren",
+        "dat": "den Johannisbeeren",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Currants"
+      },
+      "pt": {
+        "name": "Groselhas",
+        "genus": "f",
+        "art": "a Groselhas"
+      },
+      "es": {
+        "name": "Grosellas",
+        "genus": "f",
+        "art": "la Grosellas"
+      }
+    },
+    {
+      "id": 298,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Cranberries",
+        "genus": "pl",
+        "nom": "die Cranberries",
+        "akk": "die Cranberries",
+        "dat": "den Cranberries",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Cranberries"
+      },
+      "pt": {
+        "name": "Oxicocos",
+        "genus": "m",
+        "art": "o Oxicocos"
+      },
+      "es": {
+        "name": "Arándanos rojos",
+        "genus": "m",
+        "art": "el Arándanos rojos"
+      }
+    },
+    {
+      "id": 299,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Maracuja",
+        "genus": "f",
+        "nom": "die Maracuja",
+        "akk": "die Maracuja",
+        "dat": "der Maracuja",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Passion fruit"
+      },
+      "pt": {
+        "name": "Maracujá",
+        "genus": "m",
+        "art": "o Maracujá"
+      },
+      "es": {
+        "name": "Maracuyá",
+        "genus": "m",
+        "art": "el Maracuyá"
+      }
+    },
+    {
+      "id": 300,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Papaya",
+        "genus": "f",
+        "nom": "die Papaya",
+        "akk": "die Papaya",
+        "dat": "der Papaya",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Papaya"
+      },
+      "pt": {
+        "name": "Mamão",
+        "genus": "m",
+        "art": "o Mamão"
+      },
+      "es": {
+        "name": "Papaya",
+        "genus": "f",
+        "art": "la Papaya"
+      }
+    },
+    {
+      "id": 301,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Feigen",
+        "genus": "pl",
+        "nom": "die Feigen",
+        "akk": "die Feigen",
+        "dat": "den Feigen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Figs"
+      },
+      "pt": {
+        "name": "Figos",
+        "genus": "m",
+        "art": "o Figos"
+      },
+      "es": {
+        "name": "Higos",
+        "genus": "m",
+        "art": "el Higos"
+      }
+    },
+    {
+      "id": 302,
+      "group_id": 4,
+      "group_name": "Obst",
+      "de": {
+        "name": "Kaki",
+        "genus": "m",
+        "nom": "der Kaki",
+        "akk": "den Kaki",
+        "dat": "dem Kaki",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Persimmon"
+      },
+      "pt": {
+        "name": "Caqui",
+        "genus": "m",
+        "art": "o Caqui"
+      },
+      "es": {
+        "name": "Caqui",
+        "genus": "m",
+        "art": "el Caqui"
+      }
+    },
+    {
+      "id": 303,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Buchweizen",
+        "genus": "m",
+        "nom": "der Buchweizen",
+        "akk": "den Buchweizen",
+        "dat": "dem Buchweizen",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Buckwheat"
+      },
+      "pt": {
+        "name": "Trigo-sarraceno",
+        "genus": "m",
+        "art": "o Trigo-sarraceno"
+      },
+      "es": {
+        "name": "Trigo sarraceno",
+        "genus": "m",
+        "art": "el Trigo sarraceno"
+      }
+    },
+    {
+      "id": 304,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Amaranth",
+        "genus": "m",
+        "nom": "der Amaranth",
+        "akk": "den Amaranth",
+        "dat": "dem Amaranth",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Amaranth"
+      },
+      "pt": {
+        "name": "Amaranto",
+        "genus": "m",
+        "art": "o Amaranto"
+      },
+      "es": {
+        "name": "Amaranto",
+        "genus": "m",
+        "art": "el Amaranto"
+      }
+    },
+    {
+      "id": 305,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Gerste (Graupen)",
+        "genus": "f",
+        "nom": "die Gerste (Graupen)",
+        "akk": "die Gerste (Graupen)",
+        "dat": "der Gerste (Graupen)",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Barley"
+      },
+      "pt": {
+        "name": "Cevada",
+        "genus": "f",
+        "art": "a Cevada"
+      },
+      "es": {
+        "name": "Cebada",
+        "genus": "f",
+        "art": "la Cebada"
+      }
+    },
+    {
+      "id": 306,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Roggenmehl",
+        "genus": "n",
+        "nom": "das Roggenmehl",
+        "akk": "das Roggenmehl",
+        "dat": "dem Roggenmehl",
+        "pron": "es"
+      },
+      "en": {
+        "name": "Rye flour"
+      },
+      "pt": {
+        "name": "Farinha de centeio",
+        "genus": "m",
+        "art": "o Farinha de centeio"
+      },
+      "es": {
+        "name": "Harina de centeno",
+        "genus": "m",
+        "art": "el Harina de centeno"
+      }
+    },
+    {
+      "id": 307,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Udon-Nudeln",
+        "genus": "m",
+        "nom": "der Udon-Nudeln",
+        "akk": "den Udon-Nudeln",
+        "dat": "dem Udon-Nudeln",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Udon noodles"
+      },
+      "pt": {
+        "name": "Macarrão udon",
+        "genus": "m",
+        "art": "o Macarrão udon"
+      },
+      "es": {
+        "name": "Fideos udon",
+        "genus": "m",
+        "art": "el Fideos udon"
+      }
+    },
+    {
+      "id": 308,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Soba-Nudeln",
+        "genus": "m",
+        "nom": "der Soba-Nudeln",
+        "akk": "den Soba-Nudeln",
+        "dat": "dem Soba-Nudeln",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Soba noodles"
+      },
+      "pt": {
+        "name": "Macarrão soba",
+        "genus": "f",
+        "art": "a Macarrão soba"
+      },
+      "es": {
+        "name": "Fideos soba",
+        "genus": "f",
+        "art": "la Fideos soba"
+      }
+    },
+    {
+      "id": 309,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Glasnudeln",
+        "genus": "pl",
+        "nom": "die Glasnudeln",
+        "akk": "die Glasnudeln",
+        "dat": "den Glasnudeln",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Glass noodles"
+      },
+      "pt": {
+        "name": "Macarrão de vidro",
+        "genus": "m",
+        "art": "o Macarrão de vidro"
+      },
+      "es": {
+        "name": "Fideos de cristal",
+        "genus": "m",
+        "art": "el Fideos de cristal"
+      }
+    },
+    {
+      "id": 310,
+      "group_id": 8,
+      "group_name": "Grundnahrungsmittel",
+      "de": {
+        "name": "Maisgrieß",
+        "genus": "m",
+        "nom": "der Maisgrieß",
+        "akk": "den Maisgrieß",
+        "dat": "dem Maisgrieß",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Corn grits"
+      },
+      "pt": {
+        "name": "Sêmola de milho",
+        "genus": "m",
+        "art": "o Sêmola de milho"
+      },
+      "es": {
+        "name": "Sémola de maíz",
+        "genus": "m",
+        "art": "el Sémola de maíz"
+      }
+    },
+    {
+      "id": 311,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Kefir",
+        "genus": "m",
+        "nom": "der Kefir",
+        "akk": "den Kefir",
+        "dat": "dem Kefir",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Kefir"
+      },
+      "pt": {
+        "name": "Kefir",
+        "genus": "m",
+        "art": "o Kefir"
+      },
+      "es": {
+        "name": "Kéfir",
+        "genus": "m",
+        "art": "el Kéfir"
+      }
+    },
+    {
+      "id": 312,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Skyr",
+        "genus": "m",
+        "nom": "der Skyr",
+        "akk": "den Skyr",
+        "dat": "dem Skyr",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Skyr"
+      },
+      "pt": {
+        "name": "Skyr",
+        "genus": "m",
+        "art": "o Skyr"
+      },
+      "es": {
+        "name": "Skyr",
+        "genus": "m",
+        "art": "el Skyr"
+      }
+    },
+    {
+      "id": 313,
+      "group_id": 3,
+      "group_name": "Milchprodukte",
+      "de": {
+        "name": "Buttermilch",
+        "genus": "f",
+        "nom": "die Buttermilch",
+        "akk": "die Buttermilch",
+        "dat": "der Buttermilch",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Buttermilk"
+      },
+      "pt": {
+        "name": "Leitelho",
+        "genus": "m",
+        "art": "o Leitelho"
+      },
+      "es": {
+        "name": "Suero de mantequilla",
+        "genus": "f",
+        "art": "la Suero de mantequilla"
+      }
+    },
+    {
+      "id": 314,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Lammkotelett",
+        "genus": "m",
+        "nom": "der Lammkotelett",
+        "akk": "den Lammkotelett",
+        "dat": "dem Lammkotelett",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Lamb chop"
+      },
+      "pt": {
+        "name": "Costeleta de cordeiro",
+        "genus": "m",
+        "art": "o Costeleta de cordeiro"
+      },
+      "es": {
+        "name": "Chuleta de cordero",
+        "genus": "m",
+        "art": "el Chuleta de cordero"
+      }
+    },
+    {
+      "id": 315,
+      "group_id": 1,
+      "group_name": "Fleisch",
+      "de": {
+        "name": "Truthahnbrust",
+        "genus": "m",
+        "nom": "der Truthahnbrust",
+        "akk": "den Truthahnbrust",
+        "dat": "dem Truthahnbrust",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Turkey breast"
+      },
+      "pt": {
+        "name": "Peito de peru",
+        "genus": "m",
+        "art": "o Peito de peru"
+      },
+      "es": {
+        "name": "Pechuga de pavo",
+        "genus": "m",
+        "art": "el Pechuga de pavo"
+      }
+    },
+    {
+      "id": 316,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Forelle",
+        "genus": "f",
+        "nom": "die Forelle",
+        "akk": "die Forelle",
+        "dat": "der Forelle",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Trout"
+      },
+      "pt": {
+        "name": "Truta",
+        "genus": "f",
+        "art": "a Truta"
+      },
+      "es": {
+        "name": "Trucha",
+        "genus": "f",
+        "art": "la Trucha"
+      }
+    },
+    {
+      "id": 317,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Makrele",
+        "genus": "f",
+        "nom": "die Makrele",
+        "akk": "die Makrele",
+        "dat": "der Makrele",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Mackerel"
+      },
+      "pt": {
+        "name": "Cavala",
+        "genus": "f",
+        "art": "a Cavala"
+      },
+      "es": {
+        "name": "Caballa",
+        "genus": "f",
+        "art": "la Caballa"
+      }
+    },
+    {
+      "id": 318,
+      "group_id": 6,
+      "group_name": "Fisch",
+      "de": {
+        "name": "Hering",
+        "genus": "m",
+        "nom": "der Hering",
+        "akk": "den Hering",
+        "dat": "dem Hering",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Herring"
+      },
+      "pt": {
+        "name": "Arenque",
+        "genus": "m",
+        "art": "o Arenque"
+      },
+      "es": {
+        "name": "Arenque",
+        "genus": "m",
+        "art": "el Arenque"
+      }
+    },
+    {
+      "id": 319,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Haselnüsse",
+        "genus": "pl",
+        "nom": "die Haselnüsse",
+        "akk": "die Haselnüsse",
+        "dat": "den Haselnüsse",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Hazelnuts"
+      },
+      "pt": {
+        "name": "Avelãs",
+        "genus": "m",
+        "art": "o Avelãs"
+      },
+      "es": {
+        "name": "Avellanas",
+        "genus": "f",
+        "art": "la Avellanas"
+      }
+    },
+    {
+      "id": 320,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Pistazien",
+        "genus": "pl",
+        "nom": "die Pistazien",
+        "akk": "die Pistazien",
+        "dat": "den Pistazien",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pistachios"
+      },
+      "pt": {
+        "name": "Pistaches",
+        "genus": "m",
+        "art": "o Pistaches"
+      },
+      "es": {
+        "name": "Pistachos",
+        "genus": "m",
+        "art": "el Pistachos"
+      }
+    },
+    {
+      "id": 321,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Macadamianüsse",
+        "genus": "pl",
+        "nom": "die Macadamianüsse",
+        "akk": "die Macadamianüsse",
+        "dat": "den Macadamianüsse",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Macadamia nuts"
+      },
+      "pt": {
+        "name": "Nozes de macadâmia",
+        "genus": "f",
+        "art": "a Nozes de macadâmia"
+      },
+      "es": {
+        "name": "Nueces de macadamia",
+        "genus": "f",
+        "art": "la Nueces de macadamia"
+      }
+    },
+    {
+      "id": 322,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Paranüsse",
+        "genus": "pl",
+        "nom": "die Paranüsse",
+        "akk": "die Paranüsse",
+        "dat": "den Paranüsse",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Brazil nuts"
+      },
+      "pt": {
+        "name": "Castanhas-do-pará",
+        "genus": "m",
+        "art": "o Castanhas-do-pará"
+      },
+      "es": {
+        "name": "Nueces de Brasil",
+        "genus": "m",
+        "art": "el Nueces de Brasil"
+      }
+    },
+    {
+      "id": 323,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Pekannüsse",
+        "genus": "pl",
+        "nom": "die Pekannüsse",
+        "akk": "die Pekannüsse",
+        "dat": "den Pekannüsse",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Pecans"
+      },
+      "pt": {
+        "name": "Nozes-pecã",
+        "genus": "m",
+        "art": "o Nozes-pecã"
+      },
+      "es": {
+        "name": "Nueces pecanas",
+        "genus": "f",
+        "art": "la Nueces pecanas"
+      }
+    },
+    {
+      "id": 324,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Sonnenblumenkerne",
+        "genus": "pl",
+        "nom": "die Sonnenblumenkerne",
+        "akk": "die Sonnenblumenkerne",
+        "dat": "den Sonnenblumenkerne",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Sunflower seeds"
+      },
+      "pt": {
+        "name": "Sementes de girassol",
+        "genus": "m",
+        "art": "o Sementes de girassol"
+      },
+      "es": {
+        "name": "Semillas de girasol",
+        "genus": "m",
+        "art": "el Semillas de girasol"
+      }
+    },
+    {
+      "id": 325,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Leinsamen",
+        "genus": "pl",
+        "nom": "die Leinsamen",
+        "akk": "die Leinsamen",
+        "dat": "den Leinsamen",
+        "pron": "sie"
+      },
+      "en": {
+        "name": "Flaxseed"
+      },
+      "pt": {
+        "name": "Linhaça",
+        "genus": "f",
+        "art": "a Linhaça"
+      },
+      "es": {
+        "name": "Linaza",
+        "genus": "f",
+        "art": "la Linaza"
+      }
+    },
+    {
+      "id": 326,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Sesam",
+        "genus": "m",
+        "nom": "der Sesam",
+        "akk": "den Sesam",
+        "dat": "dem Sesam",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Sesame seeds"
+      },
+      "pt": {
+        "name": "Gergelim",
+        "genus": "m",
+        "art": "o Gergelim"
+      },
+      "es": {
+        "name": "Sésamo",
+        "genus": "m",
+        "art": "el Sésamo"
+      }
+    },
+    {
+      "id": 327,
+      "group_id": 9,
+      "group_name": "Nüsse & Samen",
+      "de": {
+        "name": "Mohn",
+        "genus": "m",
+        "nom": "der Mohn",
+        "akk": "den Mohn",
+        "dat": "dem Mohn",
+        "pron": "ihn"
+      },
+      "en": {
+        "name": "Poppy seeds"
+      },
+      "pt": {
+        "name": "Sementes de papoula",
+        "genus": "f",
+        "art": "a Sementes de papoula"
+      },
+      "es": {
+        "name": "Semillas de amapola",
+        "genus": "f",
+        "art": "la Semillas de amapola"
+      }
+    }
+  ]
+}

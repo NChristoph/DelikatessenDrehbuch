@@ -1,0 +1,642 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Koch-Defaults pro Zutatengruppe: typische Schnittformen, Aktionsketten und Zubereitungsmethoden",
+    "languages": [
+      "de",
+      "en",
+      "pt",
+      "es"
+    ],
+    "phases": {
+      "0": "Vorbereitung",
+      "1": "Zubereitung",
+      "2": "Fertigstellung"
+    }
+  },
+  "groups": [
+    {
+      "group_id": 1,
+      "group_name_de": "Fleisch",
+      "group_name_en": "Meat",
+      "group_name_pt": "Carne",
+      "group_name_es": "Carne",
+      "typical_action_chain": [
+        "schneiden",
+        "würzen",
+        "anbraten",
+        "köcheln"
+      ],
+      "cut_styles": [
+        {
+          "id": "mundgerecht",
+          "de": "mundgerechte Stücke",
+          "en": "bite-sized pieces",
+          "pt": "pedaços pequenos",
+          "es": "trozos pequeños"
+        },
+        {
+          "id": "streifen",
+          "de": "dünne Streifen",
+          "en": "thin strips",
+          "pt": "tiras finas",
+          "es": "tiras finas"
+        },
+        {
+          "id": "scheiben",
+          "de": "Scheiben",
+          "en": "slices",
+          "pt": "fatias",
+          "es": "rodajas"
+        },
+        {
+          "id": "wuerfel",
+          "de": "Würfel",
+          "en": "cubes",
+          "pt": "cubos",
+          "es": "cubos"
+        }
+      ],
+      "default_cut": "mundgerecht",
+      "prep_methods": [
+        {
+          "id": "anbraten",
+          "de": "von allen Seiten goldbraun anbraten",
+          "en": "sear until golden brown on all sides",
+          "pt": "selar até dourar de todos os lados",
+          "es": "sellar hasta dorar por todos los lados"
+        },
+        {
+          "id": "schmoren",
+          "de": "bei niedriger Hitze schmoren",
+          "en": "braise on low heat",
+          "pt": "estufar em fogo baixo",
+          "es": "estofar a fuego lento"
+        },
+        {
+          "id": "grillen",
+          "de": "auf dem Grill zubereiten",
+          "en": "cook on the grill",
+          "pt": "preparar na grelha",
+          "es": "preparar a la parrilla"
+        }
+      ]
+    },
+    {
+      "group_id": 2,
+      "group_name_de": "Gemüse",
+      "group_name_en": "Vegetables",
+      "group_name_pt": "Legumes",
+      "group_name_es": "Verduras",
+      "typical_action_chain": [
+        "waschen",
+        "schneiden",
+        "dünsten"
+      ],
+      "cut_styles": [
+        {
+          "id": "wuerfel",
+          "de": "kleine Würfel",
+          "en": "small cubes",
+          "pt": "cubos pequenos",
+          "es": "cubos pequeños"
+        },
+        {
+          "id": "streifen",
+          "de": "Streifen",
+          "en": "strips",
+          "pt": "tiras",
+          "es": "tiras"
+        },
+        {
+          "id": "scheiben",
+          "de": "dünne Scheiben",
+          "en": "thin slices",
+          "pt": "rodelas finas",
+          "es": "rodajas finas"
+        },
+        {
+          "id": "fein",
+          "de": "feine Würfel",
+          "en": "fine cubes",
+          "pt": "cubos bem pequenos",
+          "es": "cubos muy pequeños"
+        },
+        {
+          "id": "grob",
+          "de": "grobe Stücke",
+          "en": "rough chunks",
+          "pt": "pedaços grandes",
+          "es": "trozos grandes"
+        }
+      ],
+      "default_cut": "wuerfel",
+      "sub_groups": [
+        {
+          "id": "zwiebel",
+          "ingredients": [
+            "Zwiebeln",
+            "Schalotten",
+            "Frühlingszwiebeln"
+          ],
+          "default_cut": "fein",
+          "typical_actions": [
+            "schneiden",
+            "dünsten"
+          ]
+        },
+        {
+          "id": "knoblauch",
+          "ingredients": [
+            "Knoblauchzehen"
+          ],
+          "default_cut_override": {
+            "de": "fein gehackt",
+            "en": "finely minced",
+            "pt": "picado fino",
+            "es": "picado fino"
+          },
+          "typical_actions": [
+            "hacken",
+            "dünsten"
+          ]
+        },
+        {
+          "id": "paprika",
+          "ingredients": [
+            "Paprika",
+            "Paprika (rot)",
+            "Paprika (gelb)",
+            "Paprika (grün)"
+          ],
+          "default_cut": "streifen",
+          "typical_actions": [
+            "waschen",
+            "schneiden",
+            "dünsten"
+          ]
+        },
+        {
+          "id": "wurzelgemuese",
+          "ingredients": [
+            "Karotten",
+            "Sellerie",
+            "Pastinake"
+          ],
+          "default_cut": "scheiben",
+          "typical_actions": [
+            "schneiden",
+            "kochen",
+            "dünsten"
+          ]
+        },
+        {
+          "id": "blattgemuese",
+          "ingredients": [
+            "Spinat",
+            "Blattspinat",
+            "Grünkohl",
+            "Mangold"
+          ],
+          "default_cut": "grob",
+          "typical_actions": [
+            "waschen",
+            "dünsten"
+          ]
+        },
+        {
+          "id": "zucchini_aubergine",
+          "ingredients": [
+            "Zucchini",
+            "Aubergine"
+          ],
+          "default_cut": "wuerfel",
+          "typical_actions": [
+            "waschen",
+            "schneiden",
+            "anbraten"
+          ]
+        },
+        {
+          "id": "tomate",
+          "ingredients": [
+            "Tomaten",
+            "Cherrytomaten"
+          ],
+          "default_cut": "wuerfel",
+          "typical_actions": [
+            "waschen",
+            "schneiden"
+          ]
+        }
+      ],
+      "prep_methods": [
+        {
+          "id": "duensten",
+          "de": "in etwas Öl bei mittlerer Hitze dünsten",
+          "en": "sauté in a little oil over medium heat",
+          "pt": "refogar em um pouco de azeite em fogo médio",
+          "es": "sofreír en un poco de aceite a fuego medio"
+        },
+        {
+          "id": "blanchieren",
+          "de": "kurz in kochendem Wasser blanchieren",
+          "en": "briefly blanch in boiling water",
+          "pt": "branquear brevemente em água fervente",
+          "es": "blanquear brevemente en agua hirviendo"
+        },
+        {
+          "id": "roesten",
+          "de": "im Ofen rösten",
+          "en": "roast in the oven",
+          "pt": "assar no forno",
+          "es": "asar en el horno"
+        }
+      ]
+    },
+    {
+      "group_id": 3,
+      "group_name_de": "Milchprodukte",
+      "group_name_en": "Dairy",
+      "group_name_pt": "Laticínios",
+      "group_name_es": "Lácteos",
+      "typical_action_chain": [
+        "hinzufügen",
+        "verrühren"
+      ],
+      "cut_styles": [],
+      "default_cut": null,
+      "prep_methods": [
+        {
+          "id": "einruehren",
+          "de": "unterrühren, bis eine cremige Konsistenz entsteht",
+          "en": "stir in until creamy",
+          "pt": "misturar até ficar cremoso",
+          "es": "remover hasta obtener una textura cremosa"
+        },
+        {
+          "id": "schmelzen",
+          "de": "bei niedriger Hitze schmelzen lassen",
+          "en": "melt on low heat",
+          "pt": "derreter em fogo baixo",
+          "es": "derretir a fuego lento"
+        },
+        {
+          "id": "aufschlagen",
+          "de": "steif schlagen",
+          "en": "whip until stiff",
+          "pt": "bater até ficar firme",
+          "es": "batir hasta que esté firme"
+        }
+      ]
+    },
+    {
+      "group_id": 4,
+      "group_name_de": "Obst",
+      "group_name_en": "Fruit",
+      "group_name_pt": "Frutas",
+      "group_name_es": "Frutas",
+      "typical_action_chain": [
+        "waschen",
+        "schneiden"
+      ],
+      "cut_styles": [
+        {
+          "id": "wuerfel",
+          "de": "kleine Würfel",
+          "en": "small cubes",
+          "pt": "cubos pequenos",
+          "es": "cubos pequeños"
+        },
+        {
+          "id": "scheiben",
+          "de": "dünne Scheiben",
+          "en": "thin slices",
+          "pt": "fatias finas",
+          "es": "rodajas finas"
+        },
+        {
+          "id": "spalten",
+          "de": "Spalten",
+          "en": "wedges",
+          "pt": "gomos",
+          "es": "gajos"
+        }
+      ],
+      "default_cut": "wuerfel",
+      "prep_methods": [
+        {
+          "id": "puerieren",
+          "de": "pürieren, bis eine glatte Masse entsteht",
+          "en": "purée until smooth",
+          "pt": "triturar até ficar homogéneo",
+          "es": "triturar hasta obtener una masa homogénea"
+        }
+      ]
+    },
+    {
+      "group_id": 5,
+      "group_name_de": "Gewürze",
+      "group_name_en": "Spices & Herbs",
+      "group_name_pt": "Especiarias e Ervas",
+      "group_name_es": "Especias y Hierbas",
+      "typical_action_chain": [
+        "abschmecken"
+      ],
+      "cut_styles": [
+        {
+          "id": "hacken",
+          "de": "fein gehackt",
+          "en": "finely chopped",
+          "pt": "picado fino",
+          "es": "picado fino"
+        }
+      ],
+      "default_cut": "hacken",
+      "sub_groups": [
+        {
+          "id": "frische_kraeuter",
+          "ingredients": [
+            "Basilikum (frisch)",
+            "Petersilie",
+            "Schnittlauch",
+            "Dill",
+            "Minze",
+            "Koriander (frisch)"
+          ],
+          "typical_actions": [
+            "waschen",
+            "hacken",
+            "garnieren"
+          ]
+        },
+        {
+          "id": "getrocknete_gewuerze",
+          "ingredients": [
+            "Paprikapulver (edelsüß)",
+            "Currypulver",
+            "Kreuzkümmel",
+            "Zimt"
+          ],
+          "typical_actions": [
+            "würzen",
+            "abschmecken"
+          ]
+        },
+        {
+          "id": "fluessige_gewuerze",
+          "ingredients": [
+            "Zitronensaft",
+            "Sojasauce",
+            "Worcestersauce"
+          ],
+          "typical_actions": [
+            "abschmecken",
+            "hinzufügen"
+          ]
+        }
+      ],
+      "prep_methods": [
+        {
+          "id": "abschmecken",
+          "de": "nach Geschmack hinzufügen",
+          "en": "add to taste",
+          "pt": "adicionar a gosto",
+          "es": "añadir al gusto"
+        }
+      ]
+    },
+    {
+      "group_id": 6,
+      "group_name_de": "Fisch",
+      "group_name_en": "Fish & Seafood",
+      "group_name_pt": "Peixe e Marisco",
+      "group_name_es": "Pescado y Marisco",
+      "typical_action_chain": [
+        "vorbereiten",
+        "würzen",
+        "anbraten"
+      ],
+      "cut_styles": [
+        {
+          "id": "filet",
+          "de": "Filets",
+          "en": "fillets",
+          "pt": "filetes",
+          "es": "filetes"
+        },
+        {
+          "id": "stuecke",
+          "de": "mundgerechte Stücke",
+          "en": "bite-sized pieces",
+          "pt": "pedaços pequenos",
+          "es": "trozos pequeños"
+        }
+      ],
+      "default_cut": "filet",
+      "prep_methods": [
+        {
+          "id": "anbraten",
+          "de": "auf der Hautseite knusprig braten",
+          "en": "pan-fry skin-side down until crispy",
+          "pt": "fritar com a pele para baixo até ficar crocante",
+          "es": "freír con la piel hacia abajo hasta que esté crujiente"
+        },
+        {
+          "id": "pochieren",
+          "de": "in Brühe oder Wein sanft pochieren",
+          "en": "gently poach in broth or wine",
+          "pt": "escalfar suavemente em caldo ou vinho",
+          "es": "escalfar suavemente en caldo o vino"
+        }
+      ]
+    },
+    {
+      "group_id": 7,
+      "group_name_de": "Sonstiges",
+      "group_name_en": "Miscellaneous",
+      "group_name_pt": "Diversos",
+      "group_name_es": "Diversos",
+      "typical_action_chain": [
+        "hinzufügen"
+      ],
+      "cut_styles": [],
+      "default_cut": null,
+      "sub_groups": [
+        {
+          "id": "oele",
+          "ingredients": [
+            "Olivenöl",
+            "Sonnenblumenöl",
+            "Sesamöl",
+            "Kokosöl"
+          ],
+          "typical_actions": [
+            "erhitzen"
+          ]
+        },
+        {
+          "id": "fluessigkeiten",
+          "ingredients": [
+            "Brühe",
+            "Gemüsebrühe",
+            "Hühnerbrühe",
+            "Kokosmilch",
+            "Sahne"
+          ],
+          "typical_actions": [
+            "ablöschen",
+            "hinzufügen"
+          ]
+        },
+        {
+          "id": "pasten",
+          "ingredients": [
+            "Tomatenmark",
+            "Senf",
+            "Currypaste"
+          ],
+          "typical_actions": [
+            "verrühren",
+            "hinzufügen"
+          ]
+        },
+        {
+          "id": "wein_alkohol",
+          "ingredients": [
+            "Weißwein",
+            "Rotwein",
+            "Marsala",
+            "Sherry"
+          ],
+          "typical_actions": [
+            "ablöschen"
+          ]
+        },
+        {
+          "id": "essig",
+          "ingredients": [
+            "Essig",
+            "Balsamico",
+            "Weinessig"
+          ],
+          "typical_actions": [
+            "abschmecken",
+            "dressing"
+          ]
+        },
+        {
+          "id": "sossen",
+          "ingredients": [
+            "Sojasauce",
+            "Fischsauce",
+            "Worcestersauce"
+          ],
+          "typical_actions": [
+            "abschmecken"
+          ]
+        }
+      ],
+      "prep_methods": []
+    },
+    {
+      "group_id": 8,
+      "group_name_de": "Grundnahrungsmittel",
+      "group_name_en": "Staple Foods",
+      "group_name_pt": "Alimentos Básicos",
+      "group_name_es": "Alimentos Básicos",
+      "typical_action_chain": [
+        "kochen"
+      ],
+      "cut_styles": [],
+      "default_cut": null,
+      "sub_groups": [
+        {
+          "id": "getreide",
+          "ingredients": [
+            "Reis",
+            "Pasta",
+            "Nudeln",
+            "Couscous",
+            "Quinoa"
+          ],
+          "typical_actions": [
+            "kochen"
+          ]
+        },
+        {
+          "id": "mehl_backzutaten",
+          "ingredients": [
+            "Mehl",
+            "Backpulver",
+            "Speisestärke",
+            "Hefe"
+          ],
+          "typical_actions": [
+            "mischen",
+            "teig"
+          ]
+        },
+        {
+          "id": "brot",
+          "ingredients": [
+            "Brot",
+            "Toast",
+            "Brötchen",
+            "Tortillas"
+          ],
+          "typical_actions": [
+            "anrösten",
+            "servieren"
+          ]
+        }
+      ],
+      "prep_methods": [
+        {
+          "id": "kochen",
+          "de": "in gesalzenem Wasser kochen, bis es gar ist",
+          "en": "cook in salted water until done",
+          "pt": "cozinhar em água com sal até estar pronto",
+          "es": "cocinar en agua con sal hasta que esté listo"
+        }
+      ]
+    },
+    {
+      "group_id": 9,
+      "group_name_de": "Nüsse & Samen",
+      "group_name_en": "Nuts & Seeds",
+      "group_name_pt": "Frutos Secos e Sementes",
+      "group_name_es": "Frutos Secos y Semillas",
+      "typical_action_chain": [
+        "anrösten",
+        "garnieren"
+      ],
+      "cut_styles": [
+        {
+          "id": "hacken",
+          "de": "grob gehackt",
+          "en": "roughly chopped",
+          "pt": "picado grosseiramente",
+          "es": "picado grueso"
+        },
+        {
+          "id": "ganz",
+          "de": "ganz",
+          "en": "whole",
+          "pt": "inteiro",
+          "es": "entero"
+        }
+      ],
+      "default_cut": "ganz",
+      "prep_methods": [
+        {
+          "id": "roesten",
+          "de": "in einer trockenen Pfanne ohne Fett goldbraun rösten",
+          "en": "toast in a dry pan without oil until golden",
+          "pt": "torrar numa frigideira seca sem gordura até dourar",
+          "es": "tostar en una sartén seca sin aceite hasta dorar"
+        }
+      ]
+    }
+  ]
+}
