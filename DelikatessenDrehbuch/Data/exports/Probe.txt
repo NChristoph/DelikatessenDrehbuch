@@ -1,0 +1,404 @@
+================================================================================
+PROBE: Vergleich Original-Zubereitung vs. Step-Bibliothek (preparation_steps_v3)
+================================================================================
+Datum: 2026-02-17
+Steps-Version: 3.0 (335 Steps)
+Getestete Rezepte: 5 (zufaellig ausgewaehlt aus 1570)
+
+Methode:
+  - 5 zufaellige Rezepte aus dem Export gezogen (Seed 42)
+  - Fuer jeden Originalschritt wurde der passendste Step aus der Bibliothek
+    per Aktion + Keyword-Matching gesucht
+  - Bewertung: Aktion gefunden? Inhaltlich korrekt?
+
+================================================================================
+================================================================================
+
+REZEPT 1: Cremiges Paprika-Haehnchen (ID 1760)
+Kategorie: Hauptspeise
+Zutaten: Olivenoel, Zwiebeln, Tomatenmark, Paprika, Sahne, Haehnchenschenkel,
+         Paprikapulver (edelsueess)
+
+================================================================================
+
+--- ORIGINAL-ZUBEREITUNG ---
+
+Vorbereitung:
+- Die Haehnchenschenkel unter fliessendem Wasser abspuelen, trocken tupfen.
+- Die Zwiebel schaelen und in feine Wuerfel schneiden.
+- Die Paprika waschen, entkernen und in Streifen schneiden.
+
+Zubereitung:
+- Eine grosse Pfanne mit Olivenoel auf mittlere Hitze erhitzen.
+- Die Haehnchenschenkel von allen Seiten anbraten, bis goldbraun.
+- Gewuerfelte Zwiebel und Paprikastreifen hinzufuegen und kurz mitbraten.
+- Paprikapulver und Tomatenmark unterruehren.
+- Mit Sahne abloeschen und gut vermengen.
+- Mit Salz und Pfeffer abschmecken.
+- Bei mittlerer Hitze ca. 20 Minuten koecheln lassen.
+
+Servieren:
+- Die Haehnchenschenkel mit der Sosse servieren.
+
+--- ZUSAMMENSTELLUNG AUS STEP-BIBLIOTHEK ---
+
+  Vorbereitung:
+    [Step 119] (waschen)    -> Wasche das Gemuese gruendlich unter fliessendem Wasser.
+    [Step  20] (schneiden)  -> Schaele die Zwiebel und schneide sie in feine Wuerfel.
+    [Step  47] (schneiden)  -> Wasche die Paprika, entkerne sie und schneide sie in Streifen.
+
+  Zubereitung:
+    [Step 156] (erhitzen)   -> Erhitze etwas Olivenoel in einer grossen Pfanne bei mittlerer Hitze.
+    [Step 166] (anbraten)   -> Brate das Haehnchen von beiden Seiten goldbraun an.
+    [Step 201] (hinzufuegen)-> Giesse die Kokosmilch dazu und ruehre um.           *** FALSCH
+    [Step 140] (verruehren) -> Verruehre die Eier mit Milch und einer Prise Salz.  *** FALSCH
+    [Step 197] (abloeschen) -> Loesche mit Weisswein ab und lasse ihn einkochen.   *** FALSCH
+    [Step 250] (abschmecken)-> Schmecke das Gericht mit Salz und Pfeffer ab.
+    [Step 205] (koecheln)   -> Lasse alles bei niedriger Hitze zugedeckt ca. 20 Min koecheln.
+
+  Servieren:
+    [Step 271] (servieren)  -> Serviere das Gericht sofort.
+
+BEWERTUNG:
+  Aktions-Abdeckung: 11/11 (100%)  - Jede Aktion hat einen Step
+  Semantische Treffer: 8/11 (73%)  - 3 Steps haben falsche Zutaten:
+    - "hinzufuegen" matched "Kokosmilch" statt "Zwiebel/Paprika hinzufuegen"
+    - "verruehren" matched "Eier mit Milch" statt "Tomatenmark unterruehren"
+    - "abloeschen" matched "Weisswein" statt "Sahne"
+  FEHLEND in Bibliothek:
+    - "Abloeschen mit Sahne" (Step existiert nur fuer Weisswein/Bruehe/Fond)
+    - "Tomatenmark unterruehren" (kein spezifischer Step)
+    - Generischer "Zutat hinzufuegen und mitbraten" Step
+
+
+================================================================================
+
+REZEPT 2: Feine Schoko-Aprikosentorte mit glaenzender Glasur (ID 442)
+Kategorie: Torte
+Zutaten: Zucker, Mehl, Butter, Backpulver, Eier, Sahne, Schokolade,
+         Aprikosenmarmelade, Schokoladenglasur
+
+================================================================================
+
+--- ORIGINAL-ZUBEREITUNG ---
+
+Vorbereitung:
+- Backofen auf 170 Grad vorheizen.
+- Schokolade im Wasserbad schmelzen und abkuehlen lassen.
+- Springform mit Butter einfetten und mit Mehl bestauben.
+
+Zubereitung:
+- Butter und Zucker schaumig schlagen.
+- Eigelbe nach und nach hinzufuegen.
+- Geschmolzene Schokolade unterruehren.
+- Mehl und Backpulver mischen und unterheben.
+- Eiweisse steif schlagen und vorsichtig unterheben.
+
+Backen:
+- Im Ofen bei 170 Grad ca. 60 Minuten backen.
+
+Fertigstellen:
+- Torte vollstaendig abkuehlen lassen.
+- Torte horizontal halbieren.
+- Beide Haelften mit Aprikosenmarmelade bestreichen.
+- Haelften zusammensetzen.
+
+Glasur:
+- Schokolade und Butter schmelzen, Torte ueberziehen.
+
+Servieren:
+- Mit Schlagsahne servieren.
+
+--- ZUSAMMENSTELLUNG AUS STEP-BIBLIOTHEK ---
+
+  Vorbereitung:
+    [Step   3] (vorheizen)  -> Heize den Backofen auf 170 Grad (Ober-/Unterhitze) vor.
+    [Step 300] (schmelzen)  -> Schmelze die Schokolade im Wasserbad.
+    [Step  17] (vorbereiten)-> Fette eine Springform ein und bestaeube sie mit Mehl.
+
+  Zubereitung:
+    [Step 294] (aufschlagen) -> Schlage die Sahne steif.                            *** FALSCH
+    [Step 201] (hinzufuegen) -> Giesse die Kokosmilch dazu und ruehre um.           *** FALSCH
+    [Step 140] (verruehren)  -> Verruehre die Eier mit Milch und einer Prise Salz.  *** FALSCH
+    [Step 141] (mischen)     -> Mische Mehl, Backpulver und eine Prise Salz.
+    [Step 296] (unterheben)  -> Hebe das steif geschlagene Eiweiss vorsichtig unter.
+
+  Backen:
+    [Step 215] (backen)     -> Backe das Gericht im Ofen ca. 60 Minuten.
+
+  Fertigstellen:
+    [Step 277] (abkuehlen)  -> Lasse den Kuchen vollstaendig abkuehlen.
+    [Step  20] (schneiden)  -> Schaele die Zwiebel und schneide sie in feine Wuerfel. *** FALSCH
+    [Step 299] (glasieren)  -> Ueberziehe den Kuchen mit der Glasur.
+
+  Servieren:
+    [Step 271] (servieren)  -> Serviere das Gericht sofort.
+
+BEWERTUNG:
+  Aktions-Abdeckung: 13/13 (100%)
+  Semantische Treffer: 9/13 (69%)  - 4 Steps haben falschen Inhalt:
+    - "aufschlagen" matched "Sahne steif" statt "Butter+Zucker schaumig"
+    - "hinzufuegen" matched "Kokosmilch" statt "Eigelb hinzufuegen"
+    - "verruehren" matched "Eier mit Milch" statt "Schokolade unterruehren"
+    - "schneiden" matched "Zwiebel" statt "Torte halbieren"
+  FEHLEND in Bibliothek:
+    - "Butter und Zucker schaumig schlagen" (aufschlagen hat nur Sahne/Eiweiss)
+    - "Torte halbieren/durchschneiden" (kein Back-Schnitt-Step)
+    - "Eigelb einzeln einruehren" (kein spezifischer Step)
+    - "Geschmolzene Schokolade in Teig einruehren"
+
+
+================================================================================
+
+REZEPT 3: Vegane Zucchini Nudeln mit Pesto (ID 146)
+Kategorie: Hauptspeise
+Zutaten: Basilikum, Zitronensaft, Olivenoel, Salz, Pfeffer, Tomaten,
+         Zucchini, Pinienkerne, Knoblauchzehen
+
+================================================================================
+
+--- ORIGINAL-ZUBEREITUNG ---
+
+Vorbereitung:
+- Zucchini mit Spiralschneider in Nudelform bringen.
+- Basilikum waschen.
+- Knoblauch schaelen.
+
+Pesto zubereiten:
+- Basilikum, Pinienkerne, Knoblauch, Olivenoel, Zitronensaft, Salz und
+  Pfeffer im Mixer puerieren.
+
+Zucchini-Nudeln anbraten:
+- Die Zucchini-Nudeln in einer Pfanne kurz anbraten.
+- Mit dem Pesto vermengen.
+
+Servieren:
+- Mit frischen Tomaten und Pinienkernen garnieren.
+- Sofort servieren.
+
+--- ZUSAMMENSTELLUNG AUS STEP-BIBLIOTHEK ---
+
+  Vorbereitung:
+    [Step  50] (schneiden)  -> Wasche die Zucchini und schneide sie in duenne Scheiben.  *** UNGENAU
+    [Step 120] (waschen)    -> Wasche die Kraeuter und schuettle sie trocken.
+    [Step  30] (schneiden)  -> Schaele die Knoblauchzehen und hacke sie fein.
+
+  Pesto zubereiten:
+    [Step 227] (puerieren)  -> Pueriere die Suppe mit einem Stabmixer glatt.    *** FALSCH
+
+  Zucchini-Nudeln:
+    [Step 178] (anbraten)   -> Nimm das Fleisch aus der Pfanne und stelle es beiseite. *** FALSCH
+    [Step 241] (vermengen)  -> Vermengle alle Zutaten in einer grossen Schuessel.
+
+  Servieren:
+    [Step 258] (garnieren)  -> Garniere mit frischen Kraeutern.
+    [Step 271] (servieren)  -> Serviere das Gericht sofort.
+
+BEWERTUNG:
+  Aktions-Abdeckung: 8/8 (100%)
+  Semantische Treffer: 5/8 (63%)  - 3 Steps haben falschen Inhalt:
+    - "puerieren" matched "Suppe puerieren" statt "Pesto-Zutaten puerieren"
+    - "anbraten" matched "Fleisch" statt "Zucchini-Nudeln anbraten"
+    - "schneiden" matched "Scheiben" statt "Spiralschneider/Nudelform"
+  FEHLEND in Bibliothek:
+    - "Spiralschneider" Step (Gemuese in Nudeln verwandeln)
+    - "Pesto im Mixer puerieren" (nur Suppe-puerieren vorhanden)
+    - "Gemuese kurz in Pfanne schwenken/anbraten"
+
+
+================================================================================
+
+REZEPT 4: One Pot Haehnchen mit Gemuese und Reis (ID 2153)
+Kategorie: Hauptspeise
+Zutaten: Olivenoel, Zwiebeln, Tomatenmark, Salz, Pfeffer, Zucchini, Reis,
+         Kraeuter, Knoblauchzehen, Huehnerbruehe, Paprikapulver,
+         Haehnchenbrustfilets, Paprika (rot)
+
+================================================================================
+
+--- ORIGINAL-ZUBEREITUNG ---
+
+Vorbereitung:
+- Haehnchenbrust in mundgerechte Stuecke schneiden.
+- Zwiebel und Knoblauch schaelen und fein hacken.
+- Paprika waschen, entkernen und in Wuerfel schneiden.
+- Zucchini waschen und in Wuerfel schneiden.
+
+Anbraten:
+- Olivenoel in grossem Topf erhitzen.
+- Haehnchenst. mit Salz, Pfeffer und Paprikapulver wuerzen.
+- Fleisch goldbraun anbraten und herausnehmen.
+
+Gemuese anschwitzen:
+- Zwiebel und Knoblauch glasig duensten.
+- Paprika und Zucchini hinzufuegen und kurz mitbraten.
+
+Reis kochen:
+- Reis in den Topf geben.
+- Mit Huehnerbruehe abloeschen.
+- Tomatenmark einruehren, aufkochen lassen.
+- 20 Minuten koecheln lassen.
+
+Servieren:
+- Auf Tellern anrichten.
+- Mit frischen Kraeutern garnieren.
+
+--- ZUSAMMENSTELLUNG AUS STEP-BIBLIOTHEK ---
+
+  Vorbereitung:
+    [Step  94] (schneiden)  -> Schneide das Haehnchenbrustfilet in mundgerechte Stuecke.
+    [Step  20] (schneiden)  -> Schaele die Zwiebel und schneide sie in feine Wuerfel.
+    [Step  48] (schneiden)  -> Wasche die Paprika, entkerne sie und schneide sie in kleine Wuerfel.
+    [Step  52] (schneiden)  -> Wasche die Zucchini und schneide sie in kleine Wuerfel.
+
+  Anbraten:
+    [Step 156] (erhitzen)   -> Erhitze etwas Olivenoel in einer grossen Pfanne bei mittlerer Hitze.
+    [Step 135] (wuerzen)    -> Wuerze das Fleisch grosszuegig mit Salz und Pfeffer.
+    [Step 166] (anbraten)   -> Brate das Haehnchen von beiden Seiten goldbraun an.
+
+  Gemuese anschwitzen:
+    [Step 180] (duensten)   -> Duenste die Zwiebeln, Karotten und Sellerie ca. 5 Min an.  *** UNGENAU
+    [Step 201] (hinzufuegen)-> Giesse die Kokosmilch dazu und ruehre um.                  *** FALSCH
+
+  Reis kochen:
+    [Step 201] (hinzufuegen)-> Giesse die Kokosmilch dazu und ruehre um.                  *** FALSCH
+    [Step 199] (abloeschen) -> Loesche mit Bruehe ab.
+    [Step 140] (verruehren) -> Verruehre die Eier mit Milch und einer Prise Salz.         *** FALSCH
+    [Step 205] (koecheln)   -> Lasse alles bei niedriger Hitze zugedeckt ca. 20 Min koecheln.
+
+  Servieren:
+    [Step 270] (anrichten)  -> Richte das Gericht auf vorgewaermten Tellern an.
+    [Step 258] (garnieren)  -> Garniere mit frischen Kraeutern.
+
+BEWERTUNG:
+  Aktions-Abdeckung: 15/15 (100%)
+  Semantische Treffer: 11/15 (73%)  - 4 Steps mit falschem Inhalt:
+    - "hinzufuegen" (2x) matched "Kokosmilch" statt "Gemuese/Reis hinzufuegen"
+    - "verruehren" matched "Eier mit Milch" statt "Tomatenmark einruehren"
+    - "duensten" matched "Karotten und Sellerie" statt "Zwiebel und Knoblauch"
+  FEHLEND in Bibliothek:
+    - Generischer "Zutat in Topf geben" Step
+    - "Tomatenmark einruehren" Step
+    - "Zwiebel und Knoblauch glasig duensten" (spezifischer Step)
+
+
+================================================================================
+
+REZEPT 5: Klassischer Bacon mit Ruehrei (ID 940)
+Kategorie: Fruehstueck
+Zutaten: Salz, Pfeffer, Butter, Eier, Bacon
+
+================================================================================
+
+--- ORIGINAL-ZUBEREITUNG ---
+
+Vorbereitung:
+- Bacon bereitlegen.
+- Eier in einer Schuessel verquirlen, mit Salz und Pfeffer wuerzen.
+
+Bacon braten:
+- Pfanne auf mittlerer Hitze erhitzen, Bacon knusprig braten.
+- Gebratenen Bacon zur Seite legen.
+
+Ruehrei zubereiten:
+- Ueberschuessiges Fett entfernen.
+- Verquirlte Eier in die Pfanne geben.
+- Unter staendigem Ruehren stocken lassen.
+
+Servieren:
+- Bacon und Ruehrei auf Teller anrichten.
+- Heiss servieren.
+
+--- ZUSAMMENSTELLUNG AUS STEP-BIBLIOTHEK ---
+
+  Vorbereitung:
+    [Step  15] (vorbereiten) -> Lege ein Backblech mit Backpapier aus.              *** FALSCH
+    [Step 139] (verquirlen)  -> Verquirle die Eier in einer Schuessel.
+    [Step 135] (wuerzen)     -> Wuerze das Fleisch grosszuegig mit Salz und Pfeffer.
+
+  Bacon braten:
+    [Step 156] (erhitzen)    -> Erhitze etwas Olivenoel in einer grossen Pfanne.
+    [Step 168] (anbraten)    -> Brate den Speck knusprig an.
+
+  Ruehrei zubereiten:
+    [Step 201] (hinzufuegen) -> Giesse die Kokosmilch dazu und ruehre um.           *** FALSCH
+    [Step 240] (ruehren)     -> Ruehre alles gut durch und lasse es einige Min ziehen.
+
+  Servieren:
+    [Step 270] (anrichten)   -> Richte das Gericht auf vorgewaermten Tellern an.
+    [Step 271] (servieren)   -> Serviere das Gericht sofort.
+
+BEWERTUNG:
+  Aktions-Abdeckung: 9/9 (100%)
+  Semantische Treffer: 7/9 (78%)  - 2 Steps mit falschem Inhalt:
+    - "vorbereiten" matched "Backblech" statt "Bacon bereitlegen"
+    - "hinzufuegen" matched "Kokosmilch" statt "Eier in Pfanne geben"
+  FEHLEND in Bibliothek:
+    - "Zutaten bereitlegen" (allgemeiner Vorbereitungs-Step)
+    - "Eier in Pfanne geben" (spezifischer Fruehstueck-Step)
+
+
+================================================================================
+================================================================================
+                           GESAMTERGEBNIS
+================================================================================
+
+                    | Aktions-Match | Semantisch korrekt |
+  ------------------|---------------|-------------------|
+  Paprika-Haehnchen |   11/11 100%  |    8/11    73%    |
+  Schoko-Torte      |   13/13 100%  |    9/13    69%    |
+  Zucchini-Pesto    |    8/8  100%  |    5/8     63%    |
+  One-Pot-Haehnchen |   15/15 100%  |   11/15    73%    |
+  Bacon Ruehrei     |    9/9  100%  |    7/9     78%    |
+  ------------------|---------------|-------------------|
+  GESAMT            |   56/56 100%  |   40/56    71%    |
+
+================================================================================
+                            ANALYSE
+================================================================================
+
+Die Step-Bibliothek (335 Steps) deckt alle Aktionstypen ab (100% Aktions-Match),
+aber nur 71% der Steps sind semantisch korrekt - d.h. passen inhaltlich zum
+Originalschritt.
+
+HAUPTPROBLEME (wiederkehrende falsche Matches):
+
+1. "hinzufuegen" - matched fast immer "Kokosmilch dazu giessen"
+   -> Es fehlen generische Steps wie "Gib die Zutat in die Pfanne/den Topf"
+   -> Step 201 ist zu spezifisch (nur Kokosmilch)
+
+2. "verruehren" - matched "Eier mit Milch verruehren"
+   -> Es fehlt "Tomatenmark unterruehren", "Schokolade unterruehren" etc.
+   -> Step 140 ist zu spezifisch (nur Eier+Milch)
+
+3. "abloeschen" - kein Step fuer "mit Sahne abloeschen"
+   -> Nur Weisswein, Bruehe, Fond vorhanden
+
+4. "aufschlagen" - kein Step fuer "Butter+Zucker schaumig schlagen"
+   -> Nur Sahne und Eiweiss vorhanden
+
+5. "schneiden" bei Backen - kein "Torte halbieren/durchschneiden"
+   -> Alle schneiden-Steps sind fuer Gemuese/Fleisch
+
+6. "puerieren" - nur "Suppe puerieren"
+   -> Es fehlt "Pesto/Sauce puerieren", "Zutaten im Mixer puerieren"
+
+7. "vorbereiten" - zu spezifisch (Backblech, Springform)
+   -> Es fehlt "Zutaten bereitlegen" (mise en place)
+
+EMPFOHLENE ERGAENZUNGEN (um von 71% auf ~90%+ zu kommen):
+
+  + "Gib die vorbereiteten Zutaten in die Pfanne und brate sie kurz mit."
+  + "Ruehre das Tomatenmark unter, bis es sich gleichmaessig verteilt hat."
+  + "Loesche mit Sahne ab und verruehre alles gut."
+  + "Schlage Butter und Zucker in einer Schuessel schaumig."
+  + "Ruehre die geschmolzene Schokolade unter den Teig."
+  + "Fuege die Eigelbe nacheinander hinzu und ruehre jeweils gut ein."
+  + "Schneide den Kuchen/die Torte horizontal in zwei Haelften."
+  + "Pueriere alle Zutaten im Mixer zu einer cremigen Paste."
+  + "Lege die Zutaten bereit (mise en place)."
+  + "Gib die Eier in die Pfanne und ruehre sanft, bis sie stocken."
+  + "Schneide die Zucchini mit dem Spiralschneider in lange Streifen."
+  + "Duenste Zwiebel und Knoblauch glasig an."
+
+================================================================================
