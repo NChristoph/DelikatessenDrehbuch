@@ -1,0 +1,779 @@
+{
+  "version": "2.0",
+  "generated_from": "ingredients_and_nutrients (new IDs)",
+  "scoring": {
+    "description": "Score pro Kategorie anhand gematchter ingredient_id aus der neuen ingredients_and_nutrients Liste.",
+    "formula": "score_percent = (sum(weights of matched IDs) / sum(all category weights)) * 100",
+    "normalization": "0-100% pro Kategorie"
+  },
+  "categories": [
+    {
+      "id": "lasagne",
+      "display_name": {
+        "de": "Lasagne",
+        "en": "Lasagna",
+        "prt": "Lasanha",
+        "esp": "Lasaña"
+      },
+      "typical_ingredients": [
+        2,
+        114,
+        14,
+        39,
+        40,
+        32,
+        5,
+        27,
+        113,
+        218,
+        220,
+        11,
+        198,
+        82
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 2,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 14,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 39,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 40,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 32,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 5,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 27,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 113,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 218,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 220,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.35
+        },
+        {
+          "ingredient_id": 198,
+          "weight": 0.35
+        },
+        {
+          "ingredient_id": 82,
+          "weight": 0.25
+        }
+      ]
+    },
+    {
+      "id": "eintopf",
+      "display_name": {
+        "de": "Eintopf",
+        "en": "Stew",
+        "prt": "Ensopado",
+        "esp": "Guiso"
+      },
+      "typical_ingredients": [
+        20,
+        15,
+        11,
+        149,
+        80,
+        14,
+        65,
+        161,
+        117,
+        94,
+        116,
+        127,
+        79
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 20,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 15,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 149,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 80,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 14,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 65,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 161,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 117,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 94,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 116,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 127,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 79,
+          "weight": 0.25
+        }
+      ]
+    },
+    {
+      "id": "pasta_gericht",
+      "display_name": {
+        "de": "Pasta Gericht",
+        "en": "Pasta Dish",
+        "prt": "Prato de Massa",
+        "esp": "Plato de Pasta"
+      },
+      "typical_ingredients": [
+        2,
+        10,
+        198,
+        114,
+        40,
+        7,
+        82,
+        52,
+        39
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 2,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 10,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 198,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 40,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 7,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 82,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 52,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 39,
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "braten",
+      "display_name": {
+        "de": "Braten",
+        "en": "Roast",
+        "prt": "Assado",
+        "esp": "Asado"
+      },
+      "typical_ingredients": [
+        105,
+        104,
+        95,
+        94,
+        31,
+        15,
+        11,
+        80,
+        119,
+        78,
+        13,
+        81,
+        161
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 105,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 104,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 95,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 94,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 31,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 15,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 80,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 119,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 78,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 13,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 81,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 161,
+          "weight": 0.55
+        }
+      ]
+    },
+    {
+      "id": "pfannengericht",
+      "display_name": {
+        "de": "Pfannengericht",
+        "en": "Pan Dish",
+        "prt": "Prato de Frigideira",
+        "esp": "Plato de Sartén"
+      },
+      "typical_ingredients": [
+        22,
+        89,
+        64,
+        65,
+        66,
+        86,
+        11,
+        198,
+        87,
+        195,
+        3,
+        186
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 22,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 89,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 64,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 65,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 66,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 86,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 198,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 87,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 195,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 3,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 186,
+          "weight": 0.65
+        }
+      ]
+    },
+    {
+      "id": "salat",
+      "display_name": {
+        "de": "Salat",
+        "en": "Salad",
+        "prt": "Salada",
+        "esp": "Ensalada"
+      },
+      "typical_ingredients": [
+        4,
+        84,
+        51,
+        83,
+        19,
+        136,
+        137,
+        144,
+        159,
+        10,
+        9
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 4,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 84,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 51,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 83,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 19,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 136,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 137,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 144,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 159,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 10,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 9,
+          "weight": 0.55
+        }
+      ]
+    },
+    {
+      "id": "suppe",
+      "display_name": {
+        "de": "Suppe",
+        "en": "Soup",
+        "prt": "Sopa",
+        "esp": "Sopa"
+      },
+      "typical_ingredients": [
+        117,
+        207,
+        11,
+        15,
+        20,
+        149,
+        80,
+        33,
+        277,
+        276
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 117,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 207,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 15,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 20,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 149,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 80,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 33,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 277,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 276,
+          "weight": 0.8
+        }
+      ]
+    },
+    {
+      "id": "curry",
+      "display_name": {
+        "de": "Curry",
+        "en": "Curry",
+        "prt": "Caril",
+        "esp": "Curry"
+      },
+      "typical_ingredients": [
+        67,
+        68,
+        69,
+        71,
+        70,
+        63,
+        11,
+        198,
+        65,
+        22,
+        154,
+        257
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 67,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 68,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 69,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 71,
+          "weight": 0.7
+        },
+        {
+          "ingredient_id": 70,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 63,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 198,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 65,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 22,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 154,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 257,
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "pizza",
+      "display_name": {
+        "de": "Pizza",
+        "en": "Pizza",
+        "prt": "Pizza",
+        "esp": "Pizza"
+      },
+      "typical_ingredients": [
+        5,
+        176,
+        75,
+        10,
+        114,
+        39,
+        40,
+        51,
+        7,
+        82
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 5,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 176,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 75,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 10,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 114,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 39,
+          "weight": 0.85
+        },
+        {
+          "ingredient_id": 40,
+          "weight": 0.65
+        },
+        {
+          "ingredient_id": 51,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 7,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 82,
+          "weight": 0.45
+        }
+      ]
+    },
+    {
+      "id": "risotto",
+      "display_name": {
+        "de": "Risotto",
+        "en": "Risotto",
+        "prt": "Risoto",
+        "esp": "Risotto"
+      },
+      "typical_ingredients": [
+        135,
+        81,
+        11,
+        27,
+        40,
+        117,
+        124,
+        77,
+        211,
+        15
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 135,
+          "weight": 1.0
+        },
+        {
+          "ingredient_id": 81,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 27,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 40,
+          "weight": 0.75
+        },
+        {
+          "ingredient_id": 117,
+          "weight": 0.8
+        },
+        {
+          "ingredient_id": 124,
+          "weight": 0.6
+        },
+        {
+          "ingredient_id": 77,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 211,
+          "weight": 0.55
+        },
+        {
+          "ingredient_id": 15,
+          "weight": 0.45
+        }
+      ]
+    },
+    {
+      "id": "burger",
+      "display_name": {
+        "de": "Burger",
+        "en": "Burger",
+        "prt": "Hambúrguer",
+        "esp": "Hamburguesa"
+      },
+      "typical_ingredients": [
+        218,
+        219,
+        220,
+        11,
+        198,
+        85,
+        43,
+        97,
+        96,
+        84,
+        51
+      ],
+      "ingredient_weights": [
+        {
+          "ingredient_id": 218,
+          "weight": 0.95
+        },
+        {
+          "ingredient_id": 219,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 220,
+          "weight": 0.9
+        },
+        {
+          "ingredient_id": 11,
+          "weight": 0.5
+        },
+        {
+          "ingredient_id": 198,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 85,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 43,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 97,
+          "weight": 0.45
+        },
+        {
+          "ingredient_id": 96,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 84,
+          "weight": 0.4
+        },
+        {
+          "ingredient_id": 51,
+          "weight": 0.4
+        }
+      ]
+    }
+  ]
+}
