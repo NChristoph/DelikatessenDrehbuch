@@ -12,19 +12,26 @@
     'use strict';
 
     let mappingData = null;
+    let categoryScoringData = null;
     let mappingLoaded = false;
     let loadingPromise = null;
 
-    /** Load the mapping JSON (cached after first load) */
+    /** Load mapping JSON files (cached after first load) */
     function loadMapping() {
         if (loadingPromise) return loadingPromise;
-        loadingPromise = fetch('/data/recipe_step_mapping.json')
-            .then(r => r.json())
-            .then(data => {
-                mappingData = data;
-                mappingLoaded = true;
-                return data;
-            });
+
+        loadingPromise = Promise.all([
+            fetch('/data/recipe_step_mapping.json').then(r => r.json()),
+            fetch('/data/recipe_category_scoring.json')
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+        ]).then(([stepData, categoryData]) => {
+            mappingData = stepData;
+            categoryScoringData = categoryData;
+            mappingLoaded = true;
+            return { stepData, categoryData };
+        });
+
         return loadingPromise;
     }
 
@@ -34,6 +41,9 @@
      * Score = percentage of signature ingredients matched (weighted by specificity)
      */
     function detectRecipeTypes(selectedIngredientIds) {
+        const categoryResults = detectRecipeTypesFromCategoryScoring(selectedIngredientIds);
+        if (categoryResults.length) return categoryResults;
+
         if (!mappingData || !mappingData.recipe_type_templates) return [];
         const selectedSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)));
 
@@ -68,6 +78,53 @@
                 totalSignature: sigs.length
             });
         }
+
+        results.sort((a, b) => b.score - a.score);
+        return results;
+    }
+
+    /**
+     * Preferred recipe-type detection using recipe_category_scoring.json (new ingredients_and_nutrients IDs).
+     */
+    function detectRecipeTypesFromCategoryScoring(selectedIngredientIds) {
+        if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return [];
+
+        const selectedSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+        const results = [];
+
+        categoryScoringData.categories.forEach(cat => {
+            const weights = Array.isArray(cat.ingredient_weights) ? cat.ingredient_weights : [];
+            if (!weights.length) return;
+
+            let weightedTotal = 0;
+            let weightedMatched = 0;
+            let matchedCount = 0;
+
+            weights.forEach(item => {
+                const ingredientId = parseInt(item.ingredient_id, 10);
+                const weight = Number(item.weight || 0);
+                if (isNaN(ingredientId) || weight <= 0) return;
+
+                weightedTotal += weight;
+                if (selectedSet.has(ingredientId)) {
+                    weightedMatched += weight;
+                    matchedCount += 1;
+                }
+            });
+
+            if (matchedCount === 0 || weightedTotal <= 0) return;
+
+            const score = Math.round((weightedMatched / weightedTotal) * 100);
+            const localizedName = cat?.display_name?.de || cat?.display_name?.en || cat.id || 'Unbekannt';
+
+            results.push({
+                type: cat.id,
+                name: localizedName,
+                score: score,
+                matchedSignatureCount: matchedCount,
+                totalSignature: weights.length
+            });
+        });
 
         results.sort((a, b) => b.score - a.score);
         return results;
