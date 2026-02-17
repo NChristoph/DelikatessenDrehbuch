@@ -315,6 +315,63 @@ namespace DelikatessenDrehbuch.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ImportStepTranslationsAsync()
+        {
+            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "exports", "step_templates.json");
+            if (!System.IO.File.Exists(jsonPath))
+            {
+                TempData["ExportJsonMessage"] = "Fehler: step_templates.json nicht gefunden.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var json = await System.IO.File.ReadAllTextAsync(jsonPath);
+            var root = JsonSerializer.Deserialize<StepTemplateJsonRoot>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (root?.StepTemplates == null || root.StepTemplates.Count == 0)
+            {
+                TempData["ExportJsonMessage"] = "Fehler: Keine step_templates im JSON gefunden.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var dbSteps = await _context.RecipePreperationSteps.ToListAsync();
+            var dbStepDict = dbSteps.ToDictionary(s => s.Id);
+
+            int updated = 0, notFound = 0, deMismatches = 0;
+            var missingIds = new List<int>();
+
+            foreach (var template in root.StepTemplates)
+            {
+                if (dbStepDict.TryGetValue(template.Id, out var dbStep))
+                {
+                    if (!string.Equals(dbStep.Step_DE?.Trim(), template.De?.Trim(), StringComparison.Ordinal))
+                        deMismatches++;
+                    dbStep.Step_EN  = template.En;
+                    dbStep.Step_PRT = template.Pt;
+                    dbStep.Step_ESP = template.Es;
+                    updated++;
+                }
+                else
+                {
+                    notFound++;
+                    missingIds.Add(template.Id);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await BuildAndSaveStepMappingAsync();
+
+            var message = $"Step-Übersetzungen importiert: {updated} aktualisiert";
+            if (notFound > 0)
+                message += $", {notFound} nicht in DB (IDs: {string.Join(", ", missingIds.Take(20))})";
+            if (deMismatches > 0)
+                message += $", {deMismatches} DE-Abweichungen (Deutsch wurde nicht überschrieben)";
+
+            TempData["ExportJsonMessage"] = message;
+            return RedirectToAction(nameof(Index));
+        }
+
         private async Task<string> BuildAndSaveStepMappingAsync()
         {
             // ── 1. Daten aus DB laden ─────────────────────────────────────────
@@ -586,6 +643,30 @@ namespace DelikatessenDrehbuch.Controllers
             public int OldId { get; set; }
             public string Name { get; set; } = string.Empty;
             public int? NewId { get; set; }
+        }
+
+        private sealed class StepTemplateJsonRoot
+        {
+            [JsonPropertyName("step_templates")]
+            public List<StepTemplateDto> StepTemplates { get; set; } = new();
+        }
+
+        private sealed class StepTemplateDto
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+
+            [JsonPropertyName("de")]
+            public string De { get; set; } = string.Empty;
+
+            [JsonPropertyName("en")]
+            public string En { get; set; } = string.Empty;
+
+            [JsonPropertyName("pt")]
+            public string Pt { get; set; } = string.Empty;
+
+            [JsonPropertyName("es")]
+            public string Es { get; set; } = string.Empty;
         }
 
         public IActionResult AddNewRecipes()
