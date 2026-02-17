@@ -1,0 +1,3383 @@
+{
+  "_meta": {
+    "version": "3.0",
+    "description": "Minimale Arbeitsschritt-Bibliothek, generiert aus 1570 Rezepten",
+    "total_steps": 335,
+    "phases": {
+      "0": "Vorbereitung",
+      "1": "Zubereitung",
+      "2": "Fertigstellung"
+    },
+    "actions_covered": [
+      "abgießen",
+      "abkühlen",
+      "ablöschen",
+      "abschmecken",
+      "anbraten",
+      "anrichten",
+      "backen",
+      "blanchieren",
+      "dünsten",
+      "einweichen",
+      "erhitzen",
+      "formen",
+      "füllen",
+      "garnieren",
+      "grillen",
+      "hacken",
+      "hinzufügen",
+      "kochen",
+      "köcheln",
+      "marinieren",
+      "mischen",
+      "panieren",
+      "pürieren",
+      "reiben",
+      "risotto",
+      "ruhen",
+      "rühren",
+      "sauce",
+      "schichten",
+      "schmoren",
+      "schneiden",
+      "servieren",
+      "teig",
+      "trocknen",
+      "vermengen",
+      "verquirlen",
+      "verrühren",
+      "vorbereiten",
+      "vorheizen",
+      "waschen",
+      "würzen",
+      "zerdrücken"
+    ]
+  },
+  "preparation_steps": [
+    {
+      "id": 1,
+      "StepDe": "Heize den Backofen auf 150 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 2,
+      "StepDe": "Heize den Backofen auf 160 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 3,
+      "StepDe": "Heize den Backofen auf 170 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 4,
+      "StepDe": "Heize den Backofen auf 180 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 5,
+      "StepDe": "Heize den Backofen auf 190 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 6,
+      "StepDe": "Heize den Backofen auf 200 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 7,
+      "StepDe": "Heize den Backofen auf 220 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 8,
+      "StepDe": "Heize den Backofen auf 240 °C (Ober-/Unterhitze) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 9,
+      "StepDe": "Heize den Backofen auf 150 °C (Umluft) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 10,
+      "StepDe": "Heize den Backofen auf 160 °C (Umluft) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 11,
+      "StepDe": "Heize den Backofen auf 170 °C (Umluft) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 12,
+      "StepDe": "Heize den Backofen auf 180 °C (Umluft) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 13,
+      "StepDe": "Heize den Backofen auf 200 °C (Umluft) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 14,
+      "StepDe": "Heize den Backofen auf 220 °C (Umluft) vor.",
+      "phase": 0,
+      "action": "vorheizen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 15,
+      "StepDe": "Lege ein Backblech mit Backpapier aus.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backblech"
+      ]
+    },
+    {
+      "id": 16,
+      "StepDe": "Fette eine Auflaufform ein.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [],
+      "equipment": [
+        "Auflaufform"
+      ]
+    },
+    {
+      "id": 17,
+      "StepDe": "Fette eine Springform ein und bestäube sie mit Mehl.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [
+        5
+      ],
+      "equipment": [
+        "Springform"
+      ]
+    },
+    {
+      "id": 18,
+      "StepDe": "Lege eine Kastenform mit Backpapier aus.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [],
+      "equipment": [
+        "Kastenform"
+      ]
+    },
+    {
+      "id": 19,
+      "StepDe": "Fette ein Muffinblech ein oder lege es mit Papierförmchen aus.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [],
+      "equipment": [
+        "Muffinblech"
+      ]
+    },
+    {
+      "id": 20,
+      "StepDe": "Schäle die Zwiebel und schneide sie in feine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 21,
+      "StepDe": "Schäle die Zwiebel und schneide sie in grobe Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 22,
+      "StepDe": "Schäle die Zwiebel und schneide sie in feine Ringe.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 23,
+      "StepDe": "Schäle die Zwiebel und schneide sie in Ringe.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 24,
+      "StepDe": "Schäle die Zwiebel und schneide sie in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 25,
+      "StepDe": "Schäle die rote Zwiebel und schneide sie in feine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        12
+      ],
+      "equipment": []
+    },
+    {
+      "id": 26,
+      "StepDe": "Schäle die rote Zwiebel und schneide sie in feine Ringe.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        12
+      ],
+      "equipment": []
+    },
+    {
+      "id": 27,
+      "StepDe": "Schäle die rote Zwiebel und schneide sie in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        12
+      ],
+      "equipment": []
+    },
+    {
+      "id": 28,
+      "StepDe": "Wasche die Frühlingszwiebeln und schneide sie in feine Ringe.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        50
+      ],
+      "equipment": []
+    },
+    {
+      "id": 29,
+      "StepDe": "Wasche die Frühlingszwiebeln und schneide sie in Ringe.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        50
+      ],
+      "equipment": []
+    },
+    {
+      "id": 30,
+      "StepDe": "Schäle die Knoblauchzehen und hacke sie fein.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        198
+      ],
+      "equipment": []
+    },
+    {
+      "id": 31,
+      "StepDe": "Schäle die Knoblauchzehen und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        198
+      ],
+      "equipment": []
+    },
+    {
+      "id": 32,
+      "StepDe": "Schäle die Karotten und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": []
+    },
+    {
+      "id": 33,
+      "StepDe": "Schäle die Karotten und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": []
+    },
+    {
+      "id": 34,
+      "StepDe": "Schäle die Karotten und schneide sie in Stifte.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": []
+    },
+    {
+      "id": 35,
+      "StepDe": "Schäle die Karotten und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": []
+    },
+    {
+      "id": 36,
+      "StepDe": "Schäle die Karotten und schneide sie in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        15
+      ],
+      "equipment": []
+    },
+    {
+      "id": 37,
+      "StepDe": "Schäle die Kartoffeln und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 38,
+      "StepDe": "Schäle die Kartoffeln und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 39,
+      "StepDe": "Schäle die Kartoffeln und schneide sie in Spalten.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 40,
+      "StepDe": "Schäle die Kartoffeln und schneide sie in grobe Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 41,
+      "StepDe": "Schäle die Süßkartoffeln und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        155
+      ],
+      "equipment": []
+    },
+    {
+      "id": 42,
+      "StepDe": "Schäle die Süßkartoffeln und schneide sie in Spalten.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        155
+      ],
+      "equipment": []
+    },
+    {
+      "id": 43,
+      "StepDe": "Schäle die Süßkartoffeln und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        155
+      ],
+      "equipment": []
+    },
+    {
+      "id": 44,
+      "StepDe": "Wasche die Tomaten und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        51
+      ],
+      "equipment": []
+    },
+    {
+      "id": 45,
+      "StepDe": "Wasche die Tomaten und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        51
+      ],
+      "equipment": []
+    },
+    {
+      "id": 46,
+      "StepDe": "Wasche die Cherrytomaten und halbiere sie.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        52
+      ],
+      "equipment": []
+    },
+    {
+      "id": 47,
+      "StepDe": "Wasche die Paprika, entkerne sie und schneide sie in Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": []
+    },
+    {
+      "id": 48,
+      "StepDe": "Wasche die Paprika, entkerne sie und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": []
+    },
+    {
+      "id": 49,
+      "StepDe": "Wasche die Paprika, entkerne sie und schneide sie in kleine Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": []
+    },
+    {
+      "id": 50,
+      "StepDe": "Wasche die Zucchini und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": []
+    },
+    {
+      "id": 51,
+      "StepDe": "Wasche die Zucchini und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": []
+    },
+    {
+      "id": 52,
+      "StepDe": "Wasche die Zucchini und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": []
+    },
+    {
+      "id": 53,
+      "StepDe": "Wasche die Zucchini und schneide sie in Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        86
+      ],
+      "equipment": []
+    },
+    {
+      "id": 54,
+      "StepDe": "Wasche die Aubergine und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        123
+      ],
+      "equipment": []
+    },
+    {
+      "id": 55,
+      "StepDe": "Wasche die Aubergine und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        123
+      ],
+      "equipment": []
+    },
+    {
+      "id": 56,
+      "StepDe": "Putze die Champignons und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        124
+      ],
+      "equipment": []
+    },
+    {
+      "id": 57,
+      "StepDe": "Putze die Champignons und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        124
+      ],
+      "equipment": []
+    },
+    {
+      "id": 58,
+      "StepDe": "Wasche den Brokkoli und teile ihn in kleine Röschen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        77
+      ],
+      "equipment": []
+    },
+    {
+      "id": 59,
+      "StepDe": "Wasche den Blumenkohl und teile ihn in kleine Röschen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        145
+      ],
+      "equipment": []
+    },
+    {
+      "id": 60,
+      "StepDe": "Wasche den Lauch gründlich und schneide ihn in feine Ringe.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        149
+      ],
+      "equipment": []
+    },
+    {
+      "id": 61,
+      "StepDe": "Wasche den Lauch gründlich und schneide ihn in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        149
+      ],
+      "equipment": []
+    },
+    {
+      "id": 62,
+      "StepDe": "Wasche den Sellerie und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        80
+      ],
+      "equipment": []
+    },
+    {
+      "id": 63,
+      "StepDe": "Wasche den Sellerie und schneide ihn in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        80
+      ],
+      "equipment": []
+    },
+    {
+      "id": 64,
+      "StepDe": "Schäle den Knollensellerie und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        115
+      ],
+      "equipment": []
+    },
+    {
+      "id": 65,
+      "StepDe": "Schäle den Knollensellerie und schneide ihn in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        115
+      ],
+      "equipment": []
+    },
+    {
+      "id": 66,
+      "StepDe": "Wasche die Gurke und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        84
+      ],
+      "equipment": []
+    },
+    {
+      "id": 67,
+      "StepDe": "Wasche die Gurke und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        84
+      ],
+      "equipment": []
+    },
+    {
+      "id": 68,
+      "StepDe": "Wasche den Spinat gründlich und lasse ihn abtropfen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        126
+      ],
+      "equipment": []
+    },
+    {
+      "id": 69,
+      "StepDe": "Schäle den Kohlrabi und schneide ihn in Stifte.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        156
+      ],
+      "equipment": []
+    },
+    {
+      "id": 70,
+      "StepDe": "Schäle den Kohlrabi und schneide ihn in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        156
+      ],
+      "equipment": []
+    },
+    {
+      "id": 71,
+      "StepDe": "Schäle den Kohlrabi und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        156
+      ],
+      "equipment": []
+    },
+    {
+      "id": 72,
+      "StepDe": "Wasche den Hokkaido, entkerne ihn und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        26
+      ],
+      "equipment": []
+    },
+    {
+      "id": 73,
+      "StepDe": "Wasche den Hokkaido, entkerne ihn und schneide ihn in Spalten.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        26
+      ],
+      "equipment": []
+    },
+    {
+      "id": 74,
+      "StepDe": "Wasche den Hokkaido, entkerne ihn und schneide ihn in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        26
+      ],
+      "equipment": []
+    },
+    {
+      "id": 75,
+      "StepDe": "Schäle den Butternuss-Kürbis, entkerne ihn und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        210
+      ],
+      "equipment": []
+    },
+    {
+      "id": 76,
+      "StepDe": "Schäle den Ingwer und reibe ihn fein.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": []
+    },
+    {
+      "id": 77,
+      "StepDe": "Schäle den Ingwer und schneide ihn in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": []
+    },
+    {
+      "id": 78,
+      "StepDe": "Schäle den Ingwer und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": []
+    },
+    {
+      "id": 79,
+      "StepDe": "Wasche den Fenchel und schneide ihn in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        278
+      ],
+      "equipment": []
+    },
+    {
+      "id": 80,
+      "StepDe": "Wasche den Fenchel und schneide ihn in Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        278
+      ],
+      "equipment": []
+    },
+    {
+      "id": 81,
+      "StepDe": "Wasche die grünen Bohnen und schneide die Enden ab.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        127
+      ],
+      "equipment": []
+    },
+    {
+      "id": 82,
+      "StepDe": "Wasche den grünen Spargel und schneide die holzigen Enden ab.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        211
+      ],
+      "equipment": []
+    },
+    {
+      "id": 83,
+      "StepDe": "Schäle den weißen Spargel und schneide die holzigen Enden ab.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        212
+      ],
+      "equipment": []
+    },
+    {
+      "id": 84,
+      "StepDe": "Halbiere die Avocado, entferne den Kern und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        254
+      ],
+      "equipment": []
+    },
+    {
+      "id": 85,
+      "StepDe": "Schäle die Mango, schneide das Fruchtfleisch vom Kern und würfle es.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        131
+      ],
+      "equipment": []
+    },
+    {
+      "id": 86,
+      "StepDe": "Wasche den Apfel, entkerne ihn und schneide ihn in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        21
+      ],
+      "equipment": []
+    },
+    {
+      "id": 87,
+      "StepDe": "Wasche den Apfel, entkerne ihn und schneide ihn in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        21
+      ],
+      "equipment": []
+    },
+    {
+      "id": 88,
+      "StepDe": "Schneide die Zitrone in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        230
+      ],
+      "equipment": []
+    },
+    {
+      "id": 89,
+      "StepDe": "Reibe die Zitronenschale fein ab.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        230
+      ],
+      "equipment": []
+    },
+    {
+      "id": 90,
+      "StepDe": "Presse den Saft der Limette aus.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        54
+      ],
+      "equipment": []
+    },
+    {
+      "id": 91,
+      "StepDe": "Schäle die Rote Bete und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        143
+      ],
+      "equipment": []
+    },
+    {
+      "id": 92,
+      "StepDe": "Schäle die Rote Bete und schneide sie in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        143
+      ],
+      "equipment": []
+    },
+    {
+      "id": 93,
+      "StepDe": "Schäle die Rote Bete und schneide sie in Stifte.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        143
+      ],
+      "equipment": []
+    },
+    {
+      "id": 94,
+      "StepDe": "Schneide das Hähnchenbrustfilet in mundgerechte Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": []
+    },
+    {
+      "id": 95,
+      "StepDe": "Schneide das Hähnchenbrustfilet in Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": []
+    },
+    {
+      "id": 96,
+      "StepDe": "Schneide das Hähnchenbrustfilet in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": []
+    },
+    {
+      "id": 97,
+      "StepDe": "Schneide das Rinderfilet in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": []
+    },
+    {
+      "id": 98,
+      "StepDe": "Schneide das Rinderfilet in mundgerechte Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": []
+    },
+    {
+      "id": 99,
+      "StepDe": "Schneide das Rinderfilet in dünne Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": []
+    },
+    {
+      "id": 100,
+      "StepDe": "Schneide das Schweinefilet in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        102
+      ],
+      "equipment": []
+    },
+    {
+      "id": 101,
+      "StepDe": "Schneide das Schweinefilet in mundgerechte Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        102
+      ],
+      "equipment": []
+    },
+    {
+      "id": 102,
+      "StepDe": "Schneide den Schweinebauch in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        106
+      ],
+      "equipment": []
+    },
+    {
+      "id": 103,
+      "StepDe": "Schneide den Schweinebauch in Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        106
+      ],
+      "equipment": []
+    },
+    {
+      "id": 104,
+      "StepDe": "Schneide den Speck in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        98
+      ],
+      "equipment": []
+    },
+    {
+      "id": 105,
+      "StepDe": "Schneide den Speck in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        98
+      ],
+      "equipment": []
+    },
+    {
+      "id": 106,
+      "StepDe": "Schneide die Chorizo in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        205
+      ],
+      "equipment": []
+    },
+    {
+      "id": 107,
+      "StepDe": "Schneide das Lachsfilet in gleichmäßige Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        100
+      ],
+      "equipment": []
+    },
+    {
+      "id": 108,
+      "StepDe": "Schneide den Mozzarella in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        39
+      ],
+      "equipment": []
+    },
+    {
+      "id": 109,
+      "StepDe": "Zerbröckle den Feta.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        19
+      ],
+      "equipment": []
+    },
+    {
+      "id": 110,
+      "StepDe": "Schneide den Tofu in kleine Würfel.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": []
+    },
+    {
+      "id": 111,
+      "StepDe": "Schneide den Tofu in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": []
+    },
+    {
+      "id": 112,
+      "StepDe": "Wasche Petersilie, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        17
+      ],
+      "equipment": []
+    },
+    {
+      "id": 113,
+      "StepDe": "Wasche Basilikum, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        7
+      ],
+      "equipment": []
+    },
+    {
+      "id": 114,
+      "StepDe": "Wasche Koriander, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        70
+      ],
+      "equipment": []
+    },
+    {
+      "id": 115,
+      "StepDe": "Wasche Dill, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        101
+      ],
+      "equipment": []
+    },
+    {
+      "id": 116,
+      "StepDe": "Wasche Rosmarin, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        119
+      ],
+      "equipment": []
+    },
+    {
+      "id": 117,
+      "StepDe": "Wasche Thymian, schüttle ihn/sie trocken und hacke die Blätter fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        78
+      ],
+      "equipment": []
+    },
+    {
+      "id": 118,
+      "StepDe": "Wasche die frischen Kräuter, schüttle sie trocken und hacke sie fein.",
+      "phase": 0,
+      "action": "hacken",
+      "linked_ingredients": [
+        7,
+        17,
+        70,
+        101
+      ],
+      "equipment": []
+    },
+    {
+      "id": 119,
+      "StepDe": "Wasche das Gemüse gründlich unter fließendem Wasser.",
+      "phase": 0,
+      "action": "waschen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 120,
+      "StepDe": "Wasche die Kräuter und schüttle sie trocken.",
+      "phase": 0,
+      "action": "waschen",
+      "linked_ingredients": [
+        7,
+        17,
+        70,
+        101
+      ],
+      "equipment": []
+    },
+    {
+      "id": 121,
+      "StepDe": "Reibe den Parmesan fein.",
+      "phase": 0,
+      "action": "reiben",
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": []
+    },
+    {
+      "id": 122,
+      "StepDe": "Reibe den Gouda grob.",
+      "phase": 0,
+      "action": "reiben",
+      "linked_ingredients": [
+        41
+      ],
+      "equipment": []
+    },
+    {
+      "id": 123,
+      "StepDe": "Reibe den Käse grob.",
+      "phase": 0,
+      "action": "reiben",
+      "linked_ingredients": [
+        40,
+        41,
+        42
+      ],
+      "equipment": []
+    },
+    {
+      "id": 124,
+      "StepDe": "Reibe den Ingwer fein.",
+      "phase": 0,
+      "action": "reiben",
+      "linked_ingredients": [
+        63
+      ],
+      "equipment": []
+    },
+    {
+      "id": 125,
+      "StepDe": "Reibe die Muskatnuss fein.",
+      "phase": 0,
+      "action": "reiben",
+      "linked_ingredients": [
+        113
+      ],
+      "equipment": []
+    },
+    {
+      "id": 126,
+      "StepDe": "Weiche die Linsen in kaltem Wasser ein.",
+      "phase": 0,
+      "action": "einweichen",
+      "linked_ingredients": [
+        116
+      ],
+      "equipment": []
+    },
+    {
+      "id": 127,
+      "StepDe": "Weiche die getrockneten Pilze in warmem Wasser ein.",
+      "phase": 0,
+      "action": "einweichen",
+      "linked_ingredients": [
+        274
+      ],
+      "equipment": []
+    },
+    {
+      "id": 128,
+      "StepDe": "Weiche die Reispapierblätter kurz in warmem Wasser ein.",
+      "phase": 0,
+      "action": "einweichen",
+      "linked_ingredients": [
+        256
+      ],
+      "equipment": []
+    },
+    {
+      "id": 129,
+      "StepDe": "Weiche die Reisnudeln nach Packungsanweisung in heißem Wasser ein.",
+      "phase": 0,
+      "action": "einweichen",
+      "linked_ingredients": [
+        186
+      ],
+      "equipment": []
+    },
+    {
+      "id": 130,
+      "StepDe": "Mariniere das Fleisch mit Öl, Gewürzen und Kräutern und lasse es mindestens 30 Minuten ziehen.",
+      "phase": 0,
+      "action": "marinieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 131,
+      "StepDe": "Mariniere das Hähnchen mit Sojasoße, Ingwer und Knoblauch.",
+      "phase": 0,
+      "action": "marinieren",
+      "linked_ingredients": [
+        22,
+        87,
+        63,
+        198
+      ],
+      "equipment": []
+    },
+    {
+      "id": 132,
+      "StepDe": "Mariniere den Tofu mit Sojasoße und Sesamöl.",
+      "phase": 0,
+      "action": "marinieren",
+      "linked_ingredients": [
+        154,
+        87,
+        195
+      ],
+      "equipment": []
+    },
+    {
+      "id": 133,
+      "StepDe": "Tupfe das Fleisch mit Küchenpapier trocken.",
+      "phase": 0,
+      "action": "trocknen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 134,
+      "StepDe": "Tupfe den Fisch mit Küchenpapier trocken.",
+      "phase": 0,
+      "action": "trocknen",
+      "linked_ingredients": [
+        100
+      ],
+      "equipment": []
+    },
+    {
+      "id": 135,
+      "StepDe": "Würze das Fleisch großzügig mit Salz und Pfeffer.",
+      "phase": 0,
+      "action": "würzen",
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 136,
+      "StepDe": "Würze den Fisch mit Salz, Pfeffer und einem Spritzer Zitronensaft.",
+      "phase": 0,
+      "action": "würzen",
+      "linked_ingredients": [
+        276,
+        277,
+        9
+      ],
+      "equipment": []
+    },
+    {
+      "id": 137,
+      "StepDe": "Wende das Fleisch in Mehl.",
+      "phase": 0,
+      "action": "würzen",
+      "linked_ingredients": [
+        5
+      ],
+      "equipment": []
+    },
+    {
+      "id": 138,
+      "StepDe": "Paniere das Schnitzel: erst in Mehl, dann in verquirltem Ei, dann in Paniermehl.",
+      "phase": 0,
+      "action": "panieren",
+      "linked_ingredients": [
+        5,
+        85,
+        43
+      ],
+      "equipment": []
+    },
+    {
+      "id": 139,
+      "StepDe": "Verquirle die Eier in einer Schüssel.",
+      "phase": 0,
+      "action": "verquirlen",
+      "linked_ingredients": [
+        85
+      ],
+      "equipment": []
+    },
+    {
+      "id": 140,
+      "StepDe": "Verrühre die Eier mit Milch und einer Prise Salz.",
+      "phase": 0,
+      "action": "verrühren",
+      "linked_ingredients": [
+        85,
+        32,
+        276
+      ],
+      "equipment": []
+    },
+    {
+      "id": 141,
+      "StepDe": "Mische Mehl, Backpulver und eine Prise Salz in einer Schüssel.",
+      "phase": 0,
+      "action": "mischen",
+      "linked_ingredients": [
+        5,
+        60,
+        276
+      ],
+      "equipment": []
+    },
+    {
+      "id": 142,
+      "StepDe": "Mische Mehl, Zucker, Backpulver und Salz in einer Schüssel.",
+      "phase": 0,
+      "action": "mischen",
+      "linked_ingredients": [
+        5,
+        1,
+        60,
+        276
+      ],
+      "equipment": []
+    },
+    {
+      "id": 143,
+      "StepDe": "Verrühre Butter und Zucker schaumig.",
+      "phase": 0,
+      "action": "verrühren",
+      "linked_ingredients": [
+        27,
+        1
+      ],
+      "equipment": []
+    },
+    {
+      "id": 144,
+      "StepDe": "Gib die Eier einzeln dazu und rühre sie unter.",
+      "phase": 0,
+      "action": "verrühren",
+      "linked_ingredients": [
+        85
+      ],
+      "equipment": []
+    },
+    {
+      "id": 145,
+      "StepDe": "Mische die trockenen Zutaten separat zusammen.",
+      "phase": 0,
+      "action": "mischen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 146,
+      "StepDe": "Hebe die trockenen Zutaten vorsichtig unter die feuchten Zutaten.",
+      "phase": 0,
+      "action": "mischen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 147,
+      "StepDe": "Rühre die Masse glatt, bis keine Klümpchen mehr vorhanden sind.",
+      "phase": 0,
+      "action": "verrühren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 148,
+      "StepDe": "Löse die Hefe in lauwarmem Wasser mit einer Prise Zucker auf.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [
+        176,
+        75,
+        1
+      ],
+      "equipment": []
+    },
+    {
+      "id": 149,
+      "StepDe": "Löse die Trockenhefe in lauwarmem Wasser mit einer Prise Zucker auf.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [
+        74,
+        75,
+        1
+      ],
+      "equipment": []
+    },
+    {
+      "id": 150,
+      "StepDe": "Knete den Teig etwa 10 Minuten, bis er glatt und geschmeidig ist.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 151,
+      "StepDe": "Lasse den Teig abgedeckt an einem warmen Ort etwa 1 Stunde gehen.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 152,
+      "StepDe": "Rolle den Teig auf einer bemehlten Fläche dünn aus.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [
+        5
+      ],
+      "equipment": []
+    },
+    {
+      "id": 153,
+      "StepDe": "Forme den Teig zu einer Kugel und lege ihn in eine Schüssel.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 154,
+      "StepDe": "Drücke den Teig in die Form und forme einen Rand.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 155,
+      "StepDe": "Bestreiche den Teig mit Olivenöl.",
+      "phase": 0,
+      "action": "teig",
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": []
+    },
+    {
+      "id": 156,
+      "StepDe": "Erhitze etwas Olivenöl in einer großen Pfanne bei mittlerer Hitze.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": [
+        "Pfanne"
+      ]
+    },
+    {
+      "id": 157,
+      "StepDe": "Erhitze etwas Öl in einer großen Pfanne bei mittlerer Hitze.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Pfanne"
+      ]
+    },
+    {
+      "id": 158,
+      "StepDe": "Erhitze Butter in einer Pfanne bei mittlerer Hitze.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [
+        27
+      ],
+      "equipment": [
+        "Pfanne"
+      ]
+    },
+    {
+      "id": 159,
+      "StepDe": "Erhitze Butterschmalz in einer Pfanne bei hoher Hitze.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [
+        44
+      ],
+      "equipment": [
+        "Pfanne"
+      ]
+    },
+    {
+      "id": 160,
+      "StepDe": "Erhitze etwas Öl in einem großen Topf bei mittlerer Hitze.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Topf"
+      ]
+    },
+    {
+      "id": 161,
+      "StepDe": "Erhitze Olivenöl in einem Bräter.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": [
+        "Bräter"
+      ]
+    },
+    {
+      "id": 162,
+      "StepDe": "Erhitze das Sesamöl in einem Wok bei hoher Hitze.",
+      "phase": 1,
+      "action": "erhitzen",
+      "linked_ingredients": [
+        195
+      ],
+      "equipment": [
+        "Wok"
+      ]
+    },
+    {
+      "id": 163,
+      "StepDe": "Brate die Zwiebeln glasig an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 164,
+      "StepDe": "Brate die Zwiebeln und den Knoblauch glasig an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        11,
+        198
+      ],
+      "equipment": []
+    },
+    {
+      "id": 165,
+      "StepDe": "Brate das Fleisch von allen Seiten scharf an, bis es gebräunt ist.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 166,
+      "StepDe": "Brate das Hähnchen von beiden Seiten goldbraun an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": []
+    },
+    {
+      "id": 167,
+      "StepDe": "Brate die Hähnchenstücke von allen Seiten an, bis sie durchgegart sind.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        22
+      ],
+      "equipment": []
+    },
+    {
+      "id": 168,
+      "StepDe": "Brate den Speck knusprig an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        98
+      ],
+      "equipment": []
+    },
+    {
+      "id": 169,
+      "StepDe": "Brate die Champignons bei hoher Hitze an, bis sie goldbraun sind.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        124
+      ],
+      "equipment": []
+    },
+    {
+      "id": 170,
+      "StepDe": "Brate den Tofu von allen Seiten goldbraun an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": []
+    },
+    {
+      "id": 171,
+      "StepDe": "Brate die Aubergine von beiden Seiten goldbraun an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        123
+      ],
+      "equipment": []
+    },
+    {
+      "id": 172,
+      "StepDe": "Brate das Hackfleisch krümelig an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        220
+      ],
+      "equipment": []
+    },
+    {
+      "id": 173,
+      "StepDe": "Brate das Rindfleisch scharf von allen Seiten an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        89
+      ],
+      "equipment": []
+    },
+    {
+      "id": 174,
+      "StepDe": "Brate das Schweinefilet von allen Seiten an, bis es gebräunt ist.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        102
+      ],
+      "equipment": []
+    },
+    {
+      "id": 175,
+      "StepDe": "Brate den Schweinebauch von allen Seiten knusprig an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        106
+      ],
+      "equipment": []
+    },
+    {
+      "id": 176,
+      "StepDe": "Brate den Fisch von beiden Seiten goldbraun an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        100
+      ],
+      "equipment": []
+    },
+    {
+      "id": 177,
+      "StepDe": "Brate die Garnelen von beiden Seiten ca. 2 Minuten an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        6
+      ],
+      "equipment": []
+    },
+    {
+      "id": 178,
+      "StepDe": "Nimm das Fleisch aus der Pfanne und stelle es beiseite.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 179,
+      "StepDe": "Dünste das Gemüse bei mittlerer Hitze, bis es weich wird.",
+      "phase": 1,
+      "action": "dünsten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 180,
+      "StepDe": "Dünste die Zwiebeln, Karotten und den Sellerie ca. 5 Minuten an.",
+      "phase": 1,
+      "action": "dünsten",
+      "linked_ingredients": [
+        11,
+        15,
+        80
+      ],
+      "equipment": []
+    },
+    {
+      "id": 181,
+      "StepDe": "Schmore das Fleisch im geschlossenen Topf bei niedriger Hitze, bis es zart ist.",
+      "phase": 1,
+      "action": "schmoren",
+      "linked_ingredients": [],
+      "equipment": [
+        "Topf"
+      ]
+    },
+    {
+      "id": 182,
+      "StepDe": "Schmore das Gericht im vorgeheizten Backofen bei 160 °C für etwa 2 Stunden.",
+      "phase": 1,
+      "action": "schmoren",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 183,
+      "StepDe": "Koche die Pasta in reichlich Salzwasser nach Packungsanweisung al dente.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": []
+    },
+    {
+      "id": 184,
+      "StepDe": "Koche den Reis nach Packungsanweisung.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        3
+      ],
+      "equipment": []
+    },
+    {
+      "id": 185,
+      "StepDe": "Koche den Basmatireis nach Packungsanweisung.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        257
+      ],
+      "equipment": []
+    },
+    {
+      "id": 186,
+      "StepDe": "Koche die Kartoffeln in Salzwasser weich (ca. 15–20 Min.).",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 187,
+      "StepDe": "Koche die Eier hart (ca. 10 Minuten).",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        85
+      ],
+      "equipment": []
+    },
+    {
+      "id": 188,
+      "StepDe": "Koche die Linsen nach Packungsanweisung.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        116
+      ],
+      "equipment": []
+    },
+    {
+      "id": 189,
+      "StepDe": "Koche die Nudeln in Salzwasser al dente, gieße sie ab und fange etwas Kochwasser auf.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": []
+    },
+    {
+      "id": 190,
+      "StepDe": "Koche den Couscous nach Packungsanweisung.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        151
+      ],
+      "equipment": []
+    },
+    {
+      "id": 191,
+      "StepDe": "Koche den Bulgur nach Packungsanweisung.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        153
+      ],
+      "equipment": []
+    },
+    {
+      "id": 192,
+      "StepDe": "Koche die Quinoa nach Packungsanweisung.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        141
+      ],
+      "equipment": []
+    },
+    {
+      "id": 193,
+      "StepDe": "Koche die grünen Bohnen in Salzwasser bissfest (ca. 8 Min.).",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        127
+      ],
+      "equipment": []
+    },
+    {
+      "id": 194,
+      "StepDe": "Koche den Brokkoli in Salzwasser bissfest (ca. 3–5 Min.).",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        77
+      ],
+      "equipment": []
+    },
+    {
+      "id": 195,
+      "StepDe": "Koche den Blumenkohl in Salzwasser weich (ca. 10 Min.).",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        145
+      ],
+      "equipment": []
+    },
+    {
+      "id": 196,
+      "StepDe": "Koche die Spätzle in Salzwasser, bis sie oben schwimmen.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        162
+      ],
+      "equipment": []
+    },
+    {
+      "id": 197,
+      "StepDe": "Lösche mit Weißwein ab und lasse ihn kurz einkochen.",
+      "phase": 1,
+      "action": "ablöschen",
+      "linked_ingredients": [
+        28
+      ],
+      "equipment": []
+    },
+    {
+      "id": 198,
+      "StepDe": "Lösche mit Rotwein ab und lasse ihn kurz einkochen.",
+      "phase": 1,
+      "action": "ablöschen",
+      "linked_ingredients": [
+        81
+      ],
+      "equipment": []
+    },
+    {
+      "id": 199,
+      "StepDe": "Lösche mit Brühe ab.",
+      "phase": 1,
+      "action": "ablöschen",
+      "linked_ingredients": [
+        117
+      ],
+      "equipment": []
+    },
+    {
+      "id": 200,
+      "StepDe": "Gieße die Brühe an und bringe alles zum Kochen.",
+      "phase": 1,
+      "action": "ablöschen",
+      "linked_ingredients": [
+        117
+      ],
+      "equipment": []
+    },
+    {
+      "id": 201,
+      "StepDe": "Gieße die Kokosmilch dazu und rühre um.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        67
+      ],
+      "equipment": []
+    },
+    {
+      "id": 202,
+      "StepDe": "Gieße die passierten Tomaten dazu und rühre um.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        114
+      ],
+      "equipment": []
+    },
+    {
+      "id": 203,
+      "StepDe": "Gib die gehackten Tomaten (Dose) dazu.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        213
+      ],
+      "equipment": []
+    },
+    {
+      "id": 204,
+      "StepDe": "Rühre das Tomatenmark ein und röste es kurz mit an.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        14
+      ],
+      "equipment": []
+    },
+    {
+      "id": 205,
+      "StepDe": "Lasse alles bei niedriger Hitze zugedeckt ca. 20 Minuten köcheln.",
+      "phase": 1,
+      "action": "köcheln",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 206,
+      "StepDe": "Lasse alles bei niedriger Hitze zugedeckt ca. 30 Minuten köcheln.",
+      "phase": 1,
+      "action": "köcheln",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 207,
+      "StepDe": "Lasse alles bei niedriger Hitze zugedeckt ca. 45 Minuten köcheln.",
+      "phase": 1,
+      "action": "köcheln",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 208,
+      "StepDe": "Lasse die Sauce einkochen, bis sie die gewünschte Konsistenz hat.",
+      "phase": 1,
+      "action": "köcheln",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 209,
+      "StepDe": "Rühre gelegentlich um, damit nichts anbrennt.",
+      "phase": 1,
+      "action": "köcheln",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 210,
+      "StepDe": "Koche alles einmal auf und reduziere dann die Hitze.",
+      "phase": 1,
+      "action": "köcheln",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 211,
+      "StepDe": "Schiebe das Blech in den vorgeheizten Backofen.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 212,
+      "StepDe": "Backe das Gericht im Ofen ca. 20 Minuten.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 213,
+      "StepDe": "Backe das Gericht im Ofen ca. 30 Minuten.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 214,
+      "StepDe": "Backe das Gericht im Ofen ca. 40 Minuten.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 215,
+      "StepDe": "Backe das Gericht im Ofen ca. 60 Minuten.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 216,
+      "StepDe": "Backe den Kuchen ca. 35–40 Minuten, bis ein Zahnstocher sauber herauskommt.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 217,
+      "StepDe": "Überbacke das Gericht im Ofen, bis der Käse geschmolzen und goldbraun ist.",
+      "phase": 1,
+      "action": "backen",
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 218,
+      "StepDe": "Schmelze Butter in einem Topf und rühre das Mehl ein (Mehlschwitze).",
+      "phase": 1,
+      "action": "sauce",
+      "linked_ingredients": [
+        27,
+        5
+      ],
+      "equipment": []
+    },
+    {
+      "id": 219,
+      "StepDe": "Gieße nach und nach die Milch unter ständigem Rühren ein, bis eine glatte Sauce entsteht.",
+      "phase": 1,
+      "action": "sauce",
+      "linked_ingredients": [
+        32
+      ],
+      "equipment": []
+    },
+    {
+      "id": 220,
+      "StepDe": "Würze die Béchamel-Sauce mit Salz, Pfeffer und Muskatnuss.",
+      "phase": 1,
+      "action": "sauce",
+      "linked_ingredients": [
+        276,
+        277,
+        113
+      ],
+      "equipment": []
+    },
+    {
+      "id": 221,
+      "StepDe": "Rühre die Sahne ein und lasse die Sauce kurz aufkochen.",
+      "phase": 1,
+      "action": "sauce",
+      "linked_ingredients": [
+        33
+      ],
+      "equipment": []
+    },
+    {
+      "id": 222,
+      "StepDe": "Rühre den Schmand ein.",
+      "phase": 1,
+      "action": "sauce",
+      "linked_ingredients": [
+        34
+      ],
+      "equipment": []
+    },
+    {
+      "id": 223,
+      "StepDe": "Rühre die Crème fraîche unter.",
+      "phase": 1,
+      "action": "sauce",
+      "linked_ingredients": [
+        35
+      ],
+      "equipment": []
+    },
+    {
+      "id": 224,
+      "StepDe": "Röste den Arborio-Reis im Topf mit an, bis er glasig wird.",
+      "phase": 1,
+      "action": "risotto",
+      "linked_ingredients": [
+        135
+      ],
+      "equipment": []
+    },
+    {
+      "id": 225,
+      "StepDe": "Gieße nach und nach Brühe zum Risotto und rühre ständig, bis der Reis die Flüssigkeit aufgenommen hat.",
+      "phase": 1,
+      "action": "risotto",
+      "linked_ingredients": [
+        135,
+        117
+      ],
+      "equipment": []
+    },
+    {
+      "id": 226,
+      "StepDe": "Rühre zum Schluss Butter und Parmesan unter den Risotto.",
+      "phase": 1,
+      "action": "risotto",
+      "linked_ingredients": [
+        27,
+        40
+      ],
+      "equipment": []
+    },
+    {
+      "id": 227,
+      "StepDe": "Püriere die Suppe mit einem Stabmixer glatt.",
+      "phase": 1,
+      "action": "pürieren",
+      "linked_ingredients": [],
+      "equipment": [
+        "Stabmixer"
+      ]
+    },
+    {
+      "id": 228,
+      "StepDe": "Püriere die Sauce glatt.",
+      "phase": 1,
+      "action": "pürieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 229,
+      "StepDe": "Püriere die Zutaten im Mixer zu einem Smoothie.",
+      "phase": 1,
+      "action": "pürieren",
+      "linked_ingredients": [],
+      "equipment": [
+        "Mixer"
+      ]
+    },
+    {
+      "id": 230,
+      "StepDe": "Stampfe die Kartoffeln zu einem glatten Püree.",
+      "phase": 1,
+      "action": "zerdrücken",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 231,
+      "StepDe": "Verteile eine Schicht Sauce auf dem Boden der Auflaufform.",
+      "phase": 1,
+      "action": "schichten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 232,
+      "StepDe": "Lege eine Schicht Lasagneblätter in die Form.",
+      "phase": 1,
+      "action": "schichten",
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": []
+    },
+    {
+      "id": 233,
+      "StepDe": "Wiederhole die Schichten, bis alle Zutaten aufgebraucht sind.",
+      "phase": 1,
+      "action": "schichten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 234,
+      "StepDe": "Bedecke die oberste Schicht mit Béchamel-Sauce und Käse.",
+      "phase": 1,
+      "action": "schichten",
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": []
+    },
+    {
+      "id": 235,
+      "StepDe": "Forme aus der Masse gleichmäßige Frikadellen/Patties.",
+      "phase": 1,
+      "action": "formen",
+      "linked_ingredients": [
+        220
+      ],
+      "equipment": []
+    },
+    {
+      "id": 236,
+      "StepDe": "Forme aus dem Teig gleichmäßige Brötchen.",
+      "phase": 1,
+      "action": "formen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 237,
+      "StepDe": "Fülle die Tortillas mit der Füllung und rolle sie zusammen.",
+      "phase": 1,
+      "action": "füllen",
+      "linked_ingredients": [
+        142
+      ],
+      "equipment": []
+    },
+    {
+      "id": 238,
+      "StepDe": "Fülle die Paprika mit der Masse und setze sie in die Auflaufform.",
+      "phase": 1,
+      "action": "füllen",
+      "linked_ingredients": [
+        65
+      ],
+      "equipment": []
+    },
+    {
+      "id": 239,
+      "StepDe": "Wickle das Fleisch in Alufolie ein und lasse es 10 Minuten ruhen.",
+      "phase": 1,
+      "action": "ruhen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 240,
+      "StepDe": "Rühre alles gut durch und lasse es einige Minuten ziehen.",
+      "phase": 1,
+      "action": "rühren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 241,
+      "StepDe": "Vermengle alle Zutaten in einer großen Schüssel.",
+      "phase": 1,
+      "action": "vermengen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 242,
+      "StepDe": "Schwenke die Pasta in der Sauce, bis sie gut überzogen ist.",
+      "phase": 1,
+      "action": "vermengen",
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": []
+    },
+    {
+      "id": 243,
+      "StepDe": "Hebe die Zutaten vorsichtig unter, damit nichts zerfällt.",
+      "phase": 1,
+      "action": "vermengen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 244,
+      "StepDe": "Blanchiere das Gemüse kurz in kochendem Wasser und schrecke es in Eiswasser ab.",
+      "phase": 1,
+      "action": "blanchieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 245,
+      "StepDe": "Gieße die Pasta ab und fange etwas Kochwasser auf.",
+      "phase": 1,
+      "action": "abgießen",
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": []
+    },
+    {
+      "id": 246,
+      "StepDe": "Gieße die Kartoffeln ab und lasse sie kurz ausdampfen.",
+      "phase": 1,
+      "action": "abgießen",
+      "linked_ingredients": [
+        20
+      ],
+      "equipment": []
+    },
+    {
+      "id": 247,
+      "StepDe": "Lasse die Bohnen/Kichererbsen abtropfen und spüle sie kurz ab.",
+      "phase": 1,
+      "action": "abgießen",
+      "linked_ingredients": [
+        62,
+        150
+      ],
+      "equipment": []
+    },
+    {
+      "id": 248,
+      "StepDe": "Grille das Fleisch bei direkter Hitze von jeder Seite ca. 3–4 Minuten.",
+      "phase": 1,
+      "action": "grillen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 249,
+      "StepDe": "Grille das Gemüse, bis es leichte Röstspuren hat.",
+      "phase": 1,
+      "action": "grillen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 250,
+      "StepDe": "Schmecke das Gericht mit Salz und Pfeffer ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 251,
+      "StepDe": "Schmecke das Gericht mit Salz, Pfeffer und Muskatnuss ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        276,
+        277,
+        113
+      ],
+      "equipment": []
+    },
+    {
+      "id": 252,
+      "StepDe": "Schmecke das Gericht mit Salz, Pfeffer und Kräutern ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 253,
+      "StepDe": "Schmecke die Sauce mit Salz und Pfeffer ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 254,
+      "StepDe": "Schmecke die Suppe mit Salz und Pfeffer ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 255,
+      "StepDe": "Schmecke mit einem Spritzer Zitronensaft ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        9
+      ],
+      "equipment": []
+    },
+    {
+      "id": 256,
+      "StepDe": "Schmecke mit einem Spritzer Limettensaft ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        55
+      ],
+      "equipment": []
+    },
+    {
+      "id": 257,
+      "StepDe": "Schmecke mit etwas Honig und Essig ab.",
+      "phase": 2,
+      "action": "abschmecken",
+      "linked_ingredients": [
+        16,
+        88
+      ],
+      "equipment": []
+    },
+    {
+      "id": 258,
+      "StepDe": "Garniere mit frischen Kräutern.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        7,
+        17,
+        70,
+        101
+      ],
+      "equipment": []
+    },
+    {
+      "id": 259,
+      "StepDe": "Garniere mit frischem Basilikum.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        7
+      ],
+      "equipment": []
+    },
+    {
+      "id": 260,
+      "StepDe": "Garniere mit frischer Petersilie.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        17
+      ],
+      "equipment": []
+    },
+    {
+      "id": 261,
+      "StepDe": "Garniere mit frischem Koriander.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        70
+      ],
+      "equipment": []
+    },
+    {
+      "id": 262,
+      "StepDe": "Garniere mit frischem Dill.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        101
+      ],
+      "equipment": []
+    },
+    {
+      "id": 263,
+      "StepDe": "Bestreue das Gericht mit geriebenem Parmesan.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        40
+      ],
+      "equipment": []
+    },
+    {
+      "id": 264,
+      "StepDe": "Bestreue das Gericht mit Sesam.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        326
+      ],
+      "equipment": []
+    },
+    {
+      "id": 265,
+      "StepDe": "Bestreue mit Chiliflocken.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        233
+      ],
+      "equipment": []
+    },
+    {
+      "id": 266,
+      "StepDe": "Träufle etwas Olivenöl über das fertige Gericht.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        10
+      ],
+      "equipment": []
+    },
+    {
+      "id": 267,
+      "StepDe": "Träufle etwas Balsamico-Creme darüber.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        159
+      ],
+      "equipment": []
+    },
+    {
+      "id": 268,
+      "StepDe": "Gib einen Klecks Crème fraîche oder Schmand darauf.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        35,
+        34
+      ],
+      "equipment": []
+    },
+    {
+      "id": 269,
+      "StepDe": "Streue gehackte Nüsse darüber.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        177,
+        147
+      ],
+      "equipment": []
+    },
+    {
+      "id": 270,
+      "StepDe": "Richte das Gericht auf vorgewärmten Tellern an.",
+      "phase": 2,
+      "action": "anrichten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 271,
+      "StepDe": "Serviere das Gericht sofort.",
+      "phase": 2,
+      "action": "servieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 272,
+      "StepDe": "Serviere das Gericht mit frischem Brot.",
+      "phase": 2,
+      "action": "servieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 273,
+      "StepDe": "Serviere das Gericht mit Reis.",
+      "phase": 2,
+      "action": "servieren",
+      "linked_ingredients": [
+        3
+      ],
+      "equipment": []
+    },
+    {
+      "id": 274,
+      "StepDe": "Serviere das Gericht mit Pasta.",
+      "phase": 2,
+      "action": "servieren",
+      "linked_ingredients": [
+        2
+      ],
+      "equipment": []
+    },
+    {
+      "id": 275,
+      "StepDe": "Serviere das Gericht mit einem frischen Salat.",
+      "phase": 2,
+      "action": "servieren",
+      "linked_ingredients": [
+        4
+      ],
+      "equipment": []
+    },
+    {
+      "id": 276,
+      "StepDe": "Lasse das Gericht vor dem Servieren einige Minuten ruhen.",
+      "phase": 2,
+      "action": "ruhen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 277,
+      "StepDe": "Lasse den Kuchen vollständig abkühlen, bevor du ihn anschneidest.",
+      "phase": 2,
+      "action": "abkühlen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 278,
+      "StepDe": "Nimm das Gericht aus dem Ofen und lasse es kurz ruhen.",
+      "phase": 1,
+      "action": "herausnehmen",
+      "linked_ingredients": [],
+      "equipment": [
+        "Backofen"
+      ]
+    },
+    {
+      "id": 279,
+      "StepDe": "Lasse das frittierte/gebratene Gut auf Küchenpapier abtropfen.",
+      "phase": 1,
+      "action": "abtropfen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 280,
+      "StepDe": "Verrühre Olivenöl, Essig, Salz und Pfeffer zu einem Dressing.",
+      "phase": 0,
+      "action": "dressing",
+      "linked_ingredients": [
+        10,
+        88,
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 281,
+      "StepDe": "Verrühre Olivenöl, Zitronensaft, Salz und Pfeffer zu einem Dressing.",
+      "phase": 0,
+      "action": "dressing",
+      "linked_ingredients": [
+        10,
+        9,
+        276,
+        277
+      ],
+      "equipment": []
+    },
+    {
+      "id": 282,
+      "StepDe": "Mische das Dressing unter den Salat und hebe alles vorsichtig durch.",
+      "phase": 2,
+      "action": "dressing",
+      "linked_ingredients": [
+        4
+      ],
+      "equipment": []
+    },
+    {
+      "id": 283,
+      "StepDe": "Karamellisiere die Zwiebeln langsam bei niedriger Hitze, bis sie goldbraun sind.",
+      "phase": 1,
+      "action": "karamellisieren",
+      "linked_ingredients": [
+        11
+      ],
+      "equipment": []
+    },
+    {
+      "id": 284,
+      "StepDe": "Karamellisiere den Zucker in einem Topf, bis er goldbraun wird.",
+      "phase": 1,
+      "action": "karamellisieren",
+      "linked_ingredients": [
+        1
+      ],
+      "equipment": []
+    },
+    {
+      "id": 285,
+      "StepDe": "Erhitze reichlich Öl in einem Topf auf ca. 170–180 °C zum Frittieren.",
+      "phase": 1,
+      "action": "frittieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 286,
+      "StepDe": "Frittiere die Stücke portionsweise, bis sie goldbraun und knusprig sind.",
+      "phase": 1,
+      "action": "frittieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 287,
+      "StepDe": "Gieße so viel Brühe an, bis das Gemüse knapp bedeckt ist.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        117
+      ],
+      "equipment": []
+    },
+    {
+      "id": 288,
+      "StepDe": "Gieße die Sahne dazu und lasse alles aufkochen.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        33
+      ],
+      "equipment": []
+    },
+    {
+      "id": 289,
+      "StepDe": "Gib die Milch nach und nach unter ständigem Rühren hinzu.",
+      "phase": 1,
+      "action": "hinzufügen",
+      "linked_ingredients": [
+        32
+      ],
+      "equipment": []
+    },
+    {
+      "id": 290,
+      "StepDe": "Brate das Gemüse bei hoher Hitze unter Rühren an (ca. 3–5 Min.).",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 291,
+      "StepDe": "Gib das Gemüse portionsweise in die Pfanne, damit es brät und nicht dünstet.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 292,
+      "StepDe": "Lasse das Fleisch vor dem Anschneiden 5–10 Minuten ruhen.",
+      "phase": 2,
+      "action": "ruhen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 293,
+      "StepDe": "Lasse die Sauce bei mittlerer Hitze offen einkochen, bis sie sämig wird.",
+      "phase": 1,
+      "action": "reduzieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 294,
+      "StepDe": "Schlage die Sahne steif.",
+      "phase": 0,
+      "action": "aufschlagen",
+      "linked_ingredients": [
+        33
+      ],
+      "equipment": []
+    },
+    {
+      "id": 295,
+      "StepDe": "Schlage das Eiweiß mit einer Prise Salz steif.",
+      "phase": 0,
+      "action": "aufschlagen",
+      "linked_ingredients": [
+        231
+      ],
+      "equipment": []
+    },
+    {
+      "id": 296,
+      "StepDe": "Hebe das steif geschlagene Eiweiß vorsichtig unter den Teig.",
+      "phase": 1,
+      "action": "unterheben",
+      "linked_ingredients": [
+        231
+      ],
+      "equipment": []
+    },
+    {
+      "id": 297,
+      "StepDe": "Rühre die Speisestärke mit etwas kaltem Wasser glatt und gib sie zur Sauce, um sie zu binden.",
+      "phase": 1,
+      "action": "binden",
+      "linked_ingredients": [
+        134,
+        75
+      ],
+      "equipment": []
+    },
+    {
+      "id": 298,
+      "StepDe": "Bestreiche das Gebäck mit verquirltem Eigelb.",
+      "phase": 1,
+      "action": "glasieren",
+      "linked_ingredients": [
+        227
+      ],
+      "equipment": []
+    },
+    {
+      "id": 299,
+      "StepDe": "Überziehe den Kuchen mit der Glasur.",
+      "phase": 2,
+      "action": "glasieren",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 300,
+      "StepDe": "Schmelze die Schokolade im Wasserbad.",
+      "phase": 1,
+      "action": "schmelzen",
+      "linked_ingredients": [
+        170
+      ],
+      "equipment": []
+    },
+    {
+      "id": 301,
+      "StepDe": "Schmelze die Butter in einem kleinen Topf.",
+      "phase": 1,
+      "action": "schmelzen",
+      "linked_ingredients": [
+        27
+      ],
+      "equipment": []
+    },
+    {
+      "id": 302,
+      "StepDe": "Lege das untere Brötchen auf den Teller und belege es mit den Zutaten.",
+      "phase": 2,
+      "action": "aufbauen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 303,
+      "StepDe": "Setze das obere Brötchen auf den Burger.",
+      "phase": 2,
+      "action": "aufbauen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 304,
+      "StepDe": "Belege den Tortilla-Fladen mit der Füllung und rolle ihn eng zusammen.",
+      "phase": 1,
+      "action": "aufbauen",
+      "linked_ingredients": [
+        142
+      ],
+      "equipment": []
+    },
+    {
+      "id": 305,
+      "StepDe": "Belege den Pizzateig mit Sauce, Belag und Käse.",
+      "phase": 1,
+      "action": "aufbauen",
+      "linked_ingredients": [
+        39
+      ],
+      "equipment": []
+    },
+    {
+      "id": 306,
+      "StepDe": "Forme aus dem Teig kleine Gnocchi und drücke mit einer Gabel ein Muster hinein.",
+      "phase": 1,
+      "action": "formen",
+      "linked_ingredients": [
+        182
+      ],
+      "equipment": []
+    },
+    {
+      "id": 307,
+      "StepDe": "Gib alle Zutaten in den Mixer und püriere sie zu einem cremigen Smoothie.",
+      "phase": 1,
+      "action": "pürieren",
+      "linked_ingredients": [],
+      "equipment": [
+        "Mixer"
+      ]
+    },
+    {
+      "id": 308,
+      "StepDe": "Gieße den Smoothie in eine Schüssel und garniere mit Toppings.",
+      "phase": 2,
+      "action": "anrichten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 309,
+      "StepDe": "Ritze die Oberfläche mit einem scharfen Messer rautenförmig ein.",
+      "phase": 0,
+      "action": "einritzen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 310,
+      "StepDe": "Ritze den Brotteig vor dem Backen mit einem scharfen Messer ein.",
+      "phase": 0,
+      "action": "einritzen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 311,
+      "StepDe": "Rühre die Polenta langsam in die kochende Flüssigkeit und rühre ständig.",
+      "phase": 1,
+      "action": "kochen",
+      "linked_ingredients": [
+        140
+      ],
+      "equipment": []
+    },
+    {
+      "id": 312,
+      "StepDe": "Röste die Currypaste/Gewürze kurz in Öl an, bis sie duften.",
+      "phase": 1,
+      "action": "anrösten",
+      "linked_ingredients": [
+        68
+      ],
+      "equipment": []
+    },
+    {
+      "id": 313,
+      "StepDe": "Röste die Gewürze kurz in einer trockenen Pfanne an, bis sie duften.",
+      "phase": 1,
+      "action": "anrösten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 314,
+      "StepDe": "Klopfe das Fleisch zwischen Frischhaltefolie gleichmäßig flach.",
+      "phase": 0,
+      "action": "klopfen",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 315,
+      "StepDe": "Binde den Braten mit Küchengarn zusammen, damit er beim Garen die Form behält.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [],
+      "equipment": []
+    },
+    {
+      "id": 316,
+      "StepDe": "Mische Haferflocken, Milch und die übrigen Zutaten in einem Glas und lasse es über Nacht im Kühlschrank ziehen.",
+      "phase": 0,
+      "action": "mischen",
+      "linked_ingredients": [
+        76,
+        32
+      ],
+      "equipment": []
+    },
+    {
+      "id": 317,
+      "StepDe": "Brate die Zutaten im Wok bei höchster Hitze unter ständigem Rühren (ca. 2–3 Min.).",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [],
+      "equipment": [
+        "Wok"
+      ]
+    },
+    {
+      "id": 318,
+      "StepDe": "Lasse die Kichererbsen/Bohnen aus der Dose abtropfen und spüle sie ab.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [
+        62,
+        150,
+        99
+      ],
+      "equipment": []
+    },
+    {
+      "id": 319,
+      "StepDe": "Drücke den Tofu gut aus, um überschüssige Flüssigkeit zu entfernen.",
+      "phase": 0,
+      "action": "vorbereiten",
+      "linked_ingredients": [
+        154
+      ],
+      "equipment": []
+    },
+    {
+      "id": 320,
+      "StepDe": "Putze den Rosenkohl und halbiere größere Röschen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        281
+      ],
+      "equipment": []
+    },
+    {
+      "id": 321,
+      "StepDe": "Schneide den Rotkohl in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        166
+      ],
+      "equipment": []
+    },
+    {
+      "id": 322,
+      "StepDe": "Schneide den Weißkohl in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        174
+      ],
+      "equipment": []
+    },
+    {
+      "id": 323,
+      "StepDe": "Schneide den Wirsing in Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        228
+      ],
+      "equipment": []
+    },
+    {
+      "id": 324,
+      "StepDe": "Wasche den Grünkohl, entferne die harten Stiele und zupfe die Blätter in Stücke.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        185
+      ],
+      "equipment": []
+    },
+    {
+      "id": 325,
+      "StepDe": "Wasche den Pak Choi und halbiere ihn der Länge nach.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        280
+      ],
+      "equipment": []
+    },
+    {
+      "id": 326,
+      "StepDe": "Schneide den Spitzkohl in feine Streifen.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        288
+      ],
+      "equipment": []
+    },
+    {
+      "id": 327,
+      "StepDe": "Wasche den Rucola und trockne ihn.",
+      "phase": 0,
+      "action": "waschen",
+      "linked_ingredients": [
+        144
+      ],
+      "equipment": []
+    },
+    {
+      "id": 328,
+      "StepDe": "Wasche die Radieschen und schneide sie in dünne Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        208
+      ],
+      "equipment": []
+    },
+    {
+      "id": 329,
+      "StepDe": "Schäle die Pastinaken und schneide sie in Scheiben.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        282
+      ],
+      "equipment": []
+    },
+    {
+      "id": 330,
+      "StepDe": "Wasche die Okra und schneide die Stielenden ab.",
+      "phase": 0,
+      "action": "schneiden",
+      "linked_ingredients": [
+        289
+      ],
+      "equipment": []
+    },
+    {
+      "id": 331,
+      "StepDe": "Röste die Kürbiskerne kurz in einer trockenen Pfanne an.",
+      "phase": 1,
+      "action": "anrösten",
+      "linked_ingredients": [
+        146
+      ],
+      "equipment": []
+    },
+    {
+      "id": 332,
+      "StepDe": "Röste die Pinienkerne kurz in einer trockenen Pfanne goldbraun an.",
+      "phase": 1,
+      "action": "anrösten",
+      "linked_ingredients": [
+        139
+      ],
+      "equipment": []
+    },
+    {
+      "id": 333,
+      "StepDe": "Brate die Gnocchi in Butter goldbraun an.",
+      "phase": 1,
+      "action": "anbraten",
+      "linked_ingredients": [
+        182,
+        27
+      ],
+      "equipment": []
+    },
+    {
+      "id": 334,
+      "StepDe": "Bestreue mit Frühlingszwiebel-Ringen.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        50
+      ],
+      "equipment": []
+    },
+    {
+      "id": 335,
+      "StepDe": "Gib einen Löffel Joghurt oder Schmand auf das Gericht.",
+      "phase": 2,
+      "action": "garnieren",
+      "linked_ingredients": [
+        36,
+        34
+      ],
+      "equipment": []
+    }
+  ]
+}
