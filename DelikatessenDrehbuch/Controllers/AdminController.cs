@@ -299,8 +299,223 @@ namespace DelikatessenDrehbuch.Controllers
 
             await System.IO.File.WriteAllTextAsync(filePath, json);
 
-            TempData["ExportJsonMessage"] = $"JSON Export erstellt: data/exports/{fileName} | Zutaten (neu): {ingredientsAndNutrients.Count} | Ohne Zuordnung: {missingIngredients.Count}";
+            // Gleichzeitig das Step-Mapping aktualisieren
+            var mappingStats = await BuildAndSaveStepMappingAsync();
+
+            TempData["ExportJsonMessage"] = $"JSON Export erstellt: data/exports/{fileName} | Zutaten (neu): {ingredientsAndNutrients.Count} | Ohne Zuordnung: {missingIngredients.Count} | Step-Mapping: {mappingStats}";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UpdateStepMappingAsync()
+        {
+            var stats = await BuildAndSaveStepMappingAsync();
+            TempData["ExportJsonMessage"] = $"Step-Mapping aktualisiert: {stats}";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<string> BuildAndSaveStepMappingAsync()
+        {
+            // ── 1. Daten aus DB laden ─────────────────────────────────────────
+            var ingredients = await _context.IngredientsAndNutrients
+                .AsNoTracking()
+                .Include(x => x.Group)
+                .OrderBy(x => x.Id)
+                .ToListAsync();
+
+            var allSteps = await _context.RecipePreperationSteps
+                .AsNoTracking()
+                .OrderBy(x => x.Id)
+                .ToListAsync();
+
+            // ingredient_to_steps: kommt aus JoinIngredientPreperationStep (DB)
+            var joins = await _context.JoinIngredientPreperationStep
+                .AsNoTracking()
+                .Include(x => x.Ingredient)
+                .Include(x => x.Preperation)
+                .ToListAsync();
+
+            var ingredientToSteps = joins
+                .GroupBy(j => j.Ingredient.Id)
+                .ToDictionary(
+                    g => g.Key.ToString(),
+                    g => g.Select(j => j.Preperation.Id).Distinct().OrderBy(id => id).ToList()
+                );
+
+            // Rezept-Zutaten-Beziehungen für Häufigkeit + Combos + Templates
+            var recipeIngredientLinks = await _context.RecipeJoinIngredientMeasureQuantity
+                .AsNoTracking()
+                .Include(x => x.Recipe)
+                .Include(x => x.Ingredient).ThenInclude(i => i.IngredientsAndNutrients)
+                .Where(x => x.Ingredient.IngredientsAndNutrients != null)
+                .Select(x => new
+                {
+                    RecipeId       = x.Recipe.Id,
+                    RecipeTitle    = x.Recipe.Title,
+                    RecipeCategory = x.Recipe.Category,
+                    IngredientId   = x.Ingredient.IngredientsAndNutrients.Id
+                })
+                .ToListAsync();
+
+            // ── 2. ingredient_catalog ─────────────────────────────────────────
+            var recipeCountPerIngredient = recipeIngredientLinks
+                .GroupBy(x => x.IngredientId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.RecipeId).Distinct().Count());
+
+            var ingredientCatalog = ingredients.ToDictionary(
+                ing => ing.Id.ToString(),
+                ing => (object)new
+                {
+                    id           = ing.Id,
+                    name         = ing.Name_DE,
+                    name_en      = ing.Name_EN,
+                    group        = ing.Group?.Name ?? string.Empty,
+                    recipe_count = recipeCountPerIngredient.GetValueOrDefault(ing.Id, 0)
+                }
+            );
+
+            // ── 3. ingredient_combos (Top 80 Co-Occurrenzen) ──────────────────
+            var ingredientsByRecipe = recipeIngredientLinks
+                .GroupBy(x => x.RecipeId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.IngredientId).Distinct().ToList());
+
+            var coOccurrence = new Dictionary<(int, int), int>();
+            foreach (var (_, ids) in ingredientsByRecipe)
+            {
+                var sorted = ids.OrderBy(x => x).ToList();
+                for (int i = 0; i < sorted.Count; i++)
+                    for (int j = i + 1; j < sorted.Count; j++)
+                    {
+                        var key = (sorted[i], sorted[j]);
+                        coOccurrence[key] = coOccurrence.GetValueOrDefault(key, 0) + 1;
+                    }
+            }
+
+            var ingredientComboList = coOccurrence
+                .OrderByDescending(kv => kv.Value)
+                .Take(80)
+                .Select(kv => new
+                {
+                    ingredients    = new[] { kv.Key.Item1, kv.Key.Item2 },
+                    names          = new[]
+                    {
+                        ingredients.FirstOrDefault(i => i.Id == kv.Key.Item1)?.Name_DE ?? string.Empty,
+                        ingredients.FirstOrDefault(i => i.Id == kv.Key.Item2)?.Name_DE ?? string.Empty
+                    },
+                    co_occurrence  = kv.Value,
+                    shared_steps   = ingredientToSteps.GetValueOrDefault(kv.Key.Item1.ToString(), new())
+                                         .Intersect(ingredientToSteps.GetValueOrDefault(kv.Key.Item2.ToString(), new()))
+                                         .OrderBy(x => x).ToList(),
+                    combined_steps = ingredientToSteps.GetValueOrDefault(kv.Key.Item1.ToString(), new())
+                                         .Union(ingredientToSteps.GetValueOrDefault(kv.Key.Item2.ToString(), new()))
+                                         .OrderBy(x => x).ToList()
+                })
+                .ToList();
+
+            // ── 4. recipe_type_templates (TF-IDF-Signature pro Kategorie-Pattern) ─
+            var typePatterns = new[]
+            {
+                "lasagne","suppe","eintopf","salat","pasta","curry","pizza","burger",
+                "risotto","stir-fry","taco","bowl","braten","chili","steak",
+                "omelette","frittata","wrap","sandwich","smoothie","wok","pfannkuchen",
+                "quiche","tartar"
+            };
+
+            int totalRecipes = ingredientsByRecipe.Count;
+            var recipeTitles = recipeIngredientLinks
+                .GroupBy(x => x.RecipeId)
+                .ToDictionary(g => g.Key, g => g.First().RecipeTitle?.ToLowerInvariant() ?? string.Empty);
+
+            var recipeTypeTemplates = new Dictionary<string, object>();
+            foreach (var pattern in typePatterns)
+            {
+                var matchingRecipeIds = recipeTitles
+                    .Where(kv => kv.Value.Contains(pattern))
+                    .Select(kv => kv.Key)
+                    .ToHashSet();
+
+                if (matchingRecipeIds.Count < 3) continue;
+
+                // TF: Häufigkeit in passenden Rezepten
+                var tfByIngredient = recipeIngredientLinks
+                    .Where(x => matchingRecipeIds.Contains(x.RecipeId))
+                    .GroupBy(x => x.IngredientId)
+                    .ToDictionary(g => g.Key, g => (double)g.Select(x => x.RecipeId).Distinct().Count() / matchingRecipeIds.Count);
+
+                // IDF: Seltenheit gesamt
+                var signatures = tfByIngredient
+                    .Where(kv => kv.Value >= 0.1)
+                    .Select(kv =>
+                    {
+                        int globalCount = recipeCountPerIngredient.GetValueOrDefault(kv.Key, 1);
+                        double idf = Math.Log((double)totalRecipes / globalCount);
+                        double specificity = Math.Round(kv.Value * idf, 2);
+                        var ing = ingredients.FirstOrDefault(i => i.Id == kv.Key);
+                        return new
+                        {
+                            ingredient_id   = kv.Key,
+                            ingredient_name = ing?.Name_DE ?? string.Empty,
+                            specificity,
+                            frequency       = Math.Round(kv.Value, 2)
+                        };
+                    })
+                    .Where(x => x.specificity > 0.5)
+                    .OrderByDescending(x => x.specificity)
+                    .Take(10)
+                    .ToList();
+
+                if (!signatures.Any()) continue;
+
+                recipeTypeTemplates[pattern] = new
+                {
+                    name_pattern           = pattern,
+                    recipe_count           = matchingRecipeIds.Count,
+                    signature_ingredients  = signatures
+                };
+            }
+
+            // ── 5. preparation_steps aus DB ───────────────────────────────────
+            var preparationSteps = allSteps.Select(s => new
+            {
+                Id        = s.Id,
+                StepDe    = s.Step_DE,
+                StepEn    = s.Step_EN,
+                StepPrt   = s.Step_PRT,
+                StepEsp   = s.Step_ESP,
+                Phase     = s.Phase,
+                Equipment = s.Equipment
+            }).ToList();
+
+            // ── 6. Mapping zusammenbauen + speichern ──────────────────────────
+            var phases    = new Dictionary<string, string> { {"0","Basis"},{"1","Vorbereitung"},{"2","Kochen"},{"3","Würzen"},{"4","Finish"} };
+            var equipment = new Dictionary<string, string> { {"0","Keins"},{"1","Backofen"},{"2","Pfanne"},{"3","Topf"},{"4","Bräter"},{"5","Kochfeld"} };
+
+            var mapping = new
+            {
+                _meta = new
+                {
+                    version            = "2.1",
+                    generated_at       = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    ingredient_system  = $"IngredientsAndNutrients – {ingredients.Count} Einträge",
+                    description        = "Mapping von Zutaten zu Zubereitungsschritten + Rezepttyp-Erkennung für Recipe Step Suggestion Engine.",
+                    usage              = "Fetch via /data/recipe_step_mapping.json | ingredient_to_steps kommt aus JoinIngredientPreperationStep (DB-Tabelle)"
+                },
+                phases,
+                equipment,
+                preparation_steps     = preparationSteps,
+                ingredient_to_steps   = ingredientToSteps,
+                recipe_type_templates = recipeTypeTemplates,
+                ingredient_combos     = ingredientComboList,
+                ingredient_catalog    = ingredientCatalog
+            };
+
+            var mappingJson = JsonSerializer.Serialize(mapping, new JsonSerializerOptions { WriteIndented = true });
+            var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "recipe_step_mapping.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(wwwrootPath)!);
+            await System.IO.File.WriteAllTextAsync(wwwrootPath, mappingJson);
+
+            return $"{ingredients.Count} Zutaten | {ingredientToSteps.Count} Ingredient-Step-Mappings | {recipeTypeTemplates.Count} Templates | {ingredientComboList.Count} Combos";
         }
 
         private static string MapCategoryToCourse(string? category)
