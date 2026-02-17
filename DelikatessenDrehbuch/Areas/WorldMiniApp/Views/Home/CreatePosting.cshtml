@@ -377,6 +377,12 @@
                                 <span class="badge text-bg-light border">Beta</span>
                             </div>
                         </div>
+                        <div id="recipeTypeScoreBar" class="mt-2 d-none">
+                            <div class="d-flex flex-wrap align-items-center gap-1">
+                                <span class="small text-muted me-1">Rezepttyp:</span>
+                                <span id="recipeTypeBadges"></span>
+                            </div>
+                        </div>
 
                         <div class="row g-3 mt-1">
                             <div class="col-md-5">
@@ -1079,6 +1085,7 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="~/js/recipe-step-suggest.js"></script>
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
@@ -1137,6 +1144,28 @@
             $('#btnSuggestSteps').prop('disabled', !hasIngredients);
         }
 
+        /** Live recipe type detection when ingredients change */
+        function updateRecipeTypeDetection() {
+            if (!RecipeStepSuggest.isLoaded()) {
+                RecipeStepSuggest.loadMapping().then(() => updateRecipeTypeDetection());
+                return;
+            }
+            const selectedIds = getSelectedIngredientIds();
+            const scoreBar = $('#recipeTypeScoreBar');
+            const badges = $('#recipeTypeBadges');
+            if (!selectedIds.length) {
+                scoreBar.addClass('d-none');
+                return;
+            }
+            const types = RecipeStepSuggest.detectRecipeTypes(selectedIds);
+            if (types.length) {
+                badges.html(RecipeStepSuggest.renderRecipeTypeBadges(types, 3));
+                scoreBar.removeClass('d-none');
+            } else {
+                scoreBar.addClass('d-none');
+            }
+        }
+
         // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
         function getStepBoundIngredientIds(stepId) {
             return (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
@@ -1170,9 +1199,60 @@
                 if (!confirm('Bestehende Schritte ersetzen?')) return;
             }
 
+            // Collect selected ingredient names for conflict checking
+            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
+
+            // Build a stepId lookup from the page catalog
+            const catalogById = {};
+            getAllStepRows().forEach(s => { catalogById[s.id.toString()] = s; });
+
+            function runSuggestion() {
+                const result = RecipeStepSuggest.suggestStepsForIngredients(selectedIds, catalogById, {
+                    selectedIngredientNames: selectedNames,
+                    maxSteps: 20
+                });
+
+                // Show recipe type score
+                const scoreBar = $('#recipeTypeScoreBar');
+                const badges = $('#recipeTypeBadges');
+                if (result.recipeTypes.length) {
+                    badges.html(RecipeStepSuggest.renderRecipeTypeBadges(result.recipeTypes, 3));
+                    scoreBar.removeClass('d-none');
+                } else {
+                    scoreBar.addClass('d-none');
+                }
+
+                // If mapping has results, use them; otherwise fall back to DB binding logic
+                if (result.steps.length) {
+                    $('#selectedSteps').empty();
+                    result.steps.forEach(item => {
+                        const sourceRow = catalogById[item.stepId.toString()];
+                        const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
+                        addStep(item.stepId.toString(), null, label, { skipRender: true });
+                    });
+                    updateStepIndices();
+                    renderSandboxStepTab();
+                    return;
+                }
+
+                // Fallback: original DB-binding-based logic
+                suggestStepsFallback();
+            }
+
+            if (RecipeStepSuggest.isLoaded()) {
+                runSuggestion();
+            } else {
+                RecipeStepSuggest.loadMapping()
+                    .then(() => runSuggestion())
+                    .catch(() => suggestStepsFallback());
+            }
+        }
+
+        /** Original suggest logic as fallback when JSON mapping is unavailable */
+        function suggestStepsFallback() {
+            const selectedIds = getSelectedIngredientIds();
             const allSteps = getAllStepRows();
-            // Pro Zutat+Phase nur den besten Step auswählen (höchster matchCount)
-            const bestPerCombo = new Map(); // key: "ingredientId_phase" → { stepId, phase, matchCount, step }
+            const bestPerCombo = new Map();
 
             allSteps.forEach(step => {
                 const stepId = step.id;
@@ -1183,7 +1263,6 @@
                 const matchingIngredients = boundIds.filter(bid => selectedIds.includes(bid));
                 if (!matchingIngredients.length) return;
 
-                // Für jede passende Zutat den besten Step pro Phase merken
                 matchingIngredients.forEach(ingId => {
                     const key = `${ingId}_${phase}`;
                     const matchCount = matchingIngredients.length;
@@ -1194,16 +1273,12 @@
                 });
             });
 
-            // Deduplizieren (gleicher Step kann für mehrere Zutaten der Beste sein)
             const uniqueSteps = new Map();
             const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
             bestPerCombo.forEach(item => {
-                if (!uniqueSteps.has(item.stepId)) {
-                    uniqueSteps.set(item.stepId, item);
-                }
+                if (!uniqueSteps.has(item.stepId)) uniqueSteps.set(item.stepId, item);
             });
 
-            // Sortieren: Phase 1→2→3→4, dann matchCount desc
             const sorted = [...uniqueSteps.values()].sort((a, b) => {
                 const pa = phaseOrder[a.phase] ?? 4;
                 const pb = phaseOrder[b.phase] ?? 4;
@@ -1451,6 +1526,7 @@
             });
 
             renderSandboxStepTab();
+            updateRecipeTypeDetection();
         }
 
         function refreshSandboxProgress() {
