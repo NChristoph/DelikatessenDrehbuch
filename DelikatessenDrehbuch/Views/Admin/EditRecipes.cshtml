@@ -17,22 +17,86 @@
                 : new List<int>()
         }) ?? Enumerable.Empty<object>());
 
-    var ingredientLookupByName = (Model.IngredientsAndNutrients ?? new List<IngredientsAndNutrients>())
+    string NormalizeIngredientKey(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var chars = value
+            .Trim()
+            .ToLowerInvariant()
+            .Normalize(System.Text.NormalizationForm.FormD)
+            .Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+            .Select(c => char.IsLetterOrDigit(c) ? c : ' ')
+            .ToArray();
+
+        return string.Join(' ', new string(chars)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    var ingredientCandidates = (Model.IngredientsAndNutrients ?? new List<IngredientsAndNutrients>())
         .Where(x => !string.IsNullOrWhiteSpace(x.Name_DE))
-        .GroupBy(x => x.Name_DE.Trim().ToLowerInvariant())
-        .ToDictionary(g => g.Key, g => g.First().Id);
+        .Select(x => new
+        {
+            x.Id,
+            Name = x.Name_DE,
+            Key = NormalizeIngredientKey(x.Name_DE)
+        })
+        .ToList();
+
+    int ResolveIngredientId(string oldIngredientName)
+    {
+        var key = NormalizeIngredientKey(oldIngredientName);
+        if (string.IsNullOrWhiteSpace(key)) return 0;
+
+        var exact = ingredientCandidates.Where(x => x.Key == key).Select(x => x.Id).Distinct().ToList();
+        if (exact.Count == 1) return exact[0];
+
+        var contains = ingredientCandidates
+            .Where(x => x.Key.Contains(key) || key.Contains(x.Key))
+            .Select(x => x.Id)
+            .Distinct()
+            .ToList();
+
+        return contains.Count == 1 ? contains[0] : 0;
+    }
+
+    var availableUnitsLower = (Model.Measure ?? new List<Measure>())
+        .Select(m => m.UnitOfMeasurement)
+        .Where(u => !string.IsNullOrWhiteSpace(u))
+        .Select(u => u.Trim())
+        .Distinct(StringComparer.InvariantCultureIgnoreCase)
+        .ToList();
+
+    string ResolveUnit(string unit)
+    {
+        var normalized = (unit ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized)) return "Gramm";
+
+        var exact = availableUnitsLower.FirstOrDefault(u =>
+            string.Equals(u, normalized, StringComparison.InvariantCultureIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(exact)) return exact;
+
+        if (normalized.Equals("g", StringComparison.InvariantCultureIgnoreCase) || normalized.Equals("gramm", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var g = availableUnitsLower.FirstOrDefault(u => u.Equals("g.", StringComparison.InvariantCultureIgnoreCase) || u.Equals("g", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(g)) return g;
+        }
+
+        if (normalized.Equals("stück", StringComparison.InvariantCultureIgnoreCase) || normalized.Equals("stk", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var stk = availableUnitsLower.FirstOrDefault(u => u.Equals("Stk.", StringComparison.InvariantCultureIgnoreCase) || u.Equals("Stk", StringComparison.InvariantCultureIgnoreCase) || u.Equals("Stück", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(stk)) return stk;
+        }
+
+        return normalized;
+    }
 
     var initialIngredientsJson = JsonConvert.SerializeObject(
         (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
-            .Select(old => {
-                var normalizedName = (old.Ingredient?.Name ?? string.Empty).Trim().ToLowerInvariant();
-                ingredientLookupByName.TryGetValue(normalizedName, out var mappedId);
-                return new {
-                    id = mappedId,
-                    name = old.Ingredient?.Name ?? string.Empty,
-                    quantity = old.Quantity?.Quantitys,
-                    unit = old.Measure?.UnitOfMeasurement ?? "Gramm"
-                };
+            .Select(old => new {
+                id = ResolveIngredientId(old.Ingredient?.Name ?? string.Empty),
+                name = old.Ingredient?.Name ?? string.Empty,
+                quantity = old.Quantity?.Quantitys,
+                unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm")
             })
             .ToList());
 }
@@ -1449,6 +1513,34 @@
             info.text('Noch keine Aktion bei den Schritten.');
         }
 
+        function normalizeUnitForSelection(unit) {
+            const normalized = (unit || '').toString().trim();
+            if (!normalized) return 'Gramm';
+
+            const found = availableUnits.find(function(u) {
+                return (u || '').toString().trim().toLowerCase() === normalized.toLowerCase();
+            });
+            if (found) return found;
+
+            if (normalized.toLowerCase() === 'g' || normalized.toLowerCase() === 'gramm') {
+                const grams = availableUnits.find(function(u) {
+                    const lower = (u || '').toString().toLowerCase();
+                    return lower === 'g.' || lower === 'g';
+                });
+                if (grams) return grams;
+            }
+
+            if (normalized.toLowerCase() === 'stück' || normalized.toLowerCase() === 'stk') {
+                const pieces = availableUnits.find(function(u) {
+                    const lower = (u || '').toString().toLowerCase();
+                    return lower === 'stk.' || lower === 'stk' || lower === 'stück';
+                });
+                if (pieces) return pieces;
+            }
+
+            return normalized;
+        }
+
         function preloadExistingRecipeIngredients() {
             if (!Array.isArray(initialRecipeIngredients) || !initialRecipeIngredients.length) return;
 
@@ -1456,7 +1548,7 @@
                 const dbId = item?.id && Number(item.id) > 0 ? item.id.toString() : '0';
                 const name = (item?.name || '').toString();
                 const quantity = item?.quantity != null ? item.quantity.toString() : '';
-                const unit = (item?.unit || 'Gramm').toString();
+                const unit = normalizeUnitForSelection(item?.unit || 'Gramm');
                 if (!name && dbId === '0') return;
                 addNewIngredient(dbId, name, quantity, unit);
             });
@@ -1530,7 +1622,7 @@
             $('#adminMasterVariables').on('input', '.admin-master-var-input', updateAdminMasterPreview);
             $('#btnAdminAddMasterStep').on('click', addAdminRenderedMasterStep);
 
-            // preloadExistingRecipeIngredients(); // bewusst deaktiviert: keine Vorauswahl
+            preloadExistingRecipeIngredients();
             renderSandboxIngredientList();
             updateSuggestButtonState();
         });
