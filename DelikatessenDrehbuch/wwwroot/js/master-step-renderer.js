@@ -29,6 +29,10 @@
         return getMasterSteps().find(function (x) { return x && x.master_id === masterId; }) || null;
     }
 
+    function getAllTemplates() {
+        return getMasterSteps().filter(function (step) { return !!step; });
+    }
+
     function renderText(template, vars) {
         if (!template) return '';
         return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
@@ -111,7 +115,7 @@
 
     function suggestForIngredient(ingredientName) {
         const name = (ingredientName || '').toString().toLowerCase().trim();
-        const all = getMasterSteps().filter(function (step) { return !!step; });
+        const all = getAllTemplates();
         if (!all.length) return [];
 
         const hasAny = function (terms) { return terms.some(function (x) { return name.includes(x); }); };
@@ -157,6 +161,7 @@
 
     window.MasterStepRenderer = {
         load: load,
+        getAllTemplates: getAllTemplates,
         render: render,
         renderAll: renderAll,
         getSmartDefaults: getSmartDefaults,

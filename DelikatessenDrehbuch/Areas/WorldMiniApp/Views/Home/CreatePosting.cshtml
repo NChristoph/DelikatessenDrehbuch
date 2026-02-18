@@ -1398,13 +1398,14 @@
         function refreshMasterTemplateBuilder() {
             const ingredientSelect = $('#masterIngredientSelect');
             const ingredients = getSelectedIngredientsForSandbox();
+            const previousSelection = ingredientSelect.val() || '';
             ingredientSelect.empty();
 
             if (!ingredients.length) {
                 ingredientSelect.append('<option value="">Keine Zutat gewählt</option>');
-                $('#masterTemplateSelect').html('<option value="">Keine Templates</option>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
+                refreshMasterTemplateOptions();
                 return;
             }
 
@@ -1412,31 +1413,41 @@
                 ingredientSelect.append(`<option value="${item.name}">${item.name}</option>`);
             });
 
+            if (previousSelection && ingredients.some(item => item.name === previousSelection)) {
+                ingredientSelect.val(previousSelection);
+            }
+
             refreshMasterTemplateOptions();
         }
 
         function refreshMasterTemplateOptions() {
-            const ingredientName = $('#masterIngredientSelect').val() || '';
             const templateSelect = $('#masterTemplateSelect');
+            const previousTemplateId = templateSelect.val() || '';
             templateSelect.empty();
 
-            if (!ingredientName || !window.MasterStepRenderer) {
+            if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
                 templateSelect.append('<option value="">Keine Templates</option>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Master-Step Renderer nicht verfügbar.');
                 return;
             }
 
-            const suggestions = MasterStepRenderer.suggestForIngredient(ingredientName);
-            if (!suggestions.length) {
+            const templates = MasterStepRenderer.getAllTemplates();
+            if (!templates.length) {
                 templateSelect.append('<option value="">Keine Templates gefunden</option>');
                 $('#masterVariables').empty();
-                $('#masterPreviewText').text('Keine passenden Master-Templates gefunden.');
+                $('#masterPreviewText').text('Keine Master-Templates gefunden.');
                 return;
             }
 
-            suggestions.forEach(step => {
+            templates.forEach(step => {
                 const label = step.description || step.master_id;
                 templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
             });
+
+            if (previousTemplateId && templates.some(step => step.master_id === previousTemplateId)) {
+                templateSelect.val(previousTemplateId);
+            }
 
             renderMasterTemplateEditor();
         }
@@ -1881,6 +1892,7 @@
             $('#selectedIngredients').append(newIngredient);
 
             renderSandboxIngredientList();
+            refreshMasterTemplateBuilder();
             if (typeof syncIngredientSourceVisibility === "function") {
                 syncIngredientSourceVisibility();
             }
@@ -1889,6 +1901,7 @@
         function removeIngredientRow(btn) {
             $(btn).closest('.ingredient-row').remove();
             renderSandboxIngredientList();
+            refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
         }
 
