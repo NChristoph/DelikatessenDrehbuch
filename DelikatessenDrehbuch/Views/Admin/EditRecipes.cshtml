@@ -417,7 +417,7 @@
                 <div class="small text-muted mt-2">Preview:</div>
                 <div id="adminMasterPreviewText" class="small border rounded px-2 py-2 bg-white">Noch kein Template gewählt.</div>
             </div>
-            <p class="text-muted mb-3">Wähle links eine Zutat aus. Rechts siehst du die verknüpften Schritte für genau diese Zutat und kannst sie direkt in den Ablauf übernehmen.</p>
+            <p class="text-muted mb-3">Wähle links eine oder mehrere Zutaten aus. Rechts siehst du passende Schritte und kannst sie direkt in den Ablauf übernehmen.</p>
             <div class="row g-3">
                 <div class="col-lg-5">
                     <div class="border rounded p-3 bg-light h-100">
@@ -652,12 +652,32 @@
             refreshAdminMasterTemplates();
         }
 
+        function getAdminMasterTemplates(ingredientName) {
+            if (!window.MasterStepRenderer) return [];
+
+            if (typeof MasterStepRenderer.getAllTemplates === 'function') {
+                const all = MasterStepRenderer.getAllTemplates();
+                if (Array.isArray(all) && all.length) {
+                    return all;
+                }
+            }
+
+            if (typeof MasterStepRenderer.suggestForIngredient === 'function') {
+                const suggested = MasterStepRenderer.suggestForIngredient(ingredientName || 'zutat');
+                if (Array.isArray(suggested) && suggested.length) {
+                    return suggested;
+                }
+            }
+
+            return [];
+        }
+
         function refreshAdminMasterTemplates() {
             const ingredientName = buildIngredientTextForAdminMaster();
             const templateSelect = $('#adminMasterTemplateSelect');
             templateSelect.empty();
 
-            if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
+            if (!window.MasterStepRenderer) {
                 templateSelect.append('<option value="">Keine Templates</option>');
                 $('#adminMasterVariables').empty();
                 $('#adminMasterPreviewText').text('Master-Step Renderer nicht verfügbar.');
@@ -665,7 +685,7 @@
                 return;
             }
 
-            const templates = MasterStepRenderer.getAllTemplates();
+            const templates = getAdminMasterTemplates(ingredientName);
             if (!templates.length) {
                 templateSelect.append('<option value="">Keine Templates gefunden</option>');
                 $('#adminMasterVariables').empty();
