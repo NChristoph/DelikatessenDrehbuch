@@ -25,6 +25,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     public class HomeController : Controller
     {
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
+        private const string SuperUserHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly IBlobUploadService _blobUpload;
@@ -543,8 +544,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return false;
             }
 
-            const string superUserHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
-            if (userHash == superUserHash)
+            if (userHash == SuperUserHash)
             {
                 return true;
             }
@@ -673,7 +673,73 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .ThenInclude(ri => ri.Ingredient)
                         .ThenInclude(i => i.IngredientsAndNutrients.Group)
                 .FirstOrDefault(r => r.Id == id);
+
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            var userHash = ResolveUserHash(string.Empty);
+            var isSuperUser = userHash == SuperUserHash;
+            ViewData["CanPublishToFeed"] = isSuperUser;
+
+            if (isSuperUser)
+            {
+                var existingPostingId = await _context.WorldUserPosting
+                    .Where(x => x.Recipe != null && x.Recipe.Id == id)
+                    .Select(x => (int?)x.Id)
+                    .FirstOrDefaultAsync();
+                ViewData["ExistingPostingId"] = existingPostingId;
+            }
+
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PublishRecipeBaseDataToFeed(int recipeBaseDataId, string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (userHash != SuperUserHash)
+            {
+                return Forbid();
+            }
+
+            var recipe = await _context.RecipeBaseData
+                .Include(r => r.Images)
+                .FirstOrDefaultAsync(r => r.Id == recipeBaseDataId);
+            if (recipe == null)
+            {
+                return NotFound();
+            }
+
+            var existingPosting = await _context.WorldUserPosting
+                .Include(x => x.Recipe)
+                .FirstOrDefaultAsync(x => x.Recipe != null && x.Recipe.Id == recipeBaseDataId);
+
+            if (existingPosting != null)
+            {
+                return RedirectToAction(nameof(EditRecipe), new { postingId = existingPosting.Id, userHash });
+            }
+
+            var sourceImage = recipe.Images?.FirstOrDefault()?.Image
+                ?? "https://cdn.pixabay.com/photo/2014/12/21/23/28/recipe-575434_640.png";
+
+            var posting = new WorldUserPosting
+            {
+                CreatorId = userHash,
+                CreatorName = "Avocado",
+                Title = recipe.Title,
+                Recipe = recipe,
+                Source = sourceImage,
+                ThumbnailUrl = sourceImage,
+                CreationTime = DateTime.Now
+            };
+
+            await _context.WorldUserPosting.AddAsync(posting);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(EditRecipe), new { postingId = posting.Id, userHash });
         }
         public async Task<IActionResult> EditPlan(string userHash, int id)
         {

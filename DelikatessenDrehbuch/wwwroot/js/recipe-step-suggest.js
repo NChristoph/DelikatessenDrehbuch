@@ -372,62 +372,63 @@
         };
     }
 
-    function getMasterStepPreview(selectedIngredientNames, options) {
+    /**
+       * Erstellt eine vollständige Vorschau aller Master-Steps für die gewählten Zutaten.
+       * Sortiert nach Phasen (Vorbereitung -> Kochen -> Finishing).
+       */
+    function getMasterStepPreview(selectedIngredients, options) {
         options = options || {};
         const lang = (options.lang || 'de').toLowerCase();
-        const maxIngredients = options.maxIngredients || 3;
-        const maxItems = options.maxItems || 6;
 
-        if (!masterStepsData || !Array.isArray(masterStepsData.master_steps)) {
-            return [];
-        }
+        // Wir nehmen an, selectedIngredients ist ein Array von Strings (Namen) 
+        // oder Objekten {name: "..."}. Wir vereinheitlichen das hier:
+        const ingredientNames = selectedIngredients.map(ing =>
+            typeof ing === 'string' ? ing : (ing.name || ing.ingredient_name)
+        );
 
-        const names = (selectedIngredientNames || [])
-            .map(n => (n || '').toString().trim())
-            .filter(Boolean)
-            .slice(0, maxIngredients);
+        if (!masterStepsData || !Array.isArray(masterStepsData.master_steps)) return [];
 
-        if (!names.length) return [];
+        const rendered = [];
+        const seen = new Set();
 
-        const preferredActions = ['wash', 'cut', 'mix', 'fry', 'boil', 'bake', 'season', 'serve'];
-        const selectedTemplates = [];
+        // 1. Jede gewählte Zutat durchgehen
+        ingredientNames.forEach(name => {
 
-        names.forEach(function (ingredientName) {
-            preferredActions.forEach(function (actionName) {
-                const match = masterStepsData.master_steps.find(function (step) {
-                    return step && step.action === actionName && Array.isArray(step.variables) && step.variables.includes('ingredient');
-                });
+            // 2. JEDEN Master-Step aus der JSON prüfen
+            masterStepsData.master_steps.forEach(masterStep => {
 
-                if (match) {
-                    selectedTemplates.push({
-                        ingredientName: ingredientName,
-                        step: match
-                    });
+                // Nur Steps nehmen, die eine einzelne Zutat verarbeiten können
+                if (masterStep.variables.includes('ingredient')) {
+
+                    const key = `${masterStep.master_id}::${name}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+
+                        // Template für die Sprache wählen
+                        const templates = masterStep.templates || {};
+                        const rawTemplate = templates[lang] || templates.de || "";
+
+                        // Platzhalter füllen (Nutzt deine Default-Logik für Pronomen etc.)
+                        const vars = getMasterTemplateDefaults(name);
+                        const text = renderMasterTemplate(rawTemplate, vars);
+
+                        if (text) {
+                            rendered.push({
+                                masterId: masterStep.master_id,
+                                phase: parseInt(masterStep.phase || 0, 10),
+                                equipment: masterStep.equipment,
+                                action: masterStep.action,
+                                ingredient: name,
+                                text: text
+                            });
+                        }
+                    }
                 }
             });
         });
 
-        const seen = new Set();
-        const rendered = [];
-        selectedTemplates.forEach(function (item) {
-            const key = `${item.step.master_id}::${item.ingredientName}`;
-            if (seen.has(key) || rendered.length >= maxItems) return;
-            seen.add(key);
-
-            const templates = item.step.templates || {};
-            const template = templates[lang] || templates.de || templates.en || '';
-            const text = renderMasterTemplate(template, getMasterTemplateDefaults(item.ingredientName));
-            if (!text) return;
-
-            rendered.push({
-                masterId: item.step.master_id,
-                phase: parseInt(item.step.phase || 0, 10),
-                equipment: parseInt(item.step.equipment || 0, 10),
-                text: text
-            });
-        });
-
-        return rendered;
+        // 3. Nach Phase sortieren (Phase 1: Vorbereitung kommt zuerst)
+        return rendered.sort((a, b) => a.phase - b.phase);
     }
 
     // Export

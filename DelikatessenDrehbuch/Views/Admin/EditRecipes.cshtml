@@ -17,23 +17,118 @@
                 : new List<int>()
         }) ?? Enumerable.Empty<object>());
 
-    var ingredientLookupByName = (Model.IngredientsAndNutrients ?? new List<IngredientsAndNutrients>())
+    string NormalizeIngredientKey(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var chars = value
+            .Trim()
+            .ToLowerInvariant()
+            .Normalize(System.Text.NormalizationForm.FormD)
+            .Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+            .Select(c => char.IsLetterOrDigit(c) ? c : ' ')
+            .ToArray();
+
+        return string.Join(' ', new string(chars)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    var ingredientCandidates = (Model.IngredientsAndNutrients ?? new List<IngredientsAndNutrients>())
         .Where(x => !string.IsNullOrWhiteSpace(x.Name_DE))
-        .GroupBy(x => x.Name_DE.Trim().ToLowerInvariant())
-        .ToDictionary(g => g.Key, g => g.First().Id);
+        .Select(x => new
+        {
+            x.Id,
+            Name = x.Name_DE,
+            Key = NormalizeIngredientKey(x.Name_DE)
+        })
+        .ToList();
+
+    (int Id, string Name) ResolveIngredientMatch(string oldIngredientName)
+    {
+        var key = NormalizeIngredientKey(oldIngredientName);
+        if (string.IsNullOrWhiteSpace(key)) return (0, string.Empty);
+
+        var exact = ingredientCandidates
+            .Where(x => x.Key == key)
+            .Select(x => new { x.Id, x.Name })
+            .Distinct()
+            .ToList();
+
+        if (exact.Count == 1)
+        {
+            return (exact[0].Id, exact[0].Name ?? string.Empty);
+        }
+
+        var contains = ingredientCandidates
+            .Where(x => x.Key.Contains(key) || key.Contains(x.Key))
+            .Select(x => new { x.Id, x.Name })
+            .Distinct()
+            .ToList();
+
+        if (contains.Count == 1)
+        {
+            return (contains[0].Id, contains[0].Name ?? string.Empty);
+        }
+
+        return (0, string.Empty);
+    }
+
+    var availableUnitsLower = (Model.Measure ?? new List<Measure>())
+        .Select(m => m.UnitOfMeasurement)
+        .Where(u => !string.IsNullOrWhiteSpace(u))
+        .Select(u => u.Trim())
+        .Distinct(StringComparer.InvariantCultureIgnoreCase)
+        .ToList();
+
+    string ResolveUnit(string unit)
+    {
+        var normalized = (unit ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized)) return "Gramm";
+
+        var exact = availableUnitsLower.FirstOrDefault(u =>
+            string.Equals(u, normalized, StringComparison.InvariantCultureIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(exact)) return exact;
+
+        if (normalized.Equals("g", StringComparison.InvariantCultureIgnoreCase) || normalized.Equals("gramm", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var g = availableUnitsLower.FirstOrDefault(u => u.Equals("g.", StringComparison.InvariantCultureIgnoreCase) || u.Equals("g", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(g)) return g;
+        }
+
+        if (normalized.Equals("stück", StringComparison.InvariantCultureIgnoreCase) || normalized.Equals("stk", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var stk = availableUnitsLower.FirstOrDefault(u => u.Equals("Stk.", StringComparison.InvariantCultureIgnoreCase) || u.Equals("Stk", StringComparison.InvariantCultureIgnoreCase) || u.Equals("Stück", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(stk)) return stk;
+        }
+
+        return normalized;
+    }
+
+    var oldIngredientPreview = (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
+        .Select(old => {
+            var match = ResolveIngredientMatch(old.Ingredient?.Name ?? string.Empty);
+            return new {
+                OldName = old.Ingredient?.Name ?? string.Empty,
+                Quantity = old.Quantity?.Quantitys,
+                Unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm"),
+                IsMapped = match.Id > 0,
+                NewName = match.Name,
+                NewId = match.Id
+            };
+        })
+        .ToList();
 
     var initialIngredientsJson = JsonConvert.SerializeObject(
         (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
             .Select(old => {
-                var normalizedName = (old.Ingredient?.Name ?? string.Empty).Trim().ToLowerInvariant();
-                ingredientLookupByName.TryGetValue(normalizedName, out var mappedId);
+                var match = ResolveIngredientMatch(old.Ingredient?.Name ?? string.Empty);
                 return new {
-                    id = mappedId,
-                    name = old.Ingredient?.Name ?? string.Empty,
+                    id = match.Id,
+                    name = !string.IsNullOrWhiteSpace(match.Name) ? match.Name : (old.Ingredient?.Name ?? string.Empty),
                     quantity = old.Quantity?.Quantitys,
-                    unit = old.Measure?.UnitOfMeasurement ?? "Gramm"
+                    unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm")
                 };
             })
+            .Where(x => x.id > 0)
             .ToList());
 }
 
@@ -322,20 +417,42 @@
             </div>
         </div>
 
-        @if (Model.IngredientHandler != null && Model.IngredientHandler.Count > 0)
+        @if (oldIngredientPreview.Any())
         {
             <div class="recipe-card" style="border-left-color: #6c757d;">
-                <h4 class="section-title text-secondary"><i class="fa-solid fa-clock-rotate-left"></i>Alte Zutaten (Referenz)</h4>
-                <div class="row">
-                    @foreach (var old in Model.IngredientHandler)
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h4 class="section-title text-secondary mb-0"><i class="fa-solid fa-clock-rotate-left"></i>Alte Zutaten (Referenz)</h4>
+                    <span class="badge rounded-pill text-bg-success">Gemappt: @oldIngredientPreview.Count(x => x.IsMapped) / @oldIngredientPreview.Count</span>
+                </div>
+                <div class="row mt-2">
+                    @foreach (var old in oldIngredientPreview)
                     {
                         <div class="col-md-4 col-sm-6">
                             <div class="old-ingredient-badge">
                                 <div>
-                                    <strong>@old.Ingredient.Name</strong><br />
-                                    <small class="text-muted">@old.Quantity.Quantitys @old.Measure.UnitOfMeasurement</small>
+                                    <strong>@old.OldName</strong><br />
+                                    <small class="text-muted">@old.Quantity @old.Unit</small>
+                                    @if (old.IsMapped)
+                                    {
+                                        <div class="small mt-1 text-success fw-semibold">
+                                            <i class="fa-solid fa-check-circle me-1"></i>DataTable-Match: @old.NewName (#@old.NewId)
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="small mt-1 text-danger fw-semibold">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Kein eindeutiges DataTable-Match
+                                        </div>
+                                    }
                                 </div>
-                                <i class="fa-solid fa-ban text-danger opacity-50" title="Wird beim Speichern ersetzt"></i>
+                                @if (old.IsMapped)
+                                {
+                                    <span class="badge text-bg-success">Übernommen</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Nicht übernommen</span>
+                                }
                             </div>
                         </div>
                     }
@@ -397,6 +514,17 @@
             <div id="masterStepPreviewBox" class="mb-2 d-none">
                 <div class="small text-muted mb-1"><i class="fa-solid fa-layer-group"></i> Master-Step Vorschau:</div>
                 <div id="masterStepPreviewList" class="d-flex flex-column gap-1"></div>
+            </div>
+            <div class="border rounded p-2 bg-white mb-2">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <div class="small fw-semibold"><i class="fa-solid fa-file-lines me-1"></i>Alt-Zubereitung (Schnellansicht)</div>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#oldPreparationCollapse" aria-expanded="false" aria-controls="oldPreparationCollapse">
+                        <i class="fa-solid fa-eye me-1"></i>Ein-/Ausblenden
+                    </button>
+                </div>
+                <div class="collapse mt-2" id="oldPreparationCollapse">
+                    <textarea class="form-control form-control-sm" rows="5" readonly>@Model.Recipes.Preparation</textarea>
+                </div>
             </div>
             <div class="border rounded p-2 bg-light mb-2">
                 <div class="fw-semibold small mb-2">Master Template Builder</div>
@@ -531,6 +659,7 @@
         let activeEquipmentFilter = 'all';
         let selectedAdminMasterIngredientNames = [];
         let selectedAdminMasterTemplateId = '';
+        let tempAdminStepIdCounter = -1;
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -637,6 +766,27 @@
             if (fromQuery) return fromQuery;
 
             return '';
+        }
+
+
+        function createAdminFallbackStepId() {
+            tempAdminStepIdCounter -= 1;
+            return tempAdminStepIdCounter.toString();
+        }
+
+        function normalizeAdminStepData(stepData, fallbackText = '') {
+            const normalized = {
+                de: (stepData?.de || stepData?.step_DE || '').toString(),
+                en: (stepData?.en || stepData?.step_EN || '').toString(),
+                esp: (stepData?.esp || stepData?.step_ESP || '').toString(),
+                prt: (stepData?.prt || stepData?.step_PRT || '').toString(),
+                phase: parseInt(stepData?.phase ?? 0, 10) || 0,
+                equipment: parseInt(stepData?.equipment ?? 0, 10) || 0
+            };
+
+            if (!normalized.de) normalized.de = normalized.en || fallbackText || '';
+            if (!normalized.en) normalized.en = normalized.de || fallbackText || '';
+            return normalized;
         }
 
         function refreshAdminMasterBuilder() {
@@ -843,8 +993,33 @@
                 recalcStepNumbers();
                 loadSandboxStepsForActiveIngredient();
             } catch (e) {
-                console.error('Admin Master-Step Übernahme fehlgeschlagen', e);
-                alert('Master-Step konnte nicht übernommen werden. ' + (e?.message || 'Bitte UserHash/Berechtigung prüfen.'));
+                console.warn('Admin Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', e);
+
+                const fallbackId = createAdminFallbackStepId();
+                const fallbackStep = {
+                    id: fallbackId,
+                    de: rendered.de,
+                    en: rendered.en,
+                    esp: rendered.esp,
+                    prt: rendered.prt,
+                    step_DE: rendered.de,
+                    step_EN: rendered.en,
+                    step_ESP: rendered.esp,
+                    step_PRT: rendered.prt,
+                    phase: payload.phase,
+                    equipment: payload.equipment,
+                    ingredientIds: []
+                };
+
+                stepCatalog.push(fallbackStep);
+                stepCatalogById.set(fallbackId.toString(), fallbackStep);
+
+                addJoinStep(fallbackId, rendered.de, {
+                    enforceIngredientPhaseUniqueness: false,
+                    stepData: fallbackStep
+                });
+                recalcStepNumbers();
+                loadSandboxStepsForActiveIngredient();
             }
         }
 
@@ -1402,15 +1577,46 @@
             info.text('Noch keine Aktion bei den Schritten.');
         }
 
+        function normalizeUnitForSelection(unit) {
+            const normalized = (unit || '').toString().trim();
+            if (!normalized) return 'Gramm';
+
+            const found = availableUnits.find(function(u) {
+                return (u || '').toString().trim().toLowerCase() === normalized.toLowerCase();
+            });
+            if (found) return found;
+
+            if (normalized.toLowerCase() === 'g' || normalized.toLowerCase() === 'gramm') {
+                const grams = availableUnits.find(function(u) {
+                    const lower = (u || '').toString().toLowerCase();
+                    return lower === 'g.' || lower === 'g';
+                });
+                if (grams) return grams;
+            }
+
+            if (normalized.toLowerCase() === 'stück' || normalized.toLowerCase() === 'stk') {
+                const pieces = availableUnits.find(function(u) {
+                    const lower = (u || '').toString().toLowerCase();
+                    return lower === 'stk.' || lower === 'stk' || lower === 'stück';
+                });
+                if (pieces) return pieces;
+            }
+
+            return normalized;
+        }
+
         function preloadExistingRecipeIngredients() {
             if (!Array.isArray(initialRecipeIngredients) || !initialRecipeIngredients.length) return;
 
             initialRecipeIngredients.forEach(function(item) {
                 const dbId = item?.id && Number(item.id) > 0 ? item.id.toString() : '0';
+                if (dbId === '0') return;
+
                 const name = (item?.name || '').toString();
                 const quantity = item?.quantity != null ? item.quantity.toString() : '';
-                const unit = (item?.unit || 'Gramm').toString();
-                if (!name && dbId === '0') return;
+                const unit = normalizeUnitForSelection(item?.unit || 'Gramm');
+                if (!name) return;
+
                 addNewIngredient(dbId, name, quantity, unit);
             });
         }
@@ -1483,7 +1689,7 @@
             $('#adminMasterVariables').on('input', '.admin-master-var-input', updateAdminMasterPreview);
             $('#btnAdminAddMasterStep').on('click', addAdminRenderedMasterStep);
 
-            // preloadExistingRecipeIngredients(); // bewusst deaktiviert: keine Vorauswahl
+            preloadExistingRecipeIngredients();
             renderSandboxIngredientList();
             updateSuggestButtonState();
         });
@@ -1545,7 +1751,7 @@
                 dropdownItems += `<li><a class="dropdown-item" href="javascript:void(0)" onclick="changeUnitValue('${tempId}', '${u}')">${u}</a></li>`;
             });
 
-            // Wir verwenden erst mal einen Platzhalter INDEX im namen, der später ersetzt wird
+            // Wir verwenden erst mal einen Platzhalter INDEX im namen, der später ersetz
             let html = `
                 <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm ingredient-row" id="ing_row_${tempId}" data-ingredient-id="${dbId}">
                     <input type="hidden" class="field-id" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${dbId}" />
@@ -1624,6 +1830,10 @@
             const trimmed = updated.trim();
             if (!trimmed) return;
             input.val(trimmed);
+
+            row.find('.step-hidden-de').val(trimmed);
+            row.find('.step-hidden-en').val(trimmed);
+
             refreshLastEditedStepBox();
         }
 
@@ -1643,6 +1853,12 @@
 
             $('#emptyStepsMsg').hide();
 
+            const sourceStep = options?.stepData || stepCatalogById.get(stepId?.toString?.()) || stepCatalog.find(x => x && x.id?.toString() === stepId.toString()) || {};
+            const normalizedStep = normalizeAdminStepData(sourceStep, stepText);
+            const textToShow = (stepText || normalizedStep.de || `Schritt ${stepId}`).toString();
+            const stepIdAsInt = parseInt(stepId, 10);
+            const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
+
             // Automatisch die nächste Nummer ermitteln
             const currentCount = $('#newStepsList .step-row').length + 1;
             const tempId = Date.now();
@@ -1650,8 +1866,14 @@
             let html = `
                 <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm step-row" id="step_row_${tempId}" data-step-id="${stepId}" draggable="true" style="border-left: 5px solid #0d6efd !important;">
 
-                    <input type="hidden" class="field-prepid" name="RecipeJoyinPreperationSteps[INDEX].PreperationStepId" value="${stepId}" />
+                    <input type="hidden" class="field-prepid" name="RecipeJoyinPreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                     <input type="hidden" class="field-recid" name="RecipeJoyinPreperationSteps[INDEX].RecipeId" value="@Model.Recipes.Id" />
+                    <input type="hidden" class="step-hidden-de" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStep.de).html()}" />
+                    <input type="hidden" class="step-hidden-en" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStep.en).html()}" />
+                    <input type="hidden" class="step-hidden-esp" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStep.esp).html()}" />
+                    <input type="hidden" class="step-hidden-prt" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStep.prt).html()}" />
+                    <input type="hidden" class="step-hidden-phase" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStep.phase}" />
+                    <input type="hidden" class="step-hidden-equipment" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStep.equipment}" />
 
                     <div class="col-12 col-md-1 d-flex flex-md-column gap-1 align-items-center justify-content-center">
                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="moveStepRow(this, -1)" title="Schritt nach oben">
@@ -1671,7 +1893,7 @@
 
                     <div class="col-9 col-md-7">
                         <label class="small text-muted fw-bold d-md-none">Beschreibung</label>
-                        <input type="text" class="form-control bg-light join-step-text-input" value="${stepText}" />
+                        <input type="text" class="form-control bg-light join-step-text-input" value="${textToShow}" />
                     </div>
 
                     <div class="col-12 col-md-2 text-end">
@@ -1692,7 +1914,7 @@
             `;
 
             $(html).hide().appendTo('#newStepsList').fadeIn(400);
-            lastAddedStep = { id: stepId, text: stepText };
+            lastAddedStep = { id: stepId, text: textToShow };
             refreshLastEditedStepBox();
             recalcStepNumbers();
             refreshSandboxStepSelectionHighlight();

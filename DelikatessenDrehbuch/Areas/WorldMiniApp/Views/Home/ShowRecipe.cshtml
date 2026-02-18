@@ -52,6 +52,9 @@
         "pt" => step.Step_PRT,
         _ => step.Step_DE
     };
+
+    var canPublishToFeed = ViewData["CanPublishToFeed"] as bool? == true;
+    var existingPostingId = ViewData["ExistingPostingId"] as int?;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -342,6 +345,30 @@
                     <span id="headerCalories" data-base="@(totalCalories / Model.PersonCount)">@Math.Round(totalCalories / Model.PersonCount)</span> kcal
                 </div>
             </div>
+
+
+            @if (canPublishToFeed)
+            {
+                <div class="mt-3">
+                    @if (existingPostingId.HasValue)
+                    {
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = existingPostingId.Value })">
+                            <i class="bi bi-pencil-square me-1"></i> Feed-Posting bearbeiten
+                        </a>
+                    }
+                    else
+                    {
+                        <form asp-action="PublishRecipeBaseDataToFeed" asp-controller="Home" asp-area="WorldMiniApp" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="recipeBaseDataId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-broadcast-pin me-1"></i> Als Feed-Posting anlegen
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
         </div>
 
         <nav class="nav nav-pills-custom" id="recipeTab" role="tablist">
