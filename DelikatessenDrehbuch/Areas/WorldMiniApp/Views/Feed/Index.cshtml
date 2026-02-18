@@ -1,5 +1,6 @@
 ﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @model List<WorldUserPosting>
+@using System.Globalization
 @{
     ViewData["Title"] = "Feed";
     Layout = null;
@@ -14,6 +15,7 @@
     };
 
     var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
+    var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
     var selectedCategory = selectedCategoryRaw switch
     {
         "appetizer" or "aperetizer" or "vorspeise" or "entrada" => "appetizer",
@@ -45,8 +47,27 @@
             height: 100vh;
             width: 100vw;
             overflow-y: scroll;
+            overflow-x: hidden;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
+        }
+
+        .feed-sections {
+            width: 200vw;
+            height: 100vh;
+            display: flex;
+            transition: transform 0.35s ease;
+        }
+
+        .feed-sections.section-marketplace {
+            transform: translateX(-100vw);
+        }
+
+        .feed-section {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            flex-shrink: 0;
         }
 
         .feed-item {
@@ -801,12 +822,120 @@
             color: var(--plan-text);
             border-radius: 16px;
         }
+
+        .marketplace-panel {
+            height: 100vh;
+            overflow-y: auto;
+            padding: 72px 16px 100px;
+            background: linear-gradient(180deg, #090b10 0%, #131927 100%);
+            color: #fff;
+        }
+
+        .marketplace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .marketplace-title {
+            font-size: 1.35rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .marketplace-sub {
+            font-size: 0.82rem;
+            opacity: 0.78;
+            margin: 0;
+        }
+
+        .marketplace-open {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 6px 12px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .marketplace-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.11);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .marketplace-price {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            color: #fff;
+        }
+
+        .marketplace-meta {
+            font-size: 0.78rem;
+            opacity: 0.82;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .marketplace-empty {
+            border-radius: 18px;
+            border: 1px dashed rgba(255,255,255,0.25);
+            padding: 24px 14px;
+            text-align: center;
+            opacity: 0.85;
+        }
+
+        .section-switch-hint {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            background: rgba(0,0,0,0.45);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            backdrop-filter: blur(7px);
+        }
+
+        .section-pill {
+            opacity: 0.55;
+        }
+
+        .section-pill.active {
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body>
     @Html.AntiForgeryToken()
 
+    <div class="section-switch-hint" id="sectionSwitchHint">
+        <span class="section-pill active" data-section-pill="feed">Feed</span>
+        <i class="bi bi-arrow-left-right"></i>
+        <span class="section-pill" data-section-pill="marketplace">Marktplatz</span>
+    </div>
+
     <div class="feed-container" id="feedContainer">
+        <div class="feed-sections" id="feedSections">
+            <section class="feed-section" id="feedSection">
         @foreach (var item in Model)
         {
             bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
@@ -865,6 +994,51 @@
             </div>
         }
         <div id="feedContent"></div>
+            </section>
+            <section class="feed-section" id="marketplaceSection">
+                <div class="marketplace-panel">
+                    <div class="marketplace-header">
+                        <div>
+                            <h2 class="marketplace-title">@T("Marktplatz", "Marketplace", "Mercado", "Mercado")</h2>
+                            <p class="marketplace-sub">@T("Swipe nach links für alle Angebote", "Swipe left for all listings", "Desliza a la izquierda para ver ofertas", "Deslize para a esquerda para ver ofertas")</p>
+                        </div>
+                        <a class="marketplace-open" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })">@T("Öffnen", "Open", "Abrir", "Abrir")</a>
+                    </div>
+
+                    @if (!marketplaceListings.Any())
+                    {
+                        <div class="marketplace-empty">
+                            <i class="bi bi-shop fs-3"></i>
+                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "Aún no hay ofertas.", "Ainda sem ofertas.")</div>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var listing in marketplaceListings)
+                        {
+                            <article class="marketplace-card">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <div class="fw-bold">@listing.Title</div>
+                                        <div class="small opacity-75">@listing.SellerName</div>
+                                    </div>
+                                    <div class="marketplace-price">@listing.Price.ToString("0.##", CultureInfo.InvariantCulture) WC</div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(listing.Description))
+                                {
+                                    <div class="small mt-2 opacity-75">@listing.Description</div>
+                                }
+                                <div class="marketplace-meta mt-2">
+                                    <span><i class="bi bi-calendar3"></i> @listing.DayCount @T("Tage", "days", "días", "dias")</span>
+                                    <span><i class="bi bi-journal-text"></i> @listing.RecipeCount @T("Rezepte", "recipes", "recetas", "receitas")</span>
+                                    <span><i class="bi bi-bag-check"></i> @listing.SoldCount</span>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
+            </section>
+        </div>
     </div>
 
     <div class="bottom-nav">
@@ -879,8 +1053,8 @@
                 <i class="bi bi-plus"></i>
             </a>
         </div>
-        <div class="nav-item" data-bs-toggle="modal" data-bs-target="#searchModal">
-            <i class="bi bi-search"></i>
+        <div class="nav-item" onclick="switchSection()" title="Marktplatz">
+            <i class="bi bi-shop"></i>
         </div>
         <div class="nav-item" onclick="goToProfile()" style="cursor: pointer;">
             <i class="bi bi-person-fill"></i>
@@ -1075,6 +1249,29 @@
             const stored = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
             const fallback = '@ViewData["UserHash"]';
             return stored || fallback;
+        }
+
+
+
+        let activeSection = 'feed';
+
+        function updateSectionPills() {
+            document.querySelectorAll('[data-section-pill]').forEach(el => {
+                const section = el.getAttribute('data-section-pill');
+                el.classList.toggle('active', section === activeSection);
+            });
+        }
+
+        function setSection(section) {
+            const sections = document.getElementById('feedSections');
+            if (!sections) return;
+            activeSection = section === 'marketplace' ? 'marketplace' : 'feed';
+            sections.classList.toggle('section-marketplace', activeSection === 'marketplace');
+            updateSectionPills();
+        }
+
+        function switchSection() {
+            setSection(activeSection === 'feed' ? 'marketplace' : 'feed');
         }
 
         function goToProfile() {
@@ -1966,6 +2163,39 @@
             catch (error) { console.error("Netzwerkfehler:", error); }
         }
 
+
+        (function enableHorizontalSwipe() {
+            const feedContainer = document.getElementById('feedContainer');
+            if (!feedContainer) return;
+
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            feedContainer.addEventListener('touchstart', (event) => {
+                const touch = event.changedTouches?.[0];
+                if (!touch) return;
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+            }, { passive: true });
+
+            feedContainer.addEventListener('touchend', (event) => {
+                const touch = event.changedTouches?.[0];
+                if (!touch) return;
+
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+
+                if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+                if (deltaX < 0) {
+                    setSection('marketplace');
+                } else {
+                    setSection('feed');
+                }
+            }, { passive: true });
+        })();
+
+
         // ----------------- init -----------------
         document.addEventListener('DOMContentLoaded', () => {
             attachFeedHandlers();
@@ -1973,6 +2203,7 @@
             loadDraft();
             renderPlan();
             updatePlanModeHeader();
+            setSection('feed');
         });
     </script>
 
