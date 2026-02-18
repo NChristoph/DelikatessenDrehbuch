@@ -462,7 +462,7 @@
 
                     <div id="selectedSteps" class="mt-3 selected-zone"></div>
 
-                    <div class="master-step-builder mt-3">
+                    <div class="master-step-builder mt-3 p-3">
                         <div class="fw-bold mb-2">Master Template Builder</div>
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
@@ -1119,6 +1119,23 @@
         text-align: left;
     }
 
+    .master-step-builder {
+        border: 1px solid rgba(13,110,253,0.15);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(13,110,253,0.04) 0%, rgba(255,255,255,1) 45%);
+        box-shadow: 0 6px 16px rgba(13,110,253,0.08);
+    }
+
+    .master-step-builder .form-select,
+    .master-step-builder .form-control {
+        border-radius: 10px;
+    }
+
+    #masterPreviewText {
+        border-color: rgba(13,110,253,0.2) !important;
+        background: #f8fbff !important;
+    }
+
 </style>
 
 
@@ -1533,6 +1550,17 @@
             $('#masterPreviewText').text(text || 'Keine Vorschau verfügbar.');
         }
 
+        function getCurrentUserHashForRequests() {
+            const fromCookie = getCookieValue('WorldMiniAppUserHash');
+            if (fromCookie) return fromCookie;
+
+            const fromHidden = ($('#hiddenUserTokenField').val() || '').toString().trim();
+            if (fromHidden) return fromHidden;
+
+            const fromQuery = new URLSearchParams(window.location.search).get('userHash');
+            return (fromQuery || '').toString().trim();
+        }
+
         async function addRenderedMasterStep() {
             const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
@@ -1552,7 +1580,7 @@
             };
 
             try {
-                const userHash = getCookieValue('WorldMiniAppUserHash') || '';
+                const userHash = getCurrentUserHashForRequests();
                 const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
                 const response = await fetch(url, {
                     method: 'POST',
@@ -1561,7 +1589,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Upsert fehlgeschlagen');
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Upsert fehlgeschlagen');
                 }
 
                 const result = await response.json();
@@ -1587,7 +1616,8 @@
                 updateStepIndices();
                 renderSandboxStepTab();
             } catch (error) {
-                alert('Master-Step konnte nicht übernommen werden.');
+                console.error('Master-Step Übernahme fehlgeschlagen', error);
+                alert('Master-Step konnte nicht übernommen werden. Bitte prüfe, ob dein UserHash gesetzt ist.');
             }
         }
 
