@@ -391,6 +391,29 @@
         color: var(--text);
     }
 
+
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .quick-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        border-radius: 14px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 800;
+    }
+
     body.profile-theme-black .plan-card,
     body.profile-theme-black .list-group-item {
         background: #111 !important;
@@ -480,6 +503,15 @@
                     </div>
                 </form>
             </div>
+        </div>
+
+        <div class="quick-links">
+            <a class="quick-link" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
+                <i class="bi bi-shop"></i> @T("Marktplatz", "Marketplace", "Mercado", "Mercado")
+            </a>
+            <a class="quick-link" href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
+                <i class="bi bi-bag-check"></i> @T("Meine Angebote", "My listings", "Mis ofertas", "Minhas ofertas")
+            </a>
         </div>
     </div>
 

@@ -161,6 +161,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["Category"] = category;
             ViewData["MaxPrepTime"] = maxPrepTime?.ToString() ?? string.Empty;
             ViewData["UserHash"] = userHash;
+            ViewData["MarketplaceListings"] = await _context.MealPlanListings
+                .AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(100)
+                .ToListAsync();
 
             return View(model);
         }
