@@ -42,21 +42,34 @@
         })
         .ToList();
 
-    int ResolveIngredientId(string oldIngredientName)
+    (int Id, string Name) ResolveIngredientMatch(string oldIngredientName)
     {
         var key = NormalizeIngredientKey(oldIngredientName);
-        if (string.IsNullOrWhiteSpace(key)) return 0;
+        if (string.IsNullOrWhiteSpace(key)) return (0, string.Empty);
 
-        var exact = ingredientCandidates.Where(x => x.Key == key).Select(x => x.Id).Distinct().ToList();
-        if (exact.Count == 1) return exact[0];
-
-        var contains = ingredientCandidates
-            .Where(x => x.Key.Contains(key) || key.Contains(x.Key))
-            .Select(x => x.Id)
+        var exact = ingredientCandidates
+            .Where(x => x.Key == key)
+            .Select(x => new { x.Id, x.Name })
             .Distinct()
             .ToList();
 
-        return contains.Count == 1 ? contains[0] : 0;
+        if (exact.Count == 1)
+        {
+            return (exact[0].Id, exact[0].Name ?? string.Empty);
+        }
+
+        var contains = ingredientCandidates
+            .Where(x => x.Key.Contains(key) || key.Contains(x.Key))
+            .Select(x => new { x.Id, x.Name })
+            .Distinct()
+            .ToList();
+
+        if (contains.Count == 1)
+        {
+            return (contains[0].Id, contains[0].Name ?? string.Empty);
+        }
+
+        return (0, string.Empty);
     }
 
     var availableUnitsLower = (Model.Measure ?? new List<Measure>())
@@ -92,12 +105,16 @@
 
     var initialIngredientsJson = JsonConvert.SerializeObject(
         (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
-            .Select(old => new {
-                id = ResolveIngredientId(old.Ingredient?.Name ?? string.Empty),
-                name = old.Ingredient?.Name ?? string.Empty,
-                quantity = old.Quantity?.Quantitys,
-                unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm")
+            .Select(old => {
+                var match = ResolveIngredientMatch(old.Ingredient?.Name ?? string.Empty);
+                return new {
+                    id = match.Id,
+                    name = !string.IsNullOrWhiteSpace(match.Name) ? match.Name : (old.Ingredient?.Name ?? string.Empty),
+                    quantity = old.Quantity?.Quantitys,
+                    unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm")
+                };
             })
+            .Where(x => x.id > 0)
             .ToList());
 }
 
@@ -1546,10 +1563,13 @@
 
             initialRecipeIngredients.forEach(function(item) {
                 const dbId = item?.id && Number(item.id) > 0 ? item.id.toString() : '0';
+                if (dbId === '0') return;
+
                 const name = (item?.name || '').toString();
                 const quantity = item?.quantity != null ? item.quantity.toString() : '';
                 const unit = normalizeUnitForSelection(item?.unit || 'Gramm');
-                if (!name && dbId === '0') return;
+                if (!name) return;
+
                 addNewIngredient(dbId, name, quantity, unit);
             });
         }
