@@ -460,8 +460,6 @@
                         </div>
                     </div>
 
-                    <div id="selectedSteps" class="mt-3 selected-zone"></div>
-
                     <div class="master-step-builder mt-3 p-3">
                         <div class="fw-bold mb-2">Master Template Builder</div>
                         <div class="row g-2 align-items-end">
@@ -482,6 +480,14 @@
                         <div id="masterVariables" class="row g-2 mt-1"></div>
                         <div class="small text-muted mt-2">Preview:</div>
                         <div id="masterPreviewText" class="small border rounded px-2 py-2 bg-light">Noch kein Template gewählt.</div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
+                            <div class="small text-muted">Sortieren, prüfen und bearbeiten</div>
+                        </div>
+                        <div id="selectedSteps" class="selected-zone"></div>
                     </div>
                 </div>
             </section>
@@ -2022,10 +2028,14 @@
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${id}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
-                <div class="small flex-grow-1 display-step-selected">${phaseBadge}${text}</div>
+                <div class="small flex-grow-1 display-step-selected">
+                    ${phaseBadge}
+                    <span class="step-text-content">${text}</span>
+                </div>
                 <div class="btn-group ms-2" role="group">
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
                     <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
                 </div>
             </div>`);
@@ -2043,6 +2053,18 @@
             updateStepIndices();
             // Nach Entfernen: Kandidaten neu rendern → Steps werden wieder verfügbar
             renderSandboxStepTab();
+        }
+
+        function editStepText(btn) {
+            const row = $(btn).closest('.step-row');
+            const textNode = row.find('.step-text-content').first();
+            const currentText = (textNode.text() || '').trim();
+            const updatedText = prompt('Schritt bearbeiten:', currentText);
+            if (updatedText === null) return;
+            const trimmed = updatedText.trim();
+            if (!trimmed) return;
+            textNode.text(trimmed);
+            refreshSandboxProgress();
         }
 
         function toggleKeyword(id, btn) {
