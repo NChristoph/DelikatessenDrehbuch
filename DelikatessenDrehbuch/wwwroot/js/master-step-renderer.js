@@ -52,6 +52,51 @@
         return 'f';
     }
 
+    function stripKnownArticle(value, lang) {
+        const text = (value || '').toString().trim();
+        if (!text) return '';
+
+        const articleByLang = {
+            de: ['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einer', 'einem'],
+            en: ['the', 'a', 'an'],
+            esp: ['el', 'la', 'los', 'las', 'un', 'una'],
+            prt: ['o', 'a', 'os', 'as', 'um', 'uma']
+        };
+
+        const l = (lang || 'de').toString().toLowerCase();
+        const lower = text.toLowerCase();
+        const articles = articleByLang[l] || [];
+
+        for (let i = 0; i < articles.length; i++) {
+            const article = articles[i];
+            if (lower === article) return '';
+            if (lower.startsWith(article + ' ')) {
+                return text.slice(article.length + 1).trim();
+            }
+        }
+
+        return text;
+    }
+
+    function resolveGenderFromIngredient(value, lang) {
+        const base = stripKnownArticle(value, lang).toLowerCase();
+        if (!base) return null;
+
+        const known = {
+            m: ['basilikum', 'zucker', 'knoblauch', 'reis', 'ingwer', 'lauch', 'sellerie'],
+            f: ['zwiebel', 'paprika', 'karotte', 'tomate', 'kartoffel', 'sauce', 'brühe'],
+            n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'hähnchen']
+        };
+
+        if (known.m.includes(base)) return 'm';
+        if (known.f.includes(base)) return 'f';
+        if (known.n.includes(base)) return 'n';
+
+        if (base.endsWith('chen') || base.endsWith('lein') || base.endsWith('ment')) return 'n';
+        if (base.endsWith('ung') || base.endsWith('keit') || base.endsWith('heit') || base.endsWith('ion')) return 'f';
+        return null;
+    }
+
     function getLocalizedGrammar(lang, gender) {
         const l = (lang || 'de').toString().toLowerCase();
         const g = (gender || 'f').toString().toLowerCase();
@@ -69,7 +114,7 @@
         }
 
         return {
-            article: g === 'm' ? 'der' : g === 'n' ? 'das' : 'die',
+            article: g === 'm' ? 'den' : g === 'n' ? 'das' : 'die',
             pronoun: g === 'm' ? 'ihn' : g === 'n' ? 'es' : 'sie'
         };
     }
@@ -93,7 +138,9 @@
 
     function localizeVariables(variables, lang) {
         const result = Object.assign({}, variables || {});
-        const gender = resolveGenderFromPronoun(result.pronoun);
+        const pronounGender = resolveGenderFromPronoun(result.pronoun);
+        const ingredientGender = resolveGenderFromIngredient(result.ingredient, lang);
+        const gender = ingredientGender || pronounGender;
         const grammar = getLocalizedGrammar(lang, gender);
 
         if (!result.pronoun || ['sie', 'her', 'la', 'ela', 'a', 'ihn', 'him', 'lo', 'ele', 'o', 'es', 'it'].includes(String(result.pronoun).toLowerCase())) {
