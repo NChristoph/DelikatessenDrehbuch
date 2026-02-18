@@ -29,6 +29,10 @@
         return getMasterSteps().find(function (x) { return x && x.master_id === masterId; }) || null;
     }
 
+    function getAllTemplates() {
+        return getMasterSteps().filter(function (step) { return !!step; });
+    }
+
     function renderText(template, vars) {
         if (!template) return '';
         return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
@@ -37,13 +41,128 @@
         });
     }
 
+    function resolveGenderFromPronoun(value) {
+        const v = (value || '').toString().trim().toLowerCase();
+        if (!v) return 'f';
+
+        if (['sie', 'her', 'la', 'ela', 'a'].includes(v)) return 'f';
+        if (['ihn', 'him', 'lo', 'ele', 'o'].includes(v)) return 'm';
+        if (['es', 'it'].includes(v)) return 'n';
+
+        return 'f';
+    }
+
+    function stripKnownArticle(value, lang) {
+        const text = (value || '').toString().trim();
+        if (!text) return '';
+
+        const articleByLang = {
+            de: ['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einer', 'einem'],
+            en: ['the', 'a', 'an'],
+            esp: ['el', 'la', 'los', 'las', 'un', 'una'],
+            prt: ['o', 'a', 'os', 'as', 'um', 'uma']
+        };
+
+        const l = (lang || 'de').toString().toLowerCase();
+        const lower = text.toLowerCase();
+        const articles = articleByLang[l] || [];
+
+        for (let i = 0; i < articles.length; i++) {
+            const article = articles[i];
+            if (lower === article) return '';
+            if (lower.startsWith(article + ' ')) {
+                return text.slice(article.length + 1).trim();
+            }
+        }
+
+        return text;
+    }
+
+    function resolveGenderFromIngredient(value, lang) {
+        const base = stripKnownArticle(value, lang).toLowerCase();
+        if (!base) return null;
+
+        const known = {
+            m: ['basilikum', 'zucker', 'knoblauch', 'reis', 'ingwer', 'lauch', 'sellerie'],
+            f: ['zwiebel', 'paprika', 'karotte', 'tomate', 'kartoffel', 'sauce', 'brühe'],
+            n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'hähnchen']
+        };
+
+        if (known.m.includes(base)) return 'm';
+        if (known.f.includes(base)) return 'f';
+        if (known.n.includes(base)) return 'n';
+
+        if (base.endsWith('chen') || base.endsWith('lein') || base.endsWith('ment')) return 'n';
+        if (base.endsWith('ung') || base.endsWith('keit') || base.endsWith('heit') || base.endsWith('ion')) return 'f';
+        return null;
+    }
+
+    function getLocalizedGrammar(lang, gender) {
+        const l = (lang || 'de').toString().toLowerCase();
+        const g = (gender || 'f').toString().toLowerCase();
+
+        if (l === 'en') {
+            return { article: 'the', pronoun: g === 'm' ? 'him' : g === 'n' ? 'it' : 'her' };
+        }
+
+        if (l === 'esp') {
+            return { article: g === 'm' ? 'el' : 'la', pronoun: g === 'm' ? 'lo' : 'la' };
+        }
+
+        if (l === 'prt') {
+            return { article: g === 'm' ? 'o' : 'a', pronoun: g === 'm' ? 'o' : 'a' };
+        }
+
+        return {
+            article: g === 'm' ? 'den' : g === 'n' ? 'das' : 'die',
+            pronoun: g === 'm' ? 'ihn' : g === 'n' ? 'es' : 'sie'
+        };
+    }
+
+    function startsWithKnownArticle(value, lang) {
+        const text = (value || '').toString().trim().toLowerCase();
+        if (!text) return false;
+
+        const articleByLang = {
+            de: ['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einer', 'einem'],
+            en: ['the', 'a', 'an'],
+            esp: ['el', 'la', 'los', 'las', 'un', 'una'],
+            prt: ['o', 'a', 'os', 'as', 'um', 'uma']
+        };
+
+        const articles = articleByLang[(lang || 'de').toString().toLowerCase()] || [];
+        return articles.some(function (article) {
+            return text === article || text.startsWith(article + ' ');
+        });
+    }
+
+    function localizeVariables(variables, lang) {
+        const result = Object.assign({}, variables || {});
+        const pronounGender = resolveGenderFromPronoun(result.pronoun);
+        const ingredientGender = resolveGenderFromIngredient(result.ingredient, lang);
+        const gender = ingredientGender || pronounGender;
+        const grammar = getLocalizedGrammar(lang, gender);
+
+        if (!result.pronoun || ['sie', 'her', 'la', 'ela', 'a', 'ihn', 'him', 'lo', 'ele', 'o', 'es', 'it'].includes(String(result.pronoun).toLowerCase())) {
+            result.pronoun = grammar.pronoun;
+        }
+
+        const ingredient = (result.ingredient || '').toString().trim();
+        if (ingredient && !startsWithKnownArticle(ingredient, lang)) {
+            result.ingredient = grammar.article + ' ' + ingredient;
+        }
+
+        return result;
+    }
+
     function render(masterId, variables, lang) {
         const step = findTemplate(masterId);
         if (!step || !step.templates) return '';
 
         const key = (lang || 'de').toLowerCase();
         const tpl = step.templates[key] || step.templates.de || step.templates.en || '';
-        return renderText(tpl, variables || {});
+        const localizedVariables = localizeVariables(variables || {}, key);
+        return renderText(tpl, localizedVariables);
     }
 
     function renderAll(masterId, variables) {
@@ -53,10 +172,10 @@
         }
 
         return {
-            de: renderText(step.templates.de || '', variables || {}),
-            en: renderText(step.templates.en || '', variables || {}),
-            esp: renderText(step.templates.esp || '', variables || {}),
-            prt: renderText(step.templates.prt || '', variables || {})
+            de: render(masterId, variables || {}, 'de'),
+            en: render(masterId, variables || {}, 'en'),
+            esp: render(masterId, variables || {}, 'esp'),
+            prt: render(masterId, variables || {}, 'prt')
         };
     }
 
@@ -88,6 +207,7 @@
             marinade: 'Öl, Salz und Gewürzen',
             duration: '10 Minuten',
             liquid: 'Wasser',
+            equipment: 'Pfanne',
             quantity: 'etwas',
             temperature: recipeCategory.includes('dessert') ? '180°C' : 'mittlerer Hitze',
             heat: 'mittlerer Hitze',
@@ -111,7 +231,7 @@
 
     function suggestForIngredient(ingredientName) {
         const name = (ingredientName || '').toString().toLowerCase().trim();
-        const all = getMasterSteps().filter(function (step) { return !!step; });
+        const all = getAllTemplates();
         if (!all.length) return [];
 
         const hasAny = function (terms) { return terms.some(function (x) { return name.includes(x); }); };
@@ -157,6 +277,7 @@
 
     window.MasterStepRenderer = {
         load: load,
+        getAllTemplates: getAllTemplates,
         render: render,
         renderAll: renderAll,
         getSmartDefaults: getSmartDefaults,

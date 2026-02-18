@@ -460,14 +460,12 @@
                         </div>
                     </div>
 
-                    <div id="selectedSteps" class="mt-3 selected-zone"></div>
-
-                    <div class="master-step-builder mt-3">
+                    <div class="master-step-builder mt-3 p-3">
                         <div class="fw-bold mb-2">Master Template Builder</div>
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
-                                <label class="form-label small text-muted mb-1">Zutat</label>
-                                <select id="masterIngredientSelect" class="form-select form-select-sm"></select>
+                                <label class="form-label small text-muted mb-1">Zutaten (Mehrfachauswahl)</label>
+                                <div id="masterIngredientButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small text-muted mb-1">Template</label>
@@ -482,6 +480,14 @@
                         <div id="masterVariables" class="row g-2 mt-1"></div>
                         <div class="small text-muted mt-2">Preview:</div>
                         <div id="masterPreviewText" class="small border rounded px-2 py-2 bg-light">Noch kein Template gewählt.</div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
+                            <div class="small text-muted">Sortieren, prüfen und bearbeiten</div>
+                        </div>
+                        <div id="selectedSteps" class="selected-zone"></div>
                     </div>
                 </div>
             </section>
@@ -1105,6 +1111,37 @@
                 text-align: right !important;
             }
     }
+
+
+    .master-button-wrap {
+        min-height: 38px;
+        padding: 4px;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .master-button-wrap .btn {
+        text-align: left;
+    }
+
+    .master-step-builder {
+        border: 1px solid rgba(13,110,253,0.15);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(13,110,253,0.04) 0%, rgba(255,255,255,1) 45%);
+        box-shadow: 0 6px 16px rgba(13,110,253,0.08);
+    }
+
+    .master-step-builder .form-select,
+    .master-step-builder .form-control {
+        border-radius: 10px;
+    }
+
+    #masterPreviewText {
+        border-color: rgba(13,110,253,0.2) !important;
+        background: #f8fbff !important;
+    }
+
 </style>
 
 
@@ -1136,6 +1173,9 @@
         let activeSandboxTab = 'linked';
         let sandboxUnboundSteps = [];
         let activeEquipmentFilter = 'all';
+        let selectedMasterIngredientNames = [];
+        let selectedMasterTemplateId = '';
+        let tempStepIdCounter = -1;
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1393,57 +1433,86 @@
             return [];
         }
 
+        function buildIngredientTextForMaster() {
+            const selected = selectedMasterIngredientNames.filter(x => !!x && x.trim());
+            if (!selected.length) return '';
+            if (selected.length === 1) return selected[0];
+            if (selected.length === 2) return `${selected[0]} und ${selected[1]}`;
+            return `${selected.slice(0, -1).join(', ')} und ${selected[selected.length - 1]}`;
+        }
+
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
 
         function refreshMasterTemplateBuilder() {
-            const ingredientSelect = $('#masterIngredientSelect');
+            const ingredientButtons = $('#masterIngredientButtons');
             const ingredients = getSelectedIngredientsForSandbox();
-            ingredientSelect.empty();
+            ingredientButtons.empty();
 
-            if (!ingredients.length) {
-                ingredientSelect.append('<option value="">Keine Zutat gewählt</option>');
-                $('#masterTemplateSelect').html('<option value="">Keine Templates</option>');
+            const availableNames = ingredients.map(item => item.name).filter(Boolean);
+            selectedMasterIngredientNames = selectedMasterIngredientNames.filter(name => availableNames.includes(name));
+            if (!selectedMasterIngredientNames.length && availableNames.length) {
+                selectedMasterIngredientNames = [availableNames[0]];
+            }
+
+            if (!availableNames.length) {
+                ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
+                refreshMasterTemplateOptions();
                 return;
             }
 
-            ingredients.forEach(item => {
-                ingredientSelect.append(`<option value="${item.name}">${item.name}</option>`);
+            availableNames.forEach(name => {
+                const isActive = selectedMasterIngredientNames.includes(name);
+                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-ingredient-btn" data-name="${name}">${name}</button>`);
             });
 
             refreshMasterTemplateOptions();
         }
 
         function refreshMasterTemplateOptions() {
-            const ingredientName = $('#masterIngredientSelect').val() || '';
             const templateSelect = $('#masterTemplateSelect');
+            const ingredientName = buildIngredientTextForMaster();
             templateSelect.empty();
 
-            if (!ingredientName || !window.MasterStepRenderer) {
+            if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
                 templateSelect.append('<option value="">Keine Templates</option>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Master-Step Renderer nicht verfügbar.');
+                selectedMasterTemplateId = '';
                 return;
             }
 
-            const suggestions = MasterStepRenderer.suggestForIngredient(ingredientName);
-            if (!suggestions.length) {
+            const templates = MasterStepRenderer.getAllTemplates();
+            if (!templates.length) {
                 templateSelect.append('<option value="">Keine Templates gefunden</option>');
                 $('#masterVariables').empty();
-                $('#masterPreviewText').text('Keine passenden Master-Templates gefunden.');
+                $('#masterPreviewText').text('Keine Master-Templates gefunden.');
+                selectedMasterTemplateId = '';
                 return;
             }
 
-            suggestions.forEach(step => {
-                const label = step.description || step.master_id;
+            if (!selectedMasterTemplateId || !templates.some(step => step.master_id === selectedMasterTemplateId)) {
+                selectedMasterTemplateId = templates[0].master_id;
+            }
+
+            templates.forEach(step => {
+                const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
+                    ingredientName: ingredientName,
+                    recipeCategory: $('#Recipe_Category').val()
+                });
+                const localized = MasterStepRenderer.render(step.master_id, defaults, currentLang);
+                const label = localized || step.description || step.master_id;
                 templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
             });
 
+            templateSelect.val(selectedMasterTemplateId);
             renderMasterTemplateEditor();
         }
 
         function renderMasterTemplateEditor() {
-            const templateId = $('#masterTemplateSelect').val();
-            const ingredientName = $('#masterIngredientSelect').val() || '';
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
+            const ingredientName = buildIngredientTextForMaster();
             const box = $('#masterVariables');
             box.empty();
 
@@ -1480,7 +1549,7 @@
         }
 
         function updateMasterPreview() {
-            const templateId = $('#masterTemplateSelect').val();
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
 
             const vars = collectMasterVariables();
@@ -1488,8 +1557,25 @@
             $('#masterPreviewText').text(text || 'Keine Vorschau verfügbar.');
         }
 
+        function getCurrentUserHashForRequests() {
+            const fromCookie = getCookieValue('WorldMiniAppUserHash');
+            if (fromCookie) return fromCookie;
+
+            const fromHidden = ($('#hiddenUserTokenField').val() || '').toString().trim();
+            if (fromHidden) return fromHidden;
+
+            const fromQuery = new URLSearchParams(window.location.search).get('userHash');
+            return (fromQuery || '').toString().trim();
+        }
+
+
+        function createFallbackStepId() {
+            tempStepIdCounter -= 1;
+            return tempStepIdCounter.toString();
+        }
+
         async function addRenderedMasterStep() {
-            const templateId = $('#masterTemplateSelect').val();
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
 
             const template = MasterStepRenderer.findTemplate(templateId);
@@ -1507,7 +1593,7 @@
             };
 
             try {
-                const userHash = getCookieValue('WorldMiniAppUserHash') || '';
+                const userHash = getCurrentUserHashForRequests();
                 const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
                 const response = await fetch(url, {
                     method: 'POST',
@@ -1516,7 +1602,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Upsert fehlgeschlagen');
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Upsert fehlgeschlagen');
                 }
 
                 const result = await response.json();
@@ -1542,7 +1629,32 @@
                 updateStepIndices();
                 renderSandboxStepTab();
             } catch (error) {
-                alert('Master-Step konnte nicht übernommen werden.');
+                console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
+
+                const fallbackId = createFallbackStepId();
+                getAllStepRows().push({
+                    id: fallbackId,
+                    de: rendered.de,
+                    en: rendered.en,
+                    esp: rendered.esp,
+                    prt: rendered.prt,
+                    phase: payload.phase,
+                    equipment: payload.equipment
+                });
+
+                addStep(fallbackId, null, rendered[currentLang] || rendered.de || 'Neuer Schritt', {
+                    skipRender: true,
+                    stepData: {
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
+                        phase: payload.phase,
+                        equipment: payload.equipment
+                    }
+                });
+                updateStepIndices();
+                renderSandboxStepTab();
             }
         }
 
@@ -1799,6 +1911,7 @@
             syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
+            refreshMasterTemplateOptions();
             renderSandboxStepTab();
         }
 
@@ -1881,6 +1994,7 @@
             $('#selectedIngredients').append(newIngredient);
 
             renderSandboxIngredientList();
+            refreshMasterTemplateBuilder();
             if (typeof syncIngredientSourceVisibility === "function") {
                 syncIngredientSourceVisibility();
             }
@@ -1889,6 +2003,7 @@
         function removeIngredientRow(btn) {
             $(btn).closest('.ingredient-row').remove();
             renderSandboxIngredientList();
+            refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
         }
 
@@ -1931,23 +2046,52 @@
                 removeConflictingSteps(id);
             }
 
+            const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
+            const stepData = options?.stepData || sourceRow || {};
+
+            const normalizedStepData = {
+                de: (stepData.de || '').toString(),
+                en: (stepData.en || '').toString(),
+                esp: (stepData.esp || '').toString(),
+                prt: (stepData.prt || '').toString(),
+                phase: parseInt(stepData.phase ?? 0, 10) || 0,
+                equipment: parseInt(stepData.equipment ?? 0, 10) || 0
+            };
+
             let text = manualText;
             if (!text) {
-                const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
-                text = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${id}`;
+                text = normalizedStepData[currentLang] || normalizedStepData.de || `Schritt ${id}`;
             }
 
-            const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
-            const phaseBadge = sourceRow ? getPhaseLabel(sourceRow.phase) : '';
+            if (!normalizedStepData[currentLang]) {
+                normalizedStepData[currentLang] = text;
+            }
+
+            if (!normalizedStepData.de) normalizedStepData.de = normalizedStepData.en || text;
+            if (!normalizedStepData.en) normalizedStepData.en = normalizedStepData.de || text;
+
+            const stepIdAsInt = parseInt(id, 10);
+            const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
+            const phaseBadge = getPhaseLabel(normalizedStepData.phase);
 
             $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}">
-                <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${id}" />
+                <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
+                <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
+                <input type="hidden" class="step-hidden-en" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStepData.en).html()}" />
+                <input type="hidden" class="step-hidden-esp" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStepData.esp).html()}" />
+                <input type="hidden" class="step-hidden-prt" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStepData.prt).html()}" />
+                <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
+                <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
-                <div class="small flex-grow-1 display-step-selected">${phaseBadge}${text}</div>
+                <div class="small flex-grow-1 display-step-selected">
+                    ${phaseBadge}
+                    <span class="step-text-content">${text}</span>
+                </div>
                 <div class="btn-group ms-2" role="group">
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
                     <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
                 </div>
             </div>`);
@@ -1965,6 +2109,32 @@
             updateStepIndices();
             // Nach Entfernen: Kandidaten neu rendern → Steps werden wieder verfügbar
             renderSandboxStepTab();
+        }
+
+        function editStepText(btn) {
+            const row = $(btn).closest('.step-row');
+            const textNode = row.find('.step-text-content').first();
+            const currentText = (textNode.text() || '').trim();
+            const updatedText = prompt('Schritt bearbeiten:', currentText);
+            if (updatedText === null) return;
+            const trimmed = updatedText.trim();
+            if (!trimmed) return;
+
+            textNode.text(trimmed);
+
+            const langMap = { de: '.step-hidden-de', en: '.step-hidden-en', esp: '.step-hidden-esp', prt: '.step-hidden-prt' };
+            const targetSelector = langMap[currentLang] || '.step-hidden-de';
+            const targetInput = row.find(targetSelector).first();
+            if (targetInput.length) {
+                targetInput.val(trimmed);
+            }
+
+            const deInput = row.find('.step-hidden-de').first();
+            const enInput = row.find('.step-hidden-en').first();
+            if (deInput.length && !deInput.val()) deInput.val(trimmed);
+            if (enInput.length && !enInput.val()) enInput.val(trimmed);
+
+            refreshSandboxProgress();
         }
 
         function toggleKeyword(id, btn) {
@@ -2080,8 +2250,27 @@
             });
 
             MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
-            $('#masterIngredientSelect').on('change', refreshMasterTemplateOptions);
-            $('#masterTemplateSelect').on('change', renderMasterTemplateEditor);
+            $('#masterIngredientButtons').on('click', '.master-ingredient-btn', function () {
+                const name = $(this).data('name')?.toString() || '';
+                if (!name) return;
+
+                if (selectedMasterIngredientNames.includes(name)) {
+                    selectedMasterIngredientNames = selectedMasterIngredientNames.filter(x => x !== name);
+                } else {
+                    selectedMasterIngredientNames.push(name);
+                }
+
+                if (!selectedMasterIngredientNames.length) {
+                    const firstAvailable = getSelectedIngredientsForSandbox()[0]?.name || '';
+                    if (firstAvailable) selectedMasterIngredientNames = [firstAvailable];
+                }
+
+                refreshMasterTemplateBuilder();
+            });
+            $('#masterTemplateSelect').on('change', function () {
+                selectedMasterTemplateId = ($(this).val() || '').toString();
+                renderMasterTemplateEditor();
+            });
             $('#masterVariables').on('input', '.master-var-input', updateMasterPreview);
             $('#btnAddRenderedStep').on('click', addRenderedMasterStep);
 
