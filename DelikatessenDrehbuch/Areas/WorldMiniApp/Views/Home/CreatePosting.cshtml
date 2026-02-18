@@ -1175,6 +1175,7 @@
         let activeEquipmentFilter = 'all';
         let selectedMasterIngredientNames = [];
         let selectedMasterTemplateId = '';
+        let tempStepIdCounter = -1;
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1567,6 +1568,12 @@
             return (fromQuery || '').toString().trim();
         }
 
+
+        function createFallbackStepId() {
+            tempStepIdCounter -= 1;
+            return tempStepIdCounter.toString();
+        }
+
         async function addRenderedMasterStep() {
             const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
@@ -1622,8 +1629,32 @@
                 updateStepIndices();
                 renderSandboxStepTab();
             } catch (error) {
-                console.error('Master-Step Übernahme fehlgeschlagen', error);
-                alert('Master-Step konnte nicht übernommen werden. Bitte prüfe, ob dein UserHash gesetzt ist.');
+                console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
+
+                const fallbackId = createFallbackStepId();
+                getAllStepRows().push({
+                    id: fallbackId,
+                    de: rendered.de,
+                    en: rendered.en,
+                    esp: rendered.esp,
+                    prt: rendered.prt,
+                    phase: payload.phase,
+                    equipment: payload.equipment
+                });
+
+                addStep(fallbackId, null, rendered[currentLang] || rendered.de || 'Neuer Schritt', {
+                    skipRender: true,
+                    stepData: {
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
+                        phase: payload.phase,
+                        equipment: payload.equipment
+                    }
+                });
+                updateStepIndices();
+                renderSandboxStepTab();
             }
         }
 
@@ -2015,18 +2046,43 @@
                 removeConflictingSteps(id);
             }
 
+            const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
+            const stepData = options?.stepData || sourceRow || {};
+
+            const normalizedStepData = {
+                de: (stepData.de || '').toString(),
+                en: (stepData.en || '').toString(),
+                esp: (stepData.esp || '').toString(),
+                prt: (stepData.prt || '').toString(),
+                phase: parseInt(stepData.phase ?? 0, 10) || 0,
+                equipment: parseInt(stepData.equipment ?? 0, 10) || 0
+            };
+
             let text = manualText;
             if (!text) {
-                const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
-                text = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${id}`;
+                text = normalizedStepData[currentLang] || normalizedStepData.de || `Schritt ${id}`;
             }
 
-            const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
-            const phaseBadge = sourceRow ? getPhaseLabel(sourceRow.phase) : '';
+            if (!normalizedStepData[currentLang]) {
+                normalizedStepData[currentLang] = text;
+            }
+
+            if (!normalizedStepData.de) normalizedStepData.de = normalizedStepData.en || text;
+            if (!normalizedStepData.en) normalizedStepData.en = normalizedStepData.de || text;
+
+            const stepIdAsInt = parseInt(id, 10);
+            const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
+            const phaseBadge = getPhaseLabel(normalizedStepData.phase);
 
             $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}">
-                <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${id}" />
+                <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
+                <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
+                <input type="hidden" class="step-hidden-en" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStepData.en).html()}" />
+                <input type="hidden" class="step-hidden-esp" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStepData.esp).html()}" />
+                <input type="hidden" class="step-hidden-prt" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStepData.prt).html()}" />
+                <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
+                <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
@@ -2063,7 +2119,21 @@
             if (updatedText === null) return;
             const trimmed = updatedText.trim();
             if (!trimmed) return;
+
             textNode.text(trimmed);
+
+            const langMap = { de: '.step-hidden-de', en: '.step-hidden-en', esp: '.step-hidden-esp', prt: '.step-hidden-prt' };
+            const targetSelector = langMap[currentLang] || '.step-hidden-de';
+            const targetInput = row.find(targetSelector).first();
+            if (targetInput.length) {
+                targetInput.val(trimmed);
+            }
+
+            const deInput = row.find('.step-hidden-de').first();
+            const enInput = row.find('.step-hidden-en').first();
+            if (deInput.length && !deInput.val()) deInput.val(trimmed);
+            if (enInput.length && !enInput.val()) enInput.val(trimmed);
+
             refreshSandboxProgress();
         }
 
