@@ -598,17 +598,6 @@
                 return fromSandboxButtons;
             }
 
-            if (Array.isArray(initialRecipeIngredients) && initialRecipeIngredients.length) {
-                return initialRecipeIngredients
-                    .map(function(item) {
-                        return {
-                            id: (item?.id || '0').toString(),
-                            name: (item?.name || 'Manuelle Zutat').toString()
-                        };
-                    })
-                    .filter(function(x) { return x.id !== '0' || !!x.name; });
-            }
-
             return [];
         }
 
@@ -1366,7 +1355,7 @@
             $('#adminMasterVariables').on('input', '.admin-master-var-input', updateAdminMasterPreview);
             $('#btnAdminAddMasterStep').on('click', addAdminRenderedMasterStep);
 
-            preloadExistingRecipeIngredients();
+            // preloadExistingRecipeIngredients(); // bewusst deaktiviert: keine Vorauswahl
             renderSandboxIngredientList();
             updateSuggestButtonState();
         });

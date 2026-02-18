@@ -111,22 +111,20 @@
 
     function suggestForIngredient(ingredientName) {
         const name = (ingredientName || '').toString().toLowerCase().trim();
-        if (!name) return [];
-
-        const all = getMasterSteps().filter(function (step) {
-            return step && Array.isArray(step.variables) && step.variables.includes('ingredient');
-        });
+        const all = getMasterSteps().filter(function (step) { return !!step; });
+        if (!all.length) return [];
 
         const pantryTerms = ['öl', 'oil', 'salz', 'pfeffer', 'gewürz', 'spice', 'zucker', 'sugar'];
         const isPantryLike = pantryTerms.some(function (x) { return name.includes(x); });
 
         return all.sort(function (a, b) {
-            const aCook = [2,3,4].includes(parseInt(a.phase || 0, 10));
-            const bCook = [2,3,4].includes(parseInt(b.phase || 0, 10));
+            const aHasIngredient = Array.isArray(a.variables) && a.variables.includes('ingredient');
+            const bHasIngredient = Array.isArray(b.variables) && b.variables.includes('ingredient');
+            if (aHasIngredient !== bHasIngredient) return aHasIngredient ? -1 : 1;
 
-            if (isPantryLike && aCook !== bCook) {
-                return aCook ? -1 : 1;
-            }
+            const aCook = [2, 3, 4].includes(parseInt(a.phase || 0, 10));
+            const bCook = [2, 3, 4].includes(parseInt(b.phase || 0, 10));
+            if (isPantryLike && aCook !== bCook) return aCook ? -1 : 1;
 
             const pa = parseInt(a.phase || 0, 10);
             const pb = parseInt(b.phase || 0, 10);

@@ -1117,6 +1117,7 @@
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
          var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
+         const allCreateIngredients = @Html.Raw(System.Text.Json.JsonSerializer.Serialize((Model.ToSelectIngredientsAndNutrients ?? new List<IngredientsAndNutrients>()).Select(x => new { id = x.Id, name = x.Name_DE })));
 
          function getCookieValue(name) {
              const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -1378,13 +1379,25 @@
                 return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
             }
 
-            return $('#sandboxIngredientList .sandbox-ingredient-btn').map(function () {
+            const fromSandbox = $('#sandboxIngredientList .sandbox-ingredient-btn').map(function () {
                 const btn = $(this);
                 return {
                     id: btn.data('id')?.toString() || '',
                     name: btn.data('name')?.toString() || 'Zutat'
                 };
             }).get();
+
+            if (fromSandbox.length) {
+                return fromSandbox;
+            }
+
+            if (Array.isArray(allCreateIngredients) && allCreateIngredients.length) {
+                return allCreateIngredients
+                    .map(x => ({ id: (x?.id ?? '').toString(), name: (x?.name || 'Zutat').toString() }))
+                    .filter(x => !!x.name);
+            }
+
+            return [];
         }
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
