@@ -103,6 +103,20 @@
         return normalized;
     }
 
+    var oldIngredientPreview = (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
+        .Select(old => {
+            var match = ResolveIngredientMatch(old.Ingredient?.Name ?? string.Empty);
+            return new {
+                OldName = old.Ingredient?.Name ?? string.Empty,
+                Quantity = old.Quantity?.Quantitys,
+                Unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm"),
+                IsMapped = match.Id > 0,
+                NewName = match.Name,
+                NewId = match.Id
+            };
+        })
+        .ToList();
+
     var initialIngredientsJson = JsonConvert.SerializeObject(
         (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
             .Select(old => {
@@ -403,20 +417,42 @@
             </div>
         </div>
 
-        @if (Model.IngredientHandler != null && Model.IngredientHandler.Count > 0)
+        @if (oldIngredientPreview.Any())
         {
             <div class="recipe-card" style="border-left-color: #6c757d;">
-                <h4 class="section-title text-secondary"><i class="fa-solid fa-clock-rotate-left"></i>Alte Zutaten (Referenz)</h4>
-                <div class="row">
-                    @foreach (var old in Model.IngredientHandler)
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h4 class="section-title text-secondary mb-0"><i class="fa-solid fa-clock-rotate-left"></i>Alte Zutaten (Referenz)</h4>
+                    <span class="badge rounded-pill text-bg-success">Gemappt: @oldIngredientPreview.Count(x => x.IsMapped) / @oldIngredientPreview.Count</span>
+                </div>
+                <div class="row mt-2">
+                    @foreach (var old in oldIngredientPreview)
                     {
                         <div class="col-md-4 col-sm-6">
                             <div class="old-ingredient-badge">
                                 <div>
-                                    <strong>@old.Ingredient.Name</strong><br />
-                                    <small class="text-muted">@old.Quantity.Quantitys @old.Measure.UnitOfMeasurement</small>
+                                    <strong>@old.OldName</strong><br />
+                                    <small class="text-muted">@old.Quantity @old.Unit</small>
+                                    @if (old.IsMapped)
+                                    {
+                                        <div class="small mt-1 text-success fw-semibold">
+                                            <i class="fa-solid fa-check-circle me-1"></i>DataTable-Match: @old.NewName (#@old.NewId)
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="small mt-1 text-danger fw-semibold">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Kein eindeutiges DataTable-Match
+                                        </div>
+                                    }
                                 </div>
-                                <i class="fa-solid fa-ban text-danger opacity-50" title="Wird beim Speichern ersetzt"></i>
+                                @if (old.IsMapped)
+                                {
+                                    <span class="badge text-bg-success">Übernommen</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Nicht übernommen</span>
+                                }
                             </div>
                         </div>
                     }
@@ -478,6 +514,17 @@
             <div id="masterStepPreviewBox" class="mb-2 d-none">
                 <div class="small text-muted mb-1"><i class="fa-solid fa-layer-group"></i> Master-Step Vorschau:</div>
                 <div id="masterStepPreviewList" class="d-flex flex-column gap-1"></div>
+            </div>
+            <div class="border rounded p-2 bg-white mb-2">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <div class="small fw-semibold"><i class="fa-solid fa-file-lines me-1"></i>Alt-Zubereitung (Schnellansicht)</div>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#oldPreparationCollapse" aria-expanded="false" aria-controls="oldPreparationCollapse">
+                        <i class="fa-solid fa-eye me-1"></i>Ein-/Ausblenden
+                    </button>
+                </div>
+                <div class="collapse mt-2" id="oldPreparationCollapse">
+                    <textarea class="form-control form-control-sm" rows="5" readonly>@Model.Recipes.Preparation</textarea>
+                </div>
             </div>
             <div class="border rounded p-2 bg-light mb-2">
                 <div class="fw-semibold small mb-2">Master Template Builder</div>
@@ -1704,7 +1751,7 @@
                 dropdownItems += `<li><a class="dropdown-item" href="javascript:void(0)" onclick="changeUnitValue('${tempId}', '${u}')">${u}</a></li>`;
             });
 
-            // Wir verwenden erst mal einen Platzhalter INDEX im namen, der später ersetzt wird
+            // Wir verwenden erst mal einen Platzhalter INDEX im namen, der später ersetz
             let html = `
                 <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm ingredient-row" id="ing_row_${tempId}" data-ingredient-id="${dbId}">
                     <input type="hidden" class="field-id" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${dbId}" />
