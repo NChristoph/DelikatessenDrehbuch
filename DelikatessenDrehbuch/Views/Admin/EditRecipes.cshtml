@@ -399,7 +399,7 @@
                     </div>
                     <div class="col-md-5">
                         <label class="form-label small mb-1">Template</label>
-                        <select id="adminMasterTemplateSelect" class="form-select form-select-sm" size="12"></select>
+                        <select id="adminMasterTemplateSelect" class="form-select form-select-sm"></select>
                     </div>
                     <div class="col-md-3 d-grid">
                         <button type="button" class="btn btn-sm btn-primary" id="btnAdminAddMasterStep"><i class="fa-solid fa-check me-1"></i>Übernehmen</button>
@@ -630,14 +630,12 @@
 
             if (!ingredientName || !window.MasterStepRenderer) {
                 templateSelect.append('<option value="">Keine Templates</option>');
-                templateSelect.attr('size', 12);
                 return;
             }
 
             const suggestions = MasterStepRenderer.suggestForIngredient(ingredientName);
             if (!suggestions.length) {
                 templateSelect.append('<option value="">Keine Templates gefunden</option>');
-                templateSelect.attr('size', 12);
                 $('#adminMasterVariables').empty();
                 $('#adminMasterPreviewText').text('Keine passenden Master-Templates gefunden.');
                 return;
@@ -646,9 +644,6 @@
             suggestions.forEach(function(step) {
                 templateSelect.append(`<option value="${step.master_id}">${step.description || step.master_id}</option>`);
             });
-
-            const visibleCount = Math.max(12, suggestions.length);
-            templateSelect.attr('size', visibleCount);
 
             renderAdminMasterTemplateEditor();
         }

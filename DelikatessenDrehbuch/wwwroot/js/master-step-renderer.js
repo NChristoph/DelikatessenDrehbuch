@@ -114,17 +114,38 @@
         const all = getMasterSteps().filter(function (step) { return !!step; });
         if (!all.length) return [];
 
-        const pantryTerms = ['öl', 'oil', 'salz', 'pfeffer', 'gewürz', 'spice', 'zucker', 'sugar'];
-        const isPantryLike = pantryTerms.some(function (x) { return name.includes(x); });
+        const hasAny = function (terms) { return terms.some(function (x) { return name.includes(x); }); };
+
+        const pantryTerms = ['öl', 'oil', 'salz', 'pfeffer', 'gewürz', 'spice', 'zucker', 'sugar', 'essig', 'vinegar'];
+        const proteinTerms = ['huhn', 'hähn', 'chicken', 'rind', 'beef', 'schwein', 'pork', 'lamm', 'fisch', 'lachs', 'tofu'];
+        const carbTerms = ['reis', 'rice', 'pasta', 'nudel', 'kartoff', 'potato', 'quinoa', 'couscous'];
+        const vegTerms = ['tomat', 'zwiebel', 'karotte', 'paprika', 'brokkoli', 'zucchini', 'aubergine', 'gemüse', 'salat'];
+
+        let preferredActions = ['wash', 'cut', 'boil', 'steam', 'fry', 'season', 'serve'];
+
+        if (hasAny(pantryTerms)) {
+            preferredActions = ['add', 'mix', 'stir', 'season', 'serve'];
+        } else if (hasAny(proteinTerms)) {
+            preferredActions = ['cut', 'marinate', 'fry', 'roast', 'grill', 'rest', 'season', 'serve'];
+        } else if (hasAny(carbTerms)) {
+            preferredActions = ['boil', 'stir', 'strain', 'steam', 'season', 'serve'];
+        } else if (hasAny(vegTerms)) {
+            preferredActions = ['wash', 'peel', 'cut', 'boil', 'steam', 'fry', 'roast', 'season', 'serve'];
+        }
+
+        const actionRank = function (action) {
+            const idx = preferredActions.findIndex(function (x) { return x === action; });
+            return idx >= 0 ? idx : 999;
+        };
 
         return all.sort(function (a, b) {
             const aHasIngredient = Array.isArray(a.variables) && a.variables.includes('ingredient');
             const bHasIngredient = Array.isArray(b.variables) && b.variables.includes('ingredient');
             if (aHasIngredient !== bHasIngredient) return aHasIngredient ? -1 : 1;
 
-            const aCook = [2, 3, 4].includes(parseInt(a.phase || 0, 10));
-            const bCook = [2, 3, 4].includes(parseInt(b.phase || 0, 10));
-            if (isPantryLike && aCook !== bCook) return aCook ? -1 : 1;
+            const ar = actionRank((a.action || '').toString());
+            const br = actionRank((b.action || '').toString());
+            if (ar !== br) return ar - br;
 
             const pa = parseInt(a.phase || 0, 10);
             const pb = parseInt(b.phase || 0, 10);
