@@ -1423,6 +1423,7 @@
         function refreshMasterTemplateOptions() {
             const templateSelect = $('#masterTemplateSelect');
             const previousTemplateId = templateSelect.val() || '';
+            const ingredientName = $('#masterIngredientSelect').val() || '';
             templateSelect.empty();
 
             if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
@@ -1441,7 +1442,12 @@
             }
 
             templates.forEach(step => {
-                const label = step.description || step.master_id;
+                const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
+                    ingredientName: ingredientName,
+                    recipeCategory: $('#Recipe_Category').val()
+                });
+                const localized = MasterStepRenderer.render(step.master_id, defaults, currentLang);
+                const label = localized || step.description || step.master_id;
                 templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
             });
 
@@ -1810,6 +1816,7 @@
             syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
+            refreshMasterTemplateOptions();
             renderSandboxStepTab();
         }
 
