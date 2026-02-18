@@ -26,6 +26,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["WorldChainId"] = _configuration["WorldChain:ChainId"] ?? "480";
             ViewData["WorldChainWldToken"] = _configuration["WorldChain:WldTokenAddress"] ?? "";
             ViewData["WorldChainMarketplace"] = _configuration["WorldChain:MarketplaceContractAddress"] ?? "";
+            ViewData["WorldChainAllowSelfPurchaseForTesting"] =
+                bool.TryParse(_configuration["WorldChain:AllowSelfPurchaseForTesting"], out var allowSelfPurchase)
+                && allowSelfPurchase;
+        }
+
+        private bool IsSelfPurchaseAllowedForTesting()
+        {
+            return bool.TryParse(_configuration["WorldChain:AllowSelfPurchaseForTesting"], out var allowSelfPurchase)
+                && allowSelfPurchase;
         }
 
         private string? ResolveUserHash(string? userHash)
@@ -109,7 +118,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
 
-            var purchase = await _coinService.BuyListing(userHash, listingId);
+            var purchase = await _coinService.BuyListing(userHash, listingId, IsSelfPurchaseAllowedForTesting());
             if (purchase == null)
                 return Json(new { success = false, error = "Kauf nicht möglich. Nicht genug WildCoin oder Angebot nicht verfügbar." });
 
@@ -150,7 +159,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(request.TxHash))
                 return Json(new { success = false, error = "TxHash fehlt." });
 
-            var purchase = await _coinService.FinalizeWorldChainPurchase(userHash, request.ListingId, request.TxHash, request.WalletAddress);
+            var purchase = await _coinService.FinalizeWorldChainPurchase(
+                userHash,
+                request.ListingId,
+                request.TxHash,
+                request.WalletAddress,
+                IsSelfPurchaseAllowedForTesting());
             if (purchase == null)
                 return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 
