@@ -471,8 +471,7 @@
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small text-muted mb-1">Template</label>
-                                <div id="masterTemplateButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
-                                <input type="hidden" id="masterTemplateSelect" />
+                                <select id="masterTemplateSelect" class="form-select form-select-sm"></select>
                             </div>
                             <div class="col-md-3 d-grid">
                                 <button type="button" id="btnAddRenderedStep" class="btn btn-sm btn-primary">
@@ -1448,26 +1447,24 @@
         }
 
         function refreshMasterTemplateOptions() {
-            const templateButtons = $('#masterTemplateButtons');
+            const templateSelect = $('#masterTemplateSelect');
             const ingredientName = buildIngredientTextForMaster();
-            templateButtons.empty();
+            templateSelect.empty();
 
             if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
-                templateButtons.append('<div class="text-muted small">Keine Templates</div>');
+                templateSelect.append('<option value="">Keine Templates</option>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Master-Step Renderer nicht verfügbar.');
                 selectedMasterTemplateId = '';
-                $('#masterTemplateSelect').val('');
                 return;
             }
 
             const templates = MasterStepRenderer.getAllTemplates();
             if (!templates.length) {
-                templateButtons.append('<div class="text-muted small">Keine Templates gefunden</div>');
+                templateSelect.append('<option value="">Keine Templates gefunden</option>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Keine Master-Templates gefunden.');
                 selectedMasterTemplateId = '';
-                $('#masterTemplateSelect').val('');
                 return;
             }
 
@@ -1482,11 +1479,10 @@
                 });
                 const localized = MasterStepRenderer.render(step.master_id, defaults, currentLang);
                 const label = localized || step.description || step.master_id;
-                const isActive = step.master_id === selectedMasterTemplateId;
-                templateButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-template-btn" data-template-id="${step.master_id}">${label}</button>`);
+                templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
             });
 
-            $('#masterTemplateSelect').val(selectedMasterTemplateId);
+            templateSelect.val(selectedMasterTemplateId);
             renderMasterTemplateEditor();
         }
 
@@ -2149,10 +2145,9 @@
 
                 refreshMasterTemplateBuilder();
             });
-            $('#masterTemplateButtons').on('click', '.master-template-btn', function () {
-                selectedMasterTemplateId = $(this).data('template-id')?.toString() || '';
-                $('#masterTemplateSelect').val(selectedMasterTemplateId);
-                refreshMasterTemplateOptions();
+            $('#masterTemplateSelect').on('change', function () {
+                selectedMasterTemplateId = ($(this).val() || '').toString();
+                renderMasterTemplateEditor();
             });
             $('#masterVariables').on('input', '.master-var-input', updateMasterPreview);
             $('#btnAddRenderedStep').on('click', addRenderedMasterStep);
