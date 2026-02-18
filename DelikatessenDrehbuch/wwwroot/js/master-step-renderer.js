@@ -41,13 +41,81 @@
         });
     }
 
+    function resolveGenderFromPronoun(value) {
+        const v = (value || '').toString().trim().toLowerCase();
+        if (!v) return 'f';
+
+        if (['sie', 'her', 'la', 'ela', 'a'].includes(v)) return 'f';
+        if (['ihn', 'him', 'lo', 'ele', 'o'].includes(v)) return 'm';
+        if (['es', 'it'].includes(v)) return 'n';
+
+        return 'f';
+    }
+
+    function getLocalizedGrammar(lang, gender) {
+        const l = (lang || 'de').toString().toLowerCase();
+        const g = (gender || 'f').toString().toLowerCase();
+
+        if (l === 'en') {
+            return { article: 'the', pronoun: g === 'm' ? 'him' : g === 'n' ? 'it' : 'her' };
+        }
+
+        if (l === 'esp') {
+            return { article: g === 'm' ? 'el' : 'la', pronoun: g === 'm' ? 'lo' : 'la' };
+        }
+
+        if (l === 'prt') {
+            return { article: g === 'm' ? 'o' : 'a', pronoun: g === 'm' ? 'o' : 'a' };
+        }
+
+        return {
+            article: g === 'm' ? 'der' : g === 'n' ? 'das' : 'die',
+            pronoun: g === 'm' ? 'ihn' : g === 'n' ? 'es' : 'sie'
+        };
+    }
+
+    function startsWithKnownArticle(value, lang) {
+        const text = (value || '').toString().trim().toLowerCase();
+        if (!text) return false;
+
+        const articleByLang = {
+            de: ['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einer', 'einem'],
+            en: ['the', 'a', 'an'],
+            esp: ['el', 'la', 'los', 'las', 'un', 'una'],
+            prt: ['o', 'a', 'os', 'as', 'um', 'uma']
+        };
+
+        const articles = articleByLang[(lang || 'de').toString().toLowerCase()] || [];
+        return articles.some(function (article) {
+            return text === article || text.startsWith(article + ' ');
+        });
+    }
+
+    function localizeVariables(variables, lang) {
+        const result = Object.assign({}, variables || {});
+        const gender = resolveGenderFromPronoun(result.pronoun);
+        const grammar = getLocalizedGrammar(lang, gender);
+
+        if (!result.pronoun || ['sie', 'her', 'la', 'ela', 'a', 'ihn', 'him', 'lo', 'ele', 'o', 'es', 'it'].includes(String(result.pronoun).toLowerCase())) {
+            result.pronoun = grammar.pronoun;
+        }
+
+        const ingredient = (result.ingredient || '').toString().trim();
+        if (ingredient && !startsWithKnownArticle(ingredient, lang)) {
+            result.ingredient = grammar.article + ' ' + ingredient;
+        }
+
+        return result;
+    }
+
     function render(masterId, variables, lang) {
         const step = findTemplate(masterId);
         if (!step || !step.templates) return '';
 
         const key = (lang || 'de').toLowerCase();
         const tpl = step.templates[key] || step.templates.de || step.templates.en || '';
-        return renderText(tpl, variables || {});
+        const localizedVariables = localizeVariables(variables || {}, key);
+        return renderText(tpl, localizedVariables);
     }
 
     function renderAll(masterId, variables) {
@@ -57,10 +125,10 @@
         }
 
         return {
-            de: renderText(step.templates.de || '', variables || {}),
-            en: renderText(step.templates.en || '', variables || {}),
-            esp: renderText(step.templates.esp || '', variables || {}),
-            prt: renderText(step.templates.prt || '', variables || {})
+            de: render(masterId, variables || {}, 'de'),
+            en: render(masterId, variables || {}, 'en'),
+            esp: render(masterId, variables || {}, 'esp'),
+            prt: render(masterId, variables || {}, 'prt')
         };
     }
 
