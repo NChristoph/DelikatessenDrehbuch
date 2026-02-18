@@ -124,12 +124,84 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         private void ProcessPreparationSteps(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
-            foreach (var step in model.RecipeJoyinPreperationSteps)
+            foreach (var step in model.RecipeJoyinPreperationSteps ?? Enumerable.Empty<RecipeJoyinPreperationSteps>())
             {
                 step.Recipe = recipe;
-                step.RecipePreperationStep = _context.RecipePreperationSteps.First(x => x.Id == step.PreperationStepId);
+                step.RecipePreperationStep = ResolvePreparationStep(step);
+                if (step.RecipePreperationStep == null)
+                {
+                    continue;
+                }
+
                 _context.RecipeJoinPreperationSteps.Add(step);
             }
+        }
+
+        private RecipePreperationSteps ResolvePreparationStep(RecipeJoyinPreperationSteps joinStep)
+        {
+            var postedStep = joinStep.RecipePreperationStep;
+            var hasPostedText = !string.IsNullOrWhiteSpace(postedStep?.Step_DE)
+                || !string.IsNullOrWhiteSpace(postedStep?.Step_EN)
+                || !string.IsNullOrWhiteSpace(postedStep?.Step_ESP)
+                || !string.IsNullOrWhiteSpace(postedStep?.Step_PRT);
+
+            if (joinStep.PreperationStepId > 0 && !hasPostedText)
+            {
+                return _context.RecipePreperationSteps.FirstOrDefault(x => x.Id == joinStep.PreperationStepId);
+            }
+
+            if (!hasPostedText)
+            {
+                return null;
+            }
+
+            var de = (postedStep.Step_DE ?? string.Empty).Trim();
+            var en = (postedStep.Step_EN ?? string.Empty).Trim();
+            var esp = (postedStep.Step_ESP ?? string.Empty).Trim();
+            var prt = (postedStep.Step_PRT ?? string.Empty).Trim();
+            var phase = postedStep.Phase;
+            var equipment = postedStep.Equipment;
+
+            if (string.IsNullOrWhiteSpace(de) && string.IsNullOrWhiteSpace(en))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(de))
+            {
+                de = en;
+            }
+
+            if (string.IsNullOrWhiteSpace(en))
+            {
+                en = de;
+            }
+
+            var existing = _context.RecipePreperationSteps.FirstOrDefault(x => x.Step_DE == de
+                && x.Step_EN == en
+                && x.Step_ESP == esp
+                && x.Step_PRT == prt
+                && x.Phase == phase
+                && x.Equipment == equipment);
+
+            if (existing != null)
+            {
+                joinStep.PreperationStepId = existing.Id;
+                return existing;
+            }
+
+            var newStep = new RecipePreperationSteps
+            {
+                Step_DE = de,
+                Step_EN = en,
+                Step_ESP = esp,
+                Step_PRT = prt,
+                Phase = phase,
+                Equipment = equipment
+            };
+
+            _context.RecipePreperationSteps.Add(newStep);
+            return newStep;
         }
 
         private void ProcessRecipeImage(RecipeBaseData recipe, SaveNewRecipeModel model,bool wordlUserImage)
