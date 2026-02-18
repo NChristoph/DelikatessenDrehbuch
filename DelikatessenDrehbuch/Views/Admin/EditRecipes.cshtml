@@ -210,6 +210,14 @@
     .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
     .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
 
+
+    .admin-master-button-wrap {
+        min-height: 38px;
+        padding: 4px;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 8px;
+        background: #fff;
+    }
     /* Eingabefelder auf Mobile */
     @@media (max-width: 768px) {
         .recipe-card, .recipe-card-blue
@@ -394,8 +402,8 @@
                 <div class="fw-semibold small mb-2">Master Template Builder</div>
                 <div class="row g-2 align-items-end">
                     <div class="col-md-4">
-                        <label class="form-label small mb-1">Zutat</label>
-                        <select id="adminMasterIngredientSelect" class="form-select form-select-sm"></select>
+                        <label class="form-label small mb-1">Zutaten (Mehrfachauswahl)</label>
+                        <div id="adminMasterIngredientButtons" class="d-flex flex-wrap gap-2 admin-master-button-wrap"></div>
                     </div>
                     <div class="col-md-5">
                         <label class="form-label small mb-1">Template</label>
@@ -521,6 +529,8 @@
         let lastAddedStep = null;
         const acceptedStepByIngredientPhase = new Map();
         let activeEquipmentFilter = 'all';
+        let selectedAdminMasterIngredientNames = [];
+        let selectedAdminMasterTemplateId = '';
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -601,56 +611,89 @@
             return [];
         }
 
+        function buildIngredientTextForAdminMaster() {
+            const selected = selectedAdminMasterIngredientNames.filter(function(x) { return !!x && x.trim(); });
+            if (!selected.length) return '';
+            if (selected.length === 1) return selected[0];
+            if (selected.length === 2) return `${selected[0]} und ${selected[1]}`;
+            return `${selected.slice(0, -1).join(', ')} und ${selected[selected.length - 1]}`;
+        }
+
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
 
         function refreshAdminMasterBuilder() {
-            const ingredientSelect = $('#adminMasterIngredientSelect');
+            const ingredientButtons = $('#adminMasterIngredientButtons');
             const ingredients = getSelectedIngredientsForSandbox();
-            ingredientSelect.empty();
+            ingredientButtons.empty();
 
-            if (!ingredients.length) {
-                ingredientSelect.append('<option value="">Keine Zutat gewählt</option>');
-                $('#adminMasterTemplateSelect').html('<option value="">Keine Templates</option>');
+            const availableNames = ingredients.map(function(item) { return item.name; }).filter(Boolean);
+            selectedAdminMasterIngredientNames = selectedAdminMasterIngredientNames.filter(function(name) {
+                return availableNames.includes(name);
+            });
+
+            if (!selectedAdminMasterIngredientNames.length && availableNames.length) {
+                selectedAdminMasterIngredientNames = [availableNames[0]];
+            }
+
+            if (!availableNames.length) {
+                ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
                 $('#adminMasterVariables').empty();
                 $('#adminMasterPreviewText').text('Noch kein Template gewählt.');
+                $('#adminMasterTemplateSelect').html('<option value="">Keine Templates</option>');
+                selectedAdminMasterTemplateId = '';
                 return;
             }
 
-            ingredients.forEach(function(item) {
-                ingredientSelect.append(`<option value="${item.name}">${item.name}</option>`);
+            availableNames.forEach(function(name) {
+                const isActive = selectedAdminMasterIngredientNames.includes(name);
+                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} admin-master-ingredient-btn" data-name="${name}">${name}</button>`);
             });
 
             refreshAdminMasterTemplates();
         }
 
         function refreshAdminMasterTemplates() {
-            const ingredientName = $('#adminMasterIngredientSelect').val() || '';
+            const ingredientName = buildIngredientTextForAdminMaster();
             const templateSelect = $('#adminMasterTemplateSelect');
             templateSelect.empty();
 
-            if (!ingredientName || !window.MasterStepRenderer) {
+            if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
                 templateSelect.append('<option value="">Keine Templates</option>');
+                $('#adminMasterVariables').empty();
+                $('#adminMasterPreviewText').text('Master-Step Renderer nicht verfügbar.');
+                selectedAdminMasterTemplateId = '';
                 return;
             }
 
-            const suggestions = MasterStepRenderer.suggestForIngredient(ingredientName);
-            if (!suggestions.length) {
+            const templates = MasterStepRenderer.getAllTemplates();
+            if (!templates.length) {
                 templateSelect.append('<option value="">Keine Templates gefunden</option>');
                 $('#adminMasterVariables').empty();
-                $('#adminMasterPreviewText').text('Keine passenden Master-Templates gefunden.');
+                $('#adminMasterPreviewText').text('Keine Master-Templates gefunden.');
+                selectedAdminMasterTemplateId = '';
                 return;
             }
 
-            suggestions.forEach(function(step) {
-                templateSelect.append(`<option value="${step.master_id}">${step.description || step.master_id}</option>`);
+            if (!selectedAdminMasterTemplateId || !templates.some(function(step) { return step.master_id === selectedAdminMasterTemplateId; })) {
+                selectedAdminMasterTemplateId = templates[0].master_id;
+            }
+
+            templates.forEach(function(step) {
+                const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
+                    ingredientName: ingredientName
+                });
+                const localized = MasterStepRenderer.render(step.master_id, defaults, 'de');
+                const label = localized || step.description || step.master_id;
+                templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
             });
 
+            templateSelect.val(selectedAdminMasterTemplateId);
             renderAdminMasterTemplateEditor();
         }
 
         function renderAdminMasterTemplateEditor() {
-            const templateId = $('#adminMasterTemplateSelect').val();
-            const ingredientName = $('#adminMasterIngredientSelect').val() || '';
+            const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
+            const ingredientName = buildIngredientTextForAdminMaster();
             const box = $('#adminMasterVariables');
             box.empty();
 
@@ -685,14 +728,14 @@
         }
 
         function updateAdminMasterPreview() {
-            const templateId = $('#adminMasterTemplateSelect').val();
+            const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
             const vars = collectAdminMasterVariables();
             $('#adminMasterPreviewText').text(MasterStepRenderer.render(templateId, vars, 'de') || 'Keine Vorschau verfügbar.');
         }
 
         async function addAdminRenderedMasterStep() {
-            const templateId = $('#adminMasterTemplateSelect').val();
+            const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
 
             const template = MasterStepRenderer.findTemplate(templateId);
@@ -1350,8 +1393,27 @@
             });
 
             MasterStepRenderer.load().then(function() { refreshAdminMasterBuilder(); });
-            $('#adminMasterIngredientSelect').on('change', refreshAdminMasterTemplates);
-            $('#adminMasterTemplateSelect').on('change', renderAdminMasterTemplateEditor);
+            $('#adminMasterIngredientButtons').on('click', '.admin-master-ingredient-btn', function() {
+                const name = $(this).data('name')?.toString() || '';
+                if (!name) return;
+
+                if (selectedAdminMasterIngredientNames.includes(name)) {
+                    selectedAdminMasterIngredientNames = selectedAdminMasterIngredientNames.filter(function(x) { return x !== name; });
+                } else {
+                    selectedAdminMasterIngredientNames.push(name);
+                }
+
+                if (!selectedAdminMasterIngredientNames.length) {
+                    const fallback = getSelectedIngredientsForSandbox()[0]?.name || '';
+                    if (fallback) selectedAdminMasterIngredientNames = [fallback];
+                }
+
+                refreshAdminMasterBuilder();
+            });
+            $('#adminMasterTemplateSelect').on('change', function() {
+                selectedAdminMasterTemplateId = ($(this).val() || '').toString();
+                renderAdminMasterTemplateEditor();
+            });
             $('#adminMasterVariables').on('input', '.admin-master-var-input', updateAdminMasterPreview);
             $('#btnAdminAddMasterStep').on('click', addAdminRenderedMasterStep);
 
