@@ -621,6 +621,24 @@
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
 
+
+        function getCurrentUserHashForAdminRequests() {
+            const cookieMatch = document.cookie.match(/(?:^|;\s*)WorldMiniAppUserHash=([^;]+)/);
+            const fromCookie = cookieMatch ? decodeURIComponent(cookieMatch[1]) : '';
+            if (fromCookie) return fromCookie;
+
+            const fromHidden = ($('#hiddenUserTokenField').length ? ($('#hiddenUserTokenField').val() || '') : '').toString().trim();
+            if (fromHidden) return fromHidden;
+
+            const fromStorage = (sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '').toString().trim();
+            if (fromStorage) return fromStorage;
+
+            const fromQuery = new URLSearchParams(window.location.search).get('userHash');
+            if (fromQuery) return fromQuery;
+
+            return '';
+        }
+
         function refreshAdminMasterBuilder() {
             const ingredientButtons = $('#adminMasterIngredientButtons');
             const ingredients = getSelectedIngredientsForSandbox();
@@ -750,7 +768,13 @@
         function updateAdminMasterPreview() {
             const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
-            const vars = collectAdminMasterVariables();
+
+            const ingredientName = buildIngredientTextForAdminMaster();
+            const vars = {
+                ...MasterStepRenderer.getSmartDefaults(templateId, { ingredientName: ingredientName }),
+                ...collectAdminMasterVariables()
+            };
+
             $('#adminMasterPreviewText').text(MasterStepRenderer.render(templateId, vars, 'de') || 'Keine Vorschau verfügbar.');
         }
 
@@ -761,7 +785,15 @@
             const template = MasterStepRenderer.findTemplate(templateId);
             if (!template) return;
 
-            const vars = collectAdminMasterVariables();
+            const ingredientName = buildIngredientTextForAdminMaster();
+            const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
+                ingredientName: ingredientName
+            });
+            const vars = {
+                ...defaults,
+                ...collectAdminMasterVariables()
+            };
+
             const rendered = MasterStepRenderer.renderAll(templateId, vars);
             const payload = {
                 de: rendered.de,
@@ -773,13 +805,19 @@
             };
 
             try {
-                const response = await fetch(upsertStepUrl, {
+                const userHash = getCurrentUserHashForAdminRequests();
+                const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error('Upsert fehlgeschlagen');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Upsert fehlgeschlagen');
+                }
+
                 const result = await response.json();
                 const newId = result?.id;
                 if (!newId) throw new Error('Keine Step-ID');
@@ -787,7 +825,14 @@
                 if (!stepCatalog.some(x => x && x.id?.toString() === newId.toString())) {
                     stepCatalog.push({
                         id: newId,
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
                         step_DE: rendered.de,
+                        step_EN: rendered.en,
+                        step_ESP: rendered.esp,
+                        step_PRT: rendered.prt,
                         phase: payload.phase,
                         equipment: payload.equipment,
                         ingredientIds: []
@@ -798,7 +843,8 @@
                 recalcStepNumbers();
                 loadSandboxStepsForActiveIngredient();
             } catch (e) {
-                alert('Master-Step konnte nicht übernommen werden.');
+                console.error('Admin Master-Step Übernahme fehlgeschlagen', e);
+                alert('Master-Step konnte nicht übernommen werden. ' + (e?.message || 'Bitte UserHash/Berechtigung prüfen.'));
             }
         }
 
@@ -1569,6 +1615,18 @@
             });
         }
 
+        function editJoinStepText(btn) {
+            const row = $(btn).closest('.step-row');
+            const input = row.find('.join-step-text-input').first();
+            const current = (input.val() || '').toString().trim();
+            const updated = prompt('Schritt bearbeiten:', current);
+            if (updated === null) return;
+            const trimmed = updated.trim();
+            if (!trimmed) return;
+            input.val(trimmed);
+            refreshLastEditedStepBox();
+        }
+
         function addJoinStep(stepId, stepText, options = {}) {
             const alreadySelected = $('#newStepsList .step-row').filter(function() {
                 return $(this).data('step-id')?.toString() === stepId.toString();
@@ -1611,15 +1669,18 @@
                                 value="${currentCount}" required />
                     </div>
 
-                    <div class="col-9 col-md-8">
+                    <div class="col-9 col-md-7">
                         <label class="small text-muted fw-bold d-md-none">Beschreibung</label>
-                        <input type="text" class="form-control bg-light" value="${stepText}" readonly />
+                        <input type="text" class="form-control bg-light join-step-text-input" value="${stepText}" />
                     </div>
 
-                    <div class="col-12 col-md-1 text-end">
+                    <div class="col-12 col-md-2 text-end">
                         <span class="text-muted d-none d-md-inline-block me-2" title="Ziehen zum Sortieren">
                             <i class="fa-solid fa-grip-lines"></i>
                         </span>
+                        <button type="button" class="btn btn-outline-primary btn-icon ms-auto mt-2 mt-md-0 me-2" onclick="editJoinStepText(this)" title="Schritttext bearbeiten">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
                         <button type="button" class="btn btn-outline-success btn-icon ms-auto mt-2 mt-md-0 me-2" onclick="acceptExistingStepRow(this)" title="Diesen Schritt akzeptieren">
                             <i class="fa-solid fa-check"></i>
                         </button>
