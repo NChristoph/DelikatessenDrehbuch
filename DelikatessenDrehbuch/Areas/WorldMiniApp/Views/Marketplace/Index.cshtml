@@ -8,6 +8,7 @@
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
     var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
     var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
+    var allowSelfPurchaseForTesting = (bool?)ViewData["WorldChainAllowSelfPurchaseForTesting"] ?? false;
 }
 
 <style>
@@ -84,6 +85,13 @@
     </div>
 
     <!-- Listings -->
+    @if (allowSelfPurchaseForTesting)
+    {
+        <div class="alert alert-warning py-2 px-3 small mb-3" role="alert">
+            <strong>Testmodus aktiv:</strong> Eigene Listings können gekauft werden.
+        </div>
+    }
+
     @if (!Model.Any())
     {
         <div class="text-center py-5">
@@ -121,7 +129,7 @@
                         </div>
                         <div class="text-end ms-3">
                             <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WC</div>
-                            @if (isOwn)
+                            @if (isOwn && !allowSelfPurchaseForTesting)
                             {
                                 <div class="small text-muted">Dein Angebot</div>
                             }

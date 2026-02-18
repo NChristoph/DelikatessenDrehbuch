@@ -161,6 +161,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["Category"] = category;
             ViewData["MaxPrepTime"] = maxPrepTime?.ToString() ?? string.Empty;
             ViewData["UserHash"] = userHash;
+            ViewData["MarketplaceListings"] = await _context.MealPlanListings
+                .AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(100)
+                .ToListAsync();
+            ViewData["MarketplaceMealPlans"] = string.IsNullOrWhiteSpace(userHash)
+                ? new List<WorldUserMealPlan>()
+                : await _context.WorldUserMealPlan
+                    .AsNoTracking()
+                    .Where(x => x.UserHash == userHash)
+                    .OrderByDescending(x => x.CreationTime)
+                    .ToListAsync();
 
             return View(model);
         }
@@ -382,7 +395,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash(string userHash)
         {
-            var sessionHash = HttpContext.Session.GetString(SessionUserHashKey);
+            if (!string.IsNullOrWhiteSpace(userHash))
+            {
+                return userHash;
+            }
+
+            var sessionHash = HttpContext.Session.GetString(SessionUserHashKey)
+                ?? HttpContext.Session.GetString("UserHash")
+                ?? Request.Query["userHash"].FirstOrDefault();
+
             if (string.IsNullOrWhiteSpace(sessionHash))
             {
                 return string.Empty;

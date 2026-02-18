@@ -164,14 +164,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
 
 
-        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress)
+        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false)
         {
             var listing = await _context.MealPlanListings
                 .Include(l => l.MealPlan)
                 .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
 
             if (listing == null) return null;
-            if (listing.SellerHash == buyerHash) return null;
+            if (!allowSelfPurchase && listing.SellerHash == buyerHash) return null;
 
             var existing = await _context.MealPlanPurchases
                 .FirstOrDefaultAsync(p => p.ListingId == listingId && p.BuyerHash == buyerHash && p.ReferenceTxHash == txHash);
@@ -206,14 +206,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return purchase;
         }
 
-        public async Task<MealPlanPurchase?> BuyListing(string buyerHash, int listingId)
+        public async Task<MealPlanPurchase?> BuyListing(string buyerHash, int listingId, bool allowSelfPurchase = false)
         {
             var listing = await _context.MealPlanListings
                 .Include(l => l.MealPlan)
                 .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
 
             if (listing == null) return null;
-            if (listing.SellerHash == buyerHash) return null; // Kann sich nicht selbst kaufen
+            if (!allowSelfPurchase && listing.SellerHash == buyerHash) return null; // Kann sich nicht selbst kaufen
 
             // Transfer
             var success = await Transfer(buyerHash, listing.SellerHash, listing.Price, $"MealPlanListing:{listing.Id}");
