@@ -160,6 +160,7 @@
             marinade: 'Öl, Salz und Gewürzen',
             duration: '10 Minuten',
             liquid: 'Wasser',
+            equipment: 'Pfanne',
             quantity: 'etwas',
             temperature: recipeCategory.includes('dessert') ? '180°C' : 'mittlerer Hitze',
             heat: 'mittlerer Hitze',

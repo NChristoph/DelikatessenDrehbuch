@@ -31,7 +31,6 @@
     "10": "Sieb"
   },
   "master_steps": [
-
     {
       "master_id": "PREP_WASH_01",
       "phase": 1,
@@ -44,9 +43,11 @@
         "esp": "Lava {{ingredient}} a fondo y séca{{pronoun}}.",
         "prt": "Lave {{ingredient}} bem e seque-{{pronoun}}."
       },
-      "variables": ["ingredient", "pronoun"]
+      "variables": [
+        "ingredient",
+        "pronoun"
+      ]
     },
-
     {
       "master_id": "PREP_PEEL_01",
       "phase": 1,
@@ -59,9 +60,11 @@
         "esp": "Pela {{ingredient}} con un {{tool}}.",
         "prt": "Descasque {{ingredient}} com um {{tool}}."
       },
-      "variables": ["ingredient", "tool"]
+      "variables": [
+        "ingredient",
+        "tool"
+      ]
     },
-
     {
       "master_id": "PREP_CUT_01",
       "phase": 1,
@@ -74,9 +77,11 @@
         "esp": "Corta {{ingredient}} en {{shape}}.",
         "prt": "Corte {{ingredient}} em {{shape}}."
       },
-      "variables": ["ingredient", "shape"]
+      "variables": [
+        "ingredient",
+        "shape"
+      ]
     },
-
     {
       "master_id": "PREP_GRATE_01",
       "phase": 1,
@@ -89,9 +94,12 @@
         "esp": "Ralla {{ingredient}} {{grind_size}} con un {{tool}}.",
         "prt": "Rale {{ingredient}} {{grind_size}} com um {{tool}}."
       },
-      "variables": ["ingredient", "grind_size", "tool"]
+      "variables": [
+        "ingredient",
+        "grind_size",
+        "tool"
+      ]
     },
-
     {
       "master_id": "PREP_MINCE_01",
       "phase": 1,
@@ -104,9 +112,10 @@
         "esp": "Pica {{ingredient}} muy fino con un cuchillo.",
         "prt": "Pique {{ingredient}} bem fino com uma faca."
       },
-      "variables": ["ingredient"]
+      "variables": [
+        "ingredient"
+      ]
     },
-
     {
       "master_id": "PREP_MARINATE_01",
       "phase": 1,
@@ -119,9 +128,13 @@
         "esp": "Marina {{ingredient}} en una mezcla de {{marinade}} durante al menos {{duration}}.",
         "prt": "Marine {{ingredient}} numa mistura de {{marinade}} por pelo menos {{duration}}."
       },
-      "variables": ["ingredient", "marinade", "pronoun", "duration"]
+      "variables": [
+        "ingredient",
+        "marinade",
+        "pronoun",
+        "duration"
+      ]
     },
-
     {
       "master_id": "PREP_SOAK_01",
       "phase": 1,
@@ -134,9 +147,12 @@
         "esp": "Remoja {{ingredient}} en {{liquid}} durante {{duration}}.",
         "prt": "Deixe {{ingredient}} de molho em {{liquid}} por {{duration}}."
       },
-      "variables": ["ingredient", "liquid", "duration"]
+      "variables": [
+        "ingredient",
+        "liquid",
+        "duration"
+      ]
     },
-
     {
       "master_id": "PREP_MIX_DRY_01",
       "phase": 1,
@@ -149,9 +165,10 @@
         "esp": "Mezcla {{ingredients}} en un bol.",
         "prt": "Misture {{ingredients}} numa tigela."
       },
-      "variables": ["ingredients"]
+      "variables": [
+        "ingredients"
+      ]
     },
-
     {
       "master_id": "PREP_HEAT_01",
       "phase": 1,
@@ -164,9 +181,12 @@
         "esp": "Precalienta {{equipment}} a {{temp}}°C ({{mode}}).",
         "prt": "Pré-aqueça {{equipment}} a {{temp}}°C ({{mode}})."
       },
-      "variables": ["equipment", "temp", "mode"]
+      "variables": [
+        "equipment",
+        "temp",
+        "mode"
+      ]
     },
-
     {
       "master_id": "COOK_SAUTE_01",
       "phase": 2,
@@ -179,9 +199,14 @@
         "esp": "Calienta {{fat}} en {{equipment}} y sofríe {{ingredient}} durante {{duration}} hasta que {{state}}.",
         "prt": "Aqueça {{fat}} em {{equipment}} e refogue {{ingredient}} por {{duration}} até que {{state}}."
       },
-      "variables": ["fat", "equipment", "ingredient", "duration", "state"]
+      "variables": [
+        "fat",
+        "equipment",
+        "ingredient",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_FRY_01",
       "phase": 2,
@@ -194,9 +219,14 @@
         "esp": "Fríe {{ingredient}} en {{fat}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
         "prt": "Frite {{ingredient}} em {{fat}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}."
       },
-      "variables": ["ingredient", "fat", "heat", "duration", "state"]
+      "variables": [
+        "ingredient",
+        "fat",
+        "heat",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_DEEPFRY_01",
       "phase": 2,
@@ -209,9 +239,14 @@
         "esp": "Calienta {{fat}} a {{temp}}°C y fríe {{ingredient}} en tandas durante {{duration}} hasta que {{state}}. Escurre sobre papel absorbente.",
         "prt": "Aqueça {{fat}} a {{temp}}°C e frite {{ingredient}} em porções por {{duration}} até que {{state}}. Escorra em papel toalha."
       },
-      "variables": ["fat", "temp", "ingredient", "duration", "state"]
+      "variables": [
+        "fat",
+        "temp",
+        "ingredient",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_BOIL_01",
       "phase": 2,
@@ -224,9 +259,14 @@
         "esp": "Hierve {{liquid}} en una olla, añade {{ingredient}} y cocina durante {{duration}} hasta que {{state}}.",
         "prt": "Ferva {{liquid}} numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}."
       },
-      "variables": ["liquid", "ingredient", "pronoun", "duration", "state"]
+      "variables": [
+        "liquid",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_SIMMER_01",
       "phase": 2,
@@ -239,9 +279,12 @@
         "esp": "Reduce el fuego y deja que {{dish}} hierva a fuego lento durante {{duration}} hasta que {{state}}.",
         "prt": "Reduza o fogo e deixe {{dish}} cozinhar em fogo baixo por {{duration}} até que {{state}}."
       },
-      "variables": ["dish", "duration", "state"]
+      "variables": [
+        "dish",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_STEAM_01",
       "phase": 2,
@@ -254,9 +297,13 @@
         "esp": "Cocina {{ingredient}} al vapor sobre agua hirviendo en {{equipment}} durante {{duration}} hasta que {{state}}.",
         "prt": "Cozinhe {{ingredient}} no vapor sobre água fervente em {{equipment}} por {{duration}} até que {{state}}."
       },
-      "variables": ["ingredient", "equipment", "duration", "state"]
+      "variables": [
+        "ingredient",
+        "equipment",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_BAKE_01",
       "phase": 2,
@@ -269,9 +316,15 @@
         "esp": "Coloca {{dish}} en el horno precalentado y hornea a {{temp}}°C ({{mode}}) durante {{duration}} hasta que {{state}}.",
         "prt": "Coloque {{dish}} no forno pré-aquecido e asse a {{temp}}°C ({{mode}}) por {{duration}} até que {{state}}."
       },
-      "variables": ["dish", "pronoun", "temp", "mode", "duration", "state"]
+      "variables": [
+        "dish",
+        "pronoun",
+        "temp",
+        "mode",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_ROAST_01",
       "phase": 2,
@@ -284,9 +337,14 @@
         "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}}°C durante {{duration}} hasta que {{state}}.",
         "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}}°C por {{duration}} até que {{state}}."
       },
-      "variables": ["ingredient", "fat", "temp", "duration", "state"]
+      "variables": [
+        "ingredient",
+        "fat",
+        "temp",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_GRILL_01",
       "phase": 2,
@@ -299,9 +357,14 @@
         "esp": "Asa {{ingredient}} en {{equipment}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
         "prt": "Grelhe {{ingredient}} na {{equipment}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}."
       },
-      "variables": ["ingredient", "equipment", "heat", "duration", "state"]
+      "variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "state"
+      ]
     },
-
     {
       "master_id": "COOK_DEGLAZE_01",
       "phase": 2,
@@ -314,9 +377,46 @@
         "esp": "Desglasa con {{liquid}} y raspa el fondo de {{equipment}}.",
         "prt": "Deglace com {{liquid}} e raspe o fundo de {{equipment}}."
       },
-      "variables": ["liquid", "equipment"]
+      "variables": [
+        "liquid",
+        "equipment"
+      ]
     },
-
+    {
+      "master_id": "COOK_DEGLAZE_02",
+      "phase": 2,
+      "action": "deglaze",
+      "equipment": 2,
+      "description": "Ablöschen der angebratenen Zutaten",
+      "templates": {
+        "de": "Lösche {{ingredient}} mit {{liquid}} ab und löse dabei den Bratensatz.",
+        "en": "Deglaze {{ingredient}} with {{liquid}} and loosen the fond.",
+        "esp": "Desglasa {{ingredient}} con {{liquid}} y suelta los jugos pegados.",
+        "prt": "Deglace {{ingredient}} com {{liquid}} e solte o fundo caramelizado."
+      },
+      "variables": [
+        "ingredient",
+        "liquid"
+      ]
+    },
+    {
+      "master_id": "COOK_BRAISE_01",
+      "phase": 2,
+      "action": "braise",
+      "equipment": 4,
+      "description": "Deckel drauf und schmoren lassen",
+      "templates": {
+        "de": "Setze den Deckel auf {{equipment}} und lasse {{ingredient}} {{duration}} schmoren.",
+        "en": "Put the lid on {{equipment}} and let {{ingredient}} braise for {{duration}}.",
+        "esp": "Pon la tapa en {{equipment}} y deja que {{ingredient}} se guise durante {{duration}}.",
+        "prt": "Tampe {{equipment}} e deixe {{ingredient}} estufar por {{duration}}."
+      },
+      "variables": [
+        "equipment",
+        "ingredient",
+        "duration"
+      ]
+    },
     {
       "master_id": "COOK_REDUCE_01",
       "phase": 2,
@@ -329,9 +429,13 @@
         "esp": "Reduce {{liquid}} sin tapa a fuego {{heat}} hasta que {{state}} (aprox. {{duration}}).",
         "prt": "Reduza {{liquid}} sem tampa em fogo {{heat}} até que {{state}} (aprox. {{duration}})."
       },
-      "variables": ["liquid", "heat", "state", "duration"]
+      "variables": [
+        "liquid",
+        "heat",
+        "state",
+        "duration"
+      ]
     },
-
     {
       "master_id": "COOK_BLEND_01",
       "phase": 2,
@@ -344,9 +448,12 @@
         "esp": "Tritura {{ingredient}} con {{tool}} hasta obtener {{consistency}}.",
         "prt": "Bata {{ingredient}} com {{tool}} até ficar {{consistency}}."
       },
-      "variables": ["ingredient", "tool", "consistency"]
+      "variables": [
+        "ingredient",
+        "tool",
+        "consistency"
+      ]
     },
-
     {
       "master_id": "COOK_STIR_01",
       "phase": 2,
@@ -359,9 +466,12 @@
         "esp": "{{method}} {{ingredient}} en {{dish}}.",
         "prt": "{{method}} {{ingredient}} em {{dish}}."
       },
-      "variables": ["ingredient", "method", "dish"]
+      "variables": [
+        "ingredient",
+        "method",
+        "dish"
+      ]
     },
-
     {
       "master_id": "COOK_ADD_01",
       "phase": 2,
@@ -374,9 +484,11 @@
         "esp": "Añade {{ingredient}} y cocina {{duration}} más.",
         "prt": "Adicione {{ingredient}} e continue cozinhando por mais {{duration}}."
       },
-      "variables": ["ingredient", "duration"]
+      "variables": [
+        "ingredient",
+        "duration"
+      ]
     },
-
     {
       "master_id": "COOK_THICKEN_01",
       "phase": 3,
@@ -389,9 +501,11 @@
         "esp": "Mezcla {{thickener}} hasta que quede homogéneo y agrégalo a {{dish}} removiendo hasta obtener la consistencia deseada.",
         "prt": "Misture {{thickener}} até ficar homogêneo e adicione a {{dish}} mexendo até atingir a consistência desejada."
       },
-      "variables": ["thickener", "dish"]
+      "variables": [
+        "thickener",
+        "dish"
+      ]
     },
-
     {
       "master_id": "COOK_STRAIN_01",
       "phase": 3,
@@ -404,9 +518,12 @@
         "esp": "Cuela {{ingredient}} a través de un {{tool}}, reservando {{keep}}.",
         "prt": "Coe {{ingredient}} com um {{tool}}, reservando {{keep}}."
       },
-      "variables": ["ingredient", "tool", "keep"]
+      "variables": [
+        "ingredient",
+        "tool",
+        "keep"
+      ]
     },
-
     {
       "master_id": "SEASON_ADJUST_01",
       "phase": 3,
@@ -419,9 +536,11 @@
         "esp": "Sazona {{dish}} con {{spices}} al gusto.",
         "prt": "Tempere {{dish}} com {{spices}} a gosto."
       },
-      "variables": ["dish", "spices"]
+      "variables": [
+        "dish",
+        "spices"
+      ]
     },
-
     {
       "master_id": "FINISH_REST_01",
       "phase": 3,
@@ -434,9 +553,12 @@
         "esp": "Deja reposar {{ingredient}} durante {{duration}}, {{reason}}.",
         "prt": "Deixe {{ingredient}} descansar por {{duration}}, {{reason}}."
       },
-      "variables": ["ingredient", "duration", "reason"]
+      "variables": [
+        "ingredient",
+        "duration",
+        "reason"
+      ]
     },
-
     {
       "master_id": "FINISH_COOL_01",
       "phase": 3,
@@ -449,9 +571,12 @@
         "esp": "Deja enfriar {{dish}} durante {{duration}} antes de {{next_step}}.",
         "prt": "Deixe {{dish}} esfriar por {{duration}} antes de {{next_step}}."
       },
-      "variables": ["dish", "duration", "next_step"]
+      "variables": [
+        "dish",
+        "duration",
+        "next_step"
+      ]
     },
-
     {
       "master_id": "FINISH_SERVE_01",
       "phase": 4,
@@ -464,9 +589,12 @@
         "esp": "Sirve {{dish}} en {{plate}} y decora con {{garnish}}.",
         "prt": "Sirva {{dish}} em {{plate}} e decore com {{garnish}}."
       },
-      "variables": ["dish", "plate", "garnish"]
+      "variables": [
+        "dish",
+        "plate",
+        "garnish"
+      ]
     },
-
     {
       "master_id": "FINISH_PORTION_01",
       "phase": 4,
@@ -479,10 +607,13 @@
         "esp": "Reparte {{dish}} de manera uniforme en {{count}} {{plate}}.",
         "prt": "Distribua {{dish}} igualmente em {{count}} {{plate}}."
       },
-      "variables": ["dish", "count", "plate"]
+      "variables": [
+        "dish",
+        "count",
+        "plate"
+      ]
     }
   ],
-
   "variable_hints": {
     "ingredient": "Name der Zutat, z.B. 'die Tomaten', 'das Hähnchen', 'den Knoblauch'",
     "ingredients": "Mehrere Zutaten als Aufzählung, z.B. 'Mehl, Backpulver und Salz'",
@@ -511,7 +642,6 @@
     "reason": "Grund fürs Ruhen: 'damit sich die Säfte verteilen' / 'damit der Teig aufgeht'",
     "next_step": "Nächster Schritt: 'du es anschneidest' / 'es serviert wird'"
   },
-
   "example_render": {
     "_comment": "Beispiel: COOK_SAUTE_01 mit konkreten Werten",
     "master_id": "COOK_SAUTE_01",
