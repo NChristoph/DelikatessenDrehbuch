@@ -466,12 +466,13 @@
                         <div class="fw-bold mb-2">Master Template Builder</div>
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
-                                <label class="form-label small text-muted mb-1">Zutat</label>
-                                <select id="masterIngredientSelect" class="form-select form-select-sm"></select>
+                                <label class="form-label small text-muted mb-1">Zutaten (Mehrfachauswahl)</label>
+                                <div id="masterIngredientButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small text-muted mb-1">Template</label>
-                                <select id="masterTemplateSelect" class="form-select form-select-sm"></select>
+                                <div id="masterTemplateButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
+                                <input type="hidden" id="masterTemplateSelect" />
                             </div>
                             <div class="col-md-3 d-grid">
                                 <button type="button" id="btnAddRenderedStep" class="btn btn-sm btn-primary">
@@ -1105,6 +1106,20 @@
                 text-align: right !important;
             }
     }
+
+
+    .master-button-wrap {
+        min-height: 38px;
+        padding: 4px;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .master-button-wrap .btn {
+        text-align: left;
+    }
+
 </style>
 
 
@@ -1136,6 +1151,8 @@
         let activeSandboxTab = 'linked';
         let sandboxUnboundSteps = [];
         let activeEquipmentFilter = 'all';
+        let selectedMasterIngredientNames = [];
+        let selectedMasterTemplateId = '';
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1393,52 +1410,69 @@
             return [];
         }
 
+        function buildIngredientTextForMaster() {
+            const selected = selectedMasterIngredientNames.filter(x => !!x && x.trim());
+            if (!selected.length) return '';
+            if (selected.length === 1) return selected[0];
+            if (selected.length === 2) return `${selected[0]} und ${selected[1]}`;
+            return `${selected.slice(0, -1).join(', ')} und ${selected[selected.length - 1]}`;
+        }
+
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
 
         function refreshMasterTemplateBuilder() {
-            const ingredientSelect = $('#masterIngredientSelect');
+            const ingredientButtons = $('#masterIngredientButtons');
             const ingredients = getSelectedIngredientsForSandbox();
-            const previousSelection = ingredientSelect.val() || '';
-            ingredientSelect.empty();
+            ingredientButtons.empty();
 
-            if (!ingredients.length) {
-                ingredientSelect.append('<option value="">Keine Zutat gewählt</option>');
+            const availableNames = ingredients.map(item => item.name).filter(Boolean);
+            selectedMasterIngredientNames = selectedMasterIngredientNames.filter(name => availableNames.includes(name));
+            if (!selectedMasterIngredientNames.length && availableNames.length) {
+                selectedMasterIngredientNames = [availableNames[0]];
+            }
+
+            if (!availableNames.length) {
+                ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
                 refreshMasterTemplateOptions();
                 return;
             }
 
-            ingredients.forEach(item => {
-                ingredientSelect.append(`<option value="${item.name}">${item.name}</option>`);
+            availableNames.forEach(name => {
+                const isActive = selectedMasterIngredientNames.includes(name);
+                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-ingredient-btn" data-name="${name}">${name}</button>`);
             });
-
-            if (previousSelection && ingredients.some(item => item.name === previousSelection)) {
-                ingredientSelect.val(previousSelection);
-            }
 
             refreshMasterTemplateOptions();
         }
 
         function refreshMasterTemplateOptions() {
-            const templateSelect = $('#masterTemplateSelect');
-            const previousTemplateId = templateSelect.val() || '';
-            const ingredientName = $('#masterIngredientSelect').val() || '';
-            templateSelect.empty();
+            const templateButtons = $('#masterTemplateButtons');
+            const ingredientName = buildIngredientTextForMaster();
+            templateButtons.empty();
 
             if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
-                templateSelect.append('<option value="">Keine Templates</option>');
+                templateButtons.append('<div class="text-muted small">Keine Templates</div>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Master-Step Renderer nicht verfügbar.');
+                selectedMasterTemplateId = '';
+                $('#masterTemplateSelect').val('');
                 return;
             }
 
             const templates = MasterStepRenderer.getAllTemplates();
             if (!templates.length) {
-                templateSelect.append('<option value="">Keine Templates gefunden</option>');
+                templateButtons.append('<div class="text-muted small">Keine Templates gefunden</div>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Keine Master-Templates gefunden.');
+                selectedMasterTemplateId = '';
+                $('#masterTemplateSelect').val('');
                 return;
+            }
+
+            if (!selectedMasterTemplateId || !templates.some(step => step.master_id === selectedMasterTemplateId)) {
+                selectedMasterTemplateId = templates[0].master_id;
             }
 
             templates.forEach(step => {
@@ -1448,19 +1482,17 @@
                 });
                 const localized = MasterStepRenderer.render(step.master_id, defaults, currentLang);
                 const label = localized || step.description || step.master_id;
-                templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
+                const isActive = step.master_id === selectedMasterTemplateId;
+                templateButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-template-btn" data-template-id="${step.master_id}">${label}</button>`);
             });
 
-            if (previousTemplateId && templates.some(step => step.master_id === previousTemplateId)) {
-                templateSelect.val(previousTemplateId);
-            }
-
+            $('#masterTemplateSelect').val(selectedMasterTemplateId);
             renderMasterTemplateEditor();
         }
 
         function renderMasterTemplateEditor() {
-            const templateId = $('#masterTemplateSelect').val();
-            const ingredientName = $('#masterIngredientSelect').val() || '';
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
+            const ingredientName = buildIngredientTextForMaster();
             const box = $('#masterVariables');
             box.empty();
 
@@ -1497,7 +1529,7 @@
         }
 
         function updateMasterPreview() {
-            const templateId = $('#masterTemplateSelect').val();
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
 
             const vars = collectMasterVariables();
@@ -1506,7 +1538,7 @@
         }
 
         async function addRenderedMasterStep() {
-            const templateId = $('#masterTemplateSelect').val();
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
             if (!templateId || !window.MasterStepRenderer) return;
 
             const template = MasterStepRenderer.findTemplate(templateId);
@@ -2100,8 +2132,28 @@
             });
 
             MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
-            $('#masterIngredientSelect').on('change', refreshMasterTemplateOptions);
-            $('#masterTemplateSelect').on('change', renderMasterTemplateEditor);
+            $('#masterIngredientButtons').on('click', '.master-ingredient-btn', function () {
+                const name = $(this).data('name')?.toString() || '';
+                if (!name) return;
+
+                if (selectedMasterIngredientNames.includes(name)) {
+                    selectedMasterIngredientNames = selectedMasterIngredientNames.filter(x => x !== name);
+                } else {
+                    selectedMasterIngredientNames.push(name);
+                }
+
+                if (!selectedMasterIngredientNames.length) {
+                    const firstAvailable = getSelectedIngredientsForSandbox()[0]?.name || '';
+                    if (firstAvailable) selectedMasterIngredientNames = [firstAvailable];
+                }
+
+                refreshMasterTemplateBuilder();
+            });
+            $('#masterTemplateButtons').on('click', '.master-template-btn', function () {
+                selectedMasterTemplateId = $(this).data('template-id')?.toString() || '';
+                $('#masterTemplateSelect').val(selectedMasterTemplateId);
+                refreshMasterTemplateOptions();
+            });
             $('#masterVariables').on('input', '.master-var-input', updateMasterPreview);
             $('#btnAddRenderedStep').on('click', addRenderedMasterStep);
 
