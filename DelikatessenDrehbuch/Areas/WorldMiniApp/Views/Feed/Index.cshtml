@@ -1124,8 +1124,8 @@
                 <i class="bi bi-plus"></i>
             </a>
         </div>
-        <div class="nav-item" onclick="switchSection()" title="Marktplatz">
-            <i class="bi bi-shop"></i>
+        <div class="nav-item" onclick="openSearchModal()" title="Suche">
+            <i class="bi bi-search"></i>
         </div>
         <div class="nav-item" onclick="goToProfile()" style="cursor: pointer;">
             <i class="bi bi-person-fill"></i>
@@ -1343,6 +1343,12 @@
 
         function switchSection() {
             setSection(activeSection === 'feed' ? 'marketplace' : 'feed');
+        }
+
+        function openSearchModal() {
+            const modalElement = document.getElementById('searchModal');
+            if (!modalElement || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+            bootstrap.Modal.getOrCreateInstance(modalElement).show();
         }
 
         async function createMarketplaceListing() {
