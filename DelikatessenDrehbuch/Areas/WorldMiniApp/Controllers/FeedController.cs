@@ -167,13 +167,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(100)
                 .ToListAsync();
-            ViewData["MarketplaceMealPlans"] = string.IsNullOrWhiteSpace(userHash)
-                ? new List<WorldUserMealPlan>()
-                : await _context.WorldUserMealPlan
-                    .AsNoTracking()
-                    .Where(x => x.UserHash == userHash)
-                    .OrderByDescending(x => x.CreationTime)
-                    .ToListAsync();
 
             return View(model);
         }

@@ -104,8 +104,29 @@ function isTestMode() {
     return getCfg().testMode;
 }
 
+async function getConnectedWalletAddress() {
+    requireWallet();
+    const provider = new window.ethers.BrowserProvider(window.ethereum);
+    const accounts = await provider.send("eth_accounts", []);
+    return accounts?.[0] || "";
+}
+
+async function connectWallet() {
+    requireEthers();
+    requireWallet();
+
+    const provider = new window.ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    await ensureWorldChain(provider, getCfg().chainId);
+
+    const signer = await provider.getSigner();
+    return signer.getAddress();
+}
+
 window.worldChainMarketplace = {
     buyListingWithWorldChain,
     getAvailableTokens,
-    isTestMode
+    isTestMode,
+    getConnectedWalletAddress,
+    connectWallet
 };

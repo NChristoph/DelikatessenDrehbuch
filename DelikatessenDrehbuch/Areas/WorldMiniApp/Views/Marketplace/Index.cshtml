@@ -90,6 +90,10 @@
         font-size: .8rem;
         font-weight: 600;
     }
+    .wallet-status {
+        font-size: .8rem;
+        color: #475569;
+    }
 </style>
 
 <div class="container py-4" style="max-width:720px;">
@@ -110,8 +114,10 @@
         <div>
             <div class="small opacity-75">Dein Guthaben</div>
             <div class="fs-5 fw-bold" id="userBalance">@balance.ToString("0.##") WC</div>
+            <div class="wallet-status mt-1" id="walletStatus">Wallet: nicht verbunden</div>
         </div>
         <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">Wallet verbinden</button>
             <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
                class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
         </div>
@@ -221,6 +227,80 @@
         return el ? el.value : 'WLD';
     }
 
+    function shortWallet(address) {
+        if (!address || address.length < 10) return address || '';
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    async function refreshWalletStatus() {
+        const el = document.getElementById('walletStatus');
+        if (!el) return '';
+
+        try {
+            if (!window.worldChainMarketplace?.getConnectedWalletAddress) {
+                el.textContent = 'Wallet: Integration nicht geladen';
+                return '';
+            }
+
+            const address = await window.worldChainMarketplace.getConnectedWalletAddress();
+            if (address) {
+                el.textContent = `Wallet: verbunden (${shortWallet(address)})`;
+                return address;
+            }
+
+            el.textContent = 'Wallet: nicht verbunden';
+            return '';
+        } catch (_) {
+            el.textContent = 'Wallet: nicht verfügbar';
+            return '';
+        }
+    }
+
+    async function connectWorldWallet() {
+        try {
+            if (window.worldChainMarketplace?.connectWallet) {
+                const address = await window.worldChainMarketplace.connectWallet();
+                await refreshWalletStatus();
+                return address;
+            }
+
+            if (!window.ethereum) {
+                alert('Kein Wallet gefunden. Bitte in der World App öffnen.');
+                return '';
+            }
+
+            if (!window.ethers?.BrowserProvider) {
+                alert('Ethers konnte nicht geladen werden. Bitte Seite neu laden.');
+                return '';
+            }
+
+            const cfg = window.worldChainMarketplaceConfig || {};
+            const chainId = Number(cfg.chainId || 480);
+            const chainHex = `0x${chainId.toString(16)}`;
+
+            const provider = new window.ethers.BrowserProvider(window.ethereum);
+            await provider.send('eth_requestAccounts', []);
+
+            try {
+                await provider.send('wallet_switchEthereumChain', [{ chainId: chainHex }]);
+            } catch (switchError) {
+                if (switchError?.code === 4902) {
+                    alert('World Chain ist im Wallet noch nicht hinterlegt.');
+                    return '';
+                }
+                throw switchError;
+            }
+
+            const signer = await provider.getSigner();
+            const address = await signer.getAddress();
+            await refreshWalletStatus();
+            return address;
+        } catch (error) {
+            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
+            return '';
+        }
+    }
+
     async function buyListing(listingId, title, price) {
         const token = getSelectedToken(listingId);
         if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
@@ -234,6 +314,12 @@
         try {
             if (!window.worldChainMarketplace?.buyListingWithWorldChain) {
                 alert('World Chain Wallet-Integration nicht geladen.');
+                return;
+            }
+
+            const connectedAddress = await refreshWalletStatus() || await connectWorldWallet();
+            if (!connectedAddress) {
+                alert('Bitte zuerst deine World Wallet verbinden.');
                 return;
             }
 
@@ -267,5 +353,13 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshWalletStatus();
+        if (window.ethereum?.on) {
+            window.ethereum.on('accountsChanged', () => refreshWalletStatus());
+        }
+    });
+</script>
 @Html.AntiForgeryToken()
 }
