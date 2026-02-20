@@ -3,7 +3,7 @@ using Newtonsoft.Json;                // Newtonsoft (oft in älteren/komplexen P
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 {
-    // === 1. EMPFANG: Daten vom Frontend (MiniKit JS) ===
+    // === 1. EMPFANG: Daten vom Frontend (Legacy MiniKit verify) ===
     public class VerifyRequestDto
     {
         [JsonPropertyName("payload")]
@@ -21,6 +21,59 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         [JsonPropertyName("rememberLogin")]
         [JsonProperty("rememberLogin")]
         public bool RememberLogin { get; set; }
+    }
+
+    // === 1b. EMPFANG: Daten vom Frontend (WalletAuth / SIWE) ===
+    public class WalletAuthRequestDto
+    {
+        [JsonPropertyName("payload")]
+        [JsonProperty("payload")]
+        public WalletAuthPayloadDto Payload { get; set; }
+
+        [JsonPropertyName("nonce")]
+        [JsonProperty("nonce")]
+        public string Nonce { get; set; }
+
+        [JsonPropertyName("rememberLogin")]
+        [JsonProperty("rememberLogin")]
+        public bool RememberLogin { get; set; }
+    }
+
+    public class WalletAuthPayloadDto
+    {
+        [JsonPropertyName("status")]
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonPropertyName("message")]
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonPropertyName("signature")]
+        [JsonProperty("signature")]
+        public string Signature { get; set; }
+
+        [JsonPropertyName("address")]
+        [JsonProperty("address")]
+        public string Address { get; set; }
+
+        [JsonPropertyName("version")]
+        [JsonProperty("version")]
+        public int Version { get; set; }
+    }
+
+    public class WalletNonceResponseDto
+    {
+        [JsonPropertyName("nonce")]
+        [JsonProperty("nonce")]
+        public string Nonce { get; set; }
+    }
+
+    // === 1c. Interne SIWE Verification Response ===
+    public class WalletSiweVerifyResponseDto
+    {
+        public bool IsValid { get; set; }
+        public string Address { get; set; }
     }
 
     public class VerifyPayloadDto
