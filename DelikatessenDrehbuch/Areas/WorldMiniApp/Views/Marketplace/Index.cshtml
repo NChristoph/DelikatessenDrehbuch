@@ -264,8 +264,9 @@
                 return address;
             }
 
-            if (!window.ethereum) {
-                alert('Kein Wallet gefunden. Bitte in der World App öffnen.');
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
+            if (!ethereumProvider) {
+                alert('Kein Wallet gefunden. Öffne den Marktplatz direkt in der World App und lade die Seite neu.');
                 return '';
             }
 
@@ -278,7 +279,7 @@
             const chainId = Number(cfg.chainId || 480);
             const chainHex = `0x${chainId.toString(16)}`;
 
-            const provider = new window.ethers.BrowserProvider(window.ethereum);
+            const provider = new window.ethers.BrowserProvider(ethereumProvider);
             await provider.send('eth_requestAccounts', []);
 
             try {
@@ -356,8 +357,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         refreshWalletStatus();
-        if (window.ethereum?.on) {
-            window.ethereum.on('accountsChanged', () => refreshWalletStatus());
+        const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
+        if (ethereumProvider?.on) {
+            ethereumProvider.on('accountsChanged', () => refreshWalletStatus());
         }
     });
 </script>

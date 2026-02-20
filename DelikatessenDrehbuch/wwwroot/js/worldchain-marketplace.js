@@ -27,8 +27,21 @@ function requireEthers() {
     if (!window.ethers) throw new Error("Ethers ist nicht geladen.");
 }
 
+function getEthereumProvider() {
+    return window.ethereum
+        || window.world?.ethereum
+        || window.worldEthereum
+        || window.minikit?.ethereum
+        || window.MiniKit?.ethereum
+        || null;
+}
+
 function requireWallet() {
-    if (!window.ethereum) throw new Error("Kein Wallet gefunden. Bitte in der World App öffnen.");
+    const provider = getEthereumProvider();
+    if (!provider) {
+        throw new Error("Kein Wallet gefunden. Öffne den Marktplatz direkt in der World App und aktualisiere die Seite.");
+    }
+    return provider;
 }
 
 async function ensureWorldChain(provider, chainId) {
@@ -68,7 +81,8 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentTo
         throw new Error("Smart-Contract Konfiguration fehlt (Token/Marketplace Adresse).");
     }
 
-    const provider = new window.ethers.BrowserProvider(window.ethereum);
+    const ethereumProvider = requireWallet();
+    const provider = new window.ethers.BrowserProvider(ethereumProvider);
     await provider.send("eth_requestAccounts", []);
     await ensureWorldChain(provider, chainId);
 
@@ -106,7 +120,8 @@ function isTestMode() {
 
 async function getConnectedWalletAddress() {
     requireWallet();
-    const provider = new window.ethers.BrowserProvider(window.ethereum);
+    const ethereumProvider = requireWallet();
+    const provider = new window.ethers.BrowserProvider(ethereumProvider);
     const accounts = await provider.send("eth_accounts", []);
     return accounts?.[0] || "";
 }
@@ -115,7 +130,8 @@ async function connectWallet() {
     requireEthers();
     requireWallet();
 
-    const provider = new window.ethers.BrowserProvider(window.ethereum);
+    const ethereumProvider = requireWallet();
+    const provider = new window.ethers.BrowserProvider(ethereumProvider);
     await provider.send("eth_requestAccounts", []);
     await ensureWorldChain(provider, getCfg().chainId);
 
@@ -128,5 +144,6 @@ window.worldChainMarketplace = {
     getAvailableTokens,
     isTestMode,
     getConnectedWalletAddress,
-    connectWallet
+    connectWallet,
+    getEthereumProvider
 };
