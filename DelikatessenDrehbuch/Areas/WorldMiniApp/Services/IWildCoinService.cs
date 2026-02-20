@@ -16,6 +16,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         Task<MealPlanListing?> GetListingById(int id);
         Task<bool> DeactivateListing(string userHash, int listingId);
         Task<MealPlanPurchase?> BuyListing(string buyerHash, int listingId, bool allowSelfPurchase = false);
-        Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false);
+        Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD");
     }
 }

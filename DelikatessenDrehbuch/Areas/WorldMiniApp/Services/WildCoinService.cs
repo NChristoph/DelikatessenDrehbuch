@@ -164,7 +164,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
 
 
-        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false)
+        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
         {
             var listing = await _context.MealPlanListings
                 .Include(l => l.MealPlan)
@@ -198,7 +198,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 CreatedMealPlanId = copiedPlan.Id,
                 PricePaid = listing.Price,
                 ReferenceTxHash = txHash,
-                BuyerWalletAddress = walletAddress
+                BuyerWalletAddress = walletAddress,
+                PaymentToken = paymentToken
             };
             await _context.MealPlanPurchases.AddAsync(purchase);
             await _context.SaveChangesAsync();
@@ -239,7 +240,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 ListingId = listing.Id,
                 Listing = listing,
                 CreatedMealPlanId = copiedPlan.Id,
-                PricePaid = listing.Price
+                PricePaid = listing.Price,
+                PaymentToken = "WildCoin"
             };
             await _context.MealPlanPurchases.AddAsync(purchase);
             await _context.SaveChangesAsync();

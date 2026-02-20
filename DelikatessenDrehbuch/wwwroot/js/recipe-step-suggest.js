@@ -353,6 +353,7 @@
     function getMasterTemplateDefaults(ingredientName) {
         return {
             ingredient: ingredientName || 'Zutat',
+            ingredients: ingredientName || 'die Zutaten',
             pronoun: 'sie',
             tool: 'Messer',
             shape: 'mundgerechte Stücke',

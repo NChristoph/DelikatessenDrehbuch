@@ -1467,6 +1467,11 @@
                 ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-ingredient-btn" data-name="${name}">${name}</button>`);
             });
 
+            // Hinweis: Mehrere Zutaten auswählbar
+            if (availableNames.length > 1 && selectedMasterIngredientNames.length > 0) {
+                ingredientButtons.append(`<div class="text-muted small mt-1">${selectedMasterIngredientNames.length} von ${availableNames.length} gewählt</div>`);
+            }
+
             refreshMasterTemplateOptions();
         }
 

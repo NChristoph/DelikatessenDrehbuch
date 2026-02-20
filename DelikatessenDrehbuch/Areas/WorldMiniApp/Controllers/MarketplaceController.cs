@@ -25,10 +25,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             ViewData["WorldChainId"] = _configuration["WorldChain:ChainId"] ?? "480";
             ViewData["WorldChainWldToken"] = _configuration["WorldChain:WldTokenAddress"] ?? "";
+            ViewData["WorldChainUsdtToken"] = _configuration["WorldChain:UsdtTokenAddress"] ?? "";
             ViewData["WorldChainMarketplace"] = _configuration["WorldChain:MarketplaceContractAddress"] ?? "";
             ViewData["WorldChainAllowSelfPurchaseForTesting"] =
                 bool.TryParse(_configuration["WorldChain:AllowSelfPurchaseForTesting"], out var allowSelfPurchase)
                 && allowSelfPurchase;
+            ViewData["WorldChainTestMode"] =
+                bool.TryParse(_configuration["WorldChain:TestMode"], out var testMode) && testMode;
         }
 
         private bool IsSelfPurchaseAllowedForTesting()
@@ -145,6 +148,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             public int ListingId { get; set; }
             public string TxHash { get; set; } = string.Empty;
             public string WalletAddress { get; set; } = string.Empty;
+            public string PaymentToken { get; set; } = "WLD";
         }
 
         // POST: World Chain Kauf finalisieren (nach erfolgreicher On-Chain TX)
@@ -164,7 +168,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 request.ListingId,
                 request.TxHash,
                 request.WalletAddress,
-                IsSelfPurchaseAllowedForTesting());
+                IsSelfPurchaseAllowedForTesting(),
+                request.PaymentToken);
             if (purchase == null)
                 return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 

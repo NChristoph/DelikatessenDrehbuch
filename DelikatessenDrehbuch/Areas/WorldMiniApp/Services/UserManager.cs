@@ -10,7 +10,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         private readonly ApplicationDbContext _context;
         public UserManager(ApplicationDbContext context)
         {
-         _context = context;   
+         _context = context;
         }
         public Task CreateNewUser(VerifyRequestDto request)
         {
@@ -34,7 +34,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 _context.WorldAppUser.Add(user);
             }
 
-           
+
             _context.SaveChangesAsync();
 
             return Task.CompletedTask;

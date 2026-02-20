@@ -21,6 +21,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public decimal PricePaid { get; set; }
         public string? ReferenceTxHash { get; set; }
         public string? BuyerWalletAddress { get; set; }
+        public string PaymentToken { get; set; } = "WLD";  // "WLD", "USDT", "WildCoin"
         public DateTime PurchasedAt { get; set; } = DateTime.Now;
     }
 }

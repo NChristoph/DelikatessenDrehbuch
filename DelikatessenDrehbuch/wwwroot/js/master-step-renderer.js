@@ -200,6 +200,7 @@
 
         const defaults = {
             ingredient: ingredientName,
+            ingredients: ingredientName,
             pronoun: 'sie',
             tool: 'Messer',
             shape: 'Würfel',

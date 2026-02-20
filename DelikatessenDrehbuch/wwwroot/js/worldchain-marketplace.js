@@ -17,7 +17,9 @@ function getCfg() {
     return {
         chainId: Number(cfg.chainId || DEFAULT_WORLD_CHAIN_ID),
         wldTokenAddress: cfg.wldTokenAddress || "",
-        marketplaceAddress: cfg.marketplaceAddress || ""
+        usdtTokenAddress: cfg.usdtTokenAddress || "",
+        marketplaceAddress: cfg.marketplaceAddress || "",
+        testMode: !!cfg.testMode
     };
 }
 
@@ -50,13 +52,20 @@ async function ensureAllowance({ signer, owner, wldTokenAddress, marketplaceAddr
     return tx.wait();
 }
 
-async function buyListingWithWorldChain({ listingId, price, buyerHash }) {
+async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentToken }) {
+    const cfg = getCfg();
+    const tokenKey = (paymentToken || "WLD").toUpperCase();
+
     requireEthers();
     requireWallet();
 
-    const { chainId, wldTokenAddress, marketplaceAddress } = getCfg();
-    if (!wldTokenAddress || !marketplaceAddress) {
-        throw new Error("Smart-Contract Konfiguration fehlt (WLD Token/Marketplace Adresse).");
+    const { chainId, marketplaceAddress } = cfg;
+
+    // Token-Adresse je nach Zahlungsmittel wählen
+    const tokenAddress = tokenKey === "USDT" ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
+
+    if (!tokenAddress || !marketplaceAddress) {
+        throw new Error("Smart-Contract Konfiguration fehlt (Token/Marketplace Adresse).");
     }
 
     const provider = new window.ethers.BrowserProvider(window.ethereum);
@@ -66,11 +75,11 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash }) {
     const signer = await provider.getSigner();
     const owner = await signer.getAddress();
 
-    const token = new window.ethers.Contract(wldTokenAddress, ERC20_ABI, signer);
+    const token = new window.ethers.Contract(tokenAddress, ERC20_ABI, signer);
     const decimals = await token.decimals();
     const amountWei = window.ethers.parseUnits(String(price), decimals);
 
-    await ensureAllowance({ signer, owner, wldTokenAddress, marketplaceAddress, amountWei });
+    await ensureAllowance({ signer, owner, wldTokenAddress: tokenAddress, marketplaceAddress, amountWei });
 
     const marketplace = new window.ethers.Contract(marketplaceAddress, MARKETPLACE_ABI, signer);
     const buyTx = await marketplace.buyListing(listingId, amountWei, buyerHash);
@@ -78,10 +87,25 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash }) {
 
     return {
         txHash: receipt?.hash || buyTx.hash,
-        walletAddress: owner
+        walletAddress: owner,
+        paymentToken: tokenKey
     };
 }
 
+function getAvailableTokens() {
+    const cfg = getCfg();
+    const tokens = [];
+    if (cfg.wldTokenAddress) tokens.push({ key: "WLD", label: "WLD", address: cfg.wldTokenAddress });
+    if (cfg.usdtTokenAddress) tokens.push({ key: "USDT", label: "USDT", address: cfg.usdtTokenAddress });
+    return tokens;
+}
+
+function isTestMode() {
+    return getCfg().testMode;
+}
+
 window.worldChainMarketplace = {
-    buyListingWithWorldChain
+    buyListingWithWorldChain,
+    getAvailableTokens,
+    isTestMode
 };
