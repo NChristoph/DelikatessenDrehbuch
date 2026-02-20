@@ -9,6 +9,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class MarketplaceController : Controller
     {
+        private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private readonly IWildCoinService _coinService;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
@@ -43,7 +44,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private string? ResolveUserHash(string? userHash)
         {
             if (!string.IsNullOrWhiteSpace(userHash)) return userHash;
-            return HttpContext.Session.GetString("UserHash")
+            return HttpContext.Session.GetString(SessionUserHashKey)
+                ?? HttpContext.Session.GetString("UserHash")
                 ?? Request.Query["userHash"].FirstOrDefault();
         }
 
