@@ -16,7 +16,6 @@
 
     var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
     var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
-    var marketplaceMealPlans = ViewData["MarketplaceMealPlans"] as List<WorldUserMealPlan> ?? new List<WorldUserMealPlan>();
     var selectedCategory = selectedCategoryRaw switch
     {
         "appetizer" or "aperetizer" or "vorspeise" or "entrada" => "appetizer",
@@ -984,7 +983,7 @@
             bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
             string thumbOrSource = !string.IsNullOrEmpty(item.ThumbnailUrl) ? item.ThumbnailUrl : item.Source;
 
-            <div class="feed-item" data-id="@item.Recipe.Id">
+            <div class="feed-item" data-id="@item.Recipe.Id" data-creator-id="@item.CreatorId" data-creator-name="@item.CreatorName">
                 @if (isVideo)
                 {
                     <video class="feed-media" playsinline loop muted preload="metadata" poster="@thumbOrSource">
@@ -1043,37 +1042,17 @@
                     <div class="marketplace-header">
                         <div>
                             <h2 class="marketplace-title">@T("Marktplatz", "Marketplace", "Mercado", "Mercado")</h2>
-                            <p class="marketplace-sub">@T("Swipe nach links für alle Angebote", "Swipe left for all listings", "Desliza a la izquierda para ver ofertas", "Deslize para a esquerda para ver ofertas")</p>
+                            <p class="marketplace-sub" id="marketplaceActiveSeller">@T("Swipe nach links: Angebote vom aktuellen Creator", "Swipe left: listings from current creator", "Desliza a la izquierda: ofertas del creador actual", "Deslize para a esquerda: ofertas do criador atual")</p>
                         </div>
-                        <a class="marketplace-open" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })">@T("Öffnen", "Open", "Abrir", "Abrir")</a>
+                        <a class="marketplace-open" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })">@T("Alle Angebote", "All listings", "Todas las ofertas", "Todas as ofertas")</a>
                     </div>
 
                     <div class="marketplace-sell-box">
-                        <div class="fw-bold mb-2">@T("Verkaufsplan erstellen", "Create listing", "Crear oferta", "Criar oferta")</div>
-                        @if (!marketplaceMealPlans.Any())
-                        {
-                            <div class="marketplace-sell-note">@T("Du hast noch keine Pläne zum Verkaufen.", "You have no plans to sell yet.", "Aún no tienes planes para vender.", "Ainda não tens planos para vender.")</div>
-                        }
-                        else
-                        {
-                            <div class="marketplace-sell-grid">
-                                <div class="w-100" style="grid-column:1 / -1;">
-                                    <select id="sellMealPlanId" class="form-select form-select-sm">
-                                        @foreach (var plan in marketplaceMealPlans)
-                                        {
-                                            <option value="@plan.Id" data-title="@plan.Title">@plan.Title</option>
-                                        }
-                                    </select>
-                                </div>
-                                <input id="sellTitle" class="form-control form-control-sm" type="text" maxlength="120" placeholder="@T("Titel", "Title", "Título", "Título")" />
-                                <input id="sellPrice" class="form-control form-control-sm" type="number" min="1" max="1000" step="0.1" placeholder="@T("Preis WC", "Price WC", "Precio WC", "Preço WC")" />
-                                <textarea id="sellDescription" class="form-control form-control-sm" rows="2" style="grid-column:1 / -1;" placeholder="@T("Beschreibung", "Description", "Descripción", "Descrição")"></textarea>
-                            </div>
-                            <button type="button" class="marketplace-sell-btn" onclick="createMarketplaceListing()">
-                                <i class="bi bi-plus-circle me-1"></i>@T("Angebot posten", "Post listing", "Publicar oferta", "Publicar oferta")
-                            </button>
-                            <div id="sellStatus" class="marketplace-sell-note"></div>
-                        }
+                        <div class="fw-bold mb-2">@T("Verkaufen im Profil", "Sell from profile", "Vender desde el perfil", "Vender no perfil")</div>
+                        <div class="marketplace-sell-note">@T("Eigene Angebote bitte im Profil erstellen und verwalten.", "Create and manage your own listings in your profile.", "Crea y administra tus propias ofertas en tu perfil.", "Crie e gerencie as suas próprias ofertas no seu perfil.")</div>
+                        <button type="button" class="marketplace-sell-btn" onclick="goToProfile()">
+                            <i class="bi bi-person-circle me-1"></i>@T("Zum Profil", "Go to profile", "Ir al perfil", "Ir para o perfil")
+                        </button>
                     </div>
 
                     @if (!marketplaceListings.Any())
@@ -1085,9 +1064,13 @@
                     }
                     else
                     {
+                        <div id="marketplaceFilteredEmpty" class="marketplace-empty" style="display:none;">
+                            <i class="bi bi-shop fs-3"></i>
+                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador não tem ofertas no momento.")</div>
+                        </div>
                         @foreach (var listing in marketplaceListings)
                         {
-                            <article class="marketplace-card">
+                            <article class="marketplace-card js-marketplace-listing" data-seller-hash="@((listing.SellerHash ?? string.Empty).ToLowerInvariant())" data-seller-name="@listing.SellerName">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
                                     <div>
                                         <div class="fw-bold">@listing.Title</div>
@@ -1325,6 +1308,60 @@
 
 
         let activeSection = 'feed';
+        let activeMarketplaceCreatorHash = '';
+
+        function normalizeHash(value) {
+            return (value || '').toString().trim().toLowerCase();
+        }
+
+        function getCurrentFeedCreatorContext() {
+            const x = Math.floor(window.innerWidth / 2);
+            const y = Math.floor(window.innerHeight / 2);
+            const centerElement = document.elementFromPoint(x, y);
+            const feedItem = centerElement?.closest?.('.feed-item');
+            if (!feedItem) return null;
+
+            const creatorHash = normalizeHash(feedItem.getAttribute('data-creator-id'));
+            const creatorName = (feedItem.getAttribute('data-creator-name') || '').trim();
+            if (!creatorHash) return null;
+
+            return { creatorHash, creatorName };
+        }
+
+        function updateMarketplaceForCreator(context) {
+            const sellerInfo = document.getElementById('marketplaceActiveSeller');
+            const empty = document.getElementById('marketplaceFilteredEmpty');
+            const cards = Array.from(document.querySelectorAll('.js-marketplace-listing'));
+
+            if (!cards.length) return;
+
+            const creatorHash = normalizeHash(context?.creatorHash);
+            const creatorName = (context?.creatorName || '').trim();
+            activeMarketplaceCreatorHash = creatorHash;
+
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const sellerHash = normalizeHash(card.getAttribute('data-seller-hash'));
+                const isVisible = !creatorHash || sellerHash === creatorHash;
+                card.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleCount++;
+            });
+
+            if (sellerInfo) {
+                sellerInfo.textContent = creatorName
+                    ? `Angebote von ${creatorName}`
+                    : 'Angebote vom aktuellen Creator';
+            }
+
+            if (empty) {
+                empty.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        }
+
+        function syncMarketplaceToCurrentFeedItem() {
+            const context = getCurrentFeedCreatorContext();
+            updateMarketplaceForCreator(context);
+        }
 
         function updateSectionPills() {
             document.querySelectorAll('[data-section-pill]').forEach(el => {
@@ -1338,6 +1375,9 @@
             if (!sections) return;
             activeSection = section === 'marketplace' ? 'marketplace' : 'feed';
             sections.classList.toggle('section-marketplace', activeSection === 'marketplace');
+            if (activeSection === 'marketplace') {
+                syncMarketplaceToCurrentFeedItem();
+            }
             updateSectionPills();
         }
 
@@ -1349,66 +1389,6 @@
             const modalElement = document.getElementById('searchModal');
             if (!modalElement || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
             bootstrap.Modal.getOrCreateInstance(modalElement).show();
-        }
-
-        async function createMarketplaceListing() {
-            const userHash = getUserHash();
-            const planSelect = document.getElementById('sellMealPlanId');
-            const titleInput = document.getElementById('sellTitle');
-            const priceInput = document.getElementById('sellPrice');
-            const descInput = document.getElementById('sellDescription');
-            const status = document.getElementById('sellStatus');
-
-            if (!planSelect || !titleInput || !priceInput || !descInput || !status) return;
-
-            if (!userHash) {
-                status.textContent = 'Bitte zuerst einloggen.';
-                return;
-            }
-
-            const mealPlanId = Number(planSelect.value || 0);
-            const title = (titleInput.value || '').trim() || planSelect.selectedOptions?.[0]?.dataset?.title || 'Plan';
-            const price = Number(priceInput.value || 0);
-            const description = (descInput.value || '').trim();
-
-            if (!mealPlanId) {
-                status.textContent = 'Bitte einen Plan auswählen.';
-                return;
-            }
-
-            if (!price || price < 1) {
-                status.textContent = 'Bitte gültigen Preis (>=1) eingeben.';
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('userHash', userHash);
-            formData.append('mealPlanId', String(mealPlanId));
-            formData.append('title', title);
-            formData.append('description', description);
-            formData.append('price', String(price));
-
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
-
-            status.textContent = 'Wird erstellt...';
-
-            try {
-                const response = await fetch('/WorldMiniApp/Marketplace/CreateListing', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-                if (result?.success) {
-                    status.textContent = 'Angebot erfolgreich gepostet.';
-                    setTimeout(() => window.location.reload(), 700);
-                } else {
-                    status.textContent = result?.error || 'Erstellen fehlgeschlagen.';
-                }
-            } catch (error) {
-                status.textContent = 'Netzwerkfehler beim Erstellen.';
-            }
         }
 
         function goToProfile() {
@@ -2325,6 +2305,7 @@
                 if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
                 if (deltaX < 0) {
+                    syncMarketplaceToCurrentFeedItem();
                     setSection('marketplace');
                 } else {
                     setSection('feed');
@@ -2341,6 +2322,7 @@
             renderPlan();
             updatePlanModeHeader();
             setSection('feed');
+            syncMarketplaceToCurrentFeedItem();
         });
     </script>
 
