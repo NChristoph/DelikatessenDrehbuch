@@ -260,6 +260,7 @@
         try {
             if (!window.worldChainMarketplace?.getConnectedWalletAddress) {
                 el.textContent = 'Wallet: Integration nicht geladen';
+                updateDebugData('');
                 return '';
             }
 
@@ -284,6 +285,7 @@
         try {
             if (window.worldChainMarketplace?.connectWallet) {
                 const address = await window.worldChainMarketplace.connectWallet();
+                updateDebugData(address);
                 await refreshWalletStatus();
                 return address;
             }
@@ -318,6 +320,7 @@
 
             const signer = await provider.getSigner();
             const address = await signer.getAddress();
+            updateDebugData(address);
             await refreshWalletStatus();
             return address;
         } catch (error) {
