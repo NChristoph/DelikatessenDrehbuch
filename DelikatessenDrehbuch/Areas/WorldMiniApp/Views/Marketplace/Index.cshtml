@@ -102,6 +102,10 @@
         <div>
             <h4 class="fw-bold mb-0">Marketplace</h4>
             <p class="text-muted small mb-0">Essenspläne kaufen & verkaufen</p>
+            @if (testMode)
+            {
+                <p class="small mb-0 text-warning-emphasis">Netzwerk: World Testnet (Chain @worldChainId)</p>
+            }
         </div>
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
            class="btn btn-dark btn-sm rounded-pill">
@@ -115,6 +119,10 @@
             <div class="small opacity-75">Dein Guthaben</div>
             <div class="fs-5 fw-bold" id="userBalance">@balance.ToString("0.##") WC</div>
             <div class="wallet-status mt-1" id="walletStatus">Wallet: nicht verbunden</div>
+            <div class="small text-light-emphasis mt-2" id="marketplaceDebugData">
+                <div><strong>User Hash:</strong> <span id="debugUserHash">@(string.IsNullOrWhiteSpace(userHash) ? "-" : userHash)</span></div>
+                <div><strong>Wallet ID:</strong> <span id="debugWalletAddress">-</span></div>
+            </div>
         </div>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">Wallet verbinden</button>
@@ -232,6 +240,19 @@
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
     }
 
+    function updateDebugData(walletAddress) {
+        const hashEl = document.getElementById('debugUserHash');
+        const walletEl = document.getElementById('debugWalletAddress');
+
+        if (hashEl && !hashEl.textContent?.trim()) {
+            hashEl.textContent = '-';
+        }
+
+        if (walletEl) {
+            walletEl.textContent = walletAddress || '-';
+        }
+    }
+
     async function refreshWalletStatus() {
         const el = document.getElementById('walletStatus');
         if (!el) return '';
@@ -239,19 +260,23 @@
         try {
             if (!window.worldChainMarketplace?.getConnectedWalletAddress) {
                 el.textContent = 'Wallet: Integration nicht geladen';
+                updateDebugData('');
                 return '';
             }
 
             const address = await window.worldChainMarketplace.getConnectedWalletAddress();
             if (address) {
                 el.textContent = `Wallet: verbunden (${shortWallet(address)})`;
+                updateDebugData(address);
                 return address;
             }
 
             el.textContent = 'Wallet: nicht verbunden';
+            updateDebugData('');
             return '';
         } catch (_) {
             el.textContent = 'Wallet: nicht verfügbar';
+            updateDebugData('');
             return '';
         }
     }
@@ -260,12 +285,14 @@
         try {
             if (window.worldChainMarketplace?.connectWallet) {
                 const address = await window.worldChainMarketplace.connectWallet();
+                updateDebugData(address);
                 await refreshWalletStatus();
                 return address;
             }
 
-            if (!window.ethereum) {
-                alert('Kein Wallet gefunden. Bitte in der World App öffnen.');
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
+            if (!ethereumProvider) {
+                alert('Kein Wallet gefunden. Öffne den Marktplatz direkt in der World App und lade die Seite neu.');
                 return '';
             }
 
@@ -278,7 +305,7 @@
             const chainId = Number(cfg.chainId || 480);
             const chainHex = `0x${chainId.toString(16)}`;
 
-            const provider = new window.ethers.BrowserProvider(window.ethereum);
+            const provider = new window.ethers.BrowserProvider(ethereumProvider);
             await provider.send('eth_requestAccounts', []);
 
             try {
@@ -293,6 +320,7 @@
 
             const signer = await provider.getSigner();
             const address = await signer.getAddress();
+            updateDebugData(address);
             await refreshWalletStatus();
             return address;
         } catch (error) {
@@ -355,9 +383,11 @@
 <script src="~/js/worldchain-marketplace.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        updateDebugData('');
         refreshWalletStatus();
-        if (window.ethereum?.on) {
-            window.ethereum.on('accountsChanged', () => refreshWalletStatus());
+        const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
+        if (ethereumProvider?.on) {
+            ethereumProvider.on('accountsChanged', () => refreshWalletStatus());
         }
     });
 </script>
