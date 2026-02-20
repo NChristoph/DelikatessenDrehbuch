@@ -119,6 +119,10 @@ async function requireWallet() {
     return provider;
 }
 
+function getMiniKitWalletAddress() {
+    return window.MiniKit?.walletAddress || window.minikit?.walletAddress || "";
+}
+
 async function ensureWorldChain(provider, chainId) {
     const hex = `0x${chainId.toString(16)}`;
     try {
@@ -150,7 +154,6 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentTo
     const { chainId, marketplaceAddress } = cfg;
     assertWorldTestnet(chainId);
 
-    // Token-Adresse je nach Zahlungsmittel wählen
     const tokenAddress = tokenKey === "USDT" ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
 
     if (!tokenAddress || !marketplaceAddress) {
@@ -195,6 +198,11 @@ function isTestMode() {
 }
 
 async function getConnectedWalletAddress() {
+    const miniKitWallet = getMiniKitWalletAddress();
+    if (miniKitWallet) {
+        return miniKitWallet;
+    }
+
     await requireWallet();
     const ethereumProvider = await requireWallet();
     const provider = new window.ethers.BrowserProvider(ethereumProvider);
@@ -206,9 +214,19 @@ async function connectWallet() {
     requireEthers();
     await requireWallet();
 
+    const miniKitWallet = getMiniKitWalletAddress();
+    if (miniKitWallet) {
+        return miniKitWallet;
+    }
+
     const ethereumProvider = await requireWallet();
     const provider = new window.ethers.BrowserProvider(ethereumProvider);
-    await provider.send("eth_requestAccounts", []);
+
+    const existingAccounts = await provider.send("eth_accounts", []);
+    if (!existingAccounts?.length) {
+        await provider.send("eth_requestAccounts", []);
+    }
+
     const cfg = getCfg();
     assertWorldTestnet(cfg.chainId);
     await ensureWorldChain(provider, cfg.chainId);
