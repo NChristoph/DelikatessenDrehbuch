@@ -329,9 +329,6 @@
     }
 
     async function buyListing(listingId, title, price) {
-        const token = getSelectedToken(listingId);
-        if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
-
         const hash = getUserHash();
         if (!hash) {
             alert('Bitte zuerst mit World ID einloggen.');
@@ -349,6 +346,9 @@
                 alert('Bitte zuerst deine World Wallet verbinden.');
                 return;
             }
+
+            const token = getSelectedToken(listingId);
+            if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
 
             const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
                 listingId,
