@@ -33,7 +33,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
             try
             {
-                _logger.LogInformation($"VerifyUrl={VERIFY_URL}",VERIFY_URL);
+                _logger.LogInformation("VerifyUrl={Url}", VERIFY_URL);
                 using var client = new HttpClient();
 
                 // Headers setzen
@@ -42,34 +42,33 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                     new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
 
-                string defaultSignalHash = "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4";
-
-                // Wenn Signal leer ist, nehmen wir den Default-Hash. 
-                // Wenn ein echtes Signal da ist, müsste man es eigentlich noch hashen (aber du nutzt ja ""),
-                // also reicht diese Logik für deinen Fall:
-                string signalToSend = string.IsNullOrEmpty(data.Signal)
-                                      ? defaultSignalHash
-                                      : data.Signal;
-
-
-                // Request Body
-                var requestBody = new WorldcoinVerifyRequest
+                // Request Body als Dictionary: signal_hash nur senden wenn custom Signal vorhanden
+                // (verifyCloudProof sendet signal_hash auch nicht wenn kein Signal gesetzt)
+                var bodyDict = new Dictionary<string, string>
                 {
-                    MerkleRoot = data.Payload.MerkleRoot,
-                    NullifierHash = data.Payload.NullifierHash,
-                    Proof = data.Payload.Proof,
-                    VerificationLevel = data.Payload.VerificationLevel,
-                    Action = data.Action,
-                    Signal = signalToSend
+                    ["merkle_root"] = data.Payload.MerkleRoot,
+                    ["nullifier_hash"] = data.Payload.NullifierHash,
+                    ["proof"] = data.Payload.Proof,
+                    ["verification_level"] = data.Payload.VerificationLevel,
+                    ["action"] = data.Action
                 };
+
+                if (!string.IsNullOrEmpty(data.Signal))
+                {
+                    bodyDict["signal_hash"] = data.Signal;
+                }
+
+                var requestJson = JsonSerializer.Serialize(bodyDict);
 
                 _logger.LogInformation("📤 Sende Verify Request an: {Url}", VERIFY_URL);
                 _logger.LogInformation("📋 Action: {Action}, Level: {Level}",
                     data.Action,
                     data.Payload.VerificationLevel);
+                _logger.LogInformation("📋 Request Body: {Body}", requestJson);
 
                 // API Call
-                var response = await client.PostAsJsonAsync(VERIFY_URL, requestBody);
+                var jsonContent = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(VERIFY_URL, jsonContent);
                 var jsonString = await response.Content.ReadAsStringAsync();
 
                 // Erfolg?
