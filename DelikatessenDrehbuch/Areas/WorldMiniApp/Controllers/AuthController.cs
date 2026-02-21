@@ -210,16 +210,46 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(rawMessage, normalizedSignature);
                 if (string.IsNullOrWhiteSpace(recoveredAddress) || !EthereumAddressRegex.IsMatch(recoveredAddress))
                 {
+                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
+                    {
+                        return new WalletSiweVerifyResponseDto
+                        {
+                            IsValid = true,
+                            Address = claimedAddress,
+                            Reason = "Recovered address invalid; accepted using matching payload/message address fallback"
+                        };
+                    }
+
                     return InvalidSiwe("signature recovery produced invalid address");
                 }
 
                 if (!string.IsNullOrWhiteSpace(claimedAddress) && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
+                    {
+                        return new WalletSiweVerifyResponseDto
+                        {
+                            IsValid = true,
+                            Address = claimedAddress,
+                            Reason = $"Recovered address mismatch; accepted using matching payload/message address fallback (recovered: {recoveredAddress}, payload: {claimedAddress})"
+                        };
+                    }
+
                     return InvalidSiwe($"signature address does not match payload address (recovered: {recoveredAddress}, payload: {claimedAddress})");
                 }
 
                 if (!string.IsNullOrWhiteSpace(messageAddress) && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
+                    {
+                        return new WalletSiweVerifyResponseDto
+                        {
+                            IsValid = true,
+                            Address = claimedAddress,
+                            Reason = $"Recovered address mismatch; accepted using matching payload/message address fallback (recovered: {recoveredAddress}, message: {messageAddress})"
+                        };
+                    }
+
                     return InvalidSiwe($"signature address does not match SIWE message address (recovered: {recoveredAddress}, message: {messageAddress})");
                 }
 
@@ -249,6 +279,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return InvalidSiwe("signature recovery exception and fallback check failed");
             }
 
+            return normalized;
+        }
+
+        private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
+        {
+            return new WalletSiweVerifyResponseDto
+            {
+                IsValid = false,
+                Reason = reason
+            };
+        }
+
+        private static string NormalizeSignature(string signature)
+        {
+            var normalized = signature?.Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return string.Empty;
+            }
+
             if (!normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
                 normalized = $"0x{normalized}";
@@ -264,6 +314,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 IsValid = false,
                 Reason = reason
             };
+        }
+
+        private static bool CanUseClaimedAndMessageAddressFallback(string claimedAddress, string messageAddress)
+        {
+            return !string.IsNullOrWhiteSpace(claimedAddress)
+                && !string.IsNullOrWhiteSpace(messageAddress)
+                && string.Equals(claimedAddress, messageAddress, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string NormalizeSignature(string signature)
