@@ -203,22 +203,21 @@ async function getConnectedWalletAddress() {
         return miniKitWallet;
     }
 
-    await requireWallet();
-    const ethereumProvider = await requireWallet();
+    const ethereumProvider = await waitForEthereumProvider();
+    if (!ethereumProvider) return "";
+
     const provider = new window.ethers.BrowserProvider(ethereumProvider);
     const accounts = await provider.send("eth_accounts", []);
     return accounts?.[0] || "";
 }
 
 async function connectWallet() {
-    requireEthers();
-    await requireWallet();
-
     const miniKitWallet = getMiniKitWalletAddress();
     if (miniKitWallet) {
         return miniKitWallet;
     }
 
+    requireEthers();
     const ethereumProvider = await requireWallet();
     const provider = new window.ethers.BrowserProvider(ethereumProvider);
 

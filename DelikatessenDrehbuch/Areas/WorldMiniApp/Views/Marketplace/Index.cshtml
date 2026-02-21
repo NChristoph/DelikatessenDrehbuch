@@ -283,10 +283,16 @@
     async function connectWorldWallet() {
         try {
             if (window.worldChainMarketplace?.connectWallet) {
-                const address = await window.worldChainMarketplace.connectWallet();
-                updateDebugData(address);
-                await refreshWalletStatus();
-                return address;
+                try {
+                    const address = await window.worldChainMarketplace.connectWallet();
+                    if (address) {
+                        updateDebugData(address);
+                        await refreshWalletStatus();
+                        return address;
+                    }
+                } catch (sdkError) {
+                    console.warn('connectWallet SDK fehlgeschlagen, versuche Fallback:', sdkError?.message);
+                }
             }
 
             const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
@@ -329,9 +335,6 @@
     }
 
     async function buyListing(listingId, title, price) {
-        const token = getSelectedToken(listingId);
-        if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
-
         const hash = getUserHash();
         if (!hash) {
             alert('Bitte zuerst mit World ID einloggen.');
@@ -349,6 +352,9 @@
                 alert('Bitte zuerst deine World Wallet verbinden.');
                 return;
             }
+
+            const token = getSelectedToken(listingId);
+            if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
 
             const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
                 listingId,
