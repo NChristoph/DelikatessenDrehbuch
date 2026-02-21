@@ -283,53 +283,6 @@
         return '';
     }
 
-    async function walletAuthForMarketplace() {
-        if (!window.MiniKit?.commandsAsync?.walletAuth) return '';
-
-        const nonceResp = await fetch('/WorldMiniApp/Auth/Nonce', { method: 'GET' });
-        if (!nonceResp.ok) throw new Error('Nonce konnte nicht geladen werden.');
-
-        const nonceData = await nonceResp.json();
-        const nonce = nonceData?.nonce;
-        if (!nonce) throw new Error('Nonce fehlt.');
-
-        const { finalPayload } = await window.MiniKit.commandsAsync.walletAuth({
-            nonce: nonce,
-            statement: 'Sign in to Delikatessen Drehbuch',
-            expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        });
-
-        if (finalPayload?.status !== 'success') return '';
-
-        const completeResp = await fetch('/WorldMiniApp/Auth/CompleteSiwe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                payload: {
-                    status: finalPayload.status,
-                    message: finalPayload.message,
-                    signature: finalPayload.signature,
-                    address: finalPayload.address,
-                    version: finalPayload.version || 1
-                },
-                nonce: nonce,
-                rememberLogin: (localStorage.getItem('remember_login') || 'false') === 'true'
-            })
-        });
-
-        if (!completeResp.ok) {
-            const errText = await completeResp.text();
-            throw new Error((errText || 'Wallet-Auth fehlgeschlagen').substring(0, 120));
-        }
-
-        const result = await completeResp.json();
-        const walletAddress = result?.walletAddress || finalPayload.address || '';
-        if (walletAddress) {
-            sessionStorage.setItem('WalletAddress', walletAddress);
-        }
-        return walletAddress;
-    }
-
     async function connectWorldWallet() {
         // Gespeicherte Adresse aus Login verwenden
         const storedAddr = getStoredWalletAddress();
@@ -355,7 +308,7 @@
 
         // MiniKit WalletAuth (nur fuer Marketplace-Kauf)
         try {
-            const authedAddr = await walletAuthForMarketplace();
+            const authedAddr = await window.marketplaceWalletAuth?.startWalletVerifyForPurchase?.();
             if (authedAddr) {
                 updateDebugData(authedAddr);
                 await refreshWalletStatus();
@@ -377,7 +330,20 @@
             return;
         }
 
-        const walletAddress = await connectWorldWallet();
+        let walletAddress = '';
+        try {
+            walletAddress = await window.marketplaceWalletAuth?.startWalletVerifyForPurchase?.() || '';
+            if (walletAddress) {
+                updateDebugData(walletAddress);
+                await refreshWalletStatus();
+            }
+        } catch (e) {
+            console.warn('wallet verify on buy fehlgeschlagen:', e?.message);
+        }
+
+        if (!walletAddress) {
+            walletAddress = await connectWorldWallet();
+        }
         if (!walletAddress) return;
 
         const token = getSelectedToken(listingId);
@@ -471,6 +437,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
+<script src="~/js/marketplace-wallet-auth.js"></script>
 <script type="module">
     import { MiniKit } from "https://cdn.jsdelivr.net/npm/@@worldcoin/minikit-js@1.1.0/+esm";
     window.MiniKit = MiniKit;
