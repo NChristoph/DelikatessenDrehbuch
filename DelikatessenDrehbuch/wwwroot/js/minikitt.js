@@ -153,7 +153,7 @@ async function startWalletAuthProcess() {
         const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
             nonce: nonce,
             statement: 'Sign in to Delikatessen Drehbuch',
-            expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         });
 
         console.log('WalletAuth result:', { commandPayload, finalPayload });
