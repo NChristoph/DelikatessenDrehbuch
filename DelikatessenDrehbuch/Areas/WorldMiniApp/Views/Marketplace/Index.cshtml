@@ -181,7 +181,7 @@
                             {
                                 <div class="small text-muted">Dein Angebot</div>
                             }
-                            else if (!string.IsNullOrEmpty(userHash))
+                            else
                             {
                                 <div class="token-select mb-2" id="tokenSelect-@listing.Id">
                                     <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
@@ -190,8 +190,7 @@
                                     <label for="tok-usdt-@listing.Id">USDT</label>
                                 </div>
                                 <button class="buy-btn"
-                                        onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
-                                        @(balance < listing.Price ? "disabled" : "")>
+                                        onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                                     <i class="bi bi-wallet2 me-1"></i>Kaufen
                                 </button>
                             }
