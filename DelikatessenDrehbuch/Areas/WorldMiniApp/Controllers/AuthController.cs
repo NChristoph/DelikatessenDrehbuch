@@ -276,6 +276,33 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 return InvalidSiwe("signature recovery exception and fallback check failed");
             }
+
+            return normalized;
+        }
+
+        private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
+        {
+            return new WalletSiweVerifyResponseDto
+            {
+                IsValid = false,
+                Reason = reason
+            };
+        }
+
+        private static string NormalizeSignature(string signature)
+        {
+            var normalized = signature?.Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return string.Empty;
+            }
+
+            if (!normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = $"0x{normalized}";
+            }
+
+            return normalized;
         }
 
         private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
