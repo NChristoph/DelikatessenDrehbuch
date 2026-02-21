@@ -74,6 +74,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
     {
         public bool IsValid { get; set; }
         public string Address { get; set; }
+        public string Reason { get; set; }
     }
 
     public class VerifyPayloadDto
