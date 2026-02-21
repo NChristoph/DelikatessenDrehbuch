@@ -3,8 +3,9 @@ import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.1.
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const ACTION = "login-delikatessendrehbuch";
 
-// === TEST-SCHALTER ===
-// TRUE = Mock-Login ueberall (auch am PC), FALSE = nur World App
+// === DEIN TEST-SCHALTER ===
+// Setze das auf TRUE, um überall (auch am PC) den Mock-Login zu erzwingen.
+// Setze das auf FALSE, wenn du live gehst (damit nur World App User reinkommen).
 const ALLOW_MOCK_EVERYWHERE = true;
 
 let currentConfig = {
@@ -31,51 +32,56 @@ function handleLoginAbort() {
 
 async function diagnoseEnvironment() {
     const miniKitExists = typeof MiniKit !== 'undefined';
+    // Wir prüfen auch auf 127.0.0.1 und localhost
     const isLocalhost = window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1';
     return { miniKitExists, isLocalhost };
 }
 
-// === LOGIN: Immer verify() mit NullifierHash ===
 async function startLoginProcess() {
     try {
         const env = await diagnoseEnvironment();
 
         log(currentConfig.level === 'orb'
-            ? "Orb-Verifizierung wird gestartet..."
-            : "Device-Verifizierung wird gestartet...");
+            ? "🔐 Orb-Verifizierung wird gestartet..."
+            : "📱 Device-Verifizierung wird gestartet...");
 
         await new Promise(r => setTimeout(r, 1000));
 
+        // CHECK: MiniKit vorhanden?
         if (!env.miniKitExists) {
+
+            // === HIER IST DIE ÄNDERUNG ===
+            // Wenn wir auf Localhost sind ODER der Test-Schalter an ist:
             if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
-                console.warn("Nutze Mock-Login (Test Modus aktiv)");
-                await useMockLogin();
+                console.warn("⚠️ Nutze Mock-Login (Test Modus aktiv)");
+                await useMockLogin(); // Fake Login starten
                 return;
             }
 
-            log("MiniKit nicht verfuegbar. Bitte in World App oeffnen!", true);
+            log("❌ MiniKit nicht verfügbar. Bitte in World App öffnen!", true);
             return;
         }
 
+        // ... Ab hier läuft der echte World App Login weiter ...
         try {
             MiniKit.install({ appId: APP_ID });
         } catch (e) { console.warn("Install Note:", e); }
 
         await new Promise(r => setTimeout(r, 800));
-        log("Bitte bestaetigen...");
+        log("Bitte bestätigen...");
 
         const res = await MiniKit.commandsAsync.verify({
             action: ACTION,
-            signal: "",
+            signal: "", // WICHTIG: Dein Backend ersetzt das leere Signal automatisch durch den Hash
             verification_level: currentConfig.level
         });
 
         if (res.finalPayload && res.finalPayload.status === 'success') {
-            log("Proof erhalten!");
+            log("✅ Proof erhalten!");
             await verifyBackend(res.finalPayload);
         } else {
-            log("Abgebrochen", true);
+            log("❌ Abgebrochen", true);
             setTimeout(() => {
                 closeModal('loginModal');
                 handleLoginAbort();
@@ -90,30 +96,24 @@ async function startLoginProcess() {
 
 // === MOCK (SIMULATION) ===
 async function useMockLogin() {
-    log(`Mock Login (${currentConfig.level}) - TEST MODUS`);
+    log(`🎭 Mock Login (${currentConfig.level}) - TEST MODUS`);
     await new Promise(r => setTimeout(r, 1000));
 
-    let fakeHash = localStorage.getItem("mock_nullifier_hash");
-    if (!fakeHash) {
-        fakeHash = "mock-user-" + Date.now();
-        localStorage.setItem("mock_nullifier_hash", fakeHash);
-    }
-
+    // Wir generieren Fake-Daten, damit das Backend zufrieden ist
     const mockPayload = {
         status: 'success',
         verification_level: currentConfig.level,
         proof: "mock-proof-" + Date.now(),
         merkle_root: "mock-root",
-        nullifier_hash: fakeHash
+        nullifier_hash: "mock-user-" + Date.now() // Jedes Mal ein neuer Fake-User
     };
 
     await verifyBackend(mockPayload);
 }
 
-// === BACKEND VERIFY (NullifierHash) ===
 async function verifyBackend(payload) {
     try {
-        log("Pruefe Server...");
+        log("📤 Prüfe Server...");
         const rememberLogin = getRememberLoginValue();
         const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
@@ -132,7 +132,7 @@ async function verifyBackend(payload) {
         });
 
         if (response.ok) {
-            log("Erfolgreich!");
+            log("🎉 Erfolgreich!");
             sessionStorage.setItem("user_verified", "true");
             await new Promise(r => setTimeout(r, 800));
             const storage = rememberLogin ? localStorage : sessionStorage;
@@ -149,98 +149,12 @@ async function verifyBackend(payload) {
             }
         } else {
             const errorText = await response.text();
-            log(`Server Fehler: ${errorText.substring(0, 50)}`, true);
+            log(`❌ Server Fehler: ${errorText.substring(0, 50)}`, true);
         }
     } catch (error) {
-        log("Netzwerkfehler", true);
+        log("❌ Netzwerkfehler", true);
     }
 }
-
-// === WALLET AUTH: Nur fuer Marketplace (kaufen) ===
-async function startWalletAuthProcess(redirectUrl) {
-    try {
-        log("Wallet-Verbindung wird hergestellt...");
-
-        const nonceResp = await fetch('/WorldMiniApp/Auth/Nonce', { method: 'GET' });
-        if (!nonceResp.ok) {
-            log("Nonce konnte nicht geladen werden", true);
-            return;
-        }
-        const nonceData = await nonceResp.json();
-        const nonce = nonceData.nonce;
-
-        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
-            nonce: nonce,
-            statement: 'Sign in to Delikatessen Drehbuch',
-            expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        });
-
-        if (finalPayload?.status === 'success') {
-            await completeWalletAuth(finalPayload, nonce, redirectUrl);
-        } else {
-            log("Wallet-Auth fehlgeschlagen", true);
-            console.error('WalletAuth error:', { commandPayload, finalPayload });
-        }
-    } catch (error) {
-        console.error("WalletAuth Error:", error);
-        log(`Wallet-Auth Fehler: ${error.message || 'Unbekannt'}`, true);
-    }
-}
-
-async function completeWalletAuth(payload, nonce, redirectUrl) {
-    try {
-        log("Wallet wird geprueft...");
-        const rememberLogin = getRememberLoginValue();
-
-        const response = await fetch('/WorldMiniApp/Auth/CompleteSiwe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                payload: {
-                    status: payload.status,
-                    message: payload.message,
-                    signature: payload.signature,
-                    address: payload.address,
-                    version: payload.version || 1
-                },
-                nonce: nonce,
-                rememberLogin: rememberLogin
-            })
-        });
-
-        if (!response.ok) {
-            let errMsg = '';
-            try { errMsg = await response.text(); } catch (_) { }
-            log(`Wallet-Auth Server-Fehler: ${(errMsg || 'Unbekannt').substring(0, 120)}`, true);
-            return;
-        }
-
-        const result = await response.json();
-        log("Wallet verbunden!");
-        sessionStorage.setItem("user_verified", "true");
-        await new Promise(r => setTimeout(r, 600));
-
-        const storage = rememberLogin ? localStorage : sessionStorage;
-        storage.setItem("WalletAddress", result.walletAddress);
-        if (!rememberLogin) {
-            localStorage.removeItem("WalletAddress");
-        }
-
-        if (redirectUrl) {
-            window.location.href = redirectUrl;
-        } else {
-            window.location.reload();
-        }
-    } catch (error) {
-        log("Netzwerkfehler bei Wallet-Auth", true);
-        console.error("WalletAuth complete error:", error);
-    }
-}
-
-// === Marketplace: Wallet verbinden nur beim Kaufen ===
-window.connectWalletForMarketplace = async (redirectUrl) => {
-    await startWalletAuthProcess(redirectUrl || '');
-};
 
 function openModal(modalId = 'loginModal') {
     const el = document.getElementById(modalId);
@@ -298,11 +212,13 @@ async function refreshRememberedLogin(userHash) {
 window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
+    // AUTOMATISCH HOLEN: Wir schauen hier im JS nach dem Token
     const storedHash = getStoredUserHash();
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
     if (storedHash && rememberLogin) {
         console.log("Hash automatisch gefunden:", storedHash);
+        // URL erweitern
         const separator = redirectUrl.includes('?') ? '&' : '?';
         redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
         window.location.href = redirectUrl;
@@ -311,10 +227,12 @@ window.triggerLogin = (level, redirectUrl) => {
 
     if (storedHash) {
         console.log("Hash automatisch gefunden:", storedHash);
+        // URL erweitern
         const separator = redirectUrl.includes('?') ? '&' : '?';
         redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
     }
 
+    // Config setzen
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
