@@ -1,10 +1,16 @@
-import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm";
+import { MiniKit, VerificationLevel } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
 const VERIFY_ACTION = "login";
 
 const ALLOW_MOCK_EVERYWHERE = true;
+
+// VerificationLevel Mapping: string -> MiniKit enum
+const LEVEL_MAP = {
+    'device': VerificationLevel?.Device ?? 'device',
+    'orb': VerificationLevel?.Orb ?? 'orb'
+};
 
 let currentConfig = {
     level: 'device',
@@ -85,8 +91,11 @@ async function startLoginProcess() {
             return;
         }
 
-        const verificationLevel = currentConfig.level || 'device';
-        log(`Bitte World ID bestätigen (${verificationLevel})...`);
+        const levelKey = currentConfig.level || 'device';
+        const verificationLevel = LEVEL_MAP[levelKey] || levelKey;
+        log(`Bitte World ID bestätigen (${levelKey})...`);
+
+        console.log('MiniKit verify input:', { action: VERIFY_ACTION, verification_level: verificationLevel });
 
         // verify() gibt NullifierHash zurück — stabil und eindeutig pro User
         const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
@@ -94,13 +103,25 @@ async function startLoginProcess() {
             verification_level: verificationLevel
         });
 
+        console.log('MiniKit verify result:', { commandPayload, finalPayload });
+
         if (finalPayload?.status === 'success') {
             await completeVerify(finalPayload);
         } else {
             const details = formatVerifyError(finalPayload || commandPayload);
-            const raw = JSON.stringify(finalPayload || commandPayload || {}).substring(0, 220);
+            const raw = JSON.stringify(finalPayload || commandPayload || {}).substring(0, 300);
+            console.error('Verify error payload:', { commandPayload, finalPayload });
+
+            // Bei malformed_request: Fallback auf walletAuth (SIWE)
+            const errorCode = finalPayload?.error_code || commandPayload?.error_code || '';
+            if (errorCode === 'malformed_request' || errorCode === 'generic_error') {
+                log(`Verify fehlgeschlagen (${errorCode}), versuche Wallet-Auth...`);
+                console.warn('Verify failed, attempting walletAuth fallback');
+                await startWalletAuthProcess();
+                return;
+            }
+
             log(`❌ Verifizierung fehlgeschlagen: ${details.substring(0, 120)} | ${raw}`, true);
-            console.error('Verify error payload', { commandPayload, finalPayload });
             const consentButton = document.getElementById('consentLoginButton');
             if (consentButton) consentButton.disabled = false;
             return;
@@ -110,6 +131,110 @@ async function startLoginProcess() {
         log(`Fehler: ${error.message || 'Unbekannt'}`, true);
     }
 }
+
+// Wallet Auth (SIWE) - Fallback wenn verify fehlschlaegt, und fuer Marketplace
+async function startWalletAuthProcess() {
+    try {
+        log("Wallet-Verbindung wird hergestellt...");
+
+        // 1. Nonce vom Server holen
+        const nonceResp = await fetch('/WorldMiniApp/Auth/Nonce', { method: 'GET' });
+        if (!nonceResp.ok) {
+            log("❌ Nonce konnte nicht geladen werden", true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
+        }
+        const nonceData = await nonceResp.json();
+        const nonce = nonceData.nonce;
+        console.log('Got nonce:', nonce);
+
+        // 2. MiniKit walletAuth aufrufen (SIWE)
+        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+            nonce: nonce,
+            statement: 'Sign in to Delikatessen Drehbuch',
+            expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        });
+
+        console.log('WalletAuth result:', { commandPayload, finalPayload });
+
+        if (finalPayload?.status === 'success') {
+            await completeWalletAuth(finalPayload, nonce);
+        } else {
+            const details = formatVerifyError(finalPayload || commandPayload);
+            log(`❌ Wallet-Auth fehlgeschlagen: ${details.substring(0, 120)}`, true);
+            console.error('WalletAuth error:', { commandPayload, finalPayload });
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+        }
+    } catch (error) {
+        console.error("WalletAuth Error:", error);
+        log(`❌ Wallet-Auth Fehler: ${error.message || 'Unbekannt'}`, true);
+        const consentButton = document.getElementById('consentLoginButton');
+        if (consentButton) consentButton.disabled = false;
+    }
+}
+
+async function completeWalletAuth(payload, nonce) {
+    try {
+        log("Wallet wird geprueft...");
+        const rememberLogin = getRememberLoginValue();
+
+        const response = await fetch('/WorldMiniApp/Auth/CompleteSiwe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                payload: {
+                    status: payload.status,
+                    message: payload.message,
+                    signature: payload.signature,
+                    address: payload.address,
+                    version: payload.version || 1
+                },
+                nonce: nonce,
+                rememberLogin: rememberLogin
+            })
+        });
+
+        if (!response.ok) {
+            let errMsg = '';
+            try { errMsg = await response.text(); } catch (_) { }
+            log(`❌ Wallet-Auth Server-Fehler: ${(errMsg || 'Unbekannt').substring(0, 120)}`, true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
+        }
+
+        const result = await response.json();
+        const walletAddress = result.walletAddress;
+
+        log("Wallet verbunden!");
+        sessionStorage.setItem("user_verified", "true");
+        await new Promise(r => setTimeout(r, 600));
+
+        const storage = rememberLogin ? localStorage : sessionStorage;
+        storage.setItem("UserToken", walletAddress);
+        if (!rememberLogin) {
+            localStorage.removeItem("UserToken");
+        }
+        localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
+
+        if (currentConfig.redirectUrl) {
+            window.location.href = currentConfig.redirectUrl;
+        } else {
+            window.location.reload();
+        }
+    } catch (error) {
+        log("❌ Netzwerkfehler bei Wallet-Auth", true);
+        console.error("WalletAuth complete error:", error);
+    }
+}
+
+// Explizite walletAuth-Funktion fuer Marketplace
+window.connectWalletForMarketplace = async (redirectUrl) => {
+    currentConfig.redirectUrl = redirectUrl || '';
+    await startWalletAuthProcess();
+};
 
 async function useMockLogin() {
     log(`🎭 Mock Login - TEST MODUS`);
