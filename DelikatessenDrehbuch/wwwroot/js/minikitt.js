@@ -194,7 +194,8 @@ async function completeSiwe(payload, nonce, isMock = false) {
         if (currentConfig.redirectUrl) {
             window.location.href = currentConfig.redirectUrl;
         } else {
-            closeModal();
+            // Seite neu laden damit Links mit userHash aktualisiert werden
+            window.location.reload();
         }
     } catch (error) {
         log("❌ Netzwerkfehler", true);

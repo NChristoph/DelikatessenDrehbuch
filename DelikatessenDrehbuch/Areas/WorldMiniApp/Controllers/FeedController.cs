@@ -390,6 +390,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             if (!string.IsNullOrWhiteSpace(userHash))
             {
+                HttpContext.Session.SetString(SessionUserHashKey, userHash);
                 return userHash;
             }
 
