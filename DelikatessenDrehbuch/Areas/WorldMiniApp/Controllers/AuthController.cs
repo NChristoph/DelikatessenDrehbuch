@@ -15,8 +15,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private const string SiweNonceKey = "WorldMiniAppSiweNonce";
         private static readonly Regex EthereumAddressRegex = new("^0x[a-fA-F0-9]{40}$", RegexOptions.Compiled);
-        private static readonly Regex SiweNonceRegex = new("^Nonce:\\s*(?<nonce>[A-Za-z0-9]+)\\s*$", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
-        private static readonly Regex SiweAddressLineRegex = new("\\n(?<address>0x[a-fA-F0-9]{40})\\n", RegexOptions.Compiled);
+        private static readonly Regex SiweNonceRegex = new("^\\s*Nonce:\\s*(?<nonce>[A-Za-z0-9]{8,})\\s*$", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
+        private static readonly Regex SiweAddressLineRegex = new("(?:^|\\r?\\n)(?<address>0x[a-fA-F0-9]{40})(?:\\r?\\n|$)", RegexOptions.Compiled);
 
         private readonly IAuthService _authService;
         private readonly IUserManager _userManager;
@@ -164,20 +164,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return new WalletSiweVerifyResponseDto { IsValid = false };
             }
 
+            var normalizedMessage = payload.Message.Replace("\r\n", "\n").Trim();
+            var normalizedSignature = NormalizeSignature(payload.Signature);
+            if (string.IsNullOrWhiteSpace(normalizedSignature))
+            {
+                return new WalletSiweVerifyResponseDto { IsValid = false };
+            }
+
             var claimedAddress = payload.Address?.Trim();
             if (!string.IsNullOrWhiteSpace(claimedAddress) && !EthereumAddressRegex.IsMatch(claimedAddress))
             {
                 return new WalletSiweVerifyResponseDto { IsValid = false };
             }
 
-            var nonceMatch = SiweNonceRegex.Match(payload.Message);
+            var nonceMatch = SiweNonceRegex.Match(normalizedMessage);
             var signedNonce = nonceMatch.Success ? nonceMatch.Groups["nonce"].Value : string.Empty;
             if (string.IsNullOrWhiteSpace(signedNonce) || !string.Equals(signedNonce, expectedNonce, StringComparison.Ordinal))
             {
                 return new WalletSiweVerifyResponseDto { IsValid = false };
             }
 
-            var messageAddressMatch = SiweAddressLineRegex.Match(payload.Message);
+            var messageAddressMatch = SiweAddressLineRegex.Match(normalizedMessage);
             var messageAddress = messageAddressMatch.Success ? messageAddressMatch.Groups["address"].Value : string.Empty;
             if (!string.IsNullOrWhiteSpace(messageAddress) && !EthereumAddressRegex.IsMatch(messageAddress))
             {
@@ -186,7 +193,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             try
             {
-                var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(payload.Message, payload.Signature);
+                var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(normalizedMessage, normalizedSignature);
                 if (string.IsNullOrWhiteSpace(recoveredAddress) || !EthereumAddressRegex.IsMatch(recoveredAddress))
                 {
                     return new WalletSiweVerifyResponseDto { IsValid = false };
@@ -225,6 +232,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 return new WalletSiweVerifyResponseDto { IsValid = false };
             }
+        }
+
+        private static string NormalizeSignature(string signature)
+        {
+            var normalized = signature?.Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return string.Empty;
+            }
+
+            if (!normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = $"0x{normalized}";
+            }
+
+            return normalized;
         }
     }
 }
