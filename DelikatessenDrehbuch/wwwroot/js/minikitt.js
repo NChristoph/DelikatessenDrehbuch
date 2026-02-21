@@ -2,6 +2,7 @@ import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
+const WALLET_ADDRESS_KEY = "WorldMiniAppWalletAddress";
 const VERIFY_ACTION = "login";
 
 const ALLOW_MOCK_EVERYWHERE = true;
@@ -21,6 +22,17 @@ function log(msg, error = false) {
 
 function getStoredUserHash() {
     return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+}
+
+function getNullifierHashFromPayload(payload) {
+    if (!payload) return '';
+    return payload.nullifier_hash || payload.nullifierHash || '';
+}
+
+function getWalletAddressFromPayload(payload) {
+    if (!payload) return '';
+    const wallet = payload.walletAddress || payload.wallet_address || '';
+    return (wallet || '').trim().toLowerCase();
 }
 
 function handleLoginAbort() {
@@ -166,7 +178,11 @@ async function completeVerify(payload, isMock = false) {
         }
 
         // NullifierHash als UserToken speichern — das ist der stabile Identifier
-        const userHash = payload.nullifier_hash;
+        const userHash = getNullifierHashFromPayload(payload);
+        if (!userHash) {
+            log("❌ Nullifier Hash fehlt in der Verify-Antwort.", true);
+            return;
+        }
 
         log("🎉 Erfolgreich!");
         sessionStorage.setItem("user_verified", "true");
@@ -175,8 +191,15 @@ async function completeVerify(payload, isMock = false) {
         const storage = rememberLogin ? localStorage : sessionStorage;
         storage.setItem("UserToken", userHash);
 
+        const walletAddress = getWalletAddressFromPayload(payload) ||
+            (window.MiniKit?.walletAddress || window.minikit?.walletAddress || '').trim().toLowerCase();
+        if (walletAddress) {
+            storage.setItem(WALLET_ADDRESS_KEY, walletAddress);
+        }
+
         if (!rememberLogin) {
             localStorage.removeItem("UserToken");
+            localStorage.removeItem(WALLET_ADDRESS_KEY);
         }
 
         localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
