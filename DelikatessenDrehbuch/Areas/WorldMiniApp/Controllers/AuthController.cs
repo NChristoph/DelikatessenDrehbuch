@@ -278,8 +278,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 return InvalidSiwe("signature recovery exception and fallback check failed");
             }
-
-            return normalized;
         }
 
         private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
@@ -305,15 +303,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return normalized;
-        }
-
-        private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
-        {
-            return new WalletSiweVerifyResponseDto
-            {
-                IsValid = false,
-                Reason = reason
-            };
         }
 
         private static bool CanUseClaimedAndMessageAddressFallback(string claimedAddress, string messageAddress)
@@ -321,22 +310,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return !string.IsNullOrWhiteSpace(claimedAddress)
                 && !string.IsNullOrWhiteSpace(messageAddress)
                 && string.Equals(claimedAddress, messageAddress, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string NormalizeSignature(string signature)
-        {
-            var normalized = signature?.Trim();
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return string.Empty;
-            }
-
-            if (!normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            {
-                normalized = $"0x{normalized}";
-            }
-
-            return normalized;
         }
     }
 }
