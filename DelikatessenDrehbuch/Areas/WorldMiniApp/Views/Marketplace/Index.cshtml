@@ -282,6 +282,14 @@
 
     async function connectWorldWallet() {
         try {
+            // MiniKit walletAddress direkt prüfen
+            const miniKitAddr = window.MiniKit?.walletAddress || window.minikit?.walletAddress;
+            if (miniKitAddr) {
+                updateDebugData(miniKitAddr);
+                await refreshWalletStatus();
+                return miniKitAddr;
+            }
+
             if (window.worldChainMarketplace?.connectWallet) {
                 try {
                     const address = await window.worldChainMarketplace.connectWallet();
@@ -295,7 +303,13 @@
                 }
             }
 
-            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
+            // EIP-6963 Provider nochmal anfragen
+            window.dispatchEvent(new Event("eip6963:requestProvider"));
+            await new Promise(r => setTimeout(r, 300));
+
+            const ethereumProvider = await window.worldChainMarketplace?.waitForEthereumProvider?.(2000)
+                || window.worldChainMarketplace?.getEthereumProvider?.()
+                || window.ethereum;
             if (!ethereumProvider) {
                 alert('Kein Wallet gefunden. Öffne den Marktplatz direkt in der World App und lade die Seite neu.');
                 return '';
@@ -386,14 +400,27 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
+<script type="module">
+    import { MiniKit } from "https://cdn.jsdelivr.net/npm/@@worldcoin/minikit-js/+esm";
+    try {
+        MiniKit.install({ appId: "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa" });
+    } catch (e) {
+        console.warn("MiniKit install:", e);
+    }
+    // Nach MiniKit-Init EIP-6963 Provider erneut anfragen
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         updateDebugData('');
-        refreshWalletStatus();
-        const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
-        if (ethereumProvider?.on) {
-            ethereumProvider.on('accountsChanged', () => refreshWalletStatus());
-        }
+        // Warte kurz damit MiniKit den Provider injizieren kann
+        setTimeout(async () => {
+            await refreshWalletStatus();
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
+            if (ethereumProvider?.on) {
+                ethereumProvider.on('accountsChanged', () => refreshWalletStatus());
+            }
+        }, 500);
     });
 </script>
 @Html.AntiForgeryToken()

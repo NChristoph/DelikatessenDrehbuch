@@ -99,12 +99,13 @@ function getEthereumProvider() {
     return (preferred || candidates[0]).provider;
 }
 
-async function waitForEthereumProvider(timeoutMs = 1500) {
+async function waitForEthereumProvider(timeoutMs = 3000) {
     const started = Date.now();
     let provider = getEthereumProvider();
 
     while (!provider && Date.now() - started < timeoutMs) {
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
         provider = getEthereumProvider();
     }
 
@@ -242,5 +243,6 @@ window.worldChainMarketplace = {
     connectWallet,
     getEthereumProvider,
     getEthereumProviderCandidates,
+    waitForEthereumProvider,
     worldTestnetChainId: WORLD_TESTNET_CHAIN_ID
 };
