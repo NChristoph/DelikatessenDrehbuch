@@ -253,7 +253,18 @@
     }
 
     function getStoredWalletAddress() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '';
+        return sessionStorage.getItem('WorldMiniAppWalletAddress') || localStorage.getItem('WorldMiniAppWalletAddress') || '';
+    }
+
+
+    function isSameWallet(a, b) {
+        return (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+    }
+
+    function ensureWalletMatchesLogin(walletAddress) {
+        const verifiedWallet = getStoredWalletAddress();
+        if (!verifiedWallet) return true;
+        return isSameWallet(verifiedWallet, walletAddress);
     }
 
     async function refreshWalletStatus() {
@@ -320,6 +331,11 @@
 
         const walletAddress = await connectWorldWallet();
         if (!walletAddress) return;
+
+        if (!ensureWalletMatchesLogin(walletAddress)) {
+            alert('Wallet-Verifikation fehlgeschlagen. Bitte verbinde dieselbe Wallet wie beim Login.');
+            return;
+        }
 
         const token = getSelectedToken(listingId);
         if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
