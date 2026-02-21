@@ -3,6 +3,8 @@ using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
+using System.Globalization;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -172,6 +174,112 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 request.WalletAddress,
                 IsSelfPurchaseAllowedForTesting(),
                 request.PaymentToken);
+            if (purchase == null)
+                return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
+
+            return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+        }
+
+        private sealed class PendingMiniPay
+        {
+            public string UserHash { get; init; } = string.Empty;
+            public int ListingId { get; init; }
+            public string Token { get; init; } = "WLD";
+            public string AmountRaw { get; init; } = "0";
+            public DateTime CreatedAtUtc { get; init; } = DateTime.UtcNow;
+        }
+
+        private static readonly ConcurrentDictionary<string, PendingMiniPay> PendingPayments = new();
+
+        public class InitiateMiniPayRequest
+        {
+            public string UserHash { get; set; } = string.Empty;
+            public int ListingId { get; set; }
+            public string PaymentToken { get; set; } = "WLD";
+        }
+
+        public class ConfirmMiniPayRequest
+        {
+            public string UserHash { get; set; } = string.Empty;
+            public int ListingId { get; set; }
+            public string WalletAddress { get; set; } = string.Empty;
+            public string PaymentToken { get; set; } = "WLD";
+            public string Reference { get; set; } = string.Empty;
+            public string TransactionId { get; set; } = string.Empty;
+            public string Status { get; set; } = string.Empty;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> InitiateMiniPay([FromBody] InitiateMiniPayRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, error = "Nicht eingeloggt." });
+
+            var listing = await _context.MealPlanListings.FirstOrDefaultAsync(x => x.Id == request.ListingId && x.IsActive);
+            if (listing == null)
+                return Json(new { success = false, error = "Angebot nicht gefunden." });
+
+            if (!IsSelfPurchaseAllowedForTesting() && listing.SellerHash == userHash)
+                return Json(new { success = false, error = "Eigenkauf nicht erlaubt." });
+
+            var token = (request.PaymentToken ?? "WLD").ToUpperInvariant();
+            var decimals = token == "USDT" || token == "USDC" ? 6 : 18;
+            var factor = decimals == 6 ? 1_000_000m : 1_000_000_000_000_000_000m;
+            var amountRaw = decimal.Truncate(listing.Price * factor).ToString("0", CultureInfo.InvariantCulture);
+            var reference = Guid.NewGuid().ToString("N");
+
+            PendingPayments[reference] = new PendingMiniPay
+            {
+                UserHash = userHash,
+                ListingId = listing.Id,
+                Token = token,
+                AmountRaw = amountRaw,
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
+            var toAddress = _configuration["WorldChain:MarketplaceContractAddress"] ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(toAddress))
+                return Json(new { success = false, error = "Marketplace-Adresse nicht konfiguriert." });
+
+            return Json(new
+            {
+                success = true,
+                reference,
+                to = toAddress,
+                token = token == "USDT" ? "USDC" : token,
+                tokenAmount = amountRaw,
+                description = $"Meal plan purchase #{listing.Id}"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmMiniPay([FromBody] ConfirmMiniPayRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, error = "Nicht eingeloggt." });
+
+            if (string.IsNullOrWhiteSpace(request.Reference) || !PendingPayments.TryRemove(request.Reference, out var pending))
+                return Json(new { success = false, error = "Ungültige Payment-Referenz." });
+
+            if (pending.UserHash != userHash || pending.ListingId != request.ListingId)
+                return Json(new { success = false, error = "Payment-Daten stimmen nicht." });
+
+            if (string.IsNullOrWhiteSpace(request.TransactionId))
+                return Json(new { success = false, error = "transaction_id fehlt." });
+
+            if (!string.Equals(request.Status, "success", StringComparison.OrdinalIgnoreCase))
+                return Json(new { success = false, error = "Payment nicht erfolgreich." });
+
+            var purchase = await _coinService.FinalizeWorldChainPurchase(
+                userHash,
+                request.ListingId,
+                request.TransactionId,
+                request.WalletAddress,
+                IsSelfPurchaseAllowedForTesting(),
+                request.PaymentToken);
+
             if (purchase == null)
                 return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 

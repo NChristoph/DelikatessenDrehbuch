@@ -1,5 +1,9 @@
 import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.1.0/+esm";
 
+if (typeof window !== "undefined") {
+    window.MiniKit = MiniKit;
+}
+
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const ACTION = "login-delikatessendrehbuch";
 
