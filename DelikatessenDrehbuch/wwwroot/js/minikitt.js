@@ -1,4 +1,4 @@
-﻿import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.1.0/+esm";
+﻿import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm";
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
@@ -47,6 +47,14 @@ async function fetchNonce() {
     return data.nonce;
 }
 
+function normalizeNonce(rawNonce) {
+    const normalized = String(rawNonce || '').replace(/[^a-zA-Z0-9]/g, '');
+    if (normalized.length < 8) {
+        throw new Error('Nonce ungültig (mind. 8 alphanumerische Zeichen erforderlich).');
+    }
+    return normalized;
+}
+
 
 function formatWalletAuthError(payload) {
     if (!payload) return 'WalletAuth ohne Antwort.';
@@ -87,9 +95,16 @@ async function startLoginProcess() {
             console.warn("Install Note:", e);
         }
 
-        const nonce = await fetchNonce();
+        if (typeof MiniKit.isInstalled === 'function' && !MiniKit.isInstalled()) {
+            log("❌ World App Kontext nicht erkannt. Bitte Mini App direkt in World App öffnen.", true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
+        }
 
-        log("Bitte Wallet-Signatur bestätigen...");
+        const nonce = normalizeNonce(await fetchNonce());
+
+        log(`Bitte Wallet-Signatur bestätigen... (nonce:${nonce.length})`);
 
         const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
             nonce
@@ -99,7 +114,8 @@ async function startLoginProcess() {
             await completeSiwe(finalPayload, nonce);
         } else {
             const details = formatWalletAuthError(finalPayload || commandPayload);
-            log(`❌ WalletAuth fehlgeschlagen: ${details.substring(0, 180)}`, true);
+            const raw = JSON.stringify(finalPayload || commandPayload || {}).substring(0, 220);
+            log(`❌ WalletAuth fehlgeschlagen: ${details.substring(0, 120)} | ${raw}`, true);
             console.error('WalletAuth error payload', { commandPayload, finalPayload });
             const consentButton = document.getElementById('consentLoginButton');
             if (consentButton) consentButton.disabled = false;

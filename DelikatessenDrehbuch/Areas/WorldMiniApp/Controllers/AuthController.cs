@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nethereum.Signer;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -155,7 +154,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private static string GenerateSiweNonce()
         {
-            return Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+            return Guid.NewGuid().ToString("N").ToLowerInvariant();
         }
 
         private WalletSiweVerifyResponseDto VerifyWalletAuthPayload(WalletAuthPayloadDto payload, string expectedNonce)
