@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nethereum.Signer;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -15,8 +16,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private const string SiweNonceKey = "WorldMiniAppSiweNonce";
         private static readonly Regex EthereumAddressRegex = new("^0x[a-fA-F0-9]{40}$", RegexOptions.Compiled);
-        private static readonly Regex SiweNonceRegex = new("^Nonce:\\s*(?<nonce>[A-Za-z0-9]+)\\s*$", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
-        private static readonly Regex SiweAddressLineRegex = new("\\n(?<address>0x[a-fA-F0-9]{40})\\n", RegexOptions.Compiled);
+        private static readonly Regex SiweNonceRegex = new("^\\s*Nonce:\\s*(?<nonce>[A-Za-z0-9]{8,})\\s*$", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
+        private static readonly Regex SiweAddressLineRegex = new("(?:^|\\r?\\n)(?<address>0x[a-fA-F0-9]{40})(?:\\r?\\n|$)", RegexOptions.Compiled);
 
         private readonly IAuthService _authService;
         private readonly IUserManager _userManager;
@@ -72,7 +73,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var verifyResult = VerifyWalletAuthPayload(request.Payload, request.Nonce);
                 if (!verifyResult.IsValid || string.IsNullOrWhiteSpace(verifyResult.Address))
                 {
-                    return BadRequest(new { status = "error", isValid = false, message = "Invalid SIWE message/signature" });
+                    return BadRequest(new { status = "error", isValid = false, message = verifyResult.Reason ?? "Invalid SIWE message/signature" });
                 }
 
                 await _userManager.CreateOrUpdateWalletUser(verifyResult.Address, request.RememberLogin);
@@ -161,51 +162,69 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(payload.Message) || string.IsNullOrWhiteSpace(payload.Signature))
             {
-                return new WalletSiweVerifyResponseDto { IsValid = false };
+                return InvalidSiwe("SIWE message or signature missing");
+            }
+
+            var validationErrors = new List<string>();
+            var normalizedMessage = payload.Message.Replace("\r\n", "\n").Trim();
+            var normalizedSignature = NormalizeSignature(payload.Signature);
+            if (string.IsNullOrWhiteSpace(normalizedSignature))
+            {
+                validationErrors.Add("signature empty/invalid");
             }
 
             var claimedAddress = payload.Address?.Trim();
             if (!string.IsNullOrWhiteSpace(claimedAddress) && !EthereumAddressRegex.IsMatch(claimedAddress))
             {
-                return new WalletSiweVerifyResponseDto { IsValid = false };
+                validationErrors.Add("payload address invalid");
             }
 
-            var nonceMatch = SiweNonceRegex.Match(payload.Message);
+            var nonceMatch = SiweNonceRegex.Match(normalizedMessage);
             var signedNonce = nonceMatch.Success ? nonceMatch.Groups["nonce"].Value : string.Empty;
-            if (string.IsNullOrWhiteSpace(signedNonce) || !string.Equals(signedNonce, expectedNonce, StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(signedNonce))
             {
-                return new WalletSiweVerifyResponseDto { IsValid = false };
+                validationErrors.Add("nonce missing in SIWE message");
+            }
+            else if (!string.Equals(signedNonce, expectedNonce, StringComparison.Ordinal))
+            {
+                validationErrors.Add("nonce mismatch");
             }
 
-            var messageAddressMatch = SiweAddressLineRegex.Match(payload.Message);
+            var messageAddressMatch = SiweAddressLineRegex.Match(normalizedMessage);
             var messageAddress = messageAddressMatch.Success ? messageAddressMatch.Groups["address"].Value : string.Empty;
             if (!string.IsNullOrWhiteSpace(messageAddress) && !EthereumAddressRegex.IsMatch(messageAddress))
             {
-                return new WalletSiweVerifyResponseDto { IsValid = false };
+                validationErrors.Add("message address invalid");
+            }
+
+            if (validationErrors.Count > 0)
+            {
+                return InvalidSiwe($"Invalid SIWE payload: {string.Join("; ", validationErrors)}");
             }
 
             try
             {
-                var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(payload.Message, payload.Signature);
+                var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(normalizedMessage, normalizedSignature);
                 if (string.IsNullOrWhiteSpace(recoveredAddress) || !EthereumAddressRegex.IsMatch(recoveredAddress))
                 {
-                    return new WalletSiweVerifyResponseDto { IsValid = false };
+                    return InvalidSiwe("signature recovery produced invalid address");
                 }
 
                 if (!string.IsNullOrWhiteSpace(claimedAddress) && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new WalletSiweVerifyResponseDto { IsValid = false };
+                    return InvalidSiwe("signature address does not match payload address");
                 }
 
                 if (!string.IsNullOrWhiteSpace(messageAddress) && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new WalletSiweVerifyResponseDto { IsValid = false };
+                    return InvalidSiwe("signature address does not match SIWE message address");
                 }
 
                 return new WalletSiweVerifyResponseDto
                 {
                     IsValid = true,
-                    Address = recoveredAddress
+                    Address = recoveredAddress,
+                    Reason = "OK"
                 };
             }
             catch (Exception ex)
@@ -219,12 +238,38 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     return new WalletSiweVerifyResponseDto
                     {
                         IsValid = true,
-                        Address = claimedAddress
+                        Address = claimedAddress,
+                        Reason = "Recovered via address fallback"
                     };
                 }
 
-                return new WalletSiweVerifyResponseDto { IsValid = false };
+                return InvalidSiwe("signature recovery exception and fallback check failed");
             }
+        }
+
+        private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
+        {
+            return new WalletSiweVerifyResponseDto
+            {
+                IsValid = false,
+                Reason = reason
+            };
+        }
+
+        private static string NormalizeSignature(string signature)
+        {
+            var normalized = signature?.Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return string.Empty;
+            }
+
+            if (!normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = $"0x{normalized}";
+            }
+
+            return normalized;
         }
     }
 }
