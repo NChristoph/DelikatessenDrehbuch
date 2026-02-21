@@ -253,7 +253,7 @@
     }
 
     function getStoredWalletAddress() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '';
+        return sessionStorage.getItem('WalletAddress') || localStorage.getItem('WalletAddress') || '';
     }
 
     async function refreshWalletStatus() {
@@ -306,8 +306,23 @@
             console.warn('connectWallet fehlgeschlagen:', e?.message);
         }
 
+        // MiniKit WalletAuth (World App Empfehlung: erst bei Bedarf, z.B. beim Kaufen)
+        try {
+            if (typeof window.connectWalletForMarketplace === 'function') {
+                await window.connectWalletForMarketplace('');
+                const authedAddr = getStoredWalletAddress();
+                if (authedAddr) {
+                    updateDebugData(authedAddr);
+                    await refreshWalletStatus();
+                    return authedAddr;
+                }
+            }
+        } catch (e) {
+            console.warn('walletAuth fehlgeschlagen:', e?.message);
+        }
+
         // Kein Wallet — User muss sich einloggen
-        alert('Bitte zuerst einloggen. Gehe zur Startseite und verbinde dein World ID.');
+        alert('Bitte zuerst einloggen und Wallet verbinden (World App).');
         return '';
     }
 
@@ -343,45 +358,54 @@
                 }
             }
 
-            // Fallback: MiniKit sendTransaction (innerhalb World App)
-            if (typeof MiniKit !== 'undefined' && MiniKit.commandsAsync?.sendTransaction) {
-                const cfg = window.worldChainMarketplaceConfig || {};
-                if (!cfg.marketplaceAddress) {
-                    alert('Marketplace-Adresse nicht konfiguriert.');
+            // Fallback nach World-Doku: MiniKit Pay Command + Backend-Confirm
+            if (window.MiniKit?.commandsAsync?.pay) {
+                const initResp = await fetch('@Url.Action("InitiateMiniPay", "Marketplace", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userHash: hash, listingId: listingId, paymentToken: token })
+                });
+                const initData = await initResp.json();
+                if (!initData?.success) {
+                    alert(initData?.error || 'Payment konnte nicht initialisiert werden.');
                     return;
                 }
-                const tokenAddress = token === 'USDT' ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
-                const decimals = token === 'USDT' ? 6 : 18;
-                const amountRaw = BigInt(Math.round(price * (10 ** decimals))).toString();
 
-                const result = await MiniKit.commandsAsync.sendTransaction({
-                    transaction: [
-                        {
-                            address: tokenAddress,
-                            abi: [{ name: 'approve', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] }],
-                            functionName: 'approve',
-                            args: [cfg.marketplaceAddress, amountRaw]
-                        },
-                        {
-                            address: cfg.marketplaceAddress,
-                            abi: [{ name: 'buyListing', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'listingId', type: 'uint256' }, { name: 'amount', type: 'uint256' }, { name: 'buyerHash', type: 'string' }], outputs: [] }],
-                            functionName: 'buyListing',
-                            args: [listingId.toString(), amountRaw, hash]
-                        }
-                    ]
+                const payPayload = {
+                    reference: initData.reference,
+                    to: initData.to,
+                    tokens: [{
+                        symbol: initData.token,
+                        token_amount: initData.tokenAmount
+                    }],
+                    description: initData.description || `Meal plan ${listingId}`
+                };
+
+                const { finalPayload } = await window.MiniKit.commandsAsync.pay(payPayload);
+                if (finalPayload?.status !== 'success') {
+                    alert('Zahlung abgebrochen oder fehlgeschlagen.');
+                    return;
+                }
+
+                const confirmResp = await fetch('@Url.Action("ConfirmMiniPay", "Marketplace", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userHash: hash,
+                        listingId: listingId,
+                        walletAddress: walletAddress,
+                        paymentToken: token,
+                        reference: finalPayload.reference,
+                        transactionId: finalPayload.transaction_id,
+                        status: finalPayload.status
+                    })
                 });
-
-                if (result?.status === 'success' || result?.finalPayload?.status === 'success') {
-                    const txHash = result?.transaction_id || result?.finalPayload?.transaction_id || 'minikit-tx';
-                    const data = await finalizeOnBackend(hash, listingId, txHash, walletAddress, token);
-                    if (data.success) {
-                        alert('Gekauft! Plan wurde hinzugefügt.');
-                        location.reload();
-                    } else {
-                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
-                    }
+                const confirmData = await confirmResp.json();
+                if (confirmData.success) {
+                    alert('Gekauft! Plan wurde hinzugefügt.');
+                    location.reload();
                 } else {
-                    alert('Transaktion abgebrochen oder fehlgeschlagen.');
+                    alert(confirmData.error || 'Payment-Verifizierung fehlgeschlagen.');
                 }
                 return;
             }
@@ -403,14 +427,9 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
-<script type="module">
-    import { MiniKit } from "https://cdn.jsdelivr.net/npm/@@worldcoin/minikit-js/+esm";
-    try {
-        MiniKit.install({ appId: "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa" });
-    } catch (e) {
-        console.warn("MiniKit install:", e);
-    }
-    // Nach MiniKit-Init EIP-6963 Provider erneut anfragen
+<script type="module" src="~/js/minikitt.js"></script>
+<script>
+    // Nach MiniKit-Init (aus minikitt.js) Provider erneut anfragen
     window.dispatchEvent(new Event("eip6963:requestProvider"));
 </script>
 <script>
