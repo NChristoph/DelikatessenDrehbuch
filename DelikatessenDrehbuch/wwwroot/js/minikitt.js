@@ -47,6 +47,22 @@ async function fetchNonce() {
     return data.nonce;
 }
 
+
+function formatWalletAuthError(payload) {
+    if (!payload) return 'WalletAuth ohne Antwort.';
+
+    const candidates = [
+        payload?.error_code,
+        payload?.errorCode,
+        payload?.message,
+        payload?.detail,
+        payload?.description,
+        payload?.status
+    ].filter(Boolean);
+
+    return candidates.length ? candidates.join(' | ') : 'WalletAuth abgebrochen oder nicht unterstützt.';
+}
+
 async function startLoginProcess() {
     try {
         const env = await diagnoseEnvironment();
@@ -75,22 +91,19 @@ async function startLoginProcess() {
 
         log("Bitte Wallet-Signatur bestätigen...");
 
-        const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
-            nonce,
-            requestId: 'delikatessendrehbuch-login',
-            expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            notBefore: new Date(Date.now() - 5 * 60 * 1000),
-            statement: 'Sign in to Delikatessen Drehbuch via World App wallet authentication.'
+        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+            nonce
         });
 
         if (finalPayload?.status === 'success') {
             await completeSiwe(finalPayload, nonce);
         } else {
-            log("❌ Abgebrochen", true);
-            setTimeout(() => {
-                closeModal('loginModal');
-                handleLoginAbort();
-            }, 1200);
+            const details = formatWalletAuthError(finalPayload || commandPayload);
+            log(`❌ WalletAuth fehlgeschlagen: ${details.substring(0, 180)}`, true);
+            console.error('WalletAuth error payload', { commandPayload, finalPayload });
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
         }
     } catch (error) {
         console.error("Login Error:", error);
