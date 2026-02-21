@@ -131,7 +131,12 @@ async function useMockLogin() {
     log(`🎭 Mock Wallet Login - TEST MODUS`);
     await new Promise(r => setTimeout(r, 600));
 
-    const fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
+    // Stabile Fake-Wallet: einmal generieren, dann wiederverwenden
+    let fakeWallet = localStorage.getItem("mock_wallet_address");
+    if (!fakeWallet) {
+        fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
+        localStorage.setItem("mock_wallet_address", fakeWallet);
+    }
     const mockPayload = {
         status: 'success',
         message: `mock-siwe-message-${Date.now()}`,
@@ -194,7 +199,8 @@ async function completeSiwe(payload, nonce, isMock = false) {
         if (currentConfig.redirectUrl) {
             window.location.href = currentConfig.redirectUrl;
         } else {
-            closeModal();
+            // Seite neu laden damit Links mit userHash aktualisiert werden
+            window.location.reload();
         }
     } catch (error) {
         log("❌ Netzwerkfehler", true);
