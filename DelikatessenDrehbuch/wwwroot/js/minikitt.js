@@ -1,21 +1,25 @@
-import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.1.0/+esm";
+import { MiniKit, VerificationLevel } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
 
 if (typeof window !== "undefined") {
     window.MiniKit = MiniKit;
 }
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
-const ACTION = "login-delikatessendrehbuch";
+const REMEMBER_LOGIN_KEY = "remember_login";
+const VERIFY_ACTION = "login";
 
-// === TEST-SCHALTER ===
-// TRUE = Mock-Login ueberall (auch am PC), FALSE = nur World App
 const ALLOW_MOCK_EVERYWHERE = true;
 
-let currentConfig = {
-    level: 'orb',
-    redirectUrl: '/WorldMiniApp/Home/Setup'
+// VerificationLevel Mapping: string -> MiniKit enum
+const LEVEL_MAP = {
+    'device': VerificationLevel?.Device ?? 'device',
+    'orb': VerificationLevel?.Orb ?? 'orb'
 };
-const REMEMBER_LOGIN_KEY = "remember_login";
+
+let currentConfig = {
+    level: 'device',
+    redirectUrl: ''
+};
 
 function log(msg, error = false) {
     console.log(msg);
@@ -40,158 +44,142 @@ async function diagnoseEnvironment() {
     return { miniKitExists, isLocalhost };
 }
 
-// === LOGIN: Immer verify() mit NullifierHash ===
+function formatVerifyError(payload) {
+    if (!payload) return 'Verify ohne Antwort.';
+
+    const candidates = [
+        payload?.error_code,
+        payload?.errorCode,
+        payload?.message,
+        payload?.detail,
+        payload?.description,
+        payload?.status
+    ].filter(Boolean);
+
+    return candidates.length ? candidates.join(' | ') : 'Verifizierung abgebrochen oder nicht unterstützt.';
+}
+
 async function startLoginProcess() {
     try {
         const env = await diagnoseEnvironment();
 
-        log(currentConfig.level === 'orb'
-            ? "Orb-Verifizierung wird gestartet..."
-            : "Device-Verifizierung wird gestartet...");
-
-        await new Promise(r => setTimeout(r, 1000));
+        log("🔐 World ID Verifizierung wird gestartet...");
+        await new Promise(r => setTimeout(r, 600));
 
         if (!env.miniKitExists) {
             if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
-                console.warn("Nutze Mock-Login (Test Modus aktiv)");
+                console.warn("⚠️ Nutze Mock-Login (Test Modus aktiv)");
                 await useMockLogin();
                 return;
             }
 
-            log("MiniKit nicht verfuegbar. Bitte in World App oeffnen!", true);
+            log("❌ MiniKit nicht verfügbar. Bitte in World App öffnen!", true);
             return;
         }
 
         try {
             MiniKit.install({ appId: APP_ID });
-        } catch (e) { console.warn("Install Note:", e); }
-
-        await new Promise(r => setTimeout(r, 800));
-        log("Bitte bestaetigen...");
-
-        const res = await MiniKit.commandsAsync.verify({
-            action: ACTION,
-            signal: "",
-            verification_level: currentConfig.level
-        });
-
-        if (res.finalPayload && res.finalPayload.status === 'success') {
-            log("Proof erhalten!");
-            await verifyBackend(res.finalPayload);
-        } else {
-            log("Abgebrochen", true);
-            setTimeout(() => {
-                closeModal('loginModal');
-                handleLoginAbort();
-            }, 1500);
+        } catch (e) {
+            console.warn("Install Note:", e);
         }
 
+        if (typeof MiniKit.isInstalled === 'function' && !MiniKit.isInstalled()) {
+            if (ALLOW_MOCK_EVERYWHERE) {
+                console.warn("⚠️ World App nicht erkannt, nutze Mock-Login");
+                await useMockLogin();
+                return;
+            }
+            log("❌ World App Kontext nicht erkannt. Bitte Mini App direkt in World App öffnen.", true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
+        }
+
+        const levelKey = currentConfig.level || 'device';
+        const verificationLevel = LEVEL_MAP[levelKey] || levelKey;
+        log(`Bitte World ID bestätigen (${levelKey})...`);
+
+        console.log('MiniKit verify input:', { action: VERIFY_ACTION, verification_level: verificationLevel });
+
+        // verify() gibt NullifierHash zurück — stabil und eindeutig pro User
+        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
+            action: VERIFY_ACTION,
+            verification_level: verificationLevel
+        });
+
+        console.log('MiniKit verify result:', { commandPayload, finalPayload });
+
+        if (finalPayload?.status === 'success') {
+            await completeVerify(finalPayload);
+        } else {
+            const details = formatVerifyError(finalPayload || commandPayload);
+            const raw = JSON.stringify(finalPayload || commandPayload || {}).substring(0, 300);
+            console.error('Verify error payload:', { commandPayload, finalPayload });
+
+            // Bei malformed_request: Fallback auf walletAuth (SIWE)
+            const errorCode = finalPayload?.error_code || commandPayload?.error_code || '';
+            if (errorCode === 'malformed_request' || errorCode === 'generic_error') {
+                log(`Verify fehlgeschlagen (${errorCode}), versuche Wallet-Auth...`);
+                console.warn('Verify failed, attempting walletAuth fallback');
+                await startWalletAuthProcess();
+                return;
+            }
+
+            log(`❌ Verifizierung fehlgeschlagen: ${details.substring(0, 120)} | ${raw}`, true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
+        }
     } catch (error) {
         console.error("Login Error:", error);
         log(`Fehler: ${error.message || 'Unbekannt'}`, true);
     }
 }
 
-// === MOCK (SIMULATION) ===
-async function useMockLogin() {
-    log(`Mock Login (${currentConfig.level}) - TEST MODUS`);
-    await new Promise(r => setTimeout(r, 1000));
-
-    let fakeHash = localStorage.getItem("mock_nullifier_hash");
-    if (!fakeHash) {
-        fakeHash = "mock-user-" + Date.now();
-        localStorage.setItem("mock_nullifier_hash", fakeHash);
-    }
-
-    const mockPayload = {
-        status: 'success',
-        verification_level: currentConfig.level,
-        proof: "mock-proof-" + Date.now(),
-        merkle_root: "mock-root",
-        nullifier_hash: fakeHash
-    };
-
-    await verifyBackend(mockPayload);
-}
-
-// === BACKEND VERIFY (NullifierHash) ===
-async function verifyBackend(payload) {
-    try {
-        log("Pruefe Server...");
-        const rememberLogin = getRememberLoginValue();
-        const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-        const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(antiForgeryToken ? { 'RequestVerificationToken': antiForgeryToken } : {})
-            },
-            body: JSON.stringify({
-                payload,
-                action: ACTION,
-                signal: "",
-                rememberLogin: rememberLogin
-            })
-        });
-
-        if (response.ok) {
-            log("Erfolgreich!");
-            sessionStorage.setItem("user_verified", "true");
-            await new Promise(r => setTimeout(r, 800));
-            const storage = rememberLogin ? localStorage : sessionStorage;
-            storage.setItem("UserToken", payload.nullifier_hash);
-            if (!rememberLogin) {
-                localStorage.removeItem("UserToken");
-            }
-            localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
-
-            if (currentConfig.redirectUrl) {
-                window.location.href = currentConfig.redirectUrl;
-            } else {
-                closeModal();
-            }
-        } else {
-            const errorText = await response.text();
-            log(`Server Fehler: ${errorText.substring(0, 50)}`, true);
-        }
-    } catch (error) {
-        log("Netzwerkfehler", true);
-    }
-}
-
-// === WALLET AUTH: Nur fuer Marketplace (kaufen) ===
-async function startWalletAuthProcess(redirectUrl) {
+// Wallet Auth (SIWE) - Fallback wenn verify fehlschlaegt, und fuer Marketplace
+async function startWalletAuthProcess() {
     try {
         log("Wallet-Verbindung wird hergestellt...");
 
+        // 1. Nonce vom Server holen
         const nonceResp = await fetch('/WorldMiniApp/Auth/Nonce', { method: 'GET' });
         if (!nonceResp.ok) {
-            log("Nonce konnte nicht geladen werden", true);
+            log("❌ Nonce konnte nicht geladen werden", true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
             return;
         }
         const nonceData = await nonceResp.json();
         const nonce = nonceData.nonce;
+        console.log('Got nonce:', nonce);
 
+        // 2. MiniKit walletAuth aufrufen (SIWE)
         const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
             nonce: nonce,
             statement: 'Sign in to Delikatessen Drehbuch',
             expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         });
 
+        console.log('WalletAuth result:', { commandPayload, finalPayload });
+
         if (finalPayload?.status === 'success') {
-            await completeWalletAuth(finalPayload, nonce, redirectUrl);
+            await completeWalletAuth(finalPayload, nonce);
         } else {
-            log("Wallet-Auth fehlgeschlagen", true);
+            const details = formatVerifyError(finalPayload || commandPayload);
+            log(`❌ Wallet-Auth fehlgeschlagen: ${details.substring(0, 120)}`, true);
             console.error('WalletAuth error:', { commandPayload, finalPayload });
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
         }
     } catch (error) {
         console.error("WalletAuth Error:", error);
-        log(`Wallet-Auth Fehler: ${error.message || 'Unbekannt'}`, true);
+        log(`❌ Wallet-Auth Fehler: ${error.message || 'Unbekannt'}`, true);
+        const consentButton = document.getElementById('consentLoginButton');
+        if (consentButton) consentButton.disabled = false;
     }
 }
 
-async function completeWalletAuth(payload, nonce, redirectUrl) {
+async function completeWalletAuth(payload, nonce) {
     try {
         log("Wallet wird geprueft...");
         const rememberLogin = getRememberLoginValue();
@@ -215,36 +203,127 @@ async function completeWalletAuth(payload, nonce, redirectUrl) {
         if (!response.ok) {
             let errMsg = '';
             try { errMsg = await response.text(); } catch (_) { }
-            log(`Wallet-Auth Server-Fehler: ${(errMsg || 'Unbekannt').substring(0, 120)}`, true);
+            log(`❌ Wallet-Auth Server-Fehler: ${(errMsg || 'Unbekannt').substring(0, 120)}`, true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
             return;
         }
 
         const result = await response.json();
+        const walletAddress = result.walletAddress;
+
         log("Wallet verbunden!");
         sessionStorage.setItem("user_verified", "true");
         await new Promise(r => setTimeout(r, 600));
 
         const storage = rememberLogin ? localStorage : sessionStorage;
-        storage.setItem("WalletAddress", result.walletAddress);
+        storage.setItem("UserToken", walletAddress);
         if (!rememberLogin) {
-            localStorage.removeItem("WalletAddress");
+            localStorage.removeItem("UserToken");
         }
+        localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
 
-        if (redirectUrl) {
-            window.location.href = redirectUrl;
+        if (currentConfig.redirectUrl) {
+            window.location.href = currentConfig.redirectUrl;
         } else {
             window.location.reload();
         }
     } catch (error) {
-        log("Netzwerkfehler bei Wallet-Auth", true);
+        log("❌ Netzwerkfehler bei Wallet-Auth", true);
         console.error("WalletAuth complete error:", error);
     }
 }
 
-// === Marketplace: Wallet verbinden nur beim Kaufen ===
+// Explizite walletAuth-Funktion fuer Marketplace
 window.connectWalletForMarketplace = async (redirectUrl) => {
-    await startWalletAuthProcess(redirectUrl || '');
+    currentConfig.redirectUrl = redirectUrl || '';
+    await startWalletAuthProcess();
 };
+
+async function useMockLogin() {
+    log(`🎭 Mock Login - TEST MODUS`);
+    await new Promise(r => setTimeout(r, 600));
+
+    // Stabiler Mock-NullifierHash: einmal generieren, dann wiederverwenden
+    let fakeHash = localStorage.getItem("mock_nullifier_hash");
+    if (!fakeHash) {
+        fakeHash = `0x${Date.now().toString(16).padEnd(64, 'a').slice(0, 64)}`;
+        localStorage.setItem("mock_nullifier_hash", fakeHash);
+    }
+
+    const mockPayload = {
+        status: 'success',
+        proof: `mock-proof-${Date.now()}`,
+        merkle_root: `mock-root-${Date.now()}`,
+        nullifier_hash: fakeHash,
+        verification_level: currentConfig.level || 'device'
+    };
+
+    await completeVerify(mockPayload, true);
+}
+
+async function completeVerify(payload, isMock = false) {
+    try {
+        log("📤 Prüfe Server...");
+        const rememberLogin = getRememberLoginValue();
+
+        const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': getAntiForgeryToken()
+            },
+            body: JSON.stringify({
+                payload: payload,
+                action: VERIFY_ACTION,
+                signal: '',
+                rememberLogin
+            })
+        });
+
+        if (!response.ok && !isMock) {
+            let backendMessage = '';
+            try {
+                const errText = await response.text();
+                backendMessage = errText || '';
+            } catch (_) { }
+
+            log(`❌ Anmeldung fehlgeschlagen: ${(backendMessage || 'Unbekannter Fehler').substring(0, 120)}`, true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
+            return;
+        }
+
+        // NullifierHash als UserToken speichern — das ist der stabile Identifier
+        const userHash = payload.nullifier_hash;
+
+        log("🎉 Erfolgreich!");
+        sessionStorage.setItem("user_verified", "true");
+        await new Promise(r => setTimeout(r, 600));
+
+        const storage = rememberLogin ? localStorage : sessionStorage;
+        storage.setItem("UserToken", userHash);
+
+        if (!rememberLogin) {
+            localStorage.removeItem("UserToken");
+        }
+
+        localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
+
+        if (currentConfig.redirectUrl) {
+            window.location.href = currentConfig.redirectUrl;
+        } else {
+            // Seite neu laden damit Links mit userHash aktualisiert werden
+            window.location.reload();
+        }
+    } catch (error) {
+        log("❌ Netzwerkfehler", true);
+    }
+}
+
+function getAntiForgeryToken() {
+    return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+}
 
 function openModal(modalId = 'loginModal') {
     const el = document.getElementById(modalId);
@@ -279,26 +358,6 @@ function updateStoredLoginInfo(userHash, verifyLevel) {
     }
 }
 
-async function refreshRememberedLogin(userHash) {
-    try {
-        const response = await fetch('/WorldMiniApp/Auth/RefreshStatus', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userHash: userHash,
-                rememberLogin: true
-            })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            updateStoredLoginInfo(userHash, data.status);
-        }
-        sessionStorage.setItem("user_verified", "true");
-    } catch (error) {
-        console.warn("RefreshStatus failed", error);
-    }
-}
-
 window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
@@ -306,7 +365,6 @@ window.triggerLogin = (level, redirectUrl) => {
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
     if (storedHash && rememberLogin) {
-        console.log("Hash automatisch gefunden:", storedHash);
         const separator = redirectUrl.includes('?') ? '&' : '?';
         redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
         window.location.href = redirectUrl;
@@ -314,7 +372,6 @@ window.triggerLogin = (level, redirectUrl) => {
     }
 
     if (storedHash) {
-        console.log("Hash automatisch gefunden:", storedHash);
         const separator = redirectUrl.includes('?') ? '&' : '?';
         redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
     }
@@ -336,7 +393,7 @@ window.initAutoLogin = (level) => {
 
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
-    updateStoredLoginInfo(storedHash, "-");
+    updateStoredLoginInfo(storedHash, level);
 
     if (storedHash) {
         sessionStorage.setItem("user_verified", "true");
