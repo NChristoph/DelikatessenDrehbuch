@@ -11,7 +11,7 @@ const REMEMBER_LOGIN_KEY = "remember_login";
 // === DEIN TEST-SCHALTER ===
 // Setze das auf TRUE, um überall (auch am PC) den Mock-Login zu erzwingen.
 // Setze das auf FALSE, wenn du live gehst (damit nur World App User reinkommen).
-const ALLOW_MOCK_EVERYWHERE = true;
+const ALLOW_MOCK_EVERYWHERE = false;
 
 let currentConfig = {
     level: 'orb',
@@ -68,6 +68,26 @@ async function startLoginProcess() {
             console.warn("Install Note:", e);
         }
 
+        if (typeof MiniKit.isInstalled === 'function' && !MiniKit.isInstalled()) {
+            if (ALLOW_MOCK_EVERYWHERE) {
+                console.warn("⚠️ World App nicht erkannt, nutze Mock-Login");
+                await useMockLogin();
+                return;
+            }
+            log("❌ World App Kontext nicht erkannt. Bitte Mini App direkt in World App öffnen.", true);
+            return;
+        }
+
+        if (!MiniKit.commandsAsync || typeof MiniKit.commandsAsync.verify !== 'function') {
+            if (ALLOW_MOCK_EVERYWHERE) {
+                console.warn("⚠️ verify() nicht verfügbar, nutze Mock-Login");
+                await useMockLogin();
+                return;
+            }
+            log("❌ Verify-Befehl nicht verfügbar. Öffne die App in World App neu.", true);
+            return;
+        }
+
         await new Promise(r => setTimeout(r, 800));
         log("Bitte bestätigen...");
 
@@ -82,6 +102,8 @@ async function startLoginProcess() {
             await verifyBackend(res.finalPayload);
         } else {
             log("❌ Abgebrochen", true);
+            const consentButton = document.getElementById('consentLoginButton');
+            if (consentButton) consentButton.disabled = false;
             setTimeout(() => {
                 closeModal('loginModal');
                 handleLoginAbort();
@@ -89,6 +111,8 @@ async function startLoginProcess() {
         }
     } catch (error) {
         console.error("Login Error:", error);
+        const consentButton = document.getElementById('consentLoginButton');
+        if (consentButton) consentButton.disabled = false;
         log(`Fehler: ${error.message || 'Unbekannt'}`, true);
     }
 }
