@@ -133,8 +133,16 @@ async function completeSiwe(payload, nonce, isMock = false) {
         });
 
         if (!response.ok && !isMock) {
-            const errorText = await response.text();
-            log(`❌ Server Fehler: ${errorText.substring(0, 80)}`, true);
+            let backendMessage = '';
+            try {
+                const errJson = await response.json();
+                backendMessage = errJson?.message || '';
+            } catch (_) {
+                const errorText = await response.text();
+                backendMessage = errorText || '';
+            }
+
+            log(`❌ Anmeldung fehlgeschlagen: ${(backendMessage || 'Unbekannter Fehler').substring(0, 120)}`, true);
             return;
         }
 
