@@ -1,0 +1,2320 @@
+﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+@using System.Text.Json
+@using System.Linq
+@using Newtonsoft.Json
+
+
+@{
+   
+    var stepIngredientBindings = Model.IngredientStepJoins
+        .Where(x => x.Preperation != null && x.Ingredient != null)
+        .GroupBy(x => x.Preperation.Id)
+        .ToDictionary(
+            group => group.Key,
+            group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
+
+    var stepCatalogJson = System.Text.Json.JsonSerializer.Serialize(
+        Model.ToSelectRecipePreperationSteps?.Select(step => new
+        {
+            id = step.Id,
+            de = step.Step_DE,
+            en = step.Step_EN,
+            esp = step.Step_ESP,
+            prt = step.Step_PRT,
+            phase = step.Phase,
+            equipment = step.Equipment
+        }) ?? Enumerable.Empty<object>());
+
+    ViewData["Title"] = "Rezept Erstellen";
+    Layout = "_MiniAppLayout";
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+<div class="creator-bg min-vh-100 position-relative">
+    <!-- Loading Overlay -->
+    <div id="datatableLoadingOverlay" class="creator-loading">
+        <div class="creator-loading-card">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Lade...</span>
+            </div>
+            <div class="fw-bold mt-2">Lade Daten...</div>
+            <div class="small text-muted">Einen Moment bitte</div>
+        </div>
+    </div>
+
+    <!-- Topbar (Social Creator) -->
+    <div class="creator-topbar px-3 py-3" style="visibility:hidden">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+
+        <div class="topbar-title">
+            <div class="fw-bold text-truncate">Creator Studio</div>
+            <div class="small text-muted text-truncate">Neuer Upload · Rezeptpost</div>
+        </div>
+
+        <!-- Optional: Quick Publish -->
+        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="Veröffentlichen">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+
+    <div class="feed-shell mx-auto" style="visibility:hidden">
+        <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
+            <input type="hidden" name="userHash" id="hiddenUserTokenField" />
+
+            <!-- HERO CARD -->
+            <div class="creator-hero mb-3">
+                <div class="creator-hero-left">
+                    <div class="creator-hero-badge">
+                        <i class="bi bi-stars me-2"></i>
+                        <span class="label-lang" data-de="Upload ready" data-en="Upload ready" data-esp="Listo para subir" data-prt="Pronto para envio">Upload ready</span>
+                    </div>
+
+                    <h1 class="creator-hero-title mb-1">Neuen Content erstellen</h1>
+                    <p class="creator-hero-sub mb-0">
+                        Erstelle einen Social-Post wie im Feed: Media + Zutaten + Schritte + Keywords.
+                    </p>
+                </div>
+
+                <div class="creator-hero-right">
+                    <div class="progress-dots" aria-hidden="true">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="small text-muted mt-2">5 Schritte</div>
+                </div>
+            </div>
+
+            <!-- 1) BASICS -->
+            <section class="creator-card mb-3" id="card-basics">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
+                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
+                                Titel, Kategorie, Personen, Dauer
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">1/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted mb-2 label-lang"
+                               data-de="Titel"
+                               data-en="Title"
+                               data-esp="Título"
+                               data-prt="Título">Titel</label>
+
+                        <div class="input-pill">
+                            <i class="bi bi-fonts text-muted"></i>
+                            <input asp-for="Title"
+                                   class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
+                                   placeholder="Titel"
+                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título"
+                                   required />
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Kategorie"
+                                   data-en="Category"
+                                   data-esp="Categoría"
+                                   data-prt="Categoria">Kategorie</label>
+
+                            <div class="select-pill">
+                                <i class="bi bi-grid text-muted"></i>
+                                <select asp-for="Recipe.Category" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
+                                    <option value="" selected disabled class="lang-opt"
+                                            data-txt-de="Kategorie"
+                                            data-txt-en="Category"
+                                            data-txt-esp="Categoría"
+                                            data-txt-prt="Categoria">Kategorie</option>
+
+                                    <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer" data-txt-esp="Entrada" data-txt-prt="Entrada">Vorspeise</option>
+                                    <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course" data-txt-esp="Plato principal" data-txt-prt="Prato principal">Hauptspeise</option>
+                                    <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert" data-txt-esp="Postre" data-txt-prt="Sobremesa">Dessert</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Präferenz"
+                                   data-en="Preference"
+                                   data-esp="Preferencia"
+                                   data-prt="Preferência">Präferenz</label>
+
+                            <div class="select-pill">
+                                <i class="bi bi-heart text-muted"></i>
+                                <select asp-for="Recipe.Preferences" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
+                                    <option value="" selected disabled class="lang-opt"
+                                            data-txt-de="Präferenz"
+                                            data-txt-en="Preference"
+                                            data-txt-esp="Preferencia"
+                                            data-txt-prt="Preferência">Präferenz</option>
+
+                                    <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan" data-txt-esp="Vegano" data-txt-prt="Vegano">Vegan</option>
+                                    <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian" data-txt-esp="Vegetariano" data-txt-prt="Vegetariano">Vegetarisch</option>
+                                    <option value="Fish" class="lang-opt" data-txt-de="Fisch" data-txt-en="Fish" data-txt-esp="Pescado" data-txt-prt="Peixe">Fisch</option>
+                                    <option value="Pork" class="lang-opt" data-txt-de="Schwein" data-txt-en="Pork" data-txt-esp="Cerdo" data-txt-prt="Porco">Schwein</option>
+                                    <option value="Beef" class="lang-opt" data-txt-de="Rind" data-txt-en="Beef" data-txt-esp="Res" data-txt-prt="Carne">Rind</option>
+                                    <option value="OtherMeat" class="lang-opt" data-txt-de="Anderes Fleisch" data-txt-en="Other Meat" data-txt-esp="Otra carne" data-txt-prt="Outra carne">Anderes Fleisch</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Personen"
+                                   data-en="Persons"
+                                   data-esp="Personas"
+                                   data-prt="Pessoas">Personen</label>
+
+                            <div class="input-pill">
+                                <i class="bi bi-people text-muted"></i>
+                                <input asp-for="Recipe.PersonCount"
+                                       type="number"
+                                       class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
+                                       placeholder="Personen"
+                                       data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" />
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-2 label-lang"
+                                   data-de="Dauer (Min)"
+                                   data-en="Time (min)"
+                                   data-esp="Tiempo (min)"
+                                   data-prt="Tempo (min)">Dauer (Min)</label>
+
+                            <div class="input-pill">
+                                <i class="bi bi-clock text-muted"></i>
+                                <input asp-for="Recipe.PreperationTime"
+                                       type="number"
+                                       class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
+                                       placeholder="Minuten"
+                                       data-ph-de="Minuten" data-ph-en="Minutes" data-ph-esp="Minutos" data-ph-prt="Minutos" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2) MEDIA -->
+            <section class="creator-card mb-3" id="card-media">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
+                            <div class="creator-card-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
+                                Video oder Bild für den Feed
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">2/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <div id="videoPreviewContainer" class="d-none mb-3">
+                        <div class="media-preview">
+                            <img id="imagePreview" class="w-100 d-none" style="max-height: 320px; object-fit: cover;" alt="Preview" />
+                            <video id="videoPreview" class="w-100" style="max-height: 320px; object-fit: cover;" controls></video>
+                            <button type="button" class="btn btn-light btn-sm media-reset" onclick="resetVideo()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label id="uploadLabel" class="upload-drop" for="videoInput">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                        </div>
+                        <div class="fw-bold mb-1 label-lang"
+                             data-de="Upload starten"
+                             data-en="Start upload"
+                             data-esp="Iniciar subida"
+                             data-prt="Iniciar envio">
+                            Upload starten
+                        </div>
+
+                        <div class="small text-muted label-lang"
+                             data-de="Wähle ein Video oder Bild (Feed-Style)."
+                             data-en="Choose a video or image (feed style)."
+                             data-esp="Elige un video o imagen (estilo feed)."
+                             data-prt="Escolha um vídeo ou imagem (estilo feed).">
+                            Wähle ein Video oder Bild (Feed-Style).
+                        </div>
+
+                        <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
+                    </label>
+                </div>
+            </section>
+
+            <!-- 3) INGREDIENTS -->
+            <section class="creator-card mb-3" id="card-ingredients">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
+                            <div class="creator-card-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
+                                Suche + hinzufügen wie im Creator Flow
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">3/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <div class="mb-2">
+                        <input type="text"
+                               id="ingredientSearch"
+                               class="form-control form-control-sm"
+                               placeholder="Zutaten suchen..." />
+                    </div>
+
+                    <div class="table-responsive creator-table-wrap">
+                        <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
+                            <thead>
+                                <tr>
+                                    <th class="small text-muted">Zutat, Menge, Einheit</th>
+                                    <th class="d-none" aria-hidden="true"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.ToSelectIngredientsAndNutrients != null)
+                                {
+                                    foreach (var item in Model.ToSelectIngredientsAndNutrients)
+                                    {
+                                        <tr class="ingredient-db-row"
+                                            data-ingredient-id="@item.Id"
+                                            data-name-de="@item.Name_DE"
+                                            data-name-en="@item.Name_EN"
+                                            data-name-esp="@item.Name_ESP"
+                                            data-name-prt="@item.Name_PRT">
+                                            <td>
+                                                <div class="fw-bold display-name">@item.Name_DE</div>
+
+                                                <div class="row g-2 mt-2 ingredient-inline-inputs align-items-end">
+                                                    <div class="col-5" style="max-width: 26%">
+                                                        <label class="small text-muted">Menge</label>
+                                                        <input type="text" inputmode="decimal" class="form-control form-control-sm js-db-qty js-decimal-input" value="0" />
+                                                    </div>
+
+                                                    <div class="col-5" style="max-width: 54%">
+                                                        <label class="small text-muted">Einheit</label>
+                                                        <select class="form-select form-select-sm js-db-unit">
+                                                            @if (Model.Measure != null)
+                                                            {
+                                                                foreach (var measure in Model.Measure)
+                                                                {
+                                                                    <option value="@measure.UnitOfMeasurement">@measure.UnitOfMeasurement</option>
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-2 text-end" style="max-width: fit-content">
+                                                        <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="d-none" aria-hidden="true"></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    
+                </div>
+                <div id="selectedIngredients" class="mt-3 selected-zone"></div>
+            </section>
+
+            <!-- 4) STEPS + SANDBOX -->
+            <section class="creator-card mb-3" id="card-steps">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                                Add & sortiere wie ein Script
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">4/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <!-- Sandbox Studio -->
+                    <div class="sandbox-studio mt-3">
+                        <div class="sandbox-head">
+                            <div>
+                                <div class="sandbox-title">Sandbox Studio</div>
+                                <div class="sandbox-sub">Schnelles Verknüpfen wie in einem Creator-Workflow</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" id="btnSuggestSteps" class="btn btn-sm btn-outline-primary rounded-pill" onclick="suggestSteps()" disabled>
+                                    <i class="bi bi-magic me-1"></i>Schritte vorschlagen
+                                </button>
+                                <span class="badge text-bg-light border">Beta</span>
+                            </div>
+                        </div>
+                        <div id="recipeTypeScoreBar" class="mt-2 d-none">
+                            <div class="d-flex flex-wrap align-items-center gap-1">
+                                <span class="small text-muted me-1">Rezepttyp:</span>
+                                <span id="recipeTypeBadges"></span>
+                            </div>
+                        </div>
+                        <div id="masterStepPreviewBox" class="mt-2 d-none">
+                            <div class="small text-muted mb-1">Master-Step Vorschau:</div>
+                            <div id="masterStepPreviewList" class="d-flex flex-column gap-1"></div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-5">
+                                <div class="sandbox-panel h-100">
+                                    <div class="fw-bold small mb-2">Ausgewählte Zutaten</div>
+                                    <div id="sandboxIngredientList" class="d-flex flex-column gap-2">
+                                        <div class="text-muted small">Noch keine Zutat ausgewählt.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-7">
+                                <div class="sandbox-panel h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="fw-bold small">Vorschläge</div>
+                                        <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <input type="text"
+                                               id="stepSearch"
+                                               class="form-control form-control-sm"
+                                               placeholder="Schritte durchsuchen..." />
+                                    </div>
+
+                                    <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
+                                        <button class="sandbox-tab active" type="button" data-sandbox-tab="linked">Aktive Zutat</button>
+                                        <button class="sandbox-tab" type="button" data-sandbox-tab="all">Alle Zutaten</button>
+                                        <button class="sandbox-tab" type="button" data-sandbox-tab="unbound">Ohne Binding</button>
+                                    </div>
+
+                                    <div class="mt-2 d-none" id="sandboxUnboundSearchWrap">
+                                        <input type="text"
+                                               id="sandboxUnboundSearch"
+                                               class="form-control form-control-sm"
+                                               placeholder="Ungebundene Schritte durchsuchen..." />
+                                        <div class="d-flex flex-wrap gap-1 mt-2" id="equipmentFilterBar">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill equipment-filter-btn active" data-equipment="all" style="font-size:.78rem;">
+                                                <i class="bi bi-grid me-1"></i>Alle
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill equipment-filter-btn" data-equipment="1" style="font-size:.78rem;">
+                                                <i class="bi bi-thermometer-high me-1"></i>Backofen
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning btn-sm rounded-pill equipment-filter-btn" data-equipment="2" style="font-size:.78rem;">
+                                                <i class="bi bi-fire me-1"></i>Pfanne
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill equipment-filter-btn" data-equipment="3" style="font-size:.78rem;">
+                                                <i class="bi bi-cup-hot me-1"></i>Topf
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill equipment-filter-btn" data-equipment="4" style="font-size:.78rem;">
+                                                <i class="bi bi-fire me-1"></i>Bräter
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill equipment-filter-btn" data-equipment="5" style="font-size:.78rem;">
+                                                <i class="bi bi-lightning me-1"></i>Kochfeld
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2 sandbox-step-list">
+                                        <div class="text-muted small">Wähle links eine Zutat aus.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div id="sandboxCurrentStep" class="sandbox-current text-muted">Aktueller Schritt: noch keiner.</div>
+                            <div id="sandboxPreviousSteps" class="mt-2 d-flex flex-column gap-2">
+                                <div class="text-muted small">Vorherige Schritte erscheinen hier.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="master-step-builder mt-3 p-3">
+                        <div class="fw-bold mb-2">Master Template Builder</div>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted mb-1">Zutaten (Mehrfachauswahl)</label>
+                                <div id="masterIngredientButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small text-muted mb-1">Template</label>
+                                <select id="masterTemplateSelect" class="form-select form-select-sm"></select>
+                            </div>
+                            <div class="col-md-3 d-grid">
+                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-check2-circle me-1"></i>Übernehmen
+                                </button>
+                            </div>
+                        </div>
+                        <div id="masterVariables" class="row g-2 mt-1"></div>
+                        <div class="small text-muted mt-2">Preview:</div>
+                        <div id="masterPreviewText" class="small border rounded px-2 py-2 bg-light">Noch kein Template gewählt.</div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
+                            <div class="small text-muted">Sortieren, prüfen und bearbeiten</div>
+                        </div>
+                        <div id="selectedSteps" class="selected-zone"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5) KEYWORDS -->
+            <section class="creator-card mb-4" id="card-keywords">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
+                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
+                                Hilft beim Feed & bei Suche
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">5/5</span>
+                </div>
+
+                <div class="creator-card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.ToSelectKeywords != null)
+                        {
+                            foreach (var keyword in Model.ToSelectKeywords)
+                            {
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary rounded-pill keyword-btn"
+                                        data-keyword-id="@keyword.Id"
+                                        data-word-de="@keyword.Word_DE"
+                                        data-word-en="@keyword.Word_EN"
+                                        data-word-esp="@keyword.Word_ESP"
+                                        data-word-prt="@keyword.Word_PRT"
+                                        onclick="toggleKeyword('@keyword.Id', this)">
+                                    @keyword.Word_DE
+                                </button>
+                            }
+                        }
+                    </div>
+
+                    <div id="selectedKeywords" class="mt-3 selected-zone"></div>
+                </div>
+            </section>
+
+            <!-- Bottom Action Bar (Feed Style) -->
+            <div class="fixed-bottom creator-bottom p-3">
+                <div class="creator-bottom-inner">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bottom-hint">
+                            <div class="fw-bold">Bereit zum Posten?</div>
+                            <div class="small text-muted">Alles fühlt sich wie ein Feed-Upload an.</div>
+                        </div>
+
+                        <button type="submit" class="btn publish-btn w-100">
+                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
+                            <i class="bi bi-send-fill ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<style>
+    /* ---------- Background / Shell ---------- */
+    .creator-bg {
+        background: radial-gradient(900px 420px at 20% 0%, rgba(255, 153, 102, .18), transparent 60%), radial-gradient(900px 520px at 80% 10%, rgba(139, 92, 246, .16), transparent 65%), #ffffff;
+    }
+
+    .feed-shell {
+        max-width: 720px;
+        padding: 12px 12px 120px 12px; /* space for bottom bar */
+    }
+
+    /* ---------- Loading Overlay ---------- */
+    .creator-loading {
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .creator-loading-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 20px 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* ---------- Topbar ---------- */
+    body > .position-fixed.top-0.end-0.m-3.dropdown {
+        z-index: 2601 !important;
+    }
+
+    .creator-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 1500;
+        background: rgba(255,255,255,0.86);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .topbar-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0,0,0,0.10);
+        background: #fff;
+        color: #111;
+        text-decoration: none;
+    }
+
+    .topbar-primary {
+        border: none;
+        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        color: #fff;
+    }
+
+    .topbar-title {
+        flex: 1;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    /* ---------- Hero ---------- */
+    .creator-hero {
+        border-radius: 26px;
+        background: rgba(255,255,255,0.82);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
+        padding: 18px;
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        overflow: hidden;
+    }
+
+    .creator-hero-title {
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: #111827;
+        letter-spacing: -0.01em;
+    }
+
+    .creator-hero-sub {
+        color: rgba(17,24,39,.70);
+        font-size: .95rem;
+    }
+
+    .creator-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 800;
+        font-size: .82rem;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 153, 102, .12);
+        border: 1px solid rgba(255, 153, 102, .25);
+        color: #7c2d12;
+        margin-bottom: 10px;
+        width: fit-content;
+    }
+
+    .progress-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.10);
+    }
+
+        .dot.active {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        }
+
+    /* ---------- Cards ---------- */
+    .creator-card {
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 26px;
+        background: rgba(255,255,255,0.86);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .creator-card-head {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .creator-card-body {
+        padding: 14px 16px 16px 16px;
+    }
+
+    .creator-card-title {
+        font-weight: 900;
+        font-size: 1.02rem;
+        color: #111827;
+    }
+
+    .creator-card-sub {
+        font-size: .84rem;
+        color: rgba(17,24,39,.60);
+        margin-top: 2px;
+    }
+
+    .card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .candy-blue {
+        background: rgba(59, 130, 246, .10);
+        color: #2563eb;
+    }
+
+    .candy-green {
+        background-color: #f0fdf4 !important;
+        color: #16a34a !important;
+        border: none;
+    }
+
+    .candy-pink {
+        background-color: #fdf2f8 !important;
+        color: #db2777 !important;
+        border: none;
+    }
+
+    .candy-purple {
+        background: rgba(139,92,246,.10);
+        color: #7c3aed;
+    }
+
+    /* ---------- Inputs ---------- */
+    .input-pill, .select-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: rgba(255,255,255,0.90);
+    }
+
+        .input-pill .form-control,
+        .select-pill .form-select {
+            padding: 0;
+            min-height: unset;
+        }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: none;
+        border-color: transparent;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    /* ---------- Media ---------- */
+    .media-preview {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        background: #111;
+        border: 1px solid rgba(0,0,0,0.10);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+    }
+
+    .media-reset {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        border-radius: 999px;
+        border: none;
+        opacity: .9;
+    }
+
+    .upload-drop {
+        display: block;
+        border-radius: 22px;
+        border: 1.5px dashed rgba(0,0,0,0.14);
+        background: rgba(255,255,255,0.78);
+        padding: 18px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+        .upload-drop:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 34px rgba(0,0,0,0.08);
+        }
+
+    .upload-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 10px auto;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 153, 102, .14);
+        border: 1px solid rgba(255, 153, 102, .25);
+        color: #ea580c;
+        font-size: 1.6rem;
+    }
+
+    /* ---------- Tables / Selected Zone ---------- */
+    .creator-table-wrap {
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: rgba(255,255,255,0.70);
+        height: 22rem;
+        overflow-y: auto;
+    }
+
+    /* Der Bereich, in dem die ausgewählten Zutaten landen */
+    #selectedIngredients {
+        display: flex !important;
+        flex-direction: column !important; /* Zwingt Elemente untereinander */
+        gap: 15px; /* Erzeugt den Abstand zwischen den Karten */
+        width: 100%;
+        position: relative;
+        padding: 5px;
+    }
+
+    /* Die einzelne Zutat-Karte */
+    .ingredient-row.dynamic-item {
+        display: block !important; /* Kein Flex-Layout für die äußere Box */
+        position: relative !important; /* Verhindert das Übereinanderstapeln (absolute) */
+        width: 100% !important;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 15px;
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin: 0 !important; /* Abstand wird über 'gap' im Parent geregelt */
+    }
+
+    /* Design-Anpassung für die Inputs innerhalb der Karte */
+    .candy-purple-input {
+        border: none !important;
+        background-color: rgba(139, 92, 246, 0.08) !important;
+        color: #7c3aed !important;
+        font-weight: bold;
+        border-radius: 10px !important;
+    }
+
+    .selected-zone {
+        padding-top: 6px;
+    }
+
+    .dynamic-item {
+        background: rgba(255,255,255,0.92);
+        border-radius: 18px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
+
+    #ingredientsDbTable .ingredient-inline-inputs .form-control,
+    #ingredientsDbTable .ingredient-inline-inputs .form-select {
+        min-height: 38px;
+    }
+
+    /* ---------- Sandbox Studio ---------- */
+    .sandbox-studio {
+        border-radius: 22px;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: rgba(255,255,255,0.78);
+        padding: 14px;
+    }
+
+    .sandbox-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .sandbox-title {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .sandbox-sub {
+        font-size: .84rem;
+        color: rgba(17,24,39,.60);
+    }
+
+    .sandbox-panel {
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 18px;
+        padding: 12px;
+        background: #fafafa;
+    }
+
+    .sandbox-tabs {
+        display: flex;
+        gap: 8px;
+    }
+
+    .sandbox-tab {
+        flex: 1;
+        border-radius: 999px;
+        padding: 10px 12px;
+        border: 1px solid rgba(0,0,0,0.10);
+        background: #fff;
+        font-weight: 800;
+        font-size: .82rem;
+        color: rgba(17,24,39,.75);
+    }
+
+        .sandbox-tab.active {
+            border-color: rgba(139,92,246,.35);
+            background: rgba(139,92,246,.10);
+            color: #6d28d9;
+        }
+
+    .sandbox-ingredient-btn.active {
+        border-color: rgba(139,92,246,.40);
+        background: rgba(139,92,246,.10);
+        color: #6d28d9;
+        font-weight: 800;
+    }
+
+    .sandbox-current {
+        border-left: 4px solid #8b5cf6;
+        background: rgba(139,92,246,.08);
+        border-radius: 14px;
+        padding: 10px;
+    }
+
+    .sandbox-step-list {
+        max-height: 22rem;
+        overflow-y: auto;
+        padding-right: .2rem;
+    }
+
+    .phase-badge {
+        font-size: .68rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 5px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .phase-badge-1 { background: rgba(34,197,94,.12); color: #15803d; }
+    .phase-badge-2 { background: rgba(239,68,68,.12); color: #dc2626; }
+    .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
+    .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
+
+    .sandbox-phase-header {
+        font-size: .78rem;
+        font-weight: 700;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .equipment-filter-btn.active {
+        font-weight: 800;
+    }
+
+    .equipment-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 4px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .equip-badge-1 { background: rgba(220,53,69,.12); color: #dc3545; }
+    .equip-badge-2 { background: rgba(255,193,7,.15); color: #b45309; }
+    .equip-badge-3 { background: rgba(13,202,240,.12); color: #0891b2; }
+    .equip-badge-4 { background: rgba(25,135,84,.12); color: #198754; }
+    .equip-badge-5 { background: rgba(13,110,253,.12); color: #0d6efd; }
+
+
+    .sandbox-step-card {
+        border-color: rgba(0,0,0,0.08) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .sandbox-step-candidate {
+        font-weight: 600;
+    }
+
+    .sandbox-accept-step-btn:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+    }
+
+
+    /* ---------- Bottom Bar ---------- */
+    .creator-bottom {
+        left: 50% !important;
+        transform: translateX(-50%);
+        width: min(720px, 100%);
+        z-index: 1600;
+        background: linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.55) 60%, transparent 100%);
+        pointer-events: none;
+    }
+
+    .creator-bottom-inner {
+        pointer-events: auto;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 14px 36px rgba(0,0,0,0.10);
+        padding: 10px;
+    }
+
+    .bottom-hint {
+        min-width: 210px;
+        display: none;
+    }
+
+    .publish-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 14px 16px;
+        font-weight: 900;
+        color: #fff;
+        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        box-shadow: 0 14px 30px rgba(255, 94, 98, 0.28);
+    }
+
+    /* ---------- Responsive ---------- */
+    @@media (min-width: 768px) {
+        .bottom-hint {
+            display: block;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .feed-shell {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .creator-hero {
+            flex-direction: column;
+        }
+
+        .creator-hero-right {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .creator-table-wrap {
+            height: 20rem;
+            overflow-y: auto;
+        }
+
+        .table-responsive {
+            overflow-x: hidden;
+        }
+
+        #ingredientsDbTable thead, #stepsDbTable thead {
+            display: none;
+        }
+
+        #ingredientsDbTable tbody tr, #stepsDbTable tbody tr {
+            display: block;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 18px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+        }
+
+        #ingredientsDbTable tbody td, #stepsDbTable tbody td {
+            display: block;
+            border: 0;
+            padding: 0;
+        }
+
+            #ingredientsDbTable tbody td + td,
+            #stepsDbTable tbody td + td {
+                margin-top: 10px;
+                text-align: right !important;
+            }
+    }
+
+
+    .master-button-wrap {
+        min-height: 38px;
+        padding: 4px;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .master-button-wrap .btn {
+        text-align: left;
+    }
+
+    .master-step-builder {
+        border: 1px solid rgba(13,110,253,0.15);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(13,110,253,0.04) 0%, rgba(255,255,255,1) 45%);
+        box-shadow: 0 6px 16px rgba(13,110,253,0.08);
+    }
+
+    .master-step-builder .form-select,
+    .master-step-builder .form-control {
+        border-radius: 10px;
+    }
+
+    #masterPreviewText {
+        border-color: rgba(13,110,253,0.2) !important;
+        background: #f8fbff !important;
+    }
+
+</style>
+
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/master-step-renderer.js"></script>
+    <script>
+        const stepCatalog = @Html.Raw(stepCatalogJson);
+         const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
+         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
+
+         function getCookieValue(name) {
+             const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
+             return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+         }
+
+        function resolveLangKey(value) {
+            const normalized = (value || 'de').toLowerCase();
+            if (normalized === 'es') return 'esp';
+            if (normalized === 'pt') return 'prt';
+            return normalized;
+        }
+
+        let currentLang = resolveLangKey(getCookieValue('deli-lang'));
+        let activeSandboxIngredientId = null;
+        let activeSandboxIngredientName = '';
+        let activeSandboxTab = 'linked';
+        let sandboxUnboundSteps = [];
+        let activeEquipmentFilter = 'all';
+        let selectedMasterIngredientNames = [];
+        let selectedMasterTemplateId = '';
+        let tempStepIdCounter = -1;
+
+        function getAllStepRows() {
+            return Array.isArray(stepCatalog) ? stepCatalog : [];
+        }
+
+        function getPhaseLabel(phase) {
+            const map = {
+                1: { text: 'Vorb.', cls: 'phase-badge-1' },
+                2: { text: 'Kochen', cls: 'phase-badge-2' },
+                3: { text: 'Würzen', cls: 'phase-badge-3' },
+                4: { text: 'Finish', cls: 'phase-badge-4' }
+            };
+            const info = map[phase];
+            if (!info) return '';
+            return `<span class="phase-badge ${info.cls}">${info.text}</span>`;
+        }
+
+        function getEquipmentLabel(equipment) {
+            const map = {
+                1: { text: 'Backofen', cls: 'equip-badge-1', icon: 'bi-thermometer-high' },
+                2: { text: 'Pfanne', cls: 'equip-badge-2', icon: 'bi-fire' },
+                3: { text: 'Topf', cls: 'equip-badge-3', icon: 'bi-cup-hot' },
+                4: { text: 'Bräter', cls: 'equip-badge-4', icon: 'bi-fire' },
+                5: { text: 'Kochfeld', cls: 'equip-badge-5', icon: 'bi-lightning' }
+            };
+            const info = map[equipment];
+            if (!info) return '';
+            return `<span class="equipment-badge ${info.cls}"><i class="bi ${info.icon} me-1"></i>${info.text}</span>`;
+        }
+
+        function updateSuggestButtonState() {
+            const hasIngredients = getSelectedIngredientIds().length > 0;
+            $('#btnSuggestSteps').prop('disabled', !hasIngredients);
+        }
+
+        /** Live recipe type detection when ingredients change */
+        function updateRecipeTypeDetection() {
+            const selectedIds = getSelectedIngredientIds();
+            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
+            const scoreBar = $('#recipeTypeScoreBar');
+            const badges = $('#recipeTypeBadges');
+            const masterBox = $('#masterStepPreviewBox');
+            const masterList = $('#masterStepPreviewList');
+
+            if (!selectedIds.length) {
+                scoreBar.addClass('d-none');
+                masterBox.addClass('d-none');
+                return;
+            }
+
+            const suggest = window.RecipeStepSuggest;
+            if (suggest && typeof suggest.isLoaded === 'function' && !suggest.isLoaded() && typeof suggest.loadMapping === 'function') {
+                suggest.loadMapping().then(() => updateRecipeTypeDetection());
+                return;
+            }
+
+            const types = suggest && typeof suggest.detectRecipeTypes === 'function'
+                ? suggest.detectRecipeTypes(selectedIds)
+                : [];
+
+            if (types.length && suggest && typeof suggest.renderRecipeTypeBadges === 'function') {
+                badges.html(suggest.renderRecipeTypeBadges(types, 3));
+                scoreBar.removeClass('d-none');
+            } else {
+                scoreBar.addClass('d-none');
+            }
+
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.suggestForIngredient === 'function' && typeof MasterStepRenderer.render === 'function') {
+                const previews = [];
+                selectedNames.slice(0, 2).forEach(name => {
+                    const steps = MasterStepRenderer.suggestForIngredient(name).slice(0, 3);
+                    steps.forEach(step => {
+                        const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, { ingredientName: name, recipeCategory: $('#Recipe_Category').val() });
+                        const text = MasterStepRenderer.render(step.master_id, defaults, currentLang);
+                        if (text) {
+                            previews.push({ phase: parseInt(step.phase || 0, 10), text });
+                        }
+                    });
+                });
+
+                if (previews.length) {
+                    masterList.empty();
+                    previews.slice(0, 5).forEach(item => {
+                        masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text}</div>`);
+                    });
+                    masterBox.removeClass('d-none');
+                } else {
+                    masterBox.addClass('d-none');
+                }
+            } else {
+                masterBox.addClass('d-none');
+            }
+        }
+
+        // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
+        function getStepBoundIngredientIds(stepId) {
+            return (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
+        }
+
+        // Prüft ob für eine bestimmte Zutat+Phase Kombination bereits ein Step ausgewählt ist
+        function isIngredientPhaseCovered(ingredientId, phase) {
+            const ingIdStr = ingredientId.toString();
+            let covered = false;
+            $('#selectedSteps .step-row').each(function () {
+                const rowStepId = $(this).data('step-id')?.toString();
+                const rowStep = getAllStepRows().find(x => x && x.id?.toString() === rowStepId);
+                if (!rowStep) return;
+                const rowPhase = parseInt(rowStep.phase ?? 0, 10);
+                if (rowPhase !== phase || rowPhase < 1) return;
+                const rowBoundIds = getStepBoundIngredientIds(rowStepId).map(x => x.toString());
+                if (rowBoundIds.includes(ingIdStr)) {
+                    covered = true;
+                    return false; // break
+                }
+            });
+            return covered;
+        }
+
+        function suggestSteps() {
+            const selectedIds = getSelectedIngredientIds();
+            if (!selectedIds.length) return;
+
+            const existingSteps = $('#selectedSteps .step-row').length;
+            if (existingSteps > 0) {
+                if (!confirm('Bestehende Schritte ersetzen?')) return;
+            }
+
+            // Collect selected ingredient names for conflict checking
+            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
+
+            // Build a stepId lookup from the page catalog
+            const catalogById = {};
+            getAllStepRows().forEach(s => { catalogById[s.id.toString()] = s; });
+
+            function runSuggestion() {
+                const result = RecipeStepSuggest.suggestStepsForIngredients(selectedIds, catalogById, {
+                    selectedIngredientNames: selectedNames,
+                    maxSteps: 20
+                });
+
+                // Show recipe type score
+                const scoreBar = $('#recipeTypeScoreBar');
+                const badges = $('#recipeTypeBadges');
+                if (result.recipeTypes.length) {
+                    badges.html(RecipeStepSuggest.renderRecipeTypeBadges(result.recipeTypes, 3));
+                    scoreBar.removeClass('d-none');
+                } else {
+                    scoreBar.addClass('d-none');
+                }
+
+                // If mapping has results, use them; otherwise fall back to DB binding logic
+                if (result.steps.length) {
+                    $('#selectedSteps').empty();
+                    result.steps.forEach(item => {
+                        const sourceRow = catalogById[item.stepId.toString()];
+                        const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
+                        addStep(item.stepId.toString(), null, label, { skipRender: true });
+                    });
+                    updateStepIndices();
+                    renderSandboxStepTab();
+                    return;
+                }
+
+                // Fallback: original DB-binding-based logic
+                suggestStepsFallback();
+            }
+
+            if (RecipeStepSuggest.isLoaded()) {
+                runSuggestion();
+            } else {
+                RecipeStepSuggest.loadMapping()
+                    .then(() => runSuggestion())
+                    .catch(() => suggestStepsFallback());
+            }
+        }
+
+        /** Original suggest logic as fallback when JSON mapping is unavailable */
+        function suggestStepsFallback() {
+            const selectedIds = getSelectedIngredientIds();
+            const allSteps = getAllStepRows();
+            const bestPerCombo = new Map();
+
+            allSteps.forEach(step => {
+                const stepId = step.id;
+                const phase = parseInt(step.phase ?? 0, 10);
+                if (phase < 1) return;
+                const boundIds = getStepBoundIngredientIds(stepId);
+                if (!boundIds.length) return;
+                const matchingIngredients = boundIds.filter(bid => selectedIds.includes(bid));
+                if (!matchingIngredients.length) return;
+
+                matchingIngredients.forEach(ingId => {
+                    const key = `${ingId}_${phase}`;
+                    const matchCount = matchingIngredients.length;
+                    const existing = bestPerCombo.get(key);
+                    if (!existing || matchCount > existing.matchCount) {
+                        bestPerCombo.set(key, { stepId, phase, matchCount, ingId });
+                    }
+                });
+            });
+
+            const uniqueSteps = new Map();
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            bestPerCombo.forEach(item => {
+                if (!uniqueSteps.has(item.stepId)) uniqueSteps.set(item.stepId, item);
+            });
+
+            const sorted = [...uniqueSteps.values()].sort((a, b) => {
+                const pa = phaseOrder[a.phase] ?? 4;
+                const pb = phaseOrder[b.phase] ?? 4;
+                if (pa !== pb) return pa - pb;
+                return b.matchCount - a.matchCount;
+            });
+
+            $('#selectedSteps').empty();
+            sorted.forEach(item => {
+                const sourceRow = allSteps.find(x => x.id === item.stepId);
+                const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
+                addStep(item.stepId.toString(), null, label, { skipRender: true });
+            });
+            updateStepIndices();
+            renderSandboxStepTab();
+        }
+
+        function getSelectedIngredientIds() {
+            return $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                return parseInt($(this).val(), 10);
+            }).get().filter(id => !isNaN(id));
+        }
+
+        function getSelectedIngredientsForSandbox() {
+            const fromSelected = $('#selectedIngredients .ingredient-row').map(function () {
+                const row = $(this);
+                const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
+                const name = row.find('.display-name-selected').text()?.trim() || '';
+                return { id, name };
+            }).get().filter(x => x.id || x.name);
+
+            if (fromSelected.length) {
+                return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
+            }
+
+            const fromSandbox = $('#sandboxIngredientList .sandbox-ingredient-btn').map(function () {
+                const btn = $(this);
+                return {
+                    id: btn.data('id')?.toString() || '',
+                    name: btn.data('name')?.toString() || 'Zutat'
+                };
+            }).get();
+
+            if (fromSandbox.length) {
+                return fromSandbox;
+            }
+
+            return [];
+        }
+
+        function buildIngredientTextForMaster() {
+            const selected = selectedMasterIngredientNames.filter(x => !!x && x.trim());
+            if (!selected.length) return '';
+            if (selected.length === 1) return selected[0];
+            if (selected.length === 2) return `${selected[0]} und ${selected[1]}`;
+            return `${selected.slice(0, -1).join(', ')} und ${selected[selected.length - 1]}`;
+        }
+
+        const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
+
+        function refreshMasterTemplateBuilder() {
+            const ingredientButtons = $('#masterIngredientButtons');
+            const ingredients = getSelectedIngredientsForSandbox();
+            ingredientButtons.empty();
+
+            const availableNames = ingredients.map(item => item.name).filter(Boolean);
+            selectedMasterIngredientNames = selectedMasterIngredientNames.filter(name => availableNames.includes(name));
+            if (!selectedMasterIngredientNames.length && availableNames.length) {
+                selectedMasterIngredientNames = [availableNames[0]];
+            }
+
+            if (!availableNames.length) {
+                ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Noch kein Template gewählt.');
+                refreshMasterTemplateOptions();
+                return;
+            }
+
+            availableNames.forEach(name => {
+                const isActive = selectedMasterIngredientNames.includes(name);
+                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-ingredient-btn" data-name="${name}">${name}</button>`);
+            });
+
+            // Hinweis: Mehrere Zutaten auswählbar
+            if (availableNames.length > 1 && selectedMasterIngredientNames.length > 0) {
+                ingredientButtons.append(`<div class="text-muted small mt-1">${selectedMasterIngredientNames.length} von ${availableNames.length} gewählt</div>`);
+            }
+
+            refreshMasterTemplateOptions();
+        }
+
+        function refreshMasterTemplateOptions() {
+            const templateSelect = $('#masterTemplateSelect');
+            const ingredientName = buildIngredientTextForMaster();
+            templateSelect.empty();
+
+            if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
+                templateSelect.append('<option value="">Keine Templates</option>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Master-Step Renderer nicht verfügbar.');
+                selectedMasterTemplateId = '';
+                return;
+            }
+
+            const templates = MasterStepRenderer.getAllTemplates();
+            if (!templates.length) {
+                templateSelect.append('<option value="">Keine Templates gefunden</option>');
+                $('#masterVariables').empty();
+                $('#masterPreviewText').text('Keine Master-Templates gefunden.');
+                selectedMasterTemplateId = '';
+                return;
+            }
+
+            if (!selectedMasterTemplateId || !templates.some(step => step.master_id === selectedMasterTemplateId)) {
+                selectedMasterTemplateId = templates[0].master_id;
+            }
+
+            templates.forEach(step => {
+                const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
+                    ingredientName: ingredientName,
+                    recipeCategory: $('#Recipe_Category').val()
+                });
+                const localized = MasterStepRenderer.render(step.master_id, defaults, currentLang);
+                const label = localized || step.description || step.master_id;
+                templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
+            });
+
+            templateSelect.val(selectedMasterTemplateId);
+            renderMasterTemplateEditor();
+        }
+
+        function renderMasterTemplateEditor() {
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
+            const ingredientName = buildIngredientTextForMaster();
+            const box = $('#masterVariables');
+            box.empty();
+
+            if (!templateId || !window.MasterStepRenderer) {
+                $('#masterPreviewText').text('Noch kein Template gewählt.');
+                return;
+            }
+
+            const template = MasterStepRenderer.findTemplate(templateId);
+            if (!template) {
+                $('#masterPreviewText').text('Template nicht gefunden.');
+                return;
+            }
+
+            const vars = MasterStepRenderer.getSmartDefaults(templateId, {
+                ingredientName: ingredientName,
+                recipeCategory: $('#Recipe_Category').val()
+            });
+
+            (template.variables || []).forEach(key => {
+                const value = vars[key] || '';
+                box.append(`<div class="col-md-4"><label class="form-label small text-muted mb-1">${key}</label><input type="text" class="form-control form-control-sm master-var-input" data-var="${key}" value="${value}" /></div>`);
+            });
+
+            updateMasterPreview();
+        }
+
+        function collectMasterVariables() {
+            const vars = {};
+            $('#masterVariables .master-var-input').each(function () {
+                vars[$(this).data('var')] = $(this).val();
+            });
+            return vars;
+        }
+
+        function updateMasterPreview() {
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
+            if (!templateId || !window.MasterStepRenderer) return;
+
+            const vars = collectMasterVariables();
+            const text = MasterStepRenderer.render(templateId, vars, currentLang);
+            $('#masterPreviewText').text(text || 'Keine Vorschau verfügbar.');
+        }
+
+        function getCurrentUserHashForRequests() {
+            const fromCookie = getCookieValue('WorldMiniAppUserHash');
+            if (fromCookie) return fromCookie;
+
+            const fromHidden = ($('#hiddenUserTokenField').val() || '').toString().trim();
+            if (fromHidden) return fromHidden;
+
+            const fromQuery = new URLSearchParams(window.location.search).get('userHash');
+            return (fromQuery || '').toString().trim();
+        }
+
+
+        function createFallbackStepId() {
+            tempStepIdCounter -= 1;
+            return tempStepIdCounter.toString();
+        }
+
+        async function addRenderedMasterStep() {
+            const templateId = selectedMasterTemplateId || $('#masterTemplateSelect').val();
+            if (!templateId || !window.MasterStepRenderer) return;
+
+            const template = MasterStepRenderer.findTemplate(templateId);
+            if (!template) return;
+
+            const vars = collectMasterVariables();
+            const rendered = MasterStepRenderer.renderAll(templateId, vars);
+            const payload = {
+                de: rendered.de,
+                en: rendered.en,
+                esp: rendered.esp,
+                prt: rendered.prt,
+                phase: parseInt(template.phase || 0, 10),
+                equipment: parseInt(template.equipment || 0, 10)
+            };
+
+            try {
+                const userHash = getCurrentUserHashForRequests();
+                const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Upsert fehlgeschlagen');
+                }
+
+                const result = await response.json();
+                const newId = result?.id;
+                if (!newId) {
+                    throw new Error('Keine Step-ID erhalten');
+                }
+
+                const alreadyExists = getAllStepRows().some(x => x && x.id?.toString() === newId.toString());
+                if (!alreadyExists) {
+                    getAllStepRows().push({
+                        id: newId,
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
+                        phase: payload.phase,
+                        equipment: payload.equipment
+                    });
+                }
+
+                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true });
+                updateStepIndices();
+                renderSandboxStepTab();
+            } catch (error) {
+                console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
+
+                const fallbackId = createFallbackStepId();
+                getAllStepRows().push({
+                    id: fallbackId,
+                    de: rendered.de,
+                    en: rendered.en,
+                    esp: rendered.esp,
+                    prt: rendered.prt,
+                    phase: payload.phase,
+                    equipment: payload.equipment
+                });
+
+                addStep(fallbackId, null, rendered[currentLang] || rendered.de || 'Neuer Schritt', {
+                    skipRender: true,
+                    stepData: {
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
+                        phase: payload.phase,
+                        equipment: payload.equipment
+                    }
+                });
+                updateStepIndices();
+                renderSandboxStepTab();
+            }
+        }
+
+        function syncIngredientSourceVisibility() {
+            const query = ($('#ingredientSearch').val() || '').toString().trim().toLowerCase();
+            const selectedIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                return $(this).val()?.toString();
+            }).get();
+
+            $('.ingredient-db-row').each(function () {
+                const row = $(this);
+                const id = row.data('ingredient-id')?.toString() || '';
+                const text = ((row.data('name-' + currentLang) || row.data('name-de') || '') + '').toLowerCase();
+                const isSelected = !!id && selectedIds.includes(id);
+                const matchesSearch = !query || text.includes(query);
+                row.toggle(!isSelected && matchesSearch);
+            });
+        }
+
+        function getStepLabelFromRow(row) {
+            if (!row) return '';
+            return row[currentLang] || row.de || `Step ${row.id}`;
+        }
+
+        // Prüft ob ein Step bereits in der Auswahl ist
+        function isStepAlreadySelected(stepId) {
+            return $('#selectedSteps .step-row').filter(function () {
+                return $(this).data('step-id')?.toString() === stepId.toString();
+            }).length > 0;
+        }
+
+        function renderSandboxStepCandidates(stepItems, emptyText = 'Keine verknüpften Schritte gefunden.') {
+            const container = $('#sandboxStepCandidates');
+            container.empty();
+
+            if (!stepItems || !stepItems.length) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+                return;
+            }
+
+            const search = (activeSandboxTab === 'unbound'
+                ? ($('#sandboxUnboundSearch').val() || '')
+                : ($('#stepSearch').val() || '')).toString().trim().toLowerCase();
+            const activeId = activeSandboxIngredientId?.toString() || '';
+            const isUnbound = activeSandboxTab === 'unbound';
+
+            const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
+            const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
+
+            stepItems.forEach(item => {
+                const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === item.stepId.toString());
+                if (!sourceRow) return;
+
+                // Equipment filter (only for unbound tab)
+                if (isUnbound && activeEquipmentFilter !== 'all') {
+                    const equipVal = parseInt(sourceRow.equipment ?? 0, 10);
+                    if (equipVal.toString() !== activeEquipmentFilter) return;
+                }
+
+                const label = (getStepLabelFromRow(sourceRow) || '').toString();
+                if (!label) return;
+                if (search && !label.toLowerCase().includes(search)) return;
+
+                const phase = parseInt(sourceRow.phase ?? 0, 10);
+                if (!isUnbound && activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
+
+                const group = phaseGroups[phase] ?? phaseGroups[0];
+                group.push({ stepId: item.stepId, label, phase, matchCount: item.matchCount || 0, equipment: parseInt(sourceRow.equipment ?? 0, 10) });
+            });
+
+            let totalRendered = 0;
+            [1, 2, 3, 4, 0].forEach(phase => {
+                const items = phaseGroups[phase];
+                if (!items.length) return;
+
+                const phaseBadge = getPhaseLabel(phase);
+                if (phaseBadge) {
+                    container.append(`<div class="sandbox-phase-header mt-1 mb-1">${phaseBadge} <span class="text-muted small">${phaseNames[phase]}</span></div>`);
+                } else {
+                    container.append(`<div class="sandbox-phase-header mt-1 mb-1 text-muted small">Sonstige</div>`);
+                }
+
+                items.forEach(item => {
+                    const selected = isStepAlreadySelected(item.stepId);
+                    const equipBadge = isUnbound ? getEquipmentLabel(item.equipment) : '';
+                    const hint = item.matchCount > 0
+                        ? `<span class="small text-muted">Matches: ${item.matchCount}</span>`
+                        : (equipBadge ? equipBadge : '<span class="small text-muted">Ungebundener Schritt</span>');
+
+                    const card = $(`<div class="border rounded p-2 sandbox-step-card bg-white">
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-start sandbox-step-candidate" data-id="${item.stepId}">
+                            <i class="bi bi-journal-check me-1"></i>${equipBadge}${item.label}
+                            ${selected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
+                        </button>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            ${hint}
+                            <button type="button" class="btn btn-success btn-sm sandbox-accept-step-btn" data-id="${item.stepId}" ${selected ? 'disabled' : ''}>Akzeptieren</button>
+                        </div>
+                    </div>`);
+
+                    card.find('.sandbox-step-candidate').on('click', function () {
+                        $('#sandboxCurrentStep').removeClass('text-muted').html(`<strong>Ausgewählt:</strong> ${item.label}`);
+                    });
+
+                    card.find('.sandbox-accept-step-btn').on('click', function () {
+                        addStep(item.stepId.toString(), null, item.label, { enforceIngredientPhaseUniqueness: !isUnbound });
+                    });
+
+                    container.append(card);
+                    totalRendered++;
+                });
+            });
+
+            if (!totalRendered) {
+                container.empty();
+                const activeHasSteps = activeId && $('#selectedSteps .step-row').length > 0;
+                const msg = activeHasSteps && !isUnbound
+                    ? 'Alle Phasen für diese Zutat sind abgedeckt.'
+                    : emptyText;
+                container.append(`<div class="text-muted small">${msg}</div>`);
+            }
+        }
+
+        function loadSandboxSteps() {
+            const selectedIngredientIds = getSelectedIngredientIds();
+            const allSteps = getAllStepRows();
+            const activeId = activeSandboxIngredientId?.toString() || '';
+
+            if (activeSandboxTab === 'unbound') {
+                sandboxUnboundSteps = allSteps
+                    .map(step => {
+                        const stepId = parseInt(step.id, 10);
+                        if (isNaN(stepId)) return null;
+                        const boundIds = getStepBoundIngredientIds(stepId).map(x => x.toString());
+                        if (boundIds.length) return null;
+                        return { stepId, matchCount: 0 };
+                    })
+                    .filter(Boolean);
+
+                renderSandboxStepCandidates(sandboxUnboundSteps, 'Keine ungebundenen Schritte gefunden.');
+                return;
+            }
+
+            if (!allSteps.length || !activeId) {
+                renderSandboxStepCandidates([], 'Wähle links eine Zutat aus.');
+                return;
+            }
+
+            const candidates = [];
+            allSteps.forEach(step => {
+                const stepId = parseInt(step.id, 10);
+                if (isNaN(stepId)) return;
+                const boundIds = getStepBoundIngredientIds(stepId).map(x => x.toString());
+
+                if (activeSandboxTab === 'all') {
+                    const matchCount = selectedIngredientIds.filter(sid => boundIds.includes(sid.toString())).length;
+                    if (matchCount > 0) {
+                        candidates.push({ stepId, matchCount });
+                    }
+                } else {
+                    if (boundIds.includes(activeId)) {
+                        const matchCount = selectedIngredientIds.filter(sid => boundIds.includes(sid.toString())).length;
+                        candidates.push({ stepId, matchCount });
+                    }
+                }
+            });
+
+            candidates.sort((a, b) => b.matchCount - a.matchCount);
+
+            renderSandboxStepCandidates(
+                candidates,
+                'Keine passenden Schritte für diese Zutat gefunden.'
+            );
+        }
+
+        function renderSandboxStepTab() {
+            $('#sandboxStepTabs .sandbox-tab').removeClass('active');
+            $(`#sandboxStepTabs [data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
+
+            const showUnboundSearch = activeSandboxTab === 'unbound';
+            $('#sandboxUnboundSearchWrap').toggleClass('d-none', !showUnboundSearch);
+
+            $('#sandboxActiveIngredientLabel').text(
+                activeSandboxTab === 'all'
+                    ? 'Alle Zutaten'
+                    : activeSandboxTab === 'unbound'
+                        ? 'Ohne Binding'
+                        : (activeSandboxIngredientName || 'Keine Zutat')
+            );
+            loadSandboxSteps();
+        }
+
+        function renderSandboxIngredientList() {
+            const container = $('#sandboxIngredientList');
+            const selectedIngredients = getSelectedIngredientsForSandbox();
+            container.empty();
+            updateSuggestButtonState();
+
+            if (!selectedIngredients.length) {
+                activeSandboxIngredientId = null;
+                activeSandboxIngredientName = '';
+                container.append('<div class="text-muted small">Noch keine Zutat ausgewählt.</div>');
+                renderSandboxStepTab();
+                return;
+            }
+
+            if (!selectedIngredients.some(x => x.id === activeSandboxIngredientId)) {
+                activeSandboxIngredientId = selectedIngredients[0].id;
+                activeSandboxIngredientName = selectedIngredients[0].name;
+            }
+
+            selectedIngredients.forEach(item => {
+                const active = item.id === activeSandboxIngredientId ? 'active' : '';
+                container.append(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-ingredient-btn ${active}" data-id="${item.id}" data-name="${item.name}">${item.name}</button>`);
+            });
+
+            renderSandboxStepTab();
+            updateRecipeTypeDetection();
+        }
+
+        function refreshSandboxProgress() {
+            const rows = $('#selectedSteps .step-row');
+            const current = $('#sandboxCurrentStep');
+            const previous = $('#sandboxPreviousSteps');
+            previous.empty();
+
+            if (!rows.length) {
+                current.text('Aktueller Schritt: noch keiner.').addClass('text-muted');
+                previous.append('<div class="text-muted small">Vorherige Schritte erscheinen hier.</div>');
+                return;
+            }
+
+            const currentRow = rows.last();
+            const currentIdx = currentRow.find('.step-index-input').val() || rows.length;
+            const currentText = currentRow.find('.display-step-selected').text() || '';
+            current.removeClass('text-muted').html(`<strong>Aktueller Schritt ${currentIdx}:</strong> ${currentText}`);
+
+            rows.slice(0, -1).get().reverse().forEach(r => {
+                const row = $(r);
+                const idx = row.find('.step-index-input').val() || '';
+                const txt = row.find('.display-step-selected').text() || '';
+                previous.append(`<div class="border rounded p-2 bg-light"><strong>Schritt ${idx}:</strong> ${txt}</div>`);
+            });
+
+            if (!rows.slice(0, -1).length) previous.append('<div class="text-muted small">Noch keine vorherigen Schritte.</div>');
+        }
+
+        function updateLanguageLabels() {
+            const langKey = resolveLangKey(currentLang);
+            $('.label-lang').each(function () { $(this).text($(this).data(langKey)); });
+            $('.lang-ph').each(function () { $(this).attr('placeholder', $(this).data('ph-' + langKey)); });
+            $('.lang-opt').each(function () { $(this).text($(this).data('txt-' + langKey)); });
+            $('.ingredient-db-row').each(function () { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
+            syncIngredientSourceVisibility();
+            $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
+            $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
+            refreshMasterTemplateOptions();
+            renderSandboxStepTab();
+        }
+
+        function handleVideoUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const fileUrl = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video/');
+
+                if (isVideo) {
+                    $('#videoPreview').attr('src', fileUrl).removeClass('d-none');
+                    $('#imagePreview').addClass('d-none').attr('src', '');
+                } else {
+                    $('#imagePreview').attr('src', fileUrl).removeClass('d-none');
+                    $('#videoPreview').addClass('d-none').attr('src', '');
+                }
+
+                $('#videoPreviewContainer').removeClass('d-none');
+                $('#uploadLabel').addClass('d-none');
+            }
+        }
+
+        function resetVideo() {
+            $('#videoInput').val('');
+            $('#videoPreviewContainer').addClass('d-none');
+            $('#uploadLabel').removeClass('d-none');
+            $('#videoPreview').attr('src', '');
+            $('#imagePreview').attr('src', '').addClass('d-none');
+        }
+
+        function normalizeDecimalInputValue(value) {
+            if (!value) return value;
+            return value.toString().trim().replace(/\s/g, '').replace(',', '.');
+        }
+
+               function addIngredient(id, btn) {
+            const existing = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').filter(function () {
+                return $(this).val()?.toString() === id.toString();
+            }).length > 0;
+
+            if (existing) return;
+
+            const row = $(btn).closest('.ingredient-db-row');
+            const name = row.data('name-' + currentLang) || row.data('name-de');
+            const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
+            const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
+            const unitOptions = dbUnits.map(u => `<option value="${u}" ${u === selectedUnit ? 'selected' : ''}>${u}</option>`).join('');
+
+            // Neues Element erstellen
+            const newIngredient = `
+            <div class="dynamic-item ingredient-row shadow-sm">
+                <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="fw-bold display-name-selected text-dark">${name}</div>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="removeIngredientRow(this)">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+
+                <div class="row g-2 align-items-center">
+                    <div class="col-5">
+                        <label class="small text-muted d-block mb-1">Menge</label>
+                        <input type="text" inputmode="decimal"
+                               name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys"
+                               class="form-control form-control-sm js-decimal-input candy-purple-input"
+                               value="${selectedQuantity}" />
+                    </div>
+                    <div class="col-7">
+                        <label class="small text-muted d-block mb-1">Einheit</label>
+                        <select name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement"
+                                class="form-select form-select-sm candy-purple-input">
+                            ${unitOptions}
+                        </select>
+                    </div>
+                </div>
+            </div>`;
+
+            // Am Ende des Containers anfügen
+            $('#selectedIngredients').append(newIngredient);
+
+            renderSandboxIngredientList();
+            refreshMasterTemplateBuilder();
+            if (typeof syncIngredientSourceVisibility === "function") {
+                syncIngredientSourceVisibility();
+            }
+        }
+
+        function removeIngredientRow(btn) {
+            $(btn).closest('.ingredient-row').remove();
+            renderSandboxIngredientList();
+            refreshMasterTemplateBuilder();
+            syncIngredientSourceVisibility();
+        }
+
+        // Entfernt alle Steps die für dieselben Zutaten+Phase gebunden sind wie der neue Step
+        function removeConflictingSteps(newStepId) {
+            const newStep = getAllStepRows().find(x => x && x.id?.toString() === newStepId.toString());
+            if (!newStep) return;
+
+            const newStepPhase = parseInt(newStep.phase ?? 0, 10);
+            if (newStepPhase < 1) return;
+
+            const newStepBoundIds = getStepBoundIngredientIds(newStepId).map(x => x.toString());
+            if (!newStepBoundIds.length) return;
+
+            $('#selectedSteps .step-row').each(function () {
+                const row = $(this);
+                const rowStepId = row.data('step-id')?.toString();
+                if (!rowStepId || rowStepId === newStepId.toString()) return;
+
+                const rowStep = getAllStepRows().find(x => x && x.id?.toString() === rowStepId);
+                if (!rowStep) return;
+
+                const rowPhase = parseInt(rowStep.phase ?? 0, 10);
+                if (rowPhase !== newStepPhase) return;
+
+                // Prüfe ob der bestehende Step mindestens eine gemeinsame Zutat hat
+                const rowBoundIds = getStepBoundIngredientIds(rowStepId).map(x => x.toString());
+                const hasOverlap = rowBoundIds.some(id => newStepBoundIds.includes(id));
+                if (hasOverlap) {
+                    row.remove();
+                }
+            });
+        }
+
+        function addStep(id, btn, manualText = null, options = {}) {
+            if (isStepAlreadySelected(id)) return;
+
+            const enforceUniqueness = options?.enforceIngredientPhaseUniqueness === true;
+            if (enforceUniqueness) {
+                removeConflictingSteps(id);
+            }
+
+            const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === id.toString());
+            const stepData = options?.stepData || sourceRow || {};
+
+            const normalizedStepData = {
+                de: (stepData.de || '').toString(),
+                en: (stepData.en || '').toString(),
+                esp: (stepData.esp || '').toString(),
+                prt: (stepData.prt || '').toString(),
+                phase: parseInt(stepData.phase ?? 0, 10) || 0,
+                equipment: parseInt(stepData.equipment ?? 0, 10) || 0
+            };
+
+            let text = manualText;
+            if (!text) {
+                text = normalizedStepData[currentLang] || normalizedStepData.de || `Schritt ${id}`;
+            }
+
+            if (!normalizedStepData[currentLang]) {
+                normalizedStepData[currentLang] = text;
+            }
+
+            if (!normalizedStepData.de) normalizedStepData.de = normalizedStepData.en || text;
+            if (!normalizedStepData.en) normalizedStepData.en = normalizedStepData.de || text;
+
+            const stepIdAsInt = parseInt(id, 10);
+            const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
+            const phaseBadge = getPhaseLabel(normalizedStepData.phase);
+
+            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}">
+                <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
+                <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
+                <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
+                <input type="hidden" class="step-hidden-en" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStepData.en).html()}" />
+                <input type="hidden" class="step-hidden-esp" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStepData.esp).html()}" />
+                <input type="hidden" class="step-hidden-prt" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStepData.prt).html()}" />
+                <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
+                <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
+                <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
+                <div class="small flex-grow-1 display-step-selected">
+                    ${phaseBadge}
+                    <span class="step-text-content">${text}</span>
+                </div>
+                <div class="btn-group ms-2" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
+                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                </div>
+            </div>`);
+
+            updateStepIndices();
+
+            // Kandidatenliste aktualisieren → abgedeckte Steps verschwinden
+            if (!options?.skipRender) {
+                renderSandboxStepTab();
+            }
+        }
+
+        function removeStep(btn) {
+            $(btn).closest('.step-row').remove();
+            updateStepIndices();
+            // Nach Entfernen: Kandidaten neu rendern → Steps werden wieder verfügbar
+            renderSandboxStepTab();
+        }
+
+        function editStepText(btn) {
+            const row = $(btn).closest('.step-row');
+            const textNode = row.find('.step-text-content').first();
+            const currentText = (textNode.text() || '').trim();
+            const updatedText = prompt('Schritt bearbeiten:', currentText);
+            if (updatedText === null) return;
+            const trimmed = updatedText.trim();
+            if (!trimmed) return;
+
+            textNode.text(trimmed);
+
+            const langMap = { de: '.step-hidden-de', en: '.step-hidden-en', esp: '.step-hidden-esp', prt: '.step-hidden-prt' };
+            const targetSelector = langMap[currentLang] || '.step-hidden-de';
+            const targetInput = row.find(targetSelector).first();
+            if (targetInput.length) {
+                targetInput.val(trimmed);
+            }
+
+            const deInput = row.find('.step-hidden-de').first();
+            const enInput = row.find('.step-hidden-en').first();
+            if (deInput.length && !deInput.val()) deInput.val(trimmed);
+            if (enInput.length && !enInput.val()) enInput.val(trimmed);
+
+            refreshSandboxProgress();
+        }
+
+        function toggleKeyword(id, btn) {
+            const container = $('#selectedKeywords');
+            const existing = container.find(`.keyword-pill[data-keyword-id="${id}"]`);
+            if (existing.length > 0) {
+                existing.remove();
+                $(btn).removeClass('btn-secondary').addClass('btn-outline-secondary');
+                return;
+            }
+
+            const word = $(btn).data('word-' + currentLang) || $(btn).data('word-de');
+            container.append(`<div class="keyword-pill badge rounded-pill bg-secondary text-white d-inline-flex align-items-center me-2 mb-2"
+                data-keyword-id="${id}"
+                data-word-de="${$(btn).data('word-de')}"
+                data-word-en="${$(btn).data('word-en')}"
+                data-word-esp="${$(btn).data('word-esp')}"
+                data-word-prt="${$(btn).data('word-prt')}">
+                <input type="hidden" name="SelectedKeywordIds" value="${id}" />
+                <span class="me-2 keyword-text">${word}</span>
+                <button type="button" class="btn btn-sm btn-light rounded-circle p-0" style="width:20px;height:20px;line-height:1;" onclick="removeKeyword('${id}')"><i class="bi bi-x"></i></button>
+            </div>`);
+            $(btn).removeClass('btn-outline-secondary').addClass('btn-secondary');
+        }
+
+        function removeKeyword(id) {
+            $('#selectedKeywords').find(`.keyword-pill[data-keyword-id="${id}"]`).remove();
+            $(`.keyword-btn[data-keyword-id="${id}"]`).removeClass('btn-secondary').addClass('btn-outline-secondary');
+        }
+
+        function updateStepIndices() {
+            $('#selectedSteps .step-row').each(function (i) {
+                $(this).find('.step-badge').text(i + 1);
+                $(this).find('.step-index-input').val(i + 1);
+            });
+            refreshSandboxProgress();
+        }
+
+        function prepareBinding() {
+            updateStepIndices();
+            $('.ingredient-row').each(function (i) {
+                $(this).find('input, select').each(function () {
+                    if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+                });
+            });
+            $('.step-row').each(function (i) {
+                $(this).find('input, select').each(function () {
+                    if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+                });
+            });
+            $('input[name$=".Quantity.Quantitys"], .js-decimal-input').each(function () {
+                this.value = normalizeDecimalInputValue(this.value);
+            });
+            return true;
+        }
+
+        function moveStepRow(btn, direction) {
+            const row = $(btn).closest('.step-row');
+            if (direction < 0) {
+                const prev = row.prev('.step-row');
+                if (prev.length) prev.before(row);
+            } else {
+                const next = row.next('.step-row');
+                if (next.length) next.after(row);
+            }
+            updateStepIndices();
+        }
+
+        let draggedStepRow = null;
+
+        $(document).ready(function () {
+            const token = sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken');
+            if (token) $('#hiddenUserTokenField').val(token);
+
+            activeSandboxTab = $('#sandboxStepTabs .sandbox-tab.active').first().data('sandbox-tab')?.toString() || 'linked';
+
+            $('#ingredientSearch').on('input', function () {
+                syncIngredientSourceVisibility();
+            });
+
+            $('#stepSearch').on('input', function () {
+                renderSandboxStepTab();
+            });
+
+            $('#sandboxUnboundSearch').on('input', function () {
+                if (activeSandboxTab === 'unbound') {
+                    renderSandboxStepTab();
+                }
+            });
+
+            $('#sandboxIngredientList').on('click', '.sandbox-ingredient-btn', function () {
+                activeSandboxIngredientId = $(this).data('id')?.toString() || null;
+                activeSandboxIngredientName = $(this).data('name')?.toString() || '';
+                activeSandboxTab = 'linked';
+                $('#sandboxStepTabs .sandbox-tab').removeClass('active');
+                $('#sandboxStepTabs [data-sandbox-tab="linked"]').addClass('active');
+                $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
+                $(this).addClass('active');
+                renderSandboxStepTab();
+            });
+
+            $('#sandboxStepTabs').on('click', '[data-sandbox-tab]', function () {
+                activeSandboxTab = $(this).data('sandbox-tab')?.toString() || 'linked';
+                $('#sandboxStepTabs .sandbox-tab').removeClass('active');
+                $(this).addClass('active');
+                // Reset equipment filter when switching away from unbound
+                if (activeSandboxTab !== 'unbound') {
+                    activeEquipmentFilter = 'all';
+                    $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
+                    $('#equipmentFilterBar [data-equipment="all"]').addClass('active');
+                }
+                renderSandboxStepTab();
+            });
+
+            MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
+            $('#masterIngredientButtons').on('click', '.master-ingredient-btn', function () {
+                const name = $(this).data('name')?.toString() || '';
+                if (!name) return;
+
+                if (selectedMasterIngredientNames.includes(name)) {
+                    selectedMasterIngredientNames = selectedMasterIngredientNames.filter(x => x !== name);
+                } else {
+                    selectedMasterIngredientNames.push(name);
+                }
+
+                if (!selectedMasterIngredientNames.length) {
+                    const firstAvailable = getSelectedIngredientsForSandbox()[0]?.name || '';
+                    if (firstAvailable) selectedMasterIngredientNames = [firstAvailable];
+                }
+
+                refreshMasterTemplateBuilder();
+            });
+            $('#masterTemplateSelect').on('change', function () {
+                selectedMasterTemplateId = ($(this).val() || '').toString();
+                renderMasterTemplateEditor();
+            });
+            $('#masterVariables').on('input', '.master-var-input', updateMasterPreview);
+            $('#btnAddRenderedStep').on('click', addRenderedMasterStep);
+
+            $('#equipmentFilterBar').on('click', '.equipment-filter-btn', function () {
+                $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
+                $(this).addClass('active');
+                activeEquipmentFilter = $(this).data('equipment')?.toString() || 'all';
+                renderSandboxStepTab();
+            });
+
+            $('#selectedSteps').on('dragstart', '.step-row', function (e) {
+                draggedStepRow = this;
+                e.originalEvent.dataTransfer.effectAllowed = 'move';
+                $(this).addClass('opacity-50');
+            });
+
+            $('#selectedSteps').on('dragend', '.step-row', function () {
+                $(this).removeClass('opacity-50');
+                draggedStepRow = null;
+            });
+
+            $('#selectedSteps').on('dragover', '.step-row', function (e) {
+                e.preventDefault();
+                if (!draggedStepRow || draggedStepRow === this) return;
+                const rect = this.getBoundingClientRect();
+                const offset = e.originalEvent.clientY - rect.top;
+                if (offset > rect.height / 2) $(this).after(draggedStepRow);
+                else $(this).before(draggedStepRow);
+                updateStepIndices();
+            });
+
+            updateLanguageLabels();
+            renderSandboxIngredientList();
+            syncIngredientSourceVisibility();
+            refreshSandboxProgress();
+
+            // Page fully ready — hide overlay, show content
+            $('#datatableLoadingOverlay').addClass('d-none');
+            $('.creator-topbar, .feed-shell').css('visibility', 'visible');
+        });
+    </script>
+}

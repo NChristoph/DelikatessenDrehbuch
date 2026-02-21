@@ -1,0 +1,308 @@
+﻿@using DelikatessenDrehbuch.Models
+@using DelikatessenDrehbuch.StaticScripts
+@model List<MealPlanerModel>
+
+@{
+    Layout = "_MiniAppLayout";
+    
+    var personCount = (int)ViewData["PersonCount"];
+    var title = ViewData["Title"] as string ;
+    // Gruppieren der flachen Liste nach Tagen
+    var groupedPerDays = Model.GroupBy(x => x.Index).OrderBy(x => x.Key).ToList();
+}
+
+<div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+
+    <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-center">
+        <div>
+            <a href="@Url.Action("Generator", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small opacity-75">
+                <i class="bi bi-arrow-left"></i> Setup ändern
+            </a>
+            <h2 class="fw-bold mb-0" style="color: #2c3e50;">Dein Plan 🥑</h2>
+        </div>
+        <button onclick="location.reload()" class="btn btn-light rounded-circle shadow-sm text-warning btn-hover-effect" style="width: 45px; height: 45px;">
+            <i class="bi bi-arrow-clockwise fs-4"></i>
+        </button>
+    </div>
+
+    <div class="container px-3 mt-3 pb-5">
+
+        @foreach (var dayGroup in groupedPerDays)
+        {
+            var dayIndex = dayGroup.Key;
+
+            // Die Slots für den aktuellen Tag finden
+            var vorspeise = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "vorspeise");
+            var hauptspeise = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "hauptspeise");
+            var dessert = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "dessert");
+
+            <div class="glass-card mb-4 overflow-hidden">
+
+                <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-light bg-white bg-opacity-50">
+                    <h5 class="fw-bold m-0 text-dark">Tag @(dayIndex)</h5> <span class="badge bg-white text-dark shadow-sm rounded-pill border">3 Gänge</span>
+                </div>
+
+                <div class="px-3 pt-3">
+                    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm" id="pills-tab-@dayIndex" role="tablist" style="font-size: 0.8rem;">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#appetizer_@dayIndex" type="button">Vorspeise</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#main_@dayIndex" type="button">Haupt</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dessert_@dayIndex" type="button">Dessert</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="tab-content p-3">
+
+                    <div class="tab-pane fade" id="appetizer_@dayIndex" role="tabpanel">
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                        vorspeise,
+                                        new ViewDataDictionary(ViewData) {
+                                        { "DayIndex", dayIndex },
+                                        { "Category", "Vorspeise" },
+                                        { "NamePrefix", "appetizer_" }
+                                        })
+                </div>
+
+                <div class="tab-pane fade show active" id="main_@dayIndex" role="tabpanel">
+                    @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                                        hauptspeise,
+                                        new ViewDataDictionary(ViewData) {
+                                        { "DayIndex", dayIndex },
+                                        { "Category", "Hauptspeise" },
+                                        { "NamePrefix", "main_" }
+                                        })
+                </div>
+
+                <div class="tab-pane fade" id="dessert_@dayIndex" role="tabpanel">
+                    @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                                        dessert,
+                                        new ViewDataDictionary(ViewData) {
+                                        { "DayIndex", dayIndex },
+                                        { "Category", "Dessert" },
+                                        { "NamePrefix", "dessert_" }
+                                        })
+                </div>
+            </div>
+        </div>
+                }
+    </div>
+
+    <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%); pointer-events: none;">
+        <div style="pointer-events: auto;">
+            <button onclick="createMealPlan()" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
+                    style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
+                <i class="bi bi-cart-check fs-4 me-2"></i>
+                <span class="fs-5">Plan Abschließen</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div class="offcanvas offcanvas-bottom h-75 rounded-top-4" tabindex="-1" id="globalRecipeSearchOffcanvas">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold">Gericht tauschen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0" id="globalRecipeSearchContent">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-warning" role="status"></div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+            // Globaler Cache für die Bootstrap Offcanvas Instanz
+            let searchOffcanvasInstance = null;
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const offcanvasEl = document.getElementById('globalRecipeSearchOffcanvas');
+                if (offcanvasEl) {
+                    searchOffcanvasInstance = new bootstrap.Offcanvas(offcanvasEl);
+                }
+            });
+
+            // 1. WÜRFELN (Lade zufälliges Rezept in die Karte)
+            function ChangeOrAddRecipeMobile(btn) {
+                const category = btn.getAttribute('data-category');
+                const dayIndex = btn.getAttribute('data-index');
+                const namePrefix = btn.getAttribute('data-name');
+
+                const targetId = namePrefix + dayIndex;
+                const container = document.getElementById(targetId);
+
+                // Spinner zeigen
+                container.innerHTML = `
+                    <div class="d-flex justify-content-center align-items-center h-100 bg-light rounded-4" style="min-height:160px">
+                        <div class="spinner-border text-warning" role="status"></div>
+                    </div>`;
+
+                // Controller aufrufen
+                const url = `/WorldMiniApp/Home/GetRandomRecipeCard?category=${category}&dayIndex=${dayIndex}&namePrefix=${namePrefix}`;
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error("Server Fehler");
+                        return response.text();
+                    })
+                    .then(html => {
+                        container.innerHTML = html; // Ersetzt den Inhalt durch die Partial View
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        container.innerHTML = '<div class="text-danger p-3 text-center">Fehler beim Laden.</div>';
+                    });
+            }
+
+            // 2. SUCHE ÖFFNEN (Lade Liste ins Offcanvas)
+            function OpenMobileSearch(btn) {
+                const category = btn.getAttribute('data-category');
+                const dayIndex = btn.getAttribute('data-index');
+                const namePrefix = btn.getAttribute('data-name');
+
+                const contentDiv = document.getElementById('globalRecipeSearchContent');
+                const titleEl = document.querySelector('.offcanvas-title');
+
+                if(titleEl) titleEl.innerText = `${category} suchen`;
+
+                // Lade-Animation
+                contentDiv.innerHTML = `
+                    <div class="d-flex flex-column justify-content-center align-items-center h-100 py-5">
+                        <div class="spinner-border text-warning mb-3" role="status"></div>
+                        <small class="text-muted">Lade Rezepte...</small>
+                    </div>`;
+
+                if (searchOffcanvasInstance) searchOffcanvasInstance.show();
+
+                const url = `/WorldMiniApp/Home/GetSearchList?category=${category}&dayIndex=${dayIndex}&namePrefix=${namePrefix}`;
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        contentDiv.innerHTML = html;
+                    })
+                    .catch(err => {
+                        contentDiv.innerHTML = '<div class="p-4 text-center text-danger">Konnte Liste nicht laden.</div>';
+                    });
+            }
+
+            // 3. REZEPT AUSWÄHLEN (Aus der Suchliste -> In die Karte)
+            function SelectRecipeMobile(recipeId, category, dayIndex, namePrefix) {
+                // Offcanvas schließen
+                if (searchOffcanvasInstance) searchOffcanvasInstance.hide();
+
+                const targetId = namePrefix + dayIndex;
+                const container = document.getElementById(targetId);
+
+                // Spinner im Ziel
+                container.innerHTML = `
+                    <div class="d-flex justify-content-center align-items-center h-100 bg-light rounded-4" style="min-height:160px">
+                        <div class="spinner-border text-success" role="status"></div>
+                    </div>`;
+
+                // Controller aufrufen (Spezifisches Rezept holen)
+                const url = `/WorldMiniApp/Home/GetRecipeById?recipeId=${recipeId}&dayIndex=${dayIndex}&namePrefix=${namePrefix}&category=${category}`;
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        container.innerHTML = html;
+                    })
+                    .catch(err => {
+                        container.innerHTML = '<div class="text-danger p-3">Fehler beim Laden.</div>';
+                    });
+            }
+
+            // 4. PLAN SPEICHERN & WEITER
+            function createMealPlan() {
+                const inputs = document.querySelectorAll('input[name="RecipeId"]');
+                let selectedRecipes = [];
+
+                inputs.forEach(input => {
+                    selectedRecipes.push({
+                        DayIndex: input.getAttribute('data-day-index'),
+                        RecipeId: input.value
+                    });
+                });
+
+                const btn = document.querySelector('button[onclick="createMealPlan()"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Speichere...';
+                btn.disabled = true;
+
+            const jsonString = JSON.stringify(selectedRecipes);
+            const encodedData = encodeURIComponent(jsonString);
+            const personCount = @personCount;
+            const hash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+            const title = encodeURIComponent("@title");
+       
+        window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${hash}&title=${title}`;
+
+
+            }
+    </script>
+}
+
+<style>
+    /* DESIGN ANPASSUNGEN */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Tabs (Pills) */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        background: transparent;
+        transition: all 0.2s ease;
+    }
+
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 94, 98, 0.3);
+        }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    .backdrop-blur {
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-hover-effect:active {
+        transform: scale(0.98);
+    }
+
+    /* Animation beim Nachladen */
+    .fade-in-anim {
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

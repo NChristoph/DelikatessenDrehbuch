@@ -1,0 +1,479 @@
+﻿@using DelikatessenDrehbuch.Models
+@using DelikatessenDrehbuch.StaticScripts
+
+@model List<MealPlanerModel>
+
+@{
+    var personCount = (int?)ViewData["PersonCount"] ?? 1;
+    var groupedDays = Model.Where(x => x.Recipes != null).GroupBy(x => x.Index).OrderBy(x => x.Key).ToList();
+    var allRecipeIds = Model.Where(x => x.Recipes != null).Select(x => x.Recipes.Id).Distinct().ToList();
+}
+
+<input id="personCount" value="@personCount" hidden />
+
+<style>
+    /* ===========================
+           DELIKATESSEN THEME - FINAL
+           =========================== */
+    :root {
+        --deli-red: #770f0f;
+        --deli-gold: #D4AF37;
+        --deli-cream: #FEFFF2;
+        --deli-dark: #2a3440;
+    }
+
+    body {
+        background-color: #fafafa;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* --- Layout --- */
+    .day-title {
+        font-family: 'Playfair Display', serif;
+        color: var(--deli-red);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin: 2.5rem 0 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+        .day-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: var(--deli-gold);
+        }
+
+    /* --- Meal Card (Grid) --- */
+    .meal-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .meal-card {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        height: 260px;
+    }
+
+        .meal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .meal-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s;
+        }
+
+        .meal-card:hover img {
+            transform: scale(1.05);
+        }
+
+    /* Overlay für Titel */
+    .meal-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+        padding: 1.5rem 1rem 1rem;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .meal-info {
+        flex-grow: 1;
+        margin-right: 1rem;
+    }
+
+    .meal-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        line-height: 1.2;
+    }
+
+    .btn-open {
+        background: var(--deli-gold);
+        color: #fff;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: all 0.2s;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+        .btn-open:hover {
+            background: #fff;
+            color: var(--deli-gold);
+            transform: scale(1.1);
+        }
+
+    /* --- Mobile Carousel --- */
+    .carousel-wrap {
+        display: none;
+        margin-bottom: 2rem;
+    }
+
+    .carousel-item img {
+        border-radius: 1rem;
+        height: 280px;
+        object-fit: cover;
+    }
+
+    .carousel-caption-custom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        padding: 1rem;
+        border-bottom-left-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* --- Offcanvas Styling --- */
+    .meal-offcanvas {
+        width: min(900px, 100vw) !important;
+        border-left: 5px solid var(--deli-gold);
+    }
+    /* Breiter! */
+    .offcanvas-header {
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        padding: 1rem 1.5rem;
+    }
+
+    .offcanvas-body {
+        padding: 0;
+        overflow-y: auto;
+    }
+    /* Scrollbar aktivieren */
+    .offcanvas-content {
+        padding: 2rem;
+    }
+
+    .offcanvas-tabs .nav-link {
+        border: none;
+        color: #777;
+        font-weight: 600;
+        padding: 1rem 2rem;
+        border-bottom: 3px solid transparent;
+    }
+
+        .offcanvas-tabs .nav-link.active {
+            color: var(--deli-red);
+            border-bottom-color: var(--deli-red);
+            background: transparent;
+        }
+
+    /* Thumbnails (Mobile) */
+    .thumbs {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .thumb {
+        width: 60px;
+        height: 40px;
+        border-radius: 4px;
+        overflow: hidden;
+        opacity: 0.6;
+        transition: 0.2s;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+        .thumb.active {
+            opacity: 1;
+            border-color: var(--deli-gold);
+            transform: scale(1.1);
+        }
+
+        .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    @@media (max-width: 991.98px) {
+        .meal-grid
+
+    {
+        display: none;
+    }
+
+    .carousel-wrap {
+        display: block;
+    }
+
+    }
+</style>
+
+<div class="container mb-5 mt-4">
+    <div class="card p-4 border-0 shadow-sm text-center bg-white" style="border-top: 4px solid var(--deli-gold) !important;">
+        <h5 class="fw-bold text-danger mb-2" style="font-family: 'Playfair Display', serif;">Dein Wochenplan ist fertig!</h5>
+        <p class="text-muted m-0">Hier findest du alle Details. Klicke auf die Rezepte oder nutze die Buttons für Zutaten.</p>
+    </div>
+</div>
+
+<div class="container">
+    @foreach (var dayGroup in groupedDays)
+    {
+        var dayKey = dayGroup.Key;
+        var list = dayGroup.ToList();
+        var dayRecipeIds = list.Select(x => x.Recipes.Id).ToList();
+
+        <h3 class="day-title">Tag @dayKey</h3>
+
+        <div class="meal-grid">
+            @foreach (var item in list)
+            {
+                var r = item.Recipes.Id;
+                var n = item.Recipes.Name;
+                var img = FrontendFunctions.GetSmallImagePath(item.Recipes.ImagePath);
+                var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
+
+                <div class="meal-card" role="button" data-bs-toggle="offcanvas" data-bs-target="#@unifiedOffId">
+                    <img src="@img" alt="@n" loading="lazy" />
+                    <div class="meal-overlay">
+                        <div class="meal-info">
+                            <div class="small text-uppercase text-warning fw-bold mb-1" style="font-size:0.7rem">@item.Recipes.Category</div>
+                            <h5 class="meal-title">@n</h5>
+                        </div>
+                        <button class="btn-open"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="carousel-wrap">
+            @{
+                var carouselId = $"dayCarousel_{dayKey}";
+            }
+            <div id="@carouselId" class="carousel slide" data-bs-ride="false">
+                <div class="carousel-inner">
+                    @{
+                        var first = true;
+                        foreach (var item in list)
+                        {
+                            var r = item.Recipes.Id;
+                            var n = item.Recipes.Name;
+                            var img = FrontendFunctions.GetSmallImagePath(item.Recipes.ImagePath);
+                            var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
+
+                            <div class="carousel-item @(first ? "active" : "")">
+                                <div style="position:relative; cursor:pointer" data-bs-toggle="offcanvas" data-bs-target="#@unifiedOffId">
+                                    <img src="@img" class="d-block w-100 shadow-sm" alt="@n">
+                                    <div class="carousel-caption-custom">
+                                        <div class="text-start ps-2">
+                                            <small class="text-warning fw-bold text-uppercase" style="font-size:0.65rem">@item.Recipes.Category</small>
+                                            <h6 class="fw-bold m-0 text-truncate" style="max-width:200px">@n</h6>
+                                        </div>
+                                        <span class="btn-open" style="width:32px; height:32px; font-size:1rem"><i class="bi bi-arrow-right"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            first = false;
+                        }
+                    }
+                </div>
+            </div>
+            <div class="thumbs">
+                @{
+                    var idx = 0;
+                    foreach (var item in list)
+                    {
+                        var img = FrontendFunctions.GetSmallImagePath(item.Recipes.ImagePath);
+                        <div class="thumb @(idx == 0 ? "active" : "")" data-bs-target="#@carouselId" data-bs-slide-to="@idx">
+                            <img src="@img" />
+                        </div>
+                        idx++;
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="text-center mb-5">
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2"
+                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasDay_@dayKey">
+                <i class="bi bi-basket2 me-2 text-warning"></i> Zutaten & Infos für Tag @dayKey
+            </button>
+        </div>
+
+        <div class="offcanvas offcanvas-end meal-offcanvas" tabindex="-1" id="offcanvasDay_@dayKey">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title fw-bold text-danger" style="font-family:'Playfair Display'">Tag @dayKey</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+
+            <ul class="nav nav-tabs offcanvas-tabs justify-content-center" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ing-@dayKey">Zutaten für Tag @dayKey</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nut-@dayKey">Nährwerte</button></li>
+            </ul>
+
+            <div class="offcanvas-body" style="background-color:var(--deli-cream);">
+                <div class="tab-content offcanvas-content">
+                    <div class="tab-pane fade show active" id="ing-@dayKey">
+                        <vc:ingredient-sum reciepe-ids="@dayRecipeIds" person-count="@personCount" view-name="Default"></vc:ingredient-sum>
+                    </div>
+                    <div class="tab-pane fade" id="nut-@dayKey">
+                        @foreach (var rId in dayRecipeIds)
+                        {
+                            <div class="mb-3 bg-white p-2 rounded shadow-sm border">
+                                <vc:nutrient-sum recipe-id="@rId"></vc:nutrient-sum>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @foreach (var item in list)
+        {
+            var r = item.Recipes.Id;
+            var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
+            <div class="offcanvas offcanvas-end meal-offcanvas" tabindex="-1" id="@unifiedOffId" data-id="@r" name="Recipes">
+                <div class="offcanvas-header">
+                    <h5 class="text-danger">Rezept Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body p-0" id="recipeContainer_@r">
+                    <div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border text-warning"></div></div>
+                </div>
+            </div>
+        }
+    }
+
+    <hr class="my-5" style="border-color:var(--deli-gold); opacity:0.5;" />
+
+    <div class="text-center mb-5">
+        <button class="btn btn-lg text-white shadow px-5 py-3 rounded-pill"
+                style="background-color:var(--deli-red); border:2px solid var(--deli-gold);"
+                data-bs-toggle="offcanvas" data-bs-target="#Gesamte_ZutatenListe">
+            <i class="bi bi-cart-check-fill me-2"></i> Einkaufsliste erstellen
+        </button>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end meal-offcanvas" tabindex="-1" id="Gesamte_ZutatenListe">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold text-danger">Gesamtübersicht</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <ul class="nav nav-tabs offcanvas-tabs justify-content-center" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#total-ing">Einkaufliste erstellen</button></li>
+@*         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#total-shop">Nährwert übersicht</button></li>
+ *@    </ul>
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);">
+        <div class="tab-content offcanvas-content">
+            <div class="tab-pane fade show active" id="total-ing">
+                <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-Name="ShoppingList"></vc:ingredient-sum>
+            </div>
+          @*   <div class="tab-pane fade" id="total-shop">
+                GesamtNärwerte bald verfügbar
+                <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-name="Default"></vc:ingredient-sum>
+            </div> *@
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // AJAX Loader
+        function loadRecipe(id) {
+            var container = $("#recipeContainer_" + id);
+            container.html('<div class="d-flex justify-content-center p-5"><div class="spinner-border text-warning"></div></div>');
+            $.ajax({
+                url: "/CreateNewMealPlan/LoadMealPlanRecipesPartialView",
+                type: "GET",
+                data: { id: id, personCount: @personCount },
+                success: function (html) { container.html(html); },
+                error: function () { container.html("<div class='text-danger p-3'>Fehler.</div>"); }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Offcanvas Events
+            document.querySelectorAll('div[name="Recipes"]').forEach(function (off) {
+                off.addEventListener('shown.bs.offcanvas', function () {
+                    var id = off.getAttribute('data-id');
+                    if (!id) return;
+                    var container = document.getElementById('recipeContainer_' + id);
+                    if (container && container.innerHTML.includes('spinner-border')) loadRecipe(id);
+                });
+            });
+
+            // Thumbnails Logic (WICHTIG: Bootstrap 5 Syntax)
+            const carousels = document.querySelectorAll('.carousel');
+            carousels.forEach(c => {
+                c.addEventListener('slide.bs.carousel', event => {
+                    // Active Class auf Thumbs updaten
+                    const targetIndex = event.to;
+                    const thumbContainer = c.nextElementSibling; // Div .thumbs
+                    if(thumbContainer) {
+                        const thumbs = thumbContainer.querySelectorAll('.thumb');
+                        thumbs.forEach(t => t.classList.remove('active'));
+                        if(thumbs[targetIndex]) thumbs[targetIndex].classList.add('active');
+                    }
+                });
+            });
+
+            // Klick auf Thumbs
+            document.querySelectorAll('.thumb').forEach(t => {
+                t.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-bs-target');
+                    const slideTo = this.getAttribute('data-bs-slide-to');
+                    const carouselEl = document.querySelector(targetId);
+                    if(carouselEl) {
+                        const bsCarousel = bootstrap.Carousel.getOrCreateInstance(carouselEl);
+                        bsCarousel.to(slideTo);
+                    }
+                });
+            });
+
+            // Shopping List Lazy Load
+            var shopTab = document.querySelector('button[data-bs-target="#total-shop"]');
+            var loaded = false;
+            if(shopTab) {
+                shopTab.addEventListener('shown.bs.tab', function() {
+                    if(!loaded) {
+                        $('#ShoppingList').load("/CreateNewMealPlan/GetShoppingList", function(r,s){
+                            if(s=="error") $('#ShoppingList').html("Fehler."); else loaded=true;
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+}

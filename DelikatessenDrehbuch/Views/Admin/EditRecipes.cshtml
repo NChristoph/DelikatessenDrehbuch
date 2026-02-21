@@ -1,0 +1,2062 @@
+﻿@model EditRecipesModel
+@using Newtonsoft.Json
+@using System.Linq
+
+@{
+    var stepIngredientBindings = ViewData["StepIngredientBindings"] as Dictionary<int, List<int>>
+        ?? new Dictionary<int, List<int>>();
+
+    var stepCatalogJson = JsonConvert.SerializeObject(
+        Model.RecipePreperationSteps?.Select(step => new {
+            id = step.Id,
+            step_DE = step.Step_DE,
+            phase = step.Phase,
+            equipment = step.Equipment,
+            ingredientIds = stepIngredientBindings.ContainsKey(step.Id)
+                ? stepIngredientBindings[step.Id]
+                : new List<int>()
+        }) ?? Enumerable.Empty<object>());
+
+    string NormalizeIngredientKey(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var chars = value
+            .Trim()
+            .ToLowerInvariant()
+            .Normalize(System.Text.NormalizationForm.FormD)
+            .Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+            .Select(c => char.IsLetterOrDigit(c) ? c : ' ')
+            .ToArray();
+
+        return string.Join(' ', new string(chars)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    var ingredientCandidates = (Model.IngredientsAndNutrients ?? new List<IngredientsAndNutrients>())
+        .Where(x => !string.IsNullOrWhiteSpace(x.Name_DE))
+        .Select(x => new
+        {
+            x.Id,
+            Name = x.Name_DE,
+            Key = NormalizeIngredientKey(x.Name_DE)
+        })
+        .ToList();
+
+    (int Id, string Name) ResolveIngredientMatch(string oldIngredientName)
+    {
+        var key = NormalizeIngredientKey(oldIngredientName);
+        if (string.IsNullOrWhiteSpace(key)) return (0, string.Empty);
+
+        var exact = ingredientCandidates
+            .Where(x => x.Key == key)
+            .Select(x => new { x.Id, x.Name })
+            .Distinct()
+            .ToList();
+
+        if (exact.Count == 1)
+        {
+            return (exact[0].Id, exact[0].Name ?? string.Empty);
+        }
+
+        var contains = ingredientCandidates
+            .Where(x => x.Key.Contains(key) || key.Contains(x.Key))
+            .Select(x => new { x.Id, x.Name })
+            .Distinct()
+            .ToList();
+
+        if (contains.Count == 1)
+        {
+            return (contains[0].Id, contains[0].Name ?? string.Empty);
+        }
+
+        return (0, string.Empty);
+    }
+
+    var availableUnitsLower = (Model.Measure ?? new List<Measure>())
+        .Select(m => m.UnitOfMeasurement)
+        .Where(u => !string.IsNullOrWhiteSpace(u))
+        .Select(u => u.Trim())
+        .Distinct(StringComparer.InvariantCultureIgnoreCase)
+        .ToList();
+
+    string ResolveUnit(string unit)
+    {
+        var normalized = (unit ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized)) return "Gramm";
+
+        var exact = availableUnitsLower.FirstOrDefault(u =>
+            string.Equals(u, normalized, StringComparison.InvariantCultureIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(exact)) return exact;
+
+        if (normalized.Equals("g", StringComparison.InvariantCultureIgnoreCase) || normalized.Equals("gramm", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var g = availableUnitsLower.FirstOrDefault(u => u.Equals("g.", StringComparison.InvariantCultureIgnoreCase) || u.Equals("g", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(g)) return g;
+        }
+
+        if (normalized.Equals("stück", StringComparison.InvariantCultureIgnoreCase) || normalized.Equals("stk", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var stk = availableUnitsLower.FirstOrDefault(u => u.Equals("Stk.", StringComparison.InvariantCultureIgnoreCase) || u.Equals("Stk", StringComparison.InvariantCultureIgnoreCase) || u.Equals("Stück", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(stk)) return stk;
+        }
+
+        return normalized;
+    }
+
+    var oldIngredientPreview = (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
+        .Select(old => {
+            var match = ResolveIngredientMatch(old.Ingredient?.Name ?? string.Empty);
+            return new {
+                OldName = old.Ingredient?.Name ?? string.Empty,
+                Quantity = old.Quantity?.Quantitys,
+                Unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm"),
+                IsMapped = match.Id > 0,
+                NewName = match.Name,
+                NewId = match.Id
+            };
+        })
+        .ToList();
+
+    var initialIngredientsJson = JsonConvert.SerializeObject(
+        (Model.IngredientHandler ?? new List<IngredientHandlerModel>())
+            .Select(old => {
+                var match = ResolveIngredientMatch(old.Ingredient?.Name ?? string.Empty);
+                return new {
+                    id = match.Id,
+                    name = !string.IsNullOrWhiteSpace(match.Name) ? match.Name : (old.Ingredient?.Name ?? string.Empty),
+                    quantity = old.Quantity?.Quantitys,
+                    unit = ResolveUnit(old.Measure?.UnitOfMeasurement ?? "Gramm")
+                };
+            })
+            .Where(x => x.id > 0)
+            .ToList());
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    /* Styling Anpassungen */
+    .Bg-Cream {
+        background-color: #FDFCF0;
+        min-height: 100vh;
+    }
+
+    #fileInput {
+        display: none;
+    }
+
+    /* Karten Design */
+    .recipe-card, .recipe-card-blue, .recipe-card-green {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 6px solid #b02a37; /* Standard Rot */
+    }
+
+    .recipe-card-blue {
+        border-left-color: #0d6efd;
+    }
+
+    .recipe-card-green {
+        border-left-color: #198754;
+    }
+
+    /* Überschriften */
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.8rem;
+        color: #333;
+    }
+
+        .section-title i {
+            margin-right: 10px;
+        }
+
+    .text-red {
+        color: #b02a37;
+    }
+
+    .text-blue {
+        color: #0d6efd;
+    }
+
+    .text-green {
+        color: #198754;
+    }
+
+    /* Alte Zutaten Badge */
+    .old-ingredient-badge {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        color: #495057;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+    /* Buttons */
+    .btn-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    /* DataTables Anpassung für Mobile */
+    .dataTables_wrapper .row {
+        margin-top: 10px;
+    }
+
+
+    #ingredientsDbTable th:last-child,
+    #ingredientsDbTable td:last-child {
+        width: 1%;
+        white-space: nowrap;
+    }
+
+    #ingredientsDbTable .ingredient-cell-controls {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+    }
+
+    #ingredientsDbTable .ingredient-qty-input {
+        min-width: 120px;
+    }
+
+    #ingredientsDbTable .ingredient-unit-input {
+        min-width: 130px;
+    }
+
+    .sandbox-ingredient-btn.active {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+        color: #0b3d91;
+    }
+
+    .sandbox-step-candidate {
+        cursor: pointer;
+        transition: all .15s ease-in-out;
+    }
+
+    .sandbox-step-candidate:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 .2rem .45rem rgba(13, 110, 253, .15);
+    }
+
+    #sandboxIngredientList {
+        max-height: 360px;
+        overflow-y: auto;
+        padding-right: .2rem;
+    }
+
+    .sandbox-current-step {
+        border-left: 5px solid #0d6efd;
+        background: #f8fbff;
+    }
+
+    .sandbox-tabs .nav-link {
+        font-size: .9rem;
+    }
+
+    .equipment-filter-btn.active {
+        font-weight: 700;
+    }
+
+    .equipment-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 4px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .equip-badge-1 { background: rgba(220,53,69,.12); color: #dc3545; }
+    .equip-badge-2 { background: rgba(255,193,7,.15); color: #b45309; }
+    .equip-badge-3 { background: rgba(13,202,240,.12); color: #0891b2; }
+    .equip-badge-4 { background: rgba(25,135,84,.12); color: #198754; }
+    .equip-badge-5 { background: rgba(13,110,253,.12); color: #0d6efd; }
+
+    .phase-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-right: 4px;
+        display: inline-block;
+        line-height: 1.3;
+    }
+
+    .phase-badge-1 { background: rgba(34,197,94,.12); color: #15803d; }
+    .phase-badge-2 { background: rgba(239,68,68,.12); color: #dc2626; }
+    .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
+    .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
+
+
+    .admin-master-button-wrap {
+        min-height: 38px;
+        padding: 4px;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 8px;
+        background: #fff;
+    }
+    /* Eingabefelder auf Mobile */
+    @@media (max-width: 768px) {
+        .recipe-card, .recipe-card-blue
+
+    {
+        padding: 1rem;
+    }
+
+    .btn-mobile-full {
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    #ingredientsDbTable .ingredient-cell-controls {
+        gap: .4rem;
+    }
+
+    #ingredientsDbTable .ingredient-qty-input {
+        min-width: 96px;
+        max-width: 45vw;
+    }
+
+    #ingredientsDbTable .ingredient-unit-input {
+        min-width: 100px;
+        max-width: 48vw;
+    }
+
+    #ingredientsDbTable .btn-add-ingredient {
+        padding-left: .55rem;
+        padding-right: .55rem;
+    }
+
+    }
+</style>
+
+<div class="container-lg Bg-Cream py-4">
+    <form asp-controller="Admin"
+          asp-action="EditRecipe"
+          method="post"
+          enctype="multipart/form-data"
+          id="recipeForm"
+          onsubmit="updateAllIndices()">
+        @Html.AntiForgeryToken()
+        <input asp-for="@Model.Recipes.Id" hidden />
+        <input asp-for="@Model.Recipes.OwnerEmail" hidden />
+
+        <div class="recipe-card">
+            <h3 class="section-title text-red"><i class="fa-solid fa-utensils"></i>Rezept Informationen</h3>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Rezept Name</label>
+                    <input asp-for="@Model.Recipes.Name" class="form-control form-control-lg" placeholder="z.B. Spaghetti Bolognese" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Anzahl Personen</label>
+                    <input asp-for="@Model.Recipes.RecipePersonCount" class="form-control form-control-lg" type="number" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Kategorie</label>
+                    <input asp-for="@Model.Recipes.Category" class="form-control" />
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">Schema anzeigen</button>
+                        <div class="dropdown-menu p-2 shadow" style="max-width: 100%;">
+                            <img src="~/css/Logo/Schema Querys.png" class="img-fluid" alt="Schema" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Datenbank Querys (Optional)</label>
+                    <textarea asp-for="Querys" class="form-control font-monospace bg-light" rows="3"></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Zubereitung (Text)</label>
+                    <textarea asp-for="@Model.Recipes.Preparation" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Beschreibung</label>
+                    <textarea asp-for="@Model.Recipes.Description" class="form-control" rows="4"></textarea>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Kalorien</label>
+                    <input asp-for="@Model.Recipes.Calories" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Zeit (Min)</label>
+                    <input asp-for="@Model.Recipes.PreparationTime" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Bild</label>
+                    <input id="fileInput" type="file" asp-for="Recipes.FormFile" onchange="updateFileName(this)" />
+                    <label class="btn text-white w-100 d-flex align-items-center justify-content-center gap-2" for="fileInput" style="background-color: #b02a37;">
+                        <i class="fa-solid fa-camera"></i> <span id="fileLabelText">Foto ändern</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        @if (oldIngredientPreview.Any())
+        {
+            <div class="recipe-card" style="border-left-color: #6c757d;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h4 class="section-title text-secondary mb-0"><i class="fa-solid fa-clock-rotate-left"></i>Alte Zutaten (Referenz)</h4>
+                    <span class="badge rounded-pill text-bg-success">Gemappt: @oldIngredientPreview.Count(x => x.IsMapped) / @oldIngredientPreview.Count</span>
+                </div>
+                <div class="row mt-2">
+                    @foreach (var old in oldIngredientPreview)
+                    {
+                        <div class="col-md-4 col-sm-6">
+                            <div class="old-ingredient-badge">
+                                <div>
+                                    <strong>@old.OldName</strong><br />
+                                    <small class="text-muted">@old.Quantity @old.Unit</small>
+                                    @if (old.IsMapped)
+                                    {
+                                        <div class="small mt-1 text-success fw-semibold">
+                                            <i class="fa-solid fa-check-circle me-1"></i>DataTable-Match: @old.NewName (#@old.NewId)
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="small mt-1 text-danger fw-semibold">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Kein eindeutiges DataTable-Match
+                                        </div>
+                                    }
+                                </div>
+                                @if (old.IsMapped)
+                                {
+                                    <span class="badge text-bg-success">Übernommen</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Nicht übernommen</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="recipe-card">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h3 class="section-title text-red mb-0"><i class="fa-solid fa-database"></i>Zutaten auswählen</h3>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshIngredientsTableBtn">
+                    <i class="fa-solid fa-rotate"></i> Zutaten aktualisieren
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table id="ingredientsDbTable" class="table table-hover w-100 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Zutat</th>
+                            <th>Menge + Einheit</th>
+                            <th class="text-end">Wählen</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="recipe-card-green">
+            <h3 class="section-title text-green"><i class="fa-solid fa-basket-shopping"></i>Neue Zutatenliste</h3>
+
+            <div id="newIngredientsList">
+                <div class="text-center text-muted py-4 bg-light rounded border border-dashed" id="emptyIngredientsMsg">
+                    <i class="fa-solid fa-carrot fa-2x mb-2 text-muted opacity-50"></i><br />
+                    Noch keine Zutaten ausgewählt.
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addNewIngredient('0', '')">
+                    <i class="fa-solid fa-pen me-2"></i>Manuelle Zutat (Leerzeile)
+                </button>
+            </div>
+        </div>
+
+        <div class="recipe-card-blue">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h3 class="section-title text-blue mb-0"><i class="fa-solid fa-cubes"></i>Sandbox-Modus (Zutat ➜ Schritt)</h3>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSuggestSteps">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Schritte vorschlagen
+                </button>
+            </div>
+            <div id="recipeTypeScoreBar" class="mb-2 d-none">
+                <div class="d-flex flex-wrap align-items-center gap-1">
+                    <span class="small text-muted me-1"><i class="fa-solid fa-chart-pie"></i> Rezepttyp:</span>
+                    <span id="recipeTypeBadges"></span>
+                </div>
+            </div>
+            <div id="masterStepPreviewBox" class="mb-2 d-none">
+                <div class="small text-muted mb-1"><i class="fa-solid fa-layer-group"></i> Master-Step Vorschau:</div>
+                <div id="masterStepPreviewList" class="d-flex flex-column gap-1"></div>
+            </div>
+            <div class="border rounded p-2 bg-white mb-2">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <div class="small fw-semibold"><i class="fa-solid fa-file-lines me-1"></i>Alt-Zubereitung (Schnellansicht)</div>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#oldPreparationCollapse" aria-expanded="false" aria-controls="oldPreparationCollapse">
+                        <i class="fa-solid fa-eye me-1"></i>Ein-/Ausblenden
+                    </button>
+                </div>
+                <div class="collapse mt-2" id="oldPreparationCollapse">
+                    <textarea class="form-control form-control-sm" rows="5" readonly>@Model.Recipes.Preparation</textarea>
+                </div>
+            </div>
+            <div class="border rounded p-2 bg-light mb-2">
+                <div class="fw-semibold small mb-2">Master Template Builder</div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Zutaten (Mehrfachauswahl)</label>
+                        <div id="adminMasterIngredientButtons" class="d-flex flex-wrap gap-2 admin-master-button-wrap"></div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small mb-1">Template</label>
+                        <select id="adminMasterTemplateSelect" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="col-md-3 d-grid">
+                        <button type="button" class="btn btn-sm btn-primary" id="btnAdminAddMasterStep"><i class="fa-solid fa-check me-1"></i>Übernehmen</button>
+                    </div>
+                </div>
+                <div id="adminMasterVariables" class="row g-2 mt-1"></div>
+                <div class="small text-muted mt-2">Preview:</div>
+                <div id="adminMasterPreviewText" class="small border rounded px-2 py-2 bg-white">Noch kein Template gewählt.</div>
+            </div>
+            <p class="text-muted mb-3">Wähle links eine oder mehrere Zutaten aus. Rechts siehst du passende Schritte und kannst sie direkt in den Ablauf übernehmen.</p>
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <h6 class="fw-bold mb-2">Ausgewählte Zutaten</h6>
+                        <div id="sandboxIngredientList" class="d-flex flex-column gap-2">
+                            <div class="text-muted small">Noch keine Zutaten ausgewählt.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="border rounded p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                            <h6 class="fw-bold mb-0">Verknüpfte Schritte</h6>
+                            <span id="sandboxActiveIngredientLabel" class="badge bg-light text-dark border">Keine Zutat aktiv</span>
+                        </div>
+                        <ul class="nav nav-tabs sandbox-tabs mb-2" id="sandboxStepTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="sandbox-linked-tab" data-bs-toggle="tab" data-bs-target="#sandbox-linked-pane" type="button" role="tab" aria-controls="sandbox-linked-pane" aria-selected="true">Zutaten-Schritte</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="sandbox-unbound-tab" data-bs-toggle="tab" data-bs-target="#sandbox-unbound-pane" type="button" role="tab" aria-controls="sandbox-unbound-pane" aria-selected="false">Ohne Binding</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="sandboxStepTabContent">
+                            <div class="tab-pane fade show active" id="sandbox-linked-pane" role="tabpanel" aria-labelledby="sandbox-linked-tab">
+                                <div id="sandboxLinkedStepCandidates" class="d-flex flex-column gap-2">
+                                    <div class="text-muted small">Wähle eine Zutat, um passende Schritte anzuzeigen.</div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="sandbox-unbound-pane" role="tabpanel" aria-labelledby="sandbox-unbound-tab">
+                                <input type="search" id="sandboxUnboundSearch" class="form-control form-control-sm mb-2" placeholder="Ungebundene Schritte durchsuchen..." />
+                                <div class="d-flex flex-wrap gap-1 mb-2" id="equipmentFilterBar">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill equipment-filter-btn active" data-equipment="all">
+                                        <i class="fa-solid fa-border-all me-1"></i>Alle
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill equipment-filter-btn" data-equipment="1">
+                                        <i class="fa-solid fa-temperature-high me-1"></i>Backofen
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill equipment-filter-btn" data-equipment="2">
+                                        <i class="fa-solid fa-fire-burner me-1"></i>Pfanne
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm rounded-pill equipment-filter-btn" data-equipment="3">
+                                        <i class="fa-solid fa-bowl-food me-1"></i>Topf
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill equipment-filter-btn" data-equipment="4">
+                                        <i class="fa-solid fa-fire me-1"></i>Bräter
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill equipment-filter-btn" data-equipment="5">
+                                        <i class="fa-solid fa-kitchen-set me-1"></i>Kochfeld
+                                    </button>
+                                </div>
+                                <div id="sandboxUnboundStepCandidates" class="d-flex flex-column gap-2">
+                                    <div class="text-muted small">Ungebundene Schritte werden hier angezeigt.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 border rounded p-3 bg-light">
+                <h6 class="fw-bold mb-2">Letzter bearbeiteter Schritt</h6>
+                <div id="sandboxLastStepInfo" class="small text-muted mb-2">Noch keine Aktion bei den Schritten.</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnRestoreLastDeletedStep" disabled>
+                        <i class="fa-solid fa-rotate-left"></i> Letzten gelöschten Schritt wiederherstellen
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemoveLastAddedStep" disabled>
+                        <i class="fa-solid fa-trash"></i> Letzten hinzugefügten Schritt entfernen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="recipe-card-blue">
+            <h3 class="section-title text-blue"><i class="fa-solid fa-sort-numeric-down"></i>Finaler Ablaufplan</h3>
+
+            <div id="newStepsList">
+                <div class="text-center text-muted py-4 bg-light rounded border border-dashed" id="emptyStepsMsg">
+                    <i class="fa-solid fa-list-ol fa-2x mb-2 text-muted opacity-50"></i><br />
+                    Noch keine Schritte ausgewählt.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end pb-5">
+            <button class="btn btn-lg text-white px-5 shadow-sm" type="submit" style="background-color: #b02a37; border: 1px solid #90232c;">
+                <i class="fa-solid fa-floppy-disk me-2"></i> Rezept Speichern
+            </button>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/master-step-renderer.js"></script>
+    <script>
+        var availableUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure.Select(x => x.UnitOfMeasurement).ToList()));
+
+        let ingredientsTable;
+        let activeSandboxIngredientId = null;
+        let activeSandboxIngredientName = '';
+        const stepCatalog = @Html.Raw(stepCatalogJson);
+        const initialRecipeIngredients = @Html.Raw(initialIngredientsJson);
+        const stepCatalogById = new Map();
+        stepCatalog.forEach(function(s) { stepCatalogById.set(s.id.toString(), s); });
+        let sandboxUnboundSteps = [];
+        let lastDeletedStep = null;
+        let lastAddedStep = null;
+        const acceptedStepByIngredientPhase = new Map();
+        let activeEquipmentFilter = 'all';
+        let selectedAdminMasterIngredientNames = [];
+        let selectedAdminMasterTemplateId = '';
+        let tempAdminStepIdCounter = -1;
+
+        function escapeForJsSingleQuote(value) {
+            return (value || '')
+                .toString()
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/\r/g, '')
+                .replace(/\n/g, ' ');
+        }
+        function ensureIngredientsTableHeader() {
+            const requiredHeaders = ['Zutat', 'Menge + Einheit', 'Wählen'];
+            const headerRow = document.querySelector('#ingredientsDbTable thead tr');
+            if (!headerRow) return;
+
+            while (headerRow.children.length < requiredHeaders.length) {
+                const th = document.createElement('th');
+                th.textContent = requiredHeaders[headerRow.children.length];
+                headerRow.appendChild(th);
+            }
+
+            const lastHeader = headerRow.children[requiredHeaders.length - 1];
+            if (lastHeader) {
+                lastHeader.classList.add('text-end');
+            }
+        }
+
+        function normalizeIngredientRows(rawRows) {
+            if (!Array.isArray(rawRows)) return [];
+            return rawRows
+                .filter(row => row != null)
+                .map(row => ({
+                    ...row,
+                    groupe: row.groupe ?? row.group ?? row.Group ?? ''
+                }));
+        }
+
+        function getSelectedIngredientIdsForStepFilter() {
+            return $('#newIngredientsList .ingredient-row .field-id')
+                .map(function() { return $(this).val()?.toString(); })
+                .get()
+                .filter(id => id && id !== '0')
+                .join(',');
+        }
+
+        function getActiveIngredientIdsForStepFilter() {
+            if (activeSandboxIngredientId && activeSandboxIngredientId !== '0') {
+                return activeSandboxIngredientId.toString();
+            }
+
+            return getSelectedIngredientIdsForStepFilter();
+        }
+
+        function getSelectedIngredientsForSandbox() {
+            const fromRows = $('#newIngredientsList .ingredient-row').map(function() {
+                const row = $(this);
+                const id = row.find('.field-id').val()?.toString() || '0';
+                const name = row.find('input[name*="IngredientsAndNutrients.Name_DE"]').val()?.toString().trim() || '';
+                return { id, name };
+            }).get().filter(x => x.id !== '0' || x.name);
+
+            if (fromRows.length) {
+                return fromRows.map(x => ({ id: x.id, name: x.name || 'Manuelle Zutat' }));
+            }
+
+            const fromSandboxButtons = $('#sandboxIngredientList .sandbox-ingredient-btn').map(function() {
+                const btn = $(this);
+                return {
+                    id: btn.data('id')?.toString() || '0',
+                    name: btn.data('name')?.toString() || 'Manuelle Zutat'
+                };
+            }).get();
+
+            if (fromSandboxButtons.length) {
+                return fromSandboxButtons;
+            }
+
+            return [];
+        }
+
+        function buildIngredientTextForAdminMaster() {
+            const selected = selectedAdminMasterIngredientNames.filter(function(x) { return !!x && x.trim(); });
+            if (!selected.length) return '';
+            if (selected.length === 1) return selected[0];
+            if (selected.length === 2) return `${selected[0]} und ${selected[1]}`;
+            return `${selected.slice(0, -1).join(', ')} und ${selected[selected.length - 1]}`;
+        }
+
+        const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
+
+
+        function getCurrentUserHashForAdminRequests() {
+            const cookieMatch = document.cookie.match(/(?:^|;\s*)WorldMiniAppUserHash=([^;]+)/);
+            const fromCookie = cookieMatch ? decodeURIComponent(cookieMatch[1]) : '';
+            if (fromCookie) return fromCookie;
+
+            const fromHidden = ($('#hiddenUserTokenField').length ? ($('#hiddenUserTokenField').val() || '') : '').toString().trim();
+            if (fromHidden) return fromHidden;
+
+            const fromStorage = (sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '').toString().trim();
+            if (fromStorage) return fromStorage;
+
+            const fromQuery = new URLSearchParams(window.location.search).get('userHash');
+            if (fromQuery) return fromQuery;
+
+            return '';
+        }
+
+
+        function createAdminFallbackStepId() {
+            tempAdminStepIdCounter -= 1;
+            return tempAdminStepIdCounter.toString();
+        }
+
+        function normalizeAdminStepData(stepData, fallbackText = '') {
+            const normalized = {
+                de: (stepData?.de || stepData?.step_DE || '').toString(),
+                en: (stepData?.en || stepData?.step_EN || '').toString(),
+                esp: (stepData?.esp || stepData?.step_ESP || '').toString(),
+                prt: (stepData?.prt || stepData?.step_PRT || '').toString(),
+                phase: parseInt(stepData?.phase ?? 0, 10) || 0,
+                equipment: parseInt(stepData?.equipment ?? 0, 10) || 0
+            };
+
+            if (!normalized.de) normalized.de = normalized.en || fallbackText || '';
+            if (!normalized.en) normalized.en = normalized.de || fallbackText || '';
+            return normalized;
+        }
+
+        function refreshAdminMasterBuilder() {
+            const ingredientButtons = $('#adminMasterIngredientButtons');
+            const ingredients = getSelectedIngredientsForSandbox();
+            ingredientButtons.empty();
+
+            const availableNames = ingredients.map(function(item) { return item.name; }).filter(Boolean);
+            selectedAdminMasterIngredientNames = selectedAdminMasterIngredientNames.filter(function(name) {
+                return availableNames.includes(name);
+            });
+
+            if (!selectedAdminMasterIngredientNames.length && availableNames.length) {
+                selectedAdminMasterIngredientNames = [availableNames[0]];
+            }
+
+            if (!availableNames.length) {
+                ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
+                $('#adminMasterVariables').empty();
+                $('#adminMasterPreviewText').text('Noch kein Template gewählt.');
+                $('#adminMasterTemplateSelect').html('<option value="">Keine Templates</option>');
+                selectedAdminMasterTemplateId = '';
+                return;
+            }
+
+            availableNames.forEach(function(name) {
+                const isActive = selectedAdminMasterIngredientNames.includes(name);
+                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} admin-master-ingredient-btn" data-name="${name}">${name}</button>`);
+            });
+
+            refreshAdminMasterTemplates();
+        }
+
+        function getAdminMasterTemplates(ingredientName) {
+            if (!window.MasterStepRenderer) return [];
+
+            if (typeof MasterStepRenderer.getAllTemplates === 'function') {
+                const all = MasterStepRenderer.getAllTemplates();
+                if (Array.isArray(all) && all.length) {
+                    return all;
+                }
+            }
+
+            if (typeof MasterStepRenderer.suggestForIngredient === 'function') {
+                const suggested = MasterStepRenderer.suggestForIngredient(ingredientName || 'zutat');
+                if (Array.isArray(suggested) && suggested.length) {
+                    return suggested;
+                }
+            }
+
+            return [];
+        }
+
+        function refreshAdminMasterTemplates() {
+            const ingredientName = buildIngredientTextForAdminMaster();
+            const templateSelect = $('#adminMasterTemplateSelect');
+            templateSelect.empty();
+
+            if (!window.MasterStepRenderer) {
+                templateSelect.append('<option value="">Keine Templates</option>');
+                $('#adminMasterVariables').empty();
+                $('#adminMasterPreviewText').text('Master-Step Renderer nicht verfügbar.');
+                selectedAdminMasterTemplateId = '';
+                return;
+            }
+
+            const templates = getAdminMasterTemplates(ingredientName);
+            if (!templates.length) {
+                templateSelect.append('<option value="">Keine Templates gefunden</option>');
+                $('#adminMasterVariables').empty();
+                $('#adminMasterPreviewText').text('Keine Master-Templates gefunden.');
+                selectedAdminMasterTemplateId = '';
+                return;
+            }
+
+            if (!selectedAdminMasterTemplateId || !templates.some(function(step) { return step.master_id === selectedAdminMasterTemplateId; })) {
+                selectedAdminMasterTemplateId = templates[0].master_id;
+            }
+
+            templates.forEach(function(step) {
+                const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
+                    ingredientName: ingredientName
+                });
+                const localized = MasterStepRenderer.render(step.master_id, defaults, 'de');
+                const label = localized || step.description || step.master_id;
+                templateSelect.append(`<option value="${step.master_id}">${label}</option>`);
+            });
+
+            templateSelect.val(selectedAdminMasterTemplateId);
+            renderAdminMasterTemplateEditor();
+        }
+
+        function renderAdminMasterTemplateEditor() {
+            const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
+            const ingredientName = buildIngredientTextForAdminMaster();
+            const box = $('#adminMasterVariables');
+            box.empty();
+
+            if (!templateId || !window.MasterStepRenderer) {
+                $('#adminMasterPreviewText').text('Noch kein Template gewählt.');
+                return;
+            }
+
+            const template = MasterStepRenderer.findTemplate(templateId);
+            if (!template) {
+                $('#adminMasterPreviewText').text('Template nicht gefunden.');
+                return;
+            }
+
+            const vars = MasterStepRenderer.getSmartDefaults(templateId, {
+                ingredientName: ingredientName
+            });
+
+            (template.variables || []).forEach(function(key) {
+                box.append(`<div class="col-md-4"><label class="form-label small mb-1">${key}</label><input type="text" class="form-control form-control-sm admin-master-var-input" data-var="${key}" value="${vars[key] || ''}" /></div>`);
+            });
+
+            updateAdminMasterPreview();
+        }
+
+        function collectAdminMasterVariables() {
+            const vars = {};
+            $('#adminMasterVariables .admin-master-var-input').each(function() {
+                vars[$(this).data('var')] = $(this).val();
+            });
+            return vars;
+        }
+
+        function updateAdminMasterPreview() {
+            const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
+            if (!templateId || !window.MasterStepRenderer) return;
+
+            const ingredientName = buildIngredientTextForAdminMaster();
+            const vars = {
+                ...MasterStepRenderer.getSmartDefaults(templateId, { ingredientName: ingredientName }),
+                ...collectAdminMasterVariables()
+            };
+
+            $('#adminMasterPreviewText').text(MasterStepRenderer.render(templateId, vars, 'de') || 'Keine Vorschau verfügbar.');
+        }
+
+        async function addAdminRenderedMasterStep() {
+            const templateId = selectedAdminMasterTemplateId || $('#adminMasterTemplateSelect').val();
+            if (!templateId || !window.MasterStepRenderer) return;
+
+            const template = MasterStepRenderer.findTemplate(templateId);
+            if (!template) return;
+
+            const ingredientName = buildIngredientTextForAdminMaster();
+            const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
+                ingredientName: ingredientName
+            });
+            const vars = {
+                ...defaults,
+                ...collectAdminMasterVariables()
+            };
+
+            const rendered = MasterStepRenderer.renderAll(templateId, vars);
+            const payload = {
+                de: rendered.de,
+                en: rendered.en,
+                esp: rendered.esp,
+                prt: rendered.prt,
+                phase: parseInt(template.phase || 0, 10),
+                equipment: parseInt(template.equipment || 0, 10)
+            };
+
+            try {
+                const userHash = getCurrentUserHashForAdminRequests();
+                const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Upsert fehlgeschlagen');
+                }
+
+                const result = await response.json();
+                const newId = result?.id;
+                if (!newId) throw new Error('Keine Step-ID');
+
+                if (!stepCatalog.some(x => x && x.id?.toString() === newId.toString())) {
+                    stepCatalog.push({
+                        id: newId,
+                        de: rendered.de,
+                        en: rendered.en,
+                        esp: rendered.esp,
+                        prt: rendered.prt,
+                        step_DE: rendered.de,
+                        step_EN: rendered.en,
+                        step_ESP: rendered.esp,
+                        step_PRT: rendered.prt,
+                        phase: payload.phase,
+                        equipment: payload.equipment,
+                        ingredientIds: []
+                    });
+                }
+
+                addJoinStep(newId, rendered.de, { enforceIngredientPhaseUniqueness: false });
+                recalcStepNumbers();
+                loadSandboxStepsForActiveIngredient();
+            } catch (e) {
+                console.warn('Admin Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', e);
+
+                const fallbackId = createAdminFallbackStepId();
+                const fallbackStep = {
+                    id: fallbackId,
+                    de: rendered.de,
+                    en: rendered.en,
+                    esp: rendered.esp,
+                    prt: rendered.prt,
+                    step_DE: rendered.de,
+                    step_EN: rendered.en,
+                    step_ESP: rendered.esp,
+                    step_PRT: rendered.prt,
+                    phase: payload.phase,
+                    equipment: payload.equipment,
+                    ingredientIds: []
+                };
+
+                stepCatalog.push(fallbackStep);
+                stepCatalogById.set(fallbackId.toString(), fallbackStep);
+
+                addJoinStep(fallbackId, rendered.de, {
+                    enforceIngredientPhaseUniqueness: false,
+                    stepData: fallbackStep
+                });
+                recalcStepNumbers();
+                loadSandboxStepsForActiveIngredient();
+            }
+        }
+
+        function renderSandboxIngredientList() {
+            const container = $('#sandboxIngredientList');
+            const ingredients = getSelectedIngredientsForSandbox();
+            container.empty();
+            updateSuggestButtonState();
+
+            if (!ingredients.length) {
+                activeSandboxIngredientId = null;
+                activeSandboxIngredientName = '';
+                $('#sandboxActiveIngredientLabel').text('Keine Zutat aktiv');
+                container.append('<div class="text-muted small">Noch keine Zutaten ausgewählt.</div>');
+                sandboxUnboundSteps = [];
+                $('#sandboxUnboundSearch').val('');
+                renderSandboxStepCandidates([]);
+                renderSandboxUnboundStepCandidates('');
+                return;
+            }
+
+            const activeStillExists = ingredients.some(x => x.id === activeSandboxIngredientId);
+            if (!activeStillExists) {
+                const first = ingredients[0];
+                activeSandboxIngredientId = first.id;
+                activeSandboxIngredientName = first.name;
+            }
+
+            ingredients.forEach(item => {
+                const isActive = item.id === activeSandboxIngredientId;
+                const button = $(`<button type="button" class="btn btn-outline-secondary text-start sandbox-ingredient-btn ${isActive ? 'active' : ''}" data-id="${item.id}" data-name="${item.name}">
+                    <i class="fa-solid fa-carrot me-2"></i>${item.name}
+                </button>`);
+                container.append(button);
+            });
+
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine Zutat aktiv');
+            loadSandboxStepsForActiveIngredient();
+            updateRecipeTypeDetection();
+            refreshAdminMasterBuilder();
+        }
+
+        function shouldShowStepInSandboxSelection(step) {
+            const ingredientIds = (step?.ingredientIds || []).map(x => x?.toString()).filter(Boolean);
+            if (!ingredientIds.length) {
+                return true;
+            }
+
+            if (ingredientIds.length >= 3) {
+                return true;
+            }
+
+            const selectedIds = getSelectedIngredientIdsForStepFilter()
+                .split(',')
+                .map(x => x?.toString().trim())
+                .filter(Boolean);
+
+            const matchCount = ingredientIds.filter(id => selectedIds.includes(id)).length;
+            return matchCount >= 2;
+        }
+
+        function renderStepCardList(container, steps, emptyText) {
+            container.empty();
+
+            if (!steps || !steps.length) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+                return;
+            }
+
+            let renderedCount = 0;
+            steps.forEach(step => {
+                if (!shouldShowStepInSandboxSelection(step)) {
+                    return;
+                }
+
+                const stepId = step.id?.toString();
+                const activeId = activeSandboxIngredientId?.toString();
+                const stepPhase = parseInt(step.phase ?? 0, 10);
+                const stepIngredientIds = (step.ingredientIds || []).map(x => x.toString());
+
+                if (activeId && stepPhase > 0 && stepIngredientIds.includes(activeId)) {
+                    const acceptedId = acceptedStepByIngredientPhase.get(`${activeId}|${stepPhase}`)?.toString();
+                    if (acceptedId && acceptedId !== stepId) {
+                        return;
+                    }
+                }
+
+                const isSelected = $('#newStepsList .step-row').filter(function() {
+                    return $(this).data('step-id')?.toString() === stepId;
+                }).length > 0;
+
+                const card = $(`<div class="border rounded p-2 sandbox-step-card">
+                    <button type="button" class="btn btn-outline-primary text-start sandbox-step-candidate w-100" data-id="${step.id}">
+                        <span class="badge ${isSelected ? 'bg-success' : 'bg-primary'} me-2">${step.id}</span>
+                        ${step.step_DE}
+                        ${isSelected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
+                    </button>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="button" class="btn btn-success btn-sm sandbox-accept-step-btn" data-id="${step.id}">Akzeptieren</button>
+                    </div>
+                </div>`);
+
+                card.find('.sandbox-step-candidate').on('click', function() {
+                    addJoinStep(step.id, step.step_DE, { enforceIngredientPhaseUniqueness: false });
+                });
+                card.find('.sandbox-accept-step-btn').on('click', function() {
+                    acceptStepForActiveIngredient(step.id, step.step_DE);
+                });
+                container.append(card);
+                renderedCount += 1;
+            });
+
+            if (!renderedCount) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+            }
+        }
+
+        function renderSandboxStepCandidates(steps) {
+            renderStepCardList($('#sandboxLinkedStepCandidates'), steps, 'Keine verknüpften Schritte gefunden.');
+        }
+
+        function getEquipmentLabel(equipment) {
+            const map = {
+                1: { text: 'Backofen', cls: 'equip-badge-1', icon: 'fa-temperature-high' },
+                2: { text: 'Pfanne', cls: 'equip-badge-2', icon: 'fa-fire-burner' },
+                3: { text: 'Topf', cls: 'equip-badge-3', icon: 'fa-bowl-food' },
+                4: { text: 'Bräter', cls: 'equip-badge-4', icon: 'fa-fire' },
+                5: { text: 'Kochfeld', cls: 'equip-badge-5', icon: 'fa-kitchen-set' }
+            };
+            const info = map[equipment];
+            if (!info) return '';
+            return `<span class="equipment-badge ${info.cls}"><i class="fa-solid ${info.icon} me-1"></i>${info.text}</span>`;
+        }
+
+        function getPhaseLabel(phase) {
+            const map = {
+                1: { text: 'Vorb.', cls: 'phase-badge-1' },
+                2: { text: 'Kochen', cls: 'phase-badge-2' },
+                3: { text: 'Würzen', cls: 'phase-badge-3' },
+                4: { text: 'Finish', cls: 'phase-badge-4' }
+            };
+            const info = map[phase];
+            if (!info) return '';
+            return `<span class="phase-badge ${info.cls}">${info.text}</span>`;
+        }
+
+        function renderSandboxUnboundStepCandidates(searchTerm) {
+            const normalizedSearch = (searchTerm || '').trim().toLowerCase();
+            const filtered = sandboxUnboundSteps.filter(step => {
+                if (activeEquipmentFilter !== 'all') {
+                    const equipVal = parseInt(step?.equipment ?? 0, 10);
+                    if (equipVal.toString() !== activeEquipmentFilter) return false;
+                }
+
+                if (!normalizedSearch) return true;
+
+                const text = (step?.step_DE || '').toString().toLowerCase();
+                const idText = (step?.id || '').toString();
+                return text.includes(normalizedSearch) || idText.includes(normalizedSearch);
+            });
+
+            // Sort by phase: Vorbereitung → Kochen → Würzen → Finish → Sonstige
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            filtered.sort(function(a, b) {
+                const pa = phaseOrder[parseInt(a?.phase ?? 0, 10)] ?? 4;
+                const pb = phaseOrder[parseInt(b?.phase ?? 0, 10)] ?? 4;
+                if (pa !== pb) return pa - pb;
+                return (a.id || 0) - (b.id || 0);
+            });
+
+            renderUnboundStepCardListGrouped($('#sandboxUnboundStepCandidates'), filtered, 'Keine ungebundenen Schritte gefunden.');
+        }
+
+        function renderUnboundStepCardListGrouped(container, steps, emptyText) {
+            container.empty();
+
+            if (!steps || !steps.length) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+                return;
+            }
+
+            const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
+            const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
+
+            steps.forEach(step => {
+                const phase = parseInt(step?.phase ?? 0, 10);
+                (phaseGroups[phase] ?? phaseGroups[0]).push(step);
+            });
+
+            let renderedCount = 0;
+            [1, 2, 3, 4, 0].forEach(phase => {
+                const items = phaseGroups[phase];
+                if (!items.length) return;
+
+                const phaseBadge = getPhaseLabel(phase);
+                if (phaseBadge) {
+                    container.append(`<div class="fw-bold small mt-2 mb-1 border-bottom pb-1">${phaseBadge} ${phaseNames[phase]}</div>`);
+                } else {
+                    container.append(`<div class="fw-bold small mt-2 mb-1 border-bottom pb-1 text-muted">Sonstige</div>`);
+                }
+
+                items.forEach(step => {
+                    if (!shouldShowStepInSandboxSelection(step)) return;
+
+                    const stepId = step.id?.toString();
+                    const isSelected = $('#newStepsList .step-row').filter(function() {
+                        return $(this).data('step-id')?.toString() === stepId;
+                    }).length > 0;
+
+                    const equipBadge = getEquipmentLabel(parseInt(step?.equipment ?? 0, 10));
+
+                    const card = $(`<div class="border rounded p-2 sandbox-step-card">
+                        <button type="button" class="btn btn-outline-primary text-start sandbox-step-candidate w-100" data-id="${step.id}">
+                            <span class="badge ${isSelected ? 'bg-success' : 'bg-primary'} me-2">${step.id}</span>
+                            ${equipBadge}
+                            ${step.step_DE}
+                            ${isSelected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
+                        </button>
+                        <div class="d-flex justify-content-end mt-2">
+                            <button type="button" class="btn btn-success btn-sm sandbox-accept-step-btn" data-id="${step.id}">Akzeptieren</button>
+                        </div>
+                    </div>`);
+
+                    card.find('.sandbox-step-candidate').on('click', function() {
+                        addJoinStep(step.id, step.step_DE, { enforceIngredientPhaseUniqueness: false });
+                    });
+                    card.find('.sandbox-accept-step-btn').on('click', function() {
+                        acceptStepForActiveIngredient(step.id, step.step_DE);
+                    });
+                    container.append(card);
+                    renderedCount += 1;
+                });
+            });
+
+            if (!renderedCount) {
+                container.append(`<div class="text-muted small">${emptyText}</div>`);
+            }
+        }
+
+        function refreshSandboxStepSelectionHighlight() {
+            const selectedStepIds = $('#newStepsList .step-row').map(function() {
+                return $(this).data('step-id')?.toString();
+            }).get();
+
+            $('.sandbox-step-candidate').each(function() {
+                const card = $(this);
+                const stepId = card.data('id')?.toString();
+                const isSelected = selectedStepIds.includes(stepId);
+
+                const idBadge = card.find('span.badge').first();
+                if (idBadge.length) {
+                    idBadge.removeClass('bg-primary bg-success').addClass(isSelected ? 'bg-success' : 'bg-primary');
+                }
+
+                const label = card.find('.sandbox-selected-label');
+                if (isSelected) {
+                    if (!label.length) {
+                        card.append('<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>');
+                    }
+                } else {
+                    label.remove();
+                }
+            });
+        }
+
+        function buildStepMatchCount(step, selectedIngredientIds) {
+            const stepIngredientIds = (step?.ingredientIds || []).map(x => x.toString());
+            if (!stepIngredientIds.length) {
+                return 0;
+            }
+
+            const normalizedSelectedIds = (selectedIngredientIds || []).map(x => x.toString());
+            return normalizedSelectedIds.filter(id => stepIngredientIds.includes(id)).length;
+        }
+
+        function sortSandboxStepRows(rows, selectedIngredientIds) {
+            return rows.sort(function(a, b) {
+                const matchA = buildStepMatchCount(a, selectedIngredientIds);
+                const matchB = buildStepMatchCount(b, selectedIngredientIds);
+
+                if (matchB !== matchA) {
+                    return matchB - matchA;
+                }
+
+                return (a.id || 0) - (b.id || 0);
+            });
+        }
+
+        function updateSuggestButtonState() {
+            const selected = getSelectedIngredientIdsForStepFilter();
+            $('#btnSuggestSteps').prop('disabled', !selected.length);
+        }
+
+        /** Live recipe type detection when ingredients change */
+        function updateRecipeTypeDetection() {
+            const selectedIdsCsv = getSelectedIngredientIdsForStepFilter();
+            const selectedNames = getSelectedIngredientsForSandbox().map(function(x) { return x.name; });
+            const scoreBar = $('#recipeTypeScoreBar');
+            const badges = $('#recipeTypeBadges');
+            const masterBox = $('#masterStepPreviewBox');
+            const masterList = $('#masterStepPreviewList');
+
+            if (!selectedIdsCsv || !selectedIdsCsv.length) {
+                scoreBar.addClass('d-none');
+                masterBox.addClass('d-none');
+                return;
+            }
+
+            const selectedIds = selectedIdsCsv.split(',').map(function(x) { return parseInt(x, 10); }).filter(function(x) { return !isNaN(x); });
+            const suggest = window.RecipeStepSuggest;
+
+            if (suggest && typeof suggest.isLoaded === 'function' && !suggest.isLoaded() && typeof suggest.loadMapping === 'function') {
+                suggest.loadMapping().then(function() { updateRecipeTypeDetection(); });
+                return;
+            }
+
+            const types = suggest && typeof suggest.detectRecipeTypes === 'function'
+                ? suggest.detectRecipeTypes(selectedIds)
+                : [];
+
+            if (types.length && suggest && typeof suggest.renderRecipeTypeBadges === 'function') {
+                badges.html(suggest.renderRecipeTypeBadges(types, 3));
+                scoreBar.removeClass('d-none');
+            } else {
+                scoreBar.addClass('d-none');
+            }
+
+            // Preview ohne harte Abhängigkeit von RecipeStepSuggest.getMasterStepPreview
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.suggestForIngredient === 'function' && typeof MasterStepRenderer.render === 'function') {
+                const previews = [];
+                selectedNames.slice(0, 2).forEach(function(name) {
+                    const steps = MasterStepRenderer.suggestForIngredient(name).slice(0, 3);
+                    steps.forEach(function(step) {
+                        const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, { ingredientName: name });
+                        const text = MasterStepRenderer.render(step.master_id, defaults, 'de');
+                        if (text) {
+                            previews.push({ phase: parseInt(step.phase || 0, 10), text: text });
+                        }
+                    });
+                });
+
+                if (previews.length) {
+                    masterList.empty();
+                    previews.slice(0, 5).forEach(function(item) {
+                        masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text}</div>`);
+                    });
+                    masterBox.removeClass('d-none');
+                } else {
+                    masterBox.addClass('d-none');
+                }
+            } else {
+                masterBox.addClass('d-none');
+            }
+        }
+
+        function removeConflictingStepsForActiveIngredient(newStepId) {
+            const activeId = activeSandboxIngredientId?.toString();
+            if (!activeId) return;
+
+            const newStep = stepCatalogById.get(newStepId?.toString());
+            if (!newStep) return;
+
+            const newStepPhase = parseInt(newStep.phase ?? 0, 10);
+            if (!newStepPhase || newStepPhase < 1) return;
+
+            const newStepIngredientIds = (newStep.ingredientIds || []).map(x => x.toString());
+            if (!newStepIngredientIds.includes(activeId)) return;
+
+            $('#newStepsList .step-row').each(function() {
+                const row = $(this);
+                const existingStepId = row.data('step-id')?.toString();
+                if (!existingStepId || existingStepId === newStepId.toString()) return;
+
+                const existingStep = stepCatalogById.get(existingStepId);
+                if (!existingStep) return;
+
+                const existingPhase = parseInt(existingStep.phase ?? 0, 10);
+                if (existingPhase !== newStepPhase) return;
+
+                const existingIngredientIds = (existingStep.ingredientIds || []).map(x => x.toString());
+                if (!existingIngredientIds.includes(activeId)) return;
+
+                row.remove();
+            });
+        }
+
+        function acceptStepForActiveIngredient(stepId, stepText) {
+            const activeId = activeSandboxIngredientId?.toString();
+            if (!activeId) {
+                alert('Bitte zuerst links eine Zutat auswählen.');
+                return;
+            }
+
+            addJoinStep(stepId, stepText, { enforceIngredientPhaseUniqueness: false });
+            removeConflictingStepsForActiveIngredient(stepId);
+
+            const step = stepCatalogById.get(stepId?.toString());
+            const phase = parseInt(step?.phase ?? 0, 10);
+            const ingredientIds = (step?.ingredientIds || []).map(x => x.toString());
+            if (phase > 0 && ingredientIds.includes(activeId)) {
+                acceptedStepByIngredientPhase.set(`${activeId}|${phase}`, stepId.toString());
+            }
+
+            recalcStepNumbers();
+            loadSandboxStepsForActiveIngredient();
+        }
+
+        function suggestStepsForSelectedIngredients() {
+            const selectedIdsCsv = getSelectedIngredientIdsForStepFilter();
+            if (!selectedIdsCsv || !selectedIdsCsv.length) return;
+
+            const selectedIds = selectedIdsCsv.split(',').map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+            if (!selectedIds.length) return;
+
+            const existingSteps = $('#newStepsList .step-row').length;
+            if (existingSteps > 0 && !confirm('Bestehende Schritte ersetzen?')) return;
+
+            // Collect selected ingredient names for conflict checking
+            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
+
+            // Build a plain object lookup from the page's step catalog
+            const catalogObj = {};
+            stepCatalog.forEach(function(s) { catalogObj[s.id.toString()] = s; });
+
+            function runSuggestion() {
+                const result = RecipeStepSuggest.suggestStepsForIngredients(selectedIds, catalogObj, {
+                    selectedIngredientNames: selectedNames,
+                    maxSteps: 25
+                });
+
+                // Show recipe type score
+                const scoreBar = $('#recipeTypeScoreBar');
+                const badges = $('#recipeTypeBadges');
+                if (result.recipeTypes.length) {
+                    badges.html(RecipeStepSuggest.renderRecipeTypeBadges(result.recipeTypes, 3));
+                    scoreBar.removeClass('d-none');
+                } else {
+                    scoreBar.addClass('d-none');
+                }
+
+                if (result.steps.length) {
+                    $('#newStepsList').empty();
+                    $('#emptyStepsMsg').hide();
+                    result.steps.forEach(function(item) {
+                        const catalogStep = catalogObj[item.stepId.toString()];
+                        const text = catalogStep ? (catalogStep.step_DE || catalogStep.de || '') : '';
+                        addJoinStep(item.stepId, text, { enforceIngredientPhaseUniqueness: false });
+                    });
+                    recalcStepNumbers();
+                    return;
+                }
+
+                // Fallback: original DB-binding logic
+                suggestStepsFallback(selectedIds);
+            }
+
+            if (RecipeStepSuggest.isLoaded()) {
+                runSuggestion();
+            } else {
+                RecipeStepSuggest.loadMapping()
+                    .then(function() { runSuggestion(); })
+                    .catch(function() { suggestStepsFallback(selectedIds); });
+            }
+        }
+
+        /** Original suggest logic as fallback */
+        function suggestStepsFallback(selectedIds) {
+            const matched = stepCatalog
+                .map(function(step) {
+                    const ingredientIds = (step.ingredientIds || []).map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+                    const matchCount = ingredientIds.filter(id => selectedIds.includes(id)).length;
+                    return { step, matchCount, phase: parseInt(step.phase ?? 0, 10) || 0 };
+                })
+                .filter(x => x.matchCount > 0);
+
+            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+            matched.sort(function(a, b) {
+                const pa = phaseOrder[a.phase] ?? 4;
+                const pb = phaseOrder[b.phase] ?? 4;
+                if (pa !== pb) return pa - pb;
+                if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount;
+                return (a.step.id || 0) - (b.step.id || 0);
+            });
+
+            $('#newStepsList').empty();
+            $('#emptyStepsMsg').hide();
+            matched.forEach(function(item) {
+                addJoinStep(item.step.id, item.step.step_DE, { enforceIngredientPhaseUniqueness: false });
+            });
+            recalcStepNumbers();
+        }
+
+        function loadSandboxStepsForActiveIngredient() {
+            const selectedIngredientIdsCsv = getSelectedIngredientIdsForStepFilter();
+            const selectedIngredientIds = selectedIngredientIdsCsv
+                .split(',')
+                .map(x => parseInt(x, 10))
+                .filter(x => !isNaN(x));
+            const activeIngredientId = activeSandboxIngredientId?.toString() || '';
+
+            if (!selectedIngredientIds.length && !activeIngredientId) {
+                sandboxUnboundSteps = [];
+                $('#sandboxUnboundSearch').val('');
+                renderSandboxStepCandidates([]);
+                renderSandboxUnboundStepCandidates('');
+                return;
+            }
+
+            const boundToActive = sortSandboxStepRows(
+                stepCatalog.filter(x => (x.ingredientIds || []).map(id => id.toString()).includes(activeIngredientId)),
+                selectedIngredientIds);
+            const unbound = stepCatalog
+                .filter(x => !(x.ingredientIds || []).length)
+                .sort(function(a, b) {
+                    const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
+                    const pa = phaseOrder[parseInt(a.phase ?? 0, 10)] ?? 4;
+                    const pb = phaseOrder[parseInt(b.phase ?? 0, 10)] ?? 4;
+                    if (pa !== pb) return pa - pb;
+                    return (a.id || 0) - (b.id || 0);
+                });
+
+            sandboxUnboundSteps = unbound;
+            $('#sandboxUnboundSearch').val('');
+            renderSandboxStepCandidates(boundToActive);
+            renderSandboxUnboundStepCandidates('');
+        }
+
+        function refreshLastEditedStepBox() {
+            const info = $('#sandboxLastStepInfo');
+            const restoreBtn = $('#btnRestoreLastDeletedStep');
+            const removeLastBtn = $('#btnRemoveLastAddedStep');
+
+            if (lastDeletedStep) {
+                restoreBtn.prop('disabled', false);
+            } else {
+                restoreBtn.prop('disabled', true);
+            }
+
+            if (lastAddedStep) {
+                removeLastBtn.prop('disabled', false);
+            } else {
+                removeLastBtn.prop('disabled', true);
+            }
+
+            if (lastDeletedStep) {
+                info.html(`<strong>Zuletzt gelöscht:</strong> #${lastDeletedStep.id} ${lastDeletedStep.text}`);
+                return;
+            }
+
+            if (lastAddedStep) {
+                info.html(`<strong>Zuletzt hinzugefügt:</strong> #${lastAddedStep.id} ${lastAddedStep.text}`);
+                return;
+            }
+
+            info.text('Noch keine Aktion bei den Schritten.');
+        }
+
+        function normalizeUnitForSelection(unit) {
+            const normalized = (unit || '').toString().trim();
+            if (!normalized) return 'Gramm';
+
+            const found = availableUnits.find(function(u) {
+                return (u || '').toString().trim().toLowerCase() === normalized.toLowerCase();
+            });
+            if (found) return found;
+
+            if (normalized.toLowerCase() === 'g' || normalized.toLowerCase() === 'gramm') {
+                const grams = availableUnits.find(function(u) {
+                    const lower = (u || '').toString().toLowerCase();
+                    return lower === 'g.' || lower === 'g';
+                });
+                if (grams) return grams;
+            }
+
+            if (normalized.toLowerCase() === 'stück' || normalized.toLowerCase() === 'stk') {
+                const pieces = availableUnits.find(function(u) {
+                    const lower = (u || '').toString().toLowerCase();
+                    return lower === 'stk.' || lower === 'stk' || lower === 'stück';
+                });
+                if (pieces) return pieces;
+            }
+
+            return normalized;
+        }
+
+        function preloadExistingRecipeIngredients() {
+            if (!Array.isArray(initialRecipeIngredients) || !initialRecipeIngredients.length) return;
+
+            initialRecipeIngredients.forEach(function(item) {
+                const dbId = item?.id && Number(item.id) > 0 ? item.id.toString() : '0';
+                if (dbId === '0') return;
+
+                const name = (item?.name || '').toString();
+                const quantity = item?.quantity != null ? item.quantity.toString() : '';
+                const unit = normalizeUnitForSelection(item?.unit || 'Gramm');
+                if (!name) return;
+
+                addNewIngredient(dbId, name, quantity, unit);
+            });
+        }
+
+        $(document).ready(function() {
+            ingredientsTable = new DataTable('#ingredientsDbTable', {
+                ajax: {
+                    url: '@Url.Action("GetIngredientTableData", "Admin")',
+                    dataSrc: function(json) {
+                        return normalizeIngredientRows(json);
+                    }
+                },
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json' },
+                pageLength: 15,
+                lengthMenu: [5, 10, 25],
+                columnDefs: [ { orderable: false, targets: [1, 2] } ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+                columns: [
+                    { data: 'name_DE', className: 'fw-bold' },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function(data, type, row) {
+                            const unitOptions = availableUnits.map(u => `<option value="${u}">${u}</option>`).join('');
+                            return `
+                                <div class="ingredient-cell-controls">                                    <input type="number" step="any" min="0" class="form-control form-control-sm ingredient-qty-input" value="0" />                                    <select class="form-select form-select-sm ingredient-unit-input">${unitOptions}</select>                                </div>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-end align-middle w-auto',
+                        render: function(data, type, row) {
+                            const safeName = escapeForJsSingleQuote(row.name_DE || '');
+                            return `<button type="button" class="btn btn-outline-success btn-sm rounded-pill btn-add-ingredient" onclick="addNewIngredientFromTable(this, '${row.id}', '${safeName}')"><i class="fa-solid fa-plus"></i> Hinzufügen</button>`;
+                        }
+                    }
+                ]
+            });
+
+            $('#refreshIngredientsTableBtn').on('click', function() {
+                ingredientsTable.ajax.reload(null, false);
+            });
+
+            $('#btnSuggestSteps').on('click', function() {
+                suggestStepsForSelectedIngredients();
+            });
+
+            MasterStepRenderer.load().then(function() { refreshAdminMasterBuilder(); });
+            $('#adminMasterIngredientButtons').on('click', '.admin-master-ingredient-btn', function() {
+                const name = $(this).data('name')?.toString() || '';
+                if (!name) return;
+
+                if (selectedAdminMasterIngredientNames.includes(name)) {
+                    selectedAdminMasterIngredientNames = selectedAdminMasterIngredientNames.filter(function(x) { return x !== name; });
+                } else {
+                    selectedAdminMasterIngredientNames.push(name);
+                }
+
+                if (!selectedAdminMasterIngredientNames.length) {
+                    const fallback = getSelectedIngredientsForSandbox()[0]?.name || '';
+                    if (fallback) selectedAdminMasterIngredientNames = [fallback];
+                }
+
+                refreshAdminMasterBuilder();
+            });
+            $('#adminMasterTemplateSelect').on('change', function() {
+                selectedAdminMasterTemplateId = ($(this).val() || '').toString();
+                renderAdminMasterTemplateEditor();
+            });
+            $('#adminMasterVariables').on('input', '.admin-master-var-input', updateAdminMasterPreview);
+            $('#btnAdminAddMasterStep').on('click', addAdminRenderedMasterStep);
+
+            preloadExistingRecipeIngredients();
+            renderSandboxIngredientList();
+            updateSuggestButtonState();
+        });
+
+        // ----------------------------------------------------
+        // HELPER: Datei Name anzeigen
+        // ----------------------------------------------------
+        function updateFileName(input) {
+            if (input.files && input.files[0]) $('#fileLabelText').text(input.files[0].name);
+        }
+
+        // ----------------------------------------------------
+        // LOGIK ZUTATEN
+        // ----------------------------------------------------
+        function changeUnitValue(rowId, value) {
+            // Wir suchen innerhalb der Zeile, um Konflikte zu vermeiden
+            const row = $('#ing_row_' + rowId);
+            row.find('.unit-input').val(value);
+            row.find('.unit-btn').text(value);
+        }
+
+        function removeIngredientRow(btn) {
+            $(btn).closest('.row').fadeOut(300, function() {
+                $(this).remove();
+                if ($('#newIngredientsList').children().length === 0) $('#emptyIngredientsMsg').fadeIn();
+                // Indizes werden beim Submit neu berechnet,
+                // aber wir könnten es auch hier tun, wenn nötig.
+                    renderSandboxIngredientList();
+            });
+        }
+
+        function addNewIngredientFromTable(btn, dbId, name) {
+            const row = $(btn).closest('tr');
+            const quantity = row.find('.ingredient-qty-input').val() || '';
+            const unit = row.find('.ingredient-unit-input').val() || 'Gramm';
+            addNewIngredient(dbId, name, quantity, unit);
+        }
+
+        function addNewIngredient(dbId, name, quantity = '', unit = 'Gramm') {
+            const existingById = dbId !== '0' && $('#newIngredientsList .ingredient-row').filter(function() {
+                return $(this).data('ingredient-id')?.toString() === dbId.toString();
+            }).length > 0;
+            const existingByName = name && $('#newIngredientsList .ingredient-row input[name*="IngredientsAndNutrients.Name_DE"]').filter(function() {
+                return $(this).val()?.toString().trim().toLowerCase() === name.toString().trim().toLowerCase();
+            }).length > 0;
+
+            if (existingById || existingByName) {
+                return;
+            }
+
+            $('#emptyIngredientsMsg').hide();
+
+            // Generiere eine temporäre ID (Timestamp) für DOM-Manipulation
+            // WICHTIG: Die echten Indizes [0], [1] werden erst beim Submit gesetzt/korrigiert.
+            const tempId = Date.now();
+
+            let dropdownItems = '';
+            availableUnits.forEach(u => {
+                dropdownItems += `<li><a class="dropdown-item" href="javascript:void(0)" onclick="changeUnitValue('${tempId}', '${u}')">${u}</a></li>`;
+            });
+
+            // Wir verwenden erst mal einen Platzhalter INDEX im namen, der später ersetz
+            let html = `
+                <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm ingredient-row" id="ing_row_${tempId}" data-ingredient-id="${dbId}">
+                    <input type="hidden" class="field-id" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${dbId}" />
+
+                    <div class="col-md-5 col-12">
+                        <label class="small text-muted fw-bold d-md-none">Zutat</label>
+                        <input type="text" class="form-control fw-bold"
+                               name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Name_DE"
+                               value="${name}" ${name !== '' ? 'readonly' : ''} placeholder="Zutat..." />
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="small text-muted fw-bold d-md-none">Menge</label>
+                        <input type="number" step="any" class="form-control"
+                               name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" placeholder="0" value="${quantity}" required />
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="small text-muted fw-bold d-md-none">Einheit</label>
+                        <input type="hidden" class="unit-input" name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement" value="${unit}" />
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 unit-btn text-truncate" type="button" data-bs-toggle="dropdown">${unit}</button>
+                            <ul class="dropdown-menu shadow" style="max-height: 200px; overflow-y: auto;">${dropdownItems}</ul>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-2 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-icon ms-auto mt-2 mt-md-0" onclick="removeIngredientRow(this)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
+
+            $(html).hide().appendTo('#newIngredientsList').fadeIn(400);
+            renderSandboxIngredientList();
+        }
+
+        // ----------------------------------------------------
+        // LOGIK ARBEITSSCHRITTE
+        // ----------------------------------------------------
+        function removeStepRow(btn) {
+            const row = $(btn).closest('.step-row');
+            const deletedStepId = row.data('step-id')?.toString();
+            const deletedStepText = row.find('input[type="text"]').val() || '';
+
+            row.fadeOut(300, function() {
+                $(this).remove();
+
+                if (deletedStepId) {
+                    lastDeletedStep = { id: deletedStepId, text: deletedStepText };
+                }
+
+                if (lastAddedStep?.id?.toString() === deletedStepId?.toString()) {
+                    lastAddedStep = null;
+                }
+
+                for (const [key, value] of acceptedStepByIngredientPhase.entries()) {
+                    if (value?.toString() === deletedStepId?.toString()) {
+                        acceptedStepByIngredientPhase.delete(key);
+                    }
+                }
+
+                refreshLastEditedStepBox();
+                refreshSandboxStepSelectionHighlight();
+                if ($('#newStepsList').children().length === 0) $('#emptyStepsMsg').fadeIn();
+                recalcStepNumbers(); // Nummern sofort aktualisieren
+            });
+        }
+
+        function editJoinStepText(btn) {
+            const row = $(btn).closest('.step-row');
+            const input = row.find('.join-step-text-input').first();
+            const current = (input.val() || '').toString().trim();
+            const updated = prompt('Schritt bearbeiten:', current);
+            if (updated === null) return;
+            const trimmed = updated.trim();
+            if (!trimmed) return;
+            input.val(trimmed);
+
+            row.find('.step-hidden-de').val(trimmed);
+            row.find('.step-hidden-en').val(trimmed);
+
+            refreshLastEditedStepBox();
+        }
+
+        function addJoinStep(stepId, stepText, options = {}) {
+            const alreadySelected = $('#newStepsList .step-row').filter(function() {
+                return $(this).data('step-id')?.toString() === stepId.toString();
+            }).length > 0;
+
+            if (alreadySelected) {
+                return;
+            }
+
+            const enforceIngredientPhaseUniqueness = options?.enforceIngredientPhaseUniqueness === true;
+            if (enforceIngredientPhaseUniqueness) {
+                removeConflictingStepsForActiveIngredient(stepId);
+            }
+
+            $('#emptyStepsMsg').hide();
+
+            const sourceStep = options?.stepData || stepCatalogById.get(stepId?.toString?.()) || stepCatalog.find(x => x && x.id?.toString() === stepId.toString()) || {};
+            const normalizedStep = normalizeAdminStepData(sourceStep, stepText);
+            const textToShow = (stepText || normalizedStep.de || `Schritt ${stepId}`).toString();
+            const stepIdAsInt = parseInt(stepId, 10);
+            const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
+
+            // Automatisch die nächste Nummer ermitteln
+            const currentCount = $('#newStepsList .step-row').length + 1;
+            const tempId = Date.now();
+
+            let html = `
+                <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm step-row" id="step_row_${tempId}" data-step-id="${stepId}" draggable="true" style="border-left: 5px solid #0d6efd !important;">
+
+                    <input type="hidden" class="field-prepid" name="RecipeJoyinPreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
+                    <input type="hidden" class="field-recid" name="RecipeJoyinPreperationSteps[INDEX].RecipeId" value="@Model.Recipes.Id" />
+                    <input type="hidden" class="step-hidden-de" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStep.de).html()}" />
+                    <input type="hidden" class="step-hidden-en" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStep.en).html()}" />
+                    <input type="hidden" class="step-hidden-esp" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStep.esp).html()}" />
+                    <input type="hidden" class="step-hidden-prt" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStep.prt).html()}" />
+                    <input type="hidden" class="step-hidden-phase" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStep.phase}" />
+                    <input type="hidden" class="step-hidden-equipment" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStep.equipment}" />
+
+                    <div class="col-12 col-md-1 d-flex flex-md-column gap-1 align-items-center justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="moveStepRow(this, -1)" title="Schritt nach oben">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="moveStepRow(this, 1)" title="Schritt nach unten">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                    </div>
+
+                    <div class="col-3 col-md-2">
+                         <label class="small text-muted fw-bold">Nr.</label>
+                         <input type="number" class="form-control fw-bold text-center border-primary field-stepindex"
+                                name="RecipeJoyinPreperationSteps[INDEX].StepIndex"
+                                value="${currentCount}" required />
+                    </div>
+
+                    <div class="col-9 col-md-7">
+                        <label class="small text-muted fw-bold d-md-none">Beschreibung</label>
+                        <input type="text" class="form-control bg-light join-step-text-input" value="${textToShow}" />
+                    </div>
+
+                    <div class="col-12 col-md-2 text-end">
+                        <span class="text-muted d-none d-md-inline-block me-2" title="Ziehen zum Sortieren">
+                            <i class="fa-solid fa-grip-lines"></i>
+                        </span>
+                        <button type="button" class="btn btn-outline-primary btn-icon ms-auto mt-2 mt-md-0 me-2" onclick="editJoinStepText(this)" title="Schritttext bearbeiten">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-icon ms-auto mt-2 mt-md-0 me-2" onclick="acceptExistingStepRow(this)" title="Diesen Schritt akzeptieren">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-icon ms-auto mt-2 mt-md-0" onclick="removeStepRow(this)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            $(html).hide().appendTo('#newStepsList').fadeIn(400);
+            lastAddedStep = { id: stepId, text: textToShow };
+            refreshLastEditedStepBox();
+            recalcStepNumbers();
+            refreshSandboxStepSelectionHighlight();
+        }
+
+        // Visuelle Nummern aktualisieren (falls man zwischendrin was löscht)
+        function recalcStepNumbers() {
+            $('#newStepsList .step-row').each(function(index) {
+                $(this).find('.field-stepindex').val(index + 1);
+            });
+            refreshSandboxStepSelectionHighlight();
+        }
+
+        function acceptExistingStepRow(btn) {
+            const row = $(btn).closest('.step-row');
+            const stepId = row.data('step-id')?.toString();
+            const stepText = row.find('input[type="text"]').val() || '';
+            if (!stepId) {
+                return;
+            }
+
+            acceptStepForActiveIngredient(stepId, stepText);
+        }
+
+        function moveStepRow(btn, direction) {
+            const row = $(btn).closest('.step-row');
+            if (direction < 0) {
+                const prev = row.prev('.step-row');
+                if (prev.length) prev.before(row);
+            } else {
+                const next = row.next('.step-row');
+                if (next.length) next.after(row);
+            }
+            recalcStepNumbers();
+        }
+
+        let draggedStepRow = null;
+        $('#newStepsList').on('dragstart', '.step-row', function(e) {
+            draggedStepRow = this;
+            e.originalEvent.dataTransfer.effectAllowed = 'move';
+            $(this).addClass('opacity-50');
+        });
+
+        $('#newStepsList').on('dragend', '.step-row', function() {
+            $(this).removeClass('opacity-50');
+            draggedStepRow = null;
+        });
+
+        $('#newStepsList').on('dragover', '.step-row', function(e) {
+            e.preventDefault();
+            if (!draggedStepRow || draggedStepRow === this) return;
+            const rect = this.getBoundingClientRect();
+            const offset = e.originalEvent.clientY - rect.top;
+            if (offset > rect.height / 2) {
+                $(this).after(draggedStepRow);
+            } else {
+                $(this).before(draggedStepRow);
+            }
+            recalcStepNumbers();
+        });
+
+        $('#sandboxIngredientList').on('click', '.sandbox-ingredient-btn', function() {
+            activeSandboxIngredientId = $(this).data('id')?.toString() || null;
+            activeSandboxIngredientName = $(this).data('name')?.toString() || '';
+            $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
+            $(this).addClass('active');
+            $('#sandboxActiveIngredientLabel').text(activeSandboxIngredientName || 'Keine Zutat aktiv');
+            loadSandboxStepsForActiveIngredient();
+        });
+
+        $('#sandboxUnboundSearch').on('input', function() {
+            renderSandboxUnboundStepCandidates($(this).val());
+        });
+
+        $('#equipmentFilterBar').on('click', '.equipment-filter-btn', function() {
+            $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
+            $(this).addClass('active');
+            activeEquipmentFilter = $(this).data('equipment')?.toString() || 'all';
+            renderSandboxUnboundStepCandidates($('#sandboxUnboundSearch').val());
+        });
+
+        $('#btnRestoreLastDeletedStep').on('click', function() {
+            if (!lastDeletedStep?.id) {
+                return;
+            }
+
+            addJoinStep(lastDeletedStep.id, lastDeletedStep.text, { enforceIngredientPhaseUniqueness: false });
+            lastDeletedStep = null;
+            refreshLastEditedStepBox();
+        });
+
+        $('#btnRemoveLastAddedStep').on('click', function() {
+            if (!lastAddedStep?.id) {
+                return;
+            }
+
+            const targetRow = $('#newStepsList .step-row').filter(function() {
+                return $(this).data('step-id')?.toString() === lastAddedStep.id.toString();
+            }).last();
+
+            if (!targetRow.length) {
+                lastAddedStep = null;
+                refreshLastEditedStepBox();
+                return;
+            }
+
+            removeStepRow(targetRow.find('button[onclick^="removeStepRow"]'));
+        });
+
+
+        refreshLastEditedStepBox();
+        // ----------------------------------------------------
+        // WICHTIG: FORM SUBMIT VORBEREITUNG
+        // ----------------------------------------------------
+        // Hier reparieren wir die Indizes [0], [1], [3] -> [0], [1], [2]
+        // Damit ASP.NET Core keine Daten verliert.
+        function updateAllIndices() {
+            // 1. Zutaten Indizes korrigieren
+            $('#newIngredientsList .ingredient-row').each(function(index) {
+                const row = $(this);
+                row.find('input, select').each(function() {
+                    if (this.name) {
+                        this.name = this.name.replace(/\[.*?\]/, '[' + index + ']');
+                    }
+                });
+            });
+
+            // 2. Schritte Indizes korrigieren
+            $('#newStepsList .step-row').each(function(index) {
+                const row = $(this);
+                // Auch gleich den StepIndex Input Value aktualisieren
+                row.find('.field-stepindex').val(index + 1);
+
+                row.find('input, select').each(function() {
+                    if (this.name) {
+                        this.name = this.name.replace(/\[.*?\]/, '[' + index + ']');
+                    }
+                });
+            });
+
+            // true zurückgeben damit der Submit weiterläuft
+            return true;
+        }
+    </script>
+}

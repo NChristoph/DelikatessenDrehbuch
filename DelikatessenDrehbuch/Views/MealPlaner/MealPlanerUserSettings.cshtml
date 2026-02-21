@@ -1,0 +1,474 @@
+﻿@using DelikatessenDrehbuch.Models;
+@model ModelForMealPlanSettingView
+
+@{
+    var pageTitle = "Essensplaner – Konfiguration | Delikatessen Drehbuch";
+    var pageUrl = "https://www.delikatessen-drehbuch.com/CreateNewMealPlan/MealPlanSetting";
+}
+
+<title>@pageTitle</title>
+<style>
+    /* =========================================
+       Delikatessen Konfigurator Styles (Fixed Binding)
+       ========================================= */
+
+    :root {
+        --deli-red: #770f0f;
+        --deli-gold: #D4AF37;
+        --deli-cream: #FEFFF2;
+        --deli-dark: #2a3440;
+        --deli-light: #f9f9f9;
+    }
+
+    body {
+        background-color: var(--deli-light);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .config-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    /* --- Karten-Design --- */
+    .config-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 2rem;
+        height: 100%;
+    }
+
+    .config-header {
+        font-family: 'Playfair Display', serif;
+        color: var(--deli-red);
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 2px solid var(--deli-cream);
+        padding-bottom: 0.5rem;
+    }
+
+    .sub-header {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--deli-gold);
+        margin: 1.5rem 0 0.8rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* --- Filter-Kacheln (Die Buttons) --- */
+    .tile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.8rem;
+    }
+
+    /* Input verstecken (aber im DOM lassen für Binding!) */
+    .tile-check-input {
+        display: none; 
+    }
+
+    /* Das Label ist der sichtbare Button */
+    .tile-check-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0.8rem;
+        background-color: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+        color: #666;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        height: 100%;
+        min-height: 55px;
+        line-height: 1.2;
+    }
+
+    .tile-check-label:hover {
+        border-color: var(--deli-gold);
+        background-color: #fffdf5;
+        color: var(--deli-dark);
+        transform: translateY(-2px);
+    }
+
+    /* *** ACTIVE STATE (Rot wenn ausgewählt) *** */
+    /* Das + bedeutet: Wenn Input gecheckt ist, style das Label danach */
+    .tile-check-input:checked + input[type="hidden"] + .tile-check-label, /* Fall: mit Hidden Input dazwischen */
+    .tile-check-input:checked + .tile-check-label { /* Fall: direkt */
+        background-color: var(--deli-red);
+        border-color: var(--deli-red);
+        color: #ffffff;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(119, 15, 15, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    /* Häkchen anzeigen */
+    .tile-check-input:checked + input[type="hidden"] + .tile-check-label::before,
+    .tile-check-input:checked + .tile-check-label::before {
+        content: "✓ ";
+        margin-right: 4px;
+    }
+
+
+    /* --- Plan Details (Inputs) --- */
+    .detail-input-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        background: var(--deli-cream);
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .detail-input {
+        border: 1px solid var(--deli-gold);
+        border-radius: 0.4rem;
+        padding: 0.4rem;
+        width: 70px;
+        text-align: center;
+        font-weight: 700;
+        color: var(--deli-red);
+        font-size: 1.1rem;
+    }
+
+    /* --- Zutaten Tabelle --- */
+    /* (Styles wie zuvor, nur gekürzt für Übersicht) */
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid var(--deli-gold) !important;
+        border-radius: 2rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+    #IngredientTable { width: 100% !important; border-collapse: separate !important; border-spacing: 0 0.8rem !important; margin-top: 0 !important; }
+    #IngredientTable tbody td { background-color: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 0.8rem 1rem; vertical-align: middle; }
+    #IngredientTable tbody td:first-child { border-left: 1px solid #eee; border-radius: 0.6rem 0 0 0.6rem; }
+    #IngredientTable tbody td:last-child { border-right: 1px solid #eee; border-radius: 0 0.6rem 0.6rem 0; text-align: right; }
+
+    /* Buttons in Tabelle */
+    .btn-custom-check { border-radius: 1.5rem !important; padding: 0.3rem 0.8rem; border: 1px solid #e0e0e0; background: #fff; color: #666; font-weight: 600; }
+    
+    /* Aktiv Zustände Tabelle */
+    .btn-check:checked + .btn-custom-check.btn-outline-success { background-color: #28a745; color: white; border-color: #28a745; }
+    .btn-check:checked + .btn-custom-check.btn-outline-danger { background-color: var(--deli-red); color: white; border-color: var(--deli-red); }
+
+    /* Action Buttons */
+    .btn-create-plan { background-color: var(--deli-red); color: #fff; border: 2px solid var(--deli-gold); padding: 1rem 3rem; font-weight: 700; border-radius: 2rem; display: block; margin: 0 auto; cursor: pointer; }
+    .btn-create-plan:hover { background-color: #5e0c0c; color: #fff; }
+    .btn-secondary-action { background: #fff; border: 1px solid var(--deli-red); color: var(--deli-red); padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; }
+    .btn-delete-plan { background: #fff5f5; border-color: #c62828; color: #c62828; }
+    .btn-delete-plan:hover { background: #ffecec; color: #b71c1c; }
+    
+    /* Premium */
+    .premium-section { background: linear-gradient(135deg, #fff 0%, #fffdf5 100%); border: 1px solid var(--deli-gold); position: relative; }
+    .premium-badge { position: absolute; top: 1rem; right: 1rem; background: var(--deli-gold); color: #fff; padding: 0.2rem 0.6rem; border-radius: 1rem; font-weight: 700; font-size: 0.7rem; }
+    .premium-disabled-overlay { opacity: 0.5; filter: grayscale(100%); pointer-events: none; }
+</style>
+
+<div class="config-container">
+    <form asp-controller="CreateNewMealPlan" asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+
+        @if (Model.HaveCatchContent)
+        {
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm border border-light">
+                <div class="d-flex align-items-center gap-2 mb-2 mb-md-0 text-muted">
+                    <i class="bi bi-clock-history fs-4 text-warning"></i>
+                    <span>Du hast einen gespeicherten Plan.</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a class="btn-secondary-action" asp-controller="CreateNewMealPlan" asp-action="LoadLastMealPlan"><i class="bi bi-arrow-repeat"></i> Laden</a>
+                    <a class="btn-secondary-action" asp-controller="CreateNewMealPlan" asp-action="LoadMealPlanForEdit"><i class="bi bi-pencil"></i> Bearbeiten</a>
+                    <form asp-controller="CreateNewMealPlan" asp-action="DeleteSavedMealPlan" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-secondary-action btn-delete-plan" onclick="return confirm('Möchtest du den gespeicherten Plan wirklich löschen?');">
+                            <i class="bi bi-trash"></i> Löschen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <section class="config-card">
+                    <div class="config-header"><i class="bi bi-egg-fried"></i> Ernährungsstil</div>
+
+                    <div class="sub-header">Ich möchte nur:</div>
+                    <div class="tile-grid">
+                        
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.Vegan" 
+                                   class="tile-check-input" type="checkbox" id="checkVegan" 
+                                   name="Vegan" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkNoVegan','checkPreferablyMeat','checkPreferablyVegetarian','checkBalanced'])">
+                            
+                            <input type="hidden" name="Vegan" value="false" />
+                            
+                            <label class="tile-check-label" for="checkVegan">Vegan</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.Vegetarisch" 
+                                   class="tile-check-input" type="checkbox" id="checkVegetarisch" 
+                                   name="Vegetarisch" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkNoVegetarisch','checkBalanced','checkPreferablyMeat'])">
+                            
+                            <input type="hidden" name="Vegetarisch" value="false" />
+                            
+                            <label class="tile-check-label" for="checkVegetarisch">Vegetarisch</label>
+                        </div>
+                    </div>
+
+                    <div class="sub-header mt-4">Ich schließe aus:</div>
+                    <div class="tile-grid">
+                        
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.NoVegan" 
+                                   class="tile-check-input" type="checkbox" id="checkNoVegan" 
+                                   name="NoVegan" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkVegan'])">
+                            <input type="hidden" name="NoVegan" value="false" />
+                            <label class="tile-check-label" for="checkNoVegan">Kein Vegan</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.NoVegetarisch" 
+                                   class="tile-check-input" type="checkbox" id="checkNoVegetarisch" 
+                                   name="NoVegetarisch" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkVegetarisch','checkPreferablyVegetarian'])">
+                            <input type="hidden" name="NoVegetarisch" value="false" />
+                            <label class="tile-check-label" for="checkNoVegetarisch">Kein Veggie</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.NoSchweinefleisch" 
+                                   class="tile-check-input" type="checkbox" id="checkNoPork" 
+                                   name="NoSchweinefleisch" value="true">
+                            <input type="hidden" name="NoSchweinefleisch" value="false" />
+                            <label class="tile-check-label" for="checkNoPork">Kein Schwein</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.NoFisch" 
+                                   class="tile-check-input" type="checkbox" id="checkNoFish" 
+                                   name="NoFisch" value="true">
+                            <input type="hidden" name="NoFisch" value="false" />
+                            <label class="tile-check-label" for="checkNoFish">Kein Fisch</label>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <section class="config-card">
+                    <div class="config-header"><i class="bi bi-hourglass-split"></i> Zeit & Fokus</div>
+
+                    <div class="sub-header">Kochdauer</div>
+                    <div class="tile-grid">
+                        
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.CookingTimeOne" 
+                                   class="tile-check-input" type="checkbox" id="checkFirstTime" 
+                                   name="CookingTimeOne" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkSecondTime'])">
+                            <input type="hidden" name="CookingTimeOne" value="false" />
+                            <label class="tile-check-label" for="checkFirstTime">
+                                <div>Schnell<br><small style="font-weight:normal; font-size:0.8em">25-45 min</small></div>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.CookingTimeTwo" 
+                                   class="tile-check-input" type="checkbox" id="checkSecondTime" 
+                                   name="CookingTimeTwo" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkFirstTime'])">
+                            <input type="hidden" name="CookingTimeTwo" value="false" />
+                            <label class="tile-check-label" for="checkSecondTime">
+                                <div>Genießer<br><small style="font-weight:normal; font-size:0.8em">45+ min</small></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="sub-header mt-4">Präferenzen</div>
+                    <div class="tile-grid">
+                        
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.BalancedDiet" 
+                                   class="tile-check-input" type="checkbox" id="checkBalanced" 
+                                   name="BalancedDiet" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkPreferablyVegetarian','checkVegetarisch','checkVegan'])">
+                            <input type="hidden" name="BalancedDiet" value="false" />
+                            <label class="tile-check-label" for="checkBalanced">Ausgewogen</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.PreferablyMeat" 
+                                   class="tile-check-input" type="checkbox" id="checkPreferablyMeat" 
+                                   name="PreferablyMeat" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkBalanced','checkPreferablyVegetarian','checkVegan','checkVegetarisch'])">
+                            <input type="hidden" name="PreferablyMeat" value="false" />
+                            <label class="tile-check-label" for="checkPreferablyMeat">Fleisch-Fan</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.PreferablyVegetarian" 
+                                   class="tile-check-input" type="checkbox" id="checkPreferablyVegetarian" 
+                                   name="PreferablyVegetarian" value="true"
+                                   onchange="UnCheckAllCheckboxes(['checkPreferablyMeat','checkBalanced','checkVegan','checkNoVegetarisch','checkVegetarisch'])">
+                            <input type="hidden" name="PreferablyVegetarian" value="false" />
+                            <label class="tile-check-label" for="checkPreferablyVegetarian">Gern Veggie</label>
+                        </div>
+
+                        <div>
+                            <input asp-for="@Model.PersonalMealPlanSettings.GentlyIngredients" 
+                                   class="tile-check-input" type="checkbox" id="checkGentlyIngredients" 
+                                   name="GentlyIngredients" value="true">
+                            <input type="hidden" name="GentlyIngredients" value="false" />
+                            <label class="tile-check-label" for="checkGentlyIngredients">Schonend</label>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <section class="config-card premium-section mb-4">
+            <span class="premium-badge"><i class="bi bi-star-fill"></i> Premium</span>
+            <div class="config-header"><i class="bi bi-trophy"></i> Spezial-Ziele</div>
+            
+            <p class="text-muted small mb-3"><i class="bi bi-lock"></i> Diese Funktionen sind bald für Premium-Mitglieder verfügbar.</p>
+            
+            <div class="premium-disabled-overlay">
+                <div class="tile-grid">
+                    <div>
+                        <input type="checkbox" class="tile-check-input" id="dummy1" disabled>
+                        <label class="tile-check-label" for="dummy1">Diätplan</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" class="tile-check-input" id="dummy2" disabled>
+                        <label class="tile-check-label" for="dummy2">Muskelaufbau</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" class="tile-check-input" id="dummy3" disabled>
+                        <label class="tile-check-label" for="dummy3">Low Carb</label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="config-card mb-4">
+            <div class="config-header"><i class="bi bi-calendar-check"></i> Plan Details</div>
+            
+            <div class="detail-input-group">
+                <span>Erstelle einen Plan für</span>
+                <input asp-for="@Model.PersonalMealPlanSettings.DayCount" class="detail-input" type="number" id="dayCount" name="DayCount" min="1" max="14" value="7" />
+                <span>Tage und</span>
+                <input asp-for="@Model.PersonalMealPlanSettings.PersonCount" class="detail-input" type="number" id="personCount" name="PersonCount" min="1" max="12" value="2" />
+                <span>Personen.</span>
+            </div>
+        </section>
+
+        <section class="config-card">
+            <div class="config-header"><i class="bi bi-basket"></i> Zutaten Manager</div>
+
+            <div class="info-box" id="ingredientInfoBox">
+                <div class="info-box-header" onclick="toggleInfoBox('ingredientInfoBox')">
+                    <span><i class="bi bi-info-circle text-primary me-2"></i> So funktioniert's</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="info-box-content">
+                    Nutze die Suchleiste um Zutaten zu finden. Markiere sie als "Vorhanden" (werden bevorzugt) oder "Ausschließen" (werden vermieden).
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="IngredientTable" class="table" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ZUTAT</th>
+                            <th style="text-align:right">AKTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ingredient in Model.Ingredients)
+                        {
+                            <tr>
+                                <td>@ingredient.Name</td>
+                                <td>
+                                    <div class="btn-group-custom">
+                                        
+                                        <input type="checkbox" class="btn-check" 
+                                               id="HaveAtHome_@ingredient.Id" 
+                                               onchange="CreateIngredientChangeValue(this,'Ingredient_','HaveAtHome','IngredientsAtHome')" 
+                                               value="@ingredient.Id" 
+                                               data-name="@ingredient.Name">
+                                        
+                                        <label class="btn btn-outline-success btn-custom-check" 
+                                               for="HaveAtHome_@ingredient.Id">
+                                               <i class="bi bi-check2"></i> Hab ich
+                                        </label>
+
+                                        <input type="checkbox" class="btn-check" 
+                                               id="Ingredient_@ingredient.Id" 
+                                               onchange="CreateIngredientChangeValue(this,'HaveAtHome_','Ingredients','IngredientIds')" 
+                                               value="@ingredient.Id" 
+                                               data-name="@ingredient.Name">
+                                        
+                                        <label class="btn btn-outline-danger btn-custom-check" 
+                                               for="Ingredient_@ingredient.Id">
+                                               <i class="bi bi-x"></i> Mag nicht
+                                        </label>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="ingredient-summary-grid">
+                <div class="summary-box box-exclude">
+                    <div class="summary-title text-danger"><i class="bi bi-x-circle"></i> Das mag ich nicht:</div>
+                    <div id="Ingredients" class="d-flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="summary-box box-include">
+                    <div class="summary-title text-success"><i class="bi bi-check-circle"></i> Hab ich Zuhause:</div>
+                    <div id="HaveAtHome" class="d-flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="mt-5 mb-5 text-center">
+            <button class="btn-create-plan" type="submit">
+                <i class="bi bi-magic me-2"></i> Essensplan Erstellen
+            </button>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleInfoBox(id) {
+            const box = document.getElementById(id);
+            box.classList.toggle('open');
+        }
+    </script>
+    <script src="/js/MealPlanerFilter.js" defer asp-append-version="true"></script>
+}

@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Mini Planer</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-color: var(--deli-cream);
+            padding-bottom: 80px;
+            font-family: 'Segoe UI', sans-serif;
+            overscroll-behavior-y: none;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+@{
+    var currentLang = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+    string Flag(string lang) => lang switch
+    {
+        "en" => "🇬🇧",
+        "es" => "🇪🇸",
+        "pt" => "🇵🇹",
+        _ => "🇩🇪"
+    };
+}
+<body>
+
+    <main role="main" class="container-fluid p-0">
+        @RenderBody()
+    </main>
+
+    <div class="position-fixed top-0 end-0 m-3 dropdown" style="z-index: 1060;">
+        <button class="btn btn-sm btn-light border rounded-pill dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            @Flag(currentLang) @currentLang.ToUpperInvariant()
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('de')">🇩🇪 Deutsch</button></li>
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('en')">🇬🇧 English</button></li>
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('es')">🇪🇸 Español</button></li>
+            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('pt')">🇵🇹 Português</button></li>
+        </ul>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/CreateNewMealPlan.js"></script>
+    <script>
+        function setAppLanguage(lang) {
+            document.cookie = `deli-lang=${lang}; path=/; max-age=31536000`;
+            window.location.reload();
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}

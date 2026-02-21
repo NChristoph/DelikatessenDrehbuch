@@ -1,0 +1,283 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DelikatessenDrehbuch.Models
+@using System.Net;
+@using DelikatessenDrehbuch.StaticScripts;
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@model List<Recipes>
+
+
+@{
+    ViewData["Title"] = "Schnelle Rezepte für jeden Tag.";
+    ViewData["Description"] = "Entdecken Sie köstliche Rezepte für feine Delikatessen auf Delikatessen-Drehbuch.com. Unsere Sammlung von exquisiten Gerichten bietet Inspiration für jeden Anlass – von raffinierten Vorspeisen bis zu verlockenden Desserts. Perfekt für Feinschmecker und Hobbyköche.";
+
+}
+<style>
+    /* Responsive Grid (ersetzt .grid-Recipes/.grid-Item-Wirrwarr) */
+    .recipes-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(1,minmax(0,1fr))
+    }
+    @@media (min-width:576px) {
+        .recipes-grid
+
+    {
+        grid-template-columns: repeat(2,1fr)
+    }
+
+    }
+    @@media (min-width:992px) {
+        .recipes-grid
+
+    {
+        grid-template-columns: repeat(3,1fr)
+    }
+
+    }
+
+    /* Card */
+    .recipe-card {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: .9rem;
+        overflow: hidden;
+        background: #fff;
+        transition: transform .15s, box-shadow .15s
+    }
+
+        .recipe-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0,0,0,.08)
+        }
+
+    /* Bild + Overlay */
+    .recipe-media {
+        position: relative
+    }
+
+        .recipe-media img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block
+        }
+
+    .recipe-chip {
+        position: absolute;
+        left: .6rem;
+        bottom: .6rem;
+        display: flex;
+        gap: .4rem;
+        flex-wrap: wrap
+    }
+
+    .chip {
+        background: rgba(0,0,0,.65);
+        color: #fff;
+        padding: .25rem .5rem;
+        border-radius: .5rem;
+        font-size: .8rem
+    }
+
+    /* Body */
+    .recipe-body {
+        padding: .8rem .9rem
+    }
+
+    .recipe-title {
+        margin: 0 0 .35rem;
+        font-weight: 800;
+        font-size: 1rem;
+        color: #1f2a37;
+        line-height: 1.25
+    }
+
+    .recipe-meta {
+        display: flex;
+        gap: .6rem;
+        align-items: center;
+        color: #556;
+        opacity: .9;
+        font-size: .9rem
+    }
+
+    /* Platzhalterbild */
+    .ph {
+        background: #f4f4f4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888
+    }
+</style>
+
+
+@{
+    var firstRecipe = Model.FirstOrDefault();
+    string preloadSmall = null;
+    string preloadMedium = null;
+
+    if (firstRecipe != null && !string.IsNullOrEmpty(firstRecipe.ImagePath))
+    {
+     ;
+        preloadSmall = FrontendFunctions.GetSmallImagePath(firstRecipe.ImagePath);
+
+    }
+}
+
+@section PreloadLinks {
+    @if (!string.IsNullOrEmpty(preloadSmall))
+    {
+        <link rel="preload" as="image" href="@preloadSmall" media="(max-width: 600px)" fetchpriority="high" />
+    }
+    @if (!string.IsNullOrEmpty(preloadMedium))
+    {
+        <link rel="preload" as="image" href="@preloadMedium" media="(min-width: 601px)" fetchpriority="high" />
+    }
+}
+
+<meta name="description" content="Entdecke köstliche und einfache Rezepte für jeden Anlass. Von schnellen Gerichten bis zu raffinierten Menüs – unsere Sammlung bietet Inspiration für Hobbyköche und Genießer. Finde Schritt-für-Schritt-Anleitungen, Kochtricks und leckere Ideen für dein nächstes Lieblingsgericht.">
+<link rel="canonical" href="https://www.delikatessen-drehbuch.com" />
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="robots" content="index,follow" />
+
+<script type="application/ld+json">
+    {
+    "@@context": "https://schema.org",
+    "@@type": "ItemList",
+    "itemListElement": [
+    @{
+        int position = 1;
+        foreach (var recipe in Model)
+        {
+            var encodedRecipeName = FrontendFunctions.CaseInsensitiveName(recipe.Name);
+            var encodedRecipeId = FrontendFunctions.CaseInsensitiveName(recipe.Id.ToString());
+            @:{
+            @: "@@type": "ListItem",
+            @: "position": @position,
+            @:  "url": "https://www.delikatessen-drehbuch.com/SelectedRecipe/Index/@(encodedRecipeId)/(@encodedRecipeName)"
+            @:}
+
+
+            if (position < Model.Count)
+            {
+                @:,
+                position++;
+            }
+
+
+        }
+
+
+    }
+
+    ]
+    }
+</script>
+
+
+
+
+
+
+@{
+    bool isFirst = true;
+    int count = 0;
+    foreach (var recipes in Model)
+    {
+        count++;
+        var name = FrontendFunctions.CaseInsensitiveName(recipes.Name);
+
+        var subPath = FrontendFunctions.CaseInsensitivePath(recipes.ImagePath);
+
+        var smallPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                         Environment.GetEnvironmentVariable("SmalPic"));
+
+        var mediumPath = subPath?.Replace(Environment.GetEnvironmentVariable("BigPic"),
+                                          Environment.GetEnvironmentVariable("MediumPic"));
+
+
+
+
+        <input name="RecipesId" value="@recipes.Id" hidden />
+
+        <div class="grid-Recipes grid-Item">
+
+            <div class="recipe-card">
+                <a class="text-black" onclick="SaveCache()"
+                   asp-route-id="@recipes.Id" asp-route-name="@name"
+                   asp-controller="SelectedRecipe" asp-action="Index"
+                   style="text-decoration:none;display:block">
+
+                    <div class="recipe-media">
+                        @if (!string.IsNullOrEmpty(recipes.ImagePath))
+                        {
+                            <picture>
+                                <source srcset="@($"{smallPath}_small.webp")">
+                                <img src="@recipes.ImagePath"
+                                     alt="@(!string.IsNullOrEmpty(recipes.Description) ? recipes.Description : recipes.Name)"
+                                     title="@recipes.Name"
+                                     width="600" height="600"
+                                     style="aspect-ratio:3/2;object-fit:cover"
+                                     @(isFirst ? "fetchpriority=\"high\"" : "loading=\"lazy\"") />
+                            </picture>
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            <div class="ph" style="aspect-ratio:3/2">Kein Bild</div>
+                        }
+
+                        <div class="recipe-chip">
+                            @if (recipes.PreparationTime != null)
+                            {
+                                <span class="chip">@recipes.PreparationTime&nbsp;min</span>
+                            }
+                            <span class="chip">@recipes.Category</span>
+                            @if(User.IsInRole("Admin"))
+                            {
+                                <span class="chip">@recipes.Id</span>
+                            }
+                            @if (recipes.LikeCount > 0)
+                            {
+                                <span class="chip">❤ @recipes.LikeCount</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="recipe-body">
+                        <h3 class="recipe-title">@recipes.Name</h3>
+                    </div>
+                </a>
+            </div>
+
+
+        </div>
+
+        if (count % 10 == 0)
+        {
+                <div class="grid-Item mobile-aktive">
+
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-format="fluid"
+                     data-ad-layout-key="-7q+f2-1s-4w+fm"
+                     data-ad-client="ca-pub-2332503983815482"
+                     data-ad-slot="7801583916"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            continue;
+        }
+    }
+
+
+}
+
+
+
+
+
+
+

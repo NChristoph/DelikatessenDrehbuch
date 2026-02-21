@@ -1,0 +1,56 @@
+﻿@model IngredientHandlerModel
+@{
+
+    var indexValue = (int)ViewData["index"];
+    var unit = (List<string>)ViewData["unit"];
+    ViewData.TemplateInfo.HtmlFieldPrefix = $"IngredientHandler[{indexValue}]";
+}
+
+
+<div name="IndexValue" class=" flexRowToColumn flexJustifyContendSpaceBetween flex mt-1">
+    <div class="flexColumn"
+         style="min-width:50%">
+        <input class="form-control"
+               type="text"
+               asp-for="Ingredient.Name"
+               placeholder="Zutat" />
+
+    </div>
+    <div class="flexColumn"
+         style="max-width:20%">
+        <input class="form-control"
+               step="any"
+               type="number"
+               asp-for="Quantity.Quantitys"
+               placeholder="Mänge" />
+    </div>
+    <input id="UnitOfMeasurement_@indexValue"
+           value="Stk."
+           asp-for="Measure.UnitOfMeasurement"
+           hidden />
+    <div class="flexColumn">
+        <div class="btn bgRed dropdown-toggle"
+             id="dropdownUnit_@indexValue"
+             type="button"
+             data-bs-toggle="dropdown"
+             style="color:#FFFDD0;width:max-content">
+            Stk.
+        </div>
+
+        <ul class="dropdown-menu" style="height:200px;overflow-y:auto">
+            @{
+
+                foreach (var measure in unit)
+                {
+                    <li><a class="dropdown-item" onclick="ChangeValue(@indexValue,this.text)">@measure</a></li>
+                }
+            }
+
+        </ul>
+
+    </div>
+
+    
+
+
+</div>

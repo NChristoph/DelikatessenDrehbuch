@@ -1,0 +1,53 @@
+﻿@using DelikatessenDrehbuch.Services.Interfaces
+@using DelikatessenDrehbuch.Models;
+
+@model List<IngredientHandlerModel>
+@{
+    bool haveShoppingList = (bool)ViewData["HaveShoppingList"];
+}
+@* 
+@{
+  
+    <div class="col">
+        @{
+            var index = 0;
+            foreach (var item in group)
+            {
+                <hr />
+                <span><strong>@item.Key</strong></span>
+                <hr />
+
+                foreach (var ing in item)
+                {
+                    index++;
+                    bool bigger = ing.Quantity.Quantitys > 0.99d;
+                    var totalQuantity = Math.Round(ing.Quantity.Quantitys);
+                    ing.Quantity.Quantitys = bigger ? totalQuantity : ing.Quantity.Quantitys;
+                    @await Html.PartialAsync("~/Views/MealPlaner/_addRowPartial.cshtml",ing,
+                           new ViewDataDictionary(ViewData) { { "Index", index } }
+                    )
+
+
+
+                }
+            }
+        }
+    </div>
+    
+    <div class="w-100 row mt-2">
+        <button class="btn btn-outline-danger"
+                 onclick="CreateShoppingList()">Einkaufsliste erstellen!</button>
+
+                  <button id="shareBtn"
+            class="btn btn-outline-danger mt-2"
+            @(haveShoppingList? "": "hidden")>
+        Einkaufsliste teilen
+    </button>
+
+    </div>
+
+   
+
+} *@
+
+<script src="/js/ShoppingList.js" defer asp-append-version="true"></script>

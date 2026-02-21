@@ -3,6 +3,15 @@
     "mssql1": {
       "type": "mssql",
       "connectionId": "ConnectionStrings:DefaultConnection"
+    },
+    "mssql2": {
+      "type": "mssql",
+      "connectionId": "DelikatessenDrehbuch-Conection",
+      "dynamicId": null
+    },
+    "compute.appService1": {
+      "group": "connections",
+      "type": "compute.appService"
     }
   }
 }

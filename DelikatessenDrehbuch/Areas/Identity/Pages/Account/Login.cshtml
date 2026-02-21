@@ -1,0 +1,51 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+
+<div class=" minWidth100 flexColumn flexAlginItemCenter">
+    <div class="maxWidth50 minWidth50vh mobieleWidth90">
+        <section>
+            <div class="minWidth100 flex flexJustifyContendCenter">
+                <h3 class="mt-2" style=" color: #D4AF37;font-family:'Lucida Handwriting'">Willkommen</h3>
+            </div>
+            <form id="account" method="post">
+               
+                <hr />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-floating">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Email" class="form-label">Email</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="form-floating mt-2">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
+                    <label asp-for="Input.Password" class="form-label">Passwort</label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+               
+                <div class="flex flexJustifyContendEnd">
+                    <button id="login-submit" type="submit" class=" btn bgRed mt-3" style="color:#FFFDD0;">Anmelden</button>
+                </div>
+                <div>
+                    <p>
+                        <a id="forgot-password" asp-page="./ForgotPassword" style="text-decoration:none;color: #D4AF37">Passwort vergessen</a>
+                    </p>
+                    <p>
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" style="text-decoration:none;color: #D4AF37">Registrieren</a>
+                    </p>
+                   @*  <p>
+                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
+                    </p> *@
+                </div>
+            </form>
+        </section>
+    </div>
+ </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
