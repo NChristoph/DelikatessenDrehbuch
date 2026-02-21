@@ -1,27 +1,21 @@
-import { MiniKit, VerificationLevel } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
+import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.1.0/+esm";
 
 if (typeof window !== "undefined") {
     window.MiniKit = MiniKit;
 }
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
+const ACTION = "login-delikatessendrehbuch";
 const REMEMBER_LOGIN_KEY = "remember_login";
-const VERIFY_ACTION = "login";
 
 // === DEIN TEST-SCHALTER ===
 // Setze das auf TRUE, um überall (auch am PC) den Mock-Login zu erzwingen.
 // Setze das auf FALSE, wenn du live gehst (damit nur World App User reinkommen).
 const ALLOW_MOCK_EVERYWHERE = true;
 
-// VerificationLevel Mapping: string -> MiniKit enum
-const LEVEL_MAP = {
-    'device': VerificationLevel?.Device ?? 'device',
-    'orb': VerificationLevel?.Orb ?? 'orb'
-};
-
 let currentConfig = {
-    level: 'device',
-    redirectUrl: ''
+    level: 'orb',
+    redirectUrl: '/WorldMiniApp/Home/Setup'
 };
 
 function log(msg, error = false) {
@@ -42,7 +36,6 @@ function handleLoginAbort() {
 
 async function diagnoseEnvironment() {
     const miniKitExists = typeof MiniKit !== 'undefined';
-    // Wir prüfen auch auf 127.0.0.1 und localhost
     const isLocalhost = window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1';
     return { miniKitExists, isLocalhost };
@@ -58,14 +51,10 @@ async function startLoginProcess() {
 
         await new Promise(r => setTimeout(r, 1000));
 
-        // CHECK: MiniKit vorhanden?
         if (!env.miniKitExists) {
-
-            // === HIER IST DIE ÄNDERUNG ===
-            // Wenn wir auf Localhost sind ODER der Test-Schalter an ist:
             if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
                 console.warn("⚠️ Nutze Mock-Login (Test Modus aktiv)");
-                await useMockLogin(); // Fake Login starten
+                await useMockLogin();
                 return;
             }
 
@@ -73,17 +62,18 @@ async function startLoginProcess() {
             return;
         }
 
-        // ... Ab hier läuft der echte World App Login weiter ...
         try {
             MiniKit.install({ appId: APP_ID });
-        } catch (e) { console.warn("Install Note:", e); }
+        } catch (e) {
+            console.warn("Install Note:", e);
+        }
 
         await new Promise(r => setTimeout(r, 800));
         log("Bitte bestätigen...");
 
         const res = await MiniKit.commandsAsync.verify({
             action: ACTION,
-            signal: "", // WICHTIG: Dein Backend ersetzt das leere Signal automatisch durch den Hash
+            signal: "",
             verification_level: currentConfig.level
         });
 
@@ -97,31 +87,22 @@ async function startLoginProcess() {
                 handleLoginAbort();
             }, 1500);
         }
+    } catch (error) {
+        console.error("Login Error:", error);
+        log(`Fehler: ${error.message || 'Unbekannt'}`, true);
+    }
+}
 
-        if (typeof MiniKit.isInstalled === 'function' && !MiniKit.isInstalled()) {
-            if (ALLOW_MOCK_EVERYWHERE) {
-                console.warn("⚠️ World App nicht erkannt, nutze Mock-Login");
-                await useMockLogin();
-                return;
-            }
-            log("❌ World App Kontext nicht erkannt. Bitte Mini App direkt in World App öffnen.", true);
-            const consentButton = document.getElementById('consentLoginButton');
-            if (consentButton) consentButton.disabled = false;
-            return;
-        }
-
-// === MOCK (SIMULATION) ===
 async function useMockLogin() {
     log(`🎭 Mock Login (${currentConfig.level}) - TEST MODUS`);
     await new Promise(r => setTimeout(r, 1000));
 
-    // Wir generieren Fake-Daten, damit das Backend zufrieden ist
     const mockPayload = {
         status: 'success',
         verification_level: currentConfig.level,
         proof: "mock-proof-" + Date.now(),
         merkle_root: "mock-root",
-        nullifier_hash: "mock-user-" + Date.now() // Jedes Mal ein neuer Fake-User
+        nullifier_hash: "mock-user-" + Date.now()
     };
 
     await verifyBackend(mockPayload);
@@ -133,10 +114,18 @@ async function verifyBackend(payload) {
         const rememberLogin = getRememberLoginValue();
         const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
-        // verify() gibt NullifierHash zurück — stabil und eindeutig pro User
-        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
-            action: VERIFY_ACTION,
-            verification_level: verificationLevel
+        const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(antiForgeryToken ? { 'RequestVerificationToken': antiForgeryToken } : {})
+            },
+            body: JSON.stringify({
+                payload,
+                action: ACTION,
+                signal: "",
+                rememberLogin: rememberLogin
+            })
         });
 
         if (response.ok) {
@@ -150,20 +139,10 @@ async function verifyBackend(payload) {
             }
             localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
 
-        if (finalPayload?.status === 'success') {
-            await completeVerify(finalPayload);
-        } else {
-            const details = formatVerifyError(finalPayload || commandPayload);
-            const raw = JSON.stringify(finalPayload || commandPayload || {}).substring(0, 300);
-            console.error('Verify error payload:', { commandPayload, finalPayload });
-
-            // Bei malformed_request: Fallback auf walletAuth (SIWE)
-            const errorCode = finalPayload?.error_code || commandPayload?.error_code || '';
-            if (errorCode === 'malformed_request' || errorCode === 'generic_error') {
-                log(`Verify fehlgeschlagen (${errorCode}), versuche Wallet-Auth...`);
-                console.warn('Verify failed, attempting walletAuth fallback');
-                await startWalletAuthProcess();
-                return;
+            if (currentConfig.redirectUrl) {
+                window.location.href = currentConfig.redirectUrl;
+            } else {
+                closeModal();
             }
         } else {
             const errorText = await response.text();
@@ -207,16 +186,34 @@ function updateStoredLoginInfo(userHash, verifyLevel) {
     }
 }
 
+async function refreshRememberedLogin(userHash) {
+    try {
+        const response = await fetch('/WorldMiniApp/Auth/RefreshStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userHash: userHash,
+                rememberLogin: true
+            })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            updateStoredLoginInfo(userHash, data.status);
+        }
+        sessionStorage.setItem("user_verified", "true");
+    } catch (error) {
+        console.warn("RefreshStatus failed", error);
+    }
+}
+
 window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
-    // AUTOMATISCH HOLEN: Wir schauen hier im JS nach dem Token
     const storedHash = getStoredUserHash();
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
     if (storedHash && rememberLogin) {
         console.log("Hash automatisch gefunden:", storedHash);
-        // URL erweitern
         const separator = redirectUrl.includes('?') ? '&' : '?';
         redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
         window.location.href = redirectUrl;
@@ -225,12 +222,10 @@ window.triggerLogin = (level, redirectUrl) => {
 
     if (storedHash) {
         console.log("Hash automatisch gefunden:", storedHash);
-        // URL erweitern
         const separator = redirectUrl.includes('?') ? '&' : '?';
         redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
     }
 
-    // Config setzen
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
@@ -248,7 +243,7 @@ window.initAutoLogin = (level) => {
 
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
-    updateStoredLoginInfo(storedHash, level);
+    updateStoredLoginInfo(storedHash, "-");
 
     if (storedHash) {
         sessionStorage.setItem("user_verified", "true");
