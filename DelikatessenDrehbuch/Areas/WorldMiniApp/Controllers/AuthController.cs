@@ -173,6 +173,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 validationErrors.Add("signature empty/invalid");
             }
 
+            var normalizedMessage = payload.Message.Replace("\r\n", "\n").Trim();
+            var normalizedSignature = NormalizeSignature(payload.Signature);
+            if (string.IsNullOrWhiteSpace(normalizedSignature))
+            {
+                return new WalletSiweVerifyResponseDto { IsValid = false };
+            }
+
             var claimedAddress = payload.Address?.Trim();
             if (!string.IsNullOrWhiteSpace(claimedAddress) && !EthereumAddressRegex.IsMatch(claimedAddress))
             {
