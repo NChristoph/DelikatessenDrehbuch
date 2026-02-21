@@ -160,95 +160,76 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private WalletSiweVerifyResponseDto VerifyWalletAuthPayload(WalletAuthPayloadDto payload, string expectedNonce)
         {
+            if (payload == null)
+            {
+                return InvalidSiwe("payload missing");
+            }
+
             if (string.IsNullOrWhiteSpace(payload.Message) || string.IsNullOrWhiteSpace(payload.Signature))
             {
                 return InvalidSiwe("SIWE message or signature missing");
             }
 
-            var validationErrors = new List<string>();
-            var rawMessage = payload.Message;
-            var normalizedMessageForParsing = rawMessage.Replace("\r\n", "\n");
+            var rawMessage = payload.Message; // EXACT message that was signed
+            var messageForParsing = rawMessage.Replace("\r\n", "\n"); // only for regex parsing, no Trim()
+
             var normalizedSignature = NormalizeSignature(payload.Signature);
             if (string.IsNullOrWhiteSpace(normalizedSignature))
             {
-                validationErrors.Add("signature empty/invalid");
+                return InvalidSiwe("signature empty/invalid");
             }
 
             var claimedAddress = payload.Address?.Trim();
             if (!string.IsNullOrWhiteSpace(claimedAddress) && !EthereumAddressRegex.IsMatch(claimedAddress))
             {
-                validationErrors.Add("payload address invalid");
+                return InvalidSiwe("payload address invalid");
             }
 
-            var nonceMatch = SiweNonceRegex.Match(normalizedMessageForParsing);
+            // 1) Nonce in message must exist and must match expected nonce
+            var nonceMatch = SiweNonceRegex.Match(messageForParsing);
             var signedNonce = nonceMatch.Success ? nonceMatch.Groups["nonce"].Value : string.Empty;
+
             if (string.IsNullOrWhiteSpace(signedNonce))
             {
-                validationErrors.Add("nonce missing in SIWE message");
-            }
-            else if (!string.Equals(signedNonce, expectedNonce, StringComparison.Ordinal))
-            {
-                validationErrors.Add("nonce mismatch");
+                return InvalidSiwe("nonce missing in SIWE message");
             }
 
-            var messageAddressMatch = SiweAddressLineRegex.Match(normalizedMessageForParsing);
+            if (!string.Equals(signedNonce, expectedNonce, StringComparison.Ordinal))
+            {
+                return InvalidSiwe($"nonce mismatch (signed: {signedNonce}, expected: {expectedNonce})");
+            }
+
+            // 2) Address in message (if found) should match recovered later
+            var messageAddressMatch = SiweAddressLineRegex.Match(messageForParsing);
             var messageAddress = messageAddressMatch.Success ? messageAddressMatch.Groups["address"].Value : string.Empty;
+
             if (!string.IsNullOrWhiteSpace(messageAddress) && !EthereumAddressRegex.IsMatch(messageAddress))
             {
-                validationErrors.Add("message address invalid");
-            }
-
-            if (validationErrors.Count > 0)
-            {
-                return InvalidSiwe($"Invalid SIWE payload: {string.Join("; ", validationErrors)}");
+                return InvalidSiwe("message address invalid");
             }
 
             try
             {
+                // 3) Recover signer address from EXACT raw message
                 var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(rawMessage, normalizedSignature);
+
                 if (string.IsNullOrWhiteSpace(recoveredAddress) || !EthereumAddressRegex.IsMatch(recoveredAddress))
                 {
-                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
-                    {
-                        return new WalletSiweVerifyResponseDto
-                        {
-                            IsValid = true,
-                            Address = claimedAddress,
-                            Reason = "Recovered address invalid; accepted using matching payload/message address fallback"
-                        };
-                    }
-
                     return InvalidSiwe("signature recovery produced invalid address");
                 }
 
-                if (!string.IsNullOrWhiteSpace(claimedAddress) && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
+                // 4) If payload provides claimed address, it MUST match recovered
+                if (!string.IsNullOrWhiteSpace(claimedAddress)
+                    && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
-                    {
-                        return new WalletSiweVerifyResponseDto
-                        {
-                            IsValid = true,
-                            Address = claimedAddress,
-                            Reason = $"Recovered address mismatch; accepted using matching payload/message address fallback (recovered: {recoveredAddress}, payload: {claimedAddress})"
-                        };
-                    }
-
-                    return InvalidSiwe($"signature address does not match payload address (recovered: {recoveredAddress}, payload: {claimedAddress})");
+                    return InvalidSiwe($"signature does not match payload address (recovered: {recoveredAddress}, payload: {claimedAddress})");
                 }
 
-                if (!string.IsNullOrWhiteSpace(messageAddress) && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
+                // 5) If message contains address line, it MUST match recovered
+                if (!string.IsNullOrWhiteSpace(messageAddress)
+                    && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
-                    {
-                        return new WalletSiweVerifyResponseDto
-                        {
-                            IsValid = true,
-                            Address = claimedAddress,
-                            Reason = $"Recovered address mismatch; accepted using matching payload/message address fallback (recovered: {recoveredAddress}, message: {messageAddress})"
-                        };
-                    }
-
-                    return InvalidSiwe($"signature address does not match SIWE message address (recovered: {recoveredAddress}, message: {messageAddress})");
+                    return InvalidSiwe($"signature does not match SIWE message address (recovered: {recoveredAddress}, message: {messageAddress})");
                 }
 
                 return new WalletSiweVerifyResponseDto
@@ -260,21 +241,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "SIWE signature recovery failed, using strict message/address fallback.");
-
-                if (!string.IsNullOrWhiteSpace(claimedAddress)
-                    && !string.IsNullOrWhiteSpace(messageAddress)
-                    && string.Equals(claimedAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
-                {
-                    return new WalletSiweVerifyResponseDto
-                    {
-                        IsValid = true,
-                        Address = claimedAddress,
-                        Reason = "Recovered via address fallback"
-                    };
-                }
-
-                return InvalidSiwe("signature recovery exception and fallback check failed");
+                _logger.LogWarning(ex, "SIWE signature recovery failed.");
+                return InvalidSiwe("signature recovery exception");
             }
         }
 
@@ -301,13 +269,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return normalized;
-        }
-
-        private static bool CanUseClaimedAndMessageAddressFallback(string claimedAddress, string messageAddress)
-        {
-            return !string.IsNullOrWhiteSpace(claimedAddress)
-                && !string.IsNullOrWhiteSpace(messageAddress)
-                && string.Equals(claimedAddress, messageAddress, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
