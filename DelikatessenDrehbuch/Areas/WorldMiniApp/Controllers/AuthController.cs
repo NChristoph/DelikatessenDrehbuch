@@ -166,18 +166,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             var validationErrors = new List<string>();
-            var normalizedMessage = payload.Message.Replace("\r\n", "\n").Trim();
+            var rawMessage = payload.Message;
+            var normalizedMessageForParsing = rawMessage.Replace("\r\n", "\n");
             var normalizedSignature = NormalizeSignature(payload.Signature);
             if (string.IsNullOrWhiteSpace(normalizedSignature))
             {
                 validationErrors.Add("signature empty/invalid");
-            }
-
-            var normalizedMessage = payload.Message.Replace("\r\n", "\n").Trim();
-            var normalizedSignature = NormalizeSignature(payload.Signature);
-            if (string.IsNullOrWhiteSpace(normalizedSignature))
-            {
-                return new WalletSiweVerifyResponseDto { IsValid = false };
             }
 
             var claimedAddress = payload.Address?.Trim();
@@ -186,7 +180,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 validationErrors.Add("payload address invalid");
             }
 
-            var nonceMatch = SiweNonceRegex.Match(normalizedMessage);
+            var nonceMatch = SiweNonceRegex.Match(normalizedMessageForParsing);
             var signedNonce = nonceMatch.Success ? nonceMatch.Groups["nonce"].Value : string.Empty;
             if (string.IsNullOrWhiteSpace(signedNonce))
             {
@@ -197,7 +191,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 validationErrors.Add("nonce mismatch");
             }
 
-            var messageAddressMatch = SiweAddressLineRegex.Match(normalizedMessage);
+            var messageAddressMatch = SiweAddressLineRegex.Match(normalizedMessageForParsing);
             var messageAddress = messageAddressMatch.Success ? messageAddressMatch.Groups["address"].Value : string.Empty;
             if (!string.IsNullOrWhiteSpace(messageAddress) && !EthereumAddressRegex.IsMatch(messageAddress))
             {
@@ -211,7 +205,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             try
             {
-                var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(normalizedMessage, normalizedSignature);
+                var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(rawMessage, normalizedSignature);
                 if (string.IsNullOrWhiteSpace(recoveredAddress) || !EthereumAddressRegex.IsMatch(recoveredAddress))
                 {
                     return InvalidSiwe("signature recovery produced invalid address");
@@ -219,12 +213,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (!string.IsNullOrWhiteSpace(claimedAddress) && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    return InvalidSiwe("signature address does not match payload address");
+                    return InvalidSiwe($"signature address does not match payload address (recovered: {recoveredAddress}, payload: {claimedAddress})");
                 }
 
                 if (!string.IsNullOrWhiteSpace(messageAddress) && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    return InvalidSiwe("signature address does not match SIWE message address");
+                    return InvalidSiwe($"signature address does not match SIWE message address (recovered: {recoveredAddress}, message: {messageAddress})");
                 }
 
                 return new WalletSiweVerifyResponseDto
@@ -252,6 +246,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 return InvalidSiwe("signature recovery exception and fallback check failed");
             }
+
+            if (!normalized.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = $"0x{normalized}";
+            }
+
+            return normalized;
         }
 
         private static WalletSiweVerifyResponseDto InvalidSiwe(string reason)
