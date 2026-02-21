@@ -252,100 +252,63 @@
         }
     }
 
+    function getStoredWalletAddress() {
+        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '';
+    }
+
     async function refreshWalletStatus() {
         const el = document.getElementById('walletStatus');
         if (!el) return '';
 
-        try {
-            if (!window.worldChainMarketplace?.getConnectedWalletAddress) {
-                el.textContent = 'Wallet: Integration nicht geladen';
-                updateDebugData('');
-                return '';
-            }
+        // 1. Gespeicherte Wallet-Adresse (aus Login) verwenden
+        const storedAddr = getStoredWalletAddress();
+        if (storedAddr) {
+            el.textContent = `Wallet: verbunden (${shortWallet(storedAddr)})`;
+            updateDebugData(storedAddr);
+            return storedAddr;
+        }
 
-            const address = await window.worldChainMarketplace.getConnectedWalletAddress();
+        // 2. EIP-1193 Provider prüfen (normaler Browser mit Wallet-Extension)
+        try {
+            const address = await window.worldChainMarketplace?.getConnectedWalletAddress?.();
             if (address) {
                 el.textContent = `Wallet: verbunden (${shortWallet(address)})`;
                 updateDebugData(address);
                 return address;
             }
+        } catch (_) { }
 
-            el.textContent = 'Wallet: nicht verbunden';
-            updateDebugData('');
-            return '';
-        } catch (_) {
-            el.textContent = 'Wallet: nicht verfügbar';
-            updateDebugData('');
-            return '';
-        }
+        el.textContent = 'Wallet: nicht verbunden — bitte zuerst einloggen';
+        updateDebugData('');
+        return '';
     }
 
     async function connectWorldWallet() {
-        try {
-            // MiniKit walletAddress direkt prüfen
-            const miniKitAddr = window.MiniKit?.walletAddress || window.minikit?.walletAddress;
-            if (miniKitAddr) {
-                updateDebugData(miniKitAddr);
-                await refreshWalletStatus();
-                return miniKitAddr;
-            }
-
-            if (window.worldChainMarketplace?.connectWallet) {
-                try {
-                    const address = await window.worldChainMarketplace.connectWallet();
-                    if (address) {
-                        updateDebugData(address);
-                        await refreshWalletStatus();
-                        return address;
-                    }
-                } catch (sdkError) {
-                    console.warn('connectWallet SDK fehlgeschlagen, versuche Fallback:', sdkError?.message);
-                }
-            }
-
-            // EIP-6963 Provider nochmal anfragen
-            window.dispatchEvent(new Event("eip6963:requestProvider"));
-            await new Promise(r => setTimeout(r, 300));
-
-            const ethereumProvider = await window.worldChainMarketplace?.waitForEthereumProvider?.(2000)
-                || window.worldChainMarketplace?.getEthereumProvider?.()
-                || window.ethereum;
-            if (!ethereumProvider) {
-                alert('Kein Wallet gefunden. Öffne den Marktplatz direkt in der World App und lade die Seite neu.');
-                return '';
-            }
-
-            if (!window.ethers?.BrowserProvider) {
-                alert('Ethers konnte nicht geladen werden. Bitte Seite neu laden.');
-                return '';
-            }
-
-            const cfg = window.worldChainMarketplaceConfig || {};
-            const chainId = Number(cfg.chainId || 480);
-            const chainHex = `0x${chainId.toString(16)}`;
-
-            const provider = new window.ethers.BrowserProvider(ethereumProvider);
-            await provider.send('eth_requestAccounts', []);
-
-            try {
-                await provider.send('wallet_switchEthereumChain', [{ chainId: chainHex }]);
-            } catch (switchError) {
-                if (switchError?.code === 4902) {
-                    alert('World Chain ist im Wallet noch nicht hinterlegt.');
-                    return '';
-                }
-                throw switchError;
-            }
-
-            const signer = await provider.getSigner();
-            const address = await signer.getAddress();
-            updateDebugData(address);
+        // Gespeicherte Adresse aus Login verwenden
+        const storedAddr = getStoredWalletAddress();
+        if (storedAddr) {
+            updateDebugData(storedAddr);
             await refreshWalletStatus();
-            return address;
-        } catch (error) {
-            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
-            return '';
+            return storedAddr;
         }
+
+        // Fallback: EIP-1193 Provider (Browser Wallet)
+        try {
+            if (window.worldChainMarketplace?.connectWallet) {
+                const address = await window.worldChainMarketplace.connectWallet();
+                if (address) {
+                    updateDebugData(address);
+                    await refreshWalletStatus();
+                    return address;
+                }
+            }
+        } catch (e) {
+            console.warn('connectWallet fehlgeschlagen:', e?.message);
+        }
+
+        // Kein Wallet — User muss sich einloggen
+        alert('Bitte zuerst einloggen. Gehe zur Startseite und verbinde dein World ID.');
+        return '';
     }
 
     async function buyListing(listingId, title, price) {
@@ -355,37 +318,77 @@
             return;
         }
 
+        const walletAddress = await connectWorldWallet();
+        if (!walletAddress) return;
+
+        const token = getSelectedToken(listingId);
+        if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
+
         try {
-            if (!window.worldChainMarketplace?.buyListingWithWorldChain) {
-                alert('World Chain Wallet-Integration nicht geladen.');
+            // Versuche On-Chain Kauf über EIP-1193 Provider (ethers.js)
+            if (window.worldChainMarketplace?.buyListingWithWorldChain) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
+                if (ethereumProvider) {
+                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                        listingId, price, buyerHash: hash, paymentToken: token
+                    });
+                    const data = await finalizeOnBackend(hash, listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+                    if (data.success) {
+                        alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                    }
+                    return;
+                }
+            }
+
+            // Fallback: MiniKit sendTransaction (innerhalb World App)
+            if (typeof MiniKit !== 'undefined' && MiniKit.commandsAsync?.sendTransaction) {
+                const cfg = window.worldChainMarketplaceConfig || {};
+                if (!cfg.marketplaceAddress) {
+                    alert('Marketplace-Adresse nicht konfiguriert.');
+                    return;
+                }
+                const tokenAddress = token === 'USDT' ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
+                const decimals = token === 'USDT' ? 6 : 18;
+                const amountRaw = BigInt(Math.round(price * (10 ** decimals))).toString();
+
+                const result = await MiniKit.commandsAsync.sendTransaction({
+                    transaction: [
+                        {
+                            address: tokenAddress,
+                            abi: [{ name: 'approve', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] }],
+                            functionName: 'approve',
+                            args: [cfg.marketplaceAddress, amountRaw]
+                        },
+                        {
+                            address: cfg.marketplaceAddress,
+                            abi: [{ name: 'buyListing', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'listingId', type: 'uint256' }, { name: 'amount', type: 'uint256' }, { name: 'buyerHash', type: 'string' }], outputs: [] }],
+                            functionName: 'buyListing',
+                            args: [listingId.toString(), amountRaw, hash]
+                        }
+                    ]
+                });
+
+                if (result?.status === 'success' || result?.finalPayload?.status === 'success') {
+                    const txHash = result?.transaction_id || result?.finalPayload?.transaction_id || 'minikit-tx';
+                    const data = await finalizeOnBackend(hash, listingId, txHash, walletAddress, token);
+                    if (data.success) {
+                        alert('Gekauft! Plan wurde hinzugefügt.');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                    }
+                } else {
+                    alert('Transaktion abgebrochen oder fehlgeschlagen.');
+                }
                 return;
             }
 
-            const connectedAddress = await refreshWalletStatus() || await connectWorldWallet();
-            if (!connectedAddress) {
-                alert('Bitte zuerst deine World Wallet verbinden.');
-                return;
-            }
-
-            const token = getSelectedToken(listingId);
-            if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
-
-            const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
-                listingId,
-                price,
-                buyerHash: hash,
-                paymentToken: token
-            });
-
-            const data = await finalizeOnBackend(hash, listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
-            if (data.success) {
-                alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
-                location.reload();
-            } else {
-                alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
-            }
+            alert('Kein Wallet-Provider verfügbar. Bitte öffne den Marktplatz in der World App.');
         } catch (error) {
-            alert(error?.message || 'Wallet/Netzwerkfehler.');
+            alert(error?.message || 'Kauf fehlgeschlagen.');
         }
     }
 </script>
@@ -412,15 +415,7 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        updateDebugData('');
-        // Warte kurz damit MiniKit den Provider injizieren kann
-        setTimeout(async () => {
-            await refreshWalletStatus();
-            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.() || window.ethereum;
-            if (ethereumProvider?.on) {
-                ethereumProvider.on('accountsChanged', () => refreshWalletStatus());
-            }
-        }, 500);
+        refreshWalletStatus();
     });
 </script>
 @Html.AntiForgeryToken()
