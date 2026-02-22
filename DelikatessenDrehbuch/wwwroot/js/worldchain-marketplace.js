@@ -103,6 +103,7 @@ function getAvailableTokens() {
 function isTestMode() {
     return getCfg().testMode;
 }
+//
 
 async function getConnectedWalletAddress() {
     requireWallet();
