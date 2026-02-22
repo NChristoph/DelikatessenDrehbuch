@@ -118,6 +118,11 @@
         font-size: .9rem;
         font-weight: 600;
     }
+    .converted-price {
+        font-size: .7rem;
+        color: #9ca3af;
+        font-weight: 500;
+    }
 </style>
 
 <div class="container py-4" style="max-width:720px;">
@@ -212,7 +217,8 @@
                             </div>
                         </div>
                         <div class="text-end ms-3">
-                            <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WLD</div>
+                            <div class="coin-badge mb-2" id="priceDisplay-@listing.Id" data-price-wld="@listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">@listing.Price.ToString("0.##") WLD</div>
+                            <div class="converted-price mb-1" id="convertedPrice-@listing.Id"></div>
                             @if (isOwn && !allowSelfPurchaseForTesting)
                             {
                                 <div class="small text-muted">Dein Angebot</div>
@@ -250,6 +256,9 @@
         WLD: '@walletWLD',
         USDT: '@walletUSDT'
     };
+
+    // WLD/USDT Kurs (wird beim Laden geholt)
+    let wldPriceUsd = null;
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
@@ -323,6 +332,57 @@
         }
     }
 
+    // Preis-Anzeige für ein Listing aktualisieren
+    function updateListingPrice(listingId) {
+        const token = getSelectedToken(listingId);
+        const priceEl = document.getElementById(`priceDisplay-${listingId}`);
+        const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
+        if (!priceEl) return;
+
+        const wldPrice = parseFloat(priceEl.dataset.priceWld);
+        if (isNaN(wldPrice)) return;
+
+        if (token === 'USDT' && wldPriceUsd) {
+            const usdtPrice = (wldPrice * wldPriceUsd).toFixed(2);
+            priceEl.textContent = `${usdtPrice} USDT`;
+            if (convertedEl) convertedEl.textContent = `= ${wldPrice} WLD`;
+        } else if (token === 'WLD') {
+            priceEl.textContent = `${wldPrice} WLD`;
+            if (convertedEl && wldPriceUsd) {
+                convertedEl.textContent = `\u2248 ${(wldPrice * wldPriceUsd).toFixed(2)} USDT`;
+            } else if (convertedEl) {
+                convertedEl.textContent = '';
+            }
+        } else {
+            // WC oder anderer Token
+            priceEl.textContent = `${wldPrice} WLD`;
+            if (convertedEl) convertedEl.textContent = '';
+        }
+    }
+
+    // Alle Listing-Preise aktualisieren
+    function updateAllListingPrices() {
+        document.querySelectorAll('[id^="priceDisplay-"]').forEach(el => {
+            const id = el.id.replace('priceDisplay-', '');
+            updateListingPrice(id);
+        });
+    }
+
+    // Preis-Kurs laden und Preise aktualisieren
+    async function loadWldPrice() {
+        if (!window.worldChainMarketplace?.fetchWldPrice) return;
+        wldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
+        if (wldPriceUsd) updateAllListingPrices();
+    }
+
+    // Berechne den tatsächlichen Preis je nach Token
+    function getActualPrice(wldPrice, token) {
+        if (token === 'USDT' && wldPriceUsd) {
+            return parseFloat((wldPrice * wldPriceUsd).toFixed(2));
+        }
+        return wldPrice; // WLD oder WC: Originalpreis
+    }
+
     // Wallet verbinden (Wallet Auth - separat vom Login)
     async function connectWorldWallet() {
         // Gespeicherte Adresse verwenden
@@ -387,7 +447,7 @@
     }
 
     // Kauf-Flow: Wallet Auth -> On-Chain TX -> Finalize
-    async function buyListing(listingId, title, price) {
+    async function buyListing(listingId, title, priceWld) {
         const token = getSelectedToken(listingId);
 
         if (!USER_HASH) {
@@ -395,7 +455,17 @@
             return;
         }
 
-        if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
+        // Preis umrechnen für USDT
+        const actualPrice = getActualPrice(priceWld, token);
+        if (token === 'USDT' && !wldPriceUsd) {
+            alert('WLD/USDT Kurs nicht verfügbar. Bitte Seite neu laden.');
+            return;
+        }
+
+        const confirmMsg = token === 'USDT' && wldPriceUsd
+            ? `"${title}" für ${actualPrice} USDT kaufen? (= ${priceWld} WLD)`
+            : `"${title}" für ${priceWld} ${token} kaufen?`;
+        if (!confirm(confirmMsg)) return;
 
         try {
             // On-Chain Kauf über EIP-1193 Provider (ethers.js)
@@ -403,9 +473,9 @@
                 const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
                 if (ethereumProvider) {
                     const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
-                        listingId, price, buyerHash: hash, paymentToken: token
+                        listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
                     });
-                    const data = await finalizeOnBackend(hash, listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+                    const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
                     if (data.success) {
                         alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
                         location.reload();
@@ -430,7 +500,7 @@
             // On-Chain Transaktion: Smart Contract Kauf
             const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
                 listingId,
-                price,
+                price: actualPrice,
                 buyerHash: USER_HASH,
                 paymentToken: token
             });
@@ -472,6 +542,17 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
+
+        // WLD Kurs von CoinGecko laden
+        loadWldPrice();
+
+        // Token-Wechsel Listener: Preis aktualisieren bei Radio-Button Änderung
+        document.querySelectorAll('.token-select input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const listingId = radio.name.replace('token-', '');
+                updateListingPrice(listingId);
+            });
+        });
 
         // Wenn Wallet bereits verbunden war (Session), Balances laden
         const existingAddress = walletAddresses.WLD || walletAddresses.USDT;

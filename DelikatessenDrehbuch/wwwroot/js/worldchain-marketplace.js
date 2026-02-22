@@ -240,6 +240,41 @@ async function connectWallet() {
     return signer.getAddress();
 }
 
+// ===================== WLD/USDT Preisumrechnung (CoinGecko) =====================
+
+let _wldPriceUsd = null;
+let _wldPriceTimestamp = 0;
+const PRICE_CACHE_MS = 5 * 60 * 1000; // 5 Minuten Cache
+
+async function fetchWldPrice() {
+    const now = Date.now();
+    if (_wldPriceUsd !== null && (now - _wldPriceTimestamp) < PRICE_CACHE_MS) {
+        return _wldPriceUsd;
+    }
+
+    try {
+        const resp = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=worldcoin-wld&vs_currencies=usd");
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        _wldPriceUsd = data?.["worldcoin-wld"]?.usd || null;
+        _wldPriceTimestamp = now;
+        console.log("[Marketplace] WLD Kurs:", _wldPriceUsd, "USD");
+        return _wldPriceUsd;
+    } catch (e) {
+        console.warn("[Marketplace] WLD Kurs-Abfrage fehlgeschlagen:", e.message);
+        return _wldPriceUsd; // letzten Cache-Wert zurückgeben
+    }
+}
+
+function convertWldToUsdt(wldAmount, wldPriceUsd) {
+    if (!wldPriceUsd || wldPriceUsd <= 0) return null;
+    return parseFloat((wldAmount * wldPriceUsd).toFixed(2));
+}
+
+function getWldPrice() {
+    return _wldPriceUsd;
+}
+
 // Token-Balances abfragen (read-only via RPC, kein Wallet nötig)
 async function getWalletBalances(walletAddress) {
     const result = { wld: null, usdt: null };
@@ -288,6 +323,9 @@ window.worldChainMarketplace = {
     getConnectedWalletAddress,
     connectWallet,
     getWalletBalances,
+    fetchWldPrice,
+    convertWldToUsdt,
+    getWldPrice,
     getEthereumProvider,
     getEthereumProviderCandidates,
     waitForEthereumProvider,
