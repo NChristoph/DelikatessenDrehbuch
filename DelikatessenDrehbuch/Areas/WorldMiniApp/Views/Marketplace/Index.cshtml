@@ -385,11 +385,10 @@
 
     // Wallet verbinden (Wallet Auth - separat vom Login)
     async function connectWorldWallet() {
-        // Gespeicherte Adresse verwenden
-        const storedAddr = getStoredWalletAddress();
+        // Bereits verbundene Adresse aus Session verwenden
+        const storedAddr = walletAddresses.WLD || walletAddresses.USDT;
         if (storedAddr) {
-            updateDebugData(storedAddr);
-            await refreshWalletStatus();
+            updateWalletStatusUI();
             return storedAddr;
         }
 
