@@ -231,7 +231,8 @@
                                     <input type="radio" name="token-@listing.Id" id="tok-usdt-@listing.Id" value="USDT">
                                     <label for="tok-usdt-@listing.Id">USDT</label>
                                 </div>
-                                <button class="buy-btn"
+                                <button class="buy-btn" id="buyBtn-@listing.Id"
+                                        data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
                                         onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                                     <i class="bi bi-wallet2 me-1"></i>Kaufen
                                 </button>
@@ -448,12 +449,32 @@
         return resp.json();
     }
 
-    // Kauf-Flow: Wallet Auth -> On-Chain TX -> Finalize
+    function setBuyButtonLoading(listingId, loading) {
+        const btn = document.getElementById(`buyBtn-${listingId}`);
+        if (!btn) return;
+        if (loading) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...';
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen';
+        }
+    }
+
+    // Kauf-Flow: MiniKit pay() → Backend finalisieren
     async function buyListing(listingId, title, priceWld) {
         const token = getSelectedToken(listingId);
 
         if (!USER_HASH) {
             alert('Bitte zuerst mit World ID einloggen.');
+            return;
+        }
+
+        // Seller-Wallet vom Button-Attribut lesen
+        const buyBtn = document.getElementById(`buyBtn-${listingId}`);
+        const sellerWallet = buyBtn?.dataset?.sellerWallet || '';
+        if (!sellerWallet) {
+            alert('Verkäufer hat keine Wallet hinterlegt. Kauf nicht möglich.');
             return;
         }
 
@@ -469,8 +490,39 @@
             : `"${title}" für ${priceWld} ${token} kaufen?`;
         if (!confirm(confirmMsg)) return;
 
+        setBuyButtonLoading(listingId, true);
+
         try {
-            // On-Chain Kauf über EIP-1193 Provider (ethers.js)
+            // ── Primär: MiniKit pay() (World App native Payment Modal) ──
+            if (window.startMiniKitPayment) {
+                const reference = `listing-${listingId}-${Date.now()}`;
+                const payResult = await window.startMiniKitPayment({
+                    to: sellerWallet,
+                    tokenSymbol: token,
+                    amount: actualPrice,
+                    reference,
+                    description: `Essensplan: ${title}`
+                });
+
+                if (payResult?.status === 'success' && payResult.transaction_id) {
+                    const data = await finalizeOnBackend(
+                        listingId,
+                        payResult.transaction_id,
+                        sellerWallet,
+                        token
+                    );
+                    if (data.success) {
+                        alert('Gekauft! Zahlung bestätigt und Plan wurde hinzugefügt.');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                        setBuyButtonLoading(listingId, false);
+                    }
+                    return;
+                }
+            }
+
+            // ── Fallback: ethers.js + EIP-1193 Provider (Desktop-Browser) ──
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
                 const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
                 if (ethereumProvider) {
@@ -489,32 +541,8 @@
                 }
             }
 
-            // Wallet Auth: Wallet verbinden falls noch nicht verbunden
-            let walletAddress = walletAddresses[token];
-            if (!walletAddress) {
-                walletAddress = await connectWorldWallet();
-                if (!walletAddress) {
-                    alert('Bitte zuerst deine World Wallet verbinden.');
-                    return;
-                }
-            }
-
-            // On-Chain Transaktion: Smart Contract Kauf
-            const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
-                listingId,
-                price: actualPrice,
-                buyerHash: USER_HASH,
-                paymentToken: token
-            });
-
-            // Backend finalisieren (NullifierHash kommt aus Server-Session)
-            const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
-            if (data.success) {
-                alert('Gekauft! Zahlung bestätigt und Plan wurde hinzugefügt.');
-                location.reload();
-            } else {
-                alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
-            }
+            alert('Kein Zahlungsweg verfügbar. Bitte öffne die App in der World App.');
+            setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');
             setBuyButtonLoading(listingId, false);

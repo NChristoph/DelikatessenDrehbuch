@@ -168,15 +168,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
-<script type="module">
-    import { MiniKit } from "https://cdn.jsdelivr.net/npm/@@worldcoin/minikit-js/+esm";
-    try {
-        MiniKit.install({ appId: "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa" });
-    } catch (e) {
-        console.warn("MiniKit install:", e);
-    }
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
-</script>
+<script type="module" src="~/js/minikitt.js"></script>
 <script>
     let selectedPlanId = null;
     let sellerWalletAddress = '@walletWLD';
@@ -221,16 +213,29 @@
     }
 
     async function connectSellerWallet() {
+        const btn = document.getElementById('connectSellerWalletBtn');
         try {
-            if (!window.worldChainMarketplace?.connectWallet) {
-                alert('World Chain Wallet-Integration nicht geladen.');
-                return;
-            }
-
-            const btn = document.getElementById('connectSellerWalletBtn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
 
-            const address = await window.worldChainMarketplace.connectWallet();
+            let address = '';
+
+            // 1. Versuch: EIP-1193 Provider (Desktop-Browser)
+            if (window.worldChainMarketplace?.connectWallet) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.();
+                if (ethereumProvider) {
+                    try {
+                        address = await window.worldChainMarketplace.connectWallet();
+                    } catch (e) {
+                        console.warn('EIP-1193 connectWallet fehlgeschlagen:', e.message);
+                    }
+                }
+            }
+
+            // 2. Fallback: MiniKit walletAuth (World App)
+            if (!address && window.connectWalletOnly) {
+                address = await window.connectWalletOnly();
+            }
+
             if (!address) {
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
                 alert('Wallet-Verbindung fehlgeschlagen.');
@@ -258,7 +263,6 @@
 
             updateSellButtonState();
         } catch (error) {
-            const btn = document.getElementById('connectSellerWalletBtn');
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
             alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
         }

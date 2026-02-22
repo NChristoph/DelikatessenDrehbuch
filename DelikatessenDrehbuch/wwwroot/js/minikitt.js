@@ -406,3 +406,59 @@ async function connectWalletOnly() {
 }
 
 window.connectWalletOnly = connectWalletOnly;
+
+// ── MiniKit Pay (für Marketplace-Käufe) ──
+
+async function startMiniKitPayment({ to, tokenSymbol, amount, reference, description }) {
+    const env = await diagnoseEnvironment();
+
+    if (!env.miniKitExists) {
+        if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
+            console.warn("⚠️ Mock MiniKit Payment (Test Modus)");
+            await new Promise(r => setTimeout(r, 800));
+            return {
+                status: 'success',
+                transaction_id: `mock-tx-${Date.now().toString(16)}`
+            };
+        }
+        throw new Error('MiniKit nicht verfügbar. Bitte in World App öffnen.');
+    }
+
+    try {
+        MiniKit.install({ appId: APP_ID });
+    } catch (e) {
+        console.warn("Install Note:", e);
+    }
+
+    // World MiniKit nutzt "USDCE" statt "USDT"
+    let symbol = (tokenSymbol || 'WLD').toUpperCase();
+    if (symbol === 'USDT') symbol = 'USDCE';
+
+    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.pay({
+        reference,
+        to,
+        tokens: [{
+            symbol,
+            token_amount: String(amount)
+        }],
+        description: description || ''
+    });
+
+    if (finalPayload?.status === 'success') {
+        return {
+            status: 'success',
+            transaction_id: finalPayload.transaction_id || finalPayload.txHash || ''
+        };
+    } else {
+        const details = [
+            finalPayload?.error_code,
+            commandPayload?.error_code,
+            finalPayload?.message,
+            commandPayload?.message
+        ].filter(Boolean).join(' | ') || 'Zahlung abgebrochen.';
+        console.error('MiniKit Pay error', { commandPayload, finalPayload });
+        throw new Error(`Zahlung fehlgeschlagen: ${details}`);
+    }
+}
+
+window.startMiniKitPayment = startMiniKitPayment;
