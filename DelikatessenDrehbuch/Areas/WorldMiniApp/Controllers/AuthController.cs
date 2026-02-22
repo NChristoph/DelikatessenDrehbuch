@@ -118,7 +118,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "VerifyAction failed.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ein unerwarteter Fehler ist aufgetreten.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { status = "error", message = ex.Message });
             }
         }
 

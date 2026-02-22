@@ -69,15 +69,16 @@ async function startLoginProcess() {
 
         const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
             action: VERIFY_ACTION,
-            signal: '',
             verification_level: 'device'
         });
 
         if (finalPayload?.status === 'success') {
             await completeVerify(finalPayload);
         } else {
-            const details = finalPayload?.error_code || finalPayload?.message || 'Verifizierung abgebrochen.';
-            log(`❌ World ID fehlgeschlagen: ${String(details).substring(0, 120)}`, true);
+            const errorCode = finalPayload?.error_code || commandPayload?.error_code || '';
+            const errorMsg = finalPayload?.message || commandPayload?.message || '';
+            const details = errorCode || errorMsg || 'Verifizierung abgebrochen.';
+            log(`❌ World ID fehlgeschlagen: ${String(details).substring(0, 160)}`, true);
             console.error('Verify error payload', { commandPayload, finalPayload });
             const consentButton = document.getElementById('consentLoginButton');
             if (consentButton) consentButton.disabled = false;
