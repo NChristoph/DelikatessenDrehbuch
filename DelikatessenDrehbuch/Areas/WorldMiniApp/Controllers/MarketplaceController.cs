@@ -123,11 +123,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
 
-            var purchase = await _coinService.BuyListing(userHash, listingId, IsSelfPurchaseAllowedForTesting());
-            if (purchase == null)
-                return Json(new { success = false, error = "Kauf nicht möglich. Nicht genug WildCoin oder Angebot nicht verfügbar." });
+            try
+            {
+                var purchase = await _coinService.BuyListing(userHash, listingId, IsSelfPurchaseAllowedForTesting());
+                if (purchase == null)
+                    return Json(new { success = false, error = "Kauf nicht möglich." });
 
-            return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+                return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
         // POST: Listing deaktivieren
@@ -165,17 +172,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(request.TxHash))
                 return Json(new { success = false, error = "TxHash fehlt." });
 
-            var purchase = await _coinService.FinalizeWorldChainPurchase(
-                userHash,
-                request.ListingId,
-                request.TxHash,
-                request.WalletAddress,
-                IsSelfPurchaseAllowedForTesting(),
-                request.PaymentToken);
-            if (purchase == null)
-                return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
+            try
+            {
+                var purchase = await _coinService.FinalizeWorldChainPurchase(
+                    userHash,
+                    request.ListingId,
+                    request.TxHash,
+                    request.WalletAddress,
+                    IsSelfPurchaseAllowedForTesting(),
+                    request.PaymentToken);
+                if (purchase == null)
+                    return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 
-            return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+                return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
         // GET: Transaktionshistorie

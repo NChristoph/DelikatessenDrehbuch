@@ -190,6 +190,7 @@
                                     <label for="tok-usdt-@listing.Id">USDT</label>
                                 </div>
                                 <button class="buy-btn"
+                                        data-listing-id="@listing.Id"
                                         onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                                     <i class="bi bi-wallet2 me-1"></i>Kaufen
                                 </button>
@@ -311,6 +312,19 @@
         return '';
     }
 
+    function setBuyButtonLoading(listingId, loading) {
+        const btn = document.querySelector(`[data-listing-id="${listingId}"]`);
+        if (!btn) return;
+        if (loading) {
+            btn.disabled = true;
+            btn._originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...';
+        } else {
+            btn.disabled = false;
+            if (btn._originalHtml) btn.innerHTML = btn._originalHtml;
+        }
+    }
+
     async function buyListing(listingId, title, price) {
         const hash = getUserHash();
         if (!hash) {
@@ -323,6 +337,8 @@
 
         const token = getSelectedToken(listingId);
         if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
+
+        setBuyButtonLoading(listingId, true);
 
         try {
             // Versuche On-Chain Kauf über EIP-1193 Provider (ethers.js)
@@ -338,6 +354,7 @@
                         location.reload();
                     } else {
                         alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                        setBuyButtonLoading(listingId, false);
                     }
                     return;
                 }
@@ -348,6 +365,7 @@
                 const cfg = window.worldChainMarketplaceConfig || {};
                 if (!cfg.marketplaceAddress) {
                     alert('Marketplace-Adresse nicht konfiguriert.');
+                    setBuyButtonLoading(listingId, false);
                     return;
                 }
                 const tokenAddress = token === 'USDT' ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
@@ -379,16 +397,20 @@
                         location.reload();
                     } else {
                         alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                        setBuyButtonLoading(listingId, false);
                     }
                 } else {
                     alert('Transaktion abgebrochen oder fehlgeschlagen.');
+                    setBuyButtonLoading(listingId, false);
                 }
                 return;
             }
 
             alert('Kein Wallet-Provider verfügbar. Bitte öffne den Marktplatz in der World App.');
+            setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');
+            setBuyButtonLoading(listingId, false);
         }
     }
 </script>
