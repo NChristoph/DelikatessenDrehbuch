@@ -3,7 +3,8 @@
     ViewData["Title"] = "Marketplace";
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
-    var balance = (decimal)(ViewData["Balance"] ?? 0m);
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
 
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
     var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
@@ -31,7 +32,7 @@
         padding: .25rem .6rem;
         font-size: .85rem;
     }
-    .coin-balance-bar {
+    .wallet-bar {
         background: linear-gradient(135deg, #1e293b, #334155);
         color: #fff;
         border-radius: 1rem;
@@ -92,7 +93,7 @@
     }
     .wallet-status {
         font-size: .8rem;
-        color: #475569;
+        color: #94a3b8;
     }
 </style>
 
@@ -109,15 +110,16 @@
         </a>
     </div>
 
-    <!-- Balance Bar -->
-    <div class="coin-balance-bar d-flex justify-content-between align-items-center mb-4">
+    <!-- Wallet Bar -->
+    <div class="wallet-bar d-flex justify-content-between align-items-center mb-4">
         <div>
-            <div class="small opacity-75">Dein Guthaben</div>
-            <div class="fs-5 fw-bold" id="userBalance">@balance.ToString("0.##") WC</div>
-            <div class="wallet-status mt-1" id="walletStatus">Wallet: nicht verbunden</div>
+            <div class="small opacity-75">World Wallet</div>
+            <div class="wallet-status mt-1" id="walletStatus">nicht verbunden</div>
         </div>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">Wallet verbinden</button>
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">
+                <i class="bi bi-wallet2 me-1"></i>Wallet verbinden
+            </button>
             <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
                class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
         </div>
@@ -168,7 +170,7 @@
                             </div>
                         </div>
                         <div class="text-end ms-3">
-                            <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WC</div>
+                            <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WLD</div>
                             @if (isOwn && !allowSelfPurchaseForTesting)
                             {
                                 <div class="small text-muted">Dein Angebot</div>
@@ -182,8 +184,7 @@
                                     <label for="tok-usdt-@listing.Id">USDT</label>
                                 </div>
                                 <button class="buy-btn"
-                                        onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
-                                        @(balance < listing.Price ? "disabled" : "")>
+                                        onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                                     <i class="bi bi-wallet2 me-1"></i>Kaufen
                                 </button>
                             }
@@ -197,29 +198,17 @@
 
 @section Scripts {
 <script>
-    function getUserHash() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
-    }
+    // NullifierHash kommt nur vom Server (Login-Session)
+    const USER_HASH = '@userHash';
+
+    // Wallet-Adressen vom Server (Session)
+    let walletAddresses = {
+        WLD: '@walletWLD',
+        USDT: '@walletUSDT'
+    };
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-    }
-
-    async function finalizeOnBackend(hash, listingId, txHash, walletAddress, paymentToken) {
-        const form = new FormData();
-        form.append('UserHash', hash);
-        form.append('ListingId', listingId);
-        form.append('TxHash', txHash);
-        form.append('WalletAddress', walletAddress || '');
-        form.append('PaymentToken', paymentToken || 'WLD');
-        form.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        const finalizeResp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            body: form
-        });
-
-        return finalizeResp.json();
     }
 
     function getSelectedToken(listingId) {
@@ -232,68 +221,58 @@
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
     }
 
-    async function refreshWalletStatus() {
+    // Wallet-Status im UI aktualisieren
+    function updateWalletStatusUI() {
         const el = document.getElementById('walletStatus');
-        if (!el) return '';
+        if (!el) return;
 
-        try {
-            if (!window.worldChainMarketplace?.getConnectedWalletAddress) {
-                el.textContent = 'Wallet: Integration nicht geladen';
-                return '';
-            }
+        const wld = walletAddresses.WLD;
+        const usdt = walletAddresses.USDT;
 
-            const address = await window.worldChainMarketplace.getConnectedWalletAddress();
-            if (address) {
-                el.textContent = `Wallet: verbunden (${shortWallet(address)})`;
-                return address;
-            }
-
-            el.textContent = 'Wallet: nicht verbunden';
-            return '';
-        } catch (_) {
-            el.textContent = 'Wallet: nicht verfügbar';
-            return '';
+        if (wld || usdt) {
+            const parts = [];
+            if (wld) parts.push(`WLD: ${shortWallet(wld)}`);
+            if (usdt) parts.push(`USDT: ${shortWallet(usdt)}`);
+            el.textContent = parts.join(' | ');
+        } else {
+            el.textContent = 'nicht verbunden';
         }
     }
 
+    // Wallet-Adresse auf Server in Session speichern
+    async function saveWalletToSession(address, token) {
+        const form = new FormData();
+        form.append('walletAddress', address);
+        form.append('token', token);
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form
+        });
+
+        walletAddresses[token] = address;
+        updateWalletStatusUI();
+    }
+
+    // Wallet verbinden (Wallet Auth - separat vom Login)
     async function connectWorldWallet() {
         try {
-            if (window.worldChainMarketplace?.connectWallet) {
-                const address = await window.worldChainMarketplace.connectWallet();
-                await refreshWalletStatus();
-                return address;
-            }
-
-            if (!window.ethereum) {
-                alert('Kein Wallet gefunden. Bitte in der World App öffnen.');
+            if (!window.worldChainMarketplace?.connectWallet) {
+                alert('World Chain Wallet-Integration nicht geladen.');
                 return '';
             }
 
-            if (!window.ethers?.BrowserProvider) {
-                alert('Ethers konnte nicht geladen werden. Bitte Seite neu laden.');
+            const address = await window.worldChainMarketplace.connectWallet();
+            if (!address) {
+                alert('Wallet-Verbindung fehlgeschlagen.');
                 return '';
             }
 
-            const cfg = window.worldChainMarketplaceConfig || {};
-            const chainId = Number(cfg.chainId || 480);
-            const chainHex = `0x${chainId.toString(16)}`;
+            // Adresse für beide Tokens in Session speichern
+            await saveWalletToSession(address, 'WLD');
+            await saveWalletToSession(address, 'USDT');
 
-            const provider = new window.ethers.BrowserProvider(window.ethereum);
-            await provider.send('eth_requestAccounts', []);
-
-            try {
-                await provider.send('wallet_switchEthereumChain', [{ chainId: chainHex }]);
-            } catch (switchError) {
-                if (switchError?.code === 4902) {
-                    alert('World Chain ist im Wallet noch nicht hinterlegt.');
-                    return '';
-                }
-                throw switchError;
-            }
-
-            const signer = await provider.getSigner();
-            const address = await signer.getAddress();
-            await refreshWalletStatus();
             return address;
         } catch (error) {
             alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
@@ -301,15 +280,33 @@
         }
     }
 
+    // On-Chain TX auf Backend finalisieren
+    async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken) {
+        const form = new FormData();
+        form.append('ListingId', listingId);
+        form.append('TxHash', txHash);
+        form.append('WalletAddress', walletAddress || '');
+        form.append('PaymentToken', paymentToken || 'WLD');
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form
+        });
+
+        return resp.json();
+    }
+
+    // Kauf-Flow: Wallet Auth -> On-Chain TX -> Finalize
     async function buyListing(listingId, title, price) {
         const token = getSelectedToken(listingId);
-        if (!confirm(`"${title}" für ${price} ${token} via World Wallet kaufen?`)) return;
 
-        const hash = getUserHash();
-        if (!hash) {
+        if (!USER_HASH) {
             alert('Bitte zuerst mit World ID einloggen.');
             return;
         }
+
+        if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
 
         try {
             if (!window.worldChainMarketplace?.buyListingWithWorldChain) {
@@ -317,22 +314,28 @@
                 return;
             }
 
-            const connectedAddress = await refreshWalletStatus() || await connectWorldWallet();
-            if (!connectedAddress) {
-                alert('Bitte zuerst deine World Wallet verbinden.');
-                return;
+            // Wallet Auth: Wallet verbinden falls noch nicht verbunden
+            let walletAddress = walletAddresses[token];
+            if (!walletAddress) {
+                walletAddress = await connectWorldWallet();
+                if (!walletAddress) {
+                    alert('Bitte zuerst deine World Wallet verbinden.');
+                    return;
+                }
             }
 
+            // On-Chain Transaktion: Smart Contract Kauf
             const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
                 listingId,
                 price,
-                buyerHash: hash,
+                buyerHash: USER_HASH,
                 paymentToken: token
             });
 
-            const data = await finalizeOnBackend(hash, listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+            // Backend finalisieren (NullifierHash kommt aus Server-Session)
+            const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
             if (data.success) {
-                alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
+                alert('Gekauft! Zahlung bestätigt und Plan wurde hinzugefügt.');
                 location.reload();
             } else {
                 alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
@@ -355,9 +358,13 @@
 <script src="~/js/worldchain-marketplace.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        refreshWalletStatus();
+        updateWalletStatusUI();
         if (window.ethereum?.on) {
-            window.ethereum.on('accountsChanged', () => refreshWalletStatus());
+            window.ethereum.on('accountsChanged', () => {
+                walletAddresses.WLD = '';
+                walletAddresses.USDT = '';
+                updateWalletStatusUI();
+            });
         }
     });
 </script>

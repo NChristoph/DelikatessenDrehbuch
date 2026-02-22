@@ -53,7 +53,7 @@
 
     <div class="sell-card p-4 mb-3">
         <h4 class="fw-bold mb-1">Essensplan verkaufen</h4>
-        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WildCoin fest.</p>
+        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WLD fest.</p>
     </div>
 
     @if (!Model.Any())
@@ -92,7 +92,7 @@
             <label class="fw-semibold mb-2 d-block">3. Preis festlegen</label>
             <div class="d-flex align-items-center gap-2 mb-4">
                 <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" />
-                <span class="fw-bold text-muted">WildCoin</span>
+                <span class="fw-bold text-muted">WLD</span>
             </div>
 
             <!-- Submit -->
@@ -107,9 +107,8 @@
 <script>
     let selectedPlanId = null;
 
-    function getUserHash() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
-    }
+    // NullifierHash kommt nur vom Server (Login-Session)
+    const USER_HASH = '@userHash';
 
     function selectPlan(el, planId, planTitle) {
         document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
@@ -132,10 +131,9 @@
         const price = parseFloat(document.getElementById('listingPrice').value) || 0;
 
         if (!title) { alert('Bitte gib einen Titel ein.'); return; }
-        if (price < 1 || price > 1000) { alert('Preis muss zwischen 1 und 1000 WildCoin liegen.'); return; }
+        if (price < 1 || price > 1000) { alert('Preis muss zwischen 1 und 1000 WLD liegen.'); return; }
 
         const form = new FormData();
-        form.append('userHash', getUserHash());
         form.append('mealPlanId', selectedPlanId);
         form.append('title', title);
         form.append('description', description);
