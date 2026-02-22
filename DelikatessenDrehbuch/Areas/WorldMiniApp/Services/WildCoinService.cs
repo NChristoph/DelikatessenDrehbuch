@@ -23,33 +23,43 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         {
             if (amount <= 0) return false;
 
-            var sender = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == fromHash);
-            var receiver = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == toHash);
-            if (sender == null || receiver == null) return false;
-            if (sender.WildCoinBalance < amount) return false;
-
-            sender.WildCoinBalance -= amount;
-            receiver.WildCoinBalance += amount;
-
-            _context.Add(new WildCoinTransaction
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                UserHash = fromHash,
-                Amount = -amount,
-                BalanceAfter = sender.WildCoinBalance,
-                Type = "purchase",
-                ReferenceInfo = referenceInfo
-            });
-            _context.Add(new WildCoinTransaction
-            {
-                UserHash = toHash,
-                Amount = amount,
-                BalanceAfter = receiver.WildCoinBalance,
-                Type = "sale",
-                ReferenceInfo = referenceInfo
-            });
+                var sender = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == fromHash);
+                var receiver = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == toHash);
+                if (sender == null || receiver == null) return false;
+                if (sender.WildCoinBalance < amount) return false;
 
-            await _context.SaveChangesAsync();
-            return true;
+                sender.WildCoinBalance -= amount;
+                receiver.WildCoinBalance += amount;
+
+                _context.Add(new WildCoinTransaction
+                {
+                    UserHash = fromHash,
+                    Amount = -amount,
+                    BalanceAfter = sender.WildCoinBalance,
+                    Type = "purchase",
+                    ReferenceInfo = referenceInfo
+                });
+                _context.Add(new WildCoinTransaction
+                {
+                    UserHash = toHash,
+                    Amount = amount,
+                    BalanceAfter = receiver.WildCoinBalance,
+                    Type = "sale",
+                    ReferenceInfo = referenceInfo
+                });
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
         }
 
         public async Task<bool> Reward(string userHash, decimal amount, string referenceInfo)

@@ -103,6 +103,10 @@
         <div>
             <h4 class="fw-bold mb-0">Marketplace</h4>
             <p class="text-muted small mb-0">Essenspläne kaufen & verkaufen</p>
+            @if (testMode)
+            {
+                <p class="small mb-0 text-warning-emphasis">Netzwerk: World Testnet (Chain @worldChainId)</p>
+            }
         </div>
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
            class="btn btn-dark btn-sm rounded-pill">
@@ -175,10 +179,12 @@
                             {
                                 <div class="small text-muted">Dein Angebot</div>
                             }
-                            else if (!string.IsNullOrEmpty(userHash))
+                            else
                             {
                                 <div class="token-select mb-2" id="tokenSelect-@listing.Id">
-                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
+                                    <input type="radio" name="token-@listing.Id" id="tok-wc-@listing.Id" value="WC" checked>
+                                    <label for="tok-wc-@listing.Id">WC</label>
+                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD">
                                     <label for="tok-wld-@listing.Id">WLD</label>
                                     <input type="radio" name="token-@listing.Id" id="tok-usdt-@listing.Id" value="USDT">
                                     <label for="tok-usdt-@listing.Id">USDT</label>
@@ -257,6 +263,15 @@
 
     // Wallet verbinden (Wallet Auth - separat vom Login)
     async function connectWorldWallet() {
+        // Gespeicherte Adresse verwenden
+        const storedAddr = getStoredWalletAddress();
+        if (storedAddr) {
+            updateDebugData(storedAddr);
+            await refreshWalletStatus();
+            return storedAddr;
+        }
+
+        // EIP-1193 Provider (Browser Wallet)
         try {
             if (!window.worldChainMarketplace?.connectWallet) {
                 alert('World Chain Wallet-Integration nicht geladen.');
@@ -309,9 +324,23 @@
         if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
 
         try {
-            if (!window.worldChainMarketplace?.buyListingWithWorldChain) {
-                alert('World Chain Wallet-Integration nicht geladen.');
-                return;
+            // On-Chain Kauf über EIP-1193 Provider (ethers.js)
+            if (window.worldChainMarketplace?.buyListingWithWorldChain) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
+                if (ethereumProvider) {
+                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                        listingId, price, buyerHash: hash, paymentToken: token
+                    });
+                    const data = await finalizeOnBackend(hash, listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+                    if (data.success) {
+                        alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                        setBuyButtonLoading(listingId, false);
+                    }
+                    return;
+                }
             }
 
             // Wallet Auth: Wallet verbinden falls noch nicht verbunden
@@ -341,7 +370,8 @@
                 alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
             }
         } catch (error) {
-            alert(error?.message || 'Wallet/Netzwerkfehler.');
+            alert(error?.message || 'Kauf fehlgeschlagen.');
+            setBuyButtonLoading(listingId, false);
         }
     }
 </script>
@@ -356,6 +386,15 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
+<script type="module">
+    import { MiniKit } from "https://cdn.jsdelivr.net/npm/@@worldcoin/minikit-js/+esm";
+    try {
+        MiniKit.install({ appId: "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa" });
+    } catch (e) {
+        console.warn("MiniKit install:", e);
+    }
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
