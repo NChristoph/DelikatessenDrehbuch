@@ -1,11 +1,16 @@
 const WORLD_TESTNET_CHAIN_ID = 480;
 const DEFAULT_WORLD_CHAIN_ID = WORLD_TESTNET_CHAIN_ID;
+const WORLD_CHAIN_RPC = "https://worldchain-mainnet.g.alchemy.com/public";
+
+// Token-Dezimalstellen
+const TOKEN_DECIMALS = { WLD: 18, USDCE: 6 };
 
 const ERC20_ABI = [
     "function approve(address spender, uint256 amount) external returns (bool)",
     "function allowance(address owner, address spender) external view returns (uint256)",
     "function decimals() external view returns (uint8)",
-    "function symbol() external view returns (string)"
+    "function symbol() external view returns (string)",
+    "function balanceOf(address account) external view returns (uint256)"
 ];
 
 const MARKETPLACE_ABI = [
@@ -235,12 +240,54 @@ async function connectWallet() {
     return signer.getAddress();
 }
 
+// Token-Balances abfragen (read-only via RPC, kein Wallet nötig)
+async function getWalletBalances(walletAddress) {
+    const result = { wld: null, usdt: null };
+    if (!walletAddress) return result;
+
+    if (!window.ethers) {
+        console.warn("[Marketplace] Ethers nicht geladen, Balance-Abfrage nicht möglich.");
+        return result;
+    }
+
+    const cfg = getCfg();
+    const zeroAddr = "0x0000000000000000000000000000000000000000";
+    const provider = new window.ethers.JsonRpcProvider(WORLD_CHAIN_RPC);
+
+    // WLD Balance
+    if (cfg.wldTokenAddress && cfg.wldTokenAddress !== zeroAddr) {
+        try {
+            const contract = new window.ethers.Contract(cfg.wldTokenAddress, ERC20_ABI, provider);
+            const balance = await contract.balanceOf(walletAddress);
+            const formatted = window.ethers.formatUnits(balance, TOKEN_DECIMALS.WLD);
+            result.wld = parseFloat(formatted).toFixed(2);
+        } catch (e) {
+            console.warn("[Marketplace] WLD Balance-Fehler:", e.message);
+        }
+    }
+
+    // USDT Balance
+    if (cfg.usdtTokenAddress && cfg.usdtTokenAddress !== zeroAddr) {
+        try {
+            const contract = new window.ethers.Contract(cfg.usdtTokenAddress, ERC20_ABI, provider);
+            const balance = await contract.balanceOf(walletAddress);
+            const formatted = window.ethers.formatUnits(balance, TOKEN_DECIMALS.USDCE);
+            result.usdt = parseFloat(formatted).toFixed(2);
+        } catch (e) {
+            console.warn("[Marketplace] USDT Balance-Fehler:", e.message);
+        }
+    }
+
+    return result;
+}
+
 window.worldChainMarketplace = {
     buyListingWithWorldChain,
     getAvailableTokens,
     isTestMode,
     getConnectedWalletAddress,
     connectWallet,
+    getWalletBalances,
     getEthereumProvider,
     getEthereumProviderCandidates,
     waitForEthereumProvider,

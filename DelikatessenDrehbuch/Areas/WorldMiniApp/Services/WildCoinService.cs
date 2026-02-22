@@ -176,22 +176,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
         {
-            // Duplicate check before starting transaction
-            var existing = await _context.MealPlanPurchases
-                .FirstOrDefaultAsync(p => p.ReferenceTxHash == txHash);
-            if (existing != null) return existing;
-
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var listing = await _context.MealPlanListings
                     .Include(l => l.MealPlan)
                     .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
 
-                if (listing == null)
-                    throw new InvalidOperationException("Angebot nicht gefunden oder nicht mehr aktiv.");
-                if (!allowSelfPurchase && listing.SellerHash == buyerHash)
-                    throw new InvalidOperationException("Du kannst dein eigenes Angebot nicht kaufen.");
+                if (listing == null) return null;
+                if (!allowSelfPurchase && listing.SellerHash == buyerHash) return null;
+
+                // Duplikatschutz: gleiche TX nicht doppelt finalisieren
+                var existing = await _context.MealPlanPurchases
+                    .FirstOrDefaultAsync(p => p.ReferenceTxHash == txHash);
+                if (existing != null) return existing;
 
                 listing.SoldCount++;
 
@@ -200,7 +198,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     UserHash = buyerHash,
                     Settings = listing.MealPlan?.Settings,
                     MealPlan = listing.MealPlan?.MealPlan,
-                    Title = $"{listing.Title}",
+                    Title = listing.Title,
                     CreationTime = DateTime.Now
                 };
                 await _context.WorldUserMealPlan.AddAsync(copiedPlan);
@@ -216,94 +214,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     ReferenceTxHash = txHash,
                     BuyerWalletAddress = walletAddress,
                     PaymentToken = paymentToken
-                };
-                await _context.MealPlanPurchases.AddAsync(purchase);
-                await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-                return purchase;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<MealPlanPurchase?> BuyListing(string buyerHash, int listingId, bool allowSelfPurchase = false)
-        {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var listing = await _context.MealPlanListings
-                    .Include(l => l.MealPlan)
-                    .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
-
-                if (listing == null)
-                    throw new InvalidOperationException("Angebot nicht gefunden oder nicht mehr aktiv.");
-                if (!allowSelfPurchase && listing.SellerHash == buyerHash)
-                    throw new InvalidOperationException("Du kannst dein eigenes Angebot nicht kaufen.");
-
-                // Duplicate purchase check (same buyer, same listing, off-chain)
-                var alreadyBought = await _context.MealPlanPurchases
-                    .AnyAsync(p => p.BuyerHash == buyerHash && p.ListingId == listingId && p.PaymentToken == "WildCoin");
-                if (alreadyBought)
-                    throw new InvalidOperationException("Du hast diesen Plan bereits gekauft.");
-
-                // Balance check
-                var buyer = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == buyerHash);
-                if (buyer == null)
-                    throw new InvalidOperationException("Benutzer nicht gefunden.");
-                if (buyer.WildCoinBalance < listing.Price)
-                    throw new InvalidOperationException($"Nicht genug WildCoin. Du hast {buyer.WildCoinBalance:0.##} WC, benötigt: {listing.Price:0.##} WC.");
-
-                var seller = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == listing.SellerHash);
-                if (seller == null)
-                    throw new InvalidOperationException("Verkäufer nicht gefunden.");
-
-                // Transfer balance
-                buyer.WildCoinBalance -= listing.Price;
-                seller.WildCoinBalance += listing.Price;
-
-                _context.Add(new WildCoinTransaction
-                {
-                    UserHash = buyerHash,
-                    Amount = -listing.Price,
-                    BalanceAfter = buyer.WildCoinBalance,
-                    Type = "purchase",
-                    ReferenceInfo = $"MealPlanListing:{listing.Id}"
-                });
-                _context.Add(new WildCoinTransaction
-                {
-                    UserHash = listing.SellerHash,
-                    Amount = listing.Price,
-                    BalanceAfter = seller.WildCoinBalance,
-                    Type = "sale",
-                    ReferenceInfo = $"MealPlanListing:{listing.Id}"
-                });
-
-                listing.SoldCount++;
-
-                // Kopie des MealPlans für den Käufer erstellen
-                var copiedPlan = new WorldUserMealPlan
-                {
-                    UserHash = buyerHash,
-                    Settings = listing.MealPlan?.Settings,
-                    MealPlan = listing.MealPlan?.MealPlan,
-                    Title = $"{listing.Title}",
-                    CreationTime = DateTime.Now
-                };
-                await _context.WorldUserMealPlan.AddAsync(copiedPlan);
-                await _context.SaveChangesAsync();
-
-                var purchase = new MealPlanPurchase
-                {
-                    BuyerHash = buyerHash,
-                    ListingId = listing.Id,
-                    Listing = listing,
-                    CreatedMealPlanId = copiedPlan.Id,
-                    PricePaid = listing.Price,
-                    PaymentToken = "WildCoin"
                 };
                 await _context.MealPlanPurchases.AddAsync(purchase);
                 await _context.SaveChangesAsync();

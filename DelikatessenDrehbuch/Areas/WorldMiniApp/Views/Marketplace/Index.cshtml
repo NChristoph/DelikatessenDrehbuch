@@ -3,7 +3,8 @@
     ViewData["Title"] = "Marketplace";
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
-    var balance = (decimal)(ViewData["Balance"] ?? 0m);
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
 
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
     var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
@@ -31,7 +32,7 @@
         padding: .25rem .6rem;
         font-size: .85rem;
     }
-    .coin-balance-bar {
+    .wallet-bar {
         background: linear-gradient(135deg, #1e293b, #334155);
         color: #fff;
         border-radius: 1rem;
@@ -92,7 +93,30 @@
     }
     .wallet-status {
         font-size: .8rem;
-        color: #475569;
+        color: #94a3b8;
+    }
+    .balance-row {
+        border-top: 1px solid rgba(255,255,255,.1);
+        padding-top: .6rem;
+        margin-top: .6rem;
+    }
+    .balance-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,.1);
+        border-radius: .5rem;
+        padding: .3rem .75rem;
+    }
+    .balance-label {
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        opacity: .7;
+    }
+    .balance-value {
+        font-size: .9rem;
+        font-weight: 600;
     }
 </style>
 
@@ -113,21 +137,33 @@
         </a>
     </div>
 
-    <!-- Balance Bar -->
-    <div class="coin-balance-bar d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <div class="small opacity-75">Dein Guthaben</div>
-            <div class="fs-5 fw-bold" id="userBalance">@balance.ToString("0.##") WC</div>
-            <div class="wallet-status mt-1" id="walletStatus">Wallet: nicht verbunden</div>
-            <div class="small text-light-emphasis mt-2" id="marketplaceDebugData">
-                <div><strong>User Hash:</strong> <span id="debugUserHash">@(string.IsNullOrWhiteSpace(userHash) ? "-" : userHash)</span></div>
-                <div><strong>Wallet ID:</strong> <span id="debugWalletAddress">-</span></div>
+    <!-- Wallet Bar -->
+    <div class="wallet-bar mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="small opacity-75">World Wallet</div>
+                <div class="wallet-status mt-1" id="walletStatus">nicht verbunden</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">
+                    <i class="bi bi-wallet2 me-1"></i>Verbinden
+                </button>
+                <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
+                   class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
             </div>
         </div>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">Wallet verbinden</button>
-            <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
-               class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
+        <!-- Balance Row (nur sichtbar nach Wallet-Verbindung) -->
+        <div id="walletBalances" class="balance-row d-none">
+            <div class="d-flex gap-3">
+                <div class="balance-badge">
+                    <span class="balance-label">WLD</span>
+                    <span class="balance-value" id="balanceWLD">&ndash;</span>
+                </div>
+                <div class="balance-badge">
+                    <span class="balance-label">USDT</span>
+                    <span class="balance-value" id="balanceUSDT">&ndash;</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -176,7 +212,7 @@
                             </div>
                         </div>
                         <div class="text-end ms-3">
-                            <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WC</div>
+                            <div class="coin-badge mb-2">@listing.Price.ToString("0.##") WLD</div>
                             @if (isOwn && !allowSelfPurchaseForTesting)
                             {
                                 <div class="small text-muted">Dein Angebot</div>
@@ -192,7 +228,6 @@
                                     <label for="tok-usdt-@listing.Id">USDT</label>
                                 </div>
                                 <button class="buy-btn"
-                                        data-listing-id="@listing.Id"
                                         onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                                     <i class="bi bi-wallet2 me-1"></i>Kaufen
                                 </button>
@@ -207,25 +242,22 @@
 
 @section Scripts {
 <script>
-    // ===== User-Identität: IMMER NullifierHash vom Server (Session) =====
-    // Die Wallet-Adresse ist NICHT die User-Identität!
-    // UserToken in localStorage/sessionStorage ist die Wallet-Adresse,
-    // aber der UserHash (NullifierHash) kommt vom Server.
-    function getUserHash() {
-        // Server-seitiger NullifierHash hat Priorität
-        const serverHash = '@userHash';
-        if (serverHash) return serverHash;
-        // Kein serverseitiger Hash → nicht eingeloggt
-        return '';
-    }
+    // NullifierHash kommt nur vom Server (Login-Session)
+    const USER_HASH = '@userHash';
+
+    // Wallet-Adressen vom Server (Session)
+    let walletAddresses = {
+        WLD: '@walletWLD',
+        USDT: '@walletUSDT'
+    };
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 
-    // ===== Wallet-Adresse: nur für On-Chain Transaktionen (WLD/USDT) =====
-    function getStoredWalletAddress() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '';
+    function getSelectedToken(listingId) {
+        const el = document.querySelector(`input[name="token-${listingId}"]:checked`);
+        return el ? el.value : 'WLD';
     }
 
     function shortWallet(address) {
@@ -233,40 +265,65 @@
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
     }
 
-    function updateDebugData(walletAddress) {
-        const walletEl = document.getElementById('debugWalletAddress');
-        if (walletEl) {
-            walletEl.textContent = walletAddress || '-';
-        }
-    }
-
-    async function refreshWalletStatus() {
+    // Wallet-Status im UI aktualisieren
+    function updateWalletStatusUI() {
         const el = document.getElementById('walletStatus');
-        if (!el) return '';
+        if (!el) return;
 
-        // Gespeicherte Wallet-Adresse prüfen
-        const storedAddr = getStoredWalletAddress();
-        if (storedAddr) {
-            el.textContent = `Wallet: verbunden (${shortWallet(storedAddr)})`;
-            updateDebugData(storedAddr);
-            return storedAddr;
+        const wld = walletAddresses.WLD;
+        const usdt = walletAddresses.USDT;
+
+        if (wld || usdt) {
+            const parts = [];
+            if (wld) parts.push(`WLD: ${shortWallet(wld)}`);
+            if (usdt) parts.push(`USDT: ${shortWallet(usdt)}`);
+            el.textContent = parts.join(' | ');
+        } else {
+            el.textContent = 'nicht verbunden';
         }
-
-        // EIP-1193 Provider prüfen
-        try {
-            const address = await window.worldChainMarketplace?.getConnectedWalletAddress?.();
-            if (address) {
-                el.textContent = `Wallet: verbunden (${shortWallet(address)})`;
-                updateDebugData(address);
-                return address;
-            }
-        } catch (_) { }
-
-        el.textContent = 'Wallet: nicht verbunden (nur für WLD/USDT nötig)';
-        updateDebugData('');
-        return '';
     }
 
+    // Wallet-Adresse auf Server in Session speichern
+    async function saveWalletToSession(address, token) {
+        const form = new FormData();
+        form.append('walletAddress', address);
+        form.append('token', token);
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form
+        });
+
+        walletAddresses[token] = address;
+        updateWalletStatusUI();
+    }
+
+    // Balances im UI anzeigen
+    async function loadWalletBalances(walletAddress) {
+        if (!walletAddress || !window.worldChainMarketplace?.getWalletBalances) return;
+
+        const balancesEl = document.getElementById('walletBalances');
+        const wldEl = document.getElementById('balanceWLD');
+        const usdtEl = document.getElementById('balanceUSDT');
+
+        // Zeile sichtbar machen, Ladezustand
+        if (balancesEl) balancesEl.classList.remove('d-none');
+        if (wldEl) wldEl.textContent = '...';
+        if (usdtEl) usdtEl.textContent = '...';
+
+        try {
+            const balances = await window.worldChainMarketplace.getWalletBalances(walletAddress);
+            if (wldEl) wldEl.textContent = balances.wld ?? '\u2013';
+            if (usdtEl) usdtEl.textContent = balances.usdt ?? '\u2013';
+        } catch (e) {
+            console.warn('[Marketplace] Balance-Fehler:', e);
+            if (wldEl) wldEl.textContent = '\u2013';
+            if (usdtEl) usdtEl.textContent = '\u2013';
+        }
+    }
+
+    // Wallet verbinden (Wallet Auth - separat vom Login)
     async function connectWorldWallet() {
         // Gespeicherte Adresse verwenden
         const storedAddr = getStoredWalletAddress();
@@ -278,44 +335,43 @@
 
         // EIP-1193 Provider (Browser Wallet)
         try {
-            if (window.worldChainMarketplace?.connectWallet) {
-                const address = await window.worldChainMarketplace.connectWallet();
-                if (address) {
-                    updateDebugData(address);
-                    await refreshWalletStatus();
-                    return address;
-                }
+            if (!window.worldChainMarketplace?.connectWallet) {
+                alert('World Chain Wallet-Integration nicht geladen.');
+                return '';
             }
-        } catch (e) {
-            console.warn('connectWallet fehlgeschlagen:', e?.message);
+
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
+            const address = await window.worldChainMarketplace.connectWallet();
+            if (!address) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+                alert('Wallet-Verbindung fehlgeschlagen.');
+                return '';
+            }
+
+            // Adresse für beide Tokens in Session speichern
+            await saveWalletToSession(address, 'WLD');
+            await saveWalletToSession(address, 'USDT');
+
+            // Button auf "Verbunden" setzen
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            // Balances laden und anzeigen
+            await loadWalletBalances(address);
+
+            return address;
+        } catch (error) {
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
+            return '';
         }
-
-        return '';
     }
 
-    function getSelectedToken(listingId) {
-        const el = document.querySelector(`input[name="token-${listingId}"]:checked`);
-        return el ? el.value : 'WC';
-    }
-
-    // ===== Backend-Aufrufe =====
-
-    async function buyWithWildCoin(hash, listingId) {
+    // On-Chain TX auf Backend finalisieren
+    async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken) {
         const form = new FormData();
-        form.append('userHash', hash);
-        form.append('listingId', listingId);
-        form.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        const resp = await fetch('@Url.Action("Buy", "Marketplace", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            body: form
-        });
-        return resp.json();
-    }
-
-    async function finalizeOnBackend(hash, listingId, txHash, walletAddress, paymentToken) {
-        const form = new FormData();
-        form.append('UserHash', hash);
         form.append('ListingId', listingId);
         form.append('TxHash', txHash);
         form.append('WalletAddress', walletAddress || '');
@@ -326,64 +382,20 @@
             method: 'POST',
             body: form
         });
+
         return resp.json();
     }
 
-    // ===== Kauf-Logik =====
-
-    function setBuyButtonLoading(listingId, loading) {
-        const btn = document.querySelector(`[data-listing-id="${listingId}"]`);
-        if (!btn) return;
-        if (loading) {
-            btn.disabled = true;
-            btn._originalHtml = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...';
-        } else {
-            btn.disabled = false;
-            if (btn._originalHtml) btn.innerHTML = btn._originalHtml;
-        }
-    }
-
+    // Kauf-Flow: Wallet Auth -> On-Chain TX -> Finalize
     async function buyListing(listingId, title, price) {
-        const hash = getUserHash();
-        if (!hash) {
+        const token = getSelectedToken(listingId);
+
+        if (!USER_HASH) {
             alert('Bitte zuerst mit World ID einloggen.');
             return;
         }
 
-        const token = getSelectedToken(listingId);
-
-        // ===== WC (WildCoin): Off-Chain Kauf, keine Wallet nötig =====
-        if (token === 'WC') {
-            if (!confirm(`"${title}" für ${price} WildCoin kaufen?`)) return;
-
-            setBuyButtonLoading(listingId, true);
-            try {
-                const data = await buyWithWildCoin(hash, listingId);
-                if (data.success) {
-                    alert('Gekauft! Plan wurde deinem Konto hinzugefügt.');
-                    location.reload();
-                } else {
-                    alert(data.error || 'Kauf fehlgeschlagen.');
-                    setBuyButtonLoading(listingId, false);
-                }
-            } catch (error) {
-                alert(error?.message || 'Netzwerkfehler beim Kauf.');
-                setBuyButtonLoading(listingId, false);
-            }
-            return;
-        }
-
-        // ===== WLD / USDT: On-Chain Kauf, Wallet nötig =====
-        const walletAddress = await connectWorldWallet();
-        if (!walletAddress) {
-            alert('Für WLD/USDT Zahlung wird eine Wallet-Verbindung benötigt. Bitte Wallet verbinden oder WC (WildCoin) wählen.');
-            return;
-        }
-
-        if (!confirm(`"${title}" für ${price} ${token} kaufen? (On-Chain)`)) return;
-
-        setBuyButtonLoading(listingId, true);
+        if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
 
         try {
             // On-Chain Kauf über EIP-1193 Provider (ethers.js)
@@ -405,54 +417,32 @@
                 }
             }
 
-            // Fallback: MiniKit sendTransaction (innerhalb World App)
-            if (typeof MiniKit !== 'undefined' && MiniKit.commandsAsync?.sendTransaction) {
-                const cfg = window.worldChainMarketplaceConfig || {};
-                if (!cfg.marketplaceAddress) {
-                    alert('Marketplace-Adresse nicht konfiguriert.');
-                    setBuyButtonLoading(listingId, false);
+            // Wallet Auth: Wallet verbinden falls noch nicht verbunden
+            let walletAddress = walletAddresses[token];
+            if (!walletAddress) {
+                walletAddress = await connectWorldWallet();
+                if (!walletAddress) {
+                    alert('Bitte zuerst deine World Wallet verbinden.');
                     return;
                 }
-                const tokenAddress = token === 'USDT' ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
-                const decimals = token === 'USDT' ? 6 : 18;
-                const amountRaw = BigInt(Math.round(price * (10 ** decimals))).toString();
-
-                const result = await MiniKit.commandsAsync.sendTransaction({
-                    transaction: [
-                        {
-                            address: tokenAddress,
-                            abi: [{ name: 'approve', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] }],
-                            functionName: 'approve',
-                            args: [cfg.marketplaceAddress, amountRaw]
-                        },
-                        {
-                            address: cfg.marketplaceAddress,
-                            abi: [{ name: 'buyListing', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'listingId', type: 'uint256' }, { name: 'amount', type: 'uint256' }, { name: 'buyerHash', type: 'string' }], outputs: [] }],
-                            functionName: 'buyListing',
-                            args: [listingId.toString(), amountRaw, hash]
-                        }
-                    ]
-                });
-
-                if (result?.status === 'success' || result?.finalPayload?.status === 'success') {
-                    const txHash = result?.transaction_id || result?.finalPayload?.transaction_id || 'minikit-tx';
-                    const data = await finalizeOnBackend(hash, listingId, txHash, walletAddress, token);
-                    if (data.success) {
-                        alert('Gekauft! Plan wurde hinzugefügt.');
-                        location.reload();
-                    } else {
-                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
-                        setBuyButtonLoading(listingId, false);
-                    }
-                } else {
-                    alert('Transaktion abgebrochen oder fehlgeschlagen.');
-                    setBuyButtonLoading(listingId, false);
-                }
-                return;
             }
 
-            alert('Kein Wallet-Provider gefunden. Bitte WC (WildCoin) als Zahlungsmittel wählen oder in der World App öffnen.');
-            setBuyButtonLoading(listingId, false);
+            // On-Chain Transaktion: Smart Contract Kauf
+            const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                listingId,
+                price,
+                buyerHash: USER_HASH,
+                paymentToken: token
+            });
+
+            // Backend finalisieren (NullifierHash kommt aus Server-Session)
+            const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+            if (data.success) {
+                alert('Gekauft! Zahlung bestätigt und Plan wurde hinzugefügt.');
+                location.reload();
+            } else {
+                alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+            }
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');
             setBuyButtonLoading(listingId, false);
@@ -481,7 +471,28 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        refreshWalletStatus();
+        updateWalletStatusUI();
+
+        // Wenn Wallet bereits verbunden war (Session), Balances laden
+        const existingAddress = walletAddresses.WLD || walletAddresses.USDT;
+        if (existingAddress) {
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+            loadWalletBalances(existingAddress);
+        }
+
+        if (window.ethereum?.on) {
+            window.ethereum.on('accountsChanged', () => {
+                walletAddresses.WLD = '';
+                walletAddresses.USDT = '';
+                updateWalletStatusUI();
+                // Balances ausblenden
+                const balancesEl = document.getElementById('walletBalances');
+                if (balancesEl) balancesEl.classList.add('d-none');
+                const btn = document.getElementById('connectWalletBtn');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; btn.classList.replace('btn-success', 'btn-outline-light'); }
+            });
+        }
     });
 </script>
 @Html.AntiForgeryToken()
