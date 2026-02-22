@@ -362,3 +362,47 @@ async function completeSiwe(payload, nonce, isMock = false) {
 }
 
 window.startWalletAuth = startWalletAuth;
+
+// ── Wallet Connect (nur Adresse holen, Login-Session bleibt intakt) ──
+
+async function connectWalletOnly() {
+    const env = await diagnoseEnvironment();
+
+    if (!env.miniKitExists) {
+        if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
+            let fakeWallet = localStorage.getItem("mock_wallet_address");
+            if (!fakeWallet) {
+                fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
+                localStorage.setItem("mock_wallet_address", fakeWallet);
+            }
+            return fakeWallet;
+        }
+        throw new Error('MiniKit nicht verfügbar. Bitte in World App öffnen.');
+    }
+
+    try {
+        MiniKit.install({ appId: APP_ID });
+    } catch (e) {
+        console.warn("Install Note:", e);
+    }
+
+    const nonce = normalizeNonce(await fetchNonce());
+
+    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+        nonce
+    });
+
+    if (finalPayload?.status === 'success') {
+        const address = finalPayload.address;
+        if (!address) throw new Error('Keine Wallet-Adresse in der Antwort.');
+        return address;
+    } else {
+        const details = [
+            finalPayload?.error_code,
+            finalPayload?.message
+        ].filter(Boolean).join(' | ') || 'WalletAuth abgebrochen.';
+        throw new Error(`Wallet-Verbindung fehlgeschlagen: ${details}`);
+    }
+}
+
+window.connectWalletOnly = connectWalletOnly;

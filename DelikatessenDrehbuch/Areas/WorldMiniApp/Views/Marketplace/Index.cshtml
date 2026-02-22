@@ -226,9 +226,7 @@
                             else
                             {
                                 <div class="token-select mb-2" id="tokenSelect-@listing.Id">
-                                    <input type="radio" name="token-@listing.Id" id="tok-wc-@listing.Id" value="WC" checked>
-                                    <label for="tok-wc-@listing.Id">WC</label>
-                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD">
+                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
                                     <label for="tok-wld-@listing.Id">WLD</label>
                                     <input type="radio" name="token-@listing.Id" id="tok-usdt-@listing.Id" value="USDT">
                                     <label for="tok-usdt-@listing.Id">USDT</label>
@@ -383,7 +381,7 @@
         return wldPrice; // WLD oder WC: Originalpreis
     }
 
-    // Wallet verbinden (Wallet Auth - separat vom Login)
+    // Wallet verbinden (nur für Kauf, Login-Session bleibt intakt)
     async function connectWorldWallet() {
         // Bereits verbundene Adresse aus Session verwenden
         const storedAddr = walletAddresses.WLD || walletAddresses.USDT;
@@ -392,17 +390,23 @@
             return storedAddr;
         }
 
-        // EIP-1193 Provider (Browser Wallet)
+        const btn = document.getElementById('connectWalletBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
         try {
-            if (!window.worldChainMarketplace?.connectWallet) {
-                alert('World Chain Wallet-Integration nicht geladen.');
-                return '';
+            let address = '';
+
+            // 1. Versuch: EIP-1193 Provider (wenn vorhanden)
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
+            if (ethereumProvider) {
+                address = await window.worldChainMarketplace.connectWallet();
             }
 
-            const btn = document.getElementById('connectWalletBtn');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+            // 2. Fallback: walletAuth über MiniKit (überschreibt Login NICHT)
+            if (!address && window.connectWalletOnly) {
+                address = await window.connectWalletOnly();
+            }
 
-            const address = await window.worldChainMarketplace.connectWallet();
             if (!address) {
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
                 alert('Wallet-Verbindung fehlgeschlagen.');
@@ -421,7 +425,6 @@
 
             return address;
         } catch (error) {
-            const btn = document.getElementById('connectWalletBtn');
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
             alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
             return '';
@@ -529,15 +532,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>
-<script type="module">
-    import { MiniKit } from "https://cdn.jsdelivr.net/npm/@@worldcoin/minikit-js/+esm";
-    try {
-        MiniKit.install({ appId: "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa" });
-    } catch (e) {
-        console.warn("MiniKit install:", e);
-    }
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
-</script>
+<script type="module" src="~/js/minikitt.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
