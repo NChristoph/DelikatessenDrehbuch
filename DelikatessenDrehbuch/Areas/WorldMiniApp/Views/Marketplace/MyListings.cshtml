@@ -103,7 +103,10 @@
 @section Scripts {
 <script>
     function getUserHash() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
+        // NullifierHash vom Server (Session) hat Priorität
+        const serverHash = '@userHash';
+        if (serverHash) return serverHash;
+        return '';
     }
 
     async function deactivate(listingId) {

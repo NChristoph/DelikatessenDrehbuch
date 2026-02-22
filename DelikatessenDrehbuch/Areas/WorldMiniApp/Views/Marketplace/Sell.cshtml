@@ -108,7 +108,10 @@
     let selectedPlanId = null;
 
     function getUserHash() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
+        // NullifierHash vom Server (Session) hat Priorität
+        const serverHash = '@userHash';
+        if (serverHash) return serverHash;
+        return '';
     }
 
     function selectPlan(el, planId, planTitle) {
