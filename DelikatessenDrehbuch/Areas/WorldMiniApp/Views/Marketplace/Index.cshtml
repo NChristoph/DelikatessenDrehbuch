@@ -184,7 +184,9 @@
                             else
                             {
                                 <div class="token-select mb-2" id="tokenSelect-@listing.Id">
-                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
+                                    <input type="radio" name="token-@listing.Id" id="tok-wc-@listing.Id" value="WC" checked>
+                                    <label for="tok-wc-@listing.Id">WC</label>
+                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD">
                                     <label for="tok-wld-@listing.Id">WLD</label>
                                     <input type="radio" name="token-@listing.Id" id="tok-usdt-@listing.Id" value="USDT">
                                     <label for="tok-usdt-@listing.Id">USDT</label>
@@ -205,34 +207,25 @@
 
 @section Scripts {
 <script>
+    // ===== User-Identität: IMMER NullifierHash vom Server (Session) =====
+    // Die Wallet-Adresse ist NICHT die User-Identität!
+    // UserToken in localStorage/sessionStorage ist die Wallet-Adresse,
+    // aber der UserHash (NullifierHash) kommt vom Server.
     function getUserHash() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '@userHash';
+        // Server-seitiger NullifierHash hat Priorität
+        const serverHash = '@userHash';
+        if (serverHash) return serverHash;
+        // Kein serverseitiger Hash → nicht eingeloggt
+        return '';
     }
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 
-    async function finalizeOnBackend(hash, listingId, txHash, walletAddress, paymentToken) {
-        const form = new FormData();
-        form.append('UserHash', hash);
-        form.append('ListingId', listingId);
-        form.append('TxHash', txHash);
-        form.append('WalletAddress', walletAddress || '');
-        form.append('PaymentToken', paymentToken || 'WLD');
-        form.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        const finalizeResp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            body: form
-        });
-
-        return finalizeResp.json();
-    }
-
-    function getSelectedToken(listingId) {
-        const el = document.querySelector(`input[name="token-${listingId}"]:checked`);
-        return el ? el.value : 'WLD';
+    // ===== Wallet-Adresse: nur für On-Chain Transaktionen (WLD/USDT) =====
+    function getStoredWalletAddress() {
+        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '';
     }
 
     function shortWallet(address) {
@@ -241,27 +234,17 @@
     }
 
     function updateDebugData(walletAddress) {
-        const hashEl = document.getElementById('debugUserHash');
         const walletEl = document.getElementById('debugWalletAddress');
-
-        if (hashEl && !hashEl.textContent?.trim()) {
-            hashEl.textContent = '-';
-        }
-
         if (walletEl) {
             walletEl.textContent = walletAddress || '-';
         }
-    }
-
-    function getStoredWalletAddress() {
-        return sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken') || '';
     }
 
     async function refreshWalletStatus() {
         const el = document.getElementById('walletStatus');
         if (!el) return '';
 
-        // 1. Gespeicherte Wallet-Adresse (aus Login) verwenden
+        // Gespeicherte Wallet-Adresse prüfen
         const storedAddr = getStoredWalletAddress();
         if (storedAddr) {
             el.textContent = `Wallet: verbunden (${shortWallet(storedAddr)})`;
@@ -269,7 +252,7 @@
             return storedAddr;
         }
 
-        // 2. EIP-1193 Provider prüfen (normaler Browser mit Wallet-Extension)
+        // EIP-1193 Provider prüfen
         try {
             const address = await window.worldChainMarketplace?.getConnectedWalletAddress?.();
             if (address) {
@@ -279,13 +262,13 @@
             }
         } catch (_) { }
 
-        el.textContent = 'Wallet: nicht verbunden — bitte zuerst einloggen';
+        el.textContent = 'Wallet: nicht verbunden (nur für WLD/USDT nötig)';
         updateDebugData('');
         return '';
     }
 
     async function connectWorldWallet() {
-        // Gespeicherte Adresse aus Login verwenden
+        // Gespeicherte Adresse verwenden
         const storedAddr = getStoredWalletAddress();
         if (storedAddr) {
             updateDebugData(storedAddr);
@@ -293,7 +276,7 @@
             return storedAddr;
         }
 
-        // Fallback: EIP-1193 Provider (Browser Wallet)
+        // EIP-1193 Provider (Browser Wallet)
         try {
             if (window.worldChainMarketplace?.connectWallet) {
                 const address = await window.worldChainMarketplace.connectWallet();
@@ -307,10 +290,46 @@
             console.warn('connectWallet fehlgeschlagen:', e?.message);
         }
 
-        // Kein Wallet — User muss sich einloggen
-        alert('Bitte zuerst einloggen. Gehe zur Startseite und verbinde dein World ID.');
         return '';
     }
+
+    function getSelectedToken(listingId) {
+        const el = document.querySelector(`input[name="token-${listingId}"]:checked`);
+        return el ? el.value : 'WC';
+    }
+
+    // ===== Backend-Aufrufe =====
+
+    async function buyWithWildCoin(hash, listingId) {
+        const form = new FormData();
+        form.append('userHash', hash);
+        form.append('listingId', listingId);
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        const resp = await fetch('@Url.Action("Buy", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form
+        });
+        return resp.json();
+    }
+
+    async function finalizeOnBackend(hash, listingId, txHash, walletAddress, paymentToken) {
+        const form = new FormData();
+        form.append('UserHash', hash);
+        form.append('ListingId', listingId);
+        form.append('TxHash', txHash);
+        form.append('WalletAddress', walletAddress || '');
+        form.append('PaymentToken', paymentToken || 'WLD');
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form
+        });
+        return resp.json();
+    }
+
+    // ===== Kauf-Logik =====
 
     function setBuyButtonLoading(listingId, loading) {
         const btn = document.querySelector(`[data-listing-id="${listingId}"]`);
@@ -332,16 +351,42 @@
             return;
         }
 
-        const walletAddress = await connectWorldWallet();
-        if (!walletAddress) return;
-
         const token = getSelectedToken(listingId);
-        if (!confirm(`"${title}" für ${price} ${token} kaufen?`)) return;
+
+        // ===== WC (WildCoin): Off-Chain Kauf, keine Wallet nötig =====
+        if (token === 'WC') {
+            if (!confirm(`"${title}" für ${price} WildCoin kaufen?`)) return;
+
+            setBuyButtonLoading(listingId, true);
+            try {
+                const data = await buyWithWildCoin(hash, listingId);
+                if (data.success) {
+                    alert('Gekauft! Plan wurde deinem Konto hinzugefügt.');
+                    location.reload();
+                } else {
+                    alert(data.error || 'Kauf fehlgeschlagen.');
+                    setBuyButtonLoading(listingId, false);
+                }
+            } catch (error) {
+                alert(error?.message || 'Netzwerkfehler beim Kauf.');
+                setBuyButtonLoading(listingId, false);
+            }
+            return;
+        }
+
+        // ===== WLD / USDT: On-Chain Kauf, Wallet nötig =====
+        const walletAddress = await connectWorldWallet();
+        if (!walletAddress) {
+            alert('Für WLD/USDT Zahlung wird eine Wallet-Verbindung benötigt. Bitte Wallet verbinden oder WC (WildCoin) wählen.');
+            return;
+        }
+
+        if (!confirm(`"${title}" für ${price} ${token} kaufen? (On-Chain)`)) return;
 
         setBuyButtonLoading(listingId, true);
 
         try {
-            // Versuche On-Chain Kauf über EIP-1193 Provider (ethers.js)
+            // On-Chain Kauf über EIP-1193 Provider (ethers.js)
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
                 const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
                 if (ethereumProvider) {
@@ -406,7 +451,7 @@
                 return;
             }
 
-            alert('Kein Wallet-Provider verfügbar. Bitte öffne den Marktplatz in der World App.');
+            alert('Kein Wallet-Provider gefunden. Bitte WC (WildCoin) als Zahlungsmittel wählen oder in der World App öffnen.');
             setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');
@@ -432,7 +477,6 @@
     } catch (e) {
         console.warn("MiniKit install:", e);
     }
-    // Nach MiniKit-Init EIP-6963 Provider erneut anfragen
     window.dispatchEvent(new Event("eip6963:requestProvider"));
 </script>
 <script>
