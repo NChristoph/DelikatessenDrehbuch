@@ -262,56 +262,69 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         /// <summary>
         /// Prueft via World Chain RPC ob die Transaktion existiert und erfolgreich war (status=0x1).
+        /// Versucht bis zu 3x mit je 3s Wartezeit (TX koennte noch pending sein).
         /// </summary>
         private async Task<bool> VerifyTransactionOnChainAsync(string txHash)
         {
-            try
+            const int maxAttempts = 3;
+            const int delayMs = 3000;
+
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-                var rpcRequest = new
+                try
                 {
-                    jsonrpc = "2.0",
-                    method = "eth_getTransactionReceipt",
-                    @params = new[] { txHash },
-                    id = 1
-                };
-
-                var response = await httpClient.PostAsJsonAsync(WorldChainRpcUrl, rpcRequest);
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("World Chain RPC Fehler: HTTP {StatusCode}", response.StatusCode);
-                    return false;
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                var root = doc.RootElement;
-
-                // Kein result oder null = TX existiert nicht
-                if (!root.TryGetProperty("result", out var result) || result.ValueKind == JsonValueKind.Null)
-                {
-                    _logger.LogWarning("TX {TxHash} existiert nicht auf World Chain.", txHash);
-                    return false;
-                }
-
-                // Status pruefen: 0x1 = success, 0x0 = reverted
-                if (result.TryGetProperty("status", out var status))
-                {
-                    var statusValue = status.GetString();
-                    if (statusValue != "0x1")
+                    using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+                    var rpcRequest = new
                     {
-                        _logger.LogWarning("TX {TxHash} ist fehlgeschlagen (status={Status}).", txHash, statusValue);
-                        return false;
-                    }
-                }
+                        jsonrpc = "2.0",
+                        method = "eth_getTransactionReceipt",
+                        @params = new[] { txHash },
+                        id = 1
+                    };
 
-                return true;
+                    var response = await httpClient.PostAsJsonAsync(WorldChainRpcUrl, rpcRequest);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogError("World Chain RPC Fehler: HTTP {StatusCode} (Versuch {Attempt}/{Max})", response.StatusCode, attempt, maxAttempts);
+                        if (attempt < maxAttempts) await Task.Delay(delayMs);
+                        continue;
+                    }
+
+                    var json = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    // Kein result oder null = TX noch pending oder existiert nicht
+                    if (!root.TryGetProperty("result", out var result) || result.ValueKind == JsonValueKind.Null)
+                    {
+                        _logger.LogWarning("TX {TxHash} noch nicht bestaetigt (Versuch {Attempt}/{Max}).", txHash, attempt, maxAttempts);
+                        if (attempt < maxAttempts) await Task.Delay(delayMs);
+                        continue;
+                    }
+
+                    // Status pruefen: 0x1 = success, 0x0 = reverted
+                    if (result.TryGetProperty("status", out var status))
+                    {
+                        var statusValue = status.GetString();
+                        if (statusValue != "0x1")
+                        {
+                            _logger.LogWarning("TX {TxHash} ist fehlgeschlagen (status={Status}).", txHash, statusValue);
+                            return false;
+                        }
+                    }
+
+                    _logger.LogInformation("TX {TxHash} auf World Chain bestaetigt.", txHash);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Fehler bei On-Chain Verifizierung fuer TX {TxHash} (Versuch {Attempt}/{Max})", txHash, attempt, maxAttempts);
+                    if (attempt < maxAttempts) await Task.Delay(delayMs);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Fehler bei On-Chain Verifizierung fuer TX {TxHash}", txHash);
-                return false;
-            }
+
+            _logger.LogError("TX {TxHash} konnte nach {Max} Versuchen nicht auf World Chain bestaetigt werden.", txHash, maxAttempts);
+            return false;
         }
     }
 }
