@@ -187,3 +187,87 @@ BEGIN
         WHERE [ReferenceTxHash] IS NOT NULL;
 END
 GO
+
+-- =====================================================
+-- Migration: Marketplace 80/20 Revenue Split
+-- Adds seller wallet to listings, split tracking to purchases
+-- =====================================================
+
+-- 5) SellerWalletAddress auf MealPlanListings (Wallet des Creators)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanListings' AND COLUMN_NAME = 'SellerWalletAddress'
+)
+BEGIN
+    ALTER TABLE [MealPlanListings]
+    ADD [SellerWalletAddress] NVARCHAR(64) NULL;
+END
+GO
+
+-- 6) SellerHash auf MealPlanPurchases (NullifierHash des Sellers)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'SellerHash'
+)
+BEGIN
+    ALTER TABLE [MealPlanPurchases]
+    ADD [SellerHash] NVARCHAR(256) NOT NULL DEFAULT '';
+END
+GO
+
+-- 7) SellerWalletAddress auf MealPlanPurchases (Wallet des Sellers zum Zeitpunkt des Kaufs)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'SellerWalletAddress'
+)
+BEGIN
+    ALTER TABLE [MealPlanPurchases]
+    ADD [SellerWalletAddress] NVARCHAR(64) NULL;
+END
+GO
+
+-- 8) CreatorAmount - wie viel der Creator bekommen hat (80%)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'CreatorAmount'
+)
+BEGIN
+    ALTER TABLE [MealPlanPurchases]
+    ADD [CreatorAmount] DECIMAL(18,6) NOT NULL DEFAULT 0;
+END
+GO
+
+-- 9) PlatformFee - wie viel die Platform bekommen hat (20%)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'PlatformFee'
+)
+BEGIN
+    ALTER TABLE [MealPlanPurchases]
+    ADD [PlatformFee] DECIMAL(18,6) NOT NULL DEFAULT 0;
+END
+GO
+
+-- 10) Index fuer schnelle Abfrage: Alle Verkaeufe eines Sellers
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_MealPlanPurchases_SellerHash'
+      AND object_id = OBJECT_ID('MealPlanPurchases')
+)
+BEGIN
+    CREATE INDEX [IX_MealPlanPurchases_SellerHash]
+        ON [MealPlanPurchases]([SellerHash]);
+END
+GO
+
+-- 11) Bestehende Purchases nachtraeglich mit SellerHash befuellen
+UPDATE p
+SET p.SellerHash = l.SellerHash,
+    p.SellerWalletAddress = l.SellerWalletAddress,
+    p.CreatorAmount = p.PricePaid * 0.8,
+    p.PlatformFee = p.PricePaid * 0.2
+FROM MealPlanPurchases p
+INNER JOIN MealPlanListings l ON p.ListingId = l.Id
+WHERE p.SellerHash = '';
+GO

@@ -15,7 +15,7 @@ const ERC20_ABI = [
 
 const MARKETPLACE_ABI = [
     "function buyListing(uint256 listingId, uint256 amount, string calldata buyerHash) external",
-    "event ListingPurchased(uint256 indexed listingId, address indexed buyer, uint256 amount, string buyerHash)"
+    "event ListingPurchased(uint256 indexed listingId, address indexed buyer, uint256 totalAmount, uint256 creatorAmount, uint256 platformAmount, address indexed creator, string buyerHash)"
 ];
 
 const announcedProviders = [];

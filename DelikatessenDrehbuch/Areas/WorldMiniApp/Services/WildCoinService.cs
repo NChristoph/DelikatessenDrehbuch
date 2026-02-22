@@ -95,7 +95,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         // ---- Marketplace ----
 
-        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price)
+        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sellerHash);
             if (user == null) throw new InvalidOperationException("User nicht gefunden.");
@@ -124,6 +124,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 SellerHash = sellerHash,
                 SellerName = user.UserName ?? "Anonym",
+                SellerWalletAddress = sellerWalletAddress,
                 MealPlanId = mealPlanId,
                 MealPlan = mealPlan,
                 Title = title,
@@ -204,15 +205,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 await _context.WorldUserMealPlan.AddAsync(copiedPlan);
                 await _context.SaveChangesAsync();
 
+                var creatorAmount = Math.Round(listing.Price * 0.80m, 6);
+                var platformFee = listing.Price - creatorAmount;
+
                 var purchase = new MealPlanPurchase
                 {
                     BuyerHash = buyerHash,
+                    BuyerWalletAddress = walletAddress,
+                    SellerHash = listing.SellerHash,
+                    SellerWalletAddress = listing.SellerWalletAddress,
                     ListingId = listing.Id,
                     Listing = listing,
                     CreatedMealPlanId = copiedPlan.Id,
                     PricePaid = listing.Price,
+                    CreatorAmount = creatorAmount,
+                    PlatformFee = platformFee,
                     ReferenceTxHash = txHash,
-                    BuyerWalletAddress = walletAddress,
                     PaymentToken = paymentToken
                 };
                 await _context.MealPlanPurchases.AddAsync(purchase);

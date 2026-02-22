@@ -87,6 +87,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ToListAsync();
 
             ViewData["UserHash"] = userHash;
+            ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
+            SetWorldChainConfig();
             return View(mealPlans);
         }
 
@@ -127,7 +129,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // POST: Listing erstellen
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateListing(int mealPlanId, string title, string? description, decimal price)
+        public async Task<IActionResult> CreateListing(int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress)
         {
             var userHash = GetUserHash();
             if (string.IsNullOrWhiteSpace(userHash))
@@ -136,9 +138,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (price < 1 || price > 1000)
                 return Json(new { success = false, error = "Preis muss zwischen 1 und 1000 WLD liegen." });
 
+            if (string.IsNullOrWhiteSpace(sellerWalletAddress))
+                return Json(new { success = false, error = "Bitte verbinde zuerst deine Wallet, damit du Zahlungen empfangen kannst." });
+
             try
             {
-                var listing = await _coinService.CreateListing(userHash, mealPlanId, title, description, price);
+                var listing = await _coinService.CreateListing(userHash, mealPlanId, title, description, price, sellerWalletAddress);
                 return Json(new { success = true, listingId = listing.Id });
             }
             catch (InvalidOperationException ex)
