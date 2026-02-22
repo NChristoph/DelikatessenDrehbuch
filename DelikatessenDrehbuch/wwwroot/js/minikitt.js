@@ -430,9 +430,10 @@ async function startMiniKitPayment({ to, tokenSymbol, amount, reference, descrip
         console.warn("Install Note:", e);
     }
 
-    // World MiniKit nutzt "USDCE" statt "USDT"
+    // World MiniKit Token-Symbole mappen
     let symbol = (tokenSymbol || 'WLD').toUpperCase();
     if (symbol === 'USDT') symbol = 'USDCE';
+    if (symbol === 'ETH') symbol = 'WORLDCHAIN_ETH';
 
     const { commandPayload, finalPayload } = await MiniKit.commandsAsync.pay({
         reference,
