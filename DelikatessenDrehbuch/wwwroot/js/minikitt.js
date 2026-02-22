@@ -265,3 +265,98 @@ function bindConsentButton() {
         };
     }
 }
+
+// ── Wallet Auth (SIWE) – nur für Marketplace-Käufe ──
+
+async function fetchNonce() {
+    const response = await fetch('/WorldMiniApp/Auth/Nonce');
+    if (!response.ok) {
+        throw new Error('Nonce konnte nicht geladen werden');
+    }
+    const data = await response.json();
+    if (!data?.nonce) {
+        throw new Error('Nonce fehlt');
+    }
+    return data.nonce;
+}
+
+function normalizeNonce(rawNonce) {
+    const normalized = String(rawNonce || '').replace(/[^a-zA-Z0-9]/g, '');
+    if (normalized.length < 8) {
+        throw new Error('Nonce ungültig (mind. 8 alphanumerische Zeichen erforderlich).');
+    }
+    return normalized;
+}
+
+async function startWalletAuth() {
+    const env = await diagnoseEnvironment();
+
+    if (!env.miniKitExists) {
+        if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
+            console.warn("⚠️ Mock Wallet Auth (Test Modus)");
+            let fakeWallet = localStorage.getItem("mock_wallet_address");
+            if (!fakeWallet) {
+                fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
+                localStorage.setItem("mock_wallet_address", fakeWallet);
+            }
+            const nonce = await fetchNonce();
+            const mockPayload = {
+                status: 'success',
+                message: `mock-siwe-message-${Date.now()}`,
+                signature: `mock-signature-${Date.now()}`,
+                address: fakeWallet,
+                version: 1
+            };
+            return await completeSiwe(mockPayload, nonce, true);
+        }
+        throw new Error('MiniKit nicht verfügbar. Bitte in World App öffnen.');
+    }
+
+    try {
+        MiniKit.install({ appId: APP_ID });
+    } catch (e) {
+        console.warn("Install Note:", e);
+    }
+
+    const nonce = normalizeNonce(await fetchNonce());
+
+    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+        nonce
+    });
+
+    if (finalPayload?.status === 'success') {
+        return await completeSiwe(finalPayload, nonce);
+    } else {
+        const details = [
+            finalPayload?.error_code,
+            finalPayload?.errorCode,
+            finalPayload?.message,
+            finalPayload?.detail
+        ].filter(Boolean).join(' | ') || 'WalletAuth abgebrochen oder nicht unterstützt.';
+        throw new Error(`WalletAuth fehlgeschlagen: ${details}`);
+    }
+}
+
+async function completeSiwe(payload, nonce, isMock = false) {
+    const response = await fetch('/WorldMiniApp/Auth/CompleteSiwe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload, nonce, rememberLogin: false })
+    });
+
+    if (!response.ok && !isMock) {
+        let msg = '';
+        try {
+            const errJson = await response.json();
+            msg = errJson?.message || '';
+        } catch (_) {
+            msg = await response.text();
+        }
+        throw new Error(msg || 'Wallet-Anmeldung fehlgeschlagen');
+    }
+
+    const data = response.ok ? await response.json() : null;
+    return data?.walletAddress || payload.address;
+}
+
+window.startWalletAuth = startWalletAuth;
