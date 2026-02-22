@@ -95,6 +95,29 @@
         font-size: .8rem;
         color: #94a3b8;
     }
+    .balance-row {
+        border-top: 1px solid rgba(255,255,255,.1);
+        padding-top: .6rem;
+        margin-top: .6rem;
+    }
+    .balance-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,.1);
+        border-radius: .5rem;
+        padding: .3rem .75rem;
+    }
+    .balance-label {
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        opacity: .7;
+    }
+    .balance-value {
+        font-size: .9rem;
+        font-weight: 600;
+    }
 </style>
 
 <div class="container py-4" style="max-width:720px;">
@@ -115,17 +138,32 @@
     </div>
 
     <!-- Wallet Bar -->
-    <div class="wallet-bar d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <div class="small opacity-75">World Wallet</div>
-            <div class="wallet-status mt-1" id="walletStatus">nicht verbunden</div>
+    <div class="wallet-bar mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="small opacity-75">World Wallet</div>
+                <div class="wallet-status mt-1" id="walletStatus">nicht verbunden</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">
+                    <i class="bi bi-wallet2 me-1"></i>Verbinden
+                </button>
+                <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
+                   class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">
-                <i class="bi bi-wallet2 me-1"></i>Wallet verbinden
-            </button>
-            <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
-               class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
+        <!-- Balance Row (nur sichtbar nach Wallet-Verbindung) -->
+        <div id="walletBalances" class="balance-row d-none">
+            <div class="d-flex gap-3">
+                <div class="balance-badge">
+                    <span class="balance-label">WLD</span>
+                    <span class="balance-value" id="balanceWLD">&ndash;</span>
+                </div>
+                <div class="balance-badge">
+                    <span class="balance-label">USDT</span>
+                    <span class="balance-value" id="balanceUSDT">&ndash;</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -261,6 +299,30 @@
         updateWalletStatusUI();
     }
 
+    // Balances im UI anzeigen
+    async function loadWalletBalances(walletAddress) {
+        if (!walletAddress || !window.worldChainMarketplace?.getWalletBalances) return;
+
+        const balancesEl = document.getElementById('walletBalances');
+        const wldEl = document.getElementById('balanceWLD');
+        const usdtEl = document.getElementById('balanceUSDT');
+
+        // Zeile sichtbar machen, Ladezustand
+        if (balancesEl) balancesEl.classList.remove('d-none');
+        if (wldEl) wldEl.textContent = '...';
+        if (usdtEl) usdtEl.textContent = '...';
+
+        try {
+            const balances = await window.worldChainMarketplace.getWalletBalances(walletAddress);
+            if (wldEl) wldEl.textContent = balances.wld ?? '\u2013';
+            if (usdtEl) usdtEl.textContent = balances.usdt ?? '\u2013';
+        } catch (e) {
+            console.warn('[Marketplace] Balance-Fehler:', e);
+            if (wldEl) wldEl.textContent = '\u2013';
+            if (usdtEl) usdtEl.textContent = '\u2013';
+        }
+    }
+
     // Wallet verbinden (Wallet Auth - separat vom Login)
     async function connectWorldWallet() {
         // Gespeicherte Adresse verwenden
@@ -278,8 +340,12 @@
                 return '';
             }
 
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
             const address = await window.worldChainMarketplace.connectWallet();
             if (!address) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
                 alert('Wallet-Verbindung fehlgeschlagen.');
                 return '';
             }
@@ -288,8 +354,16 @@
             await saveWalletToSession(address, 'WLD');
             await saveWalletToSession(address, 'USDT');
 
+            // Button auf "Verbunden" setzen
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            // Balances laden und anzeigen
+            await loadWalletBalances(address);
+
             return address;
         } catch (error) {
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
             alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
             return '';
         }
@@ -398,11 +472,25 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
+
+        // Wenn Wallet bereits verbunden war (Session), Balances laden
+        const existingAddress = walletAddresses.WLD || walletAddresses.USDT;
+        if (existingAddress) {
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+            loadWalletBalances(existingAddress);
+        }
+
         if (window.ethereum?.on) {
             window.ethereum.on('accountsChanged', () => {
                 walletAddresses.WLD = '';
                 walletAddresses.USDT = '';
                 updateWalletStatusUI();
+                // Balances ausblenden
+                const balancesEl = document.getElementById('walletBalances');
+                if (balancesEl) balancesEl.classList.add('d-none');
+                const btn = document.getElementById('connectWalletBtn');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; btn.classList.replace('btn-success', 'btn-outline-light'); }
             });
         }
     });
