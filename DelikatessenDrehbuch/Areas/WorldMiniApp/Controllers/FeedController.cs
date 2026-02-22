@@ -388,15 +388,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash(string userHash)
         {
-            if (!string.IsNullOrWhiteSpace(userHash))
-            {
-                HttpContext.Session.SetString(SessionUserHashKey, userHash);
-                return userHash;
-            }
-
+            // Security: Nur aus der authentifizierten Session lesen.
+            // Der userHash-Parameter wird ignoriert um Session-Hijacking zu verhindern.
             var sessionHash = HttpContext.Session.GetString(SessionUserHashKey)
-                ?? HttpContext.Session.GetString("UserHash")
-                ?? Request.Query["userHash"].FirstOrDefault();
+                ?? HttpContext.Session.GetString("UserHash");
 
             if (string.IsNullOrWhiteSpace(sessionHash))
             {

@@ -1,16 +1,25 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 {
     public class WildCoinService : IWildCoinService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<WildCoinService> _logger;
+        private static readonly Regex TxHashRegex = new("^0x[a-fA-F0-9]{64}$", RegexOptions.Compiled);
+        private const string WorldChainRpcUrl = "https://worldchain-mainnet.g.alchemy.com/public";
 
-        public WildCoinService(ApplicationDbContext context)
+        public WildCoinService(ApplicationDbContext context, IConfiguration configuration, ILogger<WildCoinService> logger)
         {
             _context = context;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<decimal> GetBalance(string userHash)
@@ -177,6 +186,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
         {
+            // Security: TxHash-Format validieren
+            if (string.IsNullOrWhiteSpace(txHash) || !TxHashRegex.IsMatch(txHash))
+            {
+                _logger.LogWarning("FinalizeWorldChainPurchase: Ungueltiges TxHash-Format: {TxHash}", txHash);
+                return null;
+            }
+
+            // Security: On-Chain Verifizierung - pruefe ob TX auf der Blockchain existiert und erfolgreich war
+            var txVerified = await VerifyTransactionOnChainAsync(txHash);
+            if (!txVerified)
+            {
+                _logger.LogWarning("FinalizeWorldChainPurchase: On-Chain Verifizierung fehlgeschlagen fuer TxHash: {TxHash}", txHash);
+                return null;
+            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -233,6 +257,60 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 await transaction.RollbackAsync();
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Prueft via World Chain RPC ob die Transaktion existiert und erfolgreich war (status=0x1).
+        /// </summary>
+        private async Task<bool> VerifyTransactionOnChainAsync(string txHash)
+        {
+            try
+            {
+                using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    method = "eth_getTransactionReceipt",
+                    @params = new[] { txHash },
+                    id = 1
+                };
+
+                var response = await httpClient.PostAsJsonAsync(WorldChainRpcUrl, rpcRequest);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("World Chain RPC Fehler: HTTP {StatusCode}", response.StatusCode);
+                    return false;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                // Kein result oder null = TX existiert nicht
+                if (!root.TryGetProperty("result", out var result) || result.ValueKind == JsonValueKind.Null)
+                {
+                    _logger.LogWarning("TX {TxHash} existiert nicht auf World Chain.", txHash);
+                    return false;
+                }
+
+                // Status pruefen: 0x1 = success, 0x0 = reverted
+                if (result.TryGetProperty("status", out var status))
+                {
+                    var statusValue = status.GetString();
+                    if (statusValue != "0x1")
+                    {
+                        _logger.LogWarning("TX {TxHash} ist fehlgeschlagen (status={Status}).", txHash, statusValue);
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler bei On-Chain Verifizierung fuer TX {TxHash}", txHash);
+                return false;
             }
         }
     }

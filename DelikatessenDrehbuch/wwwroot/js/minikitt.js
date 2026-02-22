@@ -5,7 +5,7 @@ const REMEMBER_LOGIN_KEY = "remember_login";
 const VERIFY_ACTION = "login-delikatessendrehbuch";
 const PAY_ACTION = "pay";
 
-const ALLOW_MOCK_EVERYWHERE = true;
+const ALLOW_MOCK_EVERYWHERE = false;
 
 let currentConfig = {
     level: 'device',
@@ -43,13 +43,7 @@ async function startLoginProcess() {
         await new Promise(r => setTimeout(r, 600));
 
         if (!env.miniKitExists) {
-            if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
-                console.warn("⚠️ Nutze Mock-Login (Test Modus aktiv)");
-                await useMockLogin();
-                return;
-            }
-
-            log("❌ MiniKit nicht verfügbar. Bitte in World App öffnen!", true);
+            log("MiniKit nicht verfuegbar. Bitte in World App oeffnen!", true);
             return;
         }
 
@@ -90,28 +84,7 @@ async function startLoginProcess() {
     }
 }
 
-async function useMockLogin() {
-    log("🎭 Mock World ID Login - TEST MODUS");
-    await new Promise(r => setTimeout(r, 600));
-
-    let fakeNullifierHash = localStorage.getItem("mock_nullifier_hash");
-    if (!fakeNullifierHash) {
-        fakeNullifierHash = `0x${Date.now().toString(16).padStart(64, '0')}`;
-        localStorage.setItem("mock_nullifier_hash", fakeNullifierHash);
-    }
-
-    const mockPayload = {
-        status: 'success',
-        proof: `mock-${Date.now()}`,
-        merkle_root: `0x${'0'.repeat(64)}`,
-        nullifier_hash: fakeNullifierHash,
-        verification_level: 'device'
-    };
-
-    await completeVerify(mockPayload, true);
-}
-
-async function completeVerify(payload, isMock = false) {
+async function completeVerify(payload) {
     try {
         log("📤 Prüfe Server...");
         const rememberLogin = getRememberLoginValue();
@@ -129,7 +102,7 @@ async function completeVerify(payload, isMock = false) {
             })
         });
 
-        if (!response.ok && !isMock) {
+        if (!response.ok) {
             let backendMessage = '';
             try {
                 const errJson = await response.json();
@@ -137,7 +110,7 @@ async function completeVerify(payload, isMock = false) {
             } catch (_) {
                 backendMessage = await response.text();
             }
-            log(`❌ Anmeldung fehlgeschlagen: ${(backendMessage || 'Unbekannter Fehler').substring(0, 120)}`, true);
+            log(`Anmeldung fehlgeschlagen: ${(backendMessage || 'Unbekannter Fehler').substring(0, 120)}`, true);
             return;
         }
 
@@ -204,16 +177,11 @@ window.triggerLogin = (level, redirectUrl) => {
     const storedHash = getStoredUserHash();
     const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
+    // Security: userHash wird nicht mehr als URL-Parameter gesendet.
+    // Die Identitaet kommt ausschliesslich aus der serverseitigen Session.
     if (storedHash && rememberLogin) {
-        const separator = redirectUrl.includes('?') ? '&' : '?';
-        redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
         window.location.href = redirectUrl;
         return;
-    }
-
-    if (storedHash) {
-        const separator = redirectUrl.includes('?') ? '&' : '?';
-        redirectUrl += `${separator}userHash=${encodeURIComponent(storedHash)}`;
     }
 
     currentConfig.level = level;
@@ -294,24 +262,7 @@ async function startWalletAuth() {
     const env = await diagnoseEnvironment();
 
     if (!env.miniKitExists) {
-        if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
-            console.warn("⚠️ Mock Wallet Auth (Test Modus)");
-            let fakeWallet = localStorage.getItem("mock_wallet_address");
-            if (!fakeWallet) {
-                fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
-                localStorage.setItem("mock_wallet_address", fakeWallet);
-            }
-            const nonce = await fetchNonce();
-            const mockPayload = {
-                status: 'success',
-                message: `mock-siwe-message-${Date.now()}`,
-                signature: `mock-signature-${Date.now()}`,
-                address: fakeWallet,
-                version: 1
-            };
-            return await completeSiwe(mockPayload, nonce, true);
-        }
-        throw new Error('MiniKit nicht verfügbar. Bitte in World App öffnen.');
+        throw new Error('MiniKit nicht verfuegbar. Bitte in World App oeffnen.');
     }
 
     try {
@@ -339,14 +290,14 @@ async function startWalletAuth() {
     }
 }
 
-async function completeSiwe(payload, nonce, isMock = false) {
+async function completeSiwe(payload, nonce) {
     const response = await fetch('/WorldMiniApp/Auth/CompleteSiwe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload, nonce, rememberLogin: false })
     });
 
-    if (!response.ok && !isMock) {
+    if (!response.ok) {
         let msg = '';
         try {
             const errJson = await response.json();
@@ -369,15 +320,7 @@ async function connectWalletOnly() {
     const env = await diagnoseEnvironment();
 
     if (!env.miniKitExists) {
-        if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
-            let fakeWallet = localStorage.getItem("mock_wallet_address");
-            if (!fakeWallet) {
-                fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
-                localStorage.setItem("mock_wallet_address", fakeWallet);
-            }
-            return fakeWallet;
-        }
-        throw new Error('MiniKit nicht verfügbar. Bitte in World App öffnen.');
+        throw new Error('MiniKit nicht verfuegbar. Bitte in World App oeffnen.');
     }
 
     try {
@@ -413,15 +356,7 @@ async function startMiniKitPayment({ to, tokenSymbol, amount, reference, descrip
     const env = await diagnoseEnvironment();
 
     if (!env.miniKitExists) {
-        if (env.isLocalhost || ALLOW_MOCK_EVERYWHERE) {
-            console.warn("⚠️ Mock MiniKit Payment (Test Modus)");
-            await new Promise(r => setTimeout(r, 800));
-            return {
-                status: 'success',
-                transaction_id: `mock-tx-${Date.now().toString(16)}`
-            };
-        }
-        throw new Error('MiniKit nicht verfügbar. Bitte in World App öffnen.');
+        throw new Error('MiniKit nicht verfuegbar. Bitte in World App oeffnen.');
     }
 
     try {

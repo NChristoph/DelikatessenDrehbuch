@@ -71,6 +71,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             try
             {
                 var verifyResult = VerifyWalletAuthPayload(request.Payload, request.Nonce);
+
+                // Security: Nonce nach Benutzung invalidieren (Replay-Schutz)
+                HttpContext.Session.Remove(SiweNonceKey);
+
                 if (!verifyResult.IsValid || string.IsNullOrWhiteSpace(verifyResult.Address))
                 {
                     return BadRequest(new { status = "error", isValid = false, message = verifyResult.Reason ?? "Invalid SIWE message/signature" });
@@ -118,7 +122,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "VerifyAction failed.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { status = "error", message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { status = "error", message = "Ein unerwarteter Fehler ist aufgetreten." });
             }
         }
 
@@ -174,8 +178,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 validationErrors.Add("signature empty/invalid");
             }
 
-          
-
             var claimedAddress = payload.Address?.Trim();
             if (!string.IsNullOrWhiteSpace(claimedAddress) && !EthereumAddressRegex.IsMatch(claimedAddress))
             {
@@ -210,46 +212,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(rawMessage, normalizedSignature);
                 if (string.IsNullOrWhiteSpace(recoveredAddress) || !EthereumAddressRegex.IsMatch(recoveredAddress))
                 {
-                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
-                    {
-                        return new WalletSiweVerifyResponseDto
-                        {
-                            IsValid = true,
-                            Address = claimedAddress,
-                            Reason = "Recovered address invalid; accepted using matching payload/message address fallback"
-                        };
-                    }
-
                     return InvalidSiwe("signature recovery produced invalid address");
                 }
 
+                // Security: Recovered address MUSS mit der claimed address uebereinstimmen.
+                // Kein Fallback - wenn die Signatur nicht passt, wird abgelehnt.
                 if (!string.IsNullOrWhiteSpace(claimedAddress) && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
-                    {
-                        return new WalletSiweVerifyResponseDto
-                        {
-                            IsValid = true,
-                            Address = claimedAddress,
-                            Reason = $"Recovered address mismatch; accepted using matching payload/message address fallback (recovered: {recoveredAddress}, payload: {claimedAddress})"
-                        };
-                    }
-
                     return InvalidSiwe($"signature address does not match payload address (recovered: {recoveredAddress}, payload: {claimedAddress})");
                 }
 
                 if (!string.IsNullOrWhiteSpace(messageAddress) && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (CanUseClaimedAndMessageAddressFallback(claimedAddress, messageAddress))
-                    {
-                        return new WalletSiweVerifyResponseDto
-                        {
-                            IsValid = true,
-                            Address = claimedAddress,
-                            Reason = $"Recovered address mismatch; accepted using matching payload/message address fallback (recovered: {recoveredAddress}, message: {messageAddress})"
-                        };
-                    }
-
                     return InvalidSiwe($"signature address does not match SIWE message address (recovered: {recoveredAddress}, message: {messageAddress})");
                 }
 
@@ -262,21 +236,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "SIWE signature recovery failed, using strict message/address fallback.");
-
-                if (!string.IsNullOrWhiteSpace(claimedAddress)
-                    && !string.IsNullOrWhiteSpace(messageAddress)
-                    && string.Equals(claimedAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
-                {
-                    return new WalletSiweVerifyResponseDto
-                    {
-                        IsValid = true,
-                        Address = claimedAddress,
-                        Reason = "Recovered via address fallback"
-                    };
-                }
-
-                return InvalidSiwe("signature recovery exception and fallback check failed");
+                // Security: Wenn Signatur-Recovery fehlschlaegt, ABLEHNEN.
+                // Kein Fallback auf claimedAddress/messageAddress.
+                _logger.LogWarning(ex, "SIWE signature recovery failed.");
+                return InvalidSiwe("signature recovery failed");
             }
         }
 
@@ -303,13 +266,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return normalized;
-        }
-
-        private static bool CanUseClaimedAndMessageAddressFallback(string claimedAddress, string messageAddress)
-        {
-            return !string.IsNullOrWhiteSpace(claimedAddress)
-                && !string.IsNullOrWhiteSpace(messageAddress)
-                && string.Equals(claimedAddress, messageAddress, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

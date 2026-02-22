@@ -744,8 +744,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> EditPlan(string userHash, int id)
         {
             userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index");
+            }
 
-            var plan = _worldAppMealPlanService.GetMealPlanById(id);
+            var plan = _worldAppMealPlanService.GetMealPlanById(id, userHash);
+            if (plan == null)
+            {
+                return NotFound();
+            }
+
             var settings = JsonConvert.DeserializeObject<MiniAppSetupModel>(plan.Settings);
 
             List<MealPlanerModel> model = await GetMelplanerModel(plan);
@@ -775,7 +784,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> ViewPlanAsync(int id)
         {
-            var plan = _worldAppMealPlanService.GetMealPlanById(id);
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var plan = _worldAppMealPlanService.GetMealPlanById(id, userHash);
             if (plan == null)
             {
                 return NotFound();
@@ -803,10 +818,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View("WorldPlan", viewModel);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePlanAsync(string userHash, int id)
         {
             userHash = ResolveUserHash(userHash);
-            _worldAppMealPlanService.DeleteMealPlan(id);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
+            _worldAppMealPlanService.DeleteMealPlan(id, userHash);
             var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
             return View("Personality", mealPlans);
         }
@@ -1110,16 +1132,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash(string userHash)
         {
-            if (!string.IsNullOrWhiteSpace(userHash))
-            {
-                // Session synchron halten, damit Folge-Requests funktionieren
-                HttpContext.Session.SetString(SessionUserHashKey, userHash);
-                return userHash;
-            }
-
+            // Security: Nur aus der authentifizierten Session lesen.
+            // Der userHash-Parameter wird ignoriert um Session-Hijacking zu verhindern.
             var sessionHash = HttpContext.Session.GetString(SessionUserHashKey)
-                ?? HttpContext.Session.GetString("UserHash")
-                ?? Request.Query["userHash"].FirstOrDefault();
+                ?? HttpContext.Session.GetString("UserHash");
 
             if (string.IsNullOrWhiteSpace(sessionHash))
             {

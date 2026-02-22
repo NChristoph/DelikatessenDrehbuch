@@ -18,19 +18,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         public async Task<WorldcoinVerifyResponse> VerifyProofWithWorldcoin(VerifyRequestDto data)
         {
-            // 1. MOCK CHECK für Localhost
-            if (data.Payload.Proof.StartsWith("mock-"))
-            {
-                _logger.LogInformation("🎭 Mock Proof akzeptiert");
-                return new WorldcoinVerifyResponse
-                {
-                    Success = true,
-                    Detail = "Mock Proof accepted (Development Mode)"
-                };
-            }
-
-
-
             try
             {
                 _logger.LogInformation($"VerifyUrl={VERIFY_URL}",VERIFY_URL);

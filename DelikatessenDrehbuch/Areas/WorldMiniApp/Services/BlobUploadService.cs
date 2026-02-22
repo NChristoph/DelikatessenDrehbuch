@@ -116,13 +116,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             };
         }
 
+        private static readonly string[] AllowedUrlHosts = {
+            "blobdelikatessendrehbuch.blob.core.windows.net",
+            "delekatesendrehbuchcdn-beecexhdaghhacab.z01.azurefd.net"
+        };
+
         public async Task<UploadContentResult> UploadContentToBlobFromUrl(string sourceUrl)
         {
             if (string.IsNullOrWhiteSpace(sourceUrl))
                 throw new ArgumentException("Bildquelle fehlt.");
 
-            using var httpClient = new HttpClient();
-            using var response = await httpClient.GetAsync(sourceUrl);
+            // Security: SSRF-Schutz - nur HTTPS und bekannte Hosts erlauben
+            if (!Uri.TryCreate(sourceUrl, UriKind.Absolute, out var parsedUri))
+                throw new ArgumentException("Ungueltige URL.");
+
+            if (parsedUri.Scheme != Uri.UriSchemeHttps)
+                throw new ArgumentException("Nur HTTPS-URLs sind erlaubt.");
+
+            if (!AllowedUrlHosts.Any(h => string.Equals(parsedUri.Host, h, StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger.LogWarning("SSRF-Schutz: Abgelehnte URL-Host: {Host}", parsedUri.Host);
+                throw new ArgumentException("URL-Host ist nicht erlaubt.");
+            }
+
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            using var response = await httpClient.GetAsync(parsedUri);
             response.EnsureSuccessStatusCode();
 
             var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";

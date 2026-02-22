@@ -9,8 +9,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         public Task EditeMealPlan(string UserHash,string title, List<MealPlanerModel> mealPlanerModels);
         public Task<Task> CheckVerifie(MiniAppSetupModel settings, string userHash, string title);
         public Task<Task> SaveNewMealPlan(string userHash, List<MealPlanerModel> mealPlanerModels,string title);
-        public void DeleteMealPlan(int id);
-        public WorldUserMealPlan GetMealPlanById(int id);
+        public void DeleteMealPlan(int id, string userHash);
+        public WorldUserMealPlan GetMealPlanById(int id, string userHash);
         public Task<List<WorldUserMealPlan>> GetMealPlansByHash(string userHasch);
     }
 }

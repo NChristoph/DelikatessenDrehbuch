@@ -142,19 +142,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             return await _contex.WorldUserMealPlan.Where(x => x.UserHash == userHasch).ToListAsync();
         }
 
-        public void DeleteMealPlan(int id)
+        public void DeleteMealPlan(int id, string userHash)
         {
-            var mealPlan = _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id);
+            var mealPlan = _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id && x.UserHash == userHash);
             if (mealPlan == null)
-                throw new Exception("Essensplann nicht gefunden");
+                throw new Exception("Essensplan nicht gefunden oder keine Berechtigung.");
 
             _contex.WorldUserMealPlan.Remove(mealPlan);
             _contex.SaveChanges();
         }
 
-        public WorldUserMealPlan GetMealPlanById(int id)
+        public WorldUserMealPlan GetMealPlanById(int id, string userHash)
         {
-            return _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id);
+            return _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id && x.UserHash == userHash);
         }
     }
 }
