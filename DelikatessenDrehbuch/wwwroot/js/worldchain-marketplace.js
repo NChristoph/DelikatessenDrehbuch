@@ -1,5 +1,13 @@
 const DEFAULT_WORLD_CHAIN_ID = 480;
+const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 
+// Token-Dezimalstellen
+const TOKEN_DECIMALS = { WLD: 18, USDCE: 6 };
+
+// Token-Mapping: Marketplace-UI-Token → MiniKit-Symbol
+const TOKEN_TO_MINIKIT = { WLD: "WLD", USDT: "USDCE" };
+
+// Ethers-ABI (Fallback für Nicht-World-App Umgebungen)
 const ERC20_ABI = [
     "function approve(address spender, uint256 amount) external returns (bool)",
     "function allowance(address owner, address spender) external view returns (uint256)",
@@ -19,9 +27,114 @@ function getCfg() {
         wldTokenAddress: cfg.wldTokenAddress || "",
         usdtTokenAddress: cfg.usdtTokenAddress || "",
         marketplaceAddress: cfg.marketplaceAddress || "",
+        paymentWalletAddress: cfg.paymentWalletAddress || "",
         testMode: !!cfg.testMode
     };
 }
+
+// ===================== MiniKit Integration =====================
+
+// MiniKit dynamisch laden (World App Webview)
+let _miniKitCache = null;
+let _miniKitLoading = null;
+
+async function getMiniKit() {
+    if (_miniKitCache) return _miniKitCache;
+    if (_miniKitLoading) return _miniKitLoading;
+
+    _miniKitLoading = (async () => {
+        try {
+            const mod = await import("https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.1.0/+esm");
+            _miniKitCache = mod.MiniKit;
+            try { _miniKitCache.install({ appId: APP_ID }); } catch {}
+            console.log("[Marketplace] MiniKit geladen");
+            return _miniKitCache;
+        } catch (e) {
+            console.log("[Marketplace] MiniKit nicht verfügbar, Fallback auf Ethers:", e?.message);
+            return null;
+        }
+    })();
+
+    return _miniKitLoading;
+}
+
+// Preis in kleinste Token-Einheit umrechnen
+function tokenToSmallestUnit(amount, tokenSymbol) {
+    const decimals = TOKEN_DECIMALS[tokenSymbol] || 18;
+    // Genau auf Dezimalstellen runden um Floating-Point-Fehler zu vermeiden
+    const factor = BigInt(10) ** BigInt(decimals);
+    const wholePart = BigInt(Math.floor(amount));
+    const fracStr = amount.toFixed(decimals).split('.')[1] || '0';
+    const fracPart = BigInt(fracStr.padEnd(decimals, '0').slice(0, decimals));
+    return (wholePart * factor + fracPart).toString();
+}
+
+// ---- MiniKit: Wallet Auth ----
+async function connectWalletMiniKit() {
+    const mk = await getMiniKit();
+    if (!mk) throw new Error("MiniKit nicht verfügbar.");
+
+    const nonce = crypto.randomUUID().replace(/-/g, '');
+
+    const res = await mk.commandsAsync.walletAuth({
+        nonce,
+        statement: 'Wallet mit Marketplace verbinden'
+    });
+
+    const payload = res?.finalPayload || res;
+
+    if (payload?.status !== 'success') {
+        throw new Error("Wallet-Verbindung abgebrochen.");
+    }
+
+    return payload.address;
+}
+
+// ---- MiniKit: Pay (Token-Zahlung über World App UI) ----
+async function buyWithMiniKitPay({ listingId, price, paymentToken }) {
+    const mk = await getMiniKit();
+    if (!mk) throw new Error("MiniKit nicht verfügbar.");
+
+    const cfg = getCfg();
+    const payTo = cfg.paymentWalletAddress || cfg.marketplaceAddress;
+    if (!payTo) {
+        throw new Error("Zahlungsadresse nicht konfiguriert.");
+    }
+
+    const reference = `mp-${listingId}-${Date.now()}`;
+    const minikitSymbol = TOKEN_TO_MINIKIT[paymentToken] || "WLD";
+    const tokenAmount = tokenToSmallestUnit(price, minikitSymbol);
+
+    console.log(`[Marketplace] MiniKit Pay: ${price} ${minikitSymbol} → ${payTo} (ref: ${reference})`);
+
+    const res = await mk.commandsAsync.pay({
+        reference,
+        to: payTo,
+        tokens: [
+            {
+                symbol: minikitSymbol,
+                token_amount: tokenAmount
+            }
+        ],
+        description: `Marketplace Kauf #${listingId}`
+    });
+
+    const payload = res?.finalPayload || res;
+
+    if (payload?.status !== 'success') {
+        throw new Error("Zahlung abgebrochen oder fehlgeschlagen.");
+    }
+
+    return {
+        txHash: payload.transaction_id || reference,
+        walletAddress: '',
+        paymentToken: paymentToken,
+        reference: reference,
+        transactionId: payload.transaction_id || ''
+    };
+}
+
+// ===================== Ethers.js Fallback =====================
 
 function requireEthers() {
     if (!window.ethers) throw new Error("Ethers ist nicht geladen.");
@@ -52,7 +165,7 @@ async function ensureAllowance({ signer, owner, wldTokenAddress, marketplaceAddr
     return tx.wait();
 }
 
-async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentToken }) {
+async function buyWithEthers({ listingId, price, buyerHash, paymentToken }) {
     const cfg = getCfg();
     const tokenKey = (paymentToken || "WLD").toUpperCase();
 
@@ -60,8 +173,6 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentTo
     requireWallet();
 
     const { chainId, marketplaceAddress } = cfg;
-
-    // Token-Adresse je nach Zahlungsmittel wählen
     const tokenAddress = tokenKey === "USDT" ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
 
     if (!tokenAddress || !marketplaceAddress) {
@@ -92,27 +203,7 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentTo
     };
 }
 
-function getAvailableTokens() {
-    const cfg = getCfg();
-    const tokens = [];
-    if (cfg.wldTokenAddress) tokens.push({ key: "WLD", label: "WLD", address: cfg.wldTokenAddress });
-    if (cfg.usdtTokenAddress) tokens.push({ key: "USDT", label: "USDT", address: cfg.usdtTokenAddress });
-    return tokens;
-}
-
-function isTestMode() {
-    return getCfg().testMode;
-}
-//
-
-async function getConnectedWalletAddress() {
-    requireWallet();
-    const provider = new window.ethers.BrowserProvider(window.ethereum);
-    const accounts = await provider.send("eth_accounts", []);
-    return accounts?.[0] || "";
-}
-
-async function connectWallet() {
+async function connectWalletEthers() {
     requireEthers();
     requireWallet();
 
@@ -124,10 +215,59 @@ async function connectWallet() {
     return signer.getAddress();
 }
 
+// ===================== Öffentliche API =====================
+
+// Wallet verbinden: MiniKit zuerst, Ethers-Fallback
+async function connectWallet() {
+    const mk = await getMiniKit();
+    if (mk) {
+        console.log("[Marketplace] Wallet verbinden via MiniKit walletAuth");
+        return connectWalletMiniKit();
+    }
+
+    console.log("[Marketplace] Wallet verbinden via Ethers (Fallback)");
+    return connectWalletEthers();
+}
+
+// Kauf: MiniKit Pay zuerst, Ethers-Fallback
+async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentToken }) {
+    const mk = await getMiniKit();
+    if (mk) {
+        console.log("[Marketplace] Kauf via MiniKit Pay");
+        return buyWithMiniKitPay({ listingId, price, paymentToken });
+    }
+
+    console.log("[Marketplace] Kauf via Ethers Smart Contract (Fallback)");
+    return buyWithEthers({ listingId, price, buyerHash, paymentToken });
+}
+
+function getAvailableTokens() {
+    const cfg = getCfg();
+    const tokens = [];
+    if (cfg.wldTokenAddress || cfg.paymentWalletAddress) tokens.push({ key: "WLD", label: "WLD" });
+    if (cfg.usdtTokenAddress || cfg.paymentWalletAddress) tokens.push({ key: "USDT", label: "USDT (USDCE)" });
+    return tokens;
+}
+
+function isTestMode() {
+    return getCfg().testMode;
+}
+
+async function getConnectedWalletAddress() {
+    const mk = await getMiniKit();
+    if (mk) return '';
+
+    if (!window.ethereum || !window.ethers) return '';
+    const provider = new window.ethers.BrowserProvider(window.ethereum);
+    const accounts = await provider.send("eth_accounts", []);
+    return accounts?.[0] || "";
+}
+
 window.worldChainMarketplace = {
     buyListingWithWorldChain,
     getAvailableTokens,
     isTestMode,
     getConnectedWalletAddress,
-    connectWallet
+    connectWallet,
+    getMiniKit
 };

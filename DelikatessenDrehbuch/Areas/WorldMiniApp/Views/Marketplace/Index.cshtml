@@ -10,6 +10,7 @@
     var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
     var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
     var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
+    var worldChainPaymentWallet = ViewData["WorldChainPaymentWalletAddress"]?.ToString() ?? "";
     var allowSelfPurchaseForTesting = (bool?)ViewData["WorldChainAllowSelfPurchaseForTesting"] ?? false;
     var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
 }
@@ -297,7 +298,7 @@
         return resp.json();
     }
 
-    // Kauf-Flow: Wallet Auth -> On-Chain TX -> Finalize
+    // Kauf-Flow: MiniKit Pay (World App) oder Ethers Fallback
     async function buyListing(listingId, title, price) {
         const token = getSelectedToken(listingId);
 
@@ -314,18 +315,23 @@
                 return;
             }
 
-            // Wallet Auth: Wallet verbinden falls noch nicht verbunden
-            let walletAddress = walletAddresses[token];
-            if (!walletAddress) {
-                walletAddress = await connectWorldWallet();
+            // Prüfen ob MiniKit verfügbar ist (World App)
+            const mk = await window.worldChainMarketplace.getMiniKit();
+
+            if (!mk) {
+                // Ethers-Fallback: Wallet muss vorher verbunden sein
+                let walletAddress = walletAddresses[token];
                 if (!walletAddress) {
-                    alert('Bitte zuerst deine World Wallet verbinden.');
-                    return;
+                    walletAddress = await connectWorldWallet();
+                    if (!walletAddress) {
+                        alert('Bitte zuerst deine World Wallet verbinden.');
+                        return;
+                    }
                 }
             }
+            // Bei MiniKit: Pay-Modal öffnet sich automatisch (kein separates Wallet-Connect nötig)
 
-            // On-Chain Transaktion: Smart Contract Kauf
-            const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+            const result = await window.worldChainMarketplace.buyListingWithWorldChain({
                 listingId,
                 price,
                 buyerHash: USER_HASH,
@@ -333,7 +339,7 @@
             });
 
             // Backend finalisieren (NullifierHash kommt aus Server-Session)
-            const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+            const data = await finalizeOnBackend(listingId, result.txHash, result.walletAddress || '', result.paymentToken);
             if (data.success) {
                 alert('Gekauft! Zahlung bestätigt und Plan wurde hinzugefügt.');
                 location.reload();
@@ -341,6 +347,7 @@
                 alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
             }
         } catch (error) {
+            console.error('[Marketplace] Kauf-Fehler:', error);
             alert(error?.message || 'Wallet/Netzwerkfehler.');
         }
     }
@@ -351,6 +358,7 @@
         wldTokenAddress: '@worldChainWldToken',
         usdtTokenAddress: '@worldChainUsdtToken',
         marketplaceAddress: '@worldChainMarketplace',
+        paymentWalletAddress: '@worldChainPaymentWallet',
         testMode: @(testMode ? "true" : "false")
     };
 </script>

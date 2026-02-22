@@ -29,6 +29,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["WorldChainWldToken"] = _configuration["WorldChain:WldTokenAddress"] ?? "";
             ViewData["WorldChainUsdtToken"] = _configuration["WorldChain:UsdtTokenAddress"] ?? "";
             ViewData["WorldChainMarketplace"] = _configuration["WorldChain:MarketplaceContractAddress"] ?? "";
+            ViewData["WorldChainPaymentWalletAddress"] = _configuration["WorldChain:PaymentWalletAddress"] ?? "";
             ViewData["WorldChainAllowSelfPurchaseForTesting"] =
                 bool.TryParse(_configuration["WorldChain:AllowSelfPurchaseForTesting"], out var allowSelfPurchase)
                 && allowSelfPurchase;
