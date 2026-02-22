@@ -1,12 +1,13 @@
-﻿import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm";
+import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm";
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
+const VERIFY_ACTION = "login";
 
 const ALLOW_MOCK_EVERYWHERE = true;
 
 let currentConfig = {
-    level: 'wallet',
+    level: 'device',
     redirectUrl: '/WorldMiniApp/Home/Setup'
 };
 
@@ -33,49 +34,11 @@ async function diagnoseEnvironment() {
     return { miniKitExists, isLocalhost };
 }
 
-async function fetchNonce() {
-    const response = await fetch('/WorldMiniApp/Auth/Nonce');
-    if (!response.ok) {
-        throw new Error('Nonce konnte nicht geladen werden');
-    }
-
-    const data = await response.json();
-    if (!data?.nonce) {
-        throw new Error('Nonce fehlt');
-    }
-
-    return data.nonce;
-}
-
-function normalizeNonce(rawNonce) {
-    const normalized = String(rawNonce || '').replace(/[^a-zA-Z0-9]/g, '');
-    if (normalized.length < 8) {
-        throw new Error('Nonce ungültig (mind. 8 alphanumerische Zeichen erforderlich).');
-    }
-    return normalized;
-}
-
-
-function formatWalletAuthError(payload) {
-    if (!payload) return 'WalletAuth ohne Antwort.';
-
-    const candidates = [
-        payload?.error_code,
-        payload?.errorCode,
-        payload?.message,
-        payload?.detail,
-        payload?.description,
-        payload?.status
-    ].filter(Boolean);
-
-    return candidates.length ? candidates.join(' | ') : 'WalletAuth abgebrochen oder nicht unterstützt.';
-}
-
 async function startLoginProcess() {
     try {
         const env = await diagnoseEnvironment();
 
-        log("🔐 Wallet-Authentifizierung wird gestartet...");
+        log("🌍 World ID Verifizierung wird gestartet...");
         await new Promise(r => setTimeout(r, 600));
 
         if (!env.miniKitExists) {
@@ -102,24 +65,22 @@ async function startLoginProcess() {
             return;
         }
 
-        const nonce = normalizeNonce(await fetchNonce());
+        log("Bitte World ID in der World App bestätigen...");
 
-        log(`Bitte Wallet-Signatur bestätigen... (nonce:${nonce.length})`);
-
-        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
-            nonce
+        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
+            action: VERIFY_ACTION,
+            signal: '',
+            verification_level: 'device'
         });
 
         if (finalPayload?.status === 'success') {
-            await completeSiwe(finalPayload, nonce);
+            await completeVerify(finalPayload);
         } else {
-            const details = formatWalletAuthError(finalPayload || commandPayload);
-            const raw = JSON.stringify(finalPayload || commandPayload || {}).substring(0, 220);
-            log(`❌ WalletAuth fehlgeschlagen: ${details.substring(0, 120)} | ${raw}`, true);
-            console.error('WalletAuth error payload', { commandPayload, finalPayload });
+            const details = finalPayload?.error_code || finalPayload?.message || 'Verifizierung abgebrochen.';
+            log(`❌ World ID fehlgeschlagen: ${String(details).substring(0, 120)}`, true);
+            console.error('Verify error payload', { commandPayload, finalPayload });
             const consentButton = document.getElementById('consentLoginButton');
             if (consentButton) consentButton.disabled = false;
-            return;
         }
     } catch (error) {
         console.error("Login Error:", error);
@@ -128,40 +89,40 @@ async function startLoginProcess() {
 }
 
 async function useMockLogin() {
-    log(`🎭 Mock Wallet Login - TEST MODUS`);
+    log("🎭 Mock World ID Login - TEST MODUS");
     await new Promise(r => setTimeout(r, 600));
 
-    // Stabile Fake-Wallet: einmal generieren, dann wiederverwenden
-    let fakeWallet = localStorage.getItem("mock_wallet_address");
-    if (!fakeWallet) {
-        fakeWallet = `0x${Date.now().toString(16).padEnd(40, '0').slice(0, 40)}`;
-        localStorage.setItem("mock_wallet_address", fakeWallet);
+    let fakeNullifierHash = localStorage.getItem("mock_nullifier_hash");
+    if (!fakeNullifierHash) {
+        fakeNullifierHash = `0x${Date.now().toString(16).padStart(64, '0')}`;
+        localStorage.setItem("mock_nullifier_hash", fakeNullifierHash);
     }
+
     const mockPayload = {
         status: 'success',
-        message: `mock-siwe-message-${Date.now()}`,
-        signature: `mock-signature-${Date.now()}`,
-        address: fakeWallet,
-        version: 1
+        proof: `mock-${Date.now()}`,
+        merkle_root: `0x${'0'.repeat(64)}`,
+        nullifier_hash: fakeNullifierHash,
+        verification_level: 'device'
     };
 
-    const nonce = await fetchNonce();
-    await completeSiwe(mockPayload, nonce, true);
+    await completeVerify(mockPayload, true);
 }
 
-async function completeSiwe(payload, nonce, isMock = false) {
+async function completeVerify(payload, isMock = false) {
     try {
         log("📤 Prüfe Server...");
         const rememberLogin = getRememberLoginValue();
 
-        const response = await fetch('/WorldMiniApp/Auth/CompleteSiwe', {
+        const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 payload,
-                nonce,
+                action: VERIFY_ACTION,
+                signal: '',
                 rememberLogin
             })
         });
@@ -172,23 +133,19 @@ async function completeSiwe(payload, nonce, isMock = false) {
                 const errJson = await response.json();
                 backendMessage = errJson?.message || '';
             } catch (_) {
-                const errorText = await response.text();
-                backendMessage = errorText || '';
+                backendMessage = await response.text();
             }
-
             log(`❌ Anmeldung fehlgeschlagen: ${(backendMessage || 'Unbekannter Fehler').substring(0, 120)}`, true);
             return;
         }
-
-        const data = response.ok ? await response.json() : null;
-        const walletAddress = data?.walletAddress || payload.address;
 
         log("🎉 Erfolgreich!");
         sessionStorage.setItem("user_verified", "true");
         await new Promise(r => setTimeout(r, 600));
 
+        const nullifierHash = payload.nullifier_hash;
         const storage = rememberLogin ? localStorage : sessionStorage;
-        storage.setItem("UserToken", walletAddress.toLowerCase());
+        storage.setItem("UserToken", nullifierHash);
 
         if (!rememberLogin) {
             localStorage.removeItem("UserToken");
@@ -199,7 +156,6 @@ async function completeSiwe(payload, nonce, isMock = false) {
         if (currentConfig.redirectUrl) {
             window.location.href = currentConfig.redirectUrl;
         } else {
-            // Seite neu laden damit Links mit userHash aktualisiert werden
             window.location.reload();
         }
     } catch (error) {
@@ -275,7 +231,7 @@ window.initAutoLogin = (level) => {
 
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
-    updateStoredLoginInfo(storedHash, "wallet");
+    updateStoredLoginInfo(storedHash, level);
 
     if (storedHash) {
         sessionStorage.setItem("user_verified", "true");
