@@ -159,7 +159,7 @@
         </div>
         <!-- Balance Row (nur sichtbar nach Wallet-Verbindung) -->
         <div id="walletBalances" class="balance-row d-none">
-            <div class="d-flex gap-3 flex-wrap">
+            <div class="d-flex gap-3">
                 <div class="balance-badge">
                     <span class="balance-label">WLD</span>
                     <span class="balance-value" id="balanceWLD">&ndash;</span>
@@ -167,10 +167,6 @@
                 <div class="balance-badge">
                     <span class="balance-label">USDCE</span>
                     <span class="balance-value" id="balanceUSDCE">&ndash;</span>
-                </div>
-                <div class="balance-badge">
-                    <span class="balance-label">ETH</span>
-                    <span class="balance-value" id="balanceETH">&ndash;</span>
                 </div>
             </div>
         </div>
@@ -234,8 +230,6 @@
                                     <label for="tok-wld-@listing.Id">WLD</label>
                                     <input type="radio" name="token-@listing.Id" id="tok-usdce-@listing.Id" value="USDCE">
                                     <label for="tok-usdce-@listing.Id">USDCE</label>
-                                    <input type="radio" name="token-@listing.Id" id="tok-eth-@listing.Id" value="ETH">
-                                    <label for="tok-eth-@listing.Id">ETH</label>
                                 </div>
                                 <button class="buy-btn" id="buyBtn-@listing.Id"
                                         data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
@@ -259,13 +253,11 @@
     // Wallet-Adressen vom Server (Session)
     let walletAddresses = {
         WLD: '@walletWLD',
-        USDCE: '@walletUSDT',
-        ETH: '@walletWLD'
+        USDCE: '@walletUSDT'
     };
 
-    // Token-Kurse in USD (werden beim Laden geholt)
+    // WLD/USD Kurs (wird beim Laden geholt)
     let wldPriceUsd = null;
-    let ethPriceUsd = null;
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
@@ -286,7 +278,7 @@
         const el = document.getElementById('walletStatus');
         if (!el) return;
 
-        const addr = walletAddresses.WLD || walletAddresses.USDCE || walletAddresses.ETH;
+        const addr = walletAddresses.WLD || walletAddresses.USDCE;
         if (addr) {
             el.textContent = shortWallet(addr);
         } else {
@@ -317,24 +309,20 @@
         const balancesEl = document.getElementById('walletBalances');
         const wldEl = document.getElementById('balanceWLD');
         const usdceEl = document.getElementById('balanceUSDCE');
-        const ethEl = document.getElementById('balanceETH');
 
         // Zeile sichtbar machen, Ladezustand
         if (balancesEl) balancesEl.classList.remove('d-none');
         if (wldEl) wldEl.textContent = '...';
         if (usdceEl) usdceEl.textContent = '...';
-        if (ethEl) ethEl.textContent = '...';
 
         try {
             const balances = await window.worldChainMarketplace.getWalletBalances(walletAddress);
             if (wldEl) wldEl.textContent = balances.wld ?? '\u2013';
             if (usdceEl) usdceEl.textContent = balances.usdt ?? balances.usdce ?? '\u2013';
-            if (ethEl) ethEl.textContent = balances.eth ?? '\u2013';
         } catch (e) {
             console.warn('[Marketplace] Balance-Fehler:', e);
             if (wldEl) wldEl.textContent = '\u2013';
             if (usdceEl) usdceEl.textContent = '\u2013';
-            if (ethEl) ethEl.textContent = '\u2013';
         }
     }
 
@@ -351,10 +339,6 @@
         if (token === 'USDCE' && wldPriceUsd) {
             const usdcePrice = (wldPrice * wldPriceUsd).toFixed(2);
             priceEl.textContent = `${usdcePrice} USDCE`;
-            if (convertedEl) convertedEl.textContent = `= ${wldPrice} WLD`;
-        } else if (token === 'ETH' && wldPriceUsd && ethPriceUsd) {
-            const ethPrice = ((wldPrice * wldPriceUsd) / ethPriceUsd).toFixed(6);
-            priceEl.textContent = `${ethPrice} ETH`;
             if (convertedEl) convertedEl.textContent = `= ${wldPrice} WLD`;
         } else if (token === 'WLD') {
             priceEl.textContent = `${wldPrice} WLD`;
@@ -377,23 +361,11 @@
         });
     }
 
-    // Token-Kurse laden (WLD + ETH in USD) und Preise aktualisieren
-    async function loadTokenPrices() {
-        try {
-            // WLD-Kurs über bestehende Marketplace-Funktion
-            if (window.worldChainMarketplace?.fetchWldPrice) {
-                wldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
-            }
-            // ETH-Kurs von CoinGecko
-            const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-            if (resp.ok) {
-                const data = await resp.json();
-                ethPriceUsd = data?.ethereum?.usd ?? null;
-            }
-        } catch (e) {
-            console.warn('[Marketplace] Kurs-Fehler:', e);
-        }
-        updateAllListingPrices();
+    // WLD/USD Kurs laden und Preise aktualisieren
+    async function loadWldPrice() {
+        if (!window.worldChainMarketplace?.fetchWldPrice) return;
+        wldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
+        if (wldPriceUsd) updateAllListingPrices();
     }
 
     // Berechne den tatsächlichen Preis je nach Token
@@ -401,16 +373,13 @@
         if (token === 'USDCE' && wldPriceUsd) {
             return parseFloat((wldPrice * wldPriceUsd).toFixed(2));
         }
-        if (token === 'ETH' && wldPriceUsd && ethPriceUsd) {
-            return parseFloat(((wldPrice * wldPriceUsd) / ethPriceUsd).toFixed(6));
-        }
         return wldPrice; // WLD: Originalpreis
     }
 
     // Wallet verbinden (nur für Kauf, Login-Session bleibt intakt)
     async function connectWorldWallet() {
         // Bereits verbundene Adresse aus Session verwenden
-        const storedAddr = walletAddresses.WLD || walletAddresses.USDCE || walletAddresses.ETH;
+        const storedAddr = walletAddresses.WLD || walletAddresses.USDCE;
         if (storedAddr) {
             updateWalletStatusUI();
             return storedAddr;
@@ -443,7 +412,6 @@
             await saveWalletToSession(address, 'WLD');
             await saveWalletToSession(address, 'USDT'); // Backend-Key bleibt USDT für USDCE
             walletAddresses.USDCE = address;
-            walletAddresses.ETH = address;
 
             // Button auf "Verbunden" setzen
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
@@ -507,12 +475,8 @@
 
         // Preis umrechnen je nach Token
         const actualPrice = getActualPrice(priceWld, token);
-        if ((token === 'USDCE' || token === 'ETH') && !wldPriceUsd) {
-            alert('Kurs nicht verfügbar. Bitte Seite neu laden.');
-            return;
-        }
-        if (token === 'ETH' && !ethPriceUsd) {
-            alert('ETH-Kurs nicht verfügbar. Bitte Seite neu laden.');
+        if (token === 'USDCE' && !wldPriceUsd) {
+            alert('WLD/USD Kurs nicht verfügbar. Bitte Seite neu laden.');
             return;
         }
 
@@ -599,8 +563,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
 
-        // Token-Kurse laden (WLD + ETH)
-        loadTokenPrices();
+        // WLD/USD Kurs laden
+        loadWldPrice();
 
         // Token-Wechsel Listener: Preis aktualisieren bei Radio-Button Änderung
         document.querySelectorAll('.token-select input[type="radio"]').forEach(radio => {
@@ -611,7 +575,7 @@
         });
 
         // Wenn Wallet bereits verbunden war (Session), Balances laden
-        const existingAddress = walletAddresses.WLD || walletAddresses.USDCE || walletAddresses.ETH;
+        const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
         if (existingAddress) {
             const btn = document.getElementById('connectWalletBtn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
@@ -622,7 +586,6 @@
             window.ethereum.on('accountsChanged', () => {
                 walletAddresses.WLD = '';
                 walletAddresses.USDCE = '';
-                walletAddresses.ETH = '';
                 updateWalletStatusUI();
                 // Balances ausblenden
                 const balancesEl = document.getElementById('walletBalances');

@@ -433,14 +433,21 @@ async function startMiniKitPayment({ to, tokenSymbol, amount, reference, descrip
     // World MiniKit Token-Symbole mappen
     let symbol = (tokenSymbol || 'WLD').toUpperCase();
     if (symbol === 'USDT') symbol = 'USDCE';
-    if (symbol === 'ETH') symbol = 'WORLDCHAIN_ETH';
+
+    // token_amount muss in der kleinsten Einheit sein (wie wei)
+    // WLD = 18 Dezimalen, USDCE = 6 Dezimalen
+    const TOKEN_DECIMALS_PAY = { WLD: 18, USDCE: 6 };
+    const decimals = TOKEN_DECIMALS_PAY[symbol] || 18;
+    const [whole, frac = ''] = String(amount).split('.');
+    const paddedFrac = frac.padEnd(decimals, '0').slice(0, decimals);
+    const amountSmallestUnit = (BigInt(whole || '0') * (BigInt(10) ** BigInt(decimals)) + BigInt(paddedFrac)).toString();
 
     const { commandPayload, finalPayload } = await MiniKit.commandsAsync.pay({
         reference,
         to,
         tokens: [{
             symbol,
-            token_amount: String(amount)
+            token_amount: amountSmallestUnit
         }],
         description: description || ''
     });
