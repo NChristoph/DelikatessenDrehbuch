@@ -70,8 +70,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Distinct()
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
-
-            ViewData["CreatorShopCards"] = listings.Select(listing =>
+            var creatorShopCards = listings.Select(listing =>
             {
                 var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan);
                 var heroImages = listingRecipeIds
@@ -104,6 +103,39 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
                 };
             }).ToList();
+
+            if (creatorShopCards.Any())
+            {
+                var baseCard = creatorShopCards.First();
+                creatorShopCards.Insert(1, new PlanCardViewModel
+                {
+                    ListingId = baseCard.ListingId,
+                    Title = "Split-Test Angebot (80/20)",
+                    TitleJsSafe = "Split-Test Angebot (80/20)",
+                    Description = "Hardcoded Test-Angebot fuer Revenue-Split-Validierung.",
+                    CreatorName = baseCard.CreatorName,
+                    CreatorHash = baseCard.CreatorHash,
+                    SellerWalletAddress = "0x6bedc1406476802145e24863cc9d85f96df40e3a",
+                    DayCount = baseCard.DayCount,
+                    RecipeCount = baseCard.RecipeCount,
+                    CreatedDateLabel = DateTime.UtcNow.ToString("dd.MM.yy"),
+                    PriceWld = 1m,
+                    CaloriesKcal = baseCard.CaloriesKcal,
+                    ProteinGrams = baseCard.ProteinGrams,
+                    FatGrams = baseCard.FatGrams,
+                    CarbsGrams = baseCard.CarbsGrams,
+                    Rating = baseCard.Rating,
+                    SoldCount = baseCard.SoldCount,
+                    ActivePlannerCount = baseCard.ActivePlannerCount,
+                    IsLowCarb = baseCard.IsLowCarb,
+                    IsDietFriendly = baseCard.IsDietFriendly,
+                    HeroSlides = baseCard.HeroSlides,
+                    HeroImageUrls = baseCard.HeroImageUrls,
+                    HeroImageUrl = baseCard.HeroImageUrl
+                });
+            }
+
+            ViewData["CreatorShopCards"] = creatorShopCards;
 
             ViewData["UserHash"] = userHash ?? "";
             ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
