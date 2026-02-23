@@ -1,4 +1,5 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,11 +26,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private readonly ApplicationDbContext _context;
         private readonly ILogger<FeedController> _logger;
+        private readonly IWildCoinService _coinService;
 
-        public FeedController(ApplicationDbContext context, ILogger<FeedController> logger)
+        public FeedController(ApplicationDbContext context, ILogger<FeedController> logger, IWildCoinService coinService)
         {
-         _context = context;   
+            _context = context;
             _logger = logger;
+            _coinService = coinService;
         }
         //TODO:Likecount zu basedata recipe hinzufügen und abo system auch machen neue column auserdem brauchen 
         //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
@@ -348,12 +351,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .CountAsync(a => a.Creator.Id == user.Id);
             }
 
+            var purchases = await _coinService.GetPurchasesByBuyer(userHash);
+
             var model = new UserProfileViewModel
             {
                 User = user,
                 LikedRecipes = likedRecipes,
                 Following = following,
                 MealPlans = mealPlans,
+                Purchases = purchases,
                 MyVideos = myVideos,
                 FollowerCount = followerCount
             };

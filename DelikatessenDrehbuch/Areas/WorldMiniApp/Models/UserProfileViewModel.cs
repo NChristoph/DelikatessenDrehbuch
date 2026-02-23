@@ -8,8 +8,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
         // Immer sichtbar
         public List<WorldUserPosting> LikedRecipes { get; set; }
-        public List<WorldAppUser> Following { get; set; } 
+        public List<WorldAppUser> Following { get; set; }
         public List<WorldUserMealPlan> MealPlans { get; set; } = new();
+        public List<MealPlanPurchase> Purchases { get; set; } = new();
 
         // Nur für "orb" User sichtbar
         public List<WorldUserPosting> MyVideos { get; set; } = new List<WorldUserPosting>();

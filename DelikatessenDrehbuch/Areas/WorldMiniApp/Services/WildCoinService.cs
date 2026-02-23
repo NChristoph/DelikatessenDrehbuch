@@ -260,6 +260,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
         }
 
+        public async Task<List<MealPlanPurchase>> GetPurchasesByBuyer(string buyerHash)
+        {
+            return await _context.MealPlanPurchases
+                .Include(p => p.Listing)
+                .Where(p => p.BuyerHash == buyerHash)
+                .OrderByDescending(p => p.PurchasedAt)
+                .ToListAsync();
+        }
+
         /// <summary>
         /// Prueft via World Chain RPC ob die Transaktion existiert und erfolgreich war (status=0x1).
         /// Versucht bis zu 3x mit je 3s Wartezeit (TX koennte noch pending sein).
