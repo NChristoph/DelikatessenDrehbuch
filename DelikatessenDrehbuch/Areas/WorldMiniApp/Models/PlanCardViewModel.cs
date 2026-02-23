@@ -2,6 +2,12 @@ using System.Collections.Generic;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 {
+    public class PlanCardHeroSlideViewModel
+    {
+        public string ImageUrl { get; set; } = string.Empty;
+        public string RecipeTitle { get; set; } = string.Empty;
+    }
+
     public class PlanCardViewModel
     {
         public int ListingId { get; set; }
@@ -30,6 +36,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
         public string? HeroImageUrl { get; set; }
         public List<string> HeroImageUrls { get; set; } = new();
+        public List<PlanCardHeroSlideViewModel> HeroSlides { get; set; } = new();
         public string HeroImageAlt { get; set; } = "Essensplan Vorschau";
 
         public decimal? FatGrams { get; set; }

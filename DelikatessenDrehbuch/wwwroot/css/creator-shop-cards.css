@@ -217,3 +217,23 @@
     font-size: .82rem;
     opacity: .95;
 }
+
+.cs-carousel .carousel-item {
+    position: relative;
+}
+
+.cs-recipe-caption {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+    background: rgba(15, 23, 42, 0.55);
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: .68rem;
+    max-width: calc(100% - 20px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

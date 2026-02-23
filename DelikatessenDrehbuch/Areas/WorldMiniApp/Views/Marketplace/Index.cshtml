@@ -581,6 +581,10 @@
 
             let html = '';
 
+            if (data.description) {
+                html += `<p class="small text-muted mb-3">${data.description}</p>`;
+            }
+
             // Nutrition summary
             if (data.nutrition) {
                 const n = data.nutrition;

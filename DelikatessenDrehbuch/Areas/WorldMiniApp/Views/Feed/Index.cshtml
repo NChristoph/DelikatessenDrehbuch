@@ -2455,6 +2455,9 @@
                 if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfügbar.</p>'; return; }
                 if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
                 let html = '';
+                if (data.description) {
+                    html += `<p class="small mb-2">${data.description}</p>`;
+                }
                 if (data.nutrition) {
                     html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} · Protein: ${data.nutrition.protein}g · Fett: ${data.nutrition.fat}g · KH: ${data.nutrition.carbs}g</p>`;
                 }

@@ -3,7 +3,7 @@
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel
 @{
     var carouselId = $"cs-carousel-{Model.ListingId}";
-    var heroSlides = (Model.HeroImageUrls ?? Enumerable.Empty<string>().ToList()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+    var heroSlides = (Model.HeroSlides ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardHeroSlideViewModel>()).Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
 }
 
 <article class="cs-card" aria-label="Plan @Model.Title von @Model.CreatorName">
@@ -27,7 +27,8 @@
                     @for (var i = 0; i < heroSlides.Count; i++)
                     {
                         <div class="carousel-item @(i == 0 ? "active" : "")">
-                            <img src="@heroSlides[i]" alt="@($"Rezeptbild {i + 1} für {Model.Title}")" class="cs-hero-img" loading="lazy" />
+                            <img src="@heroSlides[i].ImageUrl" alt="@($"Rezeptbild {i + 1} für {Model.Title}")" class="cs-hero-img" loading="lazy" />
+                            <div class="cs-recipe-caption">@heroSlides[i].RecipeTitle</div>
                         </div>
                     }
 

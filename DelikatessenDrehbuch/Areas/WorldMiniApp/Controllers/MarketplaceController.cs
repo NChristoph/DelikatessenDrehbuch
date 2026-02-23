@@ -82,17 +82,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
                 .Distinct()
                 .ToList();
-            var recipeImageMap = await BuildRecipeImageMapAsync(recipeIds);
+            var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
 
             var cards = listings.Select(listing =>
             {
                 var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan);
                 var heroImages = listingRecipeIds
-                    .Where(recipeImageMap.ContainsKey)
-                    .Select(id => recipeImageMap[id])
-                    .Where(path => !string.IsNullOrWhiteSpace(path))
-                    .Distinct()
-                    .Take(4)
+                    .Where(recipeMediaMap.ContainsKey)
+                    .Select(id => recipeMediaMap[id])
+                    .Where(media => !string.IsNullOrWhiteSpace(media.ImageUrl))
                     .ToList();
 
                 return new PlanCardViewModel
@@ -114,8 +112,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
                     IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
                         || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase),
-                    HeroImageUrls = heroImages,
-                    HeroImageUrl = heroImages.FirstOrDefault()
+                    HeroSlides = heroImages.Select(x => new PlanCardHeroSlideViewModel { ImageUrl = x.ImageUrl, RecipeTitle = x.RecipeTitle }).ToList(),
+                    HeroImageUrls = heroImages.Select(x => x.ImageUrl).ToList(),
+                    HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
                 };
             }).ToList();
 
@@ -366,6 +365,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 success = true,
                 title = listing.Title,
+                description = listing.Description ?? string.Empty,
                 dayCount = listing.DayCount,
                 recipeCount = listing.RecipeCount,
                 days,
@@ -386,7 +386,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             try
             {
                 var indexIds = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(mealPlanJson);
-                return indexIds?.Values.SelectMany(x => x).Distinct().ToList() ?? new List<int>();
+                return indexIds?.Values.SelectMany(x => x).ToList() ?? new List<int>();
             }
             catch
             {
@@ -394,9 +394,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
         }
 
-        private async Task<Dictionary<int, string>> BuildRecipeImageMapAsync(List<int> recipeIds)
+        private async Task<Dictionary<int, (string ImageUrl, string RecipeTitle)>> BuildRecipeMediaMapAsync(List<int> recipeIds)
         {
-            var result = new Dictionary<int, string>();
+            var result = new Dictionary<int, (string ImageUrl, string RecipeTitle)>();
             if (!recipeIds.Any()) return result;
 
             var baseRecipes = await _context.RecipeBaseData
@@ -409,7 +409,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 var image = recipe.Images?.FirstOrDefault()?.Image;
                 if (string.IsNullOrWhiteSpace(image)) continue;
-                result[recipe.Id] = FrontendFunctions.GetSmallImagePath(image);
+                result[recipe.Id] = (FrontendFunctions.GetSmallImagePath(image), recipe.Title ?? string.Empty);
             }
 
             var missingIds = recipeIds.Where(id => !result.ContainsKey(id)).ToList();
@@ -423,7 +423,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 foreach (var recipe in classicRecipes)
                 {
                     if (string.IsNullOrWhiteSpace(recipe.ImagePath)) continue;
-                    result[recipe.Id] = FrontendFunctions.GetSmallImagePath(recipe.ImagePath);
+                    result[recipe.Id] = (FrontendFunctions.GetSmallImagePath(recipe.ImagePath), recipe.Name ?? string.Empty);
                 }
             }
 
