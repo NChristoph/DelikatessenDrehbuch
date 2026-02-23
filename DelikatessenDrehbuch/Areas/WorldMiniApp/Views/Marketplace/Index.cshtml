@@ -691,24 +691,45 @@
         setBuyButtonLoading(listingId, true);
 
         try {
-            // Smart Contract Kauf (80/20 Split on-chain)
+            // Primär: Smart Contract Kauf (80/20 Split on-chain)
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
-                const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
-                    listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
-                });
-                const data = await finalizeOnBackend(
-                    listingId,
-                    onChainResult.txHash,
-                    onChainResult.walletAddress,
-                    onChainResult.paymentToken,
-                    'pay-delikatessendrehbuch'
-                );
-                if (data.success) { location.reload(); }
-                else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
-                return;
+                try {
+                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                        listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
+                    });
+                    const data = await finalizeOnBackend(
+                        listingId,
+                        onChainResult.txHash,
+                        onChainResult.walletAddress,
+                        onChainResult.paymentToken,
+                        'pay-delikatessendrehbuch'
+                    );
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
+                    return;
+                } catch (onChainError) {
+                    const message = String(onChainError?.message || '');
+                    const isWalletMissing = message.toLowerCase().includes('kein wallet gefunden');
+
+                    // Fallback: MiniKit pay (wenn kein EIP-1193 Wallet-Provider bereitgestellt wird)
+                    if (isWalletMissing && window.startMiniKitPayment) {
+                        const reference = `listing-${listingId}-${Date.now()}`;
+                        const payResult = await window.startMiniKitPayment({
+                            to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                            reference, description: `Essensplan: ${title}`
+                        });
+                        const txRef = payResult?.transaction_id || payResult?.txHash || payResult?.reference || `minikit-${listingId}-${Date.now()}`;
+                        const data = await finalizeOnBackend(listingId, txRef, sellerWallet, token, 'pay-delikatessendrehbuch');
+                        if (data.success) { location.reload(); }
+                        else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
+                        return;
+                    }
+
+                    throw onChainError;
+                }
             }
 
-            alert('Kein Smart-Contract Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
+            alert('Kein Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
             setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');

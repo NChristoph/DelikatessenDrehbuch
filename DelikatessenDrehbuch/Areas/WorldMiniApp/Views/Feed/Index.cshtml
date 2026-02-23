@@ -2427,24 +2427,44 @@
             try {
                 await ensureFeedWalletConnected();
                 if (window.worldChainMarketplace?.buyListingWithWorldChain) {
-                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
-                        listingId,
-                        price: actualPrice,
-                        buyerHash: FEED_USER_HASH,
-                        paymentToken: token
-                    });
-                    const data = await finalizeFeedPurchase(
-                        listingId,
-                        onChainResult.txHash,
-                        onChainResult.walletAddress,
-                        onChainResult.paymentToken,
-                        'pay-delikatessendrehbuch'
-                    );
-                    if (data.success) { return; }
-                    alert(data.error || 'Kauf konnte nicht finalisiert werden.');
-                    return;
+                    try {
+                        const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                            listingId,
+                            price: actualPrice,
+                            buyerHash: FEED_USER_HASH,
+                            paymentToken: token
+                        });
+                        const data = await finalizeFeedPurchase(
+                            listingId,
+                            onChainResult.txHash,
+                            onChainResult.walletAddress,
+                            onChainResult.paymentToken,
+                            'pay-delikatessendrehbuch'
+                        );
+                        if (data.success) { return; }
+                        alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                        return;
+                    } catch (onChainError) {
+                        const message = String(onChainError?.message || '');
+                        const isWalletMissing = message.toLowerCase().includes('kein wallet gefunden');
+
+                        if (isWalletMissing && window.startMiniKitPayment) {
+                            const payResult = await window.startMiniKitPayment({
+                                to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                                reference: `feed-listing-${listingId}-${Date.now()}`,
+                                description: `Essensplan: ${title}`
+                            });
+                            const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
+                            const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token, 'pay-delikatessendrehbuch');
+                            if (data.success) { return; }
+                            alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                            return;
+                        }
+
+                        throw onChainError;
+                    }
                 }
-                alert('Kein Smart-Contract Zahlungsweg verfügbar.');
+                alert('Kein Zahlungsweg verfügbar.');
             } catch (e) {
                 alert(e?.message || 'Kauf fehlgeschlagen.');
             }
