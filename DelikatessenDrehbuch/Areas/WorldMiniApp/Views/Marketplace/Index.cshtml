@@ -311,18 +311,6 @@
         <p class="small mb-2 text-warning-emphasis"><i class="bi bi-info-circle me-1"></i>World Testnet (Chain @worldChainId)</p>
     }
 
-    <div class="token-switch-row mb-3">
-        <span class="small text-muted fw-semibold">WLD / USDCE</span>
-        <div class="d-flex align-items-center gap-2">
-            <span class="small fw-semibold">WLD</span>
-            <label class="token-switch" for="globalTokenSwitchTop">
-                <input type="checkbox" id="globalTokenSwitchTop" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
-                <span class="token-slider"></span>
-            </label>
-            <span class="small fw-semibold">USDCE</span>
-        </div>
-    </div>
-
     <!-- Wallet Bar -->
     <div class="wallet-bar mb-3">
         <div class="d-flex justify-content-between align-items-center">
@@ -337,6 +325,14 @@
                 <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
                    class="btn btn-outline-light btn-sm rounded-pill">Meine</a>
             </div>
+        </div>
+        <div class="d-flex justify-content-end align-items-center gap-2 mt-2">
+            <span class="small opacity-75">WLD</span>
+            <label class="token-switch" for="globalTokenSwitchTop" title="WLD / USDCE">
+                <input type="checkbox" id="globalTokenSwitchTop" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
+                <span class="token-slider"></span>
+            </label>
+            <span class="small opacity-75">USDCE</span>
         </div>
         <div id="walletBalances" class="balance-row d-none">
             <div class="d-flex gap-3">
@@ -451,18 +447,6 @@
     }
 </div>
 
-<div class="token-switch-row mb-4">
-    <span class="small text-muted fw-semibold">WLD / USDCE</span>
-    <div class="d-flex align-items-center gap-2">
-        <span class="small fw-semibold">WLD</span>
-        <label class="token-switch" for="globalTokenSwitchBottom">
-            <input type="checkbox" id="globalTokenSwitchBottom" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
-            <span class="token-slider"></span>
-        </label>
-        <span class="small fw-semibold">USDCE</span>
-    </div>
-</div>
-
 <!-- Preview Offcanvas -->
 <div class="offcanvas offcanvas-bottom preview-offcanvas" tabindex="-1" id="previewOffcanvas">
     <div class="offcanvas-header pb-2">
@@ -480,7 +464,7 @@
 @section Scripts {
 <script>
     const USER_HASH = '@userHash';
-    let walletAddresses = { WLD: '@walletWLD', USDCE: '@walletUSDT' };
+    let walletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
     let wldPriceUsd = null;
     let selectedPaymentToken = 'WLD';
 
@@ -491,10 +475,8 @@
     function setGlobalToken(token) {
         selectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
         const top = document.getElementById('globalTokenSwitchTop');
-        const bottom = document.getElementById('globalTokenSwitchBottom');
         const checked = selectedPaymentToken === 'USDCE';
         if (top) top.checked = checked;
-        if (bottom) bottom.checked = checked;
         updateAllListingPrices();
     }
 
@@ -667,7 +649,7 @@
     // ── Wallet Connect ──
     async function connectWorldWallet() {
         const storedAddr = walletAddresses.WLD || walletAddresses.USDCE;
-        if (storedAddr) { updateWalletStatusUI(); return storedAddr; }
+        if (storedAddr) { updateWalletStatusUI(); await loadWalletBalances(storedAddr); return storedAddr; }
 
         const btn = document.getElementById('connectWalletBtn');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
@@ -686,6 +668,7 @@
 
             await saveWalletToSession(address, 'WLD');
             await saveWalletToSession(address, 'USDT');
+            walletAddresses.USDT = address;
             walletAddresses.USDCE = address;
 
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
@@ -817,7 +800,7 @@
 
         if (window.ethereum?.on) {
             window.ethereum.on('accountsChanged', () => {
-                walletAddresses.WLD = ''; walletAddresses.USDCE = '';
+                walletAddresses.WLD = ''; walletAddresses.USDT = ''; walletAddresses.USDCE = '';
                 updateWalletStatusUI();
                 const balancesEl = document.getElementById('walletBalances');
                 if (balancesEl) balancesEl.classList.add('d-none');
