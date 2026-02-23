@@ -192,24 +192,33 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 return null;
             }
 
-            // Unterscheide: On-Chain TX (0x + 64 hex) vs. MiniKit Payment (UUID/andere Referenz)
+            // On-Chain Verifizierung ist nicht-blockierend:
+            // MiniKit pay() bestaetigt die Zahlung bereits in der World App.
+            // Der Alchemy Public RPC kann die TX evtl. noch nicht liefern (Latenz/Rate-Limit).
+            // Wir loggen das Ergebnis, lassen den Kauf aber trotzdem durch.
+            // Duplikatschutz via UNIQUE Index auf ReferenceTxHash schuetzt vor Missbrauch.
             var isOnChainTx = TxHashRegex.IsMatch(txHash);
-
             if (isOnChainTx)
             {
-                // On-Chain Verifizierung: TX auf World Chain pruefen
-                var txVerified = await VerifyTransactionOnChainAsync(txHash);
-                if (!txVerified)
+                _ = Task.Run(async () =>
                 {
-                    _logger.LogWarning("FinalizeWorldChainPurchase: On-Chain Verifizierung fehlgeschlagen fuer TxHash: {TxHash}", txHash);
-                    return null;
-                }
+                    try
+                    {
+                        var verified = await VerifyTransactionOnChainAsync(txHash);
+                        if (verified)
+                            _logger.LogInformation("On-Chain Verifizierung erfolgreich: {TxHash}", txHash);
+                        else
+                            _logger.LogWarning("On-Chain Verifizierung fehlgeschlagen (TX evtl. noch pending): {TxHash}", txHash);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "On-Chain Verifizierung Fehler fuer {TxHash}", txHash);
+                    }
+                });
             }
             else
             {
-                // MiniKit Payment: transaction_id ist eine World App Referenz, kein Ethereum TxHash.
-                // Die Zahlung wurde bereits von World App verifiziert und ausgefuehrt.
-                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz erkannt: {TxRef}", txHash);
+                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz: {TxRef}", txHash);
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();

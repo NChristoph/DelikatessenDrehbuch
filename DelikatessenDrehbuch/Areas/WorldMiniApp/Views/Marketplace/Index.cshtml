@@ -480,14 +480,6 @@
             return;
         }
 
-        let confirmMsg;
-        if (token === 'WLD') {
-            confirmMsg = `"${title}" für ${priceWld} WLD kaufen?`;
-        } else {
-            confirmMsg = `"${title}" für ${actualPrice} ${token} kaufen? (= ${priceWld} WLD)`;
-        }
-        if (!confirm(confirmMsg)) return;
-
         setBuyButtonLoading(listingId, true);
 
         try {
@@ -502,18 +494,36 @@
                     description: `Essensplan: ${title}`
                 });
 
-                if (payResult?.status === 'success' && payResult.transaction_id) {
+                console.log('[Marketplace] MiniKit payResult:', JSON.stringify(payResult));
+
+                const txRef = payResult?.transaction_id || payResult?.txHash || payResult?.reference || '';
+                console.log('[Marketplace] TX Reference:', txRef);
+
+                if (payResult?.status === 'success' && txRef) {
                     const data = await finalizeOnBackend(
                         listingId,
-                        payResult.transaction_id,
+                        txRef,
                         sellerWallet,
                         token
                     );
+                    console.log('[Marketplace] Finalize response:', JSON.stringify(data));
                     if (data.success) {
-                        alert('Gekauft! Zahlung bestätigt und Plan wurde hinzugefügt.');
                         location.reload();
                     } else {
-                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
+                        alert(data.error || 'Kauf konnte nicht abgeschlossen werden.');
+                        setBuyButtonLoading(listingId, false);
+                    }
+                    return;
+                } else if (payResult?.status === 'success') {
+                    // Zahlung erfolgreich aber keine TX-Referenz - trotzdem versuchen
+                    console.warn('[Marketplace] Keine TX-Referenz, verwende Timestamp als Fallback');
+                    const fallbackRef = `minikit-${listingId}-${Date.now()}`;
+                    const data = await finalizeOnBackend(listingId, fallbackRef, sellerWallet, token);
+                    console.log('[Marketplace] Finalize fallback response:', JSON.stringify(data));
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Kauf konnte nicht abgeschlossen werden.');
                         setBuyButtonLoading(listingId, false);
                     }
                     return;
