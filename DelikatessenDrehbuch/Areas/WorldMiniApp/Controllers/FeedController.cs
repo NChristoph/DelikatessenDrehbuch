@@ -4,6 +4,8 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Text;
 
@@ -13,6 +15,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     public class FeedController : Controller
     {
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
+        private const string SessionWalletWLD = "WorldWallet_WLD";
+        private const string SessionWalletUSDT = "WorldWallet_USDT";
         private static readonly Dictionary<string, string[]> CategoryAliases = new(StringComparer.OrdinalIgnoreCase)
         {
             ["appetizer"] = new[] { "appetizer", "aperetizer", "vorspeise", "entrada" },
@@ -170,6 +174,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(100)
                 .ToListAsync();
+
+            ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
+            ViewData["WalletUSDT"] = HttpContext.Session.GetString(SessionWalletUSDT) ?? "";
+            ViewData["WorldChainId"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:ChainId"] ?? "480";
+            ViewData["WorldChainWldToken"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:WldTokenAddress"] ?? "";
+            ViewData["WorldChainUsdtToken"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:UsdtTokenAddress"] ?? "";
+            ViewData["WorldChainMarketplace"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:MarketplaceContractAddress"] ?? "";
+            ViewData["WorldChainTestMode"] = bool.TryParse(HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:TestMode"], out var testMode) && testMode;
 
             return View(model);
         }

@@ -16,6 +16,14 @@
 
     var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
     var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
+    var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
+    var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
+    var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
+    var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
+    var worldChainTestMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
     var selectedCategory = selectedCategoryRaw switch
     {
         "appetizer" or "aperetizer" or "vorspeise" or "entrada" => "appetizer",
@@ -1101,13 +1109,14 @@
                         </div>
                         @foreach (var listing in marketplaceListings)
                         {
+                            var escapedListingTitle = Html.Encode(listing.Title).Replace("'", "\\'");
                             <article class="marketplace-card js-marketplace-listing" data-seller-hash="@((listing.SellerHash ?? string.Empty).ToLowerInvariant())" data-seller-name="@listing.SellerName">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
                                     <div>
                                         <div class="fw-bold">@listing.Title</div>
                                         <div class="small opacity-75">@listing.SellerName</div>
                                     </div>
-                                    <div class="marketplace-price">@listing.Price.ToString("0.##", CultureInfo.InvariantCulture) WLD</div>
+                                    <div class="marketplace-price" id="feedPrice-@listing.Id" data-price-wld="@listing.Price.ToString(CultureInfo.InvariantCulture)">@listing.Price.ToString("0.##", CultureInfo.InvariantCulture) WLD</div>
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(listing.Description))
                                 {
@@ -1121,12 +1130,12 @@
                                 <div class="marketplace-card-actions">
                                     <label class="marketplace-token-switch" title="WLD / USDCE">
                                         <span>WLD</span>
-                                        <input type="checkbox" disabled>
+                                        <input type="checkbox" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD')">
                                         <span>USDCE</span>
                                     </label>
                                     <div class="d-flex gap-2">
-                                        <a class="marketplace-action-btn" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp", previewId = listing.Id })">Vorschau</a>
-                                        <a class="marketplace-action-btn" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })">Kaufen</a>
+                                        <button type="button" class="marketplace-action-btn" onclick="showFeedPreview(@listing.Id)">Vorschau</button>
+                                        <button type="button" class="marketplace-action-btn" onclick="buyFeedListing(@listing.Id, '@escapedListingTitle', @listing.Price.ToString(CultureInfo.InvariantCulture), '@(listing.SellerWalletAddress ?? "")')">Kaufen</button>
                                     </div>
                                 </div>
                             </article>
@@ -1291,6 +1300,14 @@
         </div>
     </div>
 
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="feedPreviewOffcanvas" style="max-height:82vh; border-radius:1.2rem 1.2rem 0 0;">
+        <div class="offcanvas-header">
+            <h6 class="offcanvas-title fw-bold" id="feedPreviewTitle">Plan-Vorschau</h6>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body" id="feedPreviewBody"></div>
+    </div>
+
     <!-- SEARCH MODAL -->
     <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -1328,8 +1345,24 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+    <script src="~/js/worldchain-marketplace.js"></script>
+    <script type="module" src="~/js/minikitt.js"></script>
 
     <script>
+        window.worldChainMarketplaceConfig = {
+            chainId: Number('@worldChainId'),
+            wldTokenAddress: '@worldChainWldToken',
+            usdtTokenAddress: '@worldChainUsdtToken',
+            marketplaceAddress: '@worldChainMarketplace',
+            testMode: @(worldChainTestMode ? "true" : "false")
+        };
+
+        let feedSelectedPaymentToken = 'WLD';
+        let feedWldPriceUsd = null;
+        let feedWalletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
+        const FEED_USER_HASH = '@userHash';
+
         // ----------------- helpers -----------------
         function escapeHtml(str) {
             if (!str) return '';
@@ -2356,6 +2389,114 @@
         })();
 
 
+        async function loadFeedWldPrice() {
+            if (!window.worldChainMarketplace?.fetchWldPrice) return;
+            feedWldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
+            updateFeedPrices();
+        }
+
+        function setFeedToken(token) {
+            feedSelectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
+            document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = feedSelectedPaymentToken === 'USDCE'; });
+            updateFeedPrices();
+        }
+
+        function updateFeedPrices() {
+            document.querySelectorAll('[id^="feedPrice-"]').forEach(el => {
+                const wld = parseFloat(el.dataset.priceWld || '0');
+                if (feedSelectedPaymentToken === 'USDCE' && feedWldPriceUsd) {
+                    el.textContent = `${(wld * feedWldPriceUsd).toFixed(2)} USDCE`;
+                } else {
+                    el.textContent = `${wld} WLD`;
+                }
+            });
+        }
+
+        async function ensureFeedWalletConnected() {
+            const stored = feedWalletAddresses.WLD || feedWalletAddresses.USDCE;
+            if (stored) return stored;
+            let address = '';
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
+            if (ethereumProvider && window.worldChainMarketplace?.connectWallet) address = await window.worldChainMarketplace.connectWallet();
+            if (!address && window.connectWalletOnly) address = await window.connectWalletOnly();
+            if (!address) throw new Error('Wallet-Verbindung fehlgeschlagen.');
+            feedWalletAddresses.WLD = address;
+            feedWalletAddresses.USDT = address;
+            feedWalletAddresses.USDCE = address;
+            return address;
+        }
+
+        async function finalizeFeedPurchase(listingId, txHash, walletAddress, paymentToken) {
+            const form = new FormData();
+            form.append('ListingId', listingId);
+            form.append('TxHash', txHash);
+            form.append('WalletAddress', walletAddress || '');
+            form.append('PaymentToken', paymentToken || 'WLD');
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) form.append('__RequestVerificationToken', tokenInput.value);
+            const resp = await fetch('/WorldMiniApp/Marketplace/FinalizeWorldChainPurchase', { method: 'POST', body: form });
+            return resp.json();
+        }
+
+        async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
+            if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
+            if (!sellerWallet) { alert('Verkäufer-Wallet fehlt.'); return; }
+            const token = feedSelectedPaymentToken;
+            const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
+            if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
+
+            try {
+                await ensureFeedWalletConnected();
+                if (window.startMiniKitPayment) {
+                    const payResult = await window.startMiniKitPayment({
+                        to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                        reference: `feed-listing-${listingId}-${Date.now()}`,
+                        description: `Essensplan: ${title}`
+                    });
+                    const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
+                    const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
+                    if (data.success) { alert('Kauf erfolgreich!'); return; }
+                    alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                    return;
+                }
+                alert('Kein Zahlungsweg verfügbar.');
+            } catch (e) {
+                alert(e?.message || 'Kauf fehlgeschlagen.');
+            }
+        }
+
+        async function showFeedPreview(listingId) {
+            const titleEl = document.getElementById('feedPreviewTitle');
+            const bodyEl = document.getElementById('feedPreviewBody');
+            if (titleEl) titleEl.textContent = 'Plan-Vorschau';
+            if (bodyEl) bodyEl.innerHTML = '<div class="text-center py-4">Lade Vorschau...</div>';
+
+            const offcanvas = new bootstrap.Offcanvas(document.getElementById('feedPreviewOffcanvas'));
+            offcanvas.show();
+
+            try {
+                const resp = await fetch(`/WorldMiniApp/Marketplace/GetListingPreview?listingId=${listingId}`);
+                const data = await resp.json();
+                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfügbar.</p>'; return; }
+                if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
+                let html = '';
+                if (data.nutrition) {
+                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} · Protein: ${data.nutrition.protein}g · Fett: ${data.nutrition.fat}g · KH: ${data.nutrition.carbs}g</p>`;
+                }
+                if (data.days?.length) {
+                    data.days.forEach(day => {
+                        html += `<div class="fw-bold mt-2">Tag ${day.day}</div>`;
+                        (day.recipes || []).forEach(r => {
+                            html += `<div class="small opacity-75">• ${r.title}</div>`;
+                        });
+                    });
+                }
+                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfügbar.</p>';
+            } catch (e) {
+                bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
+            }
+        }
+
         // ----------------- init -----------------
         document.addEventListener('DOMContentLoaded', () => {
             attachFeedHandlers();
@@ -2365,6 +2506,8 @@
             updatePlanModeHeader();
             setSection('feed');
             syncMarketplaceToCurrentFeedItem();
+            setFeedToken('WLD');
+            loadFeedWldPrice();
         });
     </script>
 
