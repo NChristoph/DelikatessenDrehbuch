@@ -1,8 +1,10 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -222,6 +224,172 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 t.ReferenceInfo,
                 date = t.CreatedAt.ToString("dd.MM.yyyy HH:mm")
             }));
+        }
+
+        // GET: Plan-Vorschau (Gerichte + Nährwerte) für ein Listing
+        [HttpGet]
+        public async Task<IActionResult> GetListingPreview(int listingId)
+        {
+            var listing = await _context.MealPlanListings
+                .Include(l => l.MealPlan)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
+
+            if (listing?.MealPlan?.MealPlan == null)
+                return Json(new { success = false, error = "Listing nicht gefunden." });
+
+            var indexIds = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(listing.MealPlan.MealPlan);
+            if (indexIds == null || !indexIds.Any())
+                return Json(new { success = false, error = "Plan ist leer." });
+
+            var allRecipeIds = indexIds.Values.SelectMany(x => x).Distinct().ToList();
+
+            // Rezeptdaten laden (aus beiden Tabellen, wie in HomeController)
+            var baseRecipes = await _context.RecipeBaseData
+                .Include(r => r.Images)
+                .AsNoTracking()
+                .Where(r => allRecipeIds.Contains(r.Id))
+                .ToListAsync();
+
+            var classicRecipes = await _context.Recipes
+                .AsNoTracking()
+                .Where(r => allRecipeIds.Contains(r.Id))
+                .ToListAsync();
+
+            // Tage aufbauen
+            var days = new List<object>();
+            foreach (var entry in indexIds.OrderBy(e => e.Key))
+            {
+                var recipes = new List<object>();
+                foreach (var recipeId in entry.Value)
+                {
+                    var baseR = baseRecipes.FirstOrDefault(r => r.Id == recipeId);
+                    if (baseR != null)
+                    {
+                        var img = baseR.Images?.FirstOrDefault()?.Image ?? "";
+                        if (!string.IsNullOrEmpty(img))
+                            img = FrontendFunctions.GetSmallImagePath(img);
+
+                        recipes.Add(new
+                        {
+                            id = baseR.Id,
+                            title = baseR.Title,
+                            category = baseR.Category,
+                            time = baseR.PreperationTime,
+                            image = img
+                        });
+                        continue;
+                    }
+
+                    var classic = classicRecipes.FirstOrDefault(r => r.Id == recipeId);
+                    if (classic != null)
+                    {
+                        var img = classic.ImagePath ?? "";
+                        if (!string.IsNullOrEmpty(img))
+                            img = FrontendFunctions.GetSmallImagePath(img);
+
+                        recipes.Add(new
+                        {
+                            id = classic.Id,
+                            title = classic.Name,
+                            category = classic.Category ?? "",
+                            time = classic.PreparationTime ?? 0,
+                            image = img
+                        });
+                    }
+                }
+
+                days.Add(new { day = entry.Key + 1, recipes });
+            }
+
+            // Nährwerte berechnen
+            var nutrition = await BuildNutritionTotalsAsync(allRecipeIds);
+
+            return Json(new
+            {
+                success = true,
+                title = listing.Title,
+                dayCount = listing.DayCount,
+                recipeCount = listing.RecipeCount,
+                days,
+                nutrition = new
+                {
+                    calories = nutrition.Calories,
+                    protein = nutrition.Protein,
+                    fat = nutrition.Fat,
+                    carbs = nutrition.Carbohydrates,
+                    fiber = nutrition.Fiber
+                }
+            });
+        }
+
+        private async Task<NutritionTotals> BuildNutritionTotalsAsync(List<int> recipeIds)
+        {
+            var recipes = await _context.RecipeBaseData
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.IngredientsAndNutrients)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Quantity)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Measure)
+                .Where(r => recipeIds.Contains(r.Id))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var totals = new NutritionTotals();
+
+            foreach (var recipe in recipes)
+            {
+                if (recipe.Ingredients == null) continue;
+
+                var basePersonCount = recipe.PersonCount == 0 ? 1 : recipe.PersonCount;
+
+                foreach (var entry in recipe.Ingredients)
+                {
+                    var ingredient = entry.Ingredient;
+                    var nutrient = ingredient?.IngredientsAndNutrients;
+                    if (nutrient == null) continue;
+
+                    var quantity = ingredient.Quantity?.Quantitys ?? 0;
+                    var unit = ingredient.Measure?.UnitOfMeasurement ?? string.Empty;
+                    var grams = (decimal)quantity;
+
+                    if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(unit, "Stück", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var weightPerPiece = nutrient.Weight_per_piece > 0 ? nutrient.Weight_per_piece : 0;
+                        grams = (decimal)weightPerPiece * (decimal)quantity;
+                    }
+
+                    if (grams <= 0) continue;
+
+                    totals.Calories += ((decimal)nutrient.Calories_a_100g * grams) / 100m;
+                    totals.Fat += (nutrient.Fat_a_100g * grams) / 100m;
+                    totals.Carbohydrates += (nutrient.Carbohydrates_a_100g * grams) / 100m;
+                    totals.Protein += (nutrient.Protein_a_100g * grams) / 100m;
+                    totals.Fiber += (nutrient.Fiber_a_100g * grams) / 100m;
+                }
+            }
+
+            totals.Calories = Math.Round(totals.Calories, 0);
+            totals.Fat = Math.Round(totals.Fat, 1);
+            totals.Carbohydrates = Math.Round(totals.Carbohydrates, 1);
+            totals.Protein = Math.Round(totals.Protein, 1);
+            totals.Fiber = Math.Round(totals.Fiber, 1);
+
+            return totals;
+        }
+
+        private class NutritionTotals
+        {
+            public decimal Calories { get; set; }
+            public decimal Protein { get; set; }
+            public decimal Fat { get; set; }
+            public decimal Carbohydrates { get; set; }
+            public decimal Fiber { get; set; }
         }
     }
 }

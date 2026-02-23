@@ -15,86 +15,165 @@
 }
 
 <style>
+    .mp-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .mp-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
     .mp-card {
         background: #fff;
         border: none;
-        border-radius: 1rem;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06);
-        transition: transform .15s, box-shadow .15s;
+        border-radius: 1.25rem;
+        box-shadow: 0 2px 16px rgba(0,0,0,.06);
+        transition: transform .2s ease, box-shadow .2s ease;
+        overflow: hidden;
+        cursor: pointer;
     }
-    .mp-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.1); }
+    .mp-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    }
 
-    .coin-badge {
+    .mp-card-header {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        padding: 1rem 1.25rem .75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .mp-card-body { padding: 1rem 1.25rem; }
+
+    .mp-card-footer {
+        padding: .75rem 1.25rem;
+        background: #fafbfc;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .price-tag {
         background: linear-gradient(135deg, #f59e0b, #d97706);
         color: #fff;
         font-weight: 700;
-        border-radius: .6rem;
-        padding: .25rem .6rem;
-        font-size: .85rem;
+        border-radius: .75rem;
+        padding: .35rem .85rem;
+        font-size: .95rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(245,158,11,.3);
     }
+
+    .seller-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .78rem;
+        color: #64748b;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 2rem;
+        padding: .2rem .65rem .2rem .3rem;
+    }
+    .seller-chip .avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .65rem;
+        font-weight: 700;
+    }
+
+    .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .78rem;
+        background: #f1f5f9;
+        border-radius: .5rem;
+        padding: .3rem .65rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .buy-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: .75rem;
+        padding: .5rem 1.25rem;
+        font-size: .88rem;
+        box-shadow: 0 2px 8px rgba(245,158,11,.25);
+        transition: filter .15s, box-shadow .15s;
+    }
+    .buy-btn:hover { filter: brightness(1.08); color: #fff; box-shadow: 0 4px 16px rgba(245,158,11,.35); }
+    .buy-btn:disabled { opacity: .5; box-shadow: none; }
+
+    .preview-btn {
+        background: transparent;
+        border: 1.5px solid #e2e8f0;
+        color: #475569;
+        font-weight: 500;
+        border-radius: .75rem;
+        padding: .5rem 1rem;
+        font-size: .85rem;
+        transition: all .15s;
+    }
+    .preview-btn:hover { border-color: #94a3b8; background: #f8fafc; color: #1e293b; }
+
+    .token-toggle {
+        display: inline-flex;
+        border-radius: .6rem;
+        overflow: hidden;
+        border: 1.5px solid #e2e8f0;
+        font-size: .75rem;
+    }
+    .token-toggle label {
+        padding: .25rem .65rem;
+        cursor: pointer;
+        background: #fff;
+        color: #64748b;
+        font-weight: 600;
+        transition: all .15s;
+        margin: 0;
+    }
+    .token-toggle input:checked + label {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+    }
+    .token-toggle input { display: none; }
+
+    .test-banner {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+        border-radius: .75rem;
+        padding: .5rem 1rem;
+        font-size: .8rem;
+        font-weight: 600;
+        border: 1px solid #fcd34d;
+    }
+
     .wallet-bar {
         background: linear-gradient(135deg, #1e293b, #334155);
         color: #fff;
         border-radius: 1rem;
         padding: .75rem 1.25rem;
     }
-    .seller-badge { font-size: .75rem; color: #6b7280; }
-    .stat-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: .75rem;
-        background: rgba(0,0,0,.04);
-        border-radius: 1rem;
-        padding: 2px 8px;
-        color: #6b7280;
-    }
-    .buy-btn {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        border-radius: .6rem;
-        padding: .4rem 1rem;
-        font-size: .85rem;
-    }
-    .buy-btn:hover { filter: brightness(1.1); color: #fff; }
-    .buy-btn:disabled { opacity: .5; }
-
-    .token-select {
-        display: inline-flex;
-        border-radius: .5rem;
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-        font-size: .75rem;
-    }
-    .token-select label {
-        padding: .25rem .6rem;
-        cursor: pointer;
-        background: #f9fafb;
-        color: #374151;
-        font-weight: 600;
-        transition: background .15s, color .15s;
-        margin: 0;
-    }
-    .token-select input:checked + label {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #fff;
-    }
-    .token-select input { display: none; }
-
-    .test-banner {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #78350f;
-        border-radius: .75rem;
-        padding: .5rem 1rem;
-        font-size: .8rem;
-        font-weight: 600;
-    }
-    .wallet-status {
-        font-size: .8rem;
-        color: #94a3b8;
-    }
+    .wallet-status { font-size: .8rem; color: #94a3b8; }
     .balance-row {
         border-top: 1px solid rgba(255,255,255,.1);
         padding-top: .6rem;
@@ -108,42 +187,112 @@
         border-radius: .5rem;
         padding: .3rem .75rem;
     }
-    .balance-label {
+    .balance-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; opacity: .7; }
+    .balance-value { font-size: .9rem; font-weight: 600; }
+    .converted-price { font-size: .72rem; color: #9ca3af; font-weight: 500; }
+
+    .sold-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
         font-size: .7rem;
         font-weight: 700;
-        text-transform: uppercase;
-        opacity: .7;
+        border-radius: .4rem;
+        padding: .15rem .5rem;
     }
-    .balance-value {
-        font-size: .9rem;
+
+    /* Preview Offcanvas */
+    .preview-offcanvas {
+        border-radius: 1.5rem 1.5rem 0 0 !important;
+        max-height: 85vh;
+    }
+    .preview-day-header {
+        font-weight: 700;
+        font-size: .85rem;
+        color: #1e293b;
+        padding: .5rem 0 .25rem;
+        border-bottom: 2px solid #f59e0b;
+        margin-bottom: .5rem;
+    }
+    .preview-recipe {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .5rem 0;
+    }
+    .preview-recipe-img {
+        width: 50px;
+        height: 50px;
+        border-radius: .6rem;
+        object-fit: cover;
+        background: #f1f5f9;
+        flex-shrink: 0;
+    }
+    .preview-recipe-title {
+        font-weight: 600;
+        font-size: .85rem;
+        color: #1e293b;
+    }
+    .preview-recipe-meta {
+        font-size: .72rem;
+        color: #64748b;
+    }
+    .nutrition-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .5rem;
+    }
+    .nutrition-item {
+        text-align: center;
+        background: #f8fafc;
+        border-radius: .6rem;
+        padding: .5rem .25rem;
+    }
+    .nutrition-value {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+    .nutrition-label {
+        font-size: .65rem;
+        color: #64748b;
+        text-transform: uppercase;
         font-weight: 600;
     }
-    .converted-price {
-        font-size: .7rem;
-        color: #9ca3af;
+
+    .back-link {
+        color: #64748b;
+        text-decoration: none;
+        font-size: .88rem;
         font-weight: 500;
+        transition: color .15s;
     }
+    .back-link:hover { color: #1e293b; }
 </style>
 
-<div class="container py-4" style="max-width:720px;">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="fw-bold mb-0">Marketplace</h4>
-            <p class="text-muted small mb-0">Essenspläne kaufen & verkaufen</p>
-            @if (testMode)
-            {
-                <p class="small mb-0 text-warning-emphasis">Netzwerk: World Testnet (Chain @worldChainId)</p>
-            }
+<div class="container py-3" style="max-width:720px;">
+
+    <!-- Back + Title Row -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <a href="@Url.Action("Setup", "Home", new { area = "WorldMiniApp" })" class="back-link">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h5 class="fw-bold mb-0">Marketplace</h5>
+            <p class="text-muted small mb-0">Essensplaene kaufen & verkaufen</p>
         </div>
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
-           class="btn btn-dark btn-sm rounded-pill">
+           class="btn btn-dark btn-sm rounded-pill px-3">
             <i class="bi bi-plus-lg me-1"></i>Verkaufen
         </a>
     </div>
 
+    @if (testMode)
+    {
+        <p class="small mb-2 text-warning-emphasis"><i class="bi bi-info-circle me-1"></i>World Testnet (Chain @worldChainId)</p>
+    }
+
     <!-- Wallet Bar -->
-    <div class="wallet-bar mb-4">
+    <div class="wallet-bar mb-3">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <div class="small opacity-75">World Wallet</div>
@@ -154,10 +303,9 @@
                     <i class="bi bi-wallet2 me-1"></i>Verbinden
                 </button>
                 <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
-                   class="btn btn-outline-light btn-sm rounded-pill">Meine Angebote</a>
+                   class="btn btn-outline-light btn-sm rounded-pill">Meine</a>
             </div>
         </div>
-        <!-- Balance Row (nur sichtbar nach Wallet-Verbindung) -->
         <div id="walletBalances" class="balance-row d-none">
             <div class="d-flex gap-3">
                 <div class="balance-badge">
@@ -172,7 +320,6 @@
         </div>
     </div>
 
-    <!-- Listings -->
     @if (allowSelfPurchaseForTesting)
     {
         <div class="test-banner d-flex align-items-center gap-2 mb-3">
@@ -181,61 +328,94 @@
         </div>
     }
 
+    <!-- Listings -->
     @if (!Model.Any())
     {
         <div class="text-center py-5">
-            <i class="bi bi-shop fs-1 text-muted"></i>
-            <p class="text-muted mt-2">Noch keine Angebote vorhanden.</p>
+            <div class="mb-3">
+                <i class="bi bi-shop" style="font-size: 3rem; color: #cbd5e1;"></i>
+            </div>
+            <p class="text-muted mb-1">Noch keine Angebote vorhanden.</p>
+            <p class="text-muted small mb-3">Sei der Erste, der einen Essensplan verkauft!</p>
             <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
-               class="btn btn-outline-dark btn-sm rounded-pill">Ersten Plan verkaufen</a>
+               class="btn btn-dark btn-sm rounded-pill px-4">Ersten Plan verkaufen</a>
         </div>
     }
     else
     {
-        <div class="d-flex flex-column gap-3">
+        <div class="d-flex flex-column gap-3 mb-4">
             @foreach (var listing in Model)
             {
                 var isOwn = listing.SellerHash == userHash;
-                <div class="mp-card p-3">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <div class="fw-bold">@listing.Title</div>
-                            <div class="seller-badge">
-                                <i class="bi bi-person-circle me-1"></i>@listing.SellerName
-                                @if (listing.SoldCount > 0)
-                                {
-                                    <span class="ms-2"><i class="bi bi-bag-check"></i> @listing.SoldCount</span>
-                                }
+                var sellerInitial = !string.IsNullOrEmpty(listing.SellerName) ? listing.SellerName[0].ToString().ToUpper() : "?";
+                var escapedTitle = Html.Encode(listing.Title).Replace("'", "\\'");
+
+                <div class="mp-card">
+                    <!-- Card Header -->
+                    <div class="mp-card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold fs-6 mb-1">@listing.Title</div>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="seller-chip">
+                                        <span class="avatar">@sellerInitial</span>
+                                        @listing.SellerName
+                                    </span>
+                                    @if (listing.SoldCount > 0)
+                                    {
+                                        <span class="sold-badge"><i class="bi bi-bag-check-fill me-1"></i>@listing.SoldCount verkauft</span>
+                                    }
+                                </div>
                             </div>
-                            @if (!string.IsNullOrWhiteSpace(listing.Description))
-                            {
-                                <p class="small text-muted mt-1 mb-1">@listing.Description</p>
-                            }
-                            <div class="mt-1">
-                                <span class="stat-pill"><i class="bi bi-calendar3"></i> @listing.DayCount Tage</span>
-                                <span class="stat-pill"><i class="bi bi-journal-text"></i> @listing.RecipeCount Rezepte</span>
+                            <div class="text-end">
+                                <div class="price-tag" id="priceDisplay-@listing.Id"
+                                     data-price-wld="@listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                    @listing.Price.ToString("0.##") WLD
+                                </div>
+                                <div class="converted-price mt-1" id="convertedPrice-@listing.Id"></div>
                             </div>
                         </div>
-                        <div class="text-end ms-3">
-                            <div class="coin-badge mb-2" id="priceDisplay-@listing.Id" data-price-wld="@listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">@listing.Price.ToString("0.##") WLD</div>
-                            <div class="converted-price mb-1" id="convertedPrice-@listing.Id"></div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="mp-card-body">
+                        @if (!string.IsNullOrWhiteSpace(listing.Description))
+                        {
+                            <p class="small text-muted mb-2">@listing.Description</p>
+                        }
+                        <div class="d-flex flex-wrap gap-2 mb-0">
+                            <span class="stat-chip"><i class="bi bi-calendar3"></i> @listing.DayCount Tage</span>
+                            <span class="stat-chip"><i class="bi bi-egg-fried"></i> @listing.RecipeCount Rezepte</span>
+                            <span class="stat-chip"><i class="bi bi-clock"></i> @listing.CreatedAt.ToString("dd.MM.yy")</span>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer: Actions -->
+                    <div class="mp-card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button class="preview-btn" onclick="event.stopPropagation(); showPreview(@listing.Id)">
+                                <i class="bi bi-eye me-1"></i>Vorschau
+                            </button>
+
                             @if (isOwn && !allowSelfPurchaseForTesting)
                             {
-                                <div class="small text-muted">Dein Angebot</div>
+                                <span class="small text-muted fw-medium">Dein Angebot</span>
                             }
                             else
                             {
-                                <div class="token-select mb-2" id="tokenSelect-@listing.Id">
-                                    <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
-                                    <label for="tok-wld-@listing.Id">WLD</label>
-                                    <input type="radio" name="token-@listing.Id" id="tok-usdce-@listing.Id" value="USDCE">
-                                    <label for="tok-usdce-@listing.Id">USDCE</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="token-toggle" id="tokenSelect-@listing.Id">
+                                        <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
+                                        <label for="tok-wld-@listing.Id">WLD</label>
+                                        <input type="radio" name="token-@listing.Id" id="tok-usdce-@listing.Id" value="USDCE">
+                                        <label for="tok-usdce-@listing.Id">USDCE</label>
+                                    </div>
+                                    <button class="buy-btn" id="buyBtn-@listing.Id"
+                                            data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
+                                            onclick="event.stopPropagation(); buyListing(@listing.Id, '@escapedTitle', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                        <i class="bi bi-wallet2 me-1"></i>Kaufen
+                                    </button>
                                 </div>
-                                <button class="buy-btn" id="buyBtn-@listing.Id"
-                                        data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
-                                        onclick="buyListing(@listing.Id, '@listing.Title', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
-                                    <i class="bi bi-wallet2 me-1"></i>Kaufen
-                                </button>
                             }
                         </div>
                     </div>
@@ -245,18 +425,24 @@
     }
 </div>
 
+<!-- Preview Offcanvas -->
+<div class="offcanvas offcanvas-bottom preview-offcanvas" tabindex="-1" id="previewOffcanvas">
+    <div class="offcanvas-header pb-2">
+        <h6 class="offcanvas-title fw-bold" id="previewTitle">Plan-Vorschau</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body pt-0" id="previewBody">
+        <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-secondary"></div>
+            <p class="small text-muted mt-2">Lade Vorschau...</p>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
-    // NullifierHash kommt nur vom Server (Login-Session)
     const USER_HASH = '@userHash';
-
-    // Wallet-Adressen vom Server (Session)
-    let walletAddresses = {
-        WLD: '@walletWLD',
-        USDCE: '@walletUSDT'
-    };
-
-    // WLD/USD Kurs (wird beim Laden geholt)
+    let walletAddresses = { WLD: '@walletWLD', USDCE: '@walletUSDT' };
     let wldPriceUsd = null;
 
     function getAntiForgeryToken() {
@@ -273,48 +459,31 @@
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
     }
 
-    // Wallet-Status im UI aktualisieren
     function updateWalletStatusUI() {
         const el = document.getElementById('walletStatus');
         if (!el) return;
-
         const addr = walletAddresses.WLD || walletAddresses.USDCE;
-        if (addr) {
-            el.textContent = shortWallet(addr);
-        } else {
-            el.textContent = 'nicht verbunden';
-        }
+        el.textContent = addr ? shortWallet(addr) : 'nicht verbunden';
     }
 
-    // Wallet-Adresse auf Server in Session speichern
     async function saveWalletToSession(address, token) {
         const form = new FormData();
         form.append('walletAddress', address);
         form.append('token', token);
         form.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            body: form
-        });
-
+        await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
         walletAddresses[token] = address;
         updateWalletStatusUI();
     }
 
-    // Balances im UI anzeigen
     async function loadWalletBalances(walletAddress) {
         if (!walletAddress || !window.worldChainMarketplace?.getWalletBalances) return;
-
         const balancesEl = document.getElementById('walletBalances');
         const wldEl = document.getElementById('balanceWLD');
         const usdceEl = document.getElementById('balanceUSDCE');
-
-        // Zeile sichtbar machen, Ladezustand
         if (balancesEl) balancesEl.classList.remove('d-none');
         if (wldEl) wldEl.textContent = '...';
         if (usdceEl) usdceEl.textContent = '...';
-
         try {
             const balances = await window.worldChainMarketplace.getWalletBalances(walletAddress);
             if (wldEl) wldEl.textContent = balances.wld ?? '\u2013';
@@ -326,81 +495,140 @@
         }
     }
 
-    // Preis-Anzeige für ein Listing aktualisieren
     function updateListingPrice(listingId) {
         const token = getSelectedToken(listingId);
         const priceEl = document.getElementById(`priceDisplay-${listingId}`);
         const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
         if (!priceEl) return;
-
         const wldPrice = parseFloat(priceEl.dataset.priceWld);
         if (isNaN(wldPrice)) return;
 
         if (token === 'USDCE' && wldPriceUsd) {
-            const usdcePrice = (wldPrice * wldPriceUsd).toFixed(2);
-            priceEl.textContent = `${usdcePrice} USDCE`;
+            priceEl.textContent = `${(wldPrice * wldPriceUsd).toFixed(2)} USDCE`;
             if (convertedEl) convertedEl.textContent = `= ${wldPrice} WLD`;
-        } else if (token === 'WLD') {
-            priceEl.textContent = `${wldPrice} WLD`;
-            if (convertedEl && wldPriceUsd) {
-                convertedEl.textContent = `\u2248 ${(wldPrice * wldPriceUsd).toFixed(2)} USD`;
-            } else if (convertedEl) {
-                convertedEl.textContent = '';
-            }
         } else {
             priceEl.textContent = `${wldPrice} WLD`;
-            if (convertedEl) convertedEl.textContent = '';
+            if (convertedEl) convertedEl.textContent = wldPriceUsd ? `\u2248 ${(wldPrice * wldPriceUsd).toFixed(2)} USD` : '';
         }
     }
 
-    // Alle Listing-Preise aktualisieren
     function updateAllListingPrices() {
         document.querySelectorAll('[id^="priceDisplay-"]').forEach(el => {
-            const id = el.id.replace('priceDisplay-', '');
-            updateListingPrice(id);
+            updateListingPrice(el.id.replace('priceDisplay-', ''));
         });
     }
 
-    // WLD/USD Kurs laden und Preise aktualisieren
     async function loadWldPrice() {
         if (!window.worldChainMarketplace?.fetchWldPrice) return;
         wldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
         if (wldPriceUsd) updateAllListingPrices();
     }
 
-    // Berechne den tatsächlichen Preis je nach Token
     function getActualPrice(wldPrice, token) {
-        if (token === 'USDCE' && wldPriceUsd) {
-            return parseFloat((wldPrice * wldPriceUsd).toFixed(2));
-        }
-        return wldPrice; // WLD: Originalpreis
+        if (token === 'USDCE' && wldPriceUsd) return parseFloat((wldPrice * wldPriceUsd).toFixed(2));
+        return wldPrice;
     }
 
-    // Wallet verbinden (nur für Kauf, Login-Session bleibt intakt)
-    async function connectWorldWallet() {
-        // Bereits verbundene Adresse aus Session verwenden
-        const storedAddr = walletAddresses.WLD || walletAddresses.USDCE;
-        if (storedAddr) {
-            updateWalletStatusUI();
-            return storedAddr;
+    // ── Preview ──
+    async function showPreview(listingId) {
+        const titleEl = document.getElementById('previewTitle');
+        const bodyEl = document.getElementById('previewBody');
+        if (titleEl) titleEl.textContent = 'Plan-Vorschau';
+        if (bodyEl) bodyEl.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-secondary"></div><p class="small text-muted mt-2">Lade Vorschau...</p></div>';
+
+        const offcanvas = new bootstrap.Offcanvas(document.getElementById('previewOffcanvas'));
+        offcanvas.show();
+
+        try {
+            const resp = await fetch(`@Url.Action("GetListingPreview", "Marketplace", new { area = "WorldMiniApp" })?listingId=${listingId}`);
+            const data = await resp.json();
+            if (!data.success) {
+                bodyEl.innerHTML = `<p class="text-danger small">${data.error || 'Vorschau nicht verfuegbar.'}</p>`;
+                return;
+            }
+
+            if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
+
+            let html = '';
+
+            // Nutrition summary
+            if (data.nutrition) {
+                const n = data.nutrition;
+                html += `<div class="nutrition-grid mb-3">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${Math.round(n.calories)}</div>
+                        <div class="nutrition-label">kcal</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.protein}g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.fat}g</div>
+                        <div class="nutrition-label">Fett</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.carbs}g</div>
+                        <div class="nutrition-label">Kohlenhydrate</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.fiber}g</div>
+                        <div class="nutrition-label">Ballaststoffe</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${data.recipeCount}</div>
+                        <div class="nutrition-label">Rezepte</div>
+                    </div>
+                </div>`;
+                html += `<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Naehrwerte fuer den gesamten Plan (alle Tage)</p>`;
+            }
+
+            // Days + recipes
+            if (data.days && data.days.length) {
+                for (const day of data.days) {
+                    html += `<div class="preview-day-header"><i class="bi bi-calendar-event me-1"></i>Tag ${day.day}</div>`;
+                    if (!day.recipes || !day.recipes.length) {
+                        html += `<p class="text-muted small py-2">Keine Rezepte</p>`;
+                        continue;
+                    }
+                    for (const r of day.recipes) {
+                        const imgTag = r.image
+                            ? `<img src="${r.image}" class="preview-recipe-img" loading="lazy" onerror="this.style.display='none'">`
+                            : `<div class="preview-recipe-img d-flex align-items-center justify-content-center"><i class="bi bi-egg-fried text-muted"></i></div>`;
+                        const timeStr = r.time ? `${r.time} Min` : '';
+                        const catStr = r.category || '';
+                        const meta = [catStr, timeStr].filter(Boolean).join(' &middot; ');
+                        html += `<div class="preview-recipe">
+                            ${imgTag}
+                            <div>
+                                <div class="preview-recipe-title">${r.title}</div>
+                                <div class="preview-recipe-meta">${meta}</div>
+                            </div>
+                        </div>`;
+                    }
+                }
+            }
+
+            bodyEl.innerHTML = html || '<p class="text-muted">Keine Vorschau verfuegbar.</p>';
+        } catch (e) {
+            console.error('[Marketplace] Preview error:', e);
+            bodyEl.innerHTML = '<p class="text-danger small">Vorschau konnte nicht geladen werden.</p>';
         }
+    }
+
+    // ── Wallet Connect ──
+    async function connectWorldWallet() {
+        const storedAddr = walletAddresses.WLD || walletAddresses.USDCE;
+        if (storedAddr) { updateWalletStatusUI(); return storedAddr; }
 
         const btn = document.getElementById('connectWalletBtn');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
 
         try {
             let address = '';
-
-            // 1. Versuch: EIP-1193 Provider (wenn vorhanden)
             const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
-            if (ethereumProvider) {
-                address = await window.worldChainMarketplace.connectWallet();
-            }
-
-            // 2. Fallback: walletAuth über MiniKit (überschreibt Login NICHT)
-            if (!address && window.connectWalletOnly) {
-                address = await window.connectWalletOnly();
-            }
+            if (ethereumProvider) address = await window.worldChainMarketplace.connectWallet();
+            if (!address && window.connectWalletOnly) address = await window.connectWalletOnly();
 
             if (!address) {
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
@@ -408,17 +636,12 @@
                 return '';
             }
 
-            // Adresse für alle Tokens in Session speichern (gleiche Wallet)
             await saveWalletToSession(address, 'WLD');
-            await saveWalletToSession(address, 'USDT'); // Backend-Key bleibt USDT für USDCE
+            await saveWalletToSession(address, 'USDT');
             walletAddresses.USDCE = address;
 
-            // Button auf "Verbunden" setzen
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
-
-            // Balances laden und anzeigen
             await loadWalletBalances(address);
-
             return address;
         } catch (error) {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
@@ -427,7 +650,7 @@
         }
     }
 
-    // On-Chain TX auf Backend finalisieren
+    // ── Finalize on Backend ──
     async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken) {
         const form = new FormData();
         form.append('ListingId', listingId);
@@ -435,102 +658,62 @@
         form.append('WalletAddress', walletAddress || '');
         form.append('PaymentToken', paymentToken || 'WLD');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            body: form
-        });
-
+        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
         return resp.json();
     }
 
     function setBuyButtonLoading(listingId, loading) {
         const btn = document.getElementById(`buyBtn-${listingId}`);
         if (!btn) return;
-        if (loading) {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...';
-        } else {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen';
-        }
+        if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...'; }
+        else { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen'; }
     }
 
-    // Kauf-Flow: MiniKit pay() → Backend finalisieren
+    // ── Buy Flow ──
     async function buyListing(listingId, title, priceWld) {
         const token = getSelectedToken(listingId);
 
-        if (!USER_HASH) {
-            alert('Bitte zuerst mit World ID einloggen.');
-            return;
-        }
+        if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
 
-        // Seller-Wallet vom Button-Attribut lesen
         const buyBtn = document.getElementById(`buyBtn-${listingId}`);
         const sellerWallet = buyBtn?.dataset?.sellerWallet || '';
-        if (!sellerWallet) {
-            alert('Verkäufer hat keine Wallet hinterlegt. Kauf nicht möglich.');
-            return;
-        }
+        if (!sellerWallet) { alert('Verkaeufer hat keine Wallet hinterlegt. Kauf nicht moeglich.'); return; }
 
-        // Preis umrechnen je nach Token
         const actualPrice = getActualPrice(priceWld, token);
-        if (token === 'USDCE' && !wldPriceUsd) {
-            alert('WLD/USD Kurs nicht verfügbar. Bitte Seite neu laden.');
-            return;
-        }
+        if (token === 'USDCE' && !wldPriceUsd) { alert('WLD/USD Kurs nicht verfuegbar. Bitte Seite neu laden.'); return; }
 
         setBuyButtonLoading(listingId, true);
 
         try {
-            // ── Primär: MiniKit pay() (World App native Payment Modal) ──
+            // MiniKit pay()
             if (window.startMiniKitPayment) {
                 const reference = `listing-${listingId}-${Date.now()}`;
                 const payResult = await window.startMiniKitPayment({
-                    to: sellerWallet,
-                    tokenSymbol: token,
-                    amount: actualPrice,
-                    reference,
-                    description: `Essensplan: ${title}`
+                    to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                    reference, description: `Essensplan: ${title}`
                 });
 
                 console.log('[Marketplace] MiniKit payResult:', JSON.stringify(payResult));
-
                 const txRef = payResult?.transaction_id || payResult?.txHash || payResult?.reference || '';
                 console.log('[Marketplace] TX Reference:', txRef);
 
                 if (payResult?.status === 'success' && txRef) {
-                    const data = await finalizeOnBackend(
-                        listingId,
-                        txRef,
-                        sellerWallet,
-                        token
-                    );
+                    const data = await finalizeOnBackend(listingId, txRef, sellerWallet, token);
                     console.log('[Marketplace] Finalize response:', JSON.stringify(data));
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.error || 'Kauf konnte nicht abgeschlossen werden.');
-                        setBuyButtonLoading(listingId, false);
-                    }
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
                     return;
                 } else if (payResult?.status === 'success') {
-                    // Zahlung erfolgreich aber keine TX-Referenz - trotzdem versuchen
                     console.warn('[Marketplace] Keine TX-Referenz, verwende Timestamp als Fallback');
                     const fallbackRef = `minikit-${listingId}-${Date.now()}`;
                     const data = await finalizeOnBackend(listingId, fallbackRef, sellerWallet, token);
-                    console.log('[Marketplace] Finalize fallback response:', JSON.stringify(data));
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.error || 'Kauf konnte nicht abgeschlossen werden.');
-                        setBuyButtonLoading(listingId, false);
-                    }
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
                     return;
                 }
             }
 
-            // ── Fallback: ethers.js + EIP-1193 Provider (Desktop-Browser) ──
+            // Fallback: ethers.js
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
                 const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
                 if (ethereumProvider) {
@@ -538,18 +721,13 @@
                         listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
                     });
                     const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
-                    if (data.success) {
-                        alert('Gekauft! On-Chain Zahlung bestätigt und Plan wurde hinzugefügt.');
-                        location.reload();
-                    } else {
-                        alert(data.error || 'Kauf-Validierung fehlgeschlagen.');
-                        setBuyButtonLoading(listingId, false);
-                    }
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
                     return;
                 }
             }
 
-            alert('Kein Zahlungsweg verfügbar. Bitte öffne die App in der World App.');
+            alert('Kein Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
             setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');
@@ -572,19 +750,14 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
-
-        // WLD/USD Kurs laden
         loadWldPrice();
 
-        // Token-Wechsel Listener: Preis aktualisieren bei Radio-Button Änderung
-        document.querySelectorAll('.token-select input[type="radio"]').forEach(radio => {
+        document.querySelectorAll('.token-toggle input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', () => {
-                const listingId = radio.name.replace('token-', '');
-                updateListingPrice(listingId);
+                updateListingPrice(radio.name.replace('token-', ''));
             });
         });
 
-        // Wenn Wallet bereits verbunden war (Session), Balances laden
         const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
         if (existingAddress) {
             const btn = document.getElementById('connectWalletBtn');
@@ -594,10 +767,8 @@
 
         if (window.ethereum?.on) {
             window.ethereum.on('accountsChanged', () => {
-                walletAddresses.WLD = '';
-                walletAddresses.USDCE = '';
+                walletAddresses.WLD = ''; walletAddresses.USDCE = '';
                 updateWalletStatusUI();
-                // Balances ausblenden
                 const balancesEl = document.getElementById('walletBalances');
                 if (balancesEl) balancesEl.classList.add('d-none');
                 const btn = document.getElementById('connectWalletBtn');
