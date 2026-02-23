@@ -25,7 +25,11 @@ function getStoredUserHash() {
 }
 
 function handleLoginAbort() {
-    window.location.href = 'https://worldcoin.org';
+    console.warn('Login modal closed before verification. User stays in app and can retry.');
+    const el = document.getElementById('login-status');
+    if (el) {
+        el.innerHTML = '<div style="color:#6c757d">Login abgebrochen. Bitte erneut auf einen Bereich tippen.</div>';
+    }
 }
 
 async function diagnoseEnvironment() {

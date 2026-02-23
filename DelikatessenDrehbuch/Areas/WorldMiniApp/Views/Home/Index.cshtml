@@ -245,6 +245,10 @@
                 });
             });
 
+            if (!storedHash && window.initAutoLogin) {
+                window.initAutoLogin('device');
+            }
+
         });
     </script>
 }
