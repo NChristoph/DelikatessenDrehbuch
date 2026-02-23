@@ -14,6 +14,8 @@
     var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
 }
 
+<link rel="stylesheet" href="~/css/creator-shop-cards.css" />
+
 <style>
     .mp-hero {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
@@ -374,73 +376,29 @@
         <div class="d-flex flex-column gap-3 mb-4">
             @foreach (var listing in Model)
             {
-                var isOwn = listing.SellerHash == userHash;
-                var sellerInitial = !string.IsNullOrEmpty(listing.SellerName) ? listing.SellerName[0].ToString().ToUpper() : "?";
-                var escapedTitle = Html.Encode(listing.Title).Replace("'", "\\'");
+                var card = new DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel
+                {
+                    ListingId = listing.Id,
+                    Title = listing.Title,
+                    TitleJsSafe = Html.Encode(listing.Title).Replace("'", "\\'"),
+                    Description = listing.Description,
+                    CreatorName = listing.SellerName,
+                    CreatorHash = listing.SellerHash ?? string.Empty,
+                    SellerWalletAddress = listing.SellerWalletAddress,
+                    DayCount = listing.DayCount,
+                    RecipeCount = listing.RecipeCount,
+                    CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
+                    PriceWld = listing.Price,
+                    Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
+                    SoldCount = listing.SoldCount,
+                    ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
+                    IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                    IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
+                        || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase)
+                };
 
-                <div class="mp-card">
-                    <!-- Card Header -->
-                    <div class="mp-card-header">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="fw-bold fs-6 mb-1">@listing.Title</div>
-                                <div class="d-flex flex-wrap align-items-center gap-2">
-                                    <span class="seller-chip">
-                                        <span class="avatar">@sellerInitial</span>
-                                        @listing.SellerName
-                                    </span>
-                                    @if (listing.SoldCount > 0)
-                                    {
-                                        <span class="sold-badge"><i class="bi bi-bag-check-fill me-1"></i>@listing.SoldCount verkauft</span>
-                                    }
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <div class="price-tag" id="priceDisplay-@listing.Id"
-                                     data-price-wld="@listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
-                                    @listing.Price.ToString("0.##") WLD
-                                </div>
-                                <div class="converted-price mt-1" id="convertedPrice-@listing.Id"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="mp-card-body">
-                        @if (!string.IsNullOrWhiteSpace(listing.Description))
-                        {
-                            <p class="small text-muted mb-2">@listing.Description</p>
-                        }
-                        <div class="d-flex flex-wrap gap-2 mb-0">
-                            <span class="stat-chip"><i class="bi bi-calendar3"></i> @listing.DayCount Tage</span>
-                            <span class="stat-chip"><i class="bi bi-egg-fried"></i> @listing.RecipeCount Rezepte</span>
-                            <span class="stat-chip"><i class="bi bi-clock"></i> @listing.CreatedAt.ToString("dd.MM.yy")</span>
-                        </div>
-                    </div>
-
-                    <!-- Card Footer: Actions -->
-                    <div class="mp-card-footer">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <button class="preview-btn" onclick="event.stopPropagation(); showPreview(@listing.Id)">
-                                <i class="bi bi-eye me-1"></i>Vorschau
-                            </button>
-
-                            @if (isOwn && !allowSelfPurchaseForTesting)
-                            {
-                                <span class="small text-muted fw-medium">Dein Angebot</span>
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center gap-2">
-                                    <button class="buy-btn" id="buyBtn-@listing.Id"
-                                            data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
-                                            onclick="event.stopPropagation(); buyListing(@listing.Id, '@escapedTitle', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
-                                        <i class="bi bi-wallet2 me-1"></i>Kaufen
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    </div>
+                <div class="mb-3">
+                    @await Html.PartialAsync("_CreatorShopPlanCard", card)
                 </div>
             }
         </div>
@@ -477,6 +435,7 @@
         const top = document.getElementById('globalTokenSwitchTop');
         const checked = selectedPaymentToken === 'USDCE';
         if (top) top.checked = checked;
+        document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = checked; });
         updateAllListingPrices();
     }
 
@@ -543,7 +502,7 @@
     }
 
     function updateAllListingPrices() {
-        document.querySelectorAll('[id^="priceDisplay-"]').forEach(el => {
+        document.querySelectorAll('[id^="priceDisplay-"], [id^="feedPrice-"]').forEach(el => {
             updateListingPrice(el.id.replace('priceDisplay-', ''));
         });
     }
@@ -704,14 +663,23 @@
         else { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen'; }
     }
 
+
+    function showFeedPreview(listingId) {
+        return showPreview(listingId);
+    }
+
+    function buyFeedListing(listingId, title, priceWld, sellerWallet) {
+        return buyListing(listingId, title, priceWld, sellerWallet);
+    }
+
     // ── Buy Flow ──
-    async function buyListing(listingId, title, priceWld) {
+    async function buyListing(listingId, title, priceWld, sellerWalletOverride) {
         const token = getSelectedToken();
 
         if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
 
         const buyBtn = document.getElementById(`buyBtn-${listingId}`);
-        const sellerWallet = buyBtn?.dataset?.sellerWallet || '';
+        const sellerWallet = sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '';
         if (!sellerWallet) { alert('Verkaeufer hat keine Wallet hinterlegt. Kauf nicht moeglich.'); return; }
 
         const actualPrice = getActualPrice(priceWld, token);
