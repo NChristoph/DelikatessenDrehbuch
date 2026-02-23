@@ -249,17 +249,52 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var result = new Dictionary<int, (string ImageUrl, string RecipeTitle)>();
             if (!recipeIds.Any()) return result;
 
+            var postingMedia = await _context.WorldUserPosting
+                .AsNoTracking()
+                .Where(p => p.Recipe != null && recipeIds.Contains(p.Recipe.Id))
+                .Select(p => new
+                {
+                    RecipeId = p.Recipe.Id,
+                    p.ThumbnailUrl,
+                    p.Source,
+                    RecipeTitle = p.Recipe.Title,
+                    p.CreationTime
+                })
+                .OrderByDescending(p => p.CreationTime)
+                .ToListAsync();
+
+            foreach (var group in postingMedia.GroupBy(x => x.RecipeId))
+            {
+                var preferredImage = group
+                    .Select(x => x.ThumbnailUrl)
+                    .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path));
+
+                preferredImage ??= group
+                    .Select(x => x.Source)
+                    .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && !IsVideoPath(path));
+
+                preferredImage ??= group
+                    .Select(x => x.Source)
+                    .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path));
+
+                if (string.IsNullOrWhiteSpace(preferredImage))
+                    continue;
+
+                var title = group.Select(x => x.RecipeTitle).FirstOrDefault() ?? string.Empty;
+                result[group.Key] = (NormalizeRecipeImagePath(preferredImage), title);
+            }
+
             var baseRecipes = await _context.RecipeBaseData
                 .Include(r => r.Images)
                 .AsNoTracking()
-                .Where(r => recipeIds.Contains(r.Id))
+                .Where(r => recipeIds.Contains(r.Id) && !result.ContainsKey(r.Id))
                 .ToListAsync();
 
             foreach (var recipe in baseRecipes)
             {
                 var image = recipe.Images?.FirstOrDefault()?.Image;
                 if (string.IsNullOrWhiteSpace(image)) continue;
-                result[recipe.Id] = (ChangePath(FrontendFunctions.GetSmallImagePath(image)), recipe.Title ?? string.Empty);
+                result[recipe.Id] = (NormalizeRecipeImagePath(image), recipe.Title ?? string.Empty);
             }
 
             var missingIds = recipeIds.Where(id => !result.ContainsKey(id)).ToList();
@@ -273,11 +308,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 foreach (var recipe in classicRecipes)
                 {
                     if (string.IsNullOrWhiteSpace(recipe.ImagePath)) continue;
-                    result[recipe.Id] = (ChangePath(FrontendFunctions.GetSmallImagePath(recipe.ImagePath)), recipe.Name ?? string.Empty);
+                    result[recipe.Id] = (NormalizeRecipeImagePath(recipe.ImagePath), recipe.Name ?? string.Empty);
                 }
             }
 
             return result;
+        }
+
+
+        private string NormalizeRecipeImagePath(string imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath)) return string.Empty;
+            if (Uri.IsWellFormedUriString(imagePath, UriKind.Absolute)) return ChangePath(imagePath);
+            return ChangePath(FrontendFunctions.GetSmallImagePath(imagePath));
+        }
+
+        private static bool IsVideoPath(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            var lower = path.ToLowerInvariant();
+            return lower.Contains(".mp4") || lower.Contains(".mov") || lower.Contains(".webm") || lower.Contains(".m3u8");
         }
 
         private static string? ResolveCanonicalCategory(string? input)
