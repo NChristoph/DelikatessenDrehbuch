@@ -57,7 +57,53 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> Index()
         {
             var userHash = GetUserHash();
-            var listings = await _coinService.GetActiveListings(0, 50);
+            var listings = await _context.MealPlanListings
+                .Include(x => x.MealPlan)
+                .AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(50)
+                .ToListAsync();
+
+            var recipeIds = listings
+                .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Distinct()
+                .ToList();
+            var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
+
+            ViewData["CreatorShopCards"] = listings.Select(listing =>
+            {
+                var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan);
+                var heroImages = listingRecipeIds
+                    .Where(recipeMediaMap.ContainsKey)
+                    .Select(id => recipeMediaMap[id])
+                    .Where(media => !string.IsNullOrWhiteSpace(media.ImageUrl))
+                    .ToList();
+
+                return new PlanCardViewModel
+                {
+                    ListingId = listing.Id,
+                    Title = listing.Title,
+                    TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
+                    Description = listing.Description,
+                    CreatorName = listing.SellerName,
+                    CreatorHash = listing.SellerHash,
+                    SellerWalletAddress = listing.SellerWalletAddress,
+                    DayCount = listing.DayCount,
+                    RecipeCount = listing.RecipeCount,
+                    CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
+                    PriceWld = listing.Price,
+                    Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
+                    SoldCount = listing.SoldCount,
+                    ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
+                    IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                    IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
+                        || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase),
+                    HeroSlides = heroImages.Select(x => new PlanCardHeroSlideViewModel { ImageUrl = x.ImageUrl, RecipeTitle = x.RecipeTitle }).ToList(),
+                    HeroImageUrls = heroImages.Select(x => x.ImageUrl).ToList(),
+                    HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
+                };
+            }).ToList();
 
             ViewData["UserHash"] = userHash ?? "";
             ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
