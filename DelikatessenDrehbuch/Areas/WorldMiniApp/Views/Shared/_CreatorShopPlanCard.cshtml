@@ -4,6 +4,8 @@
 @{
     var carouselId = $"cs-carousel-{Model.ListingId}";
     var heroSlides = (Model.HeroSlides ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardHeroSlideViewModel>()).Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
+    var hasMacroData = Model.CaloriesKcal.HasValue || Model.ProteinGrams.HasValue || Model.FatGrams.HasValue || Model.CarbsGrams.HasValue;
+    var totalSlides = heroSlides.Count + (hasMacroData ? 1 : 0);
 }
 
 <article class="cs-card" aria-label="Plan @Model.Title von @Model.CreatorName">
@@ -12,7 +14,7 @@
         {
             <div id="@carouselId" class="carousel slide cs-carousel" data-bs-ride="carousel">
                 <div class="carousel-indicators cs-indicators">
-                    @for (var i = 0; i < heroSlides.Count + 1; i++)
+                    @for (var i = 0; i < totalSlides; i++)
                     {
                         <button type="button"
                                 data-bs-target="#@carouselId"
@@ -32,32 +34,38 @@
                         </div>
                     }
 
-                    <div class="carousel-item @(heroSlides.Count == 0 ? "active" : "")">
-                        <div class="cs-hero-macro-slide" aria-label="Gesamtmakros dieses Plans">
-                            <div class="cs-macro-title">Gesamt-Makros</div>
-                            <div class="cs-macro-grid">
-                                <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
-                                <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
-                                <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
-                                <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
+                    @if (hasMacroData)
+                    {
+                        <div class="carousel-item @(heroSlides.Count == 0 ? "active" : "")">
+                            <div class="cs-hero-macro-slide" aria-label="Gesamtmakros dieses Plans">
+                                <div class="cs-macro-title">Gesamt-Makros</div>
+                                <div class="cs-macro-grid">
+                                    <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
+                                    <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
+                                    <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
+                                    <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
         }
         else
         {
             <div class="cs-hero-fallback" aria-hidden="true"></div>
-            <div class="cs-hero-macro-slide cs-hero-macro-slide-absolute" aria-label="Gesamtmakros dieses Plans">
-                <div class="cs-macro-title">Gesamt-Makros</div>
-                <div class="cs-macro-grid">
-                    <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
-                    <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
-                    <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
-                    <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
+            @if (hasMacroData)
+            {
+                <div class="cs-hero-macro-slide cs-hero-macro-slide-absolute" aria-label="Gesamtmakros dieses Plans">
+                    <div class="cs-macro-title">Gesamt-Makros</div>
+                    <div class="cs-macro-grid">
+                        <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
+                        <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
+                        <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
+                        <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
+                    </div>
                 </div>
-            </div>
+            }
         }
 
         <div class="cs-overlay"></div>
@@ -104,7 +112,7 @@
         <div class="cs-token-toggle" title="WLD / USDCE">
             <span>WLD</span>
             <label class="cs-switch" for="cs-switch-@Model.ListingId">
-                <input type="checkbox" id="cs-switch-@Model.ListingId" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD')" aria-label="Währung zwischen WLD und USDCE wechseln" />
+                <input type="checkbox" id="cs-switch-@Model.ListingId" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD', @Model.ListingId)" aria-label="Währung zwischen WLD und USDCE wechseln" />
                 <span class="cs-slider"></span>
             </label>
             <span>USDCE</span>

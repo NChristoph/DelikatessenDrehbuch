@@ -425,6 +425,19 @@
         updateAllListingPrices();
     }
 
+
+    function setFeedToken(token, listingId = null) {
+        const selected = token === 'USDCE' ? 'USDCE' : 'WLD';
+        if (!listingId) {
+            setGlobalToken(selected);
+            return;
+        }
+
+        const cardSwitch = document.getElementById(`cs-switch-${listingId}`);
+        if (cardSwitch) cardSwitch.checked = selected === 'USDCE';
+        updateListingPrice(listingId, selected);
+    }
+
     function getSelectedToken() {
         return selectedPaymentToken;
     }
@@ -470,8 +483,8 @@
         }
     }
 
-    function updateListingPrice(listingId) {
-        const token = getSelectedToken();
+    function updateListingPrice(listingId, tokenOverride = null) {
+        const token = tokenOverride || getSelectedToken();
         const priceEl = document.getElementById(`priceDisplay-${listingId}`) || document.getElementById(`feedPrice-${listingId}`);
         const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
         if (!priceEl) return;

@@ -2361,8 +2361,20 @@
             updateFeedPrices();
         }
 
-        function setFeedToken(token) {
-            feedSelectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
+        function setFeedToken(token, listingId = null) {
+            const selected = token === 'USDCE' ? 'USDCE' : 'WLD';
+
+            if (listingId) {
+                const el = document.getElementById(`feedPrice-${listingId}`);
+                if (!el) return;
+                const wld = parseFloat(el.dataset.priceWld || '0');
+                el.textContent = selected === 'USDCE' && feedWldPriceUsd
+                    ? `${(wld * feedWldPriceUsd).toFixed(2)} USDCE`
+                    : `${wld} WLD`;
+                return;
+            }
+
+            feedSelectedPaymentToken = selected;
             document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = feedSelectedPaymentToken === 'USDCE'; });
             updateFeedPrices();
         }
