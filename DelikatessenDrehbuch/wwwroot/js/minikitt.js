@@ -382,6 +382,7 @@ async function startMiniKitPayment({ to, tokenSymbol, amount, reference, descrip
     const amountSmallestUnit = (BigInt(whole || '0') * (BigInt(10) ** BigInt(decimals)) + BigInt(paddedFrac)).toString();
 
     const { commandPayload, finalPayload } = await MiniKit.commandsAsync.pay({
+        action: PAY_ACTION,
         reference,
         to,
         tokens: [{
