@@ -28,19 +28,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private void SetWorldChainConfig()
         {
+            var testMode = IsTestModeEnabled();
+            var allowSelfPurchaseForTesting = IsSelfPurchaseAllowedForTesting();
+
             ViewData["WorldChainId"] = _configuration["WorldChain:ChainId"] ?? "480";
             ViewData["WorldChainWldToken"] = _configuration["WorldChain:WldTokenAddress"] ?? "";
             ViewData["WorldChainUsdtToken"] = _configuration["WorldChain:UsdtTokenAddress"] ?? "";
             ViewData["WorldChainMarketplace"] = _configuration["WorldChain:MarketplaceContractAddress"] ?? "";
-            ViewData["WorldChainAllowSelfPurchaseForTesting"] =
-                bool.TryParse(_configuration["WorldChain:AllowSelfPurchaseForTesting"], out var allowSelfPurchase)
-                && allowSelfPurchase;
-            ViewData["WorldChainTestMode"] =
-                bool.TryParse(_configuration["WorldChain:TestMode"], out var testMode) && testMode;
+            ViewData["WorldChainAllowSelfPurchaseForTesting"] = allowSelfPurchaseForTesting;
+            ViewData["WorldChainTestMode"] = testMode;
+        }
+
+        private bool IsTestModeEnabled()
+        {
+            return bool.TryParse(_configuration["WorldChain:TestMode"], out var testMode)
+                && testMode;
         }
 
         private bool IsSelfPurchaseAllowedForTesting()
         {
+            // In TestMode dürfen Creator ihr eigenes Listing kaufen, um den End-to-End-Flow
+            // (WalletAuth + Payment + Finalize) mit einer einzigen Wallet zu testen.
+            if (IsTestModeEnabled())
+            {
+                return true;
+            }
+
             return bool.TryParse(_configuration["WorldChain:AllowSelfPurchaseForTesting"], out var allowSelfPurchase)
                 && allowSelfPurchase;
         }
