@@ -1,6 +1,7 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -303,7 +304,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             // Nährwerte berechnen
-            var nutrition = await BuildNutritionTotalsAsync(allRecipeIds);
+            var nutrition = await BuildNutritionTotalsAsync(allRecipeIds, classicRecipes);
 
             return Json(new
             {
@@ -323,7 +324,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             });
         }
 
-        private async Task<NutritionTotals> BuildNutritionTotalsAsync(List<int> recipeIds)
+        private async Task<NutritionTotals> BuildNutritionTotalsAsync(List<int> recipeIds, List<Recipes>? classicRecipes = null)
         {
             var recipes = await _context.RecipeBaseData
                 .Include(r => r.Ingredients)
@@ -371,6 +372,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     totals.Carbohydrates += (nutrient.Carbohydrates_a_100g * grams) / 100m;
                     totals.Protein += (nutrient.Protein_a_100g * grams) / 100m;
                     totals.Fiber += (nutrient.Fiber_a_100g * grams) / 100m;
+                }
+            }
+
+            if (classicRecipes != null)
+            {
+                foreach (var classic in classicRecipes.Where(r => recipeIds.Contains(r.Id)))
+                {
+                    if (string.IsNullOrWhiteSpace(classic.Calories)) continue;
+                    var normalized = classic.Calories.Replace(',', '.');
+                    if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var classicCalories))
+                    {
+                        totals.Calories += Math.Max(0, classicCalories);
+                    }
                 }
             }
 

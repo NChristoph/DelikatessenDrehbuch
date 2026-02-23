@@ -929,6 +929,37 @@
             flex-wrap: wrap;
         }
 
+        .marketplace-card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .marketplace-token-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            opacity: 0.9;
+        }
+
+        .marketplace-token-switch input {
+            accent-color: #FF9966;
+        }
+
+        .marketplace-action-btn {
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
         .marketplace-empty {
             border-radius: 18px;
             border: 1px dashed rgba(255,255,255,0.25);
@@ -1076,7 +1107,7 @@
                                         <div class="fw-bold">@listing.Title</div>
                                         <div class="small opacity-75">@listing.SellerName</div>
                                     </div>
-                                    <div class="marketplace-price">@listing.Price.ToString("0.##", CultureInfo.InvariantCulture) WC</div>
+                                    <div class="marketplace-price">@listing.Price.ToString("0.##", CultureInfo.InvariantCulture) WLD</div>
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(listing.Description))
                                 {
@@ -1086,6 +1117,17 @@
                                     <span><i class="bi bi-calendar3"></i> @listing.DayCount @T("Tage", "days", "días", "dias")</span>
                                     <span><i class="bi bi-journal-text"></i> @listing.RecipeCount @T("Rezepte", "recipes", "recetas", "receitas")</span>
                                     <span><i class="bi bi-bag-check"></i> @listing.SoldCount</span>
+                                </div>
+                                <div class="marketplace-card-actions">
+                                    <label class="marketplace-token-switch" title="WLD / USDCE">
+                                        <span>WLD</span>
+                                        <input type="checkbox" disabled>
+                                        <span>USDCE</span>
+                                    </label>
+                                    <div class="d-flex gap-2">
+                                        <a class="marketplace-action-btn" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp", previewId = listing.Id })">Vorschau</a>
+                                        <a class="marketplace-action-btn" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })">Kaufen</a>
+                                    </div>
                                 </div>
                             </article>
                         }

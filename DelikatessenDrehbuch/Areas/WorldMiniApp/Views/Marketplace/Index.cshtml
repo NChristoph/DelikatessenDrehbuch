@@ -135,27 +135,47 @@
     }
     .preview-btn:hover { border-color: #94a3b8; background: #f8fafc; color: #1e293b; }
 
-    .token-toggle {
-        display: inline-flex;
-        border-radius: .6rem;
-        overflow: hidden;
-        border: 1.5px solid #e2e8f0;
-        font-size: .75rem;
-    }
-    .token-toggle label {
-        padding: .25rem .65rem;
-        cursor: pointer;
+    .token-switch-row {
         background: #fff;
-        color: #64748b;
-        font-weight: 600;
-        transition: all .15s;
-        margin: 0;
+        border: 1px solid #e2e8f0;
+        border-radius: .9rem;
+        padding: .55rem .75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .token-toggle input:checked + label {
+    .token-switch {
+        position: relative;
+        width: 52px;
+        height: 30px;
+    }
+    .token-switch input { display: none; }
+    .token-slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: #334155;
+        border-radius: 40px;
+        transition: all .2s ease;
+    }
+    .token-slider::before {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: all .2s ease;
+        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .token-switch input:checked + .token-slider {
         background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #fff;
     }
-    .token-toggle input { display: none; }
+    .token-switch input:checked + .token-slider::before {
+        transform: translateX(22px);
+    }
 
     .test-banner {
         background: linear-gradient(135deg, #fef3c7, #fde68a);
@@ -273,7 +293,7 @@
 
     <!-- Back + Title Row -->
     <div class="d-flex align-items-center gap-3 mb-3">
-        <a href="@Url.Action("Setup", "Home", new { area = "WorldMiniApp" })" class="back-link">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="back-link">
             <i class="bi bi-arrow-left fs-5"></i>
         </a>
         <div class="flex-grow-1">
@@ -290,6 +310,18 @@
     {
         <p class="small mb-2 text-warning-emphasis"><i class="bi bi-info-circle me-1"></i>World Testnet (Chain @worldChainId)</p>
     }
+
+    <div class="token-switch-row mb-3">
+        <span class="small text-muted fw-semibold">WLD / USDCE</span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold">WLD</span>
+            <label class="token-switch" for="globalTokenSwitchTop">
+                <input type="checkbox" id="globalTokenSwitchTop" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
+                <span class="token-slider"></span>
+            </label>
+            <span class="small fw-semibold">USDCE</span>
+        </div>
+    </div>
 
     <!-- Wallet Bar -->
     <div class="wallet-bar mb-3">
@@ -404,12 +436,6 @@
                             else
                             {
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="token-toggle" id="tokenSelect-@listing.Id">
-                                        <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
-                                        <label for="tok-wld-@listing.Id">WLD</label>
-                                        <input type="radio" name="token-@listing.Id" id="tok-usdce-@listing.Id" value="USDCE">
-                                        <label for="tok-usdce-@listing.Id">USDCE</label>
-                                    </div>
                                     <button class="buy-btn" id="buyBtn-@listing.Id"
                                             data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
                                             onclick="event.stopPropagation(); buyListing(@listing.Id, '@escapedTitle', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
@@ -423,6 +449,18 @@
             }
         </div>
     }
+</div>
+
+<div class="token-switch-row mb-4">
+    <span class="small text-muted fw-semibold">WLD / USDCE</span>
+    <div class="d-flex align-items-center gap-2">
+        <span class="small fw-semibold">WLD</span>
+        <label class="token-switch" for="globalTokenSwitchBottom">
+            <input type="checkbox" id="globalTokenSwitchBottom" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
+            <span class="token-slider"></span>
+        </label>
+        <span class="small fw-semibold">USDCE</span>
+    </div>
 </div>
 
 <!-- Preview Offcanvas -->
@@ -444,14 +482,24 @@
     const USER_HASH = '@userHash';
     let walletAddresses = { WLD: '@walletWLD', USDCE: '@walletUSDT' };
     let wldPriceUsd = null;
+    let selectedPaymentToken = 'WLD';
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 
-    function getSelectedToken(listingId) {
-        const el = document.querySelector(`input[name="token-${listingId}"]:checked`);
-        return el ? el.value : 'WLD';
+    function setGlobalToken(token) {
+        selectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
+        const top = document.getElementById('globalTokenSwitchTop');
+        const bottom = document.getElementById('globalTokenSwitchBottom');
+        const checked = selectedPaymentToken === 'USDCE';
+        if (top) top.checked = checked;
+        if (bottom) bottom.checked = checked;
+        updateAllListingPrices();
+    }
+
+    function getSelectedToken() {
+        return selectedPaymentToken;
     }
 
     function shortWallet(address) {
@@ -496,7 +544,7 @@
     }
 
     function updateListingPrice(listingId) {
-        const token = getSelectedToken(listingId);
+        const token = getSelectedToken();
         const priceEl = document.getElementById(`priceDisplay-${listingId}`);
         const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
         if (!priceEl) return;
@@ -671,7 +719,7 @@
 
     // ── Buy Flow ──
     async function buyListing(listingId, title, priceWld) {
-        const token = getSelectedToken(listingId);
+        const token = getSelectedToken();
 
         if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
 
@@ -752,11 +800,13 @@
         updateWalletStatusUI();
         loadWldPrice();
 
-        document.querySelectorAll('.token-toggle input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                updateListingPrice(radio.name.replace('token-', ''));
-            });
-        });
+        setGlobalToken('WLD');
+
+        const previewParam = new URLSearchParams(window.location.search).get('previewId');
+        if (previewParam) {
+            const id = parseInt(previewParam, 10);
+            if (!isNaN(id)) showPreview(id);
+        }
 
         const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
         if (existingAddress) {
