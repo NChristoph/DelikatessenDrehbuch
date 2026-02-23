@@ -647,12 +647,13 @@
     }
 
     // ── Finalize on Backend ──
-    async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken) {
+    async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken, paymentAction) {
         const form = new FormData();
         form.append('ListingId', listingId);
         form.append('TxHash', txHash);
         form.append('WalletAddress', walletAddress || '');
         form.append('PaymentToken', paymentToken || 'WLD');
+        form.append('ClientAction', paymentAction || '');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
         const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
         return resp.json();
@@ -690,49 +691,24 @@
         setBuyButtonLoading(listingId, true);
 
         try {
-            // MiniKit pay()
-            if (window.startMiniKitPayment) {
-                const reference = `listing-${listingId}-${Date.now()}`;
-                const payResult = await window.startMiniKitPayment({
-                    to: sellerWallet, tokenSymbol: token, amount: actualPrice,
-                    reference, description: `Essensplan: ${title}`
-                });
-
-                console.log('[Marketplace] MiniKit payResult:', JSON.stringify(payResult));
-                const txRef = payResult?.transaction_id || payResult?.txHash || payResult?.reference || '';
-                console.log('[Marketplace] TX Reference:', txRef);
-
-                if (payResult?.status === 'success' && txRef) {
-                    const data = await finalizeOnBackend(listingId, txRef, sellerWallet, token);
-                    console.log('[Marketplace] Finalize response:', JSON.stringify(data));
-                    if (data.success) { location.reload(); }
-                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
-                    return;
-                } else if (payResult?.status === 'success') {
-                    console.warn('[Marketplace] Keine TX-Referenz, verwende Timestamp als Fallback');
-                    const fallbackRef = `minikit-${listingId}-${Date.now()}`;
-                    const data = await finalizeOnBackend(listingId, fallbackRef, sellerWallet, token);
-                    if (data.success) { location.reload(); }
-                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
-                    return;
-                }
-            }
-
-            // Fallback: ethers.js
+            // Smart Contract Kauf (80/20 Split on-chain)
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
-                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
-                if (ethereumProvider) {
-                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
-                        listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
-                    });
-                    const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
-                    if (data.success) { location.reload(); }
-                    else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
-                    return;
-                }
+                const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                    listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
+                });
+                const data = await finalizeOnBackend(
+                    listingId,
+                    onChainResult.txHash,
+                    onChainResult.walletAddress,
+                    onChainResult.paymentToken,
+                    'pay-delikatessendrehbuch'
+                );
+                if (data.success) { location.reload(); }
+                else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
+                return;
             }
 
-            alert('Kein Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
+            alert('Kein Smart-Contract Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
             setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');

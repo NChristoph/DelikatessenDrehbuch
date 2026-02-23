@@ -184,7 +184,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
 
 
-        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
+        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD", string clientAction = "")
         {
             if (string.IsNullOrWhiteSpace(txHash))
             {
@@ -193,7 +193,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
 
             // On-Chain Verifizierung ist nicht-blockierend:
-            // MiniKit pay() bestaetigt die Zahlung bereits in der World App.
             // Der Alchemy Public RPC kann die TX evtl. noch nicht liefern (Latenz/Rate-Limit).
             // Wir loggen das Ergebnis, lassen den Kauf aber trotzdem durch.
             // Duplikatschutz via UNIQUE Index auf ReferenceTxHash schuetzt vor Missbrauch.
@@ -218,7 +217,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
             else
             {
-                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz: {TxRef}", txHash);
+                _logger.LogInformation("FinalizeWorldChainPurchase: Payment-Referenz: {TxRef}", txHash);
+            }
+
+            if (!string.IsNullOrWhiteSpace(clientAction))
+            {
+                _logger.LogInformation("FinalizeWorldChainPurchase: ClientAction={ClientAction}", clientAction);
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();

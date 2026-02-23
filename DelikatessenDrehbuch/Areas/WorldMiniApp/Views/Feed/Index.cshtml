@@ -2404,12 +2404,13 @@
             return address;
         }
 
-        async function finalizeFeedPurchase(listingId, txHash, walletAddress, paymentToken) {
+        async function finalizeFeedPurchase(listingId, txHash, walletAddress, paymentToken, paymentAction) {
             const form = new FormData();
             form.append('ListingId', listingId);
             form.append('TxHash', txHash);
             form.append('WalletAddress', walletAddress || '');
             form.append('PaymentToken', paymentToken || 'WLD');
+            form.append('ClientAction', paymentAction || '');
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             if (tokenInput) form.append('__RequestVerificationToken', tokenInput.value);
             const resp = await fetch('/WorldMiniApp/Marketplace/FinalizeWorldChainPurchase', { method: 'POST', body: form });
@@ -2425,19 +2426,25 @@
 
             try {
                 await ensureFeedWalletConnected();
-                if (window.startMiniKitPayment) {
-                    const payResult = await window.startMiniKitPayment({
-                        to: sellerWallet, tokenSymbol: token, amount: actualPrice,
-                        reference: `feed-listing-${listingId}-${Date.now()}`,
-                        description: `Essensplan: ${title}`
+                if (window.worldChainMarketplace?.buyListingWithWorldChain) {
+                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                        listingId,
+                        price: actualPrice,
+                        buyerHash: FEED_USER_HASH,
+                        paymentToken: token
                     });
-                    const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
-                    const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
+                    const data = await finalizeFeedPurchase(
+                        listingId,
+                        onChainResult.txHash,
+                        onChainResult.walletAddress,
+                        onChainResult.paymentToken,
+                        'pay-delikatessendrehbuch'
+                    );
                     if (data.success) { return; }
                     alert(data.error || 'Kauf konnte nicht finalisiert werden.');
                     return;
                 }
-                alert('Kein Zahlungsweg verfügbar.');
+                alert('Kein Smart-Contract Zahlungsweg verfügbar.');
             } catch (e) {
                 alert(e?.message || 'Kauf fehlgeschlagen.');
             }
