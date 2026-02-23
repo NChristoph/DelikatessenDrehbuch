@@ -2417,6 +2417,21 @@
             return resp.json();
         }
 
+
+        // WalletAuth nur für Kauf-Flow (zusätzlich zum World-ID Verify Login)
+        async function ensureFeedWalletAuthForPurchase() {
+            if (sessionStorage.getItem('feed_wallet_auth_ok') === 'true') return;
+            if (!window.startWalletAuth) return;
+
+            try {
+                await window.startWalletAuth();
+                sessionStorage.setItem('feed_wallet_auth_ok', 'true');
+            } catch (error) {
+                console.warn('Feed WalletAuth vor Kauf fehlgeschlagen:', error);
+                throw error;
+            }
+        }
+
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
             if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
             if (!sellerWallet) { alert('Verkäufer-Wallet fehlt.'); return; }
@@ -2425,6 +2440,8 @@
             if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
 
             try {
+                // Wichtig: WalletAuth zusätzlich für Kauf, ersetzt NICHT Verify-Login
+                await ensureFeedWalletAuthForPurchase();
                 await ensureFeedWalletConnected();
                 if (window.worldChainMarketplace?.buyListingWithWorldChain) {
                     try {

@@ -659,6 +659,21 @@
         return resp.json();
     }
 
+
+    // WalletAuth nur für Kauf-Flow (zusätzlich zum World-ID Verify Login)
+    async function ensureWalletAuthForPurchase() {
+        if (sessionStorage.getItem('wallet_auth_ok') === 'true') return;
+        if (!window.startWalletAuth) return;
+
+        try {
+            await window.startWalletAuth();
+            sessionStorage.setItem('wallet_auth_ok', 'true');
+        } catch (error) {
+            console.warn('WalletAuth vor Kauf fehlgeschlagen:', error);
+            throw error;
+        }
+    }
+
     function setBuyButtonLoading(listingId, loading) {
         const btn = document.getElementById(`buyBtn-${listingId}`);
         if (!btn) return;
@@ -691,6 +706,9 @@
         setBuyButtonLoading(listingId, true);
 
         try {
+            // Wichtig: WalletAuth zusätzlich für Kauf, ersetzt NICHT Verify-Login
+            await ensureWalletAuthForPurchase();
+
             // Primär: Smart Contract Kauf (80/20 Split on-chain)
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
                 try {
