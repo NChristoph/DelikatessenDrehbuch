@@ -620,6 +620,9 @@
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
 
         try {
+            // Beim Klick auf "Verbinden" explizit WalletAuth in World öffnen (zusätzlich zu Verify-Login)
+            await ensureWalletAuthForPurchase();
+
             let address = '';
             const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
             if (ethereumProvider) address = await window.worldChainMarketplace.connectWallet();
