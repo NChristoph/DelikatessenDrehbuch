@@ -472,7 +472,7 @@
 
     function updateListingPrice(listingId) {
         const token = getSelectedToken();
-        const priceEl = document.getElementById(`priceDisplay-${listingId}`);
+        const priceEl = document.getElementById(`priceDisplay-${listingId}`) || document.getElementById(`feedPrice-${listingId}`);
         const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
         if (!priceEl) return;
         const wldPrice = parseFloat(priceEl.dataset.priceWld);

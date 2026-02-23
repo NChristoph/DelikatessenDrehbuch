@@ -370,7 +370,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     {
                         var img = baseR.Images?.FirstOrDefault()?.Image ?? "";
                         if (!string.IsNullOrEmpty(img))
-                            img = FrontendFunctions.GetSmallImagePath(img);
+                            img = NormalizeRecipeImagePath(img);
 
                         recipes.Add(new
                         {
@@ -388,7 +388,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     {
                         var img = classic.ImagePath ?? "";
                         if (!string.IsNullOrEmpty(img))
-                            img = FrontendFunctions.GetSmallImagePath(img);
+                            img = NormalizeRecipeImagePath(img);
 
                         recipes.Add(new
                         {
@@ -514,8 +514,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private static string NormalizeRecipeImagePath(string imagePath)
         {
             if (string.IsNullOrWhiteSpace(imagePath)) return string.Empty;
-            if (Uri.IsWellFormedUriString(imagePath, UriKind.Absolute)) return imagePath;
-            return FrontendFunctions.GetSmallImagePath(imagePath);
+
+            if (Uri.IsWellFormedUriString(imagePath, UriKind.Absolute))
+                return ChangePath(imagePath);
+
+            return ChangePath(FrontendFunctions.GetSmallImagePath(imagePath));
+        }
+
+        private static string ChangePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return path;
+
+            const string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
+            const string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
+
+            return path.Contains(oldDomain, StringComparison.OrdinalIgnoreCase)
+                ? path.Replace(oldDomain, newCdnDomain, StringComparison.OrdinalIgnoreCase)
+                : path;
         }
 
         private static bool IsVideoPath(string? path)
