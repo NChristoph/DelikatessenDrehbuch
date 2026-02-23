@@ -4,7 +4,6 @@ const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
 const VERIFY_ACTION = "login-delikatessendrehbuch";
 const PAY_ACTION = "pay";
-const PAY_VERIFY_ACTION = "pay-delikatessendrehbuch";
 
 const ALLOW_MOCK_EVERYWHERE = false;
 
@@ -353,26 +352,6 @@ window.connectWalletOnly = connectWalletOnly;
 
 // ── MiniKit Pay (für Marketplace-Käufe) ──
 
-async function verifyIncognitoPayAction() {
-    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
-        action: PAY_VERIFY_ACTION,
-        verification_level: 'device'
-    });
-
-    if (finalPayload?.status === 'success') {
-        return true;
-    }
-
-    const details = [
-        finalPayload?.error_code,
-        commandPayload?.error_code,
-        finalPayload?.message,
-        commandPayload?.message
-    ].filter(Boolean).join(' | ') || 'Incognito-Verifizierung abgebrochen.';
-
-    throw new Error(`Incognito-Verifizierung fehlgeschlagen: ${details}`);
-}
-
 async function startMiniKitPayment({ to, tokenSymbol, amount, reference, description }) {
     const env = await diagnoseEnvironment();
 
@@ -385,8 +364,6 @@ async function startMiniKitPayment({ to, tokenSymbol, amount, reference, descrip
     } catch (e) {
         console.warn("Install Note:", e);
     }
-
-    await verifyIncognitoPayAction();
 
     // World MiniKit Token-Symbole mappen
     let symbol = (tokenSymbol || 'WLD').toUpperCase();
