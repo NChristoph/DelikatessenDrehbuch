@@ -1085,18 +1085,9 @@
                             <h2 class="marketplace-title">@T("Marktplatz", "Marketplace", "Mercado", "Mercado")</h2>
                             <p class="marketplace-sub" id="marketplaceActiveSeller">@T("Swipe nach links: Angebote vom aktuellen Creator", "Swipe left: listings from current creator", "Desliza a la izquierda: ofertas del creador actual", "Deslize para a esquerda: ofertas do criador atual")</p>
                         </div>
-                        <a class="marketplace-open" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })">@T("Alle Angebote", "All listings", "Todas las ofertas", "Todas as ofertas")</a>
                     </div>
 
-                    <div class="marketplace-sell-box">
-                        <div class="fw-bold mb-2">@T("Verkaufen im Profil", "Sell from profile", "Vender desde el perfil", "Vender no perfil")</div>
-                        <div class="marketplace-sell-note">@T("Eigene Angebote bitte im Profil erstellen und verwalten.", "Create and manage your own listings in your profile.", "Crea y administra tus propias ofertas en tu perfil.", "Crie e gerencie as suas próprias ofertas no seu perfil.")</div>
-                        <button type="button" class="marketplace-sell-btn" onclick="goToProfile()">
-                            <i class="bi bi-person-circle me-1"></i>@T("Zum Profil", "Go to profile", "Ir al perfil", "Ir para o perfil")
-                        </button>
-                    </div>
-
-                    @if (!creatorShopCards.Any())
+                                        @if (!creatorShopCards.Any())
                     {
                         <div class="marketplace-empty">
                             <i class="bi bi-shop fs-3"></i>
@@ -2430,7 +2421,7 @@
                     });
                     const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
                     const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
-                    if (data.success) { alert('Kauf erfolgreich!'); return; }
+                    if (data.success) { return; }
                     alert(data.error || 'Kauf konnte nicht finalisiert werden.');
                     return;
                 }

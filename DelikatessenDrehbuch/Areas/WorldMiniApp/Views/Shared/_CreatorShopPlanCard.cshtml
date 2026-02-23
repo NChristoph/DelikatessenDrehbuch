@@ -101,11 +101,14 @@
         </div>
 
 
-        <label class="cs-token-toggle" title="WLD / USDCE">
+        <div class="cs-token-toggle" title="WLD / USDCE">
             <span>WLD</span>
-            <input type="checkbox" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD')" aria-label="Währung zwischen WLD und USDCE wechseln" />
+            <label class="cs-switch" for="cs-switch-@Model.ListingId">
+                <input type="checkbox" id="cs-switch-@Model.ListingId" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD')" aria-label="Währung zwischen WLD und USDCE wechseln" />
+                <span class="cs-slider"></span>
+            </label>
             <span>USDCE</span>
-        </label>
+        </div>
 
         <div class="cs-cta-row">
             <button type="button"
@@ -116,13 +119,13 @@
             </button>
 
             <div class="cs-buy-wrap">
+                <div class="cs-price" id="feedPrice-@Model.ListingId" data-price-wld="@Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Model.PriceLabel</div>
                 <button type="button"
                         class="cs-btn cs-btn-primary"
                         aria-label="@($"Plan {Model.Title} freischalten")"
                         onclick="buyFeedListing(@Model.ListingId, '@Model.TitleJsSafe', @Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(Model.SellerWalletAddress ?? "")')">
                     Freischalten
                 </button>
-                <div class="cs-price" id="feedPrice-@Model.ListingId" data-price-wld="@Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Model.PriceLabel</div>
             </div>
         </div>
     </div>
