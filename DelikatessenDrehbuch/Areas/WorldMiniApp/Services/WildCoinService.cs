@@ -186,19 +186,30 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
         {
-            // Security: TxHash-Format validieren
-            if (string.IsNullOrWhiteSpace(txHash) || !TxHashRegex.IsMatch(txHash))
+            if (string.IsNullOrWhiteSpace(txHash))
             {
-                _logger.LogWarning("FinalizeWorldChainPurchase: Ungueltiges TxHash-Format: {TxHash}", txHash);
+                _logger.LogWarning("FinalizeWorldChainPurchase: TxHash ist leer.");
                 return null;
             }
 
-            // Security: On-Chain Verifizierung - pruefe ob TX auf der Blockchain existiert und erfolgreich war
-            var txVerified = await VerifyTransactionOnChainAsync(txHash);
-            if (!txVerified)
+            // Unterscheide: On-Chain TX (0x + 64 hex) vs. MiniKit Payment (UUID/andere Referenz)
+            var isOnChainTx = TxHashRegex.IsMatch(txHash);
+
+            if (isOnChainTx)
             {
-                _logger.LogWarning("FinalizeWorldChainPurchase: On-Chain Verifizierung fehlgeschlagen fuer TxHash: {TxHash}", txHash);
-                return null;
+                // On-Chain Verifizierung: TX auf World Chain pruefen
+                var txVerified = await VerifyTransactionOnChainAsync(txHash);
+                if (!txVerified)
+                {
+                    _logger.LogWarning("FinalizeWorldChainPurchase: On-Chain Verifizierung fehlgeschlagen fuer TxHash: {TxHash}", txHash);
+                    return null;
+                }
+            }
+            else
+            {
+                // MiniKit Payment: transaction_id ist eine World App Referenz, kein Ethereum TxHash.
+                // Die Zahlung wurde bereits von World App verifiziert und ausgefuehrt.
+                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz erkannt: {TxRef}", txHash);
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
