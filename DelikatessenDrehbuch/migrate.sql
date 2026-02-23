@@ -271,3 +271,44 @@ FROM MealPlanPurchases p
 INNER JOIN MealPlanListings l ON p.ListingId = l.Id
 WHERE p.SellerHash = '';
 GO
+
+-- =====================================================
+-- Migration: PaymentToken + CreatedMealPlanId
+-- Neue Spalten fuer Multi-Token Support und Kauf-Zuordnung
+-- =====================================================
+
+-- 12) PaymentToken auf MealPlanPurchases (WLD, USDCE, etc.)
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'PaymentToken'
+)
+BEGIN
+    ALTER TABLE [MealPlanPurchases]
+    ADD [PaymentToken] NVARCHAR(20) NOT NULL DEFAULT 'WLD';
+END
+GO
+
+-- 13) CreatedMealPlanId - Verweis auf den kopierten Essensplan des Kaeufers
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'CreatedMealPlanId'
+)
+BEGIN
+    ALTER TABLE [MealPlanPurchases]
+    ADD [CreatedMealPlanId] INT NOT NULL DEFAULT 0;
+END
+GO
+
+-- 14) Index fuer schnelle Abfrage: Alle Kaeufe eines Buyers (fuer Profil "Meine Kaeufe" Tab)
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_MealPlanPurchases_BuyerHash'
+      AND object_id = OBJECT_ID('MealPlanPurchases')
+)
+BEGIN
+    CREATE INDEX [IX_MealPlanPurchases_BuyerHash]
+        ON [MealPlanPurchases]([BuyerHash])
+        INCLUDE ([ListingId], [PurchasedAt]);
+END
+GO
