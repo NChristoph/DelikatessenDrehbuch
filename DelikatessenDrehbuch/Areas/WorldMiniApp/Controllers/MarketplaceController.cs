@@ -480,10 +480,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 result[group.Key] = (NormalizeRecipeImagePath(preferredImage), title);
             }
 
+            var missingBaseRecipeIds = recipeIds.Where(id => !result.ContainsKey(id)).ToList();
+
             var baseRecipes = await _context.RecipeBaseData
                 .Include(r => r.Images)
                 .AsNoTracking()
-                .Where(r => recipeIds.Contains(r.Id) && !result.ContainsKey(r.Id))
+                .Where(r => missingBaseRecipeIds.Contains(r.Id))
                 .ToListAsync();
 
             foreach (var recipe in baseRecipes)
