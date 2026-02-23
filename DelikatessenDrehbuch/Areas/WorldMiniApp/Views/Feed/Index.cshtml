@@ -16,6 +16,7 @@
 
     var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
     var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
+    var creatorShopCards = ViewData["CreatorShopCards"] as List<PlanCardViewModel> ?? new List<PlanCardViewModel>();
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
     var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
@@ -40,6 +41,7 @@
     <title>Delikatessen Feed</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/creator-shop-cards.css">
 
     <style>
         body, html {
@@ -1094,7 +1096,7 @@
                         </button>
                     </div>
 
-                    @if (!marketplaceListings.Any())
+                    @if (!creatorShopCards.Any())
                     {
                         <div class="marketplace-empty">
                             <i class="bi bi-shop fs-3"></i>
@@ -1107,38 +1109,11 @@
                             <i class="bi bi-shop fs-3"></i>
                             <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador não tem ofertas no momento.")</div>
                         </div>
-                        @foreach (var listing in marketplaceListings)
+                        @foreach (var card in creatorShopCards)
                         {
-                            var escapedListingTitle = Html.Encode(listing.Title).Replace("'", "\\'");
-                            <article class="marketplace-card js-marketplace-listing" data-seller-hash="@((listing.SellerHash ?? string.Empty).ToLowerInvariant())" data-seller-name="@listing.SellerName">
-                                <div class="d-flex justify-content-between align-items-start gap-2">
-                                    <div>
-                                        <div class="fw-bold">@listing.Title</div>
-                                        <div class="small opacity-75">@listing.SellerName</div>
-                                    </div>
-                                    <div class="marketplace-price" id="feedPrice-@listing.Id" data-price-wld="@listing.Price.ToString(CultureInfo.InvariantCulture)">@listing.Price.ToString("0.##", CultureInfo.InvariantCulture) WLD</div>
-                                </div>
-                                @if (!string.IsNullOrWhiteSpace(listing.Description))
-                                {
-                                    <div class="small mt-2 opacity-75">@listing.Description</div>
-                                }
-                                <div class="marketplace-meta mt-2">
-                                    <span><i class="bi bi-calendar3"></i> @listing.DayCount @T("Tage", "days", "días", "dias")</span>
-                                    <span><i class="bi bi-journal-text"></i> @listing.RecipeCount @T("Rezepte", "recipes", "recetas", "receitas")</span>
-                                    <span><i class="bi bi-bag-check"></i> @listing.SoldCount</span>
-                                </div>
-                                <div class="marketplace-card-actions">
-                                    <label class="marketplace-token-switch" title="WLD / USDCE">
-                                        <span>WLD</span>
-                                        <input type="checkbox" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD')">
-                                        <span>USDCE</span>
-                                    </label>
-                                    <div class="d-flex gap-2">
-                                        <button type="button" class="marketplace-action-btn" onclick="showFeedPreview(@listing.Id)">Vorschau</button>
-                                        <button type="button" class="marketplace-action-btn" onclick="buyFeedListing(@listing.Id, '@escapedListingTitle', @listing.Price.ToString(CultureInfo.InvariantCulture), '@(listing.SellerWalletAddress ?? "")')">Kaufen</button>
-                                    </div>
-                                </div>
-                            </article>
+                            <div class="js-marketplace-listing" data-seller-hash="@((card.CreatorHash ?? string.Empty).ToLowerInvariant())" data-seller-name="@card.CreatorName">
+                                @await Html.PartialAsync("_CreatorShopPlanCard", card)
+                            </div>
                         }
                     }
                 </div>

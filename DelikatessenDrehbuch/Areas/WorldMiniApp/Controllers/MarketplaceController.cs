@@ -66,6 +66,41 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(listings);
         }
 
+        // GET: Creator Shop (Premium Karten Demo)
+        [HttpGet]
+        public async Task<IActionResult> CreatorShop()
+        {
+            var listings = await _context.MealPlanListings
+                .AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(50)
+                .ToListAsync();
+
+            var cards = listings.Select(listing => new PlanCardViewModel
+            {
+                ListingId = listing.Id,
+                Title = listing.Title,
+                TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
+                Description = listing.Description,
+                CreatorName = listing.SellerName,
+                CreatorHash = listing.SellerHash,
+                SellerWalletAddress = listing.SellerWalletAddress,
+                DayCount = listing.DayCount,
+                RecipeCount = listing.RecipeCount,
+                CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
+                PriceWld = listing.Price,
+                Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
+                SoldCount = listing.SoldCount,
+                ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
+                IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
+                    || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase)
+            }).ToList();
+
+            return View(cards);
+        }
+
         // GET: Meine Angebote
         public async Task<IActionResult> MyListings()
         {

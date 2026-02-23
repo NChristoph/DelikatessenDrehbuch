@@ -1,0 +1,45 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel>
+@{
+    ViewData["Title"] = "Creator Shop";
+    Layout = "_MiniAppLayout";
+}
+
+<link rel="stylesheet" href="~/css/creator-shop-cards.css" />
+
+<div class="container py-3" style="max-width:720px;">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </a>
+        <div>
+            <h5 class="fw-bold mb-0">Creator Shop</h5>
+            <p class="text-muted small mb-0">Premium Meal Plans von Creatorn</p>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">Noch keine Pläne verfügbar.</div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var card in Model)
+            {
+                @await Html.PartialAsync("_CreatorShopPlanCard", card)
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    function showFeedPreview(listingId) {
+        window.location.href = '@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })' + `?previewId=${listingId}`;
+    }
+
+    function buyFeedListing(listingId, title, priceWld, sellerWallet) {
+        window.location.href = '@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })';
+    }
+</script>
+}
