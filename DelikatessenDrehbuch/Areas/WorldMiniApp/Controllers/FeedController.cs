@@ -1,11 +1,13 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Text;
 
@@ -169,32 +171,53 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["MaxPrepTime"] = maxPrepTime?.ToString() ?? string.Empty;
             ViewData["UserHash"] = userHash;
             var marketplaceListings = await _context.MealPlanListings
+                .Include(x => x.MealPlan)
                 .AsNoTracking()
                 .Where(x => x.IsActive)
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(100)
                 .ToListAsync();
 
+            var recipeIds = marketplaceListings
+                .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Distinct()
+                .ToList();
+            var recipeImageMap = await BuildRecipeImageMapAsync(recipeIds);
+
             ViewData["MarketplaceListings"] = marketplaceListings;
-            ViewData["CreatorShopCards"] = marketplaceListings.Select(listing => new PlanCardViewModel
+            ViewData["CreatorShopCards"] = marketplaceListings.Select(listing =>
             {
-                ListingId = listing.Id,
-                Title = listing.Title,
-                TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
-                Description = listing.Description,
-                CreatorName = listing.SellerName,
-                CreatorHash = (listing.SellerHash ?? string.Empty).ToLowerInvariant(),
-                SellerWalletAddress = listing.SellerWalletAddress,
-                DayCount = listing.DayCount,
-                RecipeCount = listing.RecipeCount,
-                CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
-                PriceWld = listing.Price,
-                Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
-                SoldCount = listing.SoldCount,
-                ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
-                IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
-                IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
-                    || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase)
+                var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan);
+                var heroImages = listingRecipeIds
+                    .Where(recipeImageMap.ContainsKey)
+                    .Select(id => recipeImageMap[id])
+                    .Where(path => !string.IsNullOrWhiteSpace(path))
+                    .Distinct()
+                    .Take(4)
+                    .ToList();
+
+                return new PlanCardViewModel
+                {
+                    ListingId = listing.Id,
+                    Title = listing.Title,
+                    TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
+                    Description = listing.Description,
+                    CreatorName = listing.SellerName,
+                    CreatorHash = (listing.SellerHash ?? string.Empty).ToLowerInvariant(),
+                    SellerWalletAddress = listing.SellerWalletAddress,
+                    DayCount = listing.DayCount,
+                    RecipeCount = listing.RecipeCount,
+                    CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
+                    PriceWld = listing.Price,
+                    Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
+                    SoldCount = listing.SoldCount,
+                    ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
+                    IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                    IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
+                        || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase),
+                    HeroImageUrls = heroImages,
+                    HeroImageUrl = heroImages.FirstOrDefault()
+                };
             }).ToList();
 
             ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
@@ -206,6 +229,56 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["WorldChainTestMode"] = bool.TryParse(HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:TestMode"], out var testMode) && testMode;
 
             return View(model);
+        }
+
+        private static List<int> ExtractRecipeIdsFromMealPlanJson(string? mealPlanJson)
+        {
+            if (string.IsNullOrWhiteSpace(mealPlanJson)) return new List<int>();
+            try
+            {
+                var indexIds = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(mealPlanJson);
+                return indexIds?.Values.SelectMany(x => x).Distinct().ToList() ?? new List<int>();
+            }
+            catch
+            {
+                return new List<int>();
+            }
+        }
+
+        private async Task<Dictionary<int, string>> BuildRecipeImageMapAsync(List<int> recipeIds)
+        {
+            var result = new Dictionary<int, string>();
+            if (!recipeIds.Any()) return result;
+
+            var baseRecipes = await _context.RecipeBaseData
+                .Include(r => r.Images)
+                .AsNoTracking()
+                .Where(r => recipeIds.Contains(r.Id))
+                .ToListAsync();
+
+            foreach (var recipe in baseRecipes)
+            {
+                var image = recipe.Images?.FirstOrDefault()?.Image;
+                if (string.IsNullOrWhiteSpace(image)) continue;
+                result[recipe.Id] = ChangePath(FrontendFunctions.GetSmallImagePath(image));
+            }
+
+            var missingIds = recipeIds.Where(id => !result.ContainsKey(id)).ToList();
+            if (missingIds.Any())
+            {
+                var classicRecipes = await _context.Recipes
+                    .AsNoTracking()
+                    .Where(r => missingIds.Contains(r.Id) && r.ImagePath != null)
+                    .ToListAsync();
+
+                foreach (var recipe in classicRecipes)
+                {
+                    if (string.IsNullOrWhiteSpace(recipe.ImagePath)) continue;
+                    result[recipe.Id] = ChangePath(FrontendFunctions.GetSmallImagePath(recipe.ImagePath));
+                }
+            }
+
+            return result;
         }
 
         private static string? ResolveCanonicalCategory(string? input)

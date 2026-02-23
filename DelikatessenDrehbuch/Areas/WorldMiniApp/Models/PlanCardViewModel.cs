@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 {
     public class PlanCardViewModel
@@ -27,7 +29,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public int ActivePlannerCount { get; set; }
 
         public string? HeroImageUrl { get; set; }
+        public List<string> HeroImageUrls { get; set; } = new();
         public string HeroImageAlt { get; set; } = "Essensplan Vorschau";
+
+        public decimal? FatGrams { get; set; }
+        public decimal? CarbsGrams { get; set; }
 
         public string JourneyLabel => $"Teil der {CreatorName} Journey";
     }
