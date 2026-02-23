@@ -3,7 +3,7 @@ import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
 const VERIFY_ACTION = "login-delikatessendrehbuch";
-const PAY_ACTION = "pay";
+const PAY_ACTION = "pay-delikatessendrehbuch";
 
 const ALLOW_MOCK_EVERYWHERE = false;
 
