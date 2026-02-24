@@ -135,7 +135,12 @@ GO
 -- =====================================================
 
 -- 1) Add optional chain transaction hash to MealPlanPurchases
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases'
@@ -148,7 +153,12 @@ END
 GO
 
 -- 2) Add optional buyer wallet address to MealPlanPurchases
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases'
@@ -161,7 +171,12 @@ END
 GO
 
 -- 3) Speed up lookup and duplicate protection by listing/buyer/tx
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1
     FROM sys.indexes
     WHERE name = 'IX_MealPlanPurchases_ListingBuyerTx'
@@ -175,7 +190,12 @@ GO
 
 -- 4) Optional uniqueness for non-null chain tx hashes
 -- Prevents same transaction hash being inserted twice
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1
     FROM sys.indexes
     WHERE name = 'UX_MealPlanPurchases_ReferenceTxHash_NotNull'
@@ -194,7 +214,12 @@ GO
 -- =====================================================
 
 -- 5) SellerWalletAddress auf MealPlanListings (Wallet des Creators)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanListings'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanListings' AND COLUMN_NAME = 'SellerWalletAddress'
 )
@@ -205,7 +230,12 @@ END
 GO
 
 -- 6) SellerHash auf MealPlanPurchases (NullifierHash des Sellers)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'SellerHash'
 )
@@ -216,7 +246,12 @@ END
 GO
 
 -- 7) SellerWalletAddress auf MealPlanPurchases (Wallet des Sellers zum Zeitpunkt des Kaufs)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'SellerWalletAddress'
 )
@@ -227,7 +262,12 @@ END
 GO
 
 -- 8) CreatorAmount - wie viel der Creator bekommen hat (80%)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'CreatorAmount'
 )
@@ -238,7 +278,12 @@ END
 GO
 
 -- 9) PlatformFee - wie viel die Platform bekommen hat (20%)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'PlatformFee'
 )
@@ -249,7 +294,12 @@ END
 GO
 
 -- 10) Index fuer schnelle Abfrage: Alle Verkaeufe eines Sellers
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1
     FROM sys.indexes
     WHERE name = 'IX_MealPlanPurchases_SellerHash'
@@ -262,14 +312,26 @@ END
 GO
 
 -- 11) Bestehende Purchases nachtraeglich mit SellerHash befuellen
-UPDATE p
-SET p.SellerHash = l.SellerHash,
-    p.SellerWalletAddress = l.SellerWalletAddress,
-    p.CreatorAmount = p.PricePaid * 0.8,
-    p.PlatformFee = p.PricePaid * 0.2
-FROM MealPlanPurchases p
-INNER JOIN MealPlanListings l ON p.ListingId = l.Id
-WHERE p.SellerHash = '';
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanListings'
+)
+BEGIN
+    UPDATE p
+    SET p.SellerHash = l.SellerHash,
+        p.SellerWalletAddress = l.SellerWalletAddress,
+        p.CreatorAmount = p.PricePaid * 0.8,
+        p.PlatformFee = p.PricePaid * 0.2
+    FROM MealPlanPurchases p
+    INNER JOIN MealPlanListings l ON p.ListingId = l.Id
+    WHERE p.SellerHash = '';
+END
 GO
 
 -- =====================================================
@@ -278,7 +340,12 @@ GO
 -- =====================================================
 
 -- 12) PaymentToken auf MealPlanPurchases (WLD, USDCE, etc.)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'PaymentToken'
 )
@@ -289,7 +356,12 @@ END
 GO
 
 -- 13) CreatedMealPlanId - Verweis auf den kopierten Essensplan des Kaeufers
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'MealPlanPurchases' AND COLUMN_NAME = 'CreatedMealPlanId'
 )
@@ -300,7 +372,12 @@ END
 GO
 
 -- 14) Index fuer schnelle Abfrage: Alle Kaeufe eines Buyers (fuer Profil "Meine Kaeufe" Tab)
-IF NOT EXISTS (
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
     SELECT 1
     FROM sys.indexes
     WHERE name = 'IX_MealPlanPurchases_BuyerHash'
@@ -596,6 +673,45 @@ IF EXISTS (
 )
 BEGIN
     DROP INDEX [IX_WorldMealplanPurcase_ReceiverUserHash] ON [WorldMealplanPurcase];
+END
+GO
+
+-- 24a) Default-Constraints fuer Sender/Receiver-Hash entfernen (falls vorhanden)
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+BEGIN
+    DECLARE @DropSenderDefaultSql NVARCHAR(MAX);
+    SELECT @DropSenderDefaultSql =
+        N'ALTER TABLE [WorldMealplanPurcase] DROP CONSTRAINT [' + dc.name + N']'
+    FROM sys.default_constraints dc
+    INNER JOIN sys.columns c
+        ON c.object_id = dc.parent_object_id
+       AND c.column_id = dc.parent_column_id
+    WHERE dc.parent_object_id = OBJECT_ID('WorldMealplanPurcase')
+      AND c.name = 'SenderUserHash';
+
+    IF @DropSenderDefaultSql IS NOT NULL
+    BEGIN
+        EXEC sp_executesql @DropSenderDefaultSql;
+    END
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+BEGIN
+    DECLARE @DropReceiverDefaultSql NVARCHAR(MAX);
+    SELECT @DropReceiverDefaultSql =
+        N'ALTER TABLE [WorldMealplanPurcase] DROP CONSTRAINT [' + dc.name + N']'
+    FROM sys.default_constraints dc
+    INNER JOIN sys.columns c
+        ON c.object_id = dc.parent_object_id
+       AND c.column_id = dc.parent_column_id
+    WHERE dc.parent_object_id = OBJECT_ID('WorldMealplanPurcase')
+      AND c.name = 'ReceiverUserHash';
+
+    IF @DropReceiverDefaultSql IS NOT NULL
+    BEGIN
+        EXEC sp_executesql @DropReceiverDefaultSql;
+    END
 END
 GO
 
