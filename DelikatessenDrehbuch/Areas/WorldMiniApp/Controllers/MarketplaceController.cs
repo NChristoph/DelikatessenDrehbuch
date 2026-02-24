@@ -307,15 +307,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(request.TxHash))
                 return Json(new { success = false, error = "TxHash fehlt." });
 
+            var paymentToken = (request.PaymentToken ?? "WLD").ToUpperInvariant();
+            if (!AllowedWalletTokens.Contains(paymentToken))
+                return Json(new { success = false, error = "Unbekannter Payment-Token." });
+
+            var buyerSessionWallet = paymentToken == "USDT" || paymentToken == "USDCE"
+                ? HttpContext.Session.GetString(SessionWalletUSDT) ?? string.Empty
+                : HttpContext.Session.GetString(SessionWalletWLD) ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(buyerSessionWallet))
+                return Json(new { success = false, error = "Keine verbundene Wallet in der Session gefunden." });
+
+            if (!string.IsNullOrWhiteSpace(request.WalletAddress)
+                && !string.Equals(request.WalletAddress, buyerSessionWallet, StringComparison.OrdinalIgnoreCase))
+            {
+                return Json(new { success = false, error = "Wallet-Adresse passt nicht zur aktuellen Session." });
+            }
+
             try
             {
                 var purchase = await _coinService.FinalizeWorldChainPurchase(
                     userHash,
                     request.ListingId,
                     request.TxHash,
-                    request.WalletAddress,
+                    buyerSessionWallet,
                     IsSelfPurchaseAllowedForTesting(),
-                    request.PaymentToken);
+                    paymentToken);
                 if (purchase == null)
                     return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 

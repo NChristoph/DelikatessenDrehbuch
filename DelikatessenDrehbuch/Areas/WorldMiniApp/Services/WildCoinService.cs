@@ -253,12 +253,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var creatorAmount = Math.Round(listing.Price * 0.80m, 6);
                 var platformFee = listing.Price - creatorAmount;
 
+                var sellerWalletForPurchase = (paymentToken ?? "WLD").Equals("USDT", StringComparison.OrdinalIgnoreCase)
+                    || (paymentToken ?? "WLD").Equals("USDCE", StringComparison.OrdinalIgnoreCase)
+                    ? (listing.SellerUsdtWalletAddress ?? listing.SellerWalletAddress)
+                    : listing.SellerWalletAddress;
+
                 var purchase = new MealPlanPurchase
                 {
                     BuyerHash = buyerHash,
                     BuyerWalletAddress = walletAddress,
                     SellerHash = listing.SellerHash,
-                    SellerWalletAddress = listing.SellerWalletAddress,
+                    SellerWalletAddress = sellerWalletForPurchase,
                     ListingId = listing.Id,
                     Listing = listing,
                     CreatedMealPlanId = copiedPlan.Id,
