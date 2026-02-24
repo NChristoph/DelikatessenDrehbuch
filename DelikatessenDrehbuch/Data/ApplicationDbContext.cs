@@ -73,6 +73,17 @@ namespace DelikatessenDrehbuch.Data
                 .WithMany(keyword => keyword.RecipeLinks)
                 .HasForeignKey(link => link.KeywordId);
 
+
+            builder.Entity<MealPlanPurchase>(entity =>
+            {
+                entity.ToTable("WorldMealplanPurcase");
+                entity.Property(x => x.Status).HasMaxLength(20);
+                entity.Property(x => x.PurchaseTransactionId).HasMaxLength(130);
+                entity.Property(x => x.CashoutTransactionId).HasMaxLength(130);
+                entity.Property(x => x.BuyerHash).HasMaxLength(256);
+                entity.Property(x => x.SellerHash).HasMaxLength(256);
+            });
+
         }
     }
 }

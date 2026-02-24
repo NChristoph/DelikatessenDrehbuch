@@ -192,92 +192,123 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 return null;
             }
 
-            // On-Chain Verifizierung ist nicht-blockierend:
-            // MiniKit pay() bestaetigt die Zahlung bereits in der World App.
-            // Der Alchemy Public RPC kann die TX evtl. noch nicht liefern (Latenz/Rate-Limit).
-            // Wir loggen das Ergebnis, lassen den Kauf aber trotzdem durch.
-            // Duplikatschutz via UNIQUE Index auf ReferenceTxHash schuetzt vor Missbrauch.
-            var isOnChainTx = TxHashRegex.IsMatch(txHash);
-            if (isOnChainTx)
+            var normalizedTxHash = txHash.Trim();
+            var isOnChainTx = TxHashRegex.IsMatch(normalizedTxHash);
+
+            var listing = await _context.MealPlanListings
+                .Include(l => l.MealPlan)
+                .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
+
+            if (listing == null) return null;
+            if (!allowSelfPurchase && listing.SellerHash == buyerHash) return null;
+
+            var buyerUser = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == buyerHash);
+            var sellerUser = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == listing.SellerHash);
+
+            var purchase = await _context.MealPlanPurchases
+                .FirstOrDefaultAsync(p => p.PurchaseTransactionId == normalizedTxHash || p.ReferenceTxHash == normalizedTxHash);
+
+            if (purchase == null)
             {
-                _ = Task.Run(async () =>
+                purchase = new MealPlanPurchase
                 {
-                    try
-                    {
-                        var verified = await VerifyTransactionOnChainAsync(txHash);
-                        if (verified)
-                            _logger.LogInformation("On-Chain Verifizierung erfolgreich: {TxHash}", txHash);
-                        else
-                            _logger.LogWarning("On-Chain Verifizierung fehlgeschlagen (TX evtl. noch pending): {TxHash}", txHash);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "On-Chain Verifizierung Fehler fuer {TxHash}", txHash);
-                    }
-                });
-            }
-            else
-            {
-                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz: {TxRef}", txHash);
-            }
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var listing = await _context.MealPlanListings
-                    .Include(l => l.MealPlan)
-                    .FirstOrDefaultAsync(l => l.Id == listingId && l.IsActive);
-
-                if (listing == null) return null;
-                if (!allowSelfPurchase && listing.SellerHash == buyerHash) return null;
-
-                // Duplikatschutz: gleiche TX nicht doppelt finalisieren
-                var existing = await _context.MealPlanPurchases
-                    .FirstOrDefaultAsync(p => p.ReferenceTxHash == txHash);
-                if (existing != null) return existing;
-
-                listing.SoldCount++;
-
-                var copiedPlan = new WorldUserMealPlan
-                {
-                    UserHash = buyerHash,
-                    Settings = listing.MealPlan?.Settings,
-                    MealPlan = listing.MealPlan?.MealPlan,
-                    Title = listing.Title,
-                    CreationTime = DateTime.Now
-                };
-                await _context.WorldUserMealPlan.AddAsync(copiedPlan);
-                await _context.SaveChangesAsync();
-
-                var creatorAmount = Math.Round(listing.Price * 0.80m, 6);
-                var platformFee = listing.Price - creatorAmount;
-
-                var purchase = new MealPlanPurchase
-                {
+                    SenderUserId = buyerUser?.Id,
+                    ReceiverUserId = sellerUser?.Id,
                     BuyerHash = buyerHash,
                     BuyerWalletAddress = walletAddress,
                     SellerHash = listing.SellerHash,
                     SellerWalletAddress = listing.SellerWalletAddress,
                     ListingId = listing.Id,
-                    Listing = listing,
-                    CreatedMealPlanId = copiedPlan.Id,
                     PricePaid = listing.Price,
-                    CreatorAmount = creatorAmount,
-                    PlatformFee = platformFee,
-                    ReferenceTxHash = txHash,
-                    PaymentToken = paymentToken
+                    CreatorAmount = Math.Round(listing.Price * 0.80m, 6),
+                    PlatformFee = listing.Price - Math.Round(listing.Price * 0.80m, 6),
+                    PaymentToken = paymentToken,
+                    ReferenceTxHash = normalizedTxHash,
+                    PurchaseTransactionId = normalizedTxHash,
+                    OrderTimestampUtc = DateTime.UtcNow,
+                    Status = "pending",
+                    SellerCredited = false
                 };
+
                 await _context.MealPlanPurchases.AddAsync(purchase);
                 await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-                return purchase;
             }
-            catch
+            else
             {
-                await transaction.RollbackAsync();
-                throw;
+                if (!string.Equals(purchase.Status, "pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    return purchase;
+                }
+
+                purchase.SenderUserId ??= buyerUser?.Id;
+                purchase.ReceiverUserId ??= sellerUser?.Id;
+                purchase.BuyerWalletAddress = string.IsNullOrWhiteSpace(walletAddress) ? purchase.BuyerWalletAddress : walletAddress;
+                purchase.PurchaseTransactionId ??= normalizedTxHash;
+                purchase.ReferenceTxHash ??= normalizedTxHash;
+                purchase.PaymentToken = paymentToken;
+                await _context.SaveChangesAsync();
             }
+
+            if (isOnChainTx)
+            {
+                var verificationResult = await VerifyTransactionOnChainAsync(normalizedTxHash);
+                if (verificationResult == false)
+                {
+                    purchase.Status = "fehlgeschlagen";
+                    await _context.SaveChangesAsync();
+                    return purchase;
+                }
+
+                if (verificationResult == null)
+                {
+                    purchase.Status = "pending";
+                    await _context.SaveChangesAsync();
+                    return purchase;
+                }
+            }
+            else
+            {
+                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz: {TxRef}", normalizedTxHash);
+            }
+
+            if (purchase.CreatedMealPlanId <= 0)
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    listing.SoldCount++;
+
+                    var copiedPlan = new WorldUserMealPlan
+                    {
+                        UserHash = buyerHash,
+                        Settings = listing.MealPlan?.Settings,
+                        MealPlan = listing.MealPlan?.MealPlan,
+                        Title = listing.Title,
+                        CreationTime = DateTime.Now
+                    };
+                    await _context.WorldUserMealPlan.AddAsync(copiedPlan);
+                    await _context.SaveChangesAsync();
+
+                    purchase.CreatedMealPlanId = copiedPlan.Id;
+                    purchase.Status = "ok";
+                    purchase.PurchasedAt = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+            else
+            {
+                purchase.Status = "ok";
+                await _context.SaveChangesAsync();
+            }
+
+            return purchase;
         }
 
         public async Task<List<MealPlanPurchase>> GetPurchasesByBuyer(string buyerHash)
@@ -293,7 +324,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         /// Prueft via World Chain RPC ob die Transaktion existiert und erfolgreich war (status=0x1).
         /// Versucht bis zu 3x mit je 3s Wartezeit (TX koennte noch pending sein).
         /// </summary>
-        private async Task<bool> VerifyTransactionOnChainAsync(string txHash)
+        private async Task<bool?> VerifyTransactionOnChainAsync(string txHash)
         {
             const int maxAttempts = 3;
             const int delayMs = 3000;
@@ -352,8 +383,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 }
             }
 
-            _logger.LogError("TX {TxHash} konnte nach {Max} Versuchen nicht auf World Chain bestaetigt werden.", txHash, maxAttempts);
-            return false;
+            _logger.LogWarning("TX {TxHash} konnte nach {Max} Versuchen nicht bestaetigt werden (weiter pending).", txHash, maxAttempts);
+            return null;
         }
     }
 }
