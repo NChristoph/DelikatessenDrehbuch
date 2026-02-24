@@ -676,8 +676,34 @@
         form.append('WalletAddress', walletAddress || '');
         form.append('PaymentToken', paymentToken || 'WLD');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
-        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
-        return resp.json();
+
+        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const contentType = resp.headers.get('content-type') || '';
+        const rawText = await resp.text();
+
+        if (!contentType.includes('application/json')) {
+            const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            throw new Error(`Finalize lieferte kein JSON (HTTP ${resp.status}). Antwort: ${compact || 'leer'}`);
+        }
+
+        let data = null;
+        try {
+            data = JSON.parse(rawText);
+        } catch {
+            const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            throw new Error(`Ungueltige JSON-Antwort vom Server (HTTP ${resp.status}): ${compact || 'leer'}`);
+        }
+
+        if (!resp.ok) {
+            throw new Error(data?.error || `Finalize fehlgeschlagen (HTTP ${resp.status}).`);
+        }
+
+        return data;
     }
 
     function setBuyButtonLoading(listingId, loading) {
