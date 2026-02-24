@@ -271,7 +271,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     CreatorAmount = creatorAmount,
                     PlatformFee = platformFee,
                     ReferenceTxHash = txHash,
-                    PaymentToken = paymentToken
+                    PurchaseTransactionId = txHash,
+                    PaymentToken = paymentToken,
+                    OrderTimestampUtc = DateTime.UtcNow,
+                    Status = "paid",
+                    SellerCredited = false,
+                    SellerCreditedAtUtc = null,
+                    CashoutTransactionId = null
                 };
                 await _context.MealPlanPurchases.AddAsync(purchase);
                 await _context.SaveChangesAsync();

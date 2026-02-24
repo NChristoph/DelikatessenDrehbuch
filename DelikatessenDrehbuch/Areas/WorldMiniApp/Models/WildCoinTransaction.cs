@@ -25,7 +25,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public decimal CreatorAmount { get; set; }
         public decimal PlatformFee { get; set; }
         public string? ReferenceTxHash { get; set; }
+        public string? PurchaseTransactionId { get; set; }
         public string PaymentToken { get; set; } = "WLD";  // "WLD", "USDT", "WildCoin"
+        public DateTime? OrderTimestampUtc { get; set; }
+        public string? Status { get; set; }
+        public bool? SellerCredited { get; set; }
+        public DateTime? SellerCreditedAtUtc { get; set; }
+        public string? CashoutTransactionId { get; set; }
         public DateTime PurchasedAt { get; set; } = DateTime.Now;
     }
 }
