@@ -215,11 +215,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     return InvalidSiwe("signature recovery produced invalid address");
                 }
 
-                // Security: Recovered address MUSS mit der claimed address uebereinstimmen.
-                // Kein Fallback - wenn die Signatur nicht passt, wird abgelehnt.
+                // MiniKit liefert in seltenen Fällen eine payload.address, die nicht der
+                // tatsächlich signierten SIWE-Adresse entspricht (z.B. bei Wallet-Switches).
+                // Die signierte Nachricht + Recovery ist hier die vertrauenswürdige Quelle.
                 if (!string.IsNullOrWhiteSpace(claimedAddress) && !string.Equals(recoveredAddress, claimedAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    return InvalidSiwe($"signature address does not match payload address (recovered: {recoveredAddress}, payload: {claimedAddress})");
+                    _logger.LogWarning(
+                        "SIWE payload address mismatch. Using recovered address. Recovered={RecoveredAddress}, Payload={PayloadAddress}",
+                        recoveredAddress,
+                        claimedAddress);
                 }
 
                 if (!string.IsNullOrWhiteSpace(messageAddress) && !string.Equals(recoveredAddress, messageAddress, StringComparison.OrdinalIgnoreCase))
