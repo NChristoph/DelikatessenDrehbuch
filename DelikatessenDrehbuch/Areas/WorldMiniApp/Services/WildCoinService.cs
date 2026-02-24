@@ -104,7 +104,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         // ---- Marketplace ----
 
-        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null)
+        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sellerHash);
             if (user == null) throw new InvalidOperationException("User nicht gefunden.");
@@ -134,6 +134,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 SellerHash = sellerHash,
                 SellerName = user.UserName ?? "Anonym",
                 SellerWalletAddress = sellerWalletAddress,
+                SellerUsdtWalletAddress = sellerUsdtWalletAddress,
                 MealPlanId = mealPlanId,
                 MealPlan = mealPlan,
                 Title = title,

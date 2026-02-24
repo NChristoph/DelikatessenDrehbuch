@@ -15,6 +15,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private const string SessionWalletWLD = "WorldWallet_WLD";
         private const string SessionWalletUSDT = "WorldWallet_USDT";
+        private static readonly HashSet<string> AllowedWalletTokens = new(StringComparer.OrdinalIgnoreCase) { "WLD", "USDT", "USDCE" };
         private readonly IWildCoinService _coinService;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
@@ -193,6 +194,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             ViewData["UserHash"] = userHash;
             ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
+            ViewData["WalletUSDT"] = HttpContext.Session.GetString(SessionWalletUSDT) ?? "";
             SetWorldChainConfig();
             return View(mealPlans);
         }
@@ -210,7 +212,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new { success = false, error = "Wallet-Adresse fehlt." });
 
             token = (token ?? "WLD").ToUpperInvariant();
-            var sessionKey = token == "USDT" ? SessionWalletUSDT : SessionWalletWLD;
+            if (!AllowedWalletTokens.Contains(token))
+                return Json(new { success = false, error = "Unbekannter Token." });
+
+            var sessionKey = token == "USDT" || token == "USDCE" ? SessionWalletUSDT : SessionWalletWLD;
             HttpContext.Session.SetString(sessionKey, walletAddress);
 
             return Json(new { success = true, token, walletAddress });
@@ -225,7 +230,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new { walletAddress = "" });
 
             token = (token ?? "WLD").ToUpperInvariant();
-            var sessionKey = token == "USDT" ? SessionWalletUSDT : SessionWalletWLD;
+            if (!AllowedWalletTokens.Contains(token))
+                return Json(new { success = false, error = "Unbekannter Token." });
+
+            var sessionKey = token == "USDT" || token == "USDCE" ? SessionWalletUSDT : SessionWalletWLD;
             var address = HttpContext.Session.GetString(sessionKey) ?? "";
 
             return Json(new { walletAddress = address, token });
@@ -234,7 +242,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // POST: Listing erstellen
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateListing(int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress)
+        public async Task<IActionResult> CreateListing(int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress, string? sellerUsdtWalletAddress)
         {
             var userHash = GetUserHash();
             if (string.IsNullOrWhiteSpace(userHash))
@@ -243,12 +251,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (price < 1 || price > 1000)
                 return Json(new { success = false, error = "Preis muss zwischen 1 und 1000 WLD liegen." });
 
-            if (string.IsNullOrWhiteSpace(sellerWalletAddress))
-                return Json(new { success = false, error = "Bitte verbinde zuerst deine Wallet, damit du Zahlungen empfangen kannst." });
+            if (string.IsNullOrWhiteSpace(sellerWalletAddress) && string.IsNullOrWhiteSpace(sellerUsdtWalletAddress))
+                return Json(new { success = false, error = "Bitte verbinde zuerst mindestens eine Wallet (WLD oder USDT), damit du Zahlungen empfangen kannst." });
+
+            var sessionWalletWld = HttpContext.Session.GetString(SessionWalletWLD) ?? string.Empty;
+            var sessionWalletUsdt = HttpContext.Session.GetString(SessionWalletUSDT) ?? string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(sellerWalletAddress) && !string.Equals(sellerWalletAddress, sessionWalletWld, StringComparison.OrdinalIgnoreCase))
+                return Json(new { success = false, error = "Die angegebene WLD-Wallet passt nicht zu deiner verbundenen World-Wallet." });
+
+            if (!string.IsNullOrWhiteSpace(sellerUsdtWalletAddress) && !string.Equals(sellerUsdtWalletAddress, sessionWalletUsdt, StringComparison.OrdinalIgnoreCase))
+                return Json(new { success = false, error = "Die angegebene USDT/USDC-Wallet passt nicht zu deiner verbundenen World-Wallet." });
 
             try
             {
-                var listing = await _coinService.CreateListing(userHash, mealPlanId, title, description, price, sellerWalletAddress);
+                var listing = await _coinService.CreateListing(userHash, mealPlanId, title, description, price, sellerWalletAddress, sellerUsdtWalletAddress);
                 return Json(new { success = true, listingId = listing.Id });
             }
             catch (InvalidOperationException ex)

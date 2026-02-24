@@ -6,6 +6,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string SellerHash { get; set; }
         public string SellerName { get; set; }
         public string? SellerWalletAddress { get; set; }
+        public string? SellerUsdtWalletAddress { get; set; }
         public int MealPlanId { get; set; }
         public WorldUserMealPlan MealPlan { get; set; }
         public string Title { get; set; }
