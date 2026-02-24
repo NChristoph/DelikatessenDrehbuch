@@ -251,10 +251,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             if (isOnChainTx)
             {
-                var verified = await VerifyTransactionOnChainAsync(normalizedTxHash);
-                if (!verified)
+                var verificationResult = await VerifyTransactionOnChainAsync(normalizedTxHash);
+                if (verificationResult == false)
                 {
                     purchase.Status = "fehlgeschlagen";
+                    await _context.SaveChangesAsync();
+                    return purchase;
+                }
+
+                if (verificationResult == null)
+                {
+                    purchase.Status = "pending";
                     await _context.SaveChangesAsync();
                     return purchase;
                 }
@@ -317,7 +324,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         /// Prueft via World Chain RPC ob die Transaktion existiert und erfolgreich war (status=0x1).
         /// Versucht bis zu 3x mit je 3s Wartezeit (TX koennte noch pending sein).
         /// </summary>
-        private async Task<bool> VerifyTransactionOnChainAsync(string txHash)
+        private async Task<bool?> VerifyTransactionOnChainAsync(string txHash)
         {
             const int maxAttempts = 3;
             const int delayMs = 3000;
@@ -376,8 +383,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 }
             }
 
-            _logger.LogError("TX {TxHash} konnte nach {Max} Versuchen nicht auf World Chain bestaetigt werden.", txHash, maxAttempts);
-            return false;
+            _logger.LogWarning("TX {TxHash} konnte nach {Max} Versuchen nicht bestaetigt werden (weiter pending).", txHash, maxAttempts);
+            return null;
         }
     }
 }

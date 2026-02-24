@@ -304,7 +304,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 
                 if (string.Equals(purchase.Status, "fehlgeschlagen", StringComparison.OrdinalIgnoreCase))
-                    return Json(new { success = false, error = "Transaktion noch nicht bestaetigt oder fehlgeschlagen.", status = purchase.Status });
+                    return Json(new { success = false, error = "Transaktion ist fehlgeschlagen.", status = purchase.Status });
+
+                if (string.Equals(purchase.Status, "pending", StringComparison.OrdinalIgnoreCase))
+                    return Json(new { success = false, error = "Transaktion ist noch pending. Bitte in ein paar Sekunden erneut pruefen.", status = purchase.Status });
 
                 return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId, status = purchase.Status });
             }
