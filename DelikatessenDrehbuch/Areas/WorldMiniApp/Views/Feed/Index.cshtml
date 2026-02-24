@@ -2404,16 +2404,32 @@
             return address;
         }
 
-        async function finalizeFeedPurchase(listingId, txHash, walletAddress, paymentToken) {
+        async function finalizeFeedPurchase(listingId, txHash, walletAddress, paymentToken, paymentAction) {
             const form = new FormData();
             form.append('ListingId', listingId);
             form.append('TxHash', txHash);
             form.append('WalletAddress', walletAddress || '');
             form.append('PaymentToken', paymentToken || 'WLD');
+            form.append('ClientAction', paymentAction || '');
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             if (tokenInput) form.append('__RequestVerificationToken', tokenInput.value);
             const resp = await fetch('/WorldMiniApp/Marketplace/FinalizeWorldChainPurchase', { method: 'POST', body: form });
             return resp.json();
+        }
+
+
+        // WalletAuth nur für Kauf-Flow (zusätzlich zum World-ID Verify Login)
+        async function ensureFeedWalletAuthForPurchase() {
+            if (sessionStorage.getItem('feed_wallet_auth_ok') === 'true') return;
+            if (!window.startWalletAuth) return;
+
+            try {
+                await window.startWalletAuth();
+                sessionStorage.setItem('feed_wallet_auth_ok', 'true');
+            } catch (error) {
+                console.warn('Feed WalletAuth vor Kauf fehlgeschlagen:', error);
+                throw error;
+            }
         }
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
@@ -2424,18 +2440,46 @@
             if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
 
             try {
+                // Wichtig: WalletAuth zusätzlich für Kauf, ersetzt NICHT Verify-Login
+                await ensureFeedWalletAuthForPurchase();
                 await ensureFeedWalletConnected();
-                if (window.startMiniKitPayment) {
-                    const payResult = await window.startMiniKitPayment({
-                        to: sellerWallet, tokenSymbol: token, amount: actualPrice,
-                        reference: `feed-listing-${listingId}-${Date.now()}`,
-                        description: `Essensplan: ${title}`
-                    });
-                    const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
-                    const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
-                    if (data.success) { return; }
-                    alert(data.error || 'Kauf konnte nicht finalisiert werden.');
-                    return;
+                if (window.worldChainMarketplace?.buyListingWithWorldChain) {
+                    try {
+                        const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                            listingId,
+                            price: actualPrice,
+                            buyerHash: FEED_USER_HASH,
+                            paymentToken: token
+                        });
+                        const data = await finalizeFeedPurchase(
+                            listingId,
+                            onChainResult.txHash,
+                            onChainResult.walletAddress,
+                            onChainResult.paymentToken,
+                            'pay-delikatessendrehbuch'
+                        );
+                        if (data.success) { return; }
+                        alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                        return;
+                    } catch (onChainError) {
+                        const message = String(onChainError?.message || '');
+                        const isWalletMissing = message.toLowerCase().includes('kein wallet gefunden');
+
+                        if (isWalletMissing && window.startMiniKitPayment) {
+                            const payResult = await window.startMiniKitPayment({
+                                to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                                reference: `feed-listing-${listingId}-${Date.now()}`,
+                                description: `Essensplan: ${title}`
+                            });
+                            const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
+                            const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token, 'pay-delikatessendrehbuch');
+                            if (data.success) { return; }
+                            alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                            return;
+                        }
+
+                        throw onChainError;
+                    }
                 }
                 alert('Kein Zahlungsweg verfügbar.');
             } catch (e) {

@@ -276,6 +276,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             public string TxHash { get; set; } = string.Empty;
             public string WalletAddress { get; set; } = string.Empty;
             public string PaymentToken { get; set; } = "WLD";
+            public string ClientAction { get; set; } = string.Empty;
         }
 
         // POST: World Chain Kauf finalisieren (nach erfolgreicher On-Chain TX)
@@ -298,7 +299,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     request.TxHash,
                     request.WalletAddress,
                     IsSelfPurchaseAllowedForTesting(),
-                    request.PaymentToken);
+                    request.PaymentToken,
+                    request.ClientAction);
                 if (purchase == null)
                     return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 
