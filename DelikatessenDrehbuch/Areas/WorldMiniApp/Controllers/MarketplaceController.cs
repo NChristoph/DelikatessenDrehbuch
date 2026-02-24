@@ -5,6 +5,7 @@ using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -19,12 +20,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IWildCoinService _coinService;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<MarketplaceController> _logger;
 
-        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration)
+        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceController> logger)
         {
             _coinService = coinService;
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         private void SetWorldChainConfig()
@@ -272,6 +275,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 return Json(new { success = false, error = ex.Message });
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CreateListing failed. MealPlanId={MealPlanId}, UserHash={UserHash}", mealPlanId, userHash);
+                return Json(new { success = false, error = "Interner Fehler beim Erstellen des Angebots." });
+            }
         }
 
         // POST: Listing deaktivieren
@@ -348,6 +356,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (InvalidOperationException ex)
             {
                 return Json(new { success = false, error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "FinalizeWorldChainPurchase failed. ListingId={ListingId}, UserHash={UserHash}", request.ListingId, userHash);
+                return Json(new { success = false, error = "Interner Fehler beim Finalisieren. Bitte erneut versuchen." });
             }
         }
 
