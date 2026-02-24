@@ -696,15 +696,16 @@
     }
 
     // ── Buy Flow ──
-    async function buyListing(listingId, title, priceWld, _sellerWalletOverride) {
+    async function buyListing(listingId, title, priceWld, sellerWalletOverride) {
         const token = getSelectedToken();
 
         if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
 
         const buyBtn = document.getElementById(`buyBtn-${listingId}`);
-        const marketplaceWallet = (window.worldChainMarketplaceConfig?.marketplaceAddress || '').trim();
-        if (!marketplaceWallet) { alert('Marketplace Wallet/Contract ist nicht konfiguriert.'); return; }
+        const sellerWallet = (sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '').trim();
+        if (!sellerWallet) { alert('Verkaeufer Wallet fehlt. Kauf aktuell nicht moeglich.'); return; }
 
+        const marketplaceWallet = (window.worldChainMarketplaceConfig?.marketplaceAddress || '').trim();
         const buyerWallet = walletAddresses[token] || walletAddresses.WLD || walletAddresses.USDCE || '';
         if (!buyerWallet) { alert('Bitte zuerst Wallet verbinden.'); return; }
 
@@ -718,7 +719,7 @@
             if (window.startMiniKitPayment) {
                 const reference = `listing-${listingId}-${Date.now()}`;
                 const payResult = await window.startMiniKitPayment({
-                    to: marketplaceWallet, tokenSymbol: token, amount: actualPrice,
+                    to: sellerWallet, tokenSymbol: token, amount: actualPrice,
                     reference, description: `Essensplan: ${title}`
                 });
 
@@ -746,6 +747,7 @@
             if (window.worldChainMarketplace?.buyListingWithWorldChain) {
                 const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
                 if (ethereumProvider) {
+                    if (!marketplaceWallet) { alert('Marketplace Wallet/Contract ist nicht konfiguriert.'); setBuyButtonLoading(listingId, false); return; }
                     const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
                         listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
                     });
