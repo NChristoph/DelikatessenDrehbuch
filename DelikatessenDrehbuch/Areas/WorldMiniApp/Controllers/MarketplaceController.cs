@@ -6,6 +6,7 @@ using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -302,7 +303,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 if (purchase == null)
                     return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 
-                return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+                if (string.Equals(purchase.Status, "fehlgeschlagen", StringComparison.OrdinalIgnoreCase))
+                    return Json(new { success = false, error = "Transaktion noch nicht bestaetigt oder fehlgeschlagen.", status = purchase.Status });
+
+                return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId, status = purchase.Status });
             }
             catch (InvalidOperationException ex)
             {
