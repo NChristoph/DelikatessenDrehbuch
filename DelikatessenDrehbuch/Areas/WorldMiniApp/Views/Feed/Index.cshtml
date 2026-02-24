@@ -2418,8 +2418,9 @@
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
             if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
-            if (!sellerWallet) { alert('Verkäufer-Wallet fehlt.'); return; }
             const token = feedSelectedPaymentToken;
+            const marketplaceWallet = (window.worldChainMarketplaceConfig?.marketplaceAddress || '').trim();
+            if (!marketplaceWallet) { alert('Marketplace Wallet/Contract ist nicht konfiguriert.'); return; }
             const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
             if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
 
@@ -2427,12 +2428,12 @@
                 await ensureFeedWalletConnected();
                 if (window.startMiniKitPayment) {
                     const payResult = await window.startMiniKitPayment({
-                        to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                        to: marketplaceWallet, tokenSymbol: token, amount: actualPrice,
                         reference: `feed-listing-${listingId}-${Date.now()}`,
                         description: `Essensplan: ${title}`
                     });
                     const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
-                    const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
+                    const data = await finalizeFeedPurchase(listingId, txRef, feedWalletAddresses[token] || feedWalletAddresses.WLD || feedWalletAddresses.USDCE || '', token);
                     if (data.success) { return; }
                     alert(data.error || 'Kauf konnte nicht finalisiert werden.');
                     return;
