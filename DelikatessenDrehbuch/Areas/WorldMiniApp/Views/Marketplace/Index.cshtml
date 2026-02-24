@@ -654,8 +654,29 @@
         form.append('WalletAddress', walletAddress || '');
         form.append('PaymentToken', paymentToken || 'WLD');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
+
         const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
-        return resp.json();
+        const contentType = (resp.headers.get('content-type') || '').toLowerCase();
+        const bodyText = await resp.text();
+
+        if (!contentType.includes('application/json')) {
+            const shortBody = (bodyText || '').slice(0, 160);
+            throw new Error(`Backend hat kein JSON geliefert (HTTP ${resp.status}). Antwort beginnt mit: ${shortBody}`);
+        }
+
+        let data;
+        try {
+            data = JSON.parse(bodyText);
+        } catch {
+            const shortBody = (bodyText || '').slice(0, 160);
+            throw new Error(`Ungueltiges JSON vom Backend (HTTP ${resp.status}). Antwort beginnt mit: ${shortBody}`);
+        }
+
+        if (!resp.ok) {
+            throw new Error(data?.error || `Backend-Fehler (HTTP ${resp.status}).`);
+        }
+
+        return data;
     }
 
     function setBuyButtonLoading(listingId, loading) {
