@@ -554,3 +554,83 @@ BEGIN
         ON [WorldMealplanPurcase]([CashoutTransactionId]);
 END
 GO
+
+-- =====================================================
+-- Migration-Fix: Doppelte Hash-Spalten entfernen
+-- BuyerHash == SenderUserHash, SellerHash == ReceiverUserHash
+-- =====================================================
+
+-- 23) Alte (doppelte) Hash-Indizes entfernen
+IF EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_WorldMealplanPurcase_SenderUserHash'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
+)
+BEGIN
+    DROP INDEX [IX_WorldMealplanPurcase_SenderUserHash] ON [WorldMealplanPurcase];
+END
+GO
+
+IF EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_WorldMealplanPurcase_ReceiverUserHash'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
+)
+BEGIN
+    DROP INDEX [IX_WorldMealplanPurcase_ReceiverUserHash] ON [WorldMealplanPurcase];
+END
+GO
+
+-- 24) Doppelte Hash-Spalten entfernen, wenn vorhanden
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'SenderUserHash'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] DROP COLUMN [SenderUserHash];
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'ReceiverUserHash'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] DROP COLUMN [ReceiverUserHash];
+END
+GO
+
+-- 25) Stattdessen Indizes auf bestehende Hash-Spalten BuyerHash/SellerHash sicherstellen
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'BuyerHash'
+)
+AND NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_WorldMealplanPurcase_BuyerHash'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
+)
+BEGIN
+    CREATE INDEX [IX_WorldMealplanPurcase_BuyerHash]
+        ON [WorldMealplanPurcase]([BuyerHash]);
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'SellerHash'
+)
+AND NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_WorldMealplanPurcase_SellerHash'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
+)
+BEGIN
+    CREATE INDEX [IX_WorldMealplanPurcase_SellerHash]
+        ON [WorldMealplanPurcase]([SellerHash]);
+END
+GO
