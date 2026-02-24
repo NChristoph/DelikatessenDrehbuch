@@ -73,6 +73,10 @@ namespace DelikatessenDrehbuch.Data
                 .WithMany(keyword => keyword.RecipeLinks)
                 .HasForeignKey(link => link.KeywordId);
 
+
+            // Legacy/production table name mapping (typo kept for compatibility):
+            // Model MealPlanPurchase -> dbo.WorldMealplanPurcase
+            builder.Entity<MealPlanPurchase>().ToTable("WorldMealplanPurcase");
         }
     }
 }

@@ -10,7 +10,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         Task<List<WildCoinTransaction>> GetTransactions(string userHash, int take = 20);
 
         // Marketplace
-        Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null);
+        Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null);
         Task<List<MealPlanListing>> GetActiveListings(int skip = 0, int take = 20);
         Task<List<MealPlanListing>> GetMyListings(string userHash);
         Task<MealPlanListing?> GetListingById(int id);

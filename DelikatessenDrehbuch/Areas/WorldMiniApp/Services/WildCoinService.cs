@@ -104,7 +104,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         // ---- Marketplace ----
 
-        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null)
+        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sellerHash);
             if (user == null) throw new InvalidOperationException("User nicht gefunden.");
@@ -134,6 +134,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 SellerHash = sellerHash,
                 SellerName = user.UserName ?? "Anonym",
                 SellerWalletAddress = sellerWalletAddress,
+                SellerUsdtWalletAddress = sellerUsdtWalletAddress,
                 MealPlanId = mealPlanId,
                 MealPlan = mealPlan,
                 Title = title,
@@ -252,12 +253,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var creatorAmount = Math.Round(listing.Price * 0.80m, 6);
                 var platformFee = listing.Price - creatorAmount;
 
+                var sellerWalletForPurchase = (paymentToken ?? "WLD").Equals("USDT", StringComparison.OrdinalIgnoreCase)
+                    || (paymentToken ?? "WLD").Equals("USDCE", StringComparison.OrdinalIgnoreCase)
+                    ? (listing.SellerUsdtWalletAddress ?? listing.SellerWalletAddress)
+                    : listing.SellerWalletAddress;
+
                 var purchase = new MealPlanPurchase
                 {
                     BuyerHash = buyerHash,
                     BuyerWalletAddress = walletAddress,
                     SellerHash = listing.SellerHash,
-                    SellerWalletAddress = listing.SellerWalletAddress,
+                    SellerWalletAddress = sellerWalletForPurchase,
                     ListingId = listing.Id,
                     Listing = listing,
                     CreatedMealPlanId = copiedPlan.Id,
@@ -265,7 +271,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     CreatorAmount = creatorAmount,
                     PlatformFee = platformFee,
                     ReferenceTxHash = txHash,
-                    PaymentToken = paymentToken
+                    PurchaseTransactionId = txHash,
+                    PaymentToken = paymentToken,
+                    OrderTimestampUtc = DateTime.UtcNow,
+                    Status = null,
+                    SellerCredited = false,
+                    SellerCreditedAtUtc = null,
+                    CashoutTransactionId = null
                 };
                 await _context.MealPlanPurchases.AddAsync(purchase);
                 await _context.SaveChangesAsync();

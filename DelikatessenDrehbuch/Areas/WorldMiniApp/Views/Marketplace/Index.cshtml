@@ -646,6 +646,28 @@
         }
     }
 
+
+    async function ensureBuyerWalletForToken(token) {
+        const normalized = (token || 'WLD').toUpperCase();
+        const mappedToken = normalized === 'USDCE' ? 'USDT' : normalized;
+
+        let buyerWallet = mappedToken === 'USDT' ? (walletAddresses.USDT || walletAddresses.USDCE) : walletAddresses.WLD;
+        if (buyerWallet) return buyerWallet;
+
+        // Wallet ggf. erst nach MiniKit-Payment holen und in Session speichern
+        buyerWallet = await connectWorldWallet();
+        if (!buyerWallet) return '';
+
+        if (mappedToken === 'USDT') {
+            walletAddresses.USDT = buyerWallet;
+            walletAddresses.USDCE = buyerWallet;
+        } else {
+            walletAddresses.WLD = buyerWallet;
+        }
+
+        return buyerWallet;
+    }
+
     // ── Finalize on Backend ──
     async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken) {
         const form = new FormData();
@@ -654,8 +676,34 @@
         form.append('WalletAddress', walletAddress || '');
         form.append('PaymentToken', paymentToken || 'WLD');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
-        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
-        return resp.json();
+
+        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const contentType = resp.headers.get('content-type') || '';
+        const rawText = await resp.text();
+
+        if (!contentType.includes('application/json')) {
+            const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            throw new Error(`Finalize lieferte kein JSON (HTTP ${resp.status}). Antwort: ${compact || 'leer'}`);
+        }
+
+        let data = null;
+        try {
+            data = JSON.parse(rawText);
+        } catch {
+            const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            throw new Error(`Ungueltige JSON-Antwort vom Server (HTTP ${resp.status}): ${compact || 'leer'}`);
+        }
+
+        if (!resp.ok) {
+            throw new Error(data?.error || `Finalize fehlgeschlagen (HTTP ${resp.status}).`);
+        }
+
+        return data;
     }
 
     function setBuyButtonLoading(listingId, loading) {
@@ -703,7 +751,8 @@
                 console.log('[Marketplace] TX Reference:', txRef);
 
                 if (payResult?.status === 'success' && txRef) {
-                    const data = await finalizeOnBackend(listingId, txRef, sellerWallet, token);
+                    const buyerWallet = await ensureBuyerWalletForToken(token);
+                    const data = await finalizeOnBackend(listingId, txRef, buyerWallet, token);
                     console.log('[Marketplace] Finalize response:', JSON.stringify(data));
                     if (data.success) { location.reload(); }
                     else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
@@ -711,7 +760,8 @@
                 } else if (payResult?.status === 'success') {
                     console.warn('[Marketplace] Keine TX-Referenz, verwende Timestamp als Fallback');
                     const fallbackRef = `minikit-${listingId}-${Date.now()}`;
-                    const data = await finalizeOnBackend(listingId, fallbackRef, sellerWallet, token);
+                    const buyerWallet = await ensureBuyerWalletForToken(token);
+                    const data = await finalizeOnBackend(listingId, fallbackRef, buyerWallet, token);
                     if (data.success) { location.reload(); }
                     else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
                     return;

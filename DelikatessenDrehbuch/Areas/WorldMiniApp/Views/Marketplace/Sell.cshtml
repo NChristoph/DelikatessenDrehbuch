@@ -4,6 +4,7 @@
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
 
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
     var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
@@ -74,14 +75,14 @@
 
     <div class="sell-card p-4 mb-3">
         <h4 class="fw-bold mb-1">Essensplan verkaufen</h4>
-        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WLD fest.</p>
+        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WLD fest. Optional kannst du zusätzlich eine USDT/USDC-Auszahlungsadresse speichern.</p>
     </div>
 
     <!-- Wallet-Verbindung (Pflicht zum Verkaufen) -->
     <div class="wallet-bar-sell mb-3">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <div class="small opacity-75">Deine Auszahlungs-Wallet</div>
+                <div class="small opacity-75">Deine Auszahlungs-Wallet (WLD)</div>
                 <div class="small mt-1" id="sellerWalletStatus">
                     @if (!string.IsNullOrWhiteSpace(walletWLD))
                     {
@@ -95,6 +96,28 @@
             </div>
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerWalletBtn" onclick="connectSellerWallet()">
                 <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletWLD) ? "Verbinden" : "Verbunden")
+            </button>
+        </div>
+    </div>
+
+
+    <div class="wallet-bar-sell mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="small opacity-75">Deine Auszahlungs-Wallet (USDT/USDC)</div>
+                <div class="small mt-1" id="sellerUsdtWalletStatus">
+                    @if (!string.IsNullOrWhiteSpace(walletUSDT))
+                    {
+                        <span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>@walletUSDT.Substring(0, Math.Min(6, walletUSDT.Length))...@walletUSDT.Substring(Math.Max(0, walletUSDT.Length - 4))</span>
+                    }
+                    else
+                    {
+                        <span class="text-warning">Nicht verbunden - optional für USDT/USDC-Auszahlungen</span>
+                    }
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerUsdtWalletBtn" onclick="connectSellerUsdtWallet()">
+                <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletUSDT) ? "Verbinden" : "Verbunden")
             </button>
         </div>
     </div>
@@ -172,6 +195,7 @@
 <script>
     let selectedPlanId = null;
     let sellerWalletAddress = '@walletWLD';
+    let sellerUsdtWalletAddress = '@walletUSDT';
 
     const USER_HASH = '@userHash';
 
@@ -209,7 +233,7 @@
 
     function updateSellButtonState() {
         const btn = document.getElementById('btnSell');
-        btn.disabled = !selectedPlanId || !sellerWalletAddress;
+        btn.disabled = !selectedPlanId || (!sellerWalletAddress && !sellerUsdtWalletAddress);
     }
 
     async function connectSellerWallet() {
@@ -268,11 +292,64 @@
         }
     }
 
+
+    async function connectSellerUsdtWallet() {
+        const btn = document.getElementById('connectSellerUsdtWalletBtn');
+        try {
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
+            let address = '';
+
+            if (window.worldChainMarketplace?.connectWallet) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.();
+                if (ethereumProvider) {
+                    try {
+                        address = await window.worldChainMarketplace.connectWallet();
+                    } catch (e) {
+                        console.warn('EIP-1193 connectWallet fehlgeschlagen:', e.message);
+                    }
+                }
+            }
+
+            if (!address && window.connectWalletOnly) {
+                address = await window.connectWalletOnly();
+            }
+
+            if (!address) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+                alert('USDT/USDC-Wallet-Verbindung fehlgeschlagen.');
+                return;
+            }
+
+            sellerUsdtWalletAddress = address;
+
+            const form = new FormData();
+            form.append('walletAddress', address);
+            form.append('token', 'USDT');
+            form.append('__RequestVerificationToken', getAntiForgeryToken());
+            await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                body: form
+            });
+
+            const statusEl = document.getElementById('sellerUsdtWalletStatus');
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>${shortWallet(address)}</span>`;
+            }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            updateSellButtonState();
+        } catch (error) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+            alert(error?.message || 'USDT/USDC-Wallet-Verbindung fehlgeschlagen.');
+        }
+    }
+
     async function createListing() {
         if (!selectedPlanId) return;
 
-        if (!sellerWalletAddress) {
-            alert('Bitte verbinde zuerst deine Wallet, damit du Zahlungen empfangen kannst.');
+        if (!sellerWalletAddress && !sellerUsdtWalletAddress) {
+            alert('Bitte verbinde zuerst mindestens eine Wallet (WLD oder USDT/USDC), damit du Zahlungen empfangen kannst.');
             return;
         }
 
@@ -289,6 +366,7 @@
         form.append('description', description);
         form.append('price', price);
         form.append('sellerWalletAddress', sellerWalletAddress);
+        form.append('sellerUsdtWalletAddress', sellerUsdtWalletAddress);
         form.append('__RequestVerificationToken', getAntiForgeryToken());
 
         const btn = document.getElementById('btnSell');
@@ -325,6 +403,13 @@
             const btn = document.getElementById('connectSellerWalletBtn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
         }
+
+        if (sellerUsdtWalletAddress) {
+            const btnUsdt = document.getElementById('connectSellerUsdtWalletBtn');
+            if (btnUsdt) { btnUsdt.disabled = true; btnUsdt.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btnUsdt.classList.replace('btn-outline-light', 'btn-success'); }
+        }
+
+        updateSellButtonState();
     });
 </script>
 @Html.AntiForgeryToken()

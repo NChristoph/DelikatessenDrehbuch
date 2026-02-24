@@ -75,6 +75,10 @@
                                 <span class="stat-pill"><i class="bi bi-journal-text"></i> @listing.RecipeCount Rezepte</span>
                                 <span class="stat-pill"><i class="bi bi-bag-check"></i> @listing.SoldCount verkauft</span>
                             </div>
+                            <div class="small text-muted mt-2">
+                                <div><strong>WLD:</strong> @(string.IsNullOrWhiteSpace(listing.SellerWalletAddress) ? "-" : listing.SellerWalletAddress)</div>
+                                <div><strong>USDT/USDC:</strong> @(string.IsNullOrWhiteSpace(listing.SellerUsdtWalletAddress) ? "-" : listing.SellerUsdtWalletAddress)</div>
+                            </div>
                         </div>
                         <div class="text-end">
                             <div class="coin-badge mb-1">@listing.Price.ToString("0.##") WLD</div>
