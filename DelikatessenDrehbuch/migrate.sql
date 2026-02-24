@@ -312,3 +312,130 @@ BEGIN
         INCLUDE ([ListingId], [PurchasedAt]);
 END
 GO
+
+-- =====================================================
+-- Migration: MealPlan Sales Transaction Ledger
+-- Speichert alle Payment-Auftraege (eingehend) und Cashout-Referenzen (ausgehend)
+-- =====================================================
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanSalesTransactions'
+)
+BEGIN
+    CREATE TABLE [dbo].[MealPlanSalesTransactions]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+
+        -- Benutzer-Kontext
+        [SenderUserId] INT NULL,
+        [ReceiverUserId] INT NULL,
+        [SenderUserHash] NVARCHAR(256) NOT NULL,
+        [ReceiverUserHash] NVARCHAR(256) NOT NULL,
+
+        -- Auftragsdaten
+        [OrderTimestampUtc] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+        [Status] NVARCHAR(20) NOT NULL DEFAULT 'ok', -- ok | fehlgeschlagen
+        [SellerCredited] BIT NOT NULL DEFAULT 0,
+        [SellerCreditedAtUtc] DATETIME2 NULL,
+
+        -- Referenzen auf die Zahlungsfluesse
+        [PlatformInTxId] NVARCHAR(130) NULL,      -- eingehende Kauf-Transaktion (Buyer -> Plattform)
+        [PurchaseTransactionId] NVARCHAR(130) NULL,
+        [CashoutTransactionId] NVARCHAR(130) NULL, -- woechentlicher Sammeltransfer (Plattform -> Smart Contract)
+
+        -- optionaler Kontext zum Kauf
+        [MealPlanPurchaseId] INT NULL,
+        [ListingId] INT NULL,
+        [Amount] DECIMAL(18,6) NULL,
+        [TokenSymbol] NVARCHAR(20) NULL,
+
+        CONSTRAINT [PK_MealPlanSalesTransactions] PRIMARY KEY ([Id]),
+        CONSTRAINT [CK_MealPlanSalesTransactions_Status]
+            CHECK ([Status] IN ('ok', 'fehlgeschlagen')),
+
+        CONSTRAINT [FK_MealPlanSalesTransactions_SenderUser]
+            FOREIGN KEY ([SenderUserId]) REFERENCES [WorldAppUser]([Id]),
+        CONSTRAINT [FK_MealPlanSalesTransactions_ReceiverUser]
+            FOREIGN KEY ([ReceiverUserId]) REFERENCES [WorldAppUser]([Id]),
+        CONSTRAINT [FK_MealPlanSalesTransactions_MealPlanPurchase]
+            FOREIGN KEY ([MealPlanPurchaseId]) REFERENCES [MealPlanPurchases]([Id]),
+        CONSTRAINT [FK_MealPlanSalesTransactions_Listing]
+            FOREIGN KEY ([ListingId]) REFERENCES [MealPlanListings]([Id])
+    );
+END
+GO
+
+-- Sicherstellen, dass SellerCreditedAtUtc nur gesetzt ist, wenn SellerCredited = 1
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = 'CK_MealPlanSalesTransactions_CreditedAt'
+      AND parent_object_id = OBJECT_ID('MealPlanSalesTransactions')
+)
+BEGIN
+    ALTER TABLE [MealPlanSalesTransactions]
+    ADD CONSTRAINT [CK_MealPlanSalesTransactions_CreditedAt]
+    CHECK (
+        ([SellerCredited] = 0 AND [SellerCreditedAtUtc] IS NULL)
+        OR ([SellerCredited] = 1)
+    );
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_MealPlanSalesTransactions_OrderTimestampUtc'
+      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+)
+BEGIN
+    CREATE INDEX [IX_MealPlanSalesTransactions_OrderTimestampUtc]
+        ON [MealPlanSalesTransactions]([OrderTimestampUtc]);
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_MealPlanSalesTransactions_SenderHash'
+      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+)
+BEGIN
+    CREATE INDEX [IX_MealPlanSalesTransactions_SenderHash]
+        ON [MealPlanSalesTransactions]([SenderUserHash]);
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_MealPlanSalesTransactions_ReceiverHash'
+      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+)
+BEGIN
+    CREATE INDEX [IX_MealPlanSalesTransactions_ReceiverHash]
+        ON [MealPlanSalesTransactions]([ReceiverUserHash]);
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'UX_MealPlanSalesTransactions_PurchaseTransactionId_NotNull'
+      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+)
+BEGIN
+    CREATE UNIQUE INDEX [UX_MealPlanSalesTransactions_PurchaseTransactionId_NotNull]
+        ON [MealPlanSalesTransactions]([PurchaseTransactionId])
+        WHERE [PurchaseTransactionId] IS NOT NULL;
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_MealPlanSalesTransactions_CashoutTransactionId'
+      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+)
+BEGIN
+    CREATE INDEX [IX_MealPlanSalesTransactions_CashoutTransactionId]
+        ON [MealPlanSalesTransactions]([CashoutTransactionId]);
+END
+GO
