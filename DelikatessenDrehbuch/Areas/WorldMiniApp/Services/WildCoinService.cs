@@ -274,7 +274,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     PurchaseTransactionId = txHash,
                     PaymentToken = paymentToken,
                     OrderTimestampUtc = DateTime.UtcNow,
-                    Status = "Paid",
+                    Status = null,
                     SellerCredited = false,
                     SellerCreditedAtUtc = null,
                     CashoutTransactionId = null
