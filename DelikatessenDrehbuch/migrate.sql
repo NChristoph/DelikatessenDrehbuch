@@ -1,6 +1,6 @@
 -- =============================================
 -- Migration: AddPhaseToPreperationSteps
--- Adds Phase column and classifies existing steps
+-- Adds Phase column and classifies existing stepss
 -- =============================================
 
 -- 1) Add Phase column (default 0 = Sonstige/Unbekannt)
