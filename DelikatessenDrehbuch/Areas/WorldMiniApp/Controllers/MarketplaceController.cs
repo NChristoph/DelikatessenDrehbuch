@@ -275,6 +275,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 return Json(new { success = false, error = ex.Message });
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "CreateListing DbUpdateException. MealPlanId={MealPlanId}, UserHash={UserHash}", mealPlanId, userHash);
+                var dbMessage = ex.GetBaseException().Message;
+                return Json(new { success = false, error = $"Datenbankfehler beim Erstellen des Angebots: {dbMessage}" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateListing failed. MealPlanId={MealPlanId}, UserHash={UserHash}", mealPlanId, userHash);
@@ -356,6 +362,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (InvalidOperationException ex)
             {
                 return Json(new { success = false, error = ex.Message });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "FinalizeWorldChainPurchase DbUpdateException. ListingId={ListingId}, UserHash={UserHash}", request.ListingId, userHash);
+                var dbMessage = ex.GetBaseException().Message;
+                return Json(new { success = false, error = $"Datenbankfehler beim Finalisieren: {dbMessage}" });
             }
             catch (Exception ex)
             {
