@@ -346,6 +346,24 @@ BEGIN
 END
 GO
 
+-- 16b) Falls die Tabelle bereits umbenannt wurde, aber noch Altdaten enthaelt,
+--      vor dem weiteren Umbau ebenfalls leeren (nur im Legacy-Schema-Zustand).
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'WorldMealplanPurcase'
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase'
+      AND COLUMN_NAME = 'PurchaseTransactionId'
+)
+BEGIN
+    DELETE FROM [WorldMealplanPurcase];
+END
+GO
+
 -- 17) Sender- / Receiver-Referenzen (optional auf WorldAppUser)
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
 AND NOT EXISTS (
