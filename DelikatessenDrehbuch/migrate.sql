@@ -314,128 +314,243 @@ END
 GO
 
 -- =====================================================
--- Migration: MealPlan Sales Transaction Ledger
--- Speichert alle Payment-Auftraege (eingehend) und Cashout-Referenzen (ausgehend)
+-- Migration: MealPlanPurchases Umbau -> WorldMealplanPurcase
+-- Neue Logik: zentrale Kauf-/Cashout-Dokumentation direkt auf der Purchase-Tabelle
 -- =====================================================
 
-IF NOT EXISTS (
+-- 15) Alte Ledger-Tabelle wieder entfernen (falls vorhanden)
+IF EXISTS (
     SELECT 1
     FROM INFORMATION_SCHEMA.TABLES
     WHERE TABLE_NAME = 'MealPlanSalesTransactions'
 )
 BEGIN
-    CREATE TABLE [dbo].[MealPlanSalesTransactions]
-    (
-        [Id] INT IDENTITY(1,1) NOT NULL,
-
-        -- Benutzer-Kontext
-        [SenderUserId] INT NULL,
-        [ReceiverUserId] INT NULL,
-        [SenderUserHash] NVARCHAR(256) NOT NULL,
-        [ReceiverUserHash] NVARCHAR(256) NOT NULL,
-
-        -- Auftragsdaten
-        [OrderTimestampUtc] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-        [Status] NVARCHAR(20) NOT NULL DEFAULT 'ok', -- ok | fehlgeschlagen
-        [SellerCredited] BIT NOT NULL DEFAULT 0,
-        [SellerCreditedAtUtc] DATETIME2 NULL,
-
-        -- Referenzen auf die Zahlungsfluesse
-        [PlatformInTxId] NVARCHAR(130) NULL,      -- eingehende Kauf-Transaktion (Buyer -> Plattform)
-        [PurchaseTransactionId] NVARCHAR(130) NULL,
-        [CashoutTransactionId] NVARCHAR(130) NULL, -- woechentlicher Sammeltransfer (Plattform -> Smart Contract)
-
-        -- optionaler Kontext zum Kauf
-        [MealPlanPurchaseId] INT NULL,
-        [ListingId] INT NULL,
-        [Amount] DECIMAL(18,6) NULL,
-        [TokenSymbol] NVARCHAR(20) NULL,
-
-        CONSTRAINT [PK_MealPlanSalesTransactions] PRIMARY KEY ([Id]),
-        CONSTRAINT [CK_MealPlanSalesTransactions_Status]
-            CHECK ([Status] IN ('ok', 'fehlgeschlagen')),
-
-        CONSTRAINT [FK_MealPlanSalesTransactions_SenderUser]
-            FOREIGN KEY ([SenderUserId]) REFERENCES [WorldAppUser]([Id]),
-        CONSTRAINT [FK_MealPlanSalesTransactions_ReceiverUser]
-            FOREIGN KEY ([ReceiverUserId]) REFERENCES [WorldAppUser]([Id]),
-        CONSTRAINT [FK_MealPlanSalesTransactions_MealPlanPurchase]
-            FOREIGN KEY ([MealPlanPurchaseId]) REFERENCES [MealPlanPurchases]([Id]),
-        CONSTRAINT [FK_MealPlanSalesTransactions_Listing]
-            FOREIGN KEY ([ListingId]) REFERENCES [MealPlanListings]([Id])
-    );
+    DROP TABLE [dbo].[MealPlanSalesTransactions];
 END
 GO
 
--- Sicherstellen, dass SellerCreditedAtUtc nur gesetzt ist, wenn SellerCredited = 1
-IF NOT EXISTS (
+-- 16) Vor Umbau alle Bestandsdaten loeschen und Tabelle umbenennen
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'MealPlanPurchases'
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'WorldMealplanPurcase'
+)
+BEGIN
+    DELETE FROM [MealPlanPurchases];
+    EXEC sp_rename 'MealPlanPurchases', 'WorldMealplanPurcase';
+END
+GO
+
+-- 17) Sender- / Receiver-Referenzen (optional auf WorldAppUser)
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'SenderUserId'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [SenderUserId] INT NULL;
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'ReceiverUserId'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [ReceiverUserId] INT NULL;
+END
+GO
+
+-- 18) Sender / Receiver Hashes
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'SenderUserHash'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [SenderUserHash] NVARCHAR(256) NOT NULL DEFAULT '';
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'ReceiverUserHash'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [ReceiverUserHash] NVARCHAR(256) NOT NULL DEFAULT '';
+END
+GO
+
+-- 19) Auftragszeit / Status / Gutschrift-Flags
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'OrderTimestampUtc'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [OrderTimestampUtc] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME();
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'Status'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [Status] NVARCHAR(20) NOT NULL DEFAULT 'ok';
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'SellerCredited'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [SellerCredited] BIT NOT NULL DEFAULT 0;
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'SellerCreditedAtUtc'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [SellerCreditedAtUtc] DATETIME2 NULL;
+END
+GO
+
+-- 20) Kauf- und Cashout-Transaktionsreferenzen
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'PurchaseTransactionId'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [PurchaseTransactionId] NVARCHAR(130) NULL;
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'WorldMealplanPurcase' AND COLUMN_NAME = 'CashoutTransactionId'
+)
+BEGIN
+    ALTER TABLE [WorldMealplanPurcase] ADD [CashoutTransactionId] NVARCHAR(130) NULL;
+END
+GO
+
+-- 21) Constraints und FK-Relationen
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
     SELECT 1
     FROM sys.check_constraints
-    WHERE name = 'CK_MealPlanSalesTransactions_CreditedAt'
-      AND parent_object_id = OBJECT_ID('MealPlanSalesTransactions')
+    WHERE name = 'CK_WorldMealplanPurcase_Status'
+      AND parent_object_id = OBJECT_ID('WorldMealplanPurcase')
 )
 BEGIN
-    ALTER TABLE [MealPlanSalesTransactions]
-    ADD CONSTRAINT [CK_MealPlanSalesTransactions_CreditedAt]
-    CHECK (
-        ([SellerCredited] = 0 AND [SellerCreditedAtUtc] IS NULL)
-        OR ([SellerCredited] = 1)
-    );
+    ALTER TABLE [WorldMealplanPurcase]
+    ADD CONSTRAINT [CK_WorldMealplanPurcase_Status]
+    CHECK ([Status] IN ('ok', 'fehlgeschlagen'));
 END
 GO
 
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'IX_MealPlanSalesTransactions_OrderTimestampUtc'
-      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_WorldMealplanPurcase_SenderUser'
+      AND parent_object_id = OBJECT_ID('WorldMealplanPurcase')
 )
 BEGIN
-    CREATE INDEX [IX_MealPlanSalesTransactions_OrderTimestampUtc]
-        ON [MealPlanSalesTransactions]([OrderTimestampUtc]);
+    ALTER TABLE [WorldMealplanPurcase]
+    ADD CONSTRAINT [FK_WorldMealplanPurcase_SenderUser]
+    FOREIGN KEY ([SenderUserId]) REFERENCES [WorldAppUser]([Id]);
 END
 GO
 
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'IX_MealPlanSalesTransactions_SenderHash'
-      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_WorldMealplanPurcase_ReceiverUser'
+      AND parent_object_id = OBJECT_ID('WorldMealplanPurcase')
 )
 BEGIN
-    CREATE INDEX [IX_MealPlanSalesTransactions_SenderHash]
-        ON [MealPlanSalesTransactions]([SenderUserHash]);
+    ALTER TABLE [WorldMealplanPurcase]
+    ADD CONSTRAINT [FK_WorldMealplanPurcase_ReceiverUser]
+    FOREIGN KEY ([ReceiverUserId]) REFERENCES [WorldAppUser]([Id]);
 END
 GO
 
-IF NOT EXISTS (
+-- 22) Such- und Duplikat-Indexes
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
     SELECT 1 FROM sys.indexes
-    WHERE name = 'IX_MealPlanSalesTransactions_ReceiverHash'
-      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+    WHERE name = 'IX_WorldMealplanPurcase_OrderTimestampUtc'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
 )
 BEGIN
-    CREATE INDEX [IX_MealPlanSalesTransactions_ReceiverHash]
-        ON [MealPlanSalesTransactions]([ReceiverUserHash]);
+    CREATE INDEX [IX_WorldMealplanPurcase_OrderTimestampUtc]
+        ON [WorldMealplanPurcase]([OrderTimestampUtc]);
 END
 GO
 
-IF NOT EXISTS (
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
     SELECT 1 FROM sys.indexes
-    WHERE name = 'UX_MealPlanSalesTransactions_PurchaseTransactionId_NotNull'
-      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+    WHERE name = 'IX_WorldMealplanPurcase_SenderUserHash'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
 )
 BEGIN
-    CREATE UNIQUE INDEX [UX_MealPlanSalesTransactions_PurchaseTransactionId_NotNull]
-        ON [MealPlanSalesTransactions]([PurchaseTransactionId])
+    CREATE INDEX [IX_WorldMealplanPurcase_SenderUserHash]
+        ON [WorldMealplanPurcase]([SenderUserHash]);
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_WorldMealplanPurcase_ReceiverUserHash'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
+)
+BEGIN
+    CREATE INDEX [IX_WorldMealplanPurcase_ReceiverUserHash]
+        ON [WorldMealplanPurcase]([ReceiverUserHash]);
+END
+GO
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'UX_WorldMealplanPurcase_PurchaseTransactionId_NotNull'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
+)
+BEGIN
+    CREATE UNIQUE INDEX [UX_WorldMealplanPurcase_PurchaseTransactionId_NotNull]
+        ON [WorldMealplanPurcase]([PurchaseTransactionId])
         WHERE [PurchaseTransactionId] IS NOT NULL;
 END
 GO
 
-IF NOT EXISTS (
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WorldMealplanPurcase')
+AND NOT EXISTS (
     SELECT 1 FROM sys.indexes
-    WHERE name = 'IX_MealPlanSalesTransactions_CashoutTransactionId'
-      AND object_id = OBJECT_ID('MealPlanSalesTransactions')
+    WHERE name = 'IX_WorldMealplanPurcase_CashoutTransactionId'
+      AND object_id = OBJECT_ID('WorldMealplanPurcase')
 )
 BEGIN
-    CREATE INDEX [IX_MealPlanSalesTransactions_CashoutTransactionId]
-        ON [MealPlanSalesTransactions]([CashoutTransactionId]);
+    CREATE INDEX [IX_WorldMealplanPurcase_CashoutTransactionId]
+        ON [WorldMealplanPurcase]([CashoutTransactionId]);
 END
 GO
