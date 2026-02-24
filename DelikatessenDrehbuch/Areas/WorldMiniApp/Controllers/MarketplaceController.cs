@@ -315,6 +315,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 ? HttpContext.Session.GetString(SessionWalletUSDT) ?? string.Empty
                 : HttpContext.Session.GetString(SessionWalletWLD) ?? string.Empty;
 
+            if (string.IsNullOrWhiteSpace(buyerSessionWallet) && !string.IsNullOrWhiteSpace(request.WalletAddress))
+            {
+                buyerSessionWallet = request.WalletAddress.Trim();
+                var buyerSessionKey = paymentToken == "USDT" || paymentToken == "USDCE" ? SessionWalletUSDT : SessionWalletWLD;
+                HttpContext.Session.SetString(buyerSessionKey, buyerSessionWallet);
+            }
+
             if (string.IsNullOrWhiteSpace(buyerSessionWallet))
                 return Json(new { success = false, error = "Keine verbundene Wallet in der Session gefunden." });
 
