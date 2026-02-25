@@ -363,103 +363,6 @@
                 </div>
 
                 <div class="creator-card-body">
-                    <!-- Sandbox Studio -->
-                    <div class="sandbox-studio mt-3">
-                        <div class="sandbox-head">
-                            <div>
-                                <div class="sandbox-title">Sandbox Studio</div>
-                                <div class="sandbox-sub">Schnelles Verknüpfen wie in einem Creator-Workflow</div>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <button type="button" id="btnSuggestSteps" class="btn btn-sm btn-outline-primary rounded-pill" onclick="suggestSteps()" disabled>
-                                    <i class="bi bi-magic me-1"></i>Schritte vorschlagen
-                                </button>
-                                <span class="badge text-bg-light border">Beta</span>
-                            </div>
-                        </div>
-                        <div id="recipeTypeScoreBar" class="mt-2 d-none">
-                            <div class="d-flex flex-wrap align-items-center gap-1">
-                                <span class="small text-muted me-1">Rezepttyp:</span>
-                                <span id="recipeTypeBadges"></span>
-                            </div>
-                        </div>
-                        <div id="masterStepPreviewBox" class="mt-2 d-none">
-                            <div class="small text-muted mb-1">Master-Step Vorschau:</div>
-                            <div id="masterStepPreviewList" class="d-flex flex-column gap-1"></div>
-                        </div>
-
-                        <div class="row g-3 mt-1">
-                            <div class="col-md-5">
-                                <div class="sandbox-panel h-100">
-                                    <div class="fw-bold small mb-2">Ausgewählte Zutaten</div>
-                                    <div id="sandboxIngredientList" class="d-flex flex-column gap-2">
-                                        <div class="text-muted small">Noch keine Zutat ausgewählt.</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-7">
-                                <div class="sandbox-panel h-100">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="fw-bold small">Vorschläge</div>
-                                        <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
-                                    </div>
-
-                                    <div class="mb-2">
-                                        <input type="text"
-                                               id="stepSearch"
-                                               class="form-control form-control-sm"
-                                               placeholder="Schritte durchsuchen..." />
-                                    </div>
-
-                                    <div class="sandbox-tabs" id="sandboxStepTabs" role="tablist">
-                                        <button class="sandbox-tab active" type="button" data-sandbox-tab="linked">Aktive Zutat</button>
-                                        <button class="sandbox-tab" type="button" data-sandbox-tab="all">Alle Zutaten</button>
-                                        <button class="sandbox-tab" type="button" data-sandbox-tab="unbound">Ohne Binding</button>
-                                    </div>
-
-                                    <div class="mt-2 d-none" id="sandboxUnboundSearchWrap">
-                                        <input type="text"
-                                               id="sandboxUnboundSearch"
-                                               class="form-control form-control-sm"
-                                               placeholder="Ungebundene Schritte durchsuchen..." />
-                                        <div class="d-flex flex-wrap gap-1 mt-2" id="equipmentFilterBar">
-                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill equipment-filter-btn active" data-equipment="all" style="font-size:.78rem;">
-                                                <i class="bi bi-grid me-1"></i>Alle
-                                            </button>
-                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill equipment-filter-btn" data-equipment="1" style="font-size:.78rem;">
-                                                <i class="bi bi-thermometer-high me-1"></i>Backofen
-                                            </button>
-                                            <button type="button" class="btn btn-outline-warning btn-sm rounded-pill equipment-filter-btn" data-equipment="2" style="font-size:.78rem;">
-                                                <i class="bi bi-fire me-1"></i>Pfanne
-                                            </button>
-                                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill equipment-filter-btn" data-equipment="3" style="font-size:.78rem;">
-                                                <i class="bi bi-cup-hot me-1"></i>Topf
-                                            </button>
-                                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill equipment-filter-btn" data-equipment="4" style="font-size:.78rem;">
-                                                <i class="bi bi-fire me-1"></i>Bräter
-                                            </button>
-                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill equipment-filter-btn" data-equipment="5" style="font-size:.78rem;">
-                                                <i class="bi bi-lightning me-1"></i>Kochfeld
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div id="sandboxStepCandidates" class="d-flex flex-column gap-2 mt-2 sandbox-step-list">
-                                        <div class="text-muted small">Wähle links eine Zutat aus.</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <div id="sandboxCurrentStep" class="sandbox-current text-muted">Aktueller Schritt: noch keiner.</div>
-                            <div id="sandboxPreviousSteps" class="mt-2 d-flex flex-column gap-2">
-                                <div class="text-muted small">Vorherige Schritte erscheinen hier.</div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="master-step-builder mt-3 p-3">
                         <div class="fw-bold mb-2">Master Template Builder</div>
                         <div class="row g-2 align-items-end">
@@ -885,139 +788,6 @@
         min-height: 38px;
     }
 
-    /* ---------- Sandbox Studio ---------- */
-    .sandbox-studio {
-        border-radius: 22px;
-        border: 1px solid rgba(0,0,0,0.06);
-        background: rgba(255,255,255,0.78);
-        padding: 14px;
-    }
-
-    .sandbox-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .sandbox-title {
-        font-weight: 900;
-        color: #111827;
-    }
-
-    .sandbox-sub {
-        font-size: .84rem;
-        color: rgba(17,24,39,.60);
-    }
-
-    .sandbox-panel {
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 18px;
-        padding: 12px;
-        background: #fafafa;
-    }
-
-    .sandbox-tabs {
-        display: flex;
-        gap: 8px;
-    }
-
-    .sandbox-tab {
-        flex: 1;
-        border-radius: 999px;
-        padding: 10px 12px;
-        border: 1px solid rgba(0,0,0,0.10);
-        background: #fff;
-        font-weight: 800;
-        font-size: .82rem;
-        color: rgba(17,24,39,.75);
-    }
-
-        .sandbox-tab.active {
-            border-color: rgba(139,92,246,.35);
-            background: rgba(139,92,246,.10);
-            color: #6d28d9;
-        }
-
-    .sandbox-ingredient-btn.active {
-        border-color: rgba(139,92,246,.40);
-        background: rgba(139,92,246,.10);
-        color: #6d28d9;
-        font-weight: 800;
-    }
-
-    .sandbox-current {
-        border-left: 4px solid #8b5cf6;
-        background: rgba(139,92,246,.08);
-        border-radius: 14px;
-        padding: 10px;
-    }
-
-    .sandbox-step-list {
-        max-height: 22rem;
-        overflow-y: auto;
-        padding-right: .2rem;
-    }
-
-    .phase-badge {
-        font-size: .68rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-right: 5px;
-        display: inline-block;
-        line-height: 1.3;
-    }
-
-    .phase-badge-1 { background: rgba(34,197,94,.12); color: #15803d; }
-    .phase-badge-2 { background: rgba(239,68,68,.12); color: #dc2626; }
-    .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
-    .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
-
-    .sandbox-phase-header {
-        font-size: .78rem;
-        font-weight: 700;
-        padding: 4px 0;
-        border-bottom: 1px solid rgba(0,0,0,0.04);
-    }
-
-    .equipment-filter-btn.active {
-        font-weight: 800;
-    }
-
-    .equipment-badge {
-        font-size: .68rem;
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-right: 4px;
-        display: inline-block;
-        line-height: 1.3;
-    }
-
-    .equip-badge-1 { background: rgba(220,53,69,.12); color: #dc3545; }
-    .equip-badge-2 { background: rgba(255,193,7,.15); color: #b45309; }
-    .equip-badge-3 { background: rgba(13,202,240,.12); color: #0891b2; }
-    .equip-badge-4 { background: rgba(25,135,84,.12); color: #198754; }
-    .equip-badge-5 { background: rgba(13,110,253,.12); color: #0d6efd; }
-
-
-    .sandbox-step-card {
-        border-color: rgba(0,0,0,0.08) !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .sandbox-step-candidate {
-        font-weight: 600;
-    }
-
-    .sandbox-accept-step-btn:disabled {
-        opacity: .7;
-        cursor: not-allowed;
-    }
-
 
     /* ---------- Bottom Bar ---------- */
     .creator-bottom {
@@ -1148,7 +918,6 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="~/js/recipe-step-suggest.js"></script>
     <script src="~/js/master-step-renderer.js"></script>
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
@@ -1168,11 +937,6 @@
         }
 
         let currentLang = resolveLangKey(getCookieValue('deli-lang'));
-        let activeSandboxIngredientId = null;
-        let activeSandboxIngredientName = '';
-        let activeSandboxTab = 'linked';
-        let sandboxUnboundSteps = [];
-        let activeEquipmentFilter = 'all';
         let selectedMasterIngredientNames = [];
         let selectedMasterTemplateId = '';
         let tempStepIdCounter = -1;
@@ -1193,212 +957,22 @@
             return `<span class="phase-badge ${info.cls}">${info.text}</span>`;
         }
 
-        function getEquipmentLabel(equipment) {
-            const map = {
-                1: { text: 'Backofen', cls: 'equip-badge-1', icon: 'bi-thermometer-high' },
-                2: { text: 'Pfanne', cls: 'equip-badge-2', icon: 'bi-fire' },
-                3: { text: 'Topf', cls: 'equip-badge-3', icon: 'bi-cup-hot' },
-                4: { text: 'Bräter', cls: 'equip-badge-4', icon: 'bi-fire' },
-                5: { text: 'Kochfeld', cls: 'equip-badge-5', icon: 'bi-lightning' }
-            };
-            const info = map[equipment];
-            if (!info) return '';
-            return `<span class="equipment-badge ${info.cls}"><i class="bi ${info.icon} me-1"></i>${info.text}</span>`;
-        }
 
-        function updateSuggestButtonState() {
-            const hasIngredients = getSelectedIngredientIds().length > 0;
-            $('#btnSuggestSteps').prop('disabled', !hasIngredients);
-        }
 
-        /** Live recipe type detection when ingredients change */
-        function updateRecipeTypeDetection() {
-            const selectedIds = getSelectedIngredientIds();
-            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
-            const scoreBar = $('#recipeTypeScoreBar');
-            const badges = $('#recipeTypeBadges');
-            const masterBox = $('#masterStepPreviewBox');
-            const masterList = $('#masterStepPreviewList');
 
-            if (!selectedIds.length) {
-                scoreBar.addClass('d-none');
-                masterBox.addClass('d-none');
-                return;
-            }
 
-            const suggest = window.RecipeStepSuggest;
-            if (suggest && typeof suggest.isLoaded === 'function' && !suggest.isLoaded() && typeof suggest.loadMapping === 'function') {
-                suggest.loadMapping().then(() => updateRecipeTypeDetection());
-                return;
-            }
 
-            const types = suggest && typeof suggest.detectRecipeTypes === 'function'
-                ? suggest.detectRecipeTypes(selectedIds)
-                : [];
-
-            if (types.length && suggest && typeof suggest.renderRecipeTypeBadges === 'function') {
-                badges.html(suggest.renderRecipeTypeBadges(types, 3));
-                scoreBar.removeClass('d-none');
-            } else {
-                scoreBar.addClass('d-none');
-            }
-
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.suggestForIngredient === 'function' && typeof MasterStepRenderer.render === 'function') {
-                const previews = [];
-                selectedNames.slice(0, 2).forEach(name => {
-                    const steps = MasterStepRenderer.suggestForIngredient(name).slice(0, 3);
-                    steps.forEach(step => {
-                        const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, { ingredientName: name, recipeCategory: $('#Recipe_Category').val() });
-                        const text = MasterStepRenderer.render(step.master_id, defaults, currentLang);
-                        if (text) {
-                            previews.push({ phase: parseInt(step.phase || 0, 10), text });
-                        }
-                    });
-                });
-
-                if (previews.length) {
-                    masterList.empty();
-                    previews.slice(0, 5).forEach(item => {
-                        masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text}</div>`);
-                    });
-                    masterBox.removeClass('d-none');
-                } else {
-                    masterBox.addClass('d-none');
-                }
-            } else {
-                masterBox.addClass('d-none');
-            }
-        }
 
         // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
         function getStepBoundIngredientIds(stepId) {
             return (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
         }
 
-        // Prüft ob für eine bestimmte Zutat+Phase Kombination bereits ein Step ausgewählt ist
-        function isIngredientPhaseCovered(ingredientId, phase) {
-            const ingIdStr = ingredientId.toString();
-            let covered = false;
-            $('#selectedSteps .step-row').each(function () {
-                const rowStepId = $(this).data('step-id')?.toString();
-                const rowStep = getAllStepRows().find(x => x && x.id?.toString() === rowStepId);
-                if (!rowStep) return;
-                const rowPhase = parseInt(rowStep.phase ?? 0, 10);
-                if (rowPhase !== phase || rowPhase < 1) return;
-                const rowBoundIds = getStepBoundIngredientIds(rowStepId).map(x => x.toString());
-                if (rowBoundIds.includes(ingIdStr)) {
-                    covered = true;
-                    return false; // break
-                }
-            });
-            return covered;
-        }
 
-        function suggestSteps() {
-            const selectedIds = getSelectedIngredientIds();
-            if (!selectedIds.length) return;
 
-            const existingSteps = $('#selectedSteps .step-row').length;
-            if (existingSteps > 0) {
-                if (!confirm('Bestehende Schritte ersetzen?')) return;
-            }
 
-            // Collect selected ingredient names for conflict checking
-            const selectedNames = getSelectedIngredientsForSandbox().map(x => x.name);
 
-            // Build a stepId lookup from the page catalog
-            const catalogById = {};
-            getAllStepRows().forEach(s => { catalogById[s.id.toString()] = s; });
 
-            function runSuggestion() {
-                const result = RecipeStepSuggest.suggestStepsForIngredients(selectedIds, catalogById, {
-                    selectedIngredientNames: selectedNames,
-                    maxSteps: 20
-                });
-
-                // Show recipe type score
-                const scoreBar = $('#recipeTypeScoreBar');
-                const badges = $('#recipeTypeBadges');
-                if (result.recipeTypes.length) {
-                    badges.html(RecipeStepSuggest.renderRecipeTypeBadges(result.recipeTypes, 3));
-                    scoreBar.removeClass('d-none');
-                } else {
-                    scoreBar.addClass('d-none');
-                }
-
-                // If mapping has results, use them; otherwise fall back to DB binding logic
-                if (result.steps.length) {
-                    $('#selectedSteps').empty();
-                    result.steps.forEach(item => {
-                        const sourceRow = catalogById[item.stepId.toString()];
-                        const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
-                        addStep(item.stepId.toString(), null, label, { skipRender: true });
-                    });
-                    updateStepIndices();
-                    renderSandboxStepTab();
-                    return;
-                }
-
-                // Fallback: original DB-binding-based logic
-                suggestStepsFallback();
-            }
-
-            if (RecipeStepSuggest.isLoaded()) {
-                runSuggestion();
-            } else {
-                RecipeStepSuggest.loadMapping()
-                    .then(() => runSuggestion())
-                    .catch(() => suggestStepsFallback());
-            }
-        }
-
-        /** Original suggest logic as fallback when JSON mapping is unavailable */
-        function suggestStepsFallback() {
-            const selectedIds = getSelectedIngredientIds();
-            const allSteps = getAllStepRows();
-            const bestPerCombo = new Map();
-
-            allSteps.forEach(step => {
-                const stepId = step.id;
-                const phase = parseInt(step.phase ?? 0, 10);
-                if (phase < 1) return;
-                const boundIds = getStepBoundIngredientIds(stepId);
-                if (!boundIds.length) return;
-                const matchingIngredients = boundIds.filter(bid => selectedIds.includes(bid));
-                if (!matchingIngredients.length) return;
-
-                matchingIngredients.forEach(ingId => {
-                    const key = `${ingId}_${phase}`;
-                    const matchCount = matchingIngredients.length;
-                    const existing = bestPerCombo.get(key);
-                    if (!existing || matchCount > existing.matchCount) {
-                        bestPerCombo.set(key, { stepId, phase, matchCount, ingId });
-                    }
-                });
-            });
-
-            const uniqueSteps = new Map();
-            const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
-            bestPerCombo.forEach(item => {
-                if (!uniqueSteps.has(item.stepId)) uniqueSteps.set(item.stepId, item);
-            });
-
-            const sorted = [...uniqueSteps.values()].sort((a, b) => {
-                const pa = phaseOrder[a.phase] ?? 4;
-                const pb = phaseOrder[b.phase] ?? 4;
-                if (pa !== pb) return pa - pb;
-                return b.matchCount - a.matchCount;
-            });
-
-            $('#selectedSteps').empty();
-            sorted.forEach(item => {
-                const sourceRow = allSteps.find(x => x.id === item.stepId);
-                const label = sourceRow ? getStepLabelFromRow(sourceRow) : `Schritt ${item.stepId}`;
-                addStep(item.stepId.toString(), null, label, { skipRender: true });
-            });
-            updateStepIndices();
-            renderSandboxStepTab();
-        }
 
         function getSelectedIngredientIds() {
             return $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
@@ -1417,19 +991,6 @@
             if (fromSelected.length) {
                 return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
             }
-
-            const fromSandbox = $('#sandboxIngredientList .sandbox-ingredient-btn').map(function () {
-                const btn = $(this);
-                return {
-                    id: btn.data('id')?.toString() || '',
-                    name: btn.data('name')?.toString() || 'Zutat'
-                };
-            }).get();
-
-            if (fromSandbox.length) {
-                return fromSandbox;
-            }
-
             return [];
         }
 
@@ -1632,7 +1193,6 @@
 
                 addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true });
                 updateStepIndices();
-                renderSandboxStepTab();
             } catch (error) {
                 console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
 
@@ -1659,7 +1219,6 @@
                     }
                 });
                 updateStepIndices();
-                renderSandboxStepTab();
             }
         }
 
@@ -1691,221 +1250,15 @@
             }).length > 0;
         }
 
-        function renderSandboxStepCandidates(stepItems, emptyText = 'Keine verknüpften Schritte gefunden.') {
-            const container = $('#sandboxStepCandidates');
-            container.empty();
 
-            if (!stepItems || !stepItems.length) {
-                container.append(`<div class="text-muted small">${emptyText}</div>`);
-                return;
-            }
 
-            const search = (activeSandboxTab === 'unbound'
-                ? ($('#sandboxUnboundSearch').val() || '')
-                : ($('#stepSearch').val() || '')).toString().trim().toLowerCase();
-            const activeId = activeSandboxIngredientId?.toString() || '';
-            const isUnbound = activeSandboxTab === 'unbound';
 
-            const phaseGroups = { 1: [], 2: [], 3: [], 4: [], 0: [] };
-            const phaseNames = { 1: 'Vorbereitung', 2: 'Kochen', 3: 'Würzen', 4: 'Finish', 0: 'Sonstige' };
 
-            stepItems.forEach(item => {
-                const sourceRow = getAllStepRows().find(x => x && x.id?.toString() === item.stepId.toString());
-                if (!sourceRow) return;
 
-                // Equipment filter (only for unbound tab)
-                if (isUnbound && activeEquipmentFilter !== 'all') {
-                    const equipVal = parseInt(sourceRow.equipment ?? 0, 10);
-                    if (equipVal.toString() !== activeEquipmentFilter) return;
-                }
 
-                const label = (getStepLabelFromRow(sourceRow) || '').toString();
-                if (!label) return;
-                if (search && !label.toLowerCase().includes(search)) return;
 
-                const phase = parseInt(sourceRow.phase ?? 0, 10);
-                if (!isUnbound && activeId && phase > 0 && isIngredientPhaseCovered(activeId, phase)) return;
 
-                const group = phaseGroups[phase] ?? phaseGroups[0];
-                group.push({ stepId: item.stepId, label, phase, matchCount: item.matchCount || 0, equipment: parseInt(sourceRow.equipment ?? 0, 10) });
-            });
 
-            let totalRendered = 0;
-            [1, 2, 3, 4, 0].forEach(phase => {
-                const items = phaseGroups[phase];
-                if (!items.length) return;
-
-                const phaseBadge = getPhaseLabel(phase);
-                if (phaseBadge) {
-                    container.append(`<div class="sandbox-phase-header mt-1 mb-1">${phaseBadge} <span class="text-muted small">${phaseNames[phase]}</span></div>`);
-                } else {
-                    container.append(`<div class="sandbox-phase-header mt-1 mb-1 text-muted small">Sonstige</div>`);
-                }
-
-                items.forEach(item => {
-                    const selected = isStepAlreadySelected(item.stepId);
-                    const equipBadge = isUnbound ? getEquipmentLabel(item.equipment) : '';
-                    const hint = item.matchCount > 0
-                        ? `<span class="small text-muted">Matches: ${item.matchCount}</span>`
-                        : (equipBadge ? equipBadge : '<span class="small text-muted">Ungebundener Schritt</span>');
-
-                    const card = $(`<div class="border rounded p-2 sandbox-step-card bg-white">
-                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-start sandbox-step-candidate" data-id="${item.stepId}">
-                            <i class="bi bi-journal-check me-1"></i>${equipBadge}${item.label}
-                            ${selected ? '<span class="ms-2 badge bg-success sandbox-selected-label">Ausgewählt</span>' : ''}
-                        </button>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            ${hint}
-                            <button type="button" class="btn btn-success btn-sm sandbox-accept-step-btn" data-id="${item.stepId}" ${selected ? 'disabled' : ''}>Akzeptieren</button>
-                        </div>
-                    </div>`);
-
-                    card.find('.sandbox-step-candidate').on('click', function () {
-                        $('#sandboxCurrentStep').removeClass('text-muted').html(`<strong>Ausgewählt:</strong> ${item.label}`);
-                    });
-
-                    card.find('.sandbox-accept-step-btn').on('click', function () {
-                        addStep(item.stepId.toString(), null, item.label, { enforceIngredientPhaseUniqueness: !isUnbound });
-                    });
-
-                    container.append(card);
-                    totalRendered++;
-                });
-            });
-
-            if (!totalRendered) {
-                container.empty();
-                const activeHasSteps = activeId && $('#selectedSteps .step-row').length > 0;
-                const msg = activeHasSteps && !isUnbound
-                    ? 'Alle Phasen für diese Zutat sind abgedeckt.'
-                    : emptyText;
-                container.append(`<div class="text-muted small">${msg}</div>`);
-            }
-        }
-
-        function loadSandboxSteps() {
-            const selectedIngredientIds = getSelectedIngredientIds();
-            const allSteps = getAllStepRows();
-            const activeId = activeSandboxIngredientId?.toString() || '';
-
-            if (activeSandboxTab === 'unbound') {
-                sandboxUnboundSteps = allSteps
-                    .map(step => {
-                        const stepId = parseInt(step.id, 10);
-                        if (isNaN(stepId)) return null;
-                        const boundIds = getStepBoundIngredientIds(stepId).map(x => x.toString());
-                        if (boundIds.length) return null;
-                        return { stepId, matchCount: 0 };
-                    })
-                    .filter(Boolean);
-
-                renderSandboxStepCandidates(sandboxUnboundSteps, 'Keine ungebundenen Schritte gefunden.');
-                return;
-            }
-
-            if (!allSteps.length || !activeId) {
-                renderSandboxStepCandidates([], 'Wähle links eine Zutat aus.');
-                return;
-            }
-
-            const candidates = [];
-            allSteps.forEach(step => {
-                const stepId = parseInt(step.id, 10);
-                if (isNaN(stepId)) return;
-                const boundIds = getStepBoundIngredientIds(stepId).map(x => x.toString());
-
-                if (activeSandboxTab === 'all') {
-                    const matchCount = selectedIngredientIds.filter(sid => boundIds.includes(sid.toString())).length;
-                    if (matchCount > 0) {
-                        candidates.push({ stepId, matchCount });
-                    }
-                } else {
-                    if (boundIds.includes(activeId)) {
-                        const matchCount = selectedIngredientIds.filter(sid => boundIds.includes(sid.toString())).length;
-                        candidates.push({ stepId, matchCount });
-                    }
-                }
-            });
-
-            candidates.sort((a, b) => b.matchCount - a.matchCount);
-
-            renderSandboxStepCandidates(
-                candidates,
-                'Keine passenden Schritte für diese Zutat gefunden.'
-            );
-        }
-
-        function renderSandboxStepTab() {
-            $('#sandboxStepTabs .sandbox-tab').removeClass('active');
-            $(`#sandboxStepTabs [data-sandbox-tab="${activeSandboxTab}"]`).addClass('active');
-
-            const showUnboundSearch = activeSandboxTab === 'unbound';
-            $('#sandboxUnboundSearchWrap').toggleClass('d-none', !showUnboundSearch);
-
-            $('#sandboxActiveIngredientLabel').text(
-                activeSandboxTab === 'all'
-                    ? 'Alle Zutaten'
-                    : activeSandboxTab === 'unbound'
-                        ? 'Ohne Binding'
-                        : (activeSandboxIngredientName || 'Keine Zutat')
-            );
-            loadSandboxSteps();
-        }
-
-        function renderSandboxIngredientList() {
-            const container = $('#sandboxIngredientList');
-            const selectedIngredients = getSelectedIngredientsForSandbox();
-            container.empty();
-            updateSuggestButtonState();
-
-            if (!selectedIngredients.length) {
-                activeSandboxIngredientId = null;
-                activeSandboxIngredientName = '';
-                container.append('<div class="text-muted small">Noch keine Zutat ausgewählt.</div>');
-                renderSandboxStepTab();
-                return;
-            }
-
-            if (!selectedIngredients.some(x => x.id === activeSandboxIngredientId)) {
-                activeSandboxIngredientId = selectedIngredients[0].id;
-                activeSandboxIngredientName = selectedIngredients[0].name;
-            }
-
-            selectedIngredients.forEach(item => {
-                const active = item.id === activeSandboxIngredientId ? 'active' : '';
-                container.append(`<button type="button" class="btn btn-outline-secondary btn-sm sandbox-ingredient-btn ${active}" data-id="${item.id}" data-name="${item.name}">${item.name}</button>`);
-            });
-
-            renderSandboxStepTab();
-            updateRecipeTypeDetection();
-        }
-
-        function refreshSandboxProgress() {
-            const rows = $('#selectedSteps .step-row');
-            const current = $('#sandboxCurrentStep');
-            const previous = $('#sandboxPreviousSteps');
-            previous.empty();
-
-            if (!rows.length) {
-                current.text('Aktueller Schritt: noch keiner.').addClass('text-muted');
-                previous.append('<div class="text-muted small">Vorherige Schritte erscheinen hier.</div>');
-                return;
-            }
-
-            const currentRow = rows.last();
-            const currentIdx = currentRow.find('.step-index-input').val() || rows.length;
-            const currentText = currentRow.find('.display-step-selected').text() || '';
-            current.removeClass('text-muted').html(`<strong>Aktueller Schritt ${currentIdx}:</strong> ${currentText}`);
-
-            rows.slice(0, -1).get().reverse().forEach(r => {
-                const row = $(r);
-                const idx = row.find('.step-index-input').val() || '';
-                const txt = row.find('.display-step-selected').text() || '';
-                previous.append(`<div class="border rounded p-2 bg-light"><strong>Schritt ${idx}:</strong> ${txt}</div>`);
-            });
-
-            if (!rows.slice(0, -1).length) previous.append('<div class="text-muted small">Noch keine vorherigen Schritte.</div>');
-        }
 
         function updateLanguageLabels() {
             const langKey = resolveLangKey(currentLang);
@@ -1917,7 +1270,6 @@
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             refreshMasterTemplateOptions();
-            renderSandboxStepTab();
         }
 
         function handleVideoUpload(input) {
@@ -1998,7 +1350,6 @@
             // Am Ende des Containers anfügen
             $('#selectedIngredients').append(newIngredient);
 
-            renderSandboxIngredientList();
             refreshMasterTemplateBuilder();
             if (typeof syncIngredientSourceVisibility === "function") {
                 syncIngredientSourceVisibility();
@@ -2007,7 +1358,6 @@
 
         function removeIngredientRow(btn) {
             $(btn).closest('.ingredient-row').remove();
-            renderSandboxIngredientList();
             refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
         }
@@ -2103,17 +1453,11 @@
 
             updateStepIndices();
 
-            // Kandidatenliste aktualisieren → abgedeckte Steps verschwinden
-            if (!options?.skipRender) {
-                renderSandboxStepTab();
-            }
         }
 
         function removeStep(btn) {
             $(btn).closest('.step-row').remove();
             updateStepIndices();
-            // Nach Entfernen: Kandidaten neu rendern → Steps werden wieder verfügbar
-            renderSandboxStepTab();
         }
 
         function editStepText(btn) {
@@ -2139,7 +1483,6 @@
             if (deInput.length && !deInput.val()) deInput.val(trimmed);
             if (enInput.length && !enInput.val()) enInput.val(trimmed);
 
-            refreshSandboxProgress();
         }
 
         function toggleKeyword(id, btn) {
@@ -2175,7 +1518,6 @@
                 $(this).find('.step-badge').text(i + 1);
                 $(this).find('.step-index-input').val(i + 1);
             });
-            refreshSandboxProgress();
         }
 
         function prepareBinding() {
@@ -2214,46 +1556,9 @@
             const token = sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken');
             if (token) $('#hiddenUserTokenField').val(token);
 
-            activeSandboxTab = $('#sandboxStepTabs .sandbox-tab.active').first().data('sandbox-tab')?.toString() || 'linked';
-
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
             });
-
-            $('#stepSearch').on('input', function () {
-                renderSandboxStepTab();
-            });
-
-            $('#sandboxUnboundSearch').on('input', function () {
-                if (activeSandboxTab === 'unbound') {
-                    renderSandboxStepTab();
-                }
-            });
-
-            $('#sandboxIngredientList').on('click', '.sandbox-ingredient-btn', function () {
-                activeSandboxIngredientId = $(this).data('id')?.toString() || null;
-                activeSandboxIngredientName = $(this).data('name')?.toString() || '';
-                activeSandboxTab = 'linked';
-                $('#sandboxStepTabs .sandbox-tab').removeClass('active');
-                $('#sandboxStepTabs [data-sandbox-tab="linked"]').addClass('active');
-                $('#sandboxIngredientList .sandbox-ingredient-btn').removeClass('active');
-                $(this).addClass('active');
-                renderSandboxStepTab();
-            });
-
-            $('#sandboxStepTabs').on('click', '[data-sandbox-tab]', function () {
-                activeSandboxTab = $(this).data('sandbox-tab')?.toString() || 'linked';
-                $('#sandboxStepTabs .sandbox-tab').removeClass('active');
-                $(this).addClass('active');
-                // Reset equipment filter when switching away from unbound
-                if (activeSandboxTab !== 'unbound') {
-                    activeEquipmentFilter = 'all';
-                    $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
-                    $('#equipmentFilterBar [data-equipment="all"]').addClass('active');
-                }
-                renderSandboxStepTab();
-            });
-
             MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
             $('#masterIngredientButtons').on('click', '.master-ingredient-btn', function () {
                 const name = $(this).data('name')?.toString() || '';
@@ -2278,14 +1583,6 @@
             });
             $('#masterVariables').on('input', '.master-var-input', updateMasterPreview);
             $('#btnAddRenderedStep').on('click', addRenderedMasterStep);
-
-            $('#equipmentFilterBar').on('click', '.equipment-filter-btn', function () {
-                $('#equipmentFilterBar .equipment-filter-btn').removeClass('active');
-                $(this).addClass('active');
-                activeEquipmentFilter = $(this).data('equipment')?.toString() || 'all';
-                renderSandboxStepTab();
-            });
-
             $('#selectedSteps').on('dragstart', '.step-row', function (e) {
                 draggedStepRow = this;
                 e.originalEvent.dataTransfer.effectAllowed = 'move';
@@ -2308,9 +1605,7 @@
             });
 
             updateLanguageLabels();
-            renderSandboxIngredientList();
             syncIngredientSourceVisibility();
-            refreshSandboxProgress();
 
             // Page fully ready — hide overlay, show content
             $('#datatableLoadingOverlay').addClass('d-none');
