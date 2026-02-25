@@ -67,7 +67,7 @@
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
 
             <!-- HERO CARD -->
-            <div class="creator-hero mb-3">
+            <div class="creator-hero creator-mini-hero mb-3">
                 <div class="creator-hero-left">
                     <div class="creator-hero-badge">
                         <i class="bi bi-stars me-2"></i>
@@ -95,14 +95,62 @@
                 </div>
             </div>
 
+            <section class="master-hero mb-3" id="card-master">
+                <div class="master-hero__head">
+                    <div>
+                        <h2 class="master-hero__title mb-1">Master Template Builder</h2>
+                        <p class="master-hero__sub mb-0">Schnelles Verknüpfen · Mehrfachauswahl</p>
+                    </div>
+                    <span class="master-status-chip" id="masterSelectedCount">0 Zutaten gewählt</span>
+                </div>
+
+                <div class="master-hero__body">
+                    <div id="masterIngredientButtons" class="master-chip-grid"></div>
+
+                    <div class="master-template-block mt-3">
+                        <label class="form-label mb-2">Template</label>
+                        <select id="masterTemplateSelect" class="form-select"></select>
+                        <div class="master-actions-row mt-2">
+                            <button type="button" id="btnAddRenderedStep" class="btn cs-btn cs-btn--primary">
+                                <i class="bi bi-check2-circle me-2"></i>Übernehmen
+                            </button>
+                            <button type="button" id="copyMasterPreview" class="btn cs-btn cs-btn--secondary">
+                                <i class="bi bi-copy me-2"></i>Vorschau kopieren
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="master-info-grid mt-3">
+                        <div class="master-info-pill">
+                            <span>Zutat</span>
+                            <strong id="masterInfoIngredient">-</strong>
+                        </div>
+                        <div class="master-info-pill">
+                            <span>Pronoun</span>
+                            <strong id="masterInfoPronoun">-</strong>
+                        </div>
+                    </div>
+
+                    <div id="masterVariables" class="row g-2 mt-1 d-none" aria-hidden="true"></div>
+
+                    <div class="master-preview-card mt-3" aria-live="polite">
+                        <button type="button" class="master-preview-copy" id="masterPreviewIconBtn" aria-label="Preview kopieren">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                        <pre id="masterPreviewText" class="mb-0">Noch kein Template gewählt.</pre>
+                    </div>
+                    <span id="masterCopyToast" class="copy-toast">Kopiert</span>
+                </div>
+            </section>
+
             <!-- 1) BASICS -->
-            <section class="creator-card mb-3" id="card-basics">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-basics">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
+                        <div class="cs-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
-                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
+                            <div class="cs-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
+                            <div class="cs-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
                                 Titel, Kategorie, Personen, Dauer
                             </div>
                         </div>
@@ -110,7 +158,7 @@
                     <span class="badge rounded-pill text-bg-light border">1/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <div class="mb-3">
                         <label class="form-label small text-muted mb-2 label-lang"
                                data-de="Titel"
@@ -218,13 +266,13 @@
             </section>
 
             <!-- 2) MEDIA -->
-            <section class="creator-card mb-3" id="card-media">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-media">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
+                        <div class="cs-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
-                            <div class="creator-card-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
+                            <div class="cs-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
+                            <div class="cs-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
                                 Video oder Bild für den Feed
                             </div>
                         </div>
@@ -232,7 +280,7 @@
                     <span class="badge rounded-pill text-bg-light border">2/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <div id="videoPreviewContainer" class="d-none mb-3">
                         <div class="media-preview">
                             <img id="imagePreview" class="w-100 d-none" style="max-height: 320px; object-fit: cover;" alt="Preview" />
@@ -269,13 +317,13 @@
             </section>
 
             <!-- 3) INGREDIENTS -->
-            <section class="creator-card mb-3" id="card-ingredients">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-ingredients">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
+                        <div class="cs-icon candy-green"><i class="bi bi-basket"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
-                            <div class="creator-card-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
+                            <div class="cs-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
+                            <div class="cs-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
                                 Suche + hinzufügen wie im Creator Flow
                             </div>
                         </div>
@@ -283,7 +331,7 @@
                     <span class="badge rounded-pill text-bg-light border">3/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                         <div class="form-check form-switch m-0">
                             <input class="form-check-input" type="checkbox" role="switch" id="creatorFlowToggle" checked>
@@ -361,13 +409,13 @@
             </section>
 
             <!-- 4) STEPS + SANDBOX -->
-            <section class="creator-card mb-3" id="card-steps">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-steps">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div class="cs-icon candy-purple"><i class="bi bi-list-check"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                            <div class="cs-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="cs-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
                                 Add & sortiere wie ein Script
                             </div>
                         </div>
@@ -375,7 +423,7 @@
                     <span class="badge rounded-pill text-bg-light border">4/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <!-- Sandbox Studio -->
                     <div class="sandbox-studio mt-3">
                         <div class="sandbox-head">
@@ -474,39 +522,7 @@
                         </div>
                     </div>
 
-                    <div class="master-accordion mt-3">
-                        <button class="master-accordion-trigger" type="button" aria-expanded="false" aria-controls="masterBuilderPanel">
-                            <span>Master Template Builder</span>
-                            <small>Schnelles Verknüpfen</small>
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
-                        <div id="masterBuilderPanel" class="master-accordion-panel">
-                            <div class="master-step-builder p-3">
-                                <div class="fw-bold mb-2">Master Template Builder</div>
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted mb-1">Zutaten (Mehrfachauswahl)</label>
-                                <div id="masterIngredientButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label small text-muted mb-1">Template</label>
-                                <select id="masterTemplateSelect" class="form-select form-select-sm"></select>
-                            </div>
-                            <div class="col-md-3 d-grid">
-                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-check2-circle me-1"></i>Übernehmen
-                                </button>
-                            </div>
-                        </div>
-                        <div id="masterVariables" class="row g-2 mt-1"></div>
-                        <div class="small text-muted mt-2 d-flex align-items-center justify-content-between">
-                            <span>Preview:</span>
-                            <button type="button" id="copyMasterPreview" class="btn btn-sm btn-light rounded-pill"><i class="bi bi-copy"></i></button>
-                        </div>
-                        <div id="masterPreviewText" class="small border rounded px-2 py-2 bg-light">Noch kein Template gewählt.</div>
-                            </div>
-                        </div>
-                    </div>
+                    
 
                     <div class="mt-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -519,13 +535,13 @@
             </section>
 
             <!-- 5) KEYWORDS -->
-            <section class="creator-card mb-4" id="card-keywords">
-                <div class="creator-card-head">
+            <section class="cs-card mb-4" id="card-keywords">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
+                        <div class="cs-icon candy-blue"><i class="bi bi-hash"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
-                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
+                            <div class="cs-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
+                            <div class="cs-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
                                 Hilft beim Feed & bei Suche
                             </div>
                         </div>
@@ -533,7 +549,7 @@
                     <span class="badge rounded-pill text-bg-light border">5/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <div id="keywordGrid" class="d-flex flex-wrap gap-2 keyword-grid">
                         @if (Model.ToSelectKeywords != null)
                         {
@@ -888,19 +904,21 @@
                 ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
+                $('#masterSelectedCount').text('0 Zutaten gewählt');
+                $('#masterInfoIngredient').text('-');
+                $('#masterInfoPronoun').text('-');
                 refreshMasterTemplateOptions();
                 return;
             }
 
             availableNames.forEach(name => {
                 const isActive = selectedMasterIngredientNames.includes(name);
-                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-ingredient-btn" data-name="${name}">${name}</button>`);
+                ingredientButtons.append(`<button type="button" class="master-ingredient-btn ${isActive ? 'is-active' : ''}" data-name="${name}" title="${name}">${name}</button>`);
             });
 
-            // Hinweis: Mehrere Zutaten auswählbar
-            if (availableNames.length > 1 && selectedMasterIngredientNames.length > 0) {
-                ingredientButtons.append(`<div class="text-muted small mt-1">${selectedMasterIngredientNames.length} von ${availableNames.length} gewählt</div>`);
-            }
+            const count = selectedMasterIngredientNames.length;
+            $('#masterSelectedCount').text(`${count} Zutaten gewählt`);
+            $('#masterInfoIngredient').text(buildIngredientTextForMaster() || '-');
 
             refreshMasterTemplateOptions();
         }
@@ -953,6 +971,7 @@
 
             if (!templateId || !window.MasterStepRenderer) {
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
+                $('#masterInfoPronoun').text('-');
                 return;
             }
 
@@ -969,9 +988,10 @@
 
             (template.variables || []).forEach(key => {
                 const value = vars[key] || '';
-                box.append(`<div class="col-md-4"><label class="form-label small text-muted mb-1">${key}</label><input type="text" class="form-control form-control-sm master-var-input" data-var="${key}" value="${value}" /></div>`);
+                box.append(`<input type="hidden" class="master-var-input" data-var="${key}" value="${value}" />`);
             });
 
+            $('#masterInfoPronoun').text(vars.pronoun || '-');
             updateMasterPreview();
         }
 
@@ -1523,11 +1543,11 @@
                     ${phaseBadge}
                     <span class="step-text-content">${text}</span>
                 </div>
-                <div class="btn-group ms-2" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                <div class="step-controls ms-2" role="group" aria-label="Step Aktionen">
+                    <button type="button" class="step-icon-btn" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="step-icon-btn" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="step-icon-btn" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
+                    <button type="button" class="step-icon-btn is-danger" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
                 </div>
             </div>`);
 
@@ -1602,7 +1622,7 @@
 
         function updateStepIndices() {
             $('#selectedSteps .step-row').each(function (i) {
-                $(this).find('.step-badge').text(i + 1);
+                $(this).find('.step-badge').text(String(i + 1).padStart(2, '0'));
                 $(this).find('.step-index-input').val(i + 1);
             });
             refreshSandboxProgress();
@@ -1649,6 +1669,15 @@
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
             });
+
+            $('#creatorFlowToggle').on('change', function () {
+                if ($(this).is(':checked')) {
+                    $('#card-ingredients').removeClass('is-compact');
+                } else {
+                    $('#card-ingredients').addClass('is-compact');
+                }
+            });
+
 
             $('#stepSearch').on('input', function () {
                 renderSandboxStepTab();
@@ -1738,22 +1767,18 @@
             });
 
 
-            const accordion = document.querySelector('.master-accordion');
-            const accordionTrigger = document.querySelector('.master-accordion-trigger');
-            if (accordion && accordionTrigger) {
-                accordionTrigger.addEventListener('click', function () {
-                    const isOpen = accordion.classList.toggle('open');
-                    accordionTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                });
-            }
-
-            $('#copyMasterPreview').on('click', async function () {
+            const copyPreviewButtons = $('#copyMasterPreview, #masterPreviewIconBtn');
+            copyPreviewButtons.on('click', async function () {
                 const preview = ($('#masterPreviewText').text() || '').trim();
                 if (!preview) return;
                 try {
                     await navigator.clipboard.writeText(preview);
-                    $(this).html('<i class="bi bi-check2"></i>');
-                    setTimeout(() => $(this).html('<i class="bi bi-copy"></i>'), 1200);
+                    $('#masterCopyToast').addClass('show');
+                    copyPreviewButtons.find('i').removeClass('bi-copy').addClass('bi-check2');
+                    setTimeout(() => {
+                        $('#masterCopyToast').removeClass('show');
+                        copyPreviewButtons.find('i').removeClass('bi-check2').addClass('bi-copy');
+                    }, 1300);
                 } catch {
                     // Clipboard not available in some webviews.
                 }
