@@ -20,6 +20,8 @@
             display: none;
         }
     </style>
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 @{
     var currentLang = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();

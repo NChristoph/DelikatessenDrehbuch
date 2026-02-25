@@ -29,7 +29,10 @@
     Layout = "_MiniAppLayout";
 }
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="~/css/creator-studio.css" asp-append-version="true" />
+}
 
 <div class="creator-bg min-vh-100 position-relative">
     <!-- Loading Overlay -->
@@ -54,10 +57,9 @@
             <div class="small text-muted text-truncate">Neuer Upload · Rezeptpost</div>
         </div>
 
-        <!-- Optional: Quick Publish -->
-        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="Veröffentlichen">
-            <i class="bi bi-send-fill"></i>
-        </button>
+        <div class="autosave-badge" aria-live="polite">
+            <i class="bi bi-check2-circle me-1"></i>Auto-Saved
+        </div>
     </div>
 
     <div class="feed-shell mx-auto" style="visibility:hidden">
@@ -65,7 +67,7 @@
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
 
             <!-- HERO CARD -->
-            <div class="creator-hero mb-3">
+            <div class="creator-hero creator-mini-hero mb-3">
                 <div class="creator-hero-left">
                     <div class="creator-hero-badge">
                         <i class="bi bi-stars me-2"></i>
@@ -74,7 +76,7 @@
 
                     <h1 class="creator-hero-title mb-1">Neuen Content erstellen</h1>
                     <p class="creator-hero-sub mb-0">
-                        Erstelle einen Social-Post wie im Feed: Media + Zutaten + Schritte + Keywords.
+                        Media · Zutaten · Schritte · Keywords
                     </p>
                 </div>
 
@@ -86,18 +88,69 @@
                         <span class="dot"></span>
                         <span class="dot"></span>
                     </div>
-                    <div class="small text-muted mt-2">5 Schritte</div>
+                    <div class="small text-muted mt-2">5 Steps</div>
+                    <div class="hero-progress-track mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="1">
+                        <span class="hero-progress-value"></span>
+                    </div>
                 </div>
             </div>
 
+            <section class="master-hero mb-3" id="card-master">
+                <div class="master-hero__head">
+                    <div>
+                        <h2 class="master-hero__title mb-1">Master Template Builder</h2>
+                        <p class="master-hero__sub mb-0">Schnelles Verknüpfen · Mehrfachauswahl</p>
+                    </div>
+                    <span class="master-status-chip" id="masterSelectedCount">0 Zutaten gewählt</span>
+                </div>
+
+                <div class="master-hero__body">
+                    <div id="masterIngredientButtons" class="master-chip-grid"></div>
+
+                    <div class="master-template-block mt-3">
+                        <label class="form-label mb-2">Template</label>
+                        <select id="masterTemplateSelect" class="form-select"></select>
+                        <div class="master-actions-row mt-2">
+                            <button type="button" id="btnAddRenderedStep" class="btn cs-btn cs-btn--primary">
+                                <i class="bi bi-check2-circle me-2"></i>Übernehmen
+                            </button>
+                            <button type="button" id="copyMasterPreview" class="btn cs-btn cs-btn--secondary">
+                                <i class="bi bi-copy me-2"></i>Vorschau kopieren
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="master-info-grid mt-3">
+                        <div class="master-info-pill">
+                            <span>Zutat</span>
+                            <strong id="masterInfoIngredient">-</strong>
+                        </div>
+                        <div class="master-info-pill">
+                            <span>Pronoun</span>
+                            <strong id="masterInfoPronoun">-</strong>
+                        </div>
+                    </div>
+
+                    <div id="masterVariables" class="row g-2 mt-1 d-none" aria-hidden="true"></div>
+
+                    <div class="master-preview-card mt-3" aria-live="polite">
+                        <button type="button" class="master-preview-copy" id="masterPreviewIconBtn" aria-label="Preview kopieren">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                        <pre id="masterPreviewText" class="mb-0">Noch kein Template gewählt.</pre>
+                    </div>
+                    <span id="masterCopyToast" class="copy-toast">Kopiert</span>
+                </div>
+            </section>
+
             <!-- 1) BASICS -->
-            <section class="creator-card mb-3" id="card-basics">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-basics">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
+                        <div class="cs-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
-                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
+                            <div class="cs-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
+                            <div class="cs-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
                                 Titel, Kategorie, Personen, Dauer
                             </div>
                         </div>
@@ -105,7 +158,7 @@
                     <span class="badge rounded-pill text-bg-light border">1/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <div class="mb-3">
                         <label class="form-label small text-muted mb-2 label-lang"
                                data-de="Titel"
@@ -213,13 +266,13 @@
             </section>
 
             <!-- 2) MEDIA -->
-            <section class="creator-card mb-3" id="card-media">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-media">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
+                        <div class="cs-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
-                            <div class="creator-card-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
+                            <div class="cs-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
+                            <div class="cs-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
                                 Video oder Bild für den Feed
                             </div>
                         </div>
@@ -227,7 +280,7 @@
                     <span class="badge rounded-pill text-bg-light border">2/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <div id="videoPreviewContainer" class="d-none mb-3">
                         <div class="media-preview">
                             <img id="imagePreview" class="w-100 d-none" style="max-height: 320px; object-fit: cover;" alt="Preview" />
@@ -264,13 +317,13 @@
             </section>
 
             <!-- 3) INGREDIENTS -->
-            <section class="creator-card mb-3" id="card-ingredients">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-ingredients">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
+                        <div class="cs-icon candy-green"><i class="bi bi-basket"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
-                            <div class="creator-card-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
+                            <div class="cs-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
+                            <div class="cs-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
                                 Suche + hinzufügen wie im Creator Flow
                             </div>
                         </div>
@@ -278,7 +331,14 @@
                     <span class="badge rounded-pill text-bg-light border">3/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="creatorFlowToggle" checked>
+                            <label class="form-check-label small" for="creatorFlowToggle">Creator Flow</label>
+                        </div>
+                    </div>
+
                     <div class="mb-2">
                         <input type="text"
                                id="ingredientSearch"
@@ -344,17 +404,18 @@
 
                     
                 </div>
-                <div id="selectedIngredients" class="mt-3 selected-zone"></div>
+                <div class="selected-subsection-title">Ausgewählte Zutaten</div>
+                <div id="selectedIngredients" class="mt-2 selected-zone"></div>
             </section>
 
             <!-- 4) STEPS + SANDBOX -->
-            <section class="creator-card mb-3" id="card-steps">
-                <div class="creator-card-head">
+            <section class="cs-card mb-3" id="card-steps">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div class="cs-icon candy-purple"><i class="bi bi-list-check"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                            <div class="cs-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="cs-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
                                 Add & sortiere wie ein Script
                             </div>
                         </div>
@@ -362,7 +423,7 @@
                     <span class="badge rounded-pill text-bg-light border">4/5</span>
                 </div>
 
-                <div class="creator-card-body">
+                <div class="cs-card__body">
                     <!-- Sandbox Studio -->
                     <div class="sandbox-studio mt-3">
                         <div class="sandbox-head">
@@ -398,8 +459,9 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-7">
-                                <div class="sandbox-panel h-100">
+                            <div class="col-md-7" id="suggestSheetColumn">
+                                <div class="sandbox-panel h-100 suggest-sheet" id="suggestSheet">
+                                    <button type="button" class="btn btn-sm btn-light sheet-close d-md-none" id="closeSuggestSheet" aria-label="Schließen"><i class="bi bi-x-lg"></i></button>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="fw-bold small">Vorschläge</div>
                                         <span id="sandboxActiveIngredientLabel" class="badge text-bg-light border">Keine aktive Zutat</span>
@@ -460,27 +522,7 @@
                         </div>
                     </div>
 
-                    <div class="master-step-builder mt-3 p-3">
-                        <div class="fw-bold mb-2">Master Template Builder</div>
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted mb-1">Zutaten (Mehrfachauswahl)</label>
-                                <div id="masterIngredientButtons" class="d-flex flex-wrap gap-2 master-button-wrap"></div>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label small text-muted mb-1">Template</label>
-                                <select id="masterTemplateSelect" class="form-select form-select-sm"></select>
-                            </div>
-                            <div class="col-md-3 d-grid">
-                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-check2-circle me-1"></i>Übernehmen
-                                </button>
-                            </div>
-                        </div>
-                        <div id="masterVariables" class="row g-2 mt-1"></div>
-                        <div class="small text-muted mt-2">Preview:</div>
-                        <div id="masterPreviewText" class="small border rounded px-2 py-2 bg-light">Noch kein Template gewählt.</div>
-                    </div>
+                    
 
                     <div class="mt-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -493,13 +535,13 @@
             </section>
 
             <!-- 5) KEYWORDS -->
-            <section class="creator-card mb-4" id="card-keywords">
-                <div class="creator-card-head">
+            <section class="cs-card mb-4" id="card-keywords">
+                <div class="cs-card__head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
+                        <div class="cs-icon candy-blue"><i class="bi bi-hash"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
-                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
+                            <div class="cs-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
+                            <div class="cs-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
                                 Hilft beim Feed & bei Suche
                             </div>
                         </div>
@@ -507,8 +549,8 @@
                     <span class="badge rounded-pill text-bg-light border">5/5</span>
                 </div>
 
-                <div class="creator-card-body">
-                    <div class="d-flex flex-wrap gap-2">
+                <div class="cs-card__body">
+                    <div id="keywordGrid" class="d-flex flex-wrap gap-2 keyword-grid">
                         @if (Model.ToSelectKeywords != null)
                         {
                             foreach (var keyword in Model.ToSelectKeywords)
@@ -527,24 +569,18 @@
                         }
                     </div>
 
+                    <button type="button" id="toggleKeywordExpand" class="btn btn-link btn-sm px-0 mt-2">Mehr anzeigen</button>
                     <div id="selectedKeywords" class="mt-3 selected-zone"></div>
                 </div>
             </section>
 
-            <!-- Bottom Action Bar (Feed Style) -->
             <div class="fixed-bottom creator-bottom p-3">
                 <div class="creator-bottom-inner">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="bottom-hint">
-                            <div class="fw-bold">Bereit zum Posten?</div>
-                            <div class="small text-muted">Alles fühlt sich wie ein Feed-Upload an.</div>
-                        </div>
-
-                        <button type="submit" class="btn publish-btn w-100">
-                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
-                            <i class="bi bi-send-fill ms-2"></i>
-                        </button>
-                    </div>
+                    <button type="button" class="btn draft-btn">Entwurf speichern</button>
+                    <button type="submit" class="btn publish-btn">
+                        <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
+                        <i class="bi bi-send-fill ms-2"></i>
+                    </button>
                 </div>
             </div>
 
@@ -552,597 +588,7 @@
     </div>
 </div>
 
-<style>
-    /* ---------- Background / Shell ---------- */
-    .creator-bg {
-        background: radial-gradient(900px 420px at 20% 0%, rgba(255, 153, 102, .18), transparent 60%), radial-gradient(900px 520px at 80% 10%, rgba(139, 92, 246, .16), transparent 65%), #ffffff;
-    }
 
-    .feed-shell {
-        max-width: 720px;
-        padding: 12px 12px 120px 12px; /* space for bottom bar */
-    }
-
-    /* ---------- Loading Overlay ---------- */
-    .creator-loading {
-        position: fixed;
-        inset: 0;
-        background: rgba(255,255,255,0.72);
-        backdrop-filter: blur(8px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2000;
-    }
-
-    .creator-loading-card {
-        background: #fff;
-        border-radius: 18px;
-        padding: 20px 24px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-        text-align: center;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-
-    /* ---------- Topbar ---------- */
-    body > .position-fixed.top-0.end-0.m-3.dropdown {
-        z-index: 2601 !important;
-    }
-
-    .creator-topbar {
-        position: sticky;
-        top: 0;
-        z-index: 1500;
-        background: rgba(255,255,255,0.86);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .topbar-btn {
-        width: 42px;
-        height: 42px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(0,0,0,0.10);
-        background: #fff;
-        color: #111;
-        text-decoration: none;
-    }
-
-    .topbar-primary {
-        border: none;
-        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
-        color: #fff;
-    }
-
-    .topbar-title {
-        flex: 1;
-        min-width: 0;
-        line-height: 1.15;
-    }
-
-    /* ---------- Hero ---------- */
-    .creator-hero {
-        border-radius: 26px;
-        background: rgba(255,255,255,0.82);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(0,0,0,0.06);
-        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
-        padding: 18px;
-        display: flex;
-        justify-content: space-between;
-        gap: 14px;
-        overflow: hidden;
-    }
-
-    .creator-hero-title {
-        font-size: 1.35rem;
-        font-weight: 900;
-        color: #111827;
-        letter-spacing: -0.01em;
-    }
-
-    .creator-hero-sub {
-        color: rgba(17,24,39,.70);
-        font-size: .95rem;
-    }
-
-    .creator-hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 800;
-        font-size: .82rem;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 153, 102, .12);
-        border: 1px solid rgba(255, 153, 102, .25);
-        color: #7c2d12;
-        margin-bottom: 10px;
-        width: fit-content;
-    }
-
-    .progress-dots {
-        display: flex;
-        gap: 6px;
-        justify-content: flex-end;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: rgba(0,0,0,0.10);
-    }
-
-        .dot.active {
-            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
-        }
-
-    /* ---------- Cards ---------- */
-    .creator-card {
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 26px;
-        background: rgba(255,255,255,0.86);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
-        overflow: hidden;
-    }
-
-    .creator-card-head {
-        padding: 14px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .creator-card-body {
-        padding: 14px 16px 16px 16px;
-    }
-
-    .creator-card-title {
-        font-weight: 900;
-        font-size: 1.02rem;
-        color: #111827;
-    }
-
-    .creator-card-sub {
-        font-size: .84rem;
-        color: rgba(17,24,39,.60);
-        margin-top: 2px;
-    }
-
-    .card-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .candy-blue {
-        background: rgba(59, 130, 246, .10);
-        color: #2563eb;
-    }
-
-    .candy-green {
-        background-color: #f0fdf4 !important;
-        color: #16a34a !important;
-        border: none;
-    }
-
-    .candy-pink {
-        background-color: #fdf2f8 !important;
-        color: #db2777 !important;
-        border: none;
-    }
-
-    .candy-purple {
-        background: rgba(139,92,246,.10);
-        color: #7c3aed;
-    }
-
-    /* ---------- Inputs ---------- */
-    .input-pill, .select-pill {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 14px;
-        border-radius: 18px;
-        border: 1px solid rgba(0,0,0,0.08);
-        background: rgba(255,255,255,0.90);
-    }
-
-        .input-pill .form-control,
-        .select-pill .form-select {
-            padding: 0;
-            min-height: unset;
-        }
-
-    .form-control:focus, .form-select:focus {
-        box-shadow: none;
-        border-color: transparent;
-    }
-
-    .cursor-pointer {
-        cursor: pointer;
-    }
-
-    /* ---------- Media ---------- */
-    .media-preview {
-        position: relative;
-        border-radius: 22px;
-        overflow: hidden;
-        background: #111;
-        border: 1px solid rgba(0,0,0,0.10);
-        box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-    }
-
-    .media-reset {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        border-radius: 999px;
-        border: none;
-        opacity: .9;
-    }
-
-    .upload-drop {
-        display: block;
-        border-radius: 22px;
-        border: 1.5px dashed rgba(0,0,0,0.14);
-        background: rgba(255,255,255,0.78);
-        padding: 18px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform .12s ease, box-shadow .12s ease;
-    }
-
-        .upload-drop:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 34px rgba(0,0,0,0.08);
-        }
-
-    .upload-icon {
-        width: 64px;
-        height: 64px;
-        margin: 0 auto 10px auto;
-        border-radius: 999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 153, 102, .14);
-        border: 1px solid rgba(255, 153, 102, .25);
-        color: #ea580c;
-        font-size: 1.6rem;
-    }
-
-    /* ---------- Tables / Selected Zone ---------- */
-    .creator-table-wrap {
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.06);
-        background: rgba(255,255,255,0.70);
-        height: 22rem;
-        overflow-y: auto;
-    }
-
-    /* Der Bereich, in dem die ausgewählten Zutaten landen */
-    #selectedIngredients {
-        display: flex !important;
-        flex-direction: column !important; /* Zwingt Elemente untereinander */
-        gap: 15px; /* Erzeugt den Abstand zwischen den Karten */
-        width: 100%;
-        position: relative;
-        padding: 5px;
-    }
-
-    /* Die einzelne Zutat-Karte */
-    .ingredient-row.dynamic-item {
-        display: block !important; /* Kein Flex-Layout für die äußere Box */
-        position: relative !important; /* Verhindert das Übereinanderstapeln (absolute) */
-        width: 100% !important;
-        background: #ffffff;
-        border-radius: 18px;
-        padding: 15px;
-        border: 1px solid rgba(0,0,0,0.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        margin: 0 !important; /* Abstand wird über 'gap' im Parent geregelt */
-    }
-
-    /* Design-Anpassung für die Inputs innerhalb der Karte */
-    .candy-purple-input {
-        border: none !important;
-        background-color: rgba(139, 92, 246, 0.08) !important;
-        color: #7c3aed !important;
-        font-weight: bold;
-        border-radius: 10px !important;
-    }
-
-    .selected-zone {
-        padding-top: 6px;
-    }
-
-    .dynamic-item {
-        background: rgba(255,255,255,0.92);
-        border-radius: 18px;
-        padding: 12px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-    }
-
-    #ingredientsDbTable .ingredient-inline-inputs .form-control,
-    #ingredientsDbTable .ingredient-inline-inputs .form-select {
-        min-height: 38px;
-    }
-
-    /* ---------- Sandbox Studio ---------- */
-    .sandbox-studio {
-        border-radius: 22px;
-        border: 1px solid rgba(0,0,0,0.06);
-        background: rgba(255,255,255,0.78);
-        padding: 14px;
-    }
-
-    .sandbox-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .sandbox-title {
-        font-weight: 900;
-        color: #111827;
-    }
-
-    .sandbox-sub {
-        font-size: .84rem;
-        color: rgba(17,24,39,.60);
-    }
-
-    .sandbox-panel {
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 18px;
-        padding: 12px;
-        background: #fafafa;
-    }
-
-    .sandbox-tabs {
-        display: flex;
-        gap: 8px;
-    }
-
-    .sandbox-tab {
-        flex: 1;
-        border-radius: 999px;
-        padding: 10px 12px;
-        border: 1px solid rgba(0,0,0,0.10);
-        background: #fff;
-        font-weight: 800;
-        font-size: .82rem;
-        color: rgba(17,24,39,.75);
-    }
-
-        .sandbox-tab.active {
-            border-color: rgba(139,92,246,.35);
-            background: rgba(139,92,246,.10);
-            color: #6d28d9;
-        }
-
-    .sandbox-ingredient-btn.active {
-        border-color: rgba(139,92,246,.40);
-        background: rgba(139,92,246,.10);
-        color: #6d28d9;
-        font-weight: 800;
-    }
-
-    .sandbox-current {
-        border-left: 4px solid #8b5cf6;
-        background: rgba(139,92,246,.08);
-        border-radius: 14px;
-        padding: 10px;
-    }
-
-    .sandbox-step-list {
-        max-height: 22rem;
-        overflow-y: auto;
-        padding-right: .2rem;
-    }
-
-    .phase-badge {
-        font-size: .68rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-right: 5px;
-        display: inline-block;
-        line-height: 1.3;
-    }
-
-    .phase-badge-1 { background: rgba(34,197,94,.12); color: #15803d; }
-    .phase-badge-2 { background: rgba(239,68,68,.12); color: #dc2626; }
-    .phase-badge-3 { background: rgba(245,158,11,.12); color: #b45309; }
-    .phase-badge-4 { background: rgba(99,102,241,.12); color: #4f46e5; }
-
-    .sandbox-phase-header {
-        font-size: .78rem;
-        font-weight: 700;
-        padding: 4px 0;
-        border-bottom: 1px solid rgba(0,0,0,0.04);
-    }
-
-    .equipment-filter-btn.active {
-        font-weight: 800;
-    }
-
-    .equipment-badge {
-        font-size: .68rem;
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-right: 4px;
-        display: inline-block;
-        line-height: 1.3;
-    }
-
-    .equip-badge-1 { background: rgba(220,53,69,.12); color: #dc3545; }
-    .equip-badge-2 { background: rgba(255,193,7,.15); color: #b45309; }
-    .equip-badge-3 { background: rgba(13,202,240,.12); color: #0891b2; }
-    .equip-badge-4 { background: rgba(25,135,84,.12); color: #198754; }
-    .equip-badge-5 { background: rgba(13,110,253,.12); color: #0d6efd; }
-
-
-    .sandbox-step-card {
-        border-color: rgba(0,0,0,0.08) !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .sandbox-step-candidate {
-        font-weight: 600;
-    }
-
-    .sandbox-accept-step-btn:disabled {
-        opacity: .7;
-        cursor: not-allowed;
-    }
-
-
-    /* ---------- Bottom Bar ---------- */
-    .creator-bottom {
-        left: 50% !important;
-        transform: translateX(-50%);
-        width: min(720px, 100%);
-        z-index: 1600;
-        background: linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.55) 60%, transparent 100%);
-        pointer-events: none;
-    }
-
-    .creator-bottom-inner {
-        pointer-events: auto;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.92);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(0,0,0,0.08);
-        box-shadow: 0 14px 36px rgba(0,0,0,0.10);
-        padding: 10px;
-    }
-
-    .bottom-hint {
-        min-width: 210px;
-        display: none;
-    }
-
-    .publish-btn {
-        border: none;
-        border-radius: 999px;
-        padding: 14px 16px;
-        font-weight: 900;
-        color: #fff;
-        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
-        box-shadow: 0 14px 30px rgba(255, 94, 98, 0.28);
-    }
-
-    /* ---------- Responsive ---------- */
-    @@media (min-width: 768px) {
-        .bottom-hint {
-            display: block;
-        }
-    }
-
-    @@media (max-width: 576px) {
-        .feed-shell {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .creator-hero {
-            flex-direction: column;
-        }
-
-        .creator-hero-right {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .creator-table-wrap {
-            height: 20rem;
-            overflow-y: auto;
-        }
-
-        .table-responsive {
-            overflow-x: hidden;
-        }
-
-        #ingredientsDbTable thead, #stepsDbTable thead {
-            display: none;
-        }
-
-        #ingredientsDbTable tbody tr, #stepsDbTable tbody tr {
-            display: block;
-            margin-bottom: 12px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 18px;
-            padding: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-        }
-
-        #ingredientsDbTable tbody td, #stepsDbTable tbody td {
-            display: block;
-            border: 0;
-            padding: 0;
-        }
-
-            #ingredientsDbTable tbody td + td,
-            #stepsDbTable tbody td + td {
-                margin-top: 10px;
-                text-align: right !important;
-            }
-    }
-
-
-    .master-button-wrap {
-        min-height: 38px;
-        padding: 4px;
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 10px;
-        background: #fff;
-    }
-
-    .master-button-wrap .btn {
-        text-align: left;
-    }
-
-    .master-step-builder {
-        border: 1px solid rgba(13,110,253,0.15);
-        border-radius: 14px;
-        background: linear-gradient(180deg, rgba(13,110,253,0.04) 0%, rgba(255,255,255,1) 45%);
-        box-shadow: 0 6px 16px rgba(13,110,253,0.08);
-    }
-
-    .master-step-builder .form-select,
-    .master-step-builder .form-control {
-        border-radius: 10px;
-    }
-
-    #masterPreviewText {
-        border-color: rgba(13,110,253,0.2) !important;
-        background: #f8fbff !important;
-    }
-
-</style>
 
 
 
@@ -1458,19 +904,21 @@
                 ingredientButtons.append('<div class="text-muted small">Keine Zutat gewählt</div>');
                 $('#masterVariables').empty();
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
+                $('#masterSelectedCount').text('0 Zutaten gewählt');
+                $('#masterInfoIngredient').text('-');
+                $('#masterInfoPronoun').text('-');
                 refreshMasterTemplateOptions();
                 return;
             }
 
             availableNames.forEach(name => {
                 const isActive = selectedMasterIngredientNames.includes(name);
-                ingredientButtons.append(`<button type="button" class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} master-ingredient-btn" data-name="${name}">${name}</button>`);
+                ingredientButtons.append(`<button type="button" class="master-ingredient-btn ${isActive ? 'is-active' : ''}" data-name="${name}" title="${name}">${name}</button>`);
             });
 
-            // Hinweis: Mehrere Zutaten auswählbar
-            if (availableNames.length > 1 && selectedMasterIngredientNames.length > 0) {
-                ingredientButtons.append(`<div class="text-muted small mt-1">${selectedMasterIngredientNames.length} von ${availableNames.length} gewählt</div>`);
-            }
+            const count = selectedMasterIngredientNames.length;
+            $('#masterSelectedCount').text(`${count} Zutaten gewählt`);
+            $('#masterInfoIngredient').text(buildIngredientTextForMaster() || '-');
 
             refreshMasterTemplateOptions();
         }
@@ -1523,6 +971,7 @@
 
             if (!templateId || !window.MasterStepRenderer) {
                 $('#masterPreviewText').text('Noch kein Template gewählt.');
+                $('#masterInfoPronoun').text('-');
                 return;
             }
 
@@ -1539,9 +988,10 @@
 
             (template.variables || []).forEach(key => {
                 const value = vars[key] || '';
-                box.append(`<div class="col-md-4"><label class="form-label small text-muted mb-1">${key}</label><input type="text" class="form-control form-control-sm master-var-input" data-var="${key}" value="${value}" /></div>`);
+                box.append(`<input type="hidden" class="master-var-input" data-var="${key}" value="${value}" />`);
             });
 
+            $('#masterInfoPronoun').text(vars.pronoun || '-');
             updateMasterPreview();
         }
 
@@ -2093,11 +1543,11 @@
                     ${phaseBadge}
                     <span class="step-text-content">${text}</span>
                 </div>
-                <div class="btn-group ms-2" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                <div class="step-controls ms-2" role="group" aria-label="Step Aktionen">
+                    <button type="button" class="step-icon-btn" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="step-icon-btn" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="step-icon-btn" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
+                    <button type="button" class="step-icon-btn is-danger" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
                 </div>
             </div>`);
 
@@ -2172,7 +1622,7 @@
 
         function updateStepIndices() {
             $('#selectedSteps .step-row').each(function (i) {
-                $(this).find('.step-badge').text(i + 1);
+                $(this).find('.step-badge').text(String(i + 1).padStart(2, '0'));
                 $(this).find('.step-index-input').val(i + 1);
             });
             refreshSandboxProgress();
@@ -2219,6 +1669,15 @@
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
             });
+
+            $('#creatorFlowToggle').on('change', function () {
+                if ($(this).is(':checked')) {
+                    $('#card-ingredients').removeClass('is-compact');
+                } else {
+                    $('#card-ingredients').addClass('is-compact');
+                }
+            });
+
 
             $('#stepSearch').on('input', function () {
                 renderSandboxStepTab();
@@ -2305,6 +1764,40 @@
                 if (offset > rect.height / 2) $(this).after(draggedStepRow);
                 else $(this).before(draggedStepRow);
                 updateStepIndices();
+            });
+
+
+            const copyPreviewButtons = $('#copyMasterPreview, #masterPreviewIconBtn');
+            copyPreviewButtons.on('click', async function () {
+                const preview = ($('#masterPreviewText').text() || '').trim();
+                if (!preview) return;
+                try {
+                    await navigator.clipboard.writeText(preview);
+                    $('#masterCopyToast').addClass('show');
+                    copyPreviewButtons.find('i').removeClass('bi-copy').addClass('bi-check2');
+                    setTimeout(() => {
+                        $('#masterCopyToast').removeClass('show');
+                        copyPreviewButtons.find('i').removeClass('bi-check2').addClass('bi-copy');
+                    }, 1300);
+                } catch {
+                    // Clipboard not available in some webviews.
+                }
+            });
+
+            $('#toggleKeywordExpand').on('click', function () {
+                $('#keywordGrid').toggleClass('expanded');
+                const expanded = $('#keywordGrid').hasClass('expanded');
+                $(this).text(expanded ? 'Weniger anzeigen' : 'Mehr anzeigen');
+            });
+
+            $('#btnSuggestSteps').on('click', function () {
+                if (window.matchMedia('(max-width: 767.98px)').matches) {
+                    $('#suggestSheet').addClass('open-mobile');
+                }
+            });
+
+            $('#closeSuggestSheet').on('click', function () {
+                $('#suggestSheet').removeClass('open-mobile');
             });
 
             updateLanguageLabels();
