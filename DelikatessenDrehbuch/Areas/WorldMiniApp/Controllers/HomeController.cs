@@ -20,7 +20,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
-    //TODO:in claud weiter machen
+   
     [Area("WorldMiniApp")]
     public class HomeController : Controller
     {
