@@ -13,6 +13,7 @@ namespace DelikatessenDrehbuch.Controllers
 {
     public class HomeController : Controller
     {
+        private const string SessionUserHashKey = "WorldMiniAppUserHash";
         private readonly ILogger<HomeController> _logger;
         private readonly IMemoryCache _cache;
         private readonly ApplicationDbContext _context;
@@ -71,6 +72,55 @@ namespace DelikatessenDrehbuch.Controllers
 
         }
 
+        public async Task<IActionResult> UserDashboard()
+        {
+            var userHash = HttpContext.Session.GetString(SessionUserHashKey) ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return View(new UserDashboardViewModel
+                {
+                    IsLoggedInWithWorldMiniApp = false
+                });
+            }
+
+            var sales = await _context.MealPlanPurchases
+                .Include(x => x.Listing)
+                .Where(x => x.SellerHash == userHash)
+                .OrderByDescending(x => x.PurchasedAt)
+                .Take(100)
+                .ToListAsync();
+
+            var transactionHistory = await _context.WildCoinTransactions
+                .Where(x => x.UserHash == userHash)
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(100)
+                .ToListAsync();
+
+            var openWldAmount = sales
+                .Where(x => (x.PaymentToken ?? "WLD").Equals("WLD", StringComparison.OrdinalIgnoreCase))
+                .Sum(x => x.CreatorAmount);
+
+            var openUsdcAmount = sales
+                .Where(x => (x.PaymentToken ?? "WLD").Equals("USDC", StringComparison.OrdinalIgnoreCase)
+                         || (x.PaymentToken ?? "WLD").Equals("USDCE", StringComparison.OrdinalIgnoreCase)
+                         || (x.PaymentToken ?? "WLD").Equals("USDT", StringComparison.OrdinalIgnoreCase))
+                .Sum(x => x.CreatorAmount);
+
+            var model = new UserDashboardViewModel
+            {
+                IsLoggedInWithWorldMiniApp = true,
+                UserHash = userHash,
+                SoldMealPlanCount = sales.Count,
+                TotalCreatorRevenue = sales.Sum(x => x.CreatorAmount),
+                OpenWldAmount = openWldAmount,
+                OpenUsdcAmount = openUsdcAmount,
+                SalesHistory = sales,
+                WildCoinHistory = transactionHistory
+            };
+
+            return View(model);
+        }
 
         public async Task<IActionResult> SearchRecipes(string query)
         {
