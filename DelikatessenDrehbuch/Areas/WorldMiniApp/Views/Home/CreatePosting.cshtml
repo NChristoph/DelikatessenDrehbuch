@@ -365,6 +365,10 @@
                 <div class="creator-card-body">
                     <div class="smart-step-creator mt-3" data-theme="dark">
                         <div class="creator-preview-canvas" id="masterPreviewCanvas">
+                            <div class="ingredient-top-strip">
+                                <div class="ingredient-top-title">Zutaten zur Auswahl</div>
+                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
+                            </div>
                             <div class="preview-creator-badge">
                                 <i class="bi bi-stars"></i>
                                 <span>Premium Mode</span>
@@ -372,12 +376,6 @@
                             <div class="preview-step-card" id="masterPreviewCard">
                                 <div class="preview-step-title">Smart Step Creator</div>
                                 <div id="masterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
-                            </div>
-                            <div class="story-progress-wrap">
-                                <div class="story-progress-label">Story wächst …</div>
-                                <div class="story-progress-track">
-                                    <div id="storyProgressBar" class="story-progress-fill" style="width:0%"></div>
-                                </div>
                             </div>
                             <div id="templateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
                             <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
@@ -394,7 +392,6 @@
                                 </button>
                             </div>
 
-                            <div class="ingredient-swiper" id="masterIngredientButtons"></div>
                             <div class="template-library" id="masterTemplateCards"></div>
 
                             <div class="action-bar">
@@ -404,8 +401,8 @@
                                     <span>Premium Mode</span>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" id="btnAddRenderedStep" class="btn creator-cta-primary">➕ Zur Story hinzufügen</button>
-                                    <button type="button" id="btnCreatorDone" class="btn creator-cta-secondary">Fertig</button>
+                                    <button type="button" id="btnAddRenderedStep" class="btn creator-cta-primary">➕ Nächsten Step</button>
+                                    <button type="button" id="btnCreatorDone" class="btn creator-cta-secondary">Nächster Step</button>
                                 </div>
                             </div>
                         </div>
@@ -428,7 +425,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-3">
+                    <div class="mt-1">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
                             <div class="small text-muted">Sortieren, prüfen und bearbeiten</div>
@@ -544,7 +541,7 @@
         border-bottom: 1px solid rgba(0,0,0,0.06);
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
 
     .topbar-btn {
@@ -700,7 +697,7 @@
     .input-pill, .select-pill {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         padding: 12px 14px;
         border-radius: 18px;
         border: 1px solid rgba(0,0,0,0.08);
@@ -953,12 +950,31 @@
     }
 
     .creator-preview-canvas {
-        height: 62%;
+        height: 66%;
         padding: 16px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         position: relative;
+    }
+
+
+    .ingredient-top-strip {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .ingredient-top-title {
+        font-size: .74rem;
+        color: var(--creator-sub);
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .ingredient-swiper-top {
+        margin-bottom: 4px;
     }
 
     .preview-creator-badge {
@@ -1033,7 +1049,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 40%;
+        height: 34%;
         background: var(--creator-sheet);
         border-top: 1px solid var(--creator-border);
         backdrop-filter: blur(16px);
@@ -1041,7 +1057,7 @@
         padding: 12px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
 
     .sheet-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -1135,10 +1151,6 @@
         color: var(--creator-text);
     }
 
-    .story-progress-wrap { margin-top: 8px; }
-    .story-progress-label { font-size: .72rem; color: var(--creator-sub); margin-bottom: 4px; }
-    .story-progress-track { height: 6px; border-radius: 999px; background: rgba(255,255,255,0.18); overflow: hidden; }
-    .story-progress-fill { height: 100%; background: linear-gradient(90deg, #8d63ff, #52e5ff); transition: width .25s ease; }
 
     .creator-toast {
         position: absolute;
@@ -1411,8 +1423,6 @@
         function updateStoryProgress() {
             const count = creatorState.storySteps.length;
             $('#storyStepCount').text(`Steps: ${count}`);
-            const pct = Math.min(100, count * 20);
-            $('#storyProgressBar').css('width', `${pct}%`);
         }
 
         function showCreatorToast(message) {
