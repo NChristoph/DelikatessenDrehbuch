@@ -364,45 +364,41 @@
 
                 <div class="creator-card-body">
                     <div class="smart-step-creator mt-3" data-theme="dark">
+                        <div class="sheet-head creator-top-head">
+                            <div>
+                                <div class="sheet-title">Smart Step Creator</div>
+                                <div class="sheet-sub">Wähle Zutat + Template wie im Creator Flow</div>
+                            </div>
+                            <button type="button" id="btnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">
+                                ⚙︎
+                            </button>
+                        </div>
+
                         <div class="creator-preview-canvas" id="masterPreviewCanvas">
-                            <div class="ingredient-top-strip">
-                                <div class="ingredient-top-title">Zutaten zur Auswahl</div>
-                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
-                            </div>
-                            <div class="preview-creator-badge">
-                                <i class="bi bi-stars"></i>
-                                <span>Premium Mode</span>
-                            </div>
                             <div class="preview-step-card" id="masterPreviewCard">
-                                <div class="preview-step-title">Smart Step Creator</div>
+                                <div class="preview-step-title">Aktueller Step</div>
                                 <div id="masterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
+                            </div>
+                            <div class="template-selection-wrap">
+                                <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
+                                <div class="template-library" id="masterTemplateCards"></div>
                             </div>
                             <div id="templateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
                             <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
                         </div>
 
                         <div class="creator-bottom-sheet">
-                            <div class="sheet-head">
-                                <div>
-                                    <div class="sheet-title">Smart Step Creator</div>
-                                    <div class="sheet-sub">Wähle Zutat + Template wie im Creator Flow</div>
-                                </div>
-                                <button type="button" id="btnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">
-                                    ⚙︎
-                                </button>
+                            <div class="ingredient-top-strip mb-0">
+                                <div class="ingredient-top-title">Zutat im Step austauschen</div>
+                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
                             </div>
-
-                            <div class="template-library" id="masterTemplateCards"></div>
 
                             <div class="action-bar">
                                 <div class="story-meta">
-                                    <span id="storyStepCount">Steps: 0</span>
-                                    <span class="dot">•</span>
-                                    <span>Premium Mode</span>
+                                    <span id="storyStepCount">Schritte: 0</span>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" id="btnAddRenderedStep" class="btn creator-cta-primary">➕ Nächsten Step</button>
-                                    <button type="button" id="btnCreatorDone" class="btn creator-cta-secondary">Nächster Step</button>
+                                    <button type="button" id="btnAddRenderedStep" class="btn creator-cta-primary">Step akzeptieren</button>
                                 </div>
                             </div>
                         </div>
@@ -935,7 +931,7 @@
         border: 1px solid rgba(255,255,255,0.12);
         background: var(--creator-bg);
         color: var(--creator-text);
-        min-height: 78vh;
+        min-height: 76vh;
         position: relative;
         box-shadow: 0 18px 40px rgba(16,20,40,0.26);
     }
@@ -949,8 +945,23 @@
         --creator-accent: #5b6df9;
     }
 
+
+    .creator-top-head {
+        padding: 12px 14px 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        background: rgba(12, 16, 28, 0.28);
+    }
+
+    .template-selection-wrap {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        flex: 1;
+    }
+
     .creator-preview-canvas {
-        height: 66%;
+        height: 70%;
         padding: 16px;
         display: flex;
         flex-direction: column;
@@ -975,19 +986,6 @@
 
     .ingredient-swiper-top {
         margin-bottom: 4px;
-    }
-
-    .preview-creator-badge {
-        align-self: flex-start;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: .78rem;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.12);
-        border: 1px solid rgba(255,255,255,0.2);
-        backdrop-filter: blur(8px);
     }
 
     .preview-step-card {
@@ -1027,6 +1025,12 @@
     .token-highlight {
         color: #ffe08a;
         text-shadow: 0 0 16px rgba(255,208,95,.35);
+        cursor: pointer;
+        border-bottom: 1px dashed rgba(255,224,138,.75);
+    }
+
+    .preview-step-card.token-replace-active {
+        box-shadow: 0 0 0 2px rgba(255,224,138,.4), 0 14px 30px rgba(0,0,0,0.2);
     }
 
     .phase-badge {
@@ -1049,7 +1053,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 34%;
+        height: 30%;
         background: var(--creator-sheet);
         border-top: 1px solid var(--creator-border);
         backdrop-filter: blur(16px);
@@ -1099,6 +1103,8 @@
         flex-direction: column;
         gap: 8px;
         padding-right: 2px;
+        min-height: 0;
+        flex: 1;
     }
 
     .template-card {
@@ -1140,15 +1146,6 @@
         font-weight: 700;
         font-size: .82rem;
         padding: 8px 12px;
-    }
-
-    .creator-cta-secondary {
-        border-radius: 999px;
-        font-size: .82rem;
-        padding: 8px 12px;
-        background: rgba(255,255,255,0.16);
-        border: 1px solid var(--creator-border);
-        color: var(--creator-text);
     }
 
 
@@ -1294,7 +1291,7 @@
             computedPronoun: 'ihn',
             computedArticle: 'den',
             previewText: '',
-            storySteps: [],
+            ingredientReplaceArmed: false,
             toastMessage: '',
             toastVisible: false,
             advancedPronounOverride: '',
@@ -1411,18 +1408,19 @@
             const ingredientName = getSelectedIngredientForCreator()?.name || '';
             if (ingredientName) {
                 const escaped = $('<div>').text(rendered).html();
-                const highlighted = escaped.replace(new RegExp(ingredientName, 'ig'), `<span class="token-highlight">${ingredientName}</span>`);
+                const highlighted = escaped.replace(new RegExp(ingredientName, 'ig'), `<span class="token-highlight" data-role="ingredient-token">${ingredientName}</span>`);
                 $('#masterPreviewText').html(highlighted);
             } else {
                 $('#masterPreviewText').text(rendered);
             }
 
+            if (!creatorState.ingredientReplaceArmed) { $('#masterPreviewCard').removeClass('token-replace-active'); }
             animatePreview();
         }
 
         function updateStoryProgress() {
-            const count = creatorState.storySteps.length;
-            $('#storyStepCount').text(`Steps: ${count}`);
+            const count = $('#selectedSteps .step-row').length;
+            $('#storyStepCount').text(`Schritte: ${count}`);
         }
 
         function showCreatorToast(message) {
@@ -1919,6 +1917,7 @@
                 $(this).find('.step-badge').text(i + 1);
                 $(this).find('.step-index-input').val(i + 1);
             });
+            updateStoryProgress();
         }
 
         function prepareBinding() {
@@ -1968,6 +1967,11 @@
                 creatorState.advancedArticleOverride = '';
                 renderIngredientChips();
                 renderTemplateCards();
+                if (creatorState.ingredientReplaceArmed) {
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    showCreatorToast('Zutat im Step ersetzt');
+                }
             });
 
             $('#masterTemplateCards').on('click', '.template-card', function () {
@@ -1979,7 +1983,13 @@
                 setTimeout(() => $(this).removeClass('template-tap'), 180);
                 animateTemplateToPreview($(this).data('title'));
                 updatePreviewText();
-                showCreatorToast('Zur Story hinzugefügt');
+                showCreatorToast('Template gewählt');
+            });
+
+            $('#masterPreviewText').on('click', '.token-highlight', function () {
+                creatorState.ingredientReplaceArmed = true;
+                $('#masterPreviewCard').addClass('token-replace-active');
+                showCreatorToast('Jetzt unten eine Zutat antippen');
             });
 
             $('#btnOpenAdvancedSettings').on('click', function () {
@@ -2006,14 +2016,10 @@
 
             $('#btnAddRenderedStep').on('click', async function () {
                 await addRenderedMasterStep();
-                creatorState.storySteps.push(creatorState.previewText || 'Neuer Schritt');
                 updateStoryProgress();
-                showCreatorToast('Zur Story hinzugefügt');
+                showCreatorToast('Step akzeptiert');
             });
 
-            $('#btnCreatorDone').on('click', function () {
-                $('html, body').animate({ scrollTop: $('#selectedSteps').offset().top - 90 }, 260);
-            });
             $('#selectedSteps').on('dragstart', '.step-row', function (e) {
                 draggedStepRow = this;
                 e.originalEvent.dataTransfer.effectAllowed = 'move';
