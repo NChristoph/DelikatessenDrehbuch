@@ -375,24 +375,23 @@
                         </div>
 
                         <div class="creator-preview-canvas" id="masterPreviewCanvas">
+                            <div class="ingredient-top-strip mb-2">
+                                <div class="ingredient-top-title">Zutaten zur Auswahl</div>
+                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
+                            </div>
                             <div class="preview-step-card" id="masterPreviewCard">
                                 <div class="preview-step-title">Aktueller Step</div>
                                 <div id="masterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
-                                <div class="template-library" id="masterTemplateCards"></div>
+                                <div class="template-library template-library-fixed" id="masterTemplateCards"></div>
                             </div>
                             <div id="templateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
                             <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
                         </div>
 
                         <div class="creator-bottom-sheet">
-                            <div class="ingredient-top-strip mb-0">
-                                <div class="ingredient-top-title">Zutat im Step austauschen</div>
-                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
-                            </div>
-
                             <div class="action-bar">
                                 <div class="story-meta">
                                     <span id="storyStepCount">Schritte: 0</span>
@@ -957,11 +956,10 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
-        flex: 1;
     }
 
     .creator-preview-canvas {
-        height: 70%;
+        height: auto;
         padding: 16px;
         display: flex;
         flex-direction: column;
@@ -1053,7 +1051,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 30%;
+        height: auto;
         background: var(--creator-sheet);
         border-top: 1px solid var(--creator-border);
         backdrop-filter: blur(16px);
@@ -1105,6 +1103,13 @@
         padding-right: 2px;
         min-height: 0;
         flex: 1;
+    }
+
+
+    .template-library-fixed {
+        height: 50vh;
+        max-height: 50vh;
+        overflow-y: auto;
     }
 
     .template-card {
