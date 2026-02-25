@@ -3,7 +3,6 @@ using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 using System.Linq;
@@ -70,7 +69,6 @@ namespace DelikatessenDrehbuch.Controllers
             return View();
 
         }
-
 
         public async Task<IActionResult> SearchRecipes(string query)
         {
