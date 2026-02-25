@@ -1,6 +1,4 @@
-using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
-
-namespace DelikatessenDrehbuch.Models
+namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 {
     public class UserDashboardViewModel
     {
