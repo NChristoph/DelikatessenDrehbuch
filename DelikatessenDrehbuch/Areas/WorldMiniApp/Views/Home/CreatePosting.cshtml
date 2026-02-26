@@ -1070,9 +1070,9 @@
 
     .ingredient-swiper {
         display: flex;
+        flex-wrap: wrap;
         gap: 8px;
-        overflow-x: auto;
-        overflow-y: visible;
+        overflow: visible;
         padding: 4px 6px 6px;
         scrollbar-width: none;
     }
@@ -1085,7 +1085,7 @@
         border-radius: 14px;
         padding: 8px 12px;
         font-size: .82rem;
-        white-space: nowrap;
+        white-space: normal;
         flex: 0 0 auto;
         margin: 1px 0;
         transition: all .2s ease;
@@ -1294,12 +1294,14 @@
 
         const isDarkTheme = true;
         const creatorState = {
-            selectedIngredientId: '',
+            selectedIngredientIds: [],
             selectedTemplateId: '',
             computedPronoun: 'ihn',
             computedArticle: 'den',
             previewText: '',
             ingredientReplaceArmed: false,
+            activePlaceholderKey: '',
+            placeholderAssignments: {},
             toastMessage: '',
             toastVisible: false,
             advancedPronounOverride: '',
@@ -1347,11 +1349,19 @@
             return Array.from(keys);
         }
 
-        function getSelectedIngredientForCreator() {
+        function getSelectedIngredientNames() {
             const ingredients = getSelectedIngredientsForSandbox();
-            if (!ingredients.length) return null;
-            const existing = ingredients.find(x => x.id === creatorState.selectedIngredientId);
-            return existing || ingredients[0];
+            if (!ingredients.length) return [];
+            const selectedIds = creatorState.selectedIngredientIds || [];
+            const selected = ingredients.filter(x => selectedIds.includes(x.id));
+            if (selected.length) return selected.map(x => x.name);
+            return [ingredients[0].name];
+        }
+
+        function getSelectedIngredientForCreator() {
+            const names = getSelectedIngredientNames();
+            if (!names.length) return null;
+            return { id: (creatorState.selectedIngredientIds || [])[0] || '', name: names[0] };
         }
 
         function getEffectiveTemplateId() {
@@ -1360,8 +1370,8 @@
 
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
-            const ingredient = getSelectedIngredientForCreator();
-            const ingredientName = ingredient?.name || 'Zutat';
+            const selectedNames = getSelectedIngredientNames();
+            const ingredientName = selectedNames.length ? selectedNames.join(', ') : 'Zutat';
             const grammar = resolveGermanGrammarForIngredient(ingredientName);
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
@@ -1409,18 +1419,27 @@
                 return;
             }
 
+            const template = MasterStepRenderer.findTemplate(templateId);
+            const langKey = (currentLang || 'de').toLowerCase();
+            const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
             const vars = buildVariablesForTemplate(templateId);
-            const rendered = MasterStepRenderer.render(templateId, vars, currentLang) || 'Keine Vorschau verfügbar.';
-            creatorState.previewText = rendered;
 
-            const ingredientName = getSelectedIngredientForCreator()?.name || '';
-            if (ingredientName) {
-                const escaped = $('<div>').text(rendered).html();
-                const highlighted = escaped.replace(new RegExp(ingredientName, 'ig'), `<span class="token-highlight" data-role="ingredient-token">${ingredientName}</span>`);
-                $('#masterPreviewText').html(highlighted);
-            } else {
-                $('#masterPreviewText').text(rendered);
-            }
+            const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+                const k = String(key || '').trim();
+                const isIngredientPlaceholder = k.toLowerCase().includes('ingredient');
+                if (isIngredientPlaceholder) {
+                    const selectedNames = getSelectedIngredientNames();
+                    const assigned = creatorState.placeholderAssignments[k];
+                    const value = assigned || (selectedNames.length ? selectedNames.join(', ') : `{${k}}`);
+                    return `<span class="token-highlight placeholder-token" data-placeholder-key="${k}">${value}</span>`;
+                }
+
+                const value = vars[k] != null ? String(vars[k]).trim() : '';
+                return $('<div>').text(value || k).html();
+            });
+
+            $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
+            creatorState.previewText = $('#masterPreviewText').text().trim() || 'Keine Vorschau verfügbar.';
 
             if (!creatorState.ingredientReplaceArmed) { $('#masterPreviewCard').removeClass('token-replace-active'); }
             animatePreview();
@@ -1456,17 +1475,18 @@
 
             if (!ingredients.length) {
                 wrap.append('<div class="small text-white-50">Wähle zuerst Zutaten aus.</div>');
-                creatorState.selectedIngredientId = '';
+                creatorState.selectedIngredientIds = [];
                 updatePreviewText();
                 return;
             }
 
-            if (!ingredients.some(x => x.id === creatorState.selectedIngredientId)) {
-                creatorState.selectedIngredientId = ingredients[0].id;
+            creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
+            if (!creatorState.selectedIngredientIds.length) {
+                creatorState.selectedIngredientIds = [ingredients[0].id];
             }
 
             ingredients.forEach(item => {
-                const active = item.id === creatorState.selectedIngredientId ? 'active' : '';
+                const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const emoji = getIngredientEmoji(item.name);
                 wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}">${emoji} ${item.name}</button>`);
             });
@@ -1969,22 +1989,37 @@
             MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
 
             $('#masterIngredientButtons').on('click', '.ingredient-chip', function () {
-                creatorState.selectedIngredientId = ($(this).data('id') || '').toString();
+                const id = ($(this).data('id') || '').toString();
+                if (!id) return;
+                const selected = creatorState.selectedIngredientIds || [];
+                if (selected.includes(id)) {
+                    creatorState.selectedIngredientIds = selected.filter(x => x !== id);
+                } else {
+                    creatorState.selectedIngredientIds = [...selected, id];
+                }
+
                 creatorState.advancedPronounOverride = '';
                 creatorState.advancedArticleOverride = '';
+
+                if (creatorState.activePlaceholderKey) {
+                    const selectedNames = getSelectedIngredientNames();
+                    creatorState.placeholderAssignments[creatorState.activePlaceholderKey] = selectedNames.join(', ');
+                    creatorState.ingredientReplaceArmed = false;
+                    creatorState.activePlaceholderKey = '';
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    showCreatorToast('Platzhalter ersetzt');
+                }
+
                 renderIngredientChips();
                 renderTemplateCards();
-                if (creatorState.ingredientReplaceArmed) {
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    showCreatorToast('Zutat im Step ersetzt');
-                }
             });
 
             $('#masterTemplateCards').on('click', '.template-card', function () {
                 const id = ($(this).data('id') || '').toString();
                 if (!id) return;
                 creatorState.selectedTemplateId = id;
+                creatorState.activePlaceholderKey = '';
+                creatorState.placeholderAssignments = {};
                 $('.template-card').removeClass('active');
                 $(this).addClass('active template-tap');
                 setTimeout(() => $(this).removeClass('template-tap'), 180);
@@ -1993,10 +2028,20 @@
                 showCreatorToast('Template gewählt');
             });
 
-            $('#masterPreviewText').on('click', '.token-highlight', function () {
-                creatorState.ingredientReplaceArmed = true;
-                $('#masterPreviewCard').addClass('token-replace-active');
-                showCreatorToast('Jetzt unten eine Zutat antippen');
+            $('#masterPreviewText').on('click', '.placeholder-token', function () {
+                const key = ($(this).data('placeholder-key') || '').toString();
+                if (!key) return;
+                creatorState.activePlaceholderKey = key;
+                const selectedNames = getSelectedIngredientNames();
+                if (selectedNames.length) {
+                    creatorState.placeholderAssignments[key] = selectedNames.join(', ');
+                    showCreatorToast('Platzhalter ersetzt');
+                    renderTemplateCards();
+                } else {
+                    creatorState.ingredientReplaceArmed = true;
+                    $('#masterPreviewCard').addClass('token-replace-active');
+                    showCreatorToast('Erst Zutaten auswählen');
+                }
             });
 
             $('#btnOpenAdvancedSettings').on('click', function () {
