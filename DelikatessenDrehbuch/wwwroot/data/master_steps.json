@@ -974,6 +974,33 @@
     "extra": "Servierhinweis, z.B. 'mit frischen Kräutern', 'sofort heiß'"
   },
 
+  "duration_units": {
+    "minute": {
+      "de": "Minuten",
+      "en": "minutes",
+      "esp": "minutos",
+      "prt": "minutos",
+      "id": "menit",
+      "nl": "minuten",
+      "sv": "minuter",
+      "da": "minutter",
+      "no": "minutter",
+      "ms": "minit"
+    },
+    "hour": {
+      "de": "Stunden",
+      "en": "hours",
+      "esp": "horas",
+      "prt": "horas",
+      "id": "jam",
+      "nl": "uur",
+      "sv": "timmar",
+      "da": "timer",
+      "no": "timer",
+      "ms": "jam"
+    }
+  },
+
   "example_render": {
     "_comment": "Beispiel: COOK_SAUTE_01 mit konkreten Werten (sprachneutral befüllt).",
     "master_id": "COOK_SAUTE_01",
