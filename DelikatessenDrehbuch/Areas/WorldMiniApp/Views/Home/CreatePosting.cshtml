@@ -1484,6 +1484,11 @@
             animatePreview();
         }
 
+        function clearSelectedIngredientChips() {
+            creatorState.selectedIngredientIds = [];
+            renderIngredientChips();
+        }
+
         function updateStoryProgress() {
             const count = $('#selectedSteps .step-row').length;
             $('#storyStepCount').text(`Schritte: ${count}`);
@@ -2044,7 +2049,7 @@
                     const selectedValue = getSelectedIngredientValueForInsert();
                     if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
                     creatorState.ingredientReplaceArmed = false;
-                    creatorState.selectedIngredientIds = [];
+                    clearSelectedIngredientChips();
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     showCreatorToast('Platzhalter ersetzt');
                 }
@@ -2079,7 +2084,7 @@
                 const selectedValue = getSelectedIngredientValueForInsert();
                 if (selectedValue) {
                     creatorState.placeholderAssignments[tokenId] = selectedValue;
-                    creatorState.selectedIngredientIds = [];
+                    clearSelectedIngredientChips();
                     showCreatorToast('Platzhalter ersetzt');
                 } else {
                     showCreatorToast('Erst Zutaten auswählen');
@@ -2119,7 +2124,7 @@
                     ? (existingValue.toLowerCase().includes(dropValue.toLowerCase()) ? existingValue : `${existingValue}, ${dropValue}`)
                     : dropValue;
                 creatorState.ingredientReplaceArmed = false;
-                creatorState.selectedIngredientIds = [];
+                clearSelectedIngredientChips();
                 $('#masterPreviewCard').removeClass('token-replace-active');
                 showCreatorToast('Zutat per Drag & Drop eingesetzt');
                 renderTemplateCards();
