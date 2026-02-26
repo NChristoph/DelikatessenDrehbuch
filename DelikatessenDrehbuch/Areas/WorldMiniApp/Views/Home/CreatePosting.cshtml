@@ -1027,6 +1027,12 @@
         border-bottom: 1px dashed rgba(255,224,138,.75);
     }
 
+    .placeholder-token.token-active {
+        background: rgba(255,224,138,.2);
+        border-radius: 8px;
+        padding: 0 4px;
+    }
+
     .preview-step-card.token-replace-active {
         box-shadow: 0 0 0 2px rgba(255,224,138,.4), 0 14px 30px rgba(0,0,0,0.2);
     }
@@ -1300,7 +1306,7 @@
             computedArticle: 'den',
             previewText: '',
             ingredientReplaceArmed: false,
-            activePlaceholderKey: '',
+            activePlaceholderTokenId: '',
             placeholderAssignments: {},
             toastMessage: '',
             toastVisible: false,
@@ -1423,15 +1429,18 @@
             const langKey = (currentLang || 'de').toLowerCase();
             const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
             const vars = buildVariablesForTemplate(templateId);
+            let placeholderOccurrence = 0;
 
             const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
                 const k = String(key || '').trim();
                 const isIngredientPlaceholder = k.toLowerCase().includes('ingredient');
                 if (isIngredientPlaceholder) {
+                    const tokenId = `${k}__${placeholderOccurrence++}`;
                     const selectedNames = getSelectedIngredientNames();
-                    const assigned = creatorState.placeholderAssignments[k];
+                    const assigned = creatorState.placeholderAssignments[tokenId];
                     const value = assigned || (selectedNames.length ? selectedNames.join(', ') : `{${k}}`);
-                    return `<span class="token-highlight placeholder-token" data-placeholder-key="${k}">${value}</span>`;
+                    const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
+                    return `<span class="token-highlight placeholder-token${activeClass}" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${value}</span>`;
                 }
 
                 const value = vars[k] != null ? String(vars[k]).trim() : '';
@@ -2001,11 +2010,10 @@
                 creatorState.advancedPronounOverride = '';
                 creatorState.advancedArticleOverride = '';
 
-                if (creatorState.activePlaceholderKey) {
+                if (creatorState.activePlaceholderTokenId) {
                     const selectedNames = getSelectedIngredientNames();
-                    creatorState.placeholderAssignments[creatorState.activePlaceholderKey] = selectedNames.join(', ');
+                    creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedNames.join(', ');
                     creatorState.ingredientReplaceArmed = false;
-                    creatorState.activePlaceholderKey = '';
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     showCreatorToast('Platzhalter ersetzt');
                 }
@@ -2018,7 +2026,7 @@
                 const id = ($(this).data('id') || '').toString();
                 if (!id) return;
                 creatorState.selectedTemplateId = id;
-                creatorState.activePlaceholderKey = '';
+                creatorState.activePlaceholderTokenId = '';
                 creatorState.placeholderAssignments = {};
                 $('.template-card').removeClass('active');
                 $(this).addClass('active template-tap');
@@ -2030,18 +2038,22 @@
 
             $('#masterPreviewText').on('click', '.placeholder-token', function () {
                 const key = ($(this).data('placeholder-key') || '').toString();
-                if (!key) return;
-                creatorState.activePlaceholderKey = key;
+                const tokenId = ($(this).data('placeholder-token-id') || '').toString();
+                if (!key || !tokenId) return;
+
+                creatorState.activePlaceholderTokenId = tokenId;
+                creatorState.ingredientReplaceArmed = true;
+                $('#masterPreviewCard').addClass('token-replace-active');
+
                 const selectedNames = getSelectedIngredientNames();
                 if (selectedNames.length) {
-                    creatorState.placeholderAssignments[key] = selectedNames.join(', ');
+                    creatorState.placeholderAssignments[tokenId] = selectedNames.join(', ');
                     showCreatorToast('Platzhalter ersetzt');
-                    renderTemplateCards();
                 } else {
-                    creatorState.ingredientReplaceArmed = true;
-                    $('#masterPreviewCard').addClass('token-replace-active');
                     showCreatorToast('Erst Zutaten auswählen');
                 }
+
+                renderTemplateCards();
             });
 
             $('#btnOpenAdvancedSettings').on('click', function () {
