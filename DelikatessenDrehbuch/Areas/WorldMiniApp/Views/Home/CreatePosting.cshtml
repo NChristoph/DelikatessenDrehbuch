@@ -1387,7 +1387,7 @@
             const selectedIds = creatorState.selectedIngredientIds || [];
             const selected = ingredients.filter(x => selectedIds.includes(x.id));
             if (selected.length) return selected.map(x => x.name);
-            return [ingredients[0].name];
+            return [];
         }
 
         function getSelectedIngredientForCreator() {
@@ -1408,7 +1408,7 @@
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
             const selectedNames = getSelectedIngredientNames();
-            const ingredientName = selectedNames.length ? selectedNames.join(', ') : 'Zutat';
+            const ingredientName = selectedNames.length ? selectedNames.join(', ') : '';
             const grammar = resolveGermanGrammarForIngredient(ingredientName);
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
@@ -1424,7 +1424,7 @@
 
             keys.forEach(key => {
                 if (vars[key] == null || String(vars[key]).trim() === '') {
-                    if (key === 'ingredient' || key === 'ingredients') vars[key] = ingredientName;
+                    if (key === 'ingredient' || key === 'ingredients') vars[key] = ingredientName || key;
                     else if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = '10 Minuten';
@@ -1436,7 +1436,7 @@
                 }
             });
 
-            if (!vars.ingredient) vars.ingredient = ingredientName;
+            if (!vars.ingredient) vars.ingredient = ingredientName || 'ingredient';
             if (!vars.pronoun) vars.pronoun = creatorState.computedPronoun;
             if (!vars.article) vars.article = creatorState.computedArticle;
             return vars;
@@ -1525,9 +1525,6 @@
             }
 
             creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
-            if (!creatorState.selectedIngredientIds.length) {
-                creatorState.selectedIngredientIds = [ingredients[0].id];
-            }
 
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
@@ -2050,6 +2047,7 @@
                     if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
                     creatorState.ingredientReplaceArmed = false;
                     clearSelectedIngredientChips();
+                    creatorState.activePlaceholderTokenId = '';
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     showCreatorToast('Platzhalter ersetzt');
                 }
@@ -2085,6 +2083,7 @@
                 if (selectedValue) {
                     creatorState.placeholderAssignments[tokenId] = selectedValue;
                     clearSelectedIngredientChips();
+                    creatorState.activePlaceholderTokenId = '';
                     showCreatorToast('Platzhalter ersetzt');
                 } else {
                     showCreatorToast('Erst Zutaten auswählen');
@@ -2125,6 +2124,7 @@
                     : dropValue;
                 creatorState.ingredientReplaceArmed = false;
                 clearSelectedIngredientChips();
+                creatorState.activePlaceholderTokenId = '';
                 $('#masterPreviewCard').removeClass('token-replace-active');
                 showCreatorToast('Zutat per Drag & Drop eingesetzt');
                 renderTemplateCards();
