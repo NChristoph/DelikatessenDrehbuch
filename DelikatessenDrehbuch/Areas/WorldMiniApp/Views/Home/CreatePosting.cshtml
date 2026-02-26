@@ -1033,6 +1033,11 @@
         padding: 0 4px;
     }
 
+    .placeholder-token.drag-over {
+        outline: 2px dashed rgba(141,99,255,.85);
+        outline-offset: 2px;
+    }
+
     .preview-step-card.token-replace-active {
         box-shadow: 0 0 0 2px rgba(255,224,138,.4), 0 14px 30px rgba(0,0,0,0.2);
     }
@@ -1308,6 +1313,7 @@
             ingredientReplaceArmed: false,
             activePlaceholderTokenId: '',
             placeholderAssignments: {},
+            dragIngredientName: '',
             toastMessage: '',
             toastVisible: false,
             advancedPronounOverride: '',
@@ -1368,6 +1374,11 @@
             const names = getSelectedIngredientNames();
             if (!names.length) return null;
             return { id: (creatorState.selectedIngredientIds || [])[0] || '', name: names[0] };
+        }
+
+        function getSelectedIngredientValueForInsert() {
+            const names = getSelectedIngredientNames();
+            return names.length ? names.join(', ') : '';
         }
 
         function getEffectiveTemplateId() {
@@ -1433,18 +1444,14 @@
 
             const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
                 const k = String(key || '').trim();
-                const isIngredientPlaceholder = k.toLowerCase().includes('ingredient');
-                if (isIngredientPlaceholder) {
-                    const tokenId = `${k}__${placeholderOccurrence++}`;
-                    const selectedNames = getSelectedIngredientNames();
-                    const assigned = creatorState.placeholderAssignments[tokenId];
-                    const value = assigned || (selectedNames.length ? selectedNames.join(', ') : `{${k}}`);
-                    const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
-                    return `<span class="token-highlight placeholder-token${activeClass}" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${value}</span>`;
-                }
-
-                const value = vars[k] != null ? String(vars[k]).trim() : '';
-                return $('<div>').text(value || k).html();
+                const tokenId = `${k}__${placeholderOccurrence++}`;
+                const selectedValue = getSelectedIngredientValueForInsert();
+                const assigned = creatorState.placeholderAssignments[tokenId];
+                const fallback = vars[k] != null ? String(vars[k]).trim() : '';
+                const value = assigned || fallback || `{${k}}`;
+                const safeValue = $('<div>').text(value).html();
+                const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
+                return `<span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}" data-selected-value="${$('<div>').text(selectedValue).html()}">${safeValue}</span>`;
             });
 
             $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
@@ -1497,7 +1504,7 @@
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const emoji = getIngredientEmoji(item.name);
-                wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}">${emoji} ${item.name}</button>`);
+                wrap.append(`<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${item.name}">${emoji} ${item.name}</button>`);
             });
 
             updatePreviewText();
@@ -2011,8 +2018,8 @@
                 creatorState.advancedArticleOverride = '';
 
                 if (creatorState.activePlaceholderTokenId) {
-                    const selectedNames = getSelectedIngredientNames();
-                    creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedNames.join(', ');
+                    const selectedValue = getSelectedIngredientValueForInsert();
+                    if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     showCreatorToast('Platzhalter ersetzt');
@@ -2045,14 +2052,46 @@
                 creatorState.ingredientReplaceArmed = true;
                 $('#masterPreviewCard').addClass('token-replace-active');
 
-                const selectedNames = getSelectedIngredientNames();
-                if (selectedNames.length) {
-                    creatorState.placeholderAssignments[tokenId] = selectedNames.join(', ');
+                const selectedValue = getSelectedIngredientValueForInsert();
+                if (selectedValue) {
+                    creatorState.placeholderAssignments[tokenId] = selectedValue;
                     showCreatorToast('Platzhalter ersetzt');
                 } else {
                     showCreatorToast('Erst Zutaten auswählen');
                 }
 
+                renderTemplateCards();
+            });
+
+            $('#masterIngredientButtons').on('dragstart', '.ingredient-chip', function (e) {
+                const name = ($(this).data('name') || '').toString();
+                if (!name) return;
+                creatorState.dragIngredientName = name;
+                e.originalEvent.dataTransfer.effectAllowed = 'copy';
+                e.originalEvent.dataTransfer.setData('text/plain', name);
+            });
+
+            $('#masterPreviewText').on('dragover', '.placeholder-token', function (e) {
+                e.preventDefault();
+                $(this).addClass('drag-over');
+                e.originalEvent.dataTransfer.dropEffect = 'copy';
+            });
+
+            $('#masterPreviewText').on('dragleave', '.placeholder-token', function () {
+                $(this).removeClass('drag-over');
+            });
+
+            $('#masterPreviewText').on('drop', '.placeholder-token', function (e) {
+                e.preventDefault();
+                $(this).removeClass('drag-over');
+                const tokenId = ($(this).data('placeholder-token-id') || '').toString();
+                const dropped = e.originalEvent.dataTransfer.getData('text/plain') || creatorState.dragIngredientName || '';
+                if (!tokenId || !dropped) return;
+                creatorState.activePlaceholderTokenId = tokenId;
+                creatorState.placeholderAssignments[tokenId] = dropped.toString();
+                creatorState.ingredientReplaceArmed = false;
+                $('#masterPreviewCard').removeClass('token-replace-active');
+                showCreatorToast('Zutat per Drag & Drop eingesetzt');
                 renderTemplateCards();
             });
 
