@@ -306,18 +306,18 @@
       "equipment": 9,
       "description": "Klassisches Panieren: Mehl → Ei → Brösel",
       "templates": {
-        "de": "Paniere {{ingredient}}: zuerst in {{step1}}, dann in {{step2}} und zuletzt in {{step3}} wenden.",
-        "en": "Bread {{ingredient}}: coat in {{step1}}, then {{step2}}, then {{step3}}.",
-        "esp": "Empana {{ingredient}}: pasa por {{step1}}, luego {{step2}} y al final {{step3}}.",
-        "prt": "Empane {{ingredient}}: passe em {{step1}}, depois {{step2}} e por fim {{step3}}.",
-        "id": "Baluri {{ingredient}}: pertama gulingkan dalam {{step1}}, lalu {{step2}}, dan terakhir {{step3}}.",
-        "nl": "Paneer {{ingredient}}: eerst door {{step1}}, dan door {{step2}} en tot slot door {{step3}} halen.",
-        "sv": "Panera {{ingredient}}: vänd först i {{step1}}, sedan i {{step2}} och sist i {{step3}}.",
-        "da": "Panér {{ingredient}}: vend først i {{step1}}, derefter i {{step2}} og til sidst i {{step3}}.",
-        "no": "Paner {{ingredient}}: vend først i {{step1}}, deretter i {{step2}} og til slutt i {{step3}}.",
-        "ms": "Salutkan {{ingredient}}: gaul dahulu dalam {{step1}}, kemudian {{step2}}, dan akhir sekali {{step3}}."
+        "de": "Paniere {{ingredient}}: zuerst in {{ingredient}}, dann in {{ingredient}} und zuletzt in {{ingredient}} wenden.",
+        "en": "Bread {{ingredient}}: coat in {{ingredient}}, then {{ingredient}}, then {{ingredient}}.",
+        "esp": "Empana {{ingredient}}: pasa por {{ingredient}}, luego {{ingredient}} y al final {{ingredient}}.",
+        "prt": "Empane {{ingredient}}: passe em {{ingredient}}, depois {{ingredient}} e por fim {{ingredient}}.",
+        "id": "Baluri {{ingredient}}: pertama gulingkan dalam {{ingredient}}, lalu {{ingredient}}, dan terakhir {{ingredient}}.",
+        "nl": "Paneer {{ingredient}}: eerst door {{ingredient}}, dan door {{ingredient}} en tot slot door {{ingredient}} halen.",
+        "sv": "Panera {{ingredient}}: vänd först i {{ingredient}}, sedan i {{ingredient}} och sist i {{ingredient}}.",
+        "da": "Panér {{ingredient}}: vend først i {{ingredient}}, derefter i {{ingredient}} og til sidst i {{ingredient}}.",
+        "no": "Paner {{ingredient}}: vend først i {{ingredient}}, deretter i {{ingredient}} og til slutt i {{ingredient}}.",
+        "ms": "Salutkan {{ingredient}}: gaul dahulu dalam {{ingredient}}, kemudian {{ingredient}}, dan akhir sekali {{ingredient}}."
       },
-      "variables": [ "ingredient", "step1", "step2", "step3" ]
+      "variables": [ "ingredient" ]
     },
     {
       "master_id": "PREP_WHISK_01",
