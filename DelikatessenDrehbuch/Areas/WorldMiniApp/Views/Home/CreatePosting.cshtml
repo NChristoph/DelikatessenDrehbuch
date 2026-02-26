@@ -1038,6 +1038,26 @@
         outline-offset: 2px;
     }
 
+    .placeholder-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-right: 2px;
+    }
+
+    .placeholder-reset {
+        border: 0;
+        background: rgba(255,255,255,0.18);
+        color: var(--creator-text);
+        border-radius: 999px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        font-size: .62rem;
+        padding: 0;
+        cursor: pointer;
+    }
+
     .preview-step-card.token-replace-active {
         box-shadow: 0 0 0 2px rgba(255,224,138,.4), 0 14px 30px rgba(0,0,0,0.2);
     }
@@ -1412,7 +1432,7 @@
                     else if (key.includes('heat')) vars[key] = 'mittlerer Hitze';
                     else if (key.includes('tool')) vars[key] = 'Messer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
-                    else vars[key] = ingredientName;
+                    else vars[key] = key;
                 }
             });
 
@@ -1445,13 +1465,16 @@
             const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
                 const k = String(key || '').trim();
                 const tokenId = `${k}__${placeholderOccurrence++}`;
-                const selectedValue = getSelectedIngredientValueForInsert();
+                const fallback = vars[k] != null ? String(vars[k]).trim() : k;
                 const assigned = creatorState.placeholderAssignments[tokenId];
-                const fallback = vars[k] != null ? String(vars[k]).trim() : '';
-                const value = assigned || fallback || `{${k}}`;
+                const value = assigned || fallback || k;
                 const safeValue = $('<div>').text(value).html();
+                const safeFallback = $('<div>').text(fallback || k).html();
                 const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
-                return `<span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}" data-selected-value="${$('<div>').text(selectedValue).html()}">${safeValue}</span>`;
+                return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
+                    <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
+                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">↺</button>
+                </span>`;
             });
 
             $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
@@ -2021,6 +2044,7 @@
                     const selectedValue = getSelectedIngredientValueForInsert();
                     if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
                     creatorState.ingredientReplaceArmed = false;
+                    creatorState.selectedIngredientIds = [];
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     showCreatorToast('Platzhalter ersetzt');
                 }
@@ -2055,6 +2079,7 @@
                 const selectedValue = getSelectedIngredientValueForInsert();
                 if (selectedValue) {
                     creatorState.placeholderAssignments[tokenId] = selectedValue;
+                    creatorState.selectedIngredientIds = [];
                     showCreatorToast('Platzhalter ersetzt');
                 } else {
                     showCreatorToast('Erst Zutaten auswählen');
@@ -2088,10 +2113,31 @@
                 const dropped = e.originalEvent.dataTransfer.getData('text/plain') || creatorState.dragIngredientName || '';
                 if (!tokenId || !dropped) return;
                 creatorState.activePlaceholderTokenId = tokenId;
-                creatorState.placeholderAssignments[tokenId] = dropped.toString();
+                const existingValue = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+                const dropValue = dropped.toString().trim();
+                creatorState.placeholderAssignments[tokenId] = existingValue
+                    ? (existingValue.toLowerCase().includes(dropValue.toLowerCase()) ? existingValue : `${existingValue}, ${dropValue}`)
+                    : dropValue;
                 creatorState.ingredientReplaceArmed = false;
+                creatorState.selectedIngredientIds = [];
                 $('#masterPreviewCard').removeClass('token-replace-active');
                 showCreatorToast('Zutat per Drag & Drop eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#masterPreviewText').on('click', '.placeholder-reset', function (e) {
+                e.stopPropagation();
+                const tokenId = ($(this).data('placeholder-token-id') || '').toString();
+                const defaultValue = ($(this).data('default-value') || '').toString();
+                if (!tokenId) return;
+                if (defaultValue) creatorState.placeholderAssignments[tokenId] = defaultValue;
+                else delete creatorState.placeholderAssignments[tokenId];
+                if (creatorState.activePlaceholderTokenId === tokenId) {
+                    creatorState.activePlaceholderTokenId = '';
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                }
+                showCreatorToast('Platzhalter zurückgesetzt');
                 renderTemplateCards();
             });
 
