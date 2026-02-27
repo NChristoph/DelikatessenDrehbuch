@@ -185,7 +185,8 @@
             tool: ['Messer', 'Sparschäler', 'Reibe', 'Küchenmaschine'],
             duration: ['5 Minuten', '10 Minuten', '15 Minuten', '30 Minuten'],
             heat: ['niedriger Hitze', 'mittlerer Hitze', 'hoher Hitze'],
-            temperature: ['160°C', '180°C', '200°C', '220°C'],
+            temperature: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
+            temp: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             liquid: ['Wasser', 'Gemüsebrühe', 'Milch', 'Kokosmilch'],
             garnish: ['frischen Kräutern', 'Sesam', 'Parmesan', 'Nüssen']
         };
@@ -210,7 +211,8 @@
             liquid: 'Wasser',
             equipment: 'Pfanne',
             quantity: 'etwas',
-            temperature: recipeCategory.includes('dessert') ? '180°C' : 'mittlerer Hitze',
+            temperature: '180°C',
+            temp: '180°C',
             heat: 'mittlerer Hitze',
             spice_mix: 'Salz, Pfeffer und Gewürzen',
             sauce: 'Sauce',

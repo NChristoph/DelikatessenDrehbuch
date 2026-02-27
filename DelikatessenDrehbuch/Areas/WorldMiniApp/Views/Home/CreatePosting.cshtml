@@ -393,6 +393,17 @@
                                         <button type="button" id="btnApplyDuration" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="temperatureEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Temperatur einsetzen</div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="number" min="0" max="500" step="5" id="temperatureValueInput" class="form-control form-control-sm" style="max-width:110px" value="180" />
+                                        <select id="temperatureUnitSelect" class="form-select form-select-sm" style="max-width:160px">
+                                            <option value="celsius">°C</option>
+                                            <option value="fahrenheit">°F</option>
+                                        </select>
+                                        <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -1353,7 +1364,10 @@
             advancedArticleOverride: '',
             activeDurationTokenId: '',
             durationValue: 10,
-            durationUnit: 'minute'
+            durationUnit: 'minute',
+            activeTemperatureTokenId: '',
+            temperatureValue: 180,
+            temperatureUnit: 'celsius'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1423,12 +1437,22 @@
 
         function isIngredientPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
-            return value === 'ingredient' || value === 'ingredients' || value === 'liquid';
+            return value === 'ingredient' || value === 'ingredients' || value === 'liquid' || value === 'fat';
         }
 
         function isDurationPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value.includes('duration');
+        }
+
+        function isPronounPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'pronoun';
+        }
+
+        function isTemperaturePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'temp' || value === 'temperature';
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -1476,6 +1500,34 @@
         function closeDurationEditor() {
             creatorState.activeDurationTokenId = '';
             $('#durationEditor').addClass('d-none');
+        }
+
+        function getTemperatureInsertText() {
+            const value = parseInt(creatorState.temperatureValue, 10);
+            const safeValue = Number.isFinite(value) && value > 0 ? value : 180;
+            const unit = creatorState.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+            return `${safeValue}${unit}`;
+        }
+
+        function openTemperatureEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeTemperatureTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const parsed = currentText.match(/^(\d+)\s*°?\s*(C|F)?/i);
+            if (parsed) {
+                creatorState.temperatureValue = parseInt(parsed[1], 10);
+                if (parsed[2] && parsed[2].toUpperCase() === 'F') {
+                    creatorState.temperatureUnit = 'fahrenheit';
+                }
+            }
+            $('#temperatureValueInput').val(creatorState.temperatureValue || 180);
+            $('#temperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
+            $('#temperatureEditor').removeClass('d-none');
+        }
+
+        function closeTemperatureEditor() {
+            creatorState.activeTemperatureTokenId = '';
+            $('#temperatureEditor').addClass('d-none');
         }
 
         function getPronounSuggestionsForLang(langKey) {
@@ -1540,7 +1592,7 @@
                     if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = getDurationInsertText();
-                    else if (key.includes('temperature')) vars[key] = '180°C';
+                    else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = 'mittlerer Hitze';
                     else if (key.includes('tool')) vars[key] = 'Messer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
@@ -2182,6 +2234,7 @@
                 creatorState.activePlaceholderTokenId = '';
                 creatorState.placeholderAssignments = {};
                 closeDurationEditor();
+                closeTemperatureEditor();
                 $('.template-card').removeClass('active');
                 $(this).addClass('active template-tap');
                 setTimeout(() => $(this).removeClass('template-tap'), 180);
@@ -2197,6 +2250,7 @@
 
                 if (isIngredientPlaceholderKey(key)) {
                     closeDurationEditor();
+                    closeTemperatureEditor();
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
                     $('#masterPreviewCard').addClass('token-replace-active');
@@ -2214,13 +2268,34 @@
                     creatorState.activePlaceholderTokenId = '';
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
+                    closeTemperatureEditor();
                     openDurationEditorForToken(tokenId);
                     showCreatorToast('Zeit setzen');
+                } else if (isPronounPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = tokenId;
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    closeDurationEditor();
+                    closeTemperatureEditor();
+                    renderPronounOptions();
+                    $('#advancedPronounSheet').removeClass('d-none').attr('aria-hidden', 'false');
+                    $('#advancedPronounInput').val(creatorState.advancedPronounOverride || creatorState.computedPronoun || '');
+                    $('#advancedArticleInput').val(creatorState.advancedArticleOverride || creatorState.computedArticle || '');
+                    syncPronounOptionSelection();
+                    showCreatorToast('Pronomen wählen');
+                } else if (isTemperaturePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    closeDurationEditor();
+                    openTemperatureEditorForToken(tokenId);
+                    showCreatorToast('Temperatur setzen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     closeDurationEditor();
+                    closeTemperatureEditor();
                     showCreatorToast('Hier keine Zutat einsetzen');
                 }
 
@@ -2288,6 +2363,9 @@
                 if (creatorState.activeDurationTokenId === tokenId) {
                     closeDurationEditor();
                 }
+                if (creatorState.activeTemperatureTokenId === tokenId) {
+                    closeTemperatureEditor();
+                }
                 showCreatorToast('Platzhalter zurückgesetzt');
                 renderTemplateCards();
             });
@@ -2307,6 +2385,24 @@
                 creatorState.placeholderAssignments[tokenId] = getDurationInsertText();
                 closeDurationEditor();
                 showCreatorToast('Zeit eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#temperatureValueInput').on('input', function () {
+                const value = parseInt($(this).val(), 10);
+                creatorState.temperatureValue = Number.isFinite(value) && value > 0 ? value : 180;
+            });
+
+            $('#temperatureUnitSelect').on('change', function () {
+                creatorState.temperatureUnit = ($(this).val() || 'celsius').toString();
+            });
+
+            $('#btnApplyTemperature').on('click', function () {
+                const tokenId = creatorState.activeTemperatureTokenId;
+                if (!tokenId) return;
+                creatorState.placeholderAssignments[tokenId] = getTemperatureInsertText();
+                closeTemperatureEditor();
+                showCreatorToast('Temperatur eingesetzt');
                 renderTemplateCards();
             });
 
