@@ -1706,20 +1706,17 @@
         }
 
         function openHeatEditorForToken(tokenId) {
-            try {
             if (!tokenId) return;
             creatorState.activeHeatTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.heatValue || '').toString().trim().toLowerCase();
             const options = getHeatOptions();
-            alert('DEBUG openHeatEditor: options=' + JSON.stringify(options) + ' heatEditor exists=' + $('#heatEditor').length);
             const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
             creatorState.heatValue = selected;
             populateHeatSelect();
             $('#heatValueSelect').val(selected);
             renderInlineHeatOptions();
+            placeEditorLikeTemperature('#heatEditor');
             $('#heatEditor').removeClass('d-none');
-            scrollEditorIntoView('#heatEditor');
-            } catch (err) { alert('ERROR openHeatEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeHeatEditor() {
@@ -1777,19 +1774,16 @@
         }
 
         function openEquipmentEditorForToken(tokenId) {
-            try {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getEquipmentOptions();
-            alert('DEBUG openEquipmentEditor: options=' + JSON.stringify(options) + ' equipmentEditor exists=' + $('#equipmentEditor').length);
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
             populateEquipmentSelect();
             $('#equipmentValueSelect').val(selected);
             renderInlineEquipmentOptions();
+            placeEditorLikeTemperature('#equipmentEditor');
             $('#equipmentEditor').removeClass('d-none');
-            scrollEditorIntoView('#equipmentEditor');
-            } catch (err) { alert('ERROR openEquipmentEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeEquipmentEditor() {
@@ -1833,19 +1827,16 @@
         }
 
         function openStateEditorForToken(tokenId) {
-            try {
             if (!tokenId) return;
             creatorState.activeStateTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getStateOptions();
-            alert('DEBUG openStateEditor: options=' + JSON.stringify(options) + ' stateEditor exists=' + $('#stateEditor').length);
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'goldbraun';
             populateStateSelect();
             $('#stateValueSelect').val(selected);
             renderInlineStateOptions();
+            placeEditorLikeTemperature('#stateEditor');
             $('#stateEditor').removeClass('d-none');
-            scrollEditorIntoView('#stateEditor');
-            } catch (err) { alert('ERROR openStateEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeStateEditor() {
@@ -1927,15 +1918,13 @@
             closeShapeEditor();
         }
 
-        function scrollEditorIntoView(selectorOrEl) {
-            try {
-                const el = typeof selectorOrEl === 'string'
-                    ? document.querySelector(selectorOrEl)
-                    : (selectorOrEl instanceof jQuery ? selectorOrEl[0] : selectorOrEl);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            } catch (e) { /* ignore scroll errors */ }
+        function placeEditorLikeTemperature(editorSelector) {
+            const editor = $(editorSelector);
+            const tempEditor = $('#temperatureEditor');
+            if (!editor.length || !tempEditor.length) return;
+
+            editor.removeClass('bottom-sheet-editor').addClass('duration-editor mt-2');
+            tempEditor.after(editor);
         }
 
         function renderInlineShapeOptions() {
@@ -2646,7 +2635,7 @@
 
             function openEditorForPlaceholderToken(key, tokenId) {
                 try {
-                if (!key || !tokenId) { alert('DEBUG: key=' + key + ' tokenId=' + tokenId + ' → skip'); return; }
+                if (!key || !tokenId) { return; }
 
                 closeAllEditors();
                 creatorState.ingredientReplaceArmed = false;
@@ -2718,7 +2707,6 @@
                 const token = $(this).hasClass('placeholder-token') ? $(this) : $(this).find('.placeholder-token').first();
                 const key = (token.data('placeholder-key') || '').toString();
                 const tokenId = (token.data('placeholder-token-id') || '').toString();
-                alert('DEBUG CLICK: key=' + key + ' tokenId=' + tokenId);
                 openEditorForPlaceholderToken(key, tokenId);
                 } catch (err) {
                     alert('ERROR in token click: ' + (err.message || err));
