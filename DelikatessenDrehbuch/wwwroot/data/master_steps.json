@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "version": "1.4.1",
+    "version": "1.4.2",
     "created_at": "2026-02-17",
-    "updated_at": "2026-02-25",
+    "updated_at": "2026-02-27",
     "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
     "usage": {
       "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
@@ -15,7 +15,8 @@
       "Added languages: id (Indonesian), nl (Dutch), sv (Swedish), da (Danish), no (Norwegian), ms (Malay) to all templates.",
       "Restored original premium blocks: variable_hints, example_render.",
       "Restored missing master steps from original: COOK_DEGLAZE_02, COOK_STIR_01, COOK_STRAIN_01.",
-      "Added backward compatible alias variables: spices (SEASON_ADJUST_01)."
+      "Added backward compatible alias variables: spices (SEASON_ADJUST_01).",
+      "Added localized heat level options (low/medium/high) for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options."
     ]
   },
   "phases": {
@@ -972,6 +973,21 @@
     "spices": "Alias (alt): wenn vorhanden, kann Renderer spices -> seasonings mappen.",
     "servings": "Portionenanzahl, z.B. '2', '4'",
     "extra": "Servierhinweis, z.B. 'mit frischen Kräutern', 'sofort heiß'"
+  },
+
+  "variable_options": {
+    "heat": {
+      "de": ["niedriger", "mittlerer", "hoher"],
+      "en": ["low", "medium", "high"],
+      "esp": ["bajo", "medio", "alto"],
+      "prt": ["baixo", "médio", "alto"],
+      "id": ["rendah", "sedang", "tinggi"],
+      "nl": ["laag", "middelhoog", "hoog"],
+      "sv": ["låg", "medelhög", "hög"],
+      "da": ["lav", "middel", "høj"],
+      "no": ["lav", "middels", "høy"],
+      "ms": ["rendah", "sederhana", "tinggi"]
+    }
   },
 
   "duration_units": {

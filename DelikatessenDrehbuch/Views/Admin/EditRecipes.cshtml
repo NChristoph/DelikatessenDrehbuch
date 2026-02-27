@@ -901,7 +901,20 @@
             });
 
             (template.variables || []).forEach(function(key) {
-                box.append(`<div class="col-md-4"><label class="form-label small mb-1">${key}</label><input type="text" class="form-control form-control-sm admin-master-var-input" data-var="${key}" value="${vars[key] || ''}" /></div>`);
+                const value = vars[key] || '';
+                const presets = key === 'heat' ? MasterStepRenderer.getVariablePresets('heat', 'de') : [];
+
+                if (presets.length) {
+                    const options = presets.map(function(option) {
+                        const selected = option === value ? ' selected' : '';
+                        return `<option value="${option}"${selected}>${option}</option>`;
+                    }).join('');
+
+                    box.append(`<div class="col-md-4"><label class="form-label small mb-1">${key}</label><select class="form-select form-select-sm admin-master-var-input" data-var="${key}">${options}</select></div>`);
+                    return;
+                }
+
+                box.append(`<div class="col-md-4"><label class="form-label small mb-1">${key}</label><input type="text" class="form-control form-control-sm admin-master-var-input" data-var="${key}" value="${value}" /></div>`);
             });
 
             updateAdminMasterPreview();
@@ -1686,7 +1699,7 @@
                 selectedAdminMasterTemplateId = ($(this).val() || '').toString();
                 renderAdminMasterTemplateEditor();
             });
-            $('#adminMasterVariables').on('input', '.admin-master-var-input', updateAdminMasterPreview);
+            $('#adminMasterVariables').on('input change', '.admin-master-var-input', updateAdminMasterPreview);
             $('#btnAdminAddMasterStep').on('click', addAdminRenderedMasterStep);
 
             preloadExistingRecipeIngredients();
