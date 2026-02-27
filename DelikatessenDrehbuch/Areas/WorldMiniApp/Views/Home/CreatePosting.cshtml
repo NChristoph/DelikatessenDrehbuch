@@ -347,19 +347,15 @@
                 <div id="selectedIngredients" class="mt-3 selected-zone"></div>
             </section>
 
-            <!-- 4) STEPS + SANDBOX -->
-            <section class="creator-card mb-3" id="card-steps">
+            <section class="creator-card mb-3" id="card-smart-creator">
                 <div class="creator-card-head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div class="card-icon candy-purple"><i class="bi bi-magic"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
-                                Add & sortiere wie ein Script
-                            </div>
+                            <div class="creator-card-title">Smart Step Creator</div>
+                            <div class="creator-card-sub">Wähle Zutat + Template wie im Creator Flow</div>
                         </div>
                     </div>
-                    <span class="badge rounded-pill text-bg-light border">4/5</span>
                 </div>
 
                 <div class="creator-card-body">
@@ -451,9 +447,7 @@
                                      data-de="Hitze-Stufe wählen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nível de calor">Hitze-Stufe wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <select id="heatValueSelect" class="form-select form-select-sm flex-grow-1"></select>
-                                    <input type="text" id="heatValueInput" class="form-control form-control-sm d-none" placeholder="z.B. mittlerer" />
-                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-primary label-lang"
+                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-outline-light label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -463,9 +457,7 @@
                                      data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <select id="equipmentValueSelect" class="form-select form-select-sm flex-grow-1"></select>
-                                    <input type="text" id="equipmentValueInput" class="form-control form-control-sm d-none" placeholder="z.B. Pfanne, Topf" />
-                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-primary label-lang"
+                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-outline-light label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -475,9 +467,7 @@
                                      data-de="Zielzustand wählen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <select id="stateValueSelect" class="form-select form-select-sm flex-grow-1"></select>
-                                    <input type="text" id="stateValueInput" class="form-control form-control-sm d-none" placeholder="z.B. goldbraun, weich" />
-                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-primary label-lang"
+                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-outline-light label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -494,6 +484,25 @@
 
                     </div>
 
+                </div>
+            </section>
+
+            <!-- 4) STEPS + SANDBOX -->
+            <section class="creator-card mb-3" id="card-steps">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                                Add & sortiere wie ein Script
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">4/5</span>
+                </div>
+
+                <div class="creator-card-body">
                     <div class="mt-1">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
@@ -1436,7 +1445,9 @@
             heatValue: 'mittlerer',
             activePronounTokenId: '',
             activeEquipmentTokenId: '',
+            equipmentValue: 'Pfanne',
             activeStateTokenId: '',
+            stateValue: 'goldbraun',
             activeToolTokenId: '',
             activeShapeTokenId: ''
         };
@@ -1680,26 +1691,14 @@
             return ['niedriger', 'mittlerer', 'hoher'];
         }
 
-        function populateHeatSelect() {
-            const sel = $('#heatValueSelect');
-            if (!sel.length) return;
-            const options = getHeatOptions();
-            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
-            sel.empty();
-            options.forEach(x => {
-                const escaped = $('<div>').text(x).html();
-                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
-            });
-        }
-
         function renderInlineHeatOptions() {
             const wrap = $('#inlineHeatOptions');
             if (!wrap.length) return;
             const options = getHeatOptions();
-            const currentVal = ($('#heatValueSelect').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.heatValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-heat-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -1712,8 +1711,6 @@
             const options = getHeatOptions();
             const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
             creatorState.heatValue = selected;
-            populateHeatSelect();
-            $('#heatValueSelect').val(selected);
             renderInlineHeatOptions();
             placeEditorLikeTemperature('#heatEditor');
             $('#heatEditor').removeClass('d-none');
@@ -1761,26 +1758,13 @@
             return ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'];
         }
 
-        function populateEquipmentSelect() {
-            const sel = $('#equipmentValueSelect');
-            if (!sel.length) return;
-            const options = getEquipmentOptions();
-            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
-            sel.empty();
-            options.forEach(x => {
-                const escaped = $('<div>').text(x).html();
-                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
-            });
-        }
-
         function openEquipmentEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getEquipmentOptions();
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
-            populateEquipmentSelect();
-            $('#equipmentValueSelect').val(selected);
+            creatorState.equipmentValue = selected;
             renderInlineEquipmentOptions();
             placeEditorLikeTemperature('#equipmentEditor');
             $('#equipmentEditor').removeClass('d-none');
@@ -1795,10 +1779,10 @@
             const wrap = $('#inlineEquipmentOptions');
             if (!wrap.length) return;
             const options = getEquipmentOptions();
-            const currentVal = ($('#equipmentValueSelect').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.equipmentValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -1814,26 +1798,13 @@
             return ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'];
         }
 
-        function populateStateSelect() {
-            const sel = $('#stateValueSelect');
-            if (!sel.length) return;
-            const options = getStateOptions();
-            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
-            sel.empty();
-            options.forEach(x => {
-                const escaped = $('<div>').text(x).html();
-                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
-            });
-        }
-
         function openStateEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeStateTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getStateOptions();
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'goldbraun';
-            populateStateSelect();
-            $('#stateValueSelect').val(selected);
+            creatorState.stateValue = selected;
             renderInlineStateOptions();
             placeEditorLikeTemperature('#stateEditor');
             $('#stateEditor').removeClass('d-none');
@@ -1848,10 +1819,10 @@
             const wrap = $('#inlineStateOptions');
             if (!wrap.length) return;
             const options = getStateOptions();
-            const currentVal = ($('#stateValueSelect').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.stateValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-state-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -2828,18 +2799,13 @@
 
             $('#inlineHeatOptions').on('click', '.inline-heat-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#heatValueSelect').val(val);
-                renderInlineHeatOptions();
-            });
-
-            $('#heatValueSelect').on('change', function () {
-                creatorState.heatValue = ($(this).val() || '').toString().trim();
+                creatorState.heatValue = val;
                 renderInlineHeatOptions();
             });
 
             $('#btnApplyHeat').on('click', function () {
                 const tokenId = creatorState.activeHeatTokenId;
-                const val = ($('#heatValueSelect').val() || '').toString().trim();
+                const val = (creatorState.heatValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.heatValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
@@ -2873,17 +2839,13 @@
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#equipmentValueSelect').val(val);
-                renderInlineEquipmentOptions();
-            });
-
-            $('#equipmentValueSelect').on('change', function () {
+                creatorState.equipmentValue = val;
                 renderInlineEquipmentOptions();
             });
 
             $('#btnApplyEquipment').on('click', function () {
                 const tokenId = creatorState.activeEquipmentTokenId;
-                const val = ($('#equipmentValueSelect').val() || '').toString().trim();
+                const val = (creatorState.equipmentValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
@@ -2893,17 +2855,13 @@
 
             $('#inlineStateOptions').on('click', '.inline-state-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#stateValueSelect').val(val);
-                renderInlineStateOptions();
-            });
-
-            $('#stateValueSelect').on('change', function () {
+                creatorState.stateValue = val;
                 renderInlineStateOptions();
             });
 
             $('#btnApplyState').on('click', function () {
                 const tokenId = creatorState.activeStateTokenId;
-                const val = ($('#stateValueSelect').val() || '').toString().trim();
+                const val = (creatorState.stateValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeStateEditor();
