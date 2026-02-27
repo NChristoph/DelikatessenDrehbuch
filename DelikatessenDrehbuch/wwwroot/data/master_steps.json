@@ -990,16 +990,16 @@
       "ms": ["rendah", "sederhana", "tinggi"]
     },
     "state": {
-      "de": ["goldbraun", "weich", "glasig", "gar", "knusprig", "cremig", "bissfest", "eingedickt", "sprudelnd", "verdoppelt", "zart", "angeröstet", "geschmolzen", "schaumig", "reduziert (eingekocht)", "abgekühlt", "lauwarm", "fest", "fluffig", "karamellisiert"],
-      "en": ["golden brown", "soft", "translucent", "cooked through", "crispy", "creamy", "al dente", "thickened", "bubbling", "doubled", "tender", "toasted", "melted", "foamy", "reduced", "cooled", "lukewarm", "firm", "fluffy", "caramelized"],
-      "esp": ["dorado", "suave", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente", "duplicado", "tierno", "tostado", "derretido", "espumoso", "reducido", "enfriado", "tibio", "firme", "esponjoso", "caramelizado"],
-      "prt": ["dourado", "macio", "translúcido", "cozido", "crocante", "cremoso", "al dente", "encorpado", "borbulhando", "dobrado", "tenro", "tostado", "derretido", "espumoso", "reduzido", "arrefecido", "morno", "firme", "fofo", "caramelizado"],
-      "id": ["keemasan", "lembut", "bening", "matang", "renyah", "kremi", "al dente", "mengental", "mendidih perlahan", "dua kali lipat", "empuk", "terpanggang", "meleleh", "berbusa", "tereduksi", "dingin", "suam-suam kuku", "padat", "mengembang", "terkaramelisasi"],
-      "nl": ["goudbruin", "zacht", "glazig", "gaar", "knapperig", "romig", "beetgaar", "ingedikt", "zacht borrelend", "verdubbeld", "mals", "geroosterd", "gesmolten", "schuimig", "gereduceerd", "afgekoeld", "lauw", "stevig", "luchtig", "gekaramelliseerd"],
-      "sv": ["gyllenbrun", "mjuk", "glansig", "genomstekt", "krispig", "krämig", "al dente", "förtjockad", "sjudande", "fördubblad", "mör", "rostad", "smält", "skummig", "reducerad", "avsvalnad", "ljummen", "fast", "fluffig", "karamelliserad"],
-      "da": ["gyldenbrun", "blød", "klar", "gennemtilberedt", "sprød", "cremet", "al dente", "indkogt", "småkogene", "fordoblet", "mør", "ristet", "smeltet", "skummende", "reduceret", "afkølet", "lunken", "fast", "luftig", "karamelliseret"],
-      "no": ["gyllenbrun", "myk", "blank", "gjennomkokt", "sprø", "kremet", "al dente", "innkokt", "småkoker", "doblet", "mør", "ristet", "smeltet", "skummende", "redusert", "avkjølt", "lunken", "fast", "luftig", "karamellisert"],
-      "ms": ["perang keemasan", "lembut", "jernih", "masak", "rangup", "berkrim", "al dente", "pekat", "merenih", "berganda", "lembut", "terpanggang", "cair", "berbuih", "terkurang", "disejukkan", "suam", "pejal", "gebu", "terkaramel" ]
+      "de": ["goldbraun", "weich", "glasig", "gar", "knusprig", "cremig", "bissfest", "eingedickt", "sprudelnd", "verdoppelt", "zart", "angeröstet", "geschmolzen", "schaumig", "reduziert (eingekocht)", "abgekühlt", "lauwarm", "fest", "fluffig", "karamellisiert", "geschmeidig"],
+      "en": ["golden brown", "soft", "translucent", "cooked through", "crispy", "creamy", "al dente", "thickened", "bubbling", "doubled", "tender", "toasted", "melted", "foamy", "reduced", "cooled", "lukewarm", "firm", "fluffy", "caramelized", "smooth"],
+      "esp": ["dorado", "suave", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente", "duplicado", "tierno", "tostado", "derretido", "espumoso", "reducido", "enfriado", "tibio", "firme", "esponjoso", "caramelizado", "sedoso"],
+      "prt": ["dourado", "macio", "translúcido", "cozido", "crocante", "cremoso", "al dente", "encorpado", "borbulhando", "dobrado", "tenro", "tostado", "derretido", "espumoso", "reduzido", "arrefecido", "morno", "firme", "fofo", "caramelizado", "sedoso"],
+      "id": ["keemasan", "lembut", "bening", "matang", "renyah", "kremi", "al dente", "mengental", "mendidih perlahan", "dua kali lipat", "empuk", "terpanggang", "meleleh", "berbusa", "tereduksi", "dingin", "suam-suam kuku", "padat", "mengembang", "terkaramelisasi", "halus"],
+      "nl": ["goudbruin", "zacht", "glazig", "gaar", "knapperig", "romig", "beetgaar", "ingedikt", "zacht borrelend", "verdubbeld", "mals", "geroosterd", "gesmolten", "schuimig", "gereduceerd", "afgekoeld", "lauw", "stevig", "luchtig", "gekaramelliseerd", "glad"],
+      "sv": ["gyllenbrun", "mjuk", "glansig", "genomstekt", "krispig", "krämig", "al dente", "förtjockad", "sjudande", "fördubblad", "mör", "rostad", "smält", "skummig", "reducerad", "avsvalnad", "ljummen", "fast", "fluffig", "karamelliserad", "smidig"],
+      "da": ["gyldenbrun", "blød", "klar", "gennemtilberedt", "sprød", "cremet", "al dente", "indkogt", "småkogene", "fordoblet", "mør", "ristet", "smeltet", "skummende", "reduceret", "afkølet", "lunken", "fast", "luftig", "karamelliseret", "smidig"],
+      "no": ["gyllenbrun", "myk", "blank", "gjennomkokt", "sprø", "kremet", "al dente", "innkokt", "småkoker", "doblet", "mør", "ristet", "smeltet", "skummende", "redusert", "avkjølt", "lunken", "fast", "luftig", "karamellisert", "smidig"],
+      "ms": ["perang keemasan", "lembut", "jernih", "masak", "rangup", "berkrim", "al dente", "pekat", "merenih", "berganda", "lembut", "terpanggang", "cair", "berbuih", "terkurang", "disejukkan", "suam", "pejal", "gebu", "terkaramel", "licin" ]
     },
     "equipment": {
       "de": ["Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb"],
