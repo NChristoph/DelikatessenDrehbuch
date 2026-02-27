@@ -8,12 +8,39 @@
         if (loadingPromise) return loadingPromise;
 
         loadingPromise = fetch('/data/master_steps.json')
-            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (r) {
+                if (!r.ok) {
+                    console.error('MasterStepRenderer: failed to fetch templates', r.status, r.statusText);
+                    return null;
+                }
+                return r.text();
+            })
+            .then(function (raw) {
+                if (!raw) return null;
+
+                const text = String(raw).replace(/^\uFEFF/, '');
+
+                try {
+                    return JSON.parse(text);
+                } catch (_) {
+                    const jsoncLike = text
+                        .replace(/\/\*[\s\S]*?\*\//g, '')
+                        .replace(/^\s*\/\/.*$/gm, '');
+
+                    try {
+                        return JSON.parse(jsoncLike);
+                    } catch (parseError) {
+                        console.error('MasterStepRenderer: invalid templates JSON', parseError);
+                        return null;
+                    }
+                }
+            })
             .then(function (json) {
                 data = json;
                 return json;
             })
-            .catch(function () {
+            .catch(function (err) {
+                console.error('MasterStepRenderer: load failed', err);
                 data = null;
                 return null;
             });
