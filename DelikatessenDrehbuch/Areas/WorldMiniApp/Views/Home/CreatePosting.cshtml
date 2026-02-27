@@ -406,8 +406,9 @@
                                 </div>
                                 <div id="heatEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Hitze-Stufe einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
                                     <div class="d-flex gap-2 align-items-center">
-                                        <select id="heatValueSelect" class="form-select form-select-sm" style="max-width:220px"></select>
+                                        <input type="text" id="heatValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. mittlerer" />
                                         <button type="button" id="btnApplyHeat" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
@@ -1608,6 +1609,19 @@
             return ['niedriger', 'mittlerer', 'hoher'];
         }
 
+        function renderInlineHeatOptions() {
+            const wrap = $('#inlineHeatOptions');
+            if (!wrap.length) return;
+            const options = getHeatOptions();
+            const currentVal = ($('#heatValueInput').val() || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-heat-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function openHeatEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeHeatTokenId = tokenId;
@@ -1615,14 +1629,8 @@
             const options = getHeatOptions();
             const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
             creatorState.heatValue = selected;
-
-            const html = options.map(function (option) {
-                const safe = $('<div>').text(option).html();
-                const isSelected = option === selected ? ' selected' : '';
-                return `<option value="${safe}"${isSelected}>${safe}</option>`;
-            }).join('');
-
-            $('#heatValueSelect').html(html).val(selected);
+            $('#heatValueInput').val(selected);
+            renderInlineHeatOptions();
             $('#heatEditor').removeClass('d-none');
         }
 
@@ -2657,13 +2665,20 @@
                 renderTemplateCards();
             });
 
-            $('#heatValueSelect').on('change', function () {
+            $('#inlineHeatOptions').on('click', '.inline-heat-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#heatValueInput').val(val);
+                renderInlineHeatOptions();
+            });
+
+            $('#heatValueInput').on('input', function () {
                 creatorState.heatValue = ($(this).val() || 'mittlerer').toString().trim();
+                renderInlineHeatOptions();
             });
 
             $('#btnApplyHeat').on('click', function () {
                 const tokenId = creatorState.activeHeatTokenId;
-                const val = ($('#heatValueSelect').val() || '').toString().trim();
+                const val = ($('#heatValueInput').val() || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.heatValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
