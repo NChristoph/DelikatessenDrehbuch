@@ -420,6 +420,30 @@
                                         <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="stateEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Zielzustand einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="stateValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. goldbraun, weich" />
+                                        <button type="button" id="btnApplyState" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="toolEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Werkzeug einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="toolValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Messer, Reibe" />
+                                        <button type="button" id="btnApplyTool" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="shapeEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Schnittform einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="shapeValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Würfel, Scheiben" />
+                                        <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -1356,7 +1380,10 @@
             temperatureValue: 180,
             temperatureUnit: 'celsius',
             activePronounTokenId: '',
-            activeEquipmentTokenId: ''
+            activeEquipmentTokenId: '',
+            activeStateTokenId: '',
+            activeToolTokenId: '',
+            activeShapeTokenId: ''
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1447,6 +1474,21 @@
         function isEquipmentPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'equipment';
+        }
+
+        function isStatePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'state';
+        }
+
+        function isToolPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'tool';
+        }
+
+        function isShapePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'shape';
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -1578,6 +1620,109 @@
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getStateOptions() {
+            return ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'];
+        }
+
+        function openStateEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeStateTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            $('#stateValueInput').val(currentText || 'goldbraun');
+            renderInlineStateOptions();
+            $('#stateEditor').removeClass('d-none');
+        }
+
+        function closeStateEditor() {
+            creatorState.activeStateTokenId = '';
+            $('#stateEditor').addClass('d-none');
+        }
+
+        function renderInlineStateOptions() {
+            const wrap = $('#inlineStateOptions');
+            if (!wrap.length) return;
+            const options = getStateOptions();
+            const currentVal = ($('#stateValueInput').val() || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-state-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getToolOptions() {
+            return ['Messer', 'Sparschäler', 'Reibe', 'Küchenmaschine', 'Schneebesen', 'Holzlöffel', 'Zange'];
+        }
+
+        function openToolEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeToolTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            $('#toolValueInput').val(currentText || 'Messer');
+            renderInlineToolOptions();
+            $('#toolEditor').removeClass('d-none');
+        }
+
+        function closeToolEditor() {
+            creatorState.activeToolTokenId = '';
+            $('#toolEditor').addClass('d-none');
+        }
+
+        function renderInlineToolOptions() {
+            const wrap = $('#inlineToolOptions');
+            if (!wrap.length) return;
+            const options = getToolOptions();
+            const currentVal = ($('#toolValueInput').val() || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-tool-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getShapeOptions() {
+            return ['Würfel', 'Scheiben', 'Streifen', 'feine Würfel', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
+        }
+
+        function openShapeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeShapeTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            $('#shapeValueInput').val(currentText || 'Würfel');
+            renderInlineShapeOptions();
+            $('#shapeEditor').removeClass('d-none');
+        }
+
+        function closeShapeEditor() {
+            creatorState.activeShapeTokenId = '';
+            $('#shapeEditor').addClass('d-none');
+        }
+
+        function closeAllEditors() {
+            closeDurationEditor();
+            closeTemperatureEditor();
+            closePronounEditor();
+            closeEquipmentEditor();
+            closeStateEditor();
+            closeToolEditor();
+            closeShapeEditor();
+        }
+
+        function renderInlineShapeOptions() {
+            const wrap = $('#inlineShapeOptions');
+            if (!wrap.length) return;
+            const options = getShapeOptions();
+            const currentVal = ($('#shapeValueInput').val() || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-shape-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
         }
@@ -2265,10 +2410,7 @@
                 creatorState.selectedTemplateId = id;
                 creatorState.activePlaceholderTokenId = '';
                 creatorState.placeholderAssignments = {};
-                closeDurationEditor();
-                closeTemperatureEditor();
-                closePronounEditor();
-                closeEquipmentEditor();
+                closeAllEditors();
                 $('.template-card').removeClass('active');
                 $(this).addClass('active template-tap');
                 setTimeout(() => $(this).removeClass('template-tap'), 180);
@@ -2282,15 +2424,14 @@
                 const tokenId = ($(this).data('placeholder-token-id') || '').toString();
                 if (!key || !tokenId) return;
 
+                closeAllEditors();
+                creatorState.ingredientReplaceArmed = false;
+                $('#masterPreviewCard').removeClass('token-replace-active');
+
                 if (isIngredientPlaceholderKey(key)) {
-                    closeDurationEditor();
-                    closeTemperatureEditor();
-                    closePronounEditor();
-                    closeEquipmentEditor();
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
                     $('#masterPreviewCard').addClass('token-replace-active');
-
                     const selectedValue = getSelectedIngredientValueForInsert();
                     if (selectedValue) {
                         creatorState.placeholderAssignments[tokenId] = selectedValue;
@@ -2302,49 +2443,34 @@
                     }
                 } else if (isDurationPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    closeTemperatureEditor();
-                    closePronounEditor();
-                    closeEquipmentEditor();
                     openDurationEditorForToken(tokenId);
                     showCreatorToast('Zeit setzen');
                 } else if (isPronounPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = tokenId;
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    closeDurationEditor();
-                    closeTemperatureEditor();
-                    closeEquipmentEditor();
                     openPronounEditorForToken(tokenId);
                     showCreatorToast('Pronomen wählen');
                 } else if (isTemperaturePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    closeDurationEditor();
-                    closePronounEditor();
-                    closeEquipmentEditor();
                     openTemperatureEditorForToken(tokenId);
                     showCreatorToast('Temperatur setzen');
                 } else if (isEquipmentPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    closeDurationEditor();
-                    closeTemperatureEditor();
-                    closePronounEditor();
                     openEquipmentEditorForToken(tokenId);
                     showCreatorToast('Gerät wählen');
+                } else if (isStatePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openStateEditorForToken(tokenId);
+                    showCreatorToast('Zustand wählen');
+                } else if (isToolPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openToolEditorForToken(tokenId);
+                    showCreatorToast('Werkzeug wählen');
+                } else if (isShapePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openShapeEditorForToken(tokenId);
+                    showCreatorToast('Schnittform wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    closeDurationEditor();
-                    closeTemperatureEditor();
-                    closePronounEditor();
-                    closeEquipmentEditor();
-                    showCreatorToast('Hier keine Zutat einsetzen');
                 }
 
                 renderTemplateCards();
@@ -2391,10 +2517,7 @@
                 clearSelectedIngredientChips();
                 creatorState.activePlaceholderTokenId = '';
                 $('#masterPreviewCard').removeClass('token-replace-active');
-                closeDurationEditor();
-                closeTemperatureEditor();
-                closePronounEditor();
-                closeEquipmentEditor();
+                closeAllEditors();
                 showCreatorToast('Zutat per Drag & Drop eingesetzt');
                 renderTemplateCards();
             });
@@ -2411,18 +2534,7 @@
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
                 }
-                if (creatorState.activeDurationTokenId === tokenId) {
-                    closeDurationEditor();
-                }
-                if (creatorState.activeTemperatureTokenId === tokenId) {
-                    closeTemperatureEditor();
-                }
-                if (creatorState.activePronounTokenId === tokenId) {
-                    closePronounEditor();
-                }
-                if (creatorState.activeEquipmentTokenId === tokenId) {
-                    closeEquipmentEditor();
-                }
+                closeAllEditors();
                 showCreatorToast('Platzhalter zurückgesetzt');
                 renderTemplateCards();
             });
@@ -2499,6 +2611,54 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
                 showCreatorToast('Gerät eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineStateOptions').on('click', '.inline-state-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#stateValueInput').val(val);
+                renderInlineStateOptions();
+            });
+
+            $('#btnApplyState').on('click', function () {
+                const tokenId = creatorState.activeStateTokenId;
+                const val = ($('#stateValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeStateEditor();
+                showCreatorToast('Zustand eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineToolOptions').on('click', '.inline-tool-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#toolValueInput').val(val);
+                renderInlineToolOptions();
+            });
+
+            $('#btnApplyTool').on('click', function () {
+                const tokenId = creatorState.activeToolTokenId;
+                const val = ($('#toolValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeToolEditor();
+                showCreatorToast('Werkzeug eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineShapeOptions').on('click', '.inline-shape-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#shapeValueInput').val(val);
+                renderInlineShapeOptions();
+            });
+
+            $('#btnApplyShape').on('click', function () {
+                const tokenId = creatorState.activeShapeTokenId;
+                const val = ($('#shapeValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeShapeEditor();
+                showCreatorToast('Schnittform eingesetzt');
                 renderTemplateCards();
             });
 

@@ -189,6 +189,7 @@
             temp: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             liquid: ['Wasser', 'Gemüsebrühe', 'Milch', 'Kokosmilch'],
             equipment: ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'],
+            state: ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'],
             garnish: ['frischen Kräutern', 'Sesam', 'Parmesan', 'Nüssen']
         };
 
