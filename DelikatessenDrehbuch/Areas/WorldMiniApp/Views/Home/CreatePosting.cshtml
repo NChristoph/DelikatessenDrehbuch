@@ -1911,6 +1911,29 @@
             return map[lang] || map.de;
         }
 
+        function getLocalizedFallbackForVariable(key, langKey) {
+            const keyNorm = (key || '').toString().trim().toLowerCase();
+            const lang = (langKey || currentLang || 'de').toString().toLowerCase();
+
+            if (keyNorm === 'dough') {
+                const map = {
+                    de: 'den Teig',
+                    en: 'the dough',
+                    esp: 'la masa',
+                    prt: 'a massa',
+                    id: 'adonan',
+                    nl: 'het deeg',
+                    sv: 'degen',
+                    da: 'dejen',
+                    no: 'deigen',
+                    ms: 'doh'
+                };
+                return map[lang] || map.de;
+            }
+
+            return '';
+        }
+
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
             const selectedNames = getSelectedIngredientNames();
@@ -1943,7 +1966,10 @@
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = 'Messer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
-                    else vars[key] = key;
+                    else {
+                        const localizedFallback = getLocalizedFallbackForVariable(key, currentLang);
+                        vars[key] = localizedFallback || key;
+                    }
                 }
             });
 
