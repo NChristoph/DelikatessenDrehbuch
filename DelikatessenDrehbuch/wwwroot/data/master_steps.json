@@ -149,15 +149,15 @@
       "description": "Marinieren von Fleisch, Tofu, Gemüse",
       "templates": {
         "de": "Lege {{ingredient}} in eine Mischung aus {{marinade}} ein und lasse {{pronoun}} mindestens {{duration}} ziehen.",
-        "en": "Marinate {{ingredient}} in a mixture of {{marinade}} for at least {{duration}}.",
-        "esp": "Marina {{ingredient}} en una mezcla de {{marinade}} durante al menos {{duration}}.",
-        "prt": "Marine {{ingredient}} numa mistura de {{marinade}} por pelo menos {{duration}}.",
-        "id": "Marinasi {{ingredient}} dalam campuran {{marinade}} setidaknya {{duration}}.",
-        "nl": "Marineer {{ingredient}} in een mengsel van {{marinade}} gedurende minstens {{duration}}.",
-        "sv": "Marinera {{ingredient}} i en blandning av {{marinade}} i minst {{duration}}.",
-        "da": "Marinér {{ingredient}} i en blanding af {{marinade}} i mindst {{duration}}.",
-        "no": "Mariner {{ingredient}} i en blanding av {{marinade}} i minst {{duration}}.",
-        "ms": "Perap {{ingredient}} dalam campuran {{marinade}} sekurang-kurangnya {{duration}}."
+        "en": "Marinate {{ingredient}} in a mixture of {{marinade}} and let {{pronoun}} rest for at least {{duration}}.",
+        "esp": "Marina {{ingredient}} en una mezcla de {{marinade}} y deja reposar {{pronoun}} durante al menos {{duration}}.",
+        "prt": "Marine {{ingredient}} numa mistura de {{marinade}} e deixe {{pronoun}} descansar por pelo menos {{duration}}.",
+        "id": "Marinasi {{ingredient}} dalam campuran {{marinade}} dan diamkan {{pronoun}} setidaknya {{duration}}.",
+        "nl": "Marineer {{ingredient}} in een mengsel van {{marinade}} en laat {{pronoun}} minstens {{duration}} trekken.",
+        "sv": "Marinera {{ingredient}} i en blandning av {{marinade}} och låt {{pronoun}} dra i minst {{duration}}.",
+        "da": "Marinér {{ingredient}} i en blanding af {{marinade}} og lad {{pronoun}} trække i mindst {{duration}}.",
+        "no": "Mariner {{ingredient}} i en blanding av {{marinade}} og la {{pronoun}} trekke i minst {{duration}}.",
+        "ms": "Perap {{ingredient}} dalam campuran {{marinade}} dan biarkan {{pronoun}} selama sekurang-kurangnya {{duration}}."
       },
       "variables": [ "ingredient", "marinade", "pronoun", "duration" ]
     },
@@ -209,15 +209,15 @@
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
         "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}} ist.",
-        "en": "Knead {{dough}} for {{duration}} until {{state}}.",
-        "esp": "Amasa {{dough}} durante {{duration}} hasta que {{state}}.",
-        "prt": "Sove {{dough}} por {{duration}} até {{state}}.",
-        "id": "Uleni {{dough}} selama {{duration}} sampai {{state}}.",
-        "nl": "Kneed {{dough}} {{duration}} tot {{state}}.",
-        "sv": "Knåda {{dough}} i {{duration}} tills {{state}}.",
-        "da": "Ælt {{dough}} i {{duration}}, indtil {{state}}.",
-        "no": "Elt {{dough}} i {{duration}} til {{state}}.",
-        "ms": "Uli {{dough}} selama {{duration}} sehingga {{state}}."
+        "en": "Knead {{dough}} for {{duration}} until {{pronoun}} is {{state}}.",
+        "esp": "Amasa {{dough}} durante {{duration}} hasta que {{pronoun}} esté {{state}}.",
+        "prt": "Sove {{dough}} por {{duration}} até que {{pronoun}} esteja {{state}}.",
+        "id": "Uleni {{dough}} selama {{duration}} sampai {{pronoun}} {{state}}.",
+        "nl": "Kneed {{dough}} {{duration}} tot {{pronoun}} {{state}} is.",
+        "sv": "Knåda {{dough}} i {{duration}} tills {{pronoun}} är {{state}}.",
+        "da": "Ælt {{dough}} i {{duration}}, indtil {{pronoun}} er {{state}}.",
+        "no": "Elt {{dough}} i {{duration}} til {{pronoun}} er {{state}}.",
+        "ms": "Uli {{dough}} selama {{duration}} sehingga {{pronoun}} {{state}}."
       },
       "variables": [ "dough", "duration", "state", "pronoun" ]
     },
@@ -249,10 +249,10 @@
       "description": "Teig/Masse ruhen lassen (gehen, quellen, entspannen)",
       "templates": {
         "de": "Decke {{item}} ab und lasse {{pronoun}} {{duration}} ruhen, bis {{state}}.",
-        "en": "Cover {{item}} and let it rest for {{duration}} until {{state}}.",
-        "esp": "Cubre {{item}} y deja reposar {{duration}} hasta que {{state}}.",
-        "prt": "Cubra {{item}} e deixe repousar por {{duration}} até {{state}}.",
-        "id": "Tutup {{item}} lalu diamkan selama {{duration}} hingga {{state}}.",
+        "en": "Cover {{item}} and let {{pronoun}} rest for {{duration}} until {{state}}.",
+        "esp": "Cubre {{item}} y deja reposar {{pronoun}} {{duration}} hasta que {{state}}.",
+        "prt": "Cubra {{item}} e deixe {{pronoun}} repousar por {{duration}} até {{state}}.",
+        "id": "Tutup {{item}} lalu diamkan {{pronoun}} selama {{duration}} hingga {{state}}.",
         "nl": "Dek {{item}} af en laat {{pronoun}} {{duration}} rusten tot {{state}}.",
         "sv": "Täck över {{item}} och låt {{pronoun}} vila i {{duration}} tills {{state}}.",
         "da": "Dæk {{item}} til og lad {{pronoun}} hvile i {{duration}}, indtil {{state}}.",
@@ -410,15 +410,15 @@
       "description": "Braten bei starker Hitze (Schnitzel, Steak, Bratkartoffeln)",
       "templates": {
         "de": "Brate {{ingredient}} in {{fat}} bei {{heat}} Hitze {{duration}} pro Seite an, bis {{pronoun}} {{state}} ist.",
-        "en": "Fry {{ingredient}} in {{fat}} over {{heat}} heat for {{duration}} per side until {{state}}.",
-        "esp": "Fríe {{ingredient}} en {{fat}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
-        "prt": "Frite {{ingredient}} em {{fat}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
-        "id": "Goreng {{ingredient}} dalam {{fat}} dengan api {{heat}} selama {{duration}} tiap sisi hingga {{state}}.",
-        "nl": "Bak {{ingredient}} in {{fat}} op {{heat}} vuur {{duration}} per kant tot {{state}}.",
-        "sv": "Stek {{ingredient}} i {{fat}} på {{heat}} värme i {{duration}} per sida tills {{state}}.",
-        "da": "Steg {{ingredient}} i {{fat}} ved {{heat}} varme i {{duration}} pr. side, indtil {{state}}.",
-        "no": "Stek {{ingredient}} i {{fat}} på {{heat}} varme i {{duration}} per side til {{state}}.",
-        "ms": "Goreng {{ingredient}} dalam {{fat}} pada api {{heat}} selama {{duration}} setiap sisi sehingga {{state}}."
+        "en": "Fry {{ingredient}} in {{fat}} over {{heat}} heat for {{duration}} per side until {{pronoun}} is {{state}}.",
+        "esp": "Fríe {{ingredient}} en {{fat}} a fuego {{heat}} durante {{duration}} por lado hasta que {{pronoun}} esté {{state}}.",
+        "prt": "Frite {{ingredient}} em {{fat}} em fogo {{heat}} por {{duration}} de cada lado até que {{pronoun}} esteja {{state}}.",
+        "id": "Goreng {{ingredient}} dalam {{fat}} dengan api {{heat}} selama {{duration}} tiap sisi hingga {{pronoun}} {{state}}.",
+        "nl": "Bak {{ingredient}} in {{fat}} op {{heat}} vuur {{duration}} per kant tot {{pronoun}} {{state}} is.",
+        "sv": "Stek {{ingredient}} i {{fat}} på {{heat}} värme i {{duration}} per sida tills {{pronoun}} är {{state}}.",
+        "da": "Steg {{ingredient}} i {{fat}} ved {{heat}} varme i {{duration}} pr. side, indtil {{pronoun}} er {{state}}.",
+        "no": "Stek {{ingredient}} i {{fat}} på {{heat}} varme i {{duration}} per side til {{pronoun}} er {{state}}.",
+        "ms": "Goreng {{ingredient}} dalam {{fat}} pada api {{heat}} selama {{duration}} setiap sisi sehingga {{pronoun}} {{state}}."
       },
       "variables": [ "ingredient", "fat", "heat", "duration", "pronoun", "state" ]
     },
@@ -450,15 +450,15 @@
       "description": "Kochen in sprudelndem Wasser (Nudeln, Kartoffeln, Eier)",
       "templates": {
         "de": "Bringe {{liquid}} in einem Topf zum Kochen, gib {{ingredient}} hinein und koche {{pronoun}} {{duration}}, bis {{state}}.",
-        "en": "Bring {{liquid}} to a boil in a pot, add {{ingredient}} and cook for {{duration}} until {{state}}.",
-        "esp": "Hierve {{liquid}} en una olla, añade {{ingredient}} y cocina durante {{duration}} hasta que {{state}}.",
-        "prt": "Ferva {{liquid}} numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}.",
-        "id": "Didihkan {{liquid}} dalam panci, masukkan {{ingredient}}, lalu rebus selama {{duration}} hingga {{state}}.",
-        "nl": "Breng {{liquid}} in een pan aan de kook, voeg {{ingredient}} toe en kook {{duration}} tot {{state}}.",
-        "sv": "Koka upp {{liquid}} i en kastrull, lägg i {{ingredient}} och koka i {{duration}} tills {{state}}.",
-        "da": "Bring {{liquid}} i kog i en gryde, kom {{ingredient}} i og kog i {{duration}}, indtil {{state}}.",
-        "no": "Kok opp {{liquid}} i en kjele, tilsett {{ingredient}} og kok i {{duration}} til {{state}}.",
-        "ms": "Didihkan {{liquid}} dalam periuk, masukkan {{ingredient}} dan rebus selama {{duration}} sehingga {{state}}."
+        "en": "Bring {{liquid}} to a boil in a pot, add {{ingredient}} and cook {{pronoun}} for {{duration}} until {{state}}.",
+        "esp": "Hierve {{liquid}} en una olla, añade {{ingredient}} y cocina {{pronoun}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Ferva {{liquid}} numa panela, adicione {{ingredient}} e cozinhe {{pronoun}} por {{duration}} até que {{state}}.",
+        "id": "Didihkan {{liquid}} dalam panci, masukkan {{ingredient}}, lalu rebus {{pronoun}} selama {{duration}} hingga {{state}}.",
+        "nl": "Breng {{liquid}} in een pan aan de kook, voeg {{ingredient}} toe en kook {{pronoun}} {{duration}} tot {{state}}.",
+        "sv": "Koka upp {{liquid}} i en kastrull, lägg i {{ingredient}} och koka {{pronoun}} i {{duration}} tills {{state}}.",
+        "da": "Bring {{liquid}} i kog i en gryde, kom {{ingredient}} i og kog {{pronoun}} i {{duration}}, indtil {{state}}.",
+        "no": "Kok opp {{liquid}} i en kjele, tilsett {{ingredient}} og kok {{pronoun}} i {{duration}} til {{state}}.",
+        "ms": "Didihkan {{liquid}} dalam periuk, masukkan {{ingredient}} dan rebus {{pronoun}} selama {{duration}} sehingga {{state}}."
       },
       "variables": [ "liquid", "ingredient", "pronoun", "duration", "state" ]
     },
@@ -470,15 +470,15 @@
       "description": "Köcheln bei niedriger Hitze (Saucen, Suppen, Eintöpfe)",
       "templates": {
         "de": "Reduziere die Hitze und lasse {{dish}} bei niedriger Stufe {{duration}} köcheln, bis {{pronoun}} {{state}} ist.",
-        "en": "Reduce heat and let {{dish}} simmer on low for {{duration}} until {{state}}.",
-        "esp": "Reduce el fuego y deja que {{dish}} hierva a fuego lento durante {{duration}} hasta que {{state}}.",
-        "prt": "Reduza o fogo e deixe {{dish}} cozinhar em fogo baixo por {{duration}} até que {{state}}.",
-        "id": "Kecilkan api dan biarkan {{dish}} mendidih perlahan selama {{duration}} hingga {{state}}.",
-        "nl": "Zet het vuur lager en laat {{dish}} {{duration}} zachtjes sudderen tot {{state}}.",
-        "sv": "Sänk värmen och låt {{dish}} sjuda på låg värme i {{duration}} tills {{state}}.",
-        "da": "Skru ned for varmen og lad {{dish}} simre ved lav varme i {{duration}}, indtil {{state}}.",
-        "no": "Skru ned varmen og la {{dish}} småkoke på lav varme i {{duration}} til {{state}}.",
-        "ms": "Rendahkan api dan biarkan {{dish}} mereneh pada api kecil selama {{duration}} sehingga {{state}}."
+        "en": "Reduce heat and let {{dish}} simmer on low for {{duration}} until {{pronoun}} is {{state}}.",
+        "esp": "Reduce el fuego y deja que {{dish}} hierva a fuego lento durante {{duration}} hasta que {{pronoun}} esté {{state}}.",
+        "prt": "Reduza o fogo e deixe {{dish}} cozinhar em fogo baixo por {{duration}} até que {{pronoun}} esteja {{state}}.",
+        "id": "Kecilkan api dan biarkan {{dish}} mendidih perlahan selama {{duration}} hingga {{pronoun}} {{state}}.",
+        "nl": "Zet het vuur lager en laat {{dish}} {{duration}} zachtjes sudderen tot {{pronoun}} {{state}} is.",
+        "sv": "Sänk värmen och låt {{dish}} sjuda på låg värme i {{duration}} tills {{pronoun}} är {{state}}.",
+        "da": "Skru ned for varmen og lad {{dish}} simre ved lav varme i {{duration}}, indtil {{pronoun}} er {{state}}.",
+        "no": "Skru ned varmen og la {{dish}} småkoke på lav varme i {{duration}} til {{pronoun}} er {{state}}.",
+        "ms": "Rendahkan api dan biarkan {{dish}} mereneh pada api kecil selama {{duration}} sehingga {{pronoun}} {{state}}."
       },
       "variables": [ "dish", "duration", "state", "pronoun" ]
     },
@@ -510,15 +510,15 @@
       "description": "Backen im Ofen (Aufläufe, Kuchen, Brot)",
       "templates": {
         "de": "Gib {{dish}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}} ({{mode}}) für {{duration}}, bis {{state}}.",
-        "en": "Place {{dish}} in the preheated oven and bake at {{temp}} ({{mode}}) for {{duration}} until {{state}}.",
-        "esp": "Coloca {{dish}} en el horno precalentado y hornea a {{temp}} ({{mode}}) durante {{duration}} hasta que {{state}}.",
-        "prt": "Coloque {{dish}} no forno pré-aquecido e asse a {{temp}} ({{mode}}) por {{duration}} até que {{state}}.",
-        "id": "Masukkan {{dish}} ke oven yang sudah dipanaskan dan panggang pada {{temp}} ({{mode}}) selama {{duration}} hingga {{state}}.",
-        "nl": "Zet {{dish}} in de voorverwarmde oven en bak op {{temp}} ({{mode}}) gedurende {{duration}} tot {{state}}.",
-        "sv": "Sätt in {{dish}} i den förvärmda ugnen och baka i {{temp}} ({{mode}}) i {{duration}} tills {{state}}.",
-        "da": "Sæt {{dish}} i den forvarmede ovn og bag ved {{temp}} ({{mode}}) i {{duration}}, indtil {{state}}.",
-        "no": "Sett {{dish}} i forvarmet ovn og stek ved {{temp}} ({{mode}}) i {{duration}} til {{state}}.",
-        "ms": "Masukkan {{dish}} ke dalam ketuhar yang telah dipanaskan dan bakar pada {{temp}} ({{mode}}) selama {{duration}} sehingga {{state}}."
+        "en": "Place {{dish}} in the preheated oven and bake {{pronoun}} at {{temp}} ({{mode}}) for {{duration}} until {{state}}.",
+        "esp": "Coloca {{dish}} en el horno precalentado y hornéa {{pronoun}} a {{temp}} ({{mode}}) durante {{duration}} hasta que {{state}}.",
+        "prt": "Coloque {{dish}} no forno pré-aquecido e asse {{pronoun}} a {{temp}} ({{mode}}) por {{duration}} até que {{state}}.",
+        "id": "Masukkan {{dish}} ke oven yang sudah dipanaskan dan panggang {{pronoun}} pada {{temp}} ({{mode}}) selama {{duration}} hingga {{state}}.",
+        "nl": "Zet {{dish}} in de voorverwarmde oven en bak {{pronoun}} op {{temp}} ({{mode}}) gedurende {{duration}} tot {{state}}.",
+        "sv": "Sätt in {{dish}} i den förvärmda ugnen och baka {{pronoun}} i {{temp}} ({{mode}}) i {{duration}} tills {{state}}.",
+        "da": "Sæt {{dish}} i den forvarmede ovn og bag {{pronoun}} ved {{temp}} ({{mode}}) i {{duration}}, indtil {{state}}.",
+        "no": "Sett {{dish}} i forvarmet ovn og stek {{pronoun}} ved {{temp}} ({{mode}}) i {{duration}} til {{state}}.",
+        "ms": "Masukkan {{dish}} ke dalam ketuhar yang telah dipanaskan dan bakar {{pronoun}} pada {{temp}} ({{mode}}) selama {{duration}} sehingga {{state}}."
       },
       "variables": [ "dish", "pronoun", "temp", "mode", "duration", "state" ]
     },
@@ -530,15 +530,15 @@
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
       "templates": {
         "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} ist.",
-        "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} for {{duration}} until {{state}}.",
-        "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} durante {{duration}} hasta que {{state}}.",
-        "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{state}}.",
-        "id": "Sebarkan {{ingredient}} di loyang, beri {{fat}}, lalu panggang pada {{temp}} selama {{duration}} hingga {{state}}.",
-        "nl": "Verdeel {{ingredient}} over een bakplaat, besprenkel met {{fat}} en rooster in de oven op {{temp}} gedurende {{duration}} tot {{state}}.",
-        "sv": "Fördela {{ingredient}} på en plåt, ringla över {{fat}} och rosta i ugnen på {{temp}} i {{duration}} tills {{state}}.",
-        "da": "Fordel {{ingredient}} på en bageplade, dryp med {{fat}} og rist i ovnen ved {{temp}} i {{duration}}, indtil {{state}}.",
-        "no": "Fordel {{ingredient}} på et stekebrett, drypp over {{fat}} og stek i ovnen på {{temp}} i {{duration}} til {{state}}.",
-        "ms": "Susun {{ingredient}} di atas dulang pembakar, renjiskan {{fat}} dan panggang pada {{temp}} selama {{duration}} sehingga {{state}}."
+        "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} for {{duration}} until {{pronoun}} is {{state}}.",
+        "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} durante {{duration}} hasta que {{pronoun}} esté {{state}}.",
+        "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{pronoun}} esteja {{state}}.",
+        "id": "Sebarkan {{ingredient}} di loyang, beri {{fat}}, lalu panggang pada {{temp}} selama {{duration}} hingga {{pronoun}} {{state}}.",
+        "nl": "Verdeel {{ingredient}} over een bakplaat, besprenkel met {{fat}} en rooster in de oven op {{temp}} gedurende {{duration}} tot {{pronoun}} {{state}} is.",
+        "sv": "Fördela {{ingredient}} på en plåt, ringla över {{fat}} och rosta i ugnen på {{temp}} i {{duration}} tills {{pronoun}} är {{state}}.",
+        "da": "Fordel {{ingredient}} på en bageplade, dryp med {{fat}} og rist i ovnen ved {{temp}} i {{duration}}, indtil {{pronoun}} er {{state}}.",
+        "no": "Fordel {{ingredient}} på et stekebrett, drypp over {{fat}} og stek i ovnen på {{temp}} i {{duration}} til {{pronoun}} er {{state}}.",
+        "ms": "Susun {{ingredient}} di atas dulang pembakar, renjiskan {{fat}} dan panggang pada {{temp}} selama {{duration}} sehingga {{pronoun}} {{state}}."
       },
       "variables": [ "ingredient", "fat", "temp", "duration", "state", "pronoun" ]
     },
@@ -873,7 +873,7 @@
         "no": "La {{dish}} avkjøles i {{duration}} til {{state}}.",
         "ms": "Biarkan {{dish}} sejuk selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dish", "duration", "state", "pronoun" ]
+      "variables": [ "dish", "duration", "state" ]
     },
     {
       "master_id": "FINISH_REST_01",
