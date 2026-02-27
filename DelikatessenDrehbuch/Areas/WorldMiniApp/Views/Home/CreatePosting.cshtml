@@ -411,36 +411,12 @@
                                         <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="heatEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Hitze-Stufe einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="heatValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. mittlerer" />
-                                        <button type="button" id="btnApplyHeat" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
                                 <div id="pronounEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Pronomen einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
                                     <div class="d-flex gap-2 align-items-center">
                                         <input type="text" id="pronounValueInput" class="form-control form-control-sm" style="max-width:160px" placeholder="z.B. ihn/sie/es" />
                                         <button type="button" id="btnApplyPronoun" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="equipmentEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Gerät einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="equipmentValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Pfanne, Topf" />
-                                        <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="stateEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Zielzustand einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="stateValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. goldbraun, weich" />
-                                        <button type="button" id="btnApplyState" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="toolEditor" class="duration-editor d-none mt-2">
@@ -468,7 +444,44 @@
                             <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
                         </div>
 
-                        <div class="creator-bottom-sheet">
+                        <div class="creator-bottom-sheet" id="creatorBottomSheet">
+                            <!-- Inline editors for State / Heat / Equipment – visible at bottom -->
+                            <div id="heatEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Hitze-Stufe wählen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nível de calor">Hitze-Stufe wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select id="heatValueSelect" class="form-select form-select-sm flex-grow-1"></select>
+                                    <input type="text" id="heatValueInput" class="form-control form-control-sm d-none" placeholder="z.B. mittlerer" />
+                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
+                            <div id="equipmentEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select id="equipmentValueSelect" class="form-select form-select-sm flex-grow-1"></select>
+                                    <input type="text" id="equipmentValueInput" class="form-control form-control-sm d-none" placeholder="z.B. Pfanne, Topf" />
+                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
+                            <div id="stateEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Zielzustand wählen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select id="stateValueSelect" class="form-select form-select-sm flex-grow-1"></select>
+                                    <input type="text" id="stateValueInput" class="form-control form-control-sm d-none" placeholder="z.B. goldbraun, weich" />
+                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
                             <div class="action-bar">
                                 <div class="story-meta">
                                     <span id="storyStepCount">Schritte: 0</span>
@@ -1086,6 +1099,9 @@
         text-shadow: 0 0 16px rgba(255,208,95,.35);
         cursor: pointer;
         border-bottom: 1px dashed rgba(255,224,138,.75);
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(255,224,138,.3);
     }
 
     .placeholder-token.token-active {
@@ -1103,6 +1119,8 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        touch-action: manipulation;
+        cursor: pointer;
         margin-right: 2px;
     }
 
@@ -1157,6 +1175,18 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+        z-index: 10;
+        transition: padding .22s ease;
+    }
+
+    .bottom-sheet-editor {
+        border-bottom: 1px solid var(--creator-border);
+        padding-bottom: 10px;
+        margin-bottom: 4px;
+    }
+
+    .bottom-sheet-editor .btn-primary {
+        white-space: nowrap;
     }
 
     .sheet-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -1300,6 +1330,12 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="~/js/master-step-renderer.js"></script>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
+            return false;
+        };
+    </script>
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
@@ -1644,11 +1680,23 @@
             return ['niedriger', 'mittlerer', 'hoher'];
         }
 
+        function populateHeatSelect() {
+            const sel = $('#heatValueSelect');
+            if (!sel.length) return;
+            const options = getHeatOptions();
+            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
+            sel.empty();
+            options.forEach(x => {
+                const escaped = $('<div>').text(x).html();
+                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
+            });
+        }
+
         function renderInlineHeatOptions() {
             const wrap = $('#inlineHeatOptions');
             if (!wrap.length) return;
             const options = getHeatOptions();
-            const currentVal = ($('#heatValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = ($('#heatValueSelect').val() || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
@@ -1658,15 +1706,20 @@
         }
 
         function openHeatEditorForToken(tokenId) {
+            try {
             if (!tokenId) return;
             creatorState.activeHeatTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.heatValue || '').toString().trim().toLowerCase();
             const options = getHeatOptions();
+            alert('DEBUG openHeatEditor: options=' + JSON.stringify(options) + ' heatEditor exists=' + $('#heatEditor').length);
             const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
             creatorState.heatValue = selected;
-            $('#heatValueInput').val(selected);
+            populateHeatSelect();
+            $('#heatValueSelect').val(selected);
             renderInlineHeatOptions();
             $('#heatEditor').removeClass('d-none');
+            scrollEditorIntoView('#heatEditor');
+            } catch (err) { alert('ERROR openHeatEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeHeatEditor() {
@@ -1711,13 +1764,32 @@
             return ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'];
         }
 
+        function populateEquipmentSelect() {
+            const sel = $('#equipmentValueSelect');
+            if (!sel.length) return;
+            const options = getEquipmentOptions();
+            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
+            sel.empty();
+            options.forEach(x => {
+                const escaped = $('<div>').text(x).html();
+                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
+            });
+        }
+
         function openEquipmentEditorForToken(tokenId) {
+            try {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#equipmentValueInput').val(currentText || 'Pfanne');
+            const options = getEquipmentOptions();
+            alert('DEBUG openEquipmentEditor: options=' + JSON.stringify(options) + ' equipmentEditor exists=' + $('#equipmentEditor').length);
+            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
+            populateEquipmentSelect();
+            $('#equipmentValueSelect').val(selected);
             renderInlineEquipmentOptions();
             $('#equipmentEditor').removeClass('d-none');
+            scrollEditorIntoView('#equipmentEditor');
+            } catch (err) { alert('ERROR openEquipmentEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeEquipmentEditor() {
@@ -1729,7 +1801,7 @@
             const wrap = $('#inlineEquipmentOptions');
             if (!wrap.length) return;
             const options = getEquipmentOptions();
-            const currentVal = ($('#equipmentValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = ($('#equipmentValueSelect').val() || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
@@ -1748,13 +1820,32 @@
             return ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'];
         }
 
+        function populateStateSelect() {
+            const sel = $('#stateValueSelect');
+            if (!sel.length) return;
+            const options = getStateOptions();
+            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
+            sel.empty();
+            options.forEach(x => {
+                const escaped = $('<div>').text(x).html();
+                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
+            });
+        }
+
         function openStateEditorForToken(tokenId) {
+            try {
             if (!tokenId) return;
             creatorState.activeStateTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#stateValueInput').val(currentText || 'goldbraun');
+            const options = getStateOptions();
+            alert('DEBUG openStateEditor: options=' + JSON.stringify(options) + ' stateEditor exists=' + $('#stateEditor').length);
+            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'goldbraun';
+            populateStateSelect();
+            $('#stateValueSelect').val(selected);
             renderInlineStateOptions();
             $('#stateEditor').removeClass('d-none');
+            scrollEditorIntoView('#stateEditor');
+            } catch (err) { alert('ERROR openStateEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeStateEditor() {
@@ -1766,7 +1857,7 @@
             const wrap = $('#inlineStateOptions');
             if (!wrap.length) return;
             const options = getStateOptions();
-            const currentVal = ($('#stateValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = ($('#stateValueSelect').val() || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
@@ -1834,6 +1925,17 @@
             closeStateEditor();
             closeToolEditor();
             closeShapeEditor();
+        }
+
+        function scrollEditorIntoView(selectorOrEl) {
+            try {
+                const el = typeof selectorOrEl === 'string'
+                    ? document.querySelector(selectorOrEl)
+                    : (selectorOrEl instanceof jQuery ? selectorOrEl[0] : selectorOrEl);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            } catch (e) { /* ignore scroll errors */ }
         }
 
         function renderInlineShapeOptions() {
@@ -2543,7 +2645,8 @@
             });
 
             function openEditorForPlaceholderToken(key, tokenId) {
-                if (!key || !tokenId) return;
+                try {
+                if (!key || !tokenId) { alert('DEBUG: key=' + key + ' tokenId=' + tokenId + ' → skip'); return; }
 
                 closeAllEditors();
                 creatorState.ingredientReplaceArmed = false;
@@ -2603,15 +2706,23 @@
                 }
 
                 renderTemplateCards();
+                } catch (err) {
+                    alert('ERROR in openEditorForPlaceholderToken: ' + (err.message || err) + '\nStack: ' + (err.stack || ''));
+                }
             }
 
             $('#masterPreviewText').on('click', '.placeholder-token, .placeholder-wrap', function (e) {
+                try {
                 if ($(e.target).closest('.placeholder-reset').length) return;
 
                 const token = $(this).hasClass('placeholder-token') ? $(this) : $(this).find('.placeholder-token').first();
                 const key = (token.data('placeholder-key') || '').toString();
                 const tokenId = (token.data('placeholder-token-id') || '').toString();
+                alert('DEBUG CLICK: key=' + key + ' tokenId=' + tokenId);
                 openEditorForPlaceholderToken(key, tokenId);
+                } catch (err) {
+                    alert('ERROR in token click: ' + (err.message || err));
+                }
             });
 
             $('#masterIngredientButtons').on('dragstart', '.ingredient-chip', function (e) {
@@ -2729,18 +2840,18 @@
 
             $('#inlineHeatOptions').on('click', '.inline-heat-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#heatValueInput').val(val);
+                $('#heatValueSelect').val(val);
                 renderInlineHeatOptions();
             });
 
-            $('#heatValueInput').on('input', function () {
-                creatorState.heatValue = ($(this).val() || 'mittlerer').toString().trim();
+            $('#heatValueSelect').on('change', function () {
+                creatorState.heatValue = ($(this).val() || '').toString().trim();
                 renderInlineHeatOptions();
             });
 
             $('#btnApplyHeat').on('click', function () {
                 const tokenId = creatorState.activeHeatTokenId;
-                const val = ($('#heatValueInput').val() || '').toString().trim();
+                const val = ($('#heatValueSelect').val() || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.heatValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
@@ -2774,13 +2885,17 @@
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#equipmentValueInput').val(val);
+                $('#equipmentValueSelect').val(val);
+                renderInlineEquipmentOptions();
+            });
+
+            $('#equipmentValueSelect').on('change', function () {
                 renderInlineEquipmentOptions();
             });
 
             $('#btnApplyEquipment').on('click', function () {
                 const tokenId = creatorState.activeEquipmentTokenId;
-                const val = ($('#equipmentValueInput').val() || '').toString().trim();
+                const val = ($('#equipmentValueSelect').val() || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
@@ -2790,13 +2905,17 @@
 
             $('#inlineStateOptions').on('click', '.inline-state-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#stateValueInput').val(val);
+                $('#stateValueSelect').val(val);
+                renderInlineStateOptions();
+            });
+
+            $('#stateValueSelect').on('change', function () {
                 renderInlineStateOptions();
             });
 
             $('#btnApplyState').on('click', function () {
                 const tokenId = creatorState.activeStateTokenId;
-                const val = ($('#stateValueInput').val() || '').toString().trim();
+                const val = ($('#stateValueSelect').val() || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeStateEditor();
