@@ -1482,7 +1482,7 @@
             const selectedIds = creatorState.selectedIngredientIds || [];
             const selected = ingredients.filter(x => selectedIds.includes(x.id));
             if (selected.length) return selected.map(x => x.name);
-            return [];
+            return ingredients.map(x => x.name);
         }
 
         function getSelectedIngredientForCreator() {
@@ -2097,8 +2097,62 @@
             return buildVariablesForTemplate(templateId);
         }
 
-        function updateMasterPreview() {
-            updatePreviewText();
+        function normalizeVariablesForPersist(template, vars) {
+            const normalized = { ...(vars || {}) };
+            const keys = new Set([...(template?.variables || []), ...getPlaceholderKeysFromTemplate(template)]);
+            const ingredientValue = (getSelectedIngredientValueForInsert() || '').toString().trim();
+
+            keys.forEach(function (key) {
+                const current = (normalized[key] || '').toString().trim();
+
+                if (isIngredientPlaceholderKey(key)) {
+                    normalized[key] = ingredientValue || current;
+                    return;
+                }
+
+                if (!current || current.toLowerCase() === key.toLowerCase()) {
+                    normalized[key] = '';
+                }
+            });
+
+            return normalized;
+        }
+
+        function renderTemplateForPersist(template, lang, vars) {
+            const langKey = (lang || 'de').toLowerCase();
+            let tpl = template?.templates?.[langKey] || template?.templates?.de || template?.templates?.en || '';
+            if (!tpl) return '';
+
+            Object.keys(vars || {}).forEach(function (key) {
+                const val = (vars[key] || '').toString().trim();
+                if (val) return;
+                const esc = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                tpl = tpl.replace(new RegExp(`\\([^)]*\\{\\{\\s*${esc}\\s*\\}\\}[^)]*\\)`, 'gi'), ' ');
+                tpl = tpl.replace(new RegExp(`\\[[^\\]]*\\{\\{\\s*${esc}\\s*\\}\\}[^\\]]*\\]`, 'gi'), ' ');
+            });
+
+            let rendered = tpl.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+                const value = vars && vars[key] != null ? String(vars[key]).trim() : '';
+                return value;
+            });
+
+            rendered = rendered
+                .replace(/\(\s*\)/g, ' ')
+                .replace(/\[\s*\]/g, ' ')
+                .replace(/\s+([,.;:!?])/g, '$1')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+
+            return rendered;
+        }
+
+        function buildRenderedPayloadFromTemplate(template, vars) {
+            return {
+                de: renderTemplateForPersist(template, 'de', vars),
+                en: renderTemplateForPersist(template, 'en', vars),
+                esp: renderTemplateForPersist(template, 'esp', vars),
+                prt: renderTemplateForPersist(template, 'prt', vars)
+            };
         }
 
         function getCurrentUserHashForRequests() {
@@ -2125,8 +2179,9 @@
             const template = MasterStepRenderer.findTemplate(templateId);
             if (!template) return;
 
-            const vars = collectMasterVariables();
-            const rendered = MasterStepRenderer.renderAll(templateId, vars);
+            const rawVars = collectMasterVariables();
+            const vars = normalizeVariablesForPersist(template, rawVars);
+            const rendered = buildRenderedPayloadFromTemplate(template, vars);
             const payload = {
                 de: rendered.de,
                 en: rendered.en,
