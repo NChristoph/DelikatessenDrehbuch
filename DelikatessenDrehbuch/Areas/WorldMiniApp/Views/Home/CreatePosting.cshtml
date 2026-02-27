@@ -2222,8 +2222,17 @@
             let tpl = template?.templates?.[langKey] || template?.templates?.de || template?.templates?.en || '';
             if (!tpl) return '';
 
-            Object.keys(vars || {}).forEach(function (key) {
-                const val = (vars[key] || '').toString().trim();
+            const effectiveVars = { ...(vars || {}) };
+            if ((langKey === 'esp' || langKey === 'prt') && tpl.includes('{{ingredient}}') && !tpl.includes('{{pronoun}}')) {
+                const pronoun = (effectiveVars.pronoun || '').toString().trim();
+                const ingredient = (effectiveVars.ingredient || '').toString().trim();
+                if (pronoun && ingredient && !ingredient.toLowerCase().startsWith(pronoun.toLowerCase() + ' ')) {
+                    effectiveVars.ingredient = `${pronoun} ${ingredient}`;
+                }
+            }
+
+            Object.keys(effectiveVars || {}).forEach(function (key) {
+                const val = (effectiveVars[key] || '').toString().trim();
                 if (val) return;
                 const esc = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 tpl = tpl.replace(new RegExp(`\\([^)]*\\{\\{\\s*${esc}\\s*\\}\\}[^)]*\\)`, 'gi'), ' ');
@@ -2231,7 +2240,7 @@
             });
 
             let rendered = tpl.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
-                const value = vars && vars[key] != null ? String(vars[key]).trim() : '';
+                const value = effectiveVars && effectiveVars[key] != null ? String(effectiveVars[key]).trim() : '';
                 return value;
             });
 
@@ -2250,7 +2259,13 @@
                 de: renderTemplateForPersist(template, 'de', vars),
                 en: renderTemplateForPersist(template, 'en', vars),
                 esp: renderTemplateForPersist(template, 'esp', vars),
-                prt: renderTemplateForPersist(template, 'prt', vars)
+                prt: renderTemplateForPersist(template, 'prt', vars),
+                id: renderTemplateForPersist(template, 'id', vars),
+                nl: renderTemplateForPersist(template, 'nl', vars),
+                sv: renderTemplateForPersist(template, 'sv', vars),
+                da: renderTemplateForPersist(template, 'da', vars),
+                no: renderTemplateForPersist(template, 'no', vars),
+                ms: renderTemplateForPersist(template, 'ms', vars)
             };
         }
 

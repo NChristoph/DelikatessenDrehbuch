@@ -162,20 +162,35 @@
         const key = (lang || 'de').toLowerCase();
         const tpl = step.templates[key] || step.templates.de || step.templates.en || '';
         const localizedVariables = localizeVariables(variables || {}, key);
+
+        if ((key === 'esp' || key === 'prt') && tpl.includes('{{ingredient}}') && !tpl.includes('{{pronoun}}')) {
+            const pronoun = (localizedVariables.pronoun || '').toString().trim();
+            const ingredient = (localizedVariables.ingredient || '').toString().trim();
+            if (pronoun && ingredient && !ingredient.toLowerCase().startsWith(pronoun.toLowerCase() + ' ')) {
+                localizedVariables.ingredient = pronoun + ' ' + ingredient;
+            }
+        }
+
         return renderText(tpl, localizedVariables);
     }
 
     function renderAll(masterId, variables) {
         const step = findTemplate(masterId);
         if (!step || !step.templates) {
-            return { de: '', en: '', esp: '', prt: '' };
+            return { de: '', en: '', esp: '', prt: '', id: '', nl: '', sv: '', da: '', no: '', ms: '' };
         }
 
         return {
             de: render(masterId, variables || {}, 'de'),
             en: render(masterId, variables || {}, 'en'),
             esp: render(masterId, variables || {}, 'esp'),
-            prt: render(masterId, variables || {}, 'prt')
+            prt: render(masterId, variables || {}, 'prt'),
+            id: render(masterId, variables || {}, 'id'),
+            nl: render(masterId, variables || {}, 'nl'),
+            sv: render(masterId, variables || {}, 'sv'),
+            da: render(masterId, variables || {}, 'da'),
+            no: render(masterId, variables || {}, 'no'),
+            ms: render(masterId, variables || {}, 'ms')
         };
     }
 
