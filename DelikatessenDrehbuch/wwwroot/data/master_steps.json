@@ -469,7 +469,7 @@
       "equipment": 3,
       "description": "Köcheln bei niedriger Hitze (Saucen, Suppen, Eintöpfe)",
       "templates": {
-        "de": "Reduziere die Hitze und lasse {{dish}} bei niedriger Stufe {{duration}} köcheln, bis {{state}}.",
+        "de": "Reduziere die Hitze und lasse {{dish}} bei niedriger Stufe {{duration}} köcheln, bis {{pronoun}} {{state}}.",
         "en": "Reduce heat and let {{dish}} simmer on low for {{duration}} until {{state}}.",
         "esp": "Reduce el fuego y deja que {{dish}} hierva a fuego lento durante {{duration}} hasta que {{state}}.",
         "prt": "Reduza o fogo e deixe {{dish}} cozinhar em fogo baixo por {{duration}} até que {{state}}.",
@@ -480,7 +480,7 @@
         "no": "Skru ned varmen og la {{dish}} småkoke på lav varme i {{duration}} til {{state}}.",
         "ms": "Rendahkan api dan biarkan {{dish}} mereneh pada api kecil selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dish", "duration", "state" ]
+      "variables": [ "dish", "duration", "state", "pronoun" ]
     },
     {
       "master_id": "COOK_STEAM_01",
@@ -529,7 +529,7 @@
       "equipment": 1,
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
       "templates": {
-        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{state}}.",
+        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}}.",
         "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} for {{duration}} until {{state}}.",
         "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} durante {{duration}} hasta que {{state}}.",
         "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{state}}.",
@@ -540,7 +540,7 @@
         "no": "Fordel {{ingredient}} på et stekebrett, drypp over {{fat}} og stek i ovnen på {{temp}} i {{duration}} til {{state}}.",
         "ms": "Susun {{ingredient}} di atas dulang pembakar, renjiskan {{fat}} dan panggang pada {{temp}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "ingredient", "fat", "temp", "duration", "state" ]
+      "variables": [ "ingredient", "fat", "temp", "duration", "state", "pronoun" ]
     },
     {
       "master_id": "COOK_GRILL_01",
@@ -873,7 +873,7 @@
         "no": "La {{dish}} avkjøles i {{duration}} til {{state}}.",
         "ms": "Biarkan {{dish}} sejuk selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dish", "duration", "state" ]
+      "variables": [ "dish", "duration", "state", "pronoun" ]
     },
     {
       "master_id": "FINISH_REST_01",
