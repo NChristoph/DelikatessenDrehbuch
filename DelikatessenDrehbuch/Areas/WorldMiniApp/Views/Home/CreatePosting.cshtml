@@ -2182,12 +2182,23 @@
             updatePreviewText();
         }
 
+        function showMasterStepCreatorError(error, context) {
+            const message = error && error.message ? error.message : (error || 'Unbekannter Fehler');
+            const details = error && error.stack ? `\nStack: ${error.stack.substring(0, 500)}` : '';
+            console.error(`Master-Step-Creator Fehler (${context})`, error);
+            alert(`Master-Step-Creator Fehler (${context}): ${message}${details}`);
+        }
+
         function refreshMasterTemplateBuilder() {
-            const creator = $('.smart-step-creator');
-            creator.attr('data-theme', isDarkTheme ? 'dark' : 'light');
-            renderIngredientChips();
-            renderTemplateCards();
-            updateStoryProgress();
+            try {
+                const creator = $('.smart-step-creator');
+                creator.attr('data-theme', isDarkTheme ? 'dark' : 'light');
+                renderIngredientChips();
+                renderTemplateCards();
+                updateStoryProgress();
+            } catch (error) {
+                showMasterStepCreatorError(error, 'refreshMasterTemplateBuilder');
+            }
         }
 
         function collectMasterVariables() {
@@ -2327,6 +2338,7 @@
                 updateStepIndices();
             } catch (error) {
                 console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
+                showMasterStepCreatorError(error, 'addRenderedMasterStep');
 
                 const fallbackId = createFallbackStepId();
                 getAllStepRows().push({
