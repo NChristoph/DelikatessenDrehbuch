@@ -1001,6 +1001,18 @@
       "no": ["gyllenbrun", "myk", "blank", "gjennomkokt", "sprø", "kremet", "al dente", "innkokt", "småkoker", "doblet", "mør", "ristet", "smeltet", "skummende", "redusert", "avkjølt", "lunken", "fast", "luftig", "karamellisert", "smidig"],
       "ms": ["perang keemasan", "lembut", "jernih", "masak", "rangup", "berkrim", "al dente", "pekat", "merenih", "berganda", "lembut", "terpanggang", "cair", "berbuih", "terkurang", "disejukkan", "suam", "pejal", "gebu", "terkaramel", "licin" ]
     },
+    "base": {
+      "de": ["Eischnee", "Masse", "Teig", "Creme", "Sauce", "Glasur", "Füllung", "Marinade", "Emulsion", "Schaum"],
+      "en": ["egg white foam", "mixture", "dough", "cream", "sauce", "glaze", "filling", "marinade", "emulsion", "foam"],
+      "esp": ["claras montadas", "mezcla", "masa", "crema", "salsa", "glaseado", "relleno", "marinada", "emulsión", "espuma"],
+      "prt": ["claras em neve", "mistura", "massa", "creme", "molho", "glacê", "recheio", "marinada", "emulsão", "espuma"],
+      "id": ["putih telur kocok", "adonan", "adonan dasar", "krim", "saus", "glasir", "isian", "marinade", "emulsi", "busa"],
+      "nl": ["eiwitschuim", "massa", "deeg", "crème", "saus", "glazuur", "vulling", "marinade", "emulsie", "schuim"],
+      "sv": ["äggvita", "massa", "deg", "kräm", "sås", "glasyr", "fyllning", "marinad", "emulsion", "skum"],
+      "da": ["æggehvider", "masse", "dej", "creme", "sauce", "glasur", "fyld", "marinade", "emulsion", "skum"],
+      "no": ["eggehvite", "masse", "deig", "krem", "saus", "glasur", "fyll", "marinade", "emulsjon", "skum"],
+      "ms": ["putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih"]
+    },
     "equipment": {
       "de": ["Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb"],
       "en": ["pan", "pot", "oven", "roasting pan", "stovetop", "blender", "grill", "steamer", "bowl", "strainer"],

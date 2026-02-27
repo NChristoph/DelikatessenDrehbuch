@@ -423,6 +423,14 @@
                                         <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="baseEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Basis einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="baseValueInput" class="form-control form-control-sm" style="max-width:240px" placeholder="z.B. Teig, Creme" />
+                                        <button type="button" id="btnApplyBase" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -1432,7 +1440,9 @@
             activeStateTokenId: '',
             stateValue: 'goldbraun',
             activeToolTokenId: '',
-            activeShapeTokenId: ''
+            activeShapeTokenId: '',
+            activeBaseTokenId: '',
+            baseValue: 'Teig'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1543,6 +1553,11 @@
         function isShapePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'shape';
+        }
+
+        function isBasePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'base';
         }
 
         function isCountPlaceholderKey(key) {
@@ -1860,6 +1875,46 @@
             $('#shapeEditor').addClass('d-none');
         }
 
+        function getBaseOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('base', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            return ['Eischnee', 'Masse', 'Teig', 'Creme', 'Sauce', 'Glasur', 'Füllung', 'Marinade', 'Emulsion', 'Schaum'];
+        }
+
+        function openBaseEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeBaseTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
+            const options = getBaseOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Teig';
+            creatorState.baseValue = selected;
+            $('#baseValueInput').val(selected);
+            renderInlineBaseOptions();
+            $('#baseEditor').removeClass('d-none');
+        }
+
+        function closeBaseEditor() {
+            creatorState.activeBaseTokenId = '';
+            $('#baseEditor').addClass('d-none');
+        }
+
+        function renderInlineBaseOptions() {
+            const wrap = $('#inlineBaseOptions');
+            if (!wrap.length) return;
+            const options = getBaseOptions();
+            const currentVal = ($('#baseValueInput').val() || creatorState.baseValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-base-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function closeAllEditors() {
             closeDurationEditor();
             closeCountEditor();
@@ -1870,6 +1925,7 @@
             closeStateEditor();
             closeToolEditor();
             closeShapeEditor();
+            closeBaseEditor();
         }
 
         function placeEditorLikeTemperature(editorSelector) {
@@ -1914,6 +1970,22 @@
         function getLocalizedFallbackForVariable(key, langKey) {
             const keyNorm = (key || '').toString().trim().toLowerCase();
             const lang = (langKey || currentLang || 'de').toString().toLowerCase();
+
+            if (keyNorm === 'base') {
+                const map = {
+                    de: 'Teig',
+                    en: 'dough',
+                    esp: 'masa',
+                    prt: 'massa',
+                    id: 'adonan',
+                    nl: 'deeg',
+                    sv: 'deg',
+                    da: 'dej',
+                    no: 'deig',
+                    ms: 'doh'
+                };
+                return map[lang] || map.de;
+            }
 
             if (keyNorm === 'dough') {
                 const map = {
@@ -1966,6 +2038,7 @@
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = 'Messer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
+                    else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
                     else {
                         const localizedFallback = getLocalizedFallbackForVariable(key, currentLang);
                         vars[key] = localizedFallback || key;
@@ -2725,6 +2798,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openShapeEditorForToken(tokenId);
                     showCreatorToast('Schnittform wählen');
+                } else if (isBasePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openBaseEditorForToken(tokenId);
+                    showCreatorToast('Basis wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -2962,6 +3039,29 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeShapeEditor();
                 showCreatorToast('Schnittform eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineBaseOptions').on('click', '.inline-base-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#baseValueInput').val(val);
+                creatorState.baseValue = val;
+                renderInlineBaseOptions();
+            });
+
+            $('#baseValueInput').on('input', function () {
+                creatorState.baseValue = ($(this).val() || '').toString().trim();
+                renderInlineBaseOptions();
+            });
+
+            $('#btnApplyBase').on('click', function () {
+                const tokenId = creatorState.activeBaseTokenId;
+                const val = ($('#baseValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.baseValue = val;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeBaseEditor();
+                showCreatorToast('Basis eingesetzt');
                 renderTemplateCards();
             });
 
