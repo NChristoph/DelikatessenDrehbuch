@@ -3,22 +3,41 @@
 
     let data = null;
     let loadingPromise = null;
+    let lastLoadError = '';
 
     function load() {
         if (loadingPromise) return loadingPromise;
 
-        loadingPromise = fetch('/data/master_steps.json')
-            .then(function (r) { return r.ok ? r.json() : null; })
+        const configuredUrl = window.MasterStepRendererConfig && window.MasterStepRendererConfig.dataUrl;
+        const dataUrl = configuredUrl || '/data/master_steps.json';
+
+        loadingPromise = fetch(dataUrl)
+            .then(function (r) {
+                if (!r.ok) {
+                    throw new Error('master_steps.json konnte nicht geladen werden (' + r.status + ' ' + r.statusText + ') von ' + dataUrl);
+                }
+                return r.json();
+            })
             .then(function (json) {
+                if (!json || !Array.isArray(json.master_steps)) {
+                    throw new Error('master_steps.json hat ein ungültiges Format.');
+                }
                 data = json;
+                lastLoadError = '';
                 return json;
             })
-            .catch(function () {
+            .catch(function (error) {
                 data = null;
+                lastLoadError = error && error.message ? error.message : 'Unbekannter Fehler beim Laden von master_steps.json';
+                console.error('MasterStepRenderer.load fehlgeschlagen:', error);
                 return null;
             });
 
         return loadingPromise;
+    }
+
+    function getLastLoadError() {
+        return lastLoadError;
     }
 
     function getMasterSteps() {
@@ -299,6 +318,7 @@
         getSmartDefaults: getSmartDefaults,
         suggestForIngredient: suggestForIngredient,
         getVariablePresets: getVariablePresets,
+        getLastLoadError: getLastLoadError,
         findTemplate: findTemplate
     };
 })(window);
