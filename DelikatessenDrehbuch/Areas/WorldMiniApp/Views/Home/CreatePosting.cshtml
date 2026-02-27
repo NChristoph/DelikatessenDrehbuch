@@ -420,13 +420,10 @@
                                     <div class="fw-bold">Pronomen überschreiben</div>
                                     <button type="button" id="btnCloseAdvancedSettings" class="btn btn-sm btn-outline-secondary">Schließen</button>
                                 </div>
-                                <div class="small text-muted mb-2">Nur nutzen, wenn die automatische Erkennung nicht passt.</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="advancedPronounOptions">
-                                    <button type="button" class="btn btn-sm btn-outline-primary pronoun-option" data-pronoun="ihn">ihn</button>
-                                    <button type="button" class="btn btn-sm btn-outline-primary pronoun-option" data-pronoun="sie">sie</button>
-                                    <button type="button" class="btn btn-sm btn-outline-primary pronoun-option" data-pronoun="es">es</button>
-                                </div>
-                                <input type="text" id="advancedArticleInput" class="form-control form-control-sm" placeholder="Artikel (optional, z.B. der/die/das)" />
+                                <div class="small text-muted mb-2">Vorschläge je Sprache wählen oder frei eingeben.</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="advancedPronounOptions"></div>
+                                <input type="text" id="advancedPronounInput" class="form-control form-control-sm mb-2" placeholder="Pronomen (optional, z.B. ihn/sie/es, it/them)" />
+                                <input type="text" id="advancedArticleInput" class="form-control form-control-sm" placeholder="Artikel (optional, z.B. der/die/das, the)" />
                             </div>
                         </div>
                     </div>
@@ -1426,7 +1423,7 @@
 
         function isIngredientPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
-            return value === 'ingredient' || value === 'ingredients';
+            return value === 'ingredient' || value === 'ingredients' || value === 'liquid';
         }
 
         function isDurationPlaceholderKey(key) {
@@ -1481,6 +1478,41 @@
             $('#durationEditor').addClass('d-none');
         }
 
+        function getPronounSuggestionsForLang(langKey) {
+            const lang = (langKey || currentLang || 'de').toString().toLowerCase();
+            const map = {
+                de: ['ihn', 'sie', 'es'],
+                en: ['him', 'her', 'it', 'them'],
+                esp: ['lo', 'la', 'ellos', 'ellas'],
+                prt: ['o', 'a', 'eles', 'elas'],
+                id: ['dia', 'mereka'],
+                nl: ['hem', 'haar', 'het', 'hen'],
+                sv: ['honom', 'henne', 'den', 'det'],
+                da: ['ham', 'hende', 'den', 'det'],
+                no: ['ham', 'henne', 'den', 'det'],
+                ms: ['dia', 'mereka']
+            };
+            return map[lang] || map.de;
+        }
+
+        function syncPronounOptionSelection() {
+            const active = (creatorState.advancedPronounOverride || '').toString().trim().toLowerCase();
+            $('#advancedPronounOptions .pronoun-option').each(function () {
+                const value = (($(this).data('pronoun') || '').toString().trim().toLowerCase());
+                const isActive = !!active && value === active;
+                $(this).toggleClass('btn-primary', isActive).toggleClass('btn-outline-primary', !isActive);
+            });
+        }
+
+        function renderPronounOptions() {
+            const wrap = $('#advancedPronounOptions');
+            if (!wrap.length) return;
+            const options = getPronounSuggestionsForLang(currentLang);
+            const html = options.map(x => `<button type="button" class="btn btn-sm btn-outline-primary pronoun-option" data-pronoun="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`).join('');
+            wrap.html(html);
+            syncPronounOptionSelection();
+        }
+
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
             const selectedNames = getSelectedIngredientNames();
@@ -1499,9 +1531,13 @@
             const vars = { ...defaults };
 
             keys.forEach(key => {
+                if (key === 'ingredient' || key === 'ingredients' || key === 'liquid') {
+                    vars[key] = key;
+                    return;
+                }
+
                 if (vars[key] == null || String(vars[key]).trim() === '') {
-                    if (key === 'ingredient' || key === 'ingredients') vars[key] = ingredientName || key;
-                    else if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
+                    if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = getDurationInsertText();
                     else if (key.includes('temperature')) vars[key] = '180°C';
@@ -1512,7 +1548,7 @@
                 }
             });
 
-            if (!vars.ingredient) vars.ingredient = ingredientName || 'ingredient';
+            if (!vars.ingredient) vars.ingredient = 'ingredient';
             if (!vars.pronoun) vars.pronoun = creatorState.computedPronoun;
             if (!vars.article) vars.article = creatorState.computedArticle;
             return vars;
@@ -1813,6 +1849,7 @@
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             refreshDurationUnitControls();
+            renderPronounOptions();
             refreshMasterTemplateBuilder();
         }
 
@@ -2105,6 +2142,7 @@
                 syncIngredientSourceVisibility();
             });
             refreshDurationUnitControls();
+            renderPronounOptions();
             MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
 
             $('#masterIngredientButtons').on('click', '.ingredient-chip', function () {
@@ -2273,8 +2311,11 @@
             });
 
             $('#btnOpenAdvancedSettings').on('click', function () {
+                renderPronounOptions();
                 $('#advancedPronounSheet').removeClass('d-none').attr('aria-hidden', 'false');
+                $('#advancedPronounInput').val(creatorState.advancedPronounOverride || creatorState.computedPronoun || '');
                 $('#advancedArticleInput').val(creatorState.advancedArticleOverride || creatorState.computedArticle || '');
+                syncPronounOptionSelection();
             });
 
             $('#btnCloseAdvancedSettings, .advanced-sheet-backdrop').on('click', function () {
@@ -2283,9 +2324,15 @@
             });
 
             $('#advancedPronounOptions').on('click', '.pronoun-option', function () {
-                creatorState.advancedPronounOverride = ($(this).data('pronoun') || '').toString();
-                $('#advancedPronounOptions .pronoun-option').removeClass('btn-primary').addClass('btn-outline-primary');
-                $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+                creatorState.advancedPronounOverride = ($(this).data('pronoun') || '').toString().trim();
+                $('#advancedPronounInput').val(creatorState.advancedPronounOverride);
+                syncPronounOptionSelection();
+                updatePreviewText();
+            });
+
+            $('#advancedPronounInput').on('input', function () {
+                creatorState.advancedPronounOverride = ($(this).val() || '').toString().trim();
+                syncPronounOptionSelection();
                 updatePreviewText();
             });
 
