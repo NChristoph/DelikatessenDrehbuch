@@ -2542,9 +2542,7 @@
                 showCreatorToast('Template gewählt');
             });
 
-            $('#masterPreviewText').on('click', '.placeholder-token', function () {
-                const key = ($(this).data('placeholder-key') || '').toString();
-                const tokenId = ($(this).data('placeholder-token-id') || '').toString();
+            function openEditorForPlaceholderToken(key, tokenId) {
                 if (!key || !tokenId) return;
 
                 closeAllEditors();
@@ -2605,6 +2603,15 @@
                 }
 
                 renderTemplateCards();
+            }
+
+            $('#masterPreviewText').on('click', '.placeholder-token, .placeholder-wrap', function (e) {
+                if ($(e.target).closest('.placeholder-reset').length) return;
+
+                const token = $(this).hasClass('placeholder-token') ? $(this) : $(this).find('.placeholder-token').first();
+                const key = (token.data('placeholder-key') || '').toString();
+                const tokenId = (token.data('placeholder-token-id') || '').toString();
+                openEditorForPlaceholderToken(key, tokenId);
             });
 
             $('#masterIngredientButtons').on('dragstart', '.ingredient-chip', function (e) {
