@@ -179,12 +179,22 @@
         };
     }
 
-    function getVariablePresets(variableName) {
+    function getVariablePresets(variableName, lang) {
+        const normalizedLang = (lang || 'de').toLowerCase();
+        const options = masterStepsData && masterStepsData.variable_options;
+        const localized = options && options[variableName];
+
+        if (localized && typeof localized === 'object') {
+            const entries = localized[normalizedLang] || localized.de || localized.en;
+            if (Array.isArray(entries)) {
+                return entries;
+            }
+        }
+
         const presets = {
             shape: ['Würfel', 'Scheiben', 'Streifen', 'feine Würfel', 'grobe Stücke'],
             tool: ['Messer', 'Sparschäler', 'Reibe', 'Küchenmaschine'],
             duration: ['5 Minuten', '10 Minuten', '15 Minuten', '30 Minuten'],
-            heat: ['niedriger Hitze', 'mittlerer Hitze', 'hoher Hitze'],
             temperature: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             temp: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             liquid: ['Wasser', 'Gemüsebrühe', 'Milch', 'Kokosmilch'],
@@ -215,7 +225,7 @@
             quantity: 'etwas',
             temperature: '180°C',
             temp: '180°C',
-            heat: 'mittlerer Hitze',
+            heat: 'mittlerer',
             spice_mix: 'Salz, Pfeffer und Gewürzen',
             sauce: 'Sauce',
             target_consistency: 'cremig',

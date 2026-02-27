@@ -363,7 +363,7 @@
             liquid: 'Wasser',
             quantity: 'etwas',
             temperature: 'mittlerer Hitze',
-            heat: 'mittlerer Hitze',
+            heat: 'mittlerer',
             spice_mix: 'Salz, Pfeffer und Gewürzen',
             sauce: 'Sauce',
             target_consistency: 'cremig',
