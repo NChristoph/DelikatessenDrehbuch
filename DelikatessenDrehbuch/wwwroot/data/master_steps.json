@@ -1,15 +1,15 @@
 {
-  //gramatik anpassen
   "_meta": {
-    "version": "1.4.3",
+    "version": "1.4.5",
     "created_at": "2026-02-17",
-    "updated_at": "2026-02-28",
+    "updated_at": "2026-03-01",
     "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
     "usage": {
       "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
       "variables": "Liste der benötigten Variablen pro Step. Müssen beim Rendern übergeben werden. Hinweis: Für Abwärtskompatibilität können Aliase (z.B. spices) enthalten sein.",
       "phases": "0=Basis, 1=Vorbereitung, 2=Kochen, 3=Würzen/Finishing, 4=Anrichten/Servieren",
-      "algorithm": "1) Rezepttyp & Zutaten analysieren → passende master_steps auswählen. 2) Variablen aus Rezeptdaten befüllen. 3) Nach Phase sortieren. 4) Templates rendern."
+      "algorithm": "1) Rezepttyp & Zutaten analysieren → passende master_steps auswählen. 2) Variablen aus Rezeptdaten befüllen. 3) Nach Phase sortieren. 4) Templates rendern.",
+      "ingredient_articles": "Die Variable {{ingredient}} enthält in allen Sprachen den Artikel. de: 'die Tomaten / den Knoblauch', en: 'the tomatoes / the garlic', esp: 'los tomates / el ajo', prt: 'os tomates / o alho', id/ms: kein Artikel erforderlich, nl: 'de tomaten / de knoflook', sv/da/no: Artikel als Suffix im Wort ('tomater' → 'tomaterna/tomaterne')."
     },
     "changes": [
       "Removed languages: pl, sk, ro.",
@@ -18,7 +18,17 @@
       "Restored missing master steps from original: COOK_DEGLAZE_02, COOK_STIR_01, COOK_STRAIN_01.",
       "Added backward compatible alias variables: spices (SEASON_ADJUST_01).",
       "Added localized heat level options (low/medium/high) for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options.",
-      "Added localized equipment and state options for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options."
+      "Added localized equipment and state options for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options.",
+      "Grammar fixes: PREP_KNEAD_01 (en), PREP_DOUGH_RISE_01 (de/esp), COOK_BRAISE_01 (de/en), COOK_DEGLAZE_02 (da).",
+      "Consistency fixes: COOK_STRAIN_01 now uses equipment variable; PREP_LAYER_01 moved to phase 1.",
+      "Expanded pronoun variable_hints with language-specific guidance for all supported languages.",
+      "Removed erroneous free-standing {{pronoun}} placeholders from esp/prt imperative templates (v1.4.4 regression).",
+      "Clarified that {{ingredient}} carries the article in all languages; updated variable_hints accordingly.",
+      "Fixed PREP_LAYER_01 de: 'schichte...ab' + 'schließe...ab' replacing ungrammatical 'ende'.",
+      "Fixed COOK_GRATINATE_01 de: added {{pronoun}} object to 'gratiniere'.",
+      "Fixed PREP_DOUGH_RISE_01 de: removed anglicism 'für' in time expression.",
+      "Moved spices alias out of variables array into dedicated aliases field (SEASON_ADJUST_01).",
+      "Fixed PREP_SOAK_01 de: removed anglicism 'für' in time expression ('weiche ... ein' now uses 'für' correctly -- kept as natural German)."
     ]
   },
   "phases": {
@@ -51,14 +61,14 @@
       "templates": {
         "de": "Wasche {{ingredient}} gründlich und tupfe {{pronoun}} trocken.",
         "en": "Wash {{ingredient}} thoroughly and pat {{pronoun}} dry.",
-        "esp": "Lava {{ingredient}} a fondo y séca{{pronoun}}.",
-        "prt": "Lave {{ingredient}} bem e seque-{{pronoun}}.",
-        "id": "Cuci {{ingredient}} hingga bersih lalu keringkan {{pronoun}} dengan ditepuk-tepuk.",
+        "esp": "Lava {{ingredient}} a fondo y sécalo bien.",
+        "prt": "Lave {{ingredient}} bem e seque-o bem.",
+        "id": "Cuci {{ingredient}} hingga bersih lalu keringkan dengan ditepuk-tepuk.",
         "nl": "Was {{ingredient}} grondig en dep {{pronoun}} droog.",
         "sv": "Tvätta {{ingredient}} noggrant och torka {{pronoun}} torr.",
         "da": "Vask {{ingredient}} grundigt og dup {{pronoun}} tør.",
         "no": "Vask {{ingredient}} grundig og tørk {{pronoun}} tørr.",
-        "ms": "Basuh {{ingredient}} hingga bersih dan lap kering {{pronoun}}."
+        "ms": "Basuh {{ingredient}} hingga bersih dan lap kering."
       },
       "variables": [ "ingredient", "pronoun" ]
     },
@@ -210,14 +220,14 @@
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
         "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}} ist.",
-        "en": "Knead {{dough}} for {{duration}} until {{state}}.",
-        "esp": "Amasa {{dough}} durante {{duration}} hasta que {{state}}.",
-        "prt": "Sove {{dough}} por {{duration}} até {{state}}.",
+        "en": "Knead {{dough}} for {{duration}} until the dough is {{state}}.",
+        "esp": "Amasa {{dough}} durante {{duration}} hasta que esté {{state}}.",
+        "prt": "Sove {{dough}} por {{duration}} até que fique {{state}}.",
         "id": "Uleni {{dough}} selama {{duration}} sampai {{state}}.",
-        "nl": "Kneed {{dough}} {{duration}} tot {{state}}.",
-        "sv": "Knåda {{dough}} i {{duration}} tills {{state}}.",
-        "da": "Ælt {{dough}} i {{duration}}, indtil {{state}}.",
-        "no": "Elt {{dough}} i {{duration}} til {{state}}.",
+        "nl": "Kneed {{dough}} {{duration}} tot {{pronoun}} {{state}} is.",
+        "sv": "Knåda {{dough}} i {{duration}} tills {{pronoun}} är {{state}}.",
+        "da": "Ælt {{dough}} i {{duration}}, indtil {{pronoun}} er {{state}}.",
+        "no": "Elt {{dough}} i {{duration}} til {{pronoun}} er {{state}}.",
         "ms": "Uli {{dough}} selama {{duration}} sehingga {{state}}."
       },
       "variables": [ "dough", "duration", "state", "pronoun" ]
@@ -229,9 +239,9 @@
       "equipment": 9,
       "description": "Teig gehen lassen",
       "templates": {
-        "de": "Lasse {{dough}} an einem warmen Ort für {{duration}} gehen, bis sich das Volumen {{state}} hat.",
+        "de": "Lasse {{dough}} an einem warmen Ort {{duration}} gehen, bis sich das Volumen {{state}}.",
         "en": "Let {{dough}} rise in a warm place for {{duration}} until the volume has {{state}}.",
-        "esp": "Deja que {{dough}} suba en un lugar cálido durante {{duration}} hasta que el volumen se haya {{state}}.",
+        "esp": "Deja que {{dough}} suba en un lugar cálido durante {{duration}} hasta que el volumen haya {{state}}.",
         "prt": "Deixe {{dough}} crescer em um lugar morno por {{duration}} até que o volume tenha {{state}}.",
         "id": "Diamkan {{dough}} di tempat hangat selama {{duration}} sampai volumenya {{state}}.",
         "nl": "Laat {{dough}} op een warme plek {{duration}} rijzen tot het volume {{state}} is.",
@@ -311,8 +321,8 @@
       "templates": {
         "de": "Paniere {{ingredient}}: zuerst in {{step1}}, dann in {{step2}} und zuletzt in {{step3}} wenden.",
         "en": "Bread {{ingredient}}: coat in {{step1}}, then {{step2}}, then {{step3}}.",
-        "esp": "Empana {{ingredient}}: pasa por {{step1}}, luego {{step2}} y al final {{step3}}.",
-        "prt": "Empane {{ingredient}}: passe em {{step1}}, depois {{step2}} e por fim {{step3}}.",
+        "esp": "Empana {{ingredient}}: pasa por {{step1}}, luego por {{step2}} y al final por {{step3}}.",
+        "prt": "Empane {{ingredient}}: passe em {{step1}}, depois em {{step2}} e por fim em {{step3}}.",
         "id": "Baluri {{ingredient}}: pertama gulingkan dalam {{step1}}, lalu {{step2}}, dan terakhir {{step3}}.",
         "nl": "Paneer {{ingredient}}: eerst door {{step1}}, dan door {{step2}} en tot slot door {{step3}} halen.",
         "sv": "Panera {{ingredient}}: vänd först i {{step1}}, sedan i {{step2}} och sist i {{step3}}.",
@@ -351,8 +361,8 @@
       "templates": {
         "de": "Hebe {{ingredient}} vorsichtig unter {{base}}, damit {{goal}}.",
         "en": "Gently fold {{ingredient}} into {{base}} so that {{goal}}.",
-        "esp": "Incorpora {{ingredient}} con movimientos envolventes a {{base}} para {{goal}}.",
-        "prt": "Incorpore {{ingredient}} delicadamente em {{base}} para {{goal}}.",
+        "esp": "Incorpora {{ingredient}} con movimientos envolventes en {{base}} para que {{goal}}.",
+        "prt": "Incorpore {{ingredient}} delicadamente em {{base}} para que {{goal}}.",
         "id": "Aduk balik {{ingredient}} perlahan ke dalam {{base}} agar {{goal}}.",
         "nl": "Spatel {{ingredient}} voorzichtig door {{base}} zodat {{goal}}.",
         "sv": "Vänd försiktigt ner {{ingredient}} i {{base}} så att {{goal}}.",
@@ -369,20 +379,19 @@
       "equipment": 1,
       "description": "Vorheizen von Küchengeräten",
       "templates": {
-        "de": "Heize {{equipment}} auf {{temp}} ({{mode}}) vor.",
-        "en": "Preheat {{equipment}} to {{temp}} ({{mode}}).",
-        "esp": "Precalienta {{equipment}} a {{temp}} ({{mode}}).",
-        "prt": "Pré-aqueça {{equipment}} a {{temp}} ({{mode}}).",
-        "id": "Panaskan {{equipment}} terlebih dahulu hingga {{temp}} ({{mode}}).",
-        "nl": "Verwarm {{equipment}} voor op {{temp}} ({{mode}}).",
-        "sv": "Värm upp {{equipment}} till {{temp}} ({{mode}}).",
-        "da": "Forvarm {{equipment}} til {{temp}} ({{mode}}).",
-        "no": "Forvarm {{equipment}} til {{temp}} ({{mode}}).",
-        "ms": "Panaskan {{equipment}} terlebih dahulu kepada {{temp}} ({{mode}})."
+        "de": "Heize {{equipment}} auf {{temp}} °C ({{mode}}) vor.",
+        "en": "Preheat {{equipment}} to {{temp}} °C ({{mode}}).",
+        "esp": "Precalienta {{equipment}} a {{temp}} °C ({{mode}}).",
+        "prt": "Pré-aqueça {{equipment}} a {{temp}} °C ({{mode}}).",
+        "id": "Panaskan {{equipment}} terlebih dahulu hingga {{temp}} °C ({{mode}}).",
+        "nl": "Verwarm {{equipment}} voor op {{temp}} °C ({{mode}}).",
+        "sv": "Värm upp {{equipment}} till {{temp}} °C ({{mode}}).",
+        "da": "Forvarm {{equipment}} til {{temp}} °C ({{mode}}).",
+        "no": "Forvarm {{equipment}} til {{temp}} °C ({{mode}}).",
+        "ms": "Panaskan {{equipment}} terlebih dahulu kepada {{temp}} °C ({{mode}})."
       },
       "variables": [ "equipment", "temp", "mode" ]
     },
-
     {
       "master_id": "COOK_SAUTE_01",
       "phase": 2,
@@ -430,16 +439,16 @@
       "equipment": 3,
       "description": "Frittieren in heißem Öl",
       "templates": {
-        "de": "Erhitze {{fat}} auf {{temp}} und frittiere {{ingredient}} portionsweise {{duration}}, bis {{state}}. Auf Küchenpapier abtropfen lassen.",
-        "en": "Heat {{fat}} to {{temp}} and deep-fry {{ingredient}} in batches for {{duration}} until {{state}}. Drain on paper towels.",
-        "esp": "Calienta {{fat}} a {{temp}} y fríe {{ingredient}} en tandas durante {{duration}} hasta que {{state}}. Escurre sobre papel absorbente.",
-        "prt": "Aqueça {{fat}} a {{temp}} e frite {{ingredient}} em porções por {{duration}} até que {{state}}. Escorra em papel toalha.",
-        "id": "Panaskan {{fat}} hingga {{temp}} lalu goreng {{ingredient}} per batch selama {{duration}} sampai {{state}}. Tiriskan di tisu dapur.",
-        "nl": "Verhit {{fat}} tot {{temp}} en frituur {{ingredient}} in porties {{duration}} tot {{state}}. Laat uitlekken op keukenpapier.",
-        "sv": "Värm {{fat}} till {{temp}} och fritera {{ingredient}} i omgångar i {{duration}} tills {{state}}. Låt rinna av på hushållspapper.",
-        "da": "Opvarm {{fat}} til {{temp}} og fritér {{ingredient}} i portioner i {{duration}}, indtil {{state}}. Lad dryppe af på køkkenrulle.",
-        "no": "Varm {{fat}} til {{temp}} og frityrstek {{ingredient}} i porsjoner i {{duration}} til {{state}}. La renne av på kjøkkenpapir.",
-        "ms": "Panaskan {{fat}} hingga {{temp}} dan goreng celur {{ingredient}} secara berperingkat selama {{duration}} sehingga {{state}}. Toskan di atas tisu dapur."
+        "de": "Erhitze {{fat}} auf {{temp}} °C und frittiere {{ingredient}} portionsweise {{duration}}, bis {{state}}. Auf Küchenpapier abtropfen lassen.",
+        "en": "Heat {{fat}} to {{temp}} °C and deep-fry {{ingredient}} in batches for {{duration}} until {{state}}. Drain on paper towels.",
+        "esp": "Calienta {{fat}} a {{temp}} °C y fríe {{ingredient}} en tandas durante {{duration}} hasta que {{state}}. Escurre sobre papel absorbente.",
+        "prt": "Aqueça {{fat}} a {{temp}} °C e frite {{ingredient}} em porções por {{duration}} até que {{state}}. Escorra em papel toalha.",
+        "id": "Panaskan {{fat}} hingga {{temp}} °C lalu goreng {{ingredient}} per batch selama {{duration}} sampai {{state}}. Tiriskan di tisu dapur.",
+        "nl": "Verhit {{fat}} tot {{temp}} °C en frituur {{ingredient}} in porties {{duration}} tot {{state}}. Laat uitlekken op keukenpapier.",
+        "sv": "Värm {{fat}} till {{temp}} °C och fritera {{ingredient}} i omgångar i {{duration}} tills {{state}}. Låt rinna av på hushållspapper.",
+        "da": "Opvarm {{fat}} til {{temp}} °C og fritér {{ingredient}} i portioner i {{duration}}, indtil {{state}}. Lad dryppe af på køkkenrulle.",
+        "no": "Varm {{fat}} til {{temp}} °C og frityrstek {{ingredient}} i porsjoner i {{duration}} til {{state}}. La renne av på kjøkkenpapir.",
+        "ms": "Panaskan {{fat}} hingga {{temp}} °C dan goreng celur {{ingredient}} secara berperingkat selama {{duration}} sehingga {{state}}. Toskan di atas tisu dapur."
       },
       "variables": [ "fat", "temp", "ingredient", "duration", "state" ]
     },
@@ -452,8 +461,8 @@
       "templates": {
         "de": "Bringe {{liquid}} in einem Topf zum Kochen, gib {{ingredient}} hinein und koche {{pronoun}} {{duration}}, bis {{state}}.",
         "en": "Bring {{liquid}} to a boil in a pot, add {{ingredient}} and cook for {{duration}} until {{state}}.",
-        "esp": "Hierve {{liquid}} en una olla, añade {{ingredient}} y cocina durante {{duration}} hasta que {{state}}.",
-        "prt": "Ferva {{liquid}} numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}.",
+        "esp": "Lleva {{liquid}} a ebullición en una olla, añade {{ingredient}} y cocina durante {{duration}} hasta que {{state}}.",
+        "prt": "Leve {{liquid}} à fervura numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}.",
         "id": "Didihkan {{liquid}} dalam panci, masukkan {{ingredient}}, lalu rebus selama {{duration}} hingga {{state}}.",
         "nl": "Breng {{liquid}} in een pan aan de kook, voeg {{ingredient}} toe en kook {{duration}} tot {{state}}.",
         "sv": "Koka upp {{liquid}} i en kastrull, lägg i {{ingredient}} och koka i {{duration}} tills {{state}}.",
@@ -510,16 +519,16 @@
       "equipment": 1,
       "description": "Backen im Ofen (Aufläufe, Kuchen, Brot)",
       "templates": {
-        "de": "Gib {{dish}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}} ({{mode}}) für {{duration}}, bis {{state}}.",
-        "en": "Place {{dish}} in the preheated oven and bake at {{temp}} ({{mode}}) for {{duration}} until {{state}}.",
-        "esp": "Coloca {{dish}} en el horno precalentado y hornea a {{temp}} ({{mode}}) durante {{duration}} hasta que {{state}}.",
-        "prt": "Coloque {{dish}} no forno pré-aquecido e asse a {{temp}} ({{mode}}) por {{duration}} até que {{state}}.",
-        "id": "Masukkan {{dish}} ke oven yang sudah dipanaskan dan panggang pada {{temp}} ({{mode}}) selama {{duration}} hingga {{state}}.",
-        "nl": "Zet {{dish}} in de voorverwarmde oven en bak op {{temp}} ({{mode}}) gedurende {{duration}} tot {{state}}.",
-        "sv": "Sätt in {{dish}} i den förvärmda ugnen och baka i {{temp}} ({{mode}}) i {{duration}} tills {{state}}.",
-        "da": "Sæt {{dish}} i den forvarmede ovn og bag ved {{temp}} ({{mode}}) i {{duration}}, indtil {{state}}.",
-        "no": "Sett {{dish}} i forvarmet ovn og stek ved {{temp}} ({{mode}}) i {{duration}} til {{state}}.",
-        "ms": "Masukkan {{dish}} ke dalam ketuhar yang telah dipanaskan dan bakar pada {{temp}} ({{mode}}) selama {{duration}} sehingga {{state}}."
+        "de": "Gib {{dish}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}} °C ({{mode}}) für {{duration}}, bis {{state}}.",
+        "en": "Place {{dish}} in the preheated oven and bake at {{temp}} °C ({{mode}}) for {{duration}} until {{state}}.",
+        "esp": "Coloca {{dish}} en el horno precalentado y hornea a {{temp}} °C ({{mode}}) durante {{duration}} hasta que {{state}}.",
+        "prt": "Coloque {{dish}} no forno pré-aquecido e asse a {{temp}} °C ({{mode}}) por {{duration}} até que {{state}}.",
+        "id": "Masukkan {{dish}} ke oven yang sudah dipanaskan dan panggang pada {{temp}} °C ({{mode}}) selama {{duration}} hingga {{state}}.",
+        "nl": "Zet {{dish}} in de voorverwarmde oven en bak op {{temp}} °C ({{mode}}) gedurende {{duration}} tot {{state}}.",
+        "sv": "Sätt in {{dish}} i den förvärmda ugnen och baka i {{temp}} °C ({{mode}}) i {{duration}} tills {{state}}.",
+        "da": "Sæt {{dish}} i den forvarmede ovn og bag ved {{temp}} °C ({{mode}}) i {{duration}}, indtil {{state}}.",
+        "no": "Sett {{dish}} i forvarmet ovn og stek ved {{temp}} °C ({{mode}}) i {{duration}} til {{state}}.",
+        "ms": "Masukkan {{dish}} ke dalam ketuhar yang telah dipanaskan dan bakar pada {{temp}} °C ({{mode}}) selama {{duration}} sehingga {{state}}."
       },
       "variables": [ "dish", "pronoun", "temp", "mode", "duration", "state" ]
     },
@@ -530,16 +539,16 @@
       "equipment": 1,
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
       "templates": {
-        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} ist.",
-        "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} for {{duration}} until {{state}}.",
-        "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} durante {{duration}} hasta que {{state}}.",
-        "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{state}}.",
-        "id": "Sebarkan {{ingredient}} di loyang, beri {{fat}}, lalu panggang pada {{temp}} selama {{duration}} hingga {{state}}.",
-        "nl": "Verdeel {{ingredient}} over een bakplaat, besprenkel met {{fat}} en rooster in de oven op {{temp}} gedurende {{duration}} tot {{state}}.",
-        "sv": "Fördela {{ingredient}} på en plåt, ringla över {{fat}} och rosta i ugnen på {{temp}} i {{duration}} tills {{state}}.",
-        "da": "Fordel {{ingredient}} på en bageplade, dryp med {{fat}} og rist i ovnen ved {{temp}} i {{duration}}, indtil {{state}}.",
-        "no": "Fordel {{ingredient}} på et stekebrett, drypp over {{fat}} og stek i ovnen på {{temp}} i {{duration}} til {{state}}.",
-        "ms": "Susun {{ingredient}} di atas dulang pembakar, renjiskan {{fat}} dan panggang pada {{temp}} selama {{duration}} sehingga {{state}}."
+        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} °C für {{duration}}, bis {{pronoun}} {{state}} ist.",
+        "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} °C for {{duration}} until {{state}}.",
+        "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} °C durante {{duration}} hasta que {{state}}.",
+        "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} °C por {{duration}} até que {{state}}.",
+        "id": "Sebarkan {{ingredient}} di loyang, beri {{fat}}, lalu panggang pada {{temp}} °C selama {{duration}} hingga {{state}}.",
+        "nl": "Verdeel {{ingredient}} over een bakplaat, besprenkel met {{fat}} en rooster in de oven op {{temp}} °C gedurende {{duration}} tot {{state}}.",
+        "sv": "Fördela {{ingredient}} på en plåt, ringla över {{fat}} och rosta i ugnen på {{temp}} °C i {{duration}} tills {{state}}.",
+        "da": "Fordel {{ingredient}} på en bageplade, dryp med {{fat}} og rist i ovnen ved {{temp}} °C i {{duration}}, indtil {{state}}.",
+        "no": "Fordel {{ingredient}} på et stekebrett, drypp over {{fat}} og stek i ovnen på {{temp}} °C i {{duration}} til {{state}}.",
+        "ms": "Susun {{ingredient}} di atas dulang pembakar, renjiskan {{fat}} dan panggang pada {{temp}} °C selama {{duration}} sehingga {{state}}."
       },
       "variables": [ "ingredient", "fat", "temp", "duration", "state", "pronoun" ]
     },
@@ -583,7 +592,6 @@
       },
       "variables": [ "liquid", "equipment" ]
     },
-
     {
       "master_id": "COOK_DEGLAZE_02",
       "phase": 2,
@@ -598,13 +606,12 @@
         "id": "Deglaze {{ingredient}} dengan {{liquid}} sambil mengangkat sisa karamelnya.",
         "nl": "Blus {{ingredient}} af met {{liquid}} en maak de aanbaksels los.",
         "sv": "Slå på {{liquid}} till {{ingredient}} och skrapa loss stekresterna.",
-        "da": "Hæld {{liquid}} på {{ingredient}} og skrab stegeresterne løs.",
+        "da": "Hæld {{liquid}} over {{ingredient}} og skrab stegeresterne løs.",
         "no": "Hell {{liquid}} over {{ingredient}} og skrap løs stekerestene.",
         "ms": "Tuang {{liquid}} ke {{ingredient}} dan kikis sisa hangusnya."
       },
       "variables": [ "ingredient", "liquid" ]
     },
-
     {
       "master_id": "COOK_REDUCE_01",
       "phase": 2,
@@ -636,7 +643,7 @@
         "en": "Thicken {{dish}} with {{thickener}} and stir until {{state}}.",
         "esp": "Espesa {{dish}} con {{thickener}} y remueve hasta que {{state}}.",
         "prt": "Engrosse {{dish}} com {{thickener}} e mexa até {{state}}.",
-        "id": "Kental-kan {{dish}} dengan {{thickener}} sambil diaduk sampai {{state}}.",
+        "id": "Kentalkan {{dish}} dengan {{thickener}} sambil diaduk sampai {{state}}.",
         "nl": "Bind {{dish}} met {{thickener}} en roer tot {{state}}.",
         "sv": "Red av {{dish}} med {{thickener}} och rör tills {{state}}.",
         "da": "Jævn {{dish}} med {{thickener}} og rør, indtil {{state}}.",
@@ -645,7 +652,6 @@
       },
       "variables": [ "dish", "thickener", "state" ]
     },
-
     {
       "master_id": "COOK_STIR_01",
       "phase": 2,
@@ -655,7 +661,7 @@
       "templates": {
         "de": "Rühre {{ingredient}} {{method}} unter {{dish}}.",
         "en": "Stir {{ingredient}} {{method}} into {{dish}}.",
-        "esp": "Incorpora {{ingredient}} {{method}} a {{dish}} removiendo.",
+        "esp": "Incorpora {{ingredient}} {{method}} en {{dish}} removiendo.",
         "prt": "Misture {{ingredient}} {{method}} em {{dish}}.",
         "id": "Aduk {{ingredient}} {{method}} ke dalam {{dish}}.",
         "nl": "Roer {{ingredient}} {{method}} door {{dish}}.",
@@ -666,7 +672,6 @@
       },
       "variables": [ "ingredient", "method", "dish" ]
     },
-
     {
       "master_id": "COOK_DRAIN_01",
       "phase": 2,
@@ -676,18 +681,17 @@
       "templates": {
         "de": "Gieße {{ingredient}} durch ein {{equipment}} ab und lasse {{pronoun}} kurz ausdampfen.",
         "en": "Drain {{ingredient}} through a {{equipment}} and let {{pronoun}} steam off briefly.",
-        "esp": "Escurre {{ingredient}} a través de un {{equipment}} y deja que {{pronoun}} suelte el vapor brevemente.",
-        "prt": "Escorra {{ingredient}} através de um {{equipment}} e deixe {{pronoun}} secar um pouco.",
-        "id": "Tiriskan {{ingredient}} melalui {{equipment}} lalu biarkan {{pronoun}} menguap sebentar.",
+        "esp": "Escurre {{ingredient}} a través de un {{equipment}} y déjalo reposar brevemente.",
+        "prt": "Escorra {{ingredient}} através de um {{equipment}} e deixe-o repousar brevemente.",
+        "id": "Tiriskan {{ingredient}} melalui {{equipment}} lalu biarkan menguap sebentar.",
         "nl": "Giet {{ingredient}} af in een {{equipment}} en laat {{pronoun}} kort uitdampen.",
         "sv": "Häll av {{ingredient}} i ett {{equipment}} och låt {{pronoun}} ånga av en kort stund.",
         "da": "Hæld {{ingredient}} af i en {{equipment}} og lad {{pronoun}} dampe af et øjeblik.",
         "no": "Hell av {{ingredient}} i et {{equipment}} og la {{pronoun}} dampe av et øyeblikk.",
-        "ms": "Toskan {{ingredient}} menggunakan {{equipment}} dan biarkan {{pronoun}} mengeluarkan wap seketika."
+        "ms": "Toskan {{ingredient}} menggunakan {{equipment}} dan biarkan mengeluarkan wap seketika."
       },
       "variables": [ "ingredient", "equipment", "pronoun" ]
     },
-
     {
       "master_id": "COOK_STRAIN_01",
       "phase": 2,
@@ -695,20 +699,19 @@
       "equipment": 10,
       "description": "Abseihen/Filtern und etwas auffangen",
       "templates": {
-        "de": "Gieße {{ingredient}} durch ein {{tool}} ab und fange {{keep}} auf.",
-        "en": "Strain {{ingredient}} through a {{tool}} and reserve {{keep}}.",
-        "esp": "Cuela {{ingredient}} con un {{tool}} y reserva {{keep}}.",
-        "prt": "Coe {{ingredient}} com um {{tool}} e reserve {{keep}}.",
-        "id": "Saring {{ingredient}} dengan {{tool}} dan simpan {{keep}}.",
-        "nl": "Zeef {{ingredient}} door een {{tool}} en bewaar {{keep}}.",
-        "sv": "Sila {{ingredient}} genom en {{tool}} och spara {{keep}}.",
-        "da": "Si {{ingredient}} gennem en {{tool}} og gem {{keep}}.",
-        "no": "Sil {{ingredient}} gjennom en {{tool}} og ta vare på {{keep}}.",
-        "ms": "Tapis {{ingredient}} menggunakan {{tool}} dan simpan {{keep}}."
+        "de": "Gieße {{ingredient}} durch ein {{equipment}} ab und fange {{keep}} auf.",
+        "en": "Strain {{ingredient}} through a {{equipment}} and reserve {{keep}}.",
+        "esp": "Cuela {{ingredient}} con un {{equipment}} y reserva {{keep}}.",
+        "prt": "Coe {{ingredient}} com um {{equipment}} e reserve {{keep}}.",
+        "id": "Saring {{ingredient}} dengan {{equipment}} dan simpan {{keep}}.",
+        "nl": "Zeef {{ingredient}} door een {{equipment}} en bewaar {{keep}}.",
+        "sv": "Sila {{ingredient}} genom en {{equipment}} och spara {{keep}}.",
+        "da": "Si {{ingredient}} gennem en {{equipment}} og gem {{keep}}.",
+        "no": "Sil {{ingredient}} gjennom en {{equipment}} og ta vare på {{keep}}.",
+        "ms": "Tapis {{ingredient}} menggunakan {{equipment}} dan simpan {{keep}}."
       },
-      "variables": [ "ingredient", "tool", "keep" ]
+      "variables": [ "ingredient", "equipment", "keep" ]
     },
-
     {
       "master_id": "COOK_COVER_01",
       "phase": 2,
@@ -729,7 +732,6 @@
       },
       "variables": [ "equipment", "heat", "duration" ]
     },
-
     {
       "master_id": "COOK_BLEND_01",
       "phase": 2,
@@ -750,7 +752,6 @@
       },
       "variables": [ "dish", "equipment", "state" ]
     },
-
     {
       "master_id": "COOK_ADD_01",
       "phase": 2,
@@ -771,7 +772,6 @@
       },
       "variables": [ "ingredient", "method" ]
     },
-
     {
       "master_id": "COOK_BRAISE_01",
       "phase": 2,
@@ -779,10 +779,10 @@
       "equipment": 4,
       "description": "Schmoren im Bräter (Braten, Ragouts)",
       "templates": {
-        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmoren {{duration}}, bis {{state}}.",
-        "en": "Add {{liquid}} to {{ingredient}} in the {{equipment}}, cover, and braise for {{duration}} until {{state}}.",
-        "esp": "Añade {{liquid}} a {{ingredient}} en {{equipment}}, tapa y guisa {{duration}} hasta que {{state}}.",
-        "prt": "Adicione {{liquid}} a {{ingredient}} no {{equipment}}, tampe e cozinhe {{duration}} até {{state}}.",
+        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmore {{duration}}, bis {{state}}.",
+        "en": "Add {{liquid}} to {{ingredient}} in the {{equipment}}, cover and braise for {{duration}} until {{state}}.",
+        "esp": "Añade {{liquid}} a {{ingredient}} en {{equipment}}, tapa y guisa durante {{duration}} hasta que {{state}}.",
+        "prt": "Adicione {{liquid}} a {{ingredient}} no {{equipment}}, tampe e cozinhe por {{duration}} até {{state}}.",
         "id": "Tuang {{liquid}} ke {{ingredient}} di {{equipment}}, tutup, lalu braise selama {{duration}} hingga {{state}}.",
         "nl": "Voeg {{liquid}} toe aan {{ingredient}} in de {{equipment}}, dek af en stoof {{duration}} tot {{state}}.",
         "sv": "Häll i {{liquid}} till {{ingredient}} i {{equipment}}, lägg på lock och brässera i {{duration}} tills {{state}}.",
@@ -792,28 +792,26 @@
       },
       "variables": [ "liquid", "ingredient", "equipment", "duration", "state" ]
     },
-
     {
       "master_id": "PREP_LAYER_01",
-      "phase": 2,
+      "phase": 1,
       "action": "layer",
       "equipment": 4,
       "description": "Schichten (Lasagne, Auflauf, Dessert im Glas)",
       "templates": {
-        "de": "Schichte {{components}} in {{equipment}} und ende mit {{finish}}.",
-        "en": "Layer {{components}} in the {{equipment}} and finish with {{finish}}.",
-        "esp": "Coloca capas de {{components}} en {{equipment}} y termina con {{finish}}.",
-        "prt": "Faça camadas de {{components}} em {{equipment}} e finalize com {{finish}}.",
-        "id": "Susun berlapis {{components}} di {{equipment}} dan akhiri dengan {{finish}}.",
-        "nl": "Laag {{components}} in de {{equipment}} en eindig met {{finish}}.",
-        "sv": "Varva {{components}} i {{equipment}} och avsluta med {{finish}}.",
-        "da": "Læg {{components}} i lag i {{equipment}} og slut af med {{finish}}.",
+        "de": "Schichte {{components}} abwechselnd in {{equipment}} und schließe mit {{finish}} ab.",
+        "en": "Layer {{components}} alternately in the {{equipment}} and finish with {{finish}}.",
+        "esp": "Coloca {{components}} en capas alternas en {{equipment}} y termina con {{finish}}.",
+        "prt": "Faça camadas alternadas de {{components}} em {{equipment}} e finalize com {{finish}}.",
+        "id": "Susun {{components}} berlapis-lapis dalam {{equipment}} dan akhiri dengan {{finish}}.",
+        "nl": "Laag {{components}} afwisselend in de {{equipment}} en eindig met {{finish}}.",
+        "sv": "Varva {{components}} omväxlande i {{equipment}} och avsluta med {{finish}}.",
+        "da": "Læg {{components}} i skiftevis lag i {{equipment}} og slut af med {{finish}}.",
         "no": "Legg {{components}} lagvis i {{equipment}} og avslutt med {{finish}}.",
         "ms": "Susun {{components}} berlapis dalam {{equipment}} dan akhiri dengan {{finish}}."
       },
       "variables": [ "components", "equipment", "finish" ]
     },
-
     {
       "master_id": "COOK_GRATINATE_01",
       "phase": 2,
@@ -821,20 +819,19 @@
       "equipment": 1,
       "description": "Kurz unter starker Oberhitze gratinieren/überbacken",
       "templates": {
-        "de": "Stelle {{dish}} {{position}} unter die Grillfunktion und gratiniere {{duration}}, bis {{state}}.",
+        "de": "Stelle {{dish}} {{position}} unter die Grillfunktion und gratiniere {{pronoun}} {{duration}}, bis {{state}}.",
         "en": "Place {{dish}} {{position}} under the broiler and broil for {{duration}} until {{state}}.",
-        "esp": "Coloca {{dish}} {{position}} bajo el grill y gratina {{duration}} hasta que {{state}}.",
+        "esp": "Coloca {{dish}} {{position}} bajo el grill y gratina durante {{duration}} hasta que {{state}}.",
         "prt": "Coloque {{dish}} {{position}} sob o grill e gratine por {{duration}} até {{state}}.",
         "id": "Letakkan {{dish}} {{position}} di bawah fungsi grill dan gratin selama {{duration}} hingga {{state}}.",
-        "nl": "Zet {{dish}} {{position}} onder de grillfunctie en gratineer {{duration}} tot {{state}}.",
-        "sv": "Placera {{dish}} {{position}} under grillelementet och gratinera i {{duration}} tills {{state}}.",
-        "da": "Sæt {{dish}} {{position}} under grillfunktionen og gratinér i {{duration}}, indtil {{state}}.",
-        "no": "Sett {{dish}} {{position}} under grillelementet og gratiner i {{duration}} til {{state}}.",
+        "nl": "Zet {{dish}} {{position}} onder de grillfunctie en gratineer {{pronoun}} {{duration}} tot {{state}}.",
+        "sv": "Placera {{dish}} {{position}} under grillelementet och gratinera {{pronoun}} i {{duration}} tills {{state}}.",
+        "da": "Sæt {{dish}} {{position}} under grillfunktionen og gratinér {{pronoun}} i {{duration}}, indtil {{state}}.",
+        "no": "Sett {{dish}} {{position}} under grillelementet og gratiner {{pronoun}} i {{duration}} til {{state}}.",
         "ms": "Letakkan {{dish}} {{position}} di bawah fungsi grill dan gratin selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dish", "position", "duration", "state" ]
+      "variables": [ "dish", "position", "duration", "state", "pronoun" ]
     },
-
     {
       "master_id": "SEASON_ADJUST_01",
       "phase": 3,
@@ -853,9 +850,9 @@
         "no": "Smak til {{dish}} med {{seasonings}} og juster {{balance}}.",
         "ms": "Rasa {{dish}} dan laraskan dengan {{seasonings}} untuk seimbangkan {{balance}}."
       },
-      "variables": [ "dish", "seasonings", "balance", "spices" ]
+      "variables": [ "dish", "seasonings", "balance" ],
+      "aliases": { "spices": "seasonings" }
     },
-
     {
       "master_id": "FINISH_COOL_01",
       "phase": 3,
@@ -865,7 +862,7 @@
       "templates": {
         "de": "Lasse {{dish}} {{duration}} abkühlen, bis {{state}}.",
         "en": "Let {{dish}} cool for {{duration}} until {{state}}.",
-        "esp": "Deja que {{dish}} se enfríe {{duration}} hasta que {{state}}.",
+        "esp": "Deja que {{dish}} se enfríe durante {{duration}} hasta que {{state}}.",
         "prt": "Deixe {{dish}} esfriar por {{duration}} até {{state}}.",
         "id": "Biarkan {{dish}} dingin selama {{duration}} hingga {{state}}.",
         "nl": "Laat {{dish}} {{duration}} afkoelen tot {{state}}.",
@@ -874,7 +871,7 @@
         "no": "La {{dish}} avkjøles i {{duration}} til {{state}}.",
         "ms": "Biarkan {{dish}} sejuk selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dish", "duration", "state", "pronoun" ]
+      "variables": [ "dish", "duration", "state" ]
     },
     {
       "master_id": "FINISH_REST_01",
@@ -885,7 +882,7 @@
       "templates": {
         "de": "Lasse {{dish}} {{duration}} ruhen, damit {{reason}}.",
         "en": "Let {{dish}} rest for {{duration}} so that {{reason}}.",
-        "esp": "Deja reposar {{dish}} {{duration}} para que {{reason}}.",
+        "esp": "Deja reposar {{dish}} durante {{duration}} para que {{reason}}.",
         "prt": "Deixe {{dish}} repousar por {{duration}} para que {{reason}}.",
         "id": "Diamkan {{dish}} selama {{duration}} agar {{reason}}.",
         "nl": "Laat {{dish}} {{duration}} rusten zodat {{reason}}.",
@@ -939,42 +936,43 @@
   ],
 
   "variable_hints": {
-    "ingredient": "Name der Zutat, z.B. 'die Tomaten', 'das Hähnchen', 'den Knoblauch'",
-    "ingredients": "Mehrere Zutaten als Aufzählung, z.B. 'Mehl, Backpulver und Salz'",
-    "pronoun": "Pronomen passend zur Zutat: 'es' / 'sie' / 'ihn' (de), 'it' / 'them' (en). Für neue Sprachen möglichst neutral halten.",
-    "shape": "Schnittform, z.B. 'Würfel', 'Scheiben', 'feine Streifen'",
-    "tool": "Werkzeug, z.B. 'Sparschäler', 'Reibe', 'Sieb'",
-    "grind_size": "Reibgröße, z.B. 'fein', 'grob', 'als Zeste'",
-    "fat": "Fett zum Braten, z.B. 'Olivenöl', 'Butter'",
-    "equipment": "Gerät/Behälter, z.B. 'Pfanne', 'Topf', 'Backofen', 'Schüssel'",
-    "duration": "Zeitangabe, z.B. '3–4 Minuten', '10 Minuten', '30–35 Minuten'",
-    "state": "Zielzustand, z.B. 'goldbraun', 'weich', 'glasig'",
-    "heat": "Hitze-Stufe, z.B. 'mittlerer', 'hoher', 'niedriger'",
-    "temp": "Temperatur in °C als Zahl, z.B. '180'",
-    "mode": "Ofenmodus, z.B. 'Ober-/Unterhitze', 'Umluft', 'Grill'",
-    "liquid": "Flüssigkeit, z.B. 'Wasser', 'Brühe', 'Wein'",
-    "marinade": "Marinade-Mix, z.B. 'Olivenöl, Zitronensaft, Knoblauch'",
-    "dish": "Gericht/Komponente, z.B. 'die Sauce', 'die Suppe', 'den Auflauf'",
-    "thickener": "Bindemittel, z.B. 'Speisestärke', 'Mehlschwitze'",
-    "method": "Art der Verarbeitung, z.B. 'gründlich einrühren', 'vorsichtig unterheben'",
-    "reason": "Grund/Ergebnis, z.B. 'sich der Saft verteilt', 'es stabiler wird'",
-    "count": "Anzahl, z.B. '4', '8'",
-    "dough": "Teig-Bezeichnung, z.B. 'den Pizzateig', 'den Hefeteig'",
-    "item": "Allgemeines Objekt, z.B. 'die Masse', 'den Teig', 'die Mischung'",
-    "surface": "Unterlage, z.B. 'bemehlter Arbeitsfläche', 'Backpapier'",
-    "base": "Basis-Masse, z.B. 'die Creme', 'den Teig'",
-    "goal": "Ziel beim Unterheben, z.B. 'die Luftigkeit erhalten bleibt'",
-    "step1": "Panier-Schritt 1, z.B. 'Mehl'",
-    "step2": "Panier-Schritt 2, z.B. 'verquirltem Ei'",
-    "step3": "Panier-Schritt 3, z.B. 'Semmelbröseln'",
-    "components": "Komponentenliste fürs Schichten, z.B. 'Sauce, Nudeln und Käse'",
-    "finish": "Abschluss-Schicht, z.B. 'Käse'",
-    "position": "Position im Ofen, z.B. 'auf der obersten Schiene'",
-    "seasonings": "Gewürze/Abschmecken, z.B. 'Salz, Pfeffer und Zitronensaft'",
-    "balance": "Geschmacksbalance, z.B. 'Salz/Säure/Schärfe'",
-    "spices": "Alias (alt): wenn vorhanden, kann Renderer spices -> seasonings mappen.",
-    "servings": "Portionenanzahl, z.B. '2', '4'",
-    "extra": "Servierhinweis, z.B. 'mit frischen Kräutern', 'sofort heiß'"
+    "ingredient": "Zutat MIT Artikel, sprachspezifisch. de: 'die Tomaten / den Knoblauch / das Hähnchen'. en: 'the tomatoes / the garlic / the chicken'. esp: 'los tomates / el ajo / el pollo'. prt: 'os tomates / o alho / o frango'. id/ms: kein Artikel erforderlich. nl: 'de tomaten / de knoflook / de kip'. sv/da/no: bestimmter Artikel als Wort-Suffix ('tomaterna / tomaterne / tomatene').",
+    "ingredients": "Mehrere Zutaten als Aufzählung, MIT Artikel, z.B. de: 'Mehl, Backpulver und Salz' / esp: 'la harina, el polvo de hornear y la sal'.",
+    "pronoun": "Pronomen passend zur Zutat. de: 'es/sie/ihn' (Genus-abhängig). en: 'it/them'. esp: nicht als freie Variable verwenden — Pronomen ans Verb hängen (enklitisch). prt: nicht als freie Variable verwenden — Pronomen enklitisch. id: 'nya' (optional). nl: 'hem/haar/het'. sv: 'den/det'. da: 'den/det'. no: 'den/det'. ms: 'nya' (optional).",
+    "shape": "Schnittform, z.B. de: 'Würfel / Scheiben / feine Streifen'. esp: 'cubos / rodajas / tiras finas'.",
+    "tool": "Werkzeug, z.B. de: 'Sparschäler / Reibe / Sieb'. esp: 'pelador / rallador / colador'.",
+    "grind_size": "Reibgröße, z.B. de: 'fein / grob / als Zeste'. esp: 'fino / grueso / en ralladura'.",
+    "fat": "Fett zum Braten, z.B. de: 'Olivenöl / Butter'. esp: 'aceite de oliva / mantequilla'.",
+    "equipment": "Gerät/Behälter, z.B. de: 'einer großen Pfanne / einem Topf'. esp: 'una sartén grande / una olla'.",
+    "duration": "Zeitangabe, z.B. '3–4 Minuten / 10 Minuten / 30–35 Minuten'.",
+    "state": "Zielzustand, z.B. de: 'goldbraun / weich / glasig'. esp: 'dorado / blando / translúcido'.",
+    "heat": "Hitze-Stufe aus variable_options.heat wählen, z.B. de: 'mittlerer'. Hinweis: Wert muss zum syntaktischen Kontext passen (Genitiv/Dativ im Deutschen).",
+    "temp": "Temperatur als reine Zahl ohne Einheit, z.B. '180'. Das Template fügt °C selbst hinzu.",
+    "mode": "Ofenmodus, z.B. de: 'Ober-/Unterhitze / Umluft / Grill'. esp: 'calor arriba y abajo / convección / grill'.",
+    "liquid": "Flüssigkeit, z.B. de: 'Wasser / Brühe / Wein'. esp: 'agua / caldo / vino'.",
+    "marinade": "Marinade-Mix als Aufzählung, z.B. de: 'Olivenöl, Zitronensaft und Knoblauch'.",
+    "dish": "Gericht/Komponente MIT Artikel, z.B. de: 'die Sauce / die Suppe / den Auflauf'. esp: 'la salsa / la sopa / el gratén'.",
+    "thickener": "Bindemittel, z.B. de: 'Speisestärke / Mehlschwitze'. esp: 'fécula de maíz / un roux'.",
+    "method": "Art der Verarbeitung, z.B. de: 'gründlich einrühren / vorsichtig unterheben'.",
+    "reason": "Grund/Ergebnis, z.B. de: 'sich der Saft verteilt / es stabiler wird'.",
+    "count": "Anzahl als Zahl, z.B. '4' oder '8'.",
+    "dough": "Teig-Bezeichnung MIT Artikel, z.B. de: 'den Pizzateig / den Hefeteig'. esp: 'la masa de pizza / la masa de levadura'.",
+    "item": "Allgemeines Objekt MIT Artikel, z.B. de: 'die Masse / den Teig / die Mischung'.",
+    "surface": "Unterlage, z.B. de: 'bemehlter Arbeitsfläche / Backpapier'. esp: 'una superficie enharinada / papel de horno'.",
+    "base": "Basis-Masse MIT Artikel, z.B. de: 'die Creme / den Teig'. esp: Wert aus variable_options.base wählen.",
+    "goal": "Ziel beim Unterheben, z.B. de: 'die Luftigkeit erhalten bleibt'.",
+    "step1": "Panier-Schritt 1, z.B. de: 'Mehl'. esp: 'harina'.",
+    "step2": "Panier-Schritt 2, z.B. de: 'verquirltem Ei'. esp: 'huevo batido'.",
+    "step3": "Panier-Schritt 3, z.B. de: 'Semmelbröseln'. esp: 'pan rallado'.",
+    "components": "Komponentenliste fürs Schichten MIT Artikel, z.B. de: 'die Sauce, die Nudeln und den Käse'.",
+    "finish": "Abschluss-Schicht, z.B. de: 'Käse / Béchamel'. esp: 'queso / bechamel'.",
+    "position": "Position im Ofen, z.B. de: 'auf der obersten Schiene'. esp: 'en la rejilla superior'.",
+    "seasonings": "Gewürze/Abschmecken als Aufzählung, z.B. de: 'Salz, Pfeffer und Zitronensaft'. esp: 'sal, pimienta y zumo de limón'.",
+    "balance": "Geschmacksbalance, z.B. de: 'Salz/Säure/Schärfe'. esp: 'sal/acidez/picante'.",
+    "servings": "Portionenanzahl als Zahl, z.B. '2' oder '4'.",
+    "extra": "Servierhinweis, z.B. de: 'mit frischen Kräutern / sofort heiß'. esp: 'con hierbas frescas / inmediatamente caliente'.",
+    "keep": "Aufzufangender Anteil, z.B. de: 'das Kochwasser / die Brühe'. esp: 'el agua de cocción / el caldo'."
+  
   },
 
   "variable_options": {
@@ -993,7 +991,7 @@
     "state": {
       "de": [ "goldbraun", "weich", "glasig", "gar", "knusprig", "cremig", "bissfest", "eingedickt", "sprudelnd", "verdoppelt", "zart", "angeröstet", "geschmolzen", "schaumig", "reduziert (eingekocht)", "abgekühlt", "lauwarm", "fest", "fluffig", "karamellisiert", "geschmeidig" ],
       "en": [ "golden brown", "soft", "translucent", "cooked through", "crispy", "creamy", "al dente", "thickened", "bubbling", "doubled", "tender", "toasted", "melted", "foamy", "reduced", "cooled", "lukewarm", "firm", "fluffy", "caramelized", "smooth" ],
-      "esp": [ "dorado", "suave", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente", "duplicado", "tierno", "tostado", "derretido", "espumoso", "reducido", "enfriado", "tibio", "firme", "esponjoso", "caramelizado", "sedoso" ],
+      "esp": [ "dorado", "blando", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente", "duplicado", "tierno", "tostado", "derretido", "espumoso", "reducido", "enfriado", "tibio", "firme", "esponjoso", "caramelizado", "sedoso" ],
       "prt": [ "dourado", "macio", "translúcido", "cozido", "crocante", "cremoso", "al dente", "encorpado", "borbulhando", "dobrado", "tenro", "tostado", "derretido", "espumoso", "reduzido", "arrefecido", "morno", "firme", "fofo", "caramelizado", "sedoso" ],
       "id": [ "keemasan", "lembut", "bening", "matang", "renyah", "kremi", "al dente", "mengental", "mendidih perlahan", "dua kali lipat", "empuk", "terpanggang", "meleleh", "berbusa", "tereduksi", "dingin", "suam-suam kuku", "padat", "mengembang", "terkaramelisasi", "halus" ],
       "nl": [ "goudbruin", "zacht", "glazig", "gaar", "knapperig", "romig", "beetgaar", "ingedikt", "zacht borrelend", "verdubbeld", "mals", "geroosterd", "gesmolten", "schuimig", "gereduceerd", "afgekoeld", "lauw", "stevig", "luchtig", "gekaramelliseerd", "glad" ],
@@ -1005,25 +1003,25 @@
     "base": {
       "de": [ "Eischnee", "Masse", "Teig", "Creme", "Sauce", "Glasur", "Füllung", "Marinade", "Emulsion", "Schaum" ],
       "en": [ "egg white foam", "mixture", "dough", "cream", "sauce", "glaze", "filling", "marinade", "emulsion", "foam" ],
-      "esp": [ "claras montadas", "mezcla", "masa", "crema", "salsa", "glaseado", "relleno", "marinada", "emulsión", "espuma" ],
-      "prt": [ "claras em neve", "mistura", "massa", "creme", "molho", "glacê", "recheio", "marinada", "emulsão", "espuma" ],
+      "esp": [ "las claras montadas", "la mezcla", "la masa", "la crema", "la salsa", "el glaseado", "el relleno", "la marinada", "la emulsión", "la espuma" ],
+      "prt": [ "as claras em neve", "a mistura", "a massa", "o creme", "o molho", "a cobertura", "o recheio", "a marinada", "a emulsão", "a espuma" ],
       "id": [ "putih telur kocok", "adonan", "adonan dasar", "krim", "saus", "glasir", "isian", "marinade", "emulsi", "busa" ],
-      "nl": [ "eiwitschuim", "massa", "deeg", "crème", "saus", "glazuur", "vulling", "marinade", "emulsie", "schuim" ],
-      "sv": [ "äggvita", "massa", "deg", "kräm", "sås", "glasyr", "fyllning", "marinad", "emulsion", "skum" ],
-      "da": [ "æggehvider", "masse", "dej", "creme", "sauce", "glasur", "fyld", "marinade", "emulsion", "skum" ],
-      "no": [ "eggehvite", "masse", "deig", "krem", "saus", "glasur", "fyll", "marinade", "emulsjon", "skum" ],
+      "nl": [ "het eiwitschuim", "de massa", "het deeg", "de crème", "de saus", "het glazuur", "de vulling", "de marinade", "de emulsie", "het schuim" ],
+      "sv": [ "äggvitan", "massan", "degen", "krämen", "såsen", "glasyren", "fyllningen", "marinaden", "emulsionen", "skummet" ],
+      "da": [ "æggehviderne", "massen", "dejen", "cremen", "saucen", "glasuren", "fyldet", "marinaden", "emulsionen", "skummet" ],
+      "no": [ "eggehviten", "massen", "deigen", "kremen", "sausen", "glasuren", "fyllet", "marinaden", "emulsjonen", "skummet" ],
       "ms": [ "putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih" ]
     },
     "equipment": {
       "de": [ "Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb" ],
       "en": [ "pan", "pot", "oven", "roasting pan", "stovetop", "blender", "grill", "steamer", "bowl", "strainer" ],
-      "esp": [ "sartén", "olla", "horno", "asadera", "placa de cocción", "batidora", "parrilla", "vaporera", "bol", "colador" ],
-      "prt": [ "frigideira", "panela", "forno", "assadeira", "fogão", "liquidificador", "grelha", "cozedor a vapor", "tigela", "peneira" ],
+      "esp": [ "la sartén", "la olla", "el horno", "la asadera", "la placa de cocción", "la batidora", "la parrilla", "la vaporera", "el bol", "el colador" ],
+      "prt": [ "a frigideira", "a panela", "o forno", "a assadeira", "o fogão", "o liquidificador", "a grelha", "o cozedor a vapor", "a tigela", "a peneira" ],
       "id": [ "wajan", "panci", "oven", "loyang", "kompor", "blender", "pemanggang", "pengukus", "mangkuk", "saringan" ],
-      "nl": [ "pan", "kookpot", "oven", "braadslede", "kookplaat", "blender", "grill", "stomer", "kom", "zeef" ],
-      "sv": [ "stekpanna", "kastrull", "ugn", "stekgryta", "spishäll", "mixer", "grill", "ångkokare", "skål", "sil" ],
-      "da": [ "pande", "gryde", "ovn", "bradepande", "kogeplade", "blender", "grill", "dampkoger", "skål", "si" ],
-      "no": [ "stekepanne", "gryte", "ovn", "ildfast form", "koketopp", "blender", "grill", "dampkoker", "bolle", "sil" ],
+      "nl": [ "de pan", "de kookpot", "de oven", "de braadslede", "de kookplaat", "de blender", "de grill", "de stomer", "de kom", "de zeef" ],
+      "sv": [ "stekpannan", "kastrullen", "ugnen", "stekgrytan", "spishällen", "mixern", "grillen", "ångkokaren", "skålen", "silen" ],
+      "da": [ "panden", "gryden", "ovnen", "bradepanden", "kogepladen", "blenderen", "grillen", "dampkogeren", "skålen", "sien" ],
+      "no": [ "stekepannen", "gryta", "ovnen", "den ildfaste formen", "koketoppen", "blenderen", "grillen", "dampkokeren", "bollen", "silen" ],
       "ms": [ "kuali", "periuk", "ketuhar", "bekas pembakar", "dapur", "pengisar", "gril", "pengukus", "mangkuk", "penapis" ]
     }
   },
@@ -1056,27 +1054,49 @@
   },
 
   "example_render": {
-    "_comment": "Beispiel: COOK_SAUTE_01 mit konkreten Werten (sprachneutral befüllt).",
+    "_comment": "Beispiel: COOK_SAUTE_01 mit konkreten Werten. {{ingredient}} enthält den Artikel.",
     "master_id": "COOK_SAUTE_01",
     "variables_filled": {
       "fat": "Olivenöl",
       "equipment": "einer großen Pfanne",
-      "ingredient": "die Zwiebeln",
+      "ingredient": {
+        "de": "die Zwiebeln",
+        "en": "the onions",
+        "esp": "las cebollas",
+        "prt": "as cebolas",
+        "id": "bawang bombai",
+        "nl": "de uien",
+        "sv": "lökarna",
+        "da": "løgene",
+        "no": "løkene",
+        "ms": "bawang"
+      },
       "duration": "3–4 Minuten",
-      "state": "sie glasig sind"
+      "state": {
+        "de": "sie glasig sind",
+        "en": "translucent",
+        "esp": "estén translúcidas",
+        "prt": "fiquem translúcidas",
+        "id": "bening",
+        "nl": "glazig",
+        "sv": "glansiga",
+        "da": "klare",
+        "no": "blanke",
+        "ms": "lutsinar"
+      }
     },
     "rendered": {
       "de": "Erhitze Olivenöl in einer großen Pfanne und dünste die Zwiebeln darin 3–4 Minuten, bis sie glasig sind.",
       "en": "Heat olive oil in a large pan and sauté the onions for 3–4 minutes until translucent.",
-      "esp": "Calienta aceite de oliva en una sartén grande y sofríe la cebolla durante 3–4 minutos hasta que quede translúcida.",
-      "prt": "Aqueça azeite em uma frigideira grande e refogue a cebola por 3–4 minutos até ficar translúcida.",
+      "esp": "Calienta aceite de oliva en una sartén grande y sofríe las cebollas durante 3–4 minutos hasta que estén translúcidas.",
+      "prt": "Aqueça azeite em uma frigideira grande e refogue as cebolas por 3–4 minutos até que fiquem translúcidas.",
       "id": "Panaskan minyak zaitun di wajan besar lalu tumis bawang bombai selama 3–4 menit hingga bening.",
-      "nl": "Verhit olijfolie in een grote pan en fruit de ui 3–4 minuten tot glazig.",
-      "sv": "Värm olivolja i en stor panna och fräs löken i 3–4 minuter tills den blir mjuk och glansig.",
-      "da": "Varm olivenolie i en stor pande og sautér løg i 3–4 minutter, til de er bløde og klare.",
-      "no": "Varm olivenolje i en stor panne og fres løk i 3–4 minutter til den blir myk og blank.",
-      "ms": "Panaskan minyak zaitun dalam kuali besar dan tumis bawang selama 3–4 minit hingga menjadi lutsinar."
+      "nl": "Verhit olijfolie in een grote pan en fruit de uien 3–4 minuten tot glazig.",
+      "sv": "Värm olivolja i en stor panna och fräs lökarna i 3–4 minuter tills glansiga.",
+      "da": "Varm olivenolie i en stor pande og sautér løgene i 3–4 minutter, indtil klare.",
+      "no": "Varm olivenolje i en stor panne og fres løkene i 3–4 minutter til blanke.",
+      "ms": "Panaskan minyak zaitun dalam kuali besar dan tumis bawang selama 3–4 minit hingga lutsinar."
     },
-    "_note": "Im echten System können Variablen pro Sprache lokalisiert werden (z.B. 'olive oil' statt 'Olivenöl')."
+    "_note": "{{ingredient}} wird pro Sprache mit korrektem Artikel und Genus befüllt. Der Renderer muss die sprachspezifische ingredient-Form aus den Zutaten-Stammdaten ziehen."
   }
 }
