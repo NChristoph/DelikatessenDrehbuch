@@ -404,6 +404,22 @@
                                         <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="pronounEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Pronomen einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="pronounValueInput" class="form-control form-control-sm" style="max-width:160px" placeholder="z.B. ihn/sie/es" />
+                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="equipmentEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Gerät einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="equipmentValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Pfanne, Topf" />
+                                        <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -424,19 +440,6 @@
                             </div>
                         </div>
 
-                        <div id="advancedPronounSheet" class="advanced-sheet d-none" aria-hidden="true">
-                            <div class="advanced-sheet-backdrop"></div>
-                            <div class="advanced-sheet-panel">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="fw-bold">Pronomen überschreiben</div>
-                                    <button type="button" id="btnCloseAdvancedSettings" class="btn btn-sm btn-outline-secondary">Schließen</button>
-                                </div>
-                                <div class="small text-muted mb-2">Vorschläge je Sprache wählen oder frei eingeben.</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="advancedPronounOptions"></div>
-                                <input type="text" id="advancedPronounInput" class="form-control form-control-sm mb-2" placeholder="Pronomen (optional, z.B. ihn/sie/es, it/them)" />
-                                <input type="text" id="advancedArticleInput" class="form-control form-control-sm" placeholder="Artikel (optional, z.B. der/die/das, the)" />
-                            </div>
-                        </div>
                     </div>
 
                     <div class="mt-1">
@@ -1249,22 +1252,6 @@
         100% { opacity: 0; transform: translate(0,-120px) scale(1.04); }
     }
 
-    .advanced-sheet {
-        position: absolute;
-        inset: 0;
-        z-index: 8;
-        display: flex;
-        align-items: flex-end;
-    }
-    .advanced-sheet-backdrop { position:absolute; inset:0; background: rgba(0,0,0,.45); }
-    .advanced-sheet-panel {
-        position: relative;
-        width: 100%;
-        background: #fff;
-        border-radius: 18px 18px 0 0;
-        padding: 12px;
-        z-index: 1;
-    }
 
 
 </style>
@@ -1367,7 +1354,9 @@
             durationUnit: 'minute',
             activeTemperatureTokenId: '',
             temperatureValue: 180,
-            temperatureUnit: 'celsius'
+            temperatureUnit: 'celsius',
+            activePronounTokenId: '',
+            activeEquipmentTokenId: ''
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1455,6 +1444,11 @@
             return value === 'temp' || value === 'temperature';
         }
 
+        function isEquipmentPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'equipment';
+        }
+
         function getPlaceholderKeyByTokenId(tokenId) {
             return ($(`#masterPreviewText .placeholder-token[data-placeholder-token-id="${tokenId}"]`).data('placeholder-key') || '').toString();
         }
@@ -1530,6 +1524,64 @@
             $('#temperatureEditor').addClass('d-none');
         }
 
+        function openPronounEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activePronounTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.computedPronoun || '').toString().trim();
+            $('#pronounValueInput').val(currentText);
+            renderInlinePronounOptions();
+            $('#pronounEditor').removeClass('d-none');
+        }
+
+        function closePronounEditor() {
+            creatorState.activePronounTokenId = '';
+            $('#pronounEditor').addClass('d-none');
+        }
+
+        function renderInlinePronounOptions() {
+            const wrap = $('#inlinePronounOptions');
+            if (!wrap.length) return;
+            const options = getPronounSuggestionsForLang(currentLang);
+            const currentVal = ($('#pronounValueInput').val() || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-pronoun-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getEquipmentOptions() {
+            return ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'];
+        }
+
+        function openEquipmentEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeEquipmentTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            $('#equipmentValueInput').val(currentText || 'Pfanne');
+            renderInlineEquipmentOptions();
+            $('#equipmentEditor').removeClass('d-none');
+        }
+
+        function closeEquipmentEditor() {
+            creatorState.activeEquipmentTokenId = '';
+            $('#equipmentEditor').addClass('d-none');
+        }
+
+        function renderInlineEquipmentOptions() {
+            const wrap = $('#inlineEquipmentOptions');
+            if (!wrap.length) return;
+            const options = getEquipmentOptions();
+            const currentVal = ($('#equipmentValueInput').val() || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function getPronounSuggestionsForLang(langKey) {
             const lang = (langKey || currentLang || 'de').toString().toLowerCase();
             const map = {
@@ -1545,24 +1597,6 @@
                 ms: ['dia', 'mereka']
             };
             return map[lang] || map.de;
-        }
-
-        function syncPronounOptionSelection() {
-            const active = (creatorState.advancedPronounOverride || '').toString().trim().toLowerCase();
-            $('#advancedPronounOptions .pronoun-option').each(function () {
-                const value = (($(this).data('pronoun') || '').toString().trim().toLowerCase());
-                const isActive = !!active && value === active;
-                $(this).toggleClass('btn-primary', isActive).toggleClass('btn-outline-primary', !isActive);
-            });
-        }
-
-        function renderPronounOptions() {
-            const wrap = $('#advancedPronounOptions');
-            if (!wrap.length) return;
-            const options = getPronounSuggestionsForLang(currentLang);
-            const html = options.map(x => `<button type="button" class="btn btn-sm btn-outline-primary pronoun-option" data-pronoun="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`).join('');
-            wrap.html(html);
-            syncPronounOptionSelection();
         }
 
         function buildVariablesForTemplate(templateId) {
@@ -1901,7 +1935,6 @@
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             refreshDurationUnitControls();
-            renderPronounOptions();
             refreshMasterTemplateBuilder();
         }
 
@@ -2194,7 +2227,6 @@
                 syncIngredientSourceVisibility();
             });
             refreshDurationUnitControls();
-            renderPronounOptions();
             MasterStepRenderer.load().then(() => refreshMasterTemplateBuilder());
 
             $('#masterIngredientButtons').on('click', '.ingredient-chip', function () {
@@ -2235,6 +2267,8 @@
                 creatorState.placeholderAssignments = {};
                 closeDurationEditor();
                 closeTemperatureEditor();
+                closePronounEditor();
+                closeEquipmentEditor();
                 $('.template-card').removeClass('active');
                 $(this).addClass('active template-tap');
                 setTimeout(() => $(this).removeClass('template-tap'), 180);
@@ -2251,6 +2285,8 @@
                 if (isIngredientPlaceholderKey(key)) {
                     closeDurationEditor();
                     closeTemperatureEditor();
+                    closePronounEditor();
+                    closeEquipmentEditor();
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
                     $('#masterPreviewCard').addClass('token-replace-active');
@@ -2269,6 +2305,8 @@
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     closeTemperatureEditor();
+                    closePronounEditor();
+                    closeEquipmentEditor();
                     openDurationEditorForToken(tokenId);
                     showCreatorToast('Zeit setzen');
                 } else if (isPronounPlaceholderKey(key)) {
@@ -2277,25 +2315,35 @@
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     closeDurationEditor();
                     closeTemperatureEditor();
-                    renderPronounOptions();
-                    $('#advancedPronounSheet').removeClass('d-none').attr('aria-hidden', 'false');
-                    $('#advancedPronounInput').val(creatorState.advancedPronounOverride || creatorState.computedPronoun || '');
-                    $('#advancedArticleInput').val(creatorState.advancedArticleOverride || creatorState.computedArticle || '');
-                    syncPronounOptionSelection();
+                    closeEquipmentEditor();
+                    openPronounEditorForToken(tokenId);
                     showCreatorToast('Pronomen wählen');
                 } else if (isTemperaturePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     closeDurationEditor();
+                    closePronounEditor();
+                    closeEquipmentEditor();
                     openTemperatureEditorForToken(tokenId);
                     showCreatorToast('Temperatur setzen');
+                } else if (isEquipmentPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    closeDurationEditor();
+                    closeTemperatureEditor();
+                    closePronounEditor();
+                    openEquipmentEditorForToken(tokenId);
+                    showCreatorToast('Gerät wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
                     closeDurationEditor();
                     closeTemperatureEditor();
+                    closePronounEditor();
+                    closeEquipmentEditor();
                     showCreatorToast('Hier keine Zutat einsetzen');
                 }
 
@@ -2344,6 +2392,9 @@
                 creatorState.activePlaceholderTokenId = '';
                 $('#masterPreviewCard').removeClass('token-replace-active');
                 closeDurationEditor();
+                closeTemperatureEditor();
+                closePronounEditor();
+                closeEquipmentEditor();
                 showCreatorToast('Zutat per Drag & Drop eingesetzt');
                 renderTemplateCards();
             });
@@ -2365,6 +2416,12 @@
                 }
                 if (creatorState.activeTemperatureTokenId === tokenId) {
                     closeTemperatureEditor();
+                }
+                if (creatorState.activePronounTokenId === tokenId) {
+                    closePronounEditor();
+                }
+                if (creatorState.activeEquipmentTokenId === tokenId) {
+                    closeEquipmentEditor();
                 }
                 showCreatorToast('Platzhalter zurückgesetzt');
                 renderTemplateCards();
@@ -2407,34 +2464,42 @@
             });
 
             $('#btnOpenAdvancedSettings').on('click', function () {
-                renderPronounOptions();
-                $('#advancedPronounSheet').removeClass('d-none').attr('aria-hidden', 'false');
-                $('#advancedPronounInput').val(creatorState.advancedPronounOverride || creatorState.computedPronoun || '');
-                $('#advancedArticleInput').val(creatorState.advancedArticleOverride || creatorState.computedArticle || '');
-                syncPronounOptionSelection();
+                openPronounEditorForToken(creatorState.activePronounTokenId || '__global__');
             });
 
-            $('#btnCloseAdvancedSettings, .advanced-sheet-backdrop').on('click', function () {
-                $('#advancedPronounSheet').addClass('d-none').attr('aria-hidden', 'true');
-                updatePreviewText();
+            $('#inlinePronounOptions').on('click', '.inline-pronoun-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#pronounValueInput').val(val);
+                renderInlinePronounOptions();
             });
 
-            $('#advancedPronounOptions').on('click', '.pronoun-option', function () {
-                creatorState.advancedPronounOverride = ($(this).data('pronoun') || '').toString().trim();
-                $('#advancedPronounInput').val(creatorState.advancedPronounOverride);
-                syncPronounOptionSelection();
-                updatePreviewText();
+            $('#btnApplyPronoun').on('click', function () {
+                const tokenId = creatorState.activePronounTokenId;
+                const val = ($('#pronounValueInput').val() || '').toString().trim();
+                if (!val) return;
+                creatorState.advancedPronounOverride = val;
+                if (tokenId && tokenId !== '__global__') {
+                    creatorState.placeholderAssignments[tokenId] = val;
+                }
+                closePronounEditor();
+                showCreatorToast('Pronomen eingesetzt');
+                renderTemplateCards();
             });
 
-            $('#advancedPronounInput').on('input', function () {
-                creatorState.advancedPronounOverride = ($(this).val() || '').toString().trim();
-                syncPronounOptionSelection();
-                updatePreviewText();
+            $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#equipmentValueInput').val(val);
+                renderInlineEquipmentOptions();
             });
 
-            $('#advancedArticleInput').on('input', function () {
-                creatorState.advancedArticleOverride = ($(this).val() || '').toString().trim();
-                updatePreviewText();
+            $('#btnApplyEquipment').on('click', function () {
+                const tokenId = creatorState.activeEquipmentTokenId;
+                const val = ($('#equipmentValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeEquipmentEditor();
+                showCreatorToast('Gerät eingesetzt');
+                renderTemplateCards();
             });
 
             $('#btnAddRenderedStep').on('click', async function () {
