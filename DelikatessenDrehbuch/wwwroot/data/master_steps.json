@@ -208,7 +208,7 @@
       "equipment": 9,
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
-        "de": "Knete {{dough}} {{duration}}, bis {{state}}.",
+        "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}}.",
         "en": "Knead {{dough}} for {{duration}} until {{state}}.",
         "esp": "Amasa {{dough}} durante {{duration}} hasta que {{state}}.",
         "prt": "Sove {{dough}} por {{duration}} até {{state}}.",
@@ -219,7 +219,7 @@
         "no": "Elt {{dough}} i {{duration}} til {{state}}.",
         "ms": "Uli {{dough}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dough", "duration", "state" ]
+      "variables": [ "dough", "duration", "state", "pronoun" ]
     },
     {
       "master_id": "PREP_DOUGH_RISE_01",
