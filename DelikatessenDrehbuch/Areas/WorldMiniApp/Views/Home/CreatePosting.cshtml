@@ -347,27 +347,12 @@
                 <div id="selectedIngredients" class="mt-3 selected-zone"></div>
             </section>
 
-            <!-- 4) STEPS + SANDBOX -->
-            <section class="creator-card mb-3" id="card-steps">
-                <div class="creator-card-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
-                        <div>
-                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
-                                Add & sortiere wie ein Script
-                            </div>
-                        </div>
-                    </div>
-                    <span class="badge rounded-pill text-bg-light border">4/5</span>
-                </div>
-
-                <div class="creator-card-body">
-                    <div class="smart-step-creator mt-3" data-theme="dark">
+                    <div class="smart-step-creator mt-3 mb-4" data-theme="dark">
                         <div class="sheet-head creator-top-head">
                             <div>
                                 <div class="sheet-title">Smart Step Creator</div>
                                 <div class="sheet-sub">Wähle Zutat + Template wie im Creator Flow</div>
+                                <div class="small text-muted mt-1"><span id="storyStepCount">Schritte: 0</span></div>
                             </div>
                             <button type="button" id="btnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">
                                 ⚙︎
@@ -380,7 +365,10 @@
                                 <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
                             </div>
                             <div class="preview-step-card" id="masterPreviewCard">
-                                <div class="preview-step-title">Aktueller Step</div>
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="preview-step-title mb-0">Aktueller Step</div>
+                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
+                            </div>
                                 <div id="masterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                                 <div id="durationEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Zeit einsetzen</div>
@@ -435,6 +423,14 @@
                                         <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="baseEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Basis einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="baseValueInput" class="form-control form-control-sm" style="max-width:240px" placeholder="z.B. Teig, Creme" />
+                                        <button type="button" id="btnApplyBase" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -450,10 +446,8 @@
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Hitze-Stufe wählen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nível de calor">Hitze-Stufe wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <select id="heatValueSelect" class="form-select form-select-sm flex-grow-1"></select>
-                                    <input type="text" id="heatValueInput" class="form-control form-control-sm d-none" placeholder="z.B. mittlerer" />
-                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-primary label-lang"
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyHeat" class="btn btn-sm creator-cta-primary label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -462,10 +456,8 @@
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <select id="equipmentValueSelect" class="form-select form-select-sm flex-grow-1"></select>
-                                    <input type="text" id="equipmentValueInput" class="form-control form-control-sm d-none" placeholder="z.B. Pfanne, Topf" />
-                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-primary label-lang"
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm creator-cta-primary label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -474,26 +466,32 @@
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Zielzustand wählen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <select id="stateValueSelect" class="form-select form-select-sm flex-grow-1"></select>
-                                    <input type="text" id="stateValueInput" class="form-control form-control-sm d-none" placeholder="z.B. goldbraun, weich" />
-                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-primary label-lang"
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyState" class="btn btn-sm creator-cta-primary label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div class="action-bar">
-                                <div class="story-meta">
-                                    <span id="storyStepCount">Schritte: 0</span>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" id="btnAddRenderedStep" class="btn creator-cta-primary">Step akzeptieren</button>
                                 </div>
                             </div>
                         </div>
 
                     </div>
 
+
+            <!-- 4) STEPS + SANDBOX -->
+            <section class="creator-card mb-3" id="card-steps">
+                <div class="creator-card-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
+                        <div>
+                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                                Add & sortiere wie ein Script
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border">4/5</span>
+                </div>
+
+                <div class="creator-card-body">
                     <div class="mt-1">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
@@ -1179,6 +1177,8 @@
         transition: padding .22s ease;
     }
 
+    #creatorBottomSheet { display: none !important; }
+
     .bottom-sheet-editor {
         border-bottom: 1px solid var(--creator-border);
         padding-bottom: 10px;
@@ -1212,7 +1212,7 @@
         border-radius: 14px;
         padding: 8px 12px;
         font-size: .82rem;
-        white-space: normal;
+        white-space: nowrap;
         flex: 0 0 auto;
         margin: 1px 0;
         transition: all .2s ease;
@@ -1436,9 +1436,13 @@
             heatValue: 'mittlerer',
             activePronounTokenId: '',
             activeEquipmentTokenId: '',
+            equipmentValue: 'Pfanne',
             activeStateTokenId: '',
+            stateValue: 'goldbraun',
             activeToolTokenId: '',
-            activeShapeTokenId: ''
+            activeShapeTokenId: '',
+            activeBaseTokenId: '',
+            baseValue: 'Teig'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1488,7 +1492,7 @@
             const selectedIds = creatorState.selectedIngredientIds || [];
             const selected = ingredients.filter(x => selectedIds.includes(x.id));
             if (selected.length) return selected.map(x => x.name);
-            return [];
+            return ingredients.map(x => x.name);
         }
 
         function getSelectedIngredientForCreator() {
@@ -1549,6 +1553,11 @@
         function isShapePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'shape';
+        }
+
+        function isBasePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'base';
         }
 
         function isCountPlaceholderKey(key) {
@@ -1680,46 +1689,29 @@
             return ['niedriger', 'mittlerer', 'hoher'];
         }
 
-        function populateHeatSelect() {
-            const sel = $('#heatValueSelect');
-            if (!sel.length) return;
-            const options = getHeatOptions();
-            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
-            sel.empty();
-            options.forEach(x => {
-                const escaped = $('<div>').text(x).html();
-                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
-            });
-        }
-
         function renderInlineHeatOptions() {
             const wrap = $('#inlineHeatOptions');
             if (!wrap.length) return;
             const options = getHeatOptions();
-            const currentVal = ($('#heatValueSelect').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.heatValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-heat-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
         }
 
         function openHeatEditorForToken(tokenId) {
-            try {
             if (!tokenId) return;
             creatorState.activeHeatTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.heatValue || '').toString().trim().toLowerCase();
             const options = getHeatOptions();
-            alert('DEBUG openHeatEditor: options=' + JSON.stringify(options) + ' heatEditor exists=' + $('#heatEditor').length);
             const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
             creatorState.heatValue = selected;
-            populateHeatSelect();
-            $('#heatValueSelect').val(selected);
             renderInlineHeatOptions();
+            placeEditorLikeTemperature('#heatEditor');
             $('#heatEditor').removeClass('d-none');
-            scrollEditorIntoView('#heatEditor');
-            } catch (err) { alert('ERROR openHeatEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeHeatEditor() {
@@ -1764,32 +1756,16 @@
             return ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'];
         }
 
-        function populateEquipmentSelect() {
-            const sel = $('#equipmentValueSelect');
-            if (!sel.length) return;
-            const options = getEquipmentOptions();
-            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
-            sel.empty();
-            options.forEach(x => {
-                const escaped = $('<div>').text(x).html();
-                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
-            });
-        }
-
         function openEquipmentEditorForToken(tokenId) {
-            try {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getEquipmentOptions();
-            alert('DEBUG openEquipmentEditor: options=' + JSON.stringify(options) + ' equipmentEditor exists=' + $('#equipmentEditor').length);
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
-            populateEquipmentSelect();
-            $('#equipmentValueSelect').val(selected);
+            creatorState.equipmentValue = selected;
             renderInlineEquipmentOptions();
+            placeEditorLikeTemperature('#equipmentEditor');
             $('#equipmentEditor').removeClass('d-none');
-            scrollEditorIntoView('#equipmentEditor');
-            } catch (err) { alert('ERROR openEquipmentEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeEquipmentEditor() {
@@ -1801,10 +1777,10 @@
             const wrap = $('#inlineEquipmentOptions');
             if (!wrap.length) return;
             const options = getEquipmentOptions();
-            const currentVal = ($('#equipmentValueSelect').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.equipmentValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -1820,32 +1796,16 @@
             return ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'];
         }
 
-        function populateStateSelect() {
-            const sel = $('#stateValueSelect');
-            if (!sel.length) return;
-            const options = getStateOptions();
-            const currentVal = (sel.val() || '').toString().trim().toLowerCase();
-            sel.empty();
-            options.forEach(x => {
-                const escaped = $('<div>').text(x).html();
-                sel.append(`<option value="${escaped}" ${x.toLowerCase() === currentVal ? 'selected' : ''}>${escaped}</option>`);
-            });
-        }
-
         function openStateEditorForToken(tokenId) {
-            try {
             if (!tokenId) return;
             creatorState.activeStateTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getStateOptions();
-            alert('DEBUG openStateEditor: options=' + JSON.stringify(options) + ' stateEditor exists=' + $('#stateEditor').length);
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'goldbraun';
-            populateStateSelect();
-            $('#stateValueSelect').val(selected);
+            creatorState.stateValue = selected;
             renderInlineStateOptions();
+            placeEditorLikeTemperature('#stateEditor');
             $('#stateEditor').removeClass('d-none');
-            scrollEditorIntoView('#stateEditor');
-            } catch (err) { alert('ERROR openStateEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeStateEditor() {
@@ -1857,10 +1817,10 @@
             const wrap = $('#inlineStateOptions');
             if (!wrap.length) return;
             const options = getStateOptions();
-            const currentVal = ($('#stateValueSelect').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.stateValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-state-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -1915,6 +1875,46 @@
             $('#shapeEditor').addClass('d-none');
         }
 
+        function getBaseOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('base', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            return ['Eischnee', 'Masse', 'Teig', 'Creme', 'Sauce', 'Glasur', 'Füllung', 'Marinade', 'Emulsion', 'Schaum'];
+        }
+
+        function openBaseEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeBaseTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
+            const options = getBaseOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Teig';
+            creatorState.baseValue = selected;
+            $('#baseValueInput').val(selected);
+            renderInlineBaseOptions();
+            $('#baseEditor').removeClass('d-none');
+        }
+
+        function closeBaseEditor() {
+            creatorState.activeBaseTokenId = '';
+            $('#baseEditor').addClass('d-none');
+        }
+
+        function renderInlineBaseOptions() {
+            const wrap = $('#inlineBaseOptions');
+            if (!wrap.length) return;
+            const options = getBaseOptions();
+            const currentVal = ($('#baseValueInput').val() || creatorState.baseValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-base-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function closeAllEditors() {
             closeDurationEditor();
             closeCountEditor();
@@ -1925,17 +1925,16 @@
             closeStateEditor();
             closeToolEditor();
             closeShapeEditor();
+            closeBaseEditor();
         }
 
-        function scrollEditorIntoView(selectorOrEl) {
-            try {
-                const el = typeof selectorOrEl === 'string'
-                    ? document.querySelector(selectorOrEl)
-                    : (selectorOrEl instanceof jQuery ? selectorOrEl[0] : selectorOrEl);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            } catch (e) { /* ignore scroll errors */ }
+        function placeEditorLikeTemperature(editorSelector) {
+            const editor = $(editorSelector);
+            const tempEditor = $('#temperatureEditor');
+            if (!editor.length || !tempEditor.length) return;
+
+            editor.removeClass('bottom-sheet-editor').addClass('duration-editor mt-2');
+            tempEditor.after(editor);
         }
 
         function renderInlineShapeOptions() {
@@ -1966,6 +1965,45 @@
                 ms: ['dia', 'mereka']
             };
             return map[lang] || map.de;
+        }
+
+        function getLocalizedFallbackForVariable(key, langKey) {
+            const keyNorm = (key || '').toString().trim().toLowerCase();
+            const lang = (langKey || currentLang || 'de').toString().toLowerCase();
+
+            if (keyNorm === 'base') {
+                const map = {
+                    de: 'Teig',
+                    en: 'dough',
+                    esp: 'masa',
+                    prt: 'massa',
+                    id: 'adonan',
+                    nl: 'deeg',
+                    sv: 'deg',
+                    da: 'dej',
+                    no: 'deig',
+                    ms: 'doh'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'dough') {
+                const map = {
+                    de: 'den Teig',
+                    en: 'the dough',
+                    esp: 'la masa',
+                    prt: 'a massa',
+                    id: 'adonan',
+                    nl: 'het deeg',
+                    sv: 'degen',
+                    da: 'dejen',
+                    no: 'deigen',
+                    ms: 'doh'
+                };
+                return map[lang] || map.de;
+            }
+
+            return '';
         }
 
         function buildVariablesForTemplate(templateId) {
@@ -2000,7 +2038,11 @@
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = 'Messer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
-                    else vars[key] = key;
+                    else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
+                    else {
+                        const localizedFallback = getLocalizedFallbackForVariable(key, currentLang);
+                        vars[key] = localizedFallback || key;
+                    }
                 }
             });
 
@@ -2154,8 +2196,77 @@
             return buildVariablesForTemplate(templateId);
         }
 
-        function updateMasterPreview() {
-            updatePreviewText();
+        function normalizeVariablesForPersist(template, vars) {
+            const normalized = { ...(vars || {}) };
+            const keys = new Set([...(template?.variables || []), ...getPlaceholderKeysFromTemplate(template)]);
+            const ingredientValue = (getSelectedIngredientValueForInsert() || '').toString().trim();
+
+            keys.forEach(function (key) {
+                const current = (normalized[key] || '').toString().trim();
+
+                if (isIngredientPlaceholderKey(key)) {
+                    normalized[key] = ingredientValue || current;
+                    return;
+                }
+
+                if (!current || current.toLowerCase() === key.toLowerCase()) {
+                    normalized[key] = '';
+                }
+            });
+
+            return normalized;
+        }
+
+        function renderTemplateForPersist(template, lang, vars) {
+            const langKey = (lang || 'de').toLowerCase();
+            let tpl = template?.templates?.[langKey] || template?.templates?.de || template?.templates?.en || '';
+            if (!tpl) return '';
+
+            const effectiveVars = { ...(vars || {}) };
+            if ((langKey === 'esp' || langKey === 'prt') && tpl.includes('{{ingredient}}') && !tpl.includes('{{pronoun}}')) {
+                const pronoun = (effectiveVars.pronoun || '').toString().trim();
+                const ingredient = (effectiveVars.ingredient || '').toString().trim();
+                if (pronoun && ingredient && !ingredient.toLowerCase().startsWith(pronoun.toLowerCase() + ' ')) {
+                    effectiveVars.ingredient = `${pronoun} ${ingredient}`;
+                }
+            }
+
+            Object.keys(effectiveVars || {}).forEach(function (key) {
+                const val = (effectiveVars[key] || '').toString().trim();
+                if (val) return;
+                const esc = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                tpl = tpl.replace(new RegExp(`\\([^)]*\\{\\{\\s*${esc}\\s*\\}\\}[^)]*\\)`, 'gi'), ' ');
+                tpl = tpl.replace(new RegExp(`\\[[^\\]]*\\{\\{\\s*${esc}\\s*\\}\\}[^\\]]*\\]`, 'gi'), ' ');
+            });
+
+            let rendered = tpl.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+                const value = effectiveVars && effectiveVars[key] != null ? String(effectiveVars[key]).trim() : '';
+                return value;
+            });
+
+            rendered = rendered
+                .replace(/\(\s*\)/g, ' ')
+                .replace(/\[\s*\]/g, ' ')
+                .replace(/\s+([,.;:!?])/g, '$1')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+
+            return rendered;
+        }
+
+        function buildRenderedPayloadFromTemplate(template, vars) {
+            return {
+                de: renderTemplateForPersist(template, 'de', vars),
+                en: renderTemplateForPersist(template, 'en', vars),
+                esp: renderTemplateForPersist(template, 'esp', vars),
+                prt: renderTemplateForPersist(template, 'prt', vars),
+                id: renderTemplateForPersist(template, 'id', vars),
+                nl: renderTemplateForPersist(template, 'nl', vars),
+                sv: renderTemplateForPersist(template, 'sv', vars),
+                da: renderTemplateForPersist(template, 'da', vars),
+                no: renderTemplateForPersist(template, 'no', vars),
+                ms: renderTemplateForPersist(template, 'ms', vars)
+            };
         }
 
         function getCurrentUserHashForRequests() {
@@ -2182,8 +2293,9 @@
             const template = MasterStepRenderer.findTemplate(templateId);
             if (!template) return;
 
-            const vars = collectMasterVariables();
-            const rendered = MasterStepRenderer.renderAll(templateId, vars);
+            const rawVars = collectMasterVariables();
+            const vars = normalizeVariablesForPersist(template, rawVars);
+            const rendered = buildRenderedPayloadFromTemplate(template, vars);
             const payload = {
                 de: rendered.de,
                 en: rendered.en,
@@ -2646,7 +2758,7 @@
 
             function openEditorForPlaceholderToken(key, tokenId) {
                 try {
-                if (!key || !tokenId) { alert('DEBUG: key=' + key + ' tokenId=' + tokenId + ' → skip'); return; }
+                if (!key || !tokenId) { return; }
 
                 closeAllEditors();
                 creatorState.ingredientReplaceArmed = false;
@@ -2701,6 +2813,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openShapeEditorForToken(tokenId);
                     showCreatorToast('Schnittform wählen');
+                } else if (isBasePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openBaseEditorForToken(tokenId);
+                    showCreatorToast('Basis wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -2718,7 +2834,6 @@
                 const token = $(this).hasClass('placeholder-token') ? $(this) : $(this).find('.placeholder-token').first();
                 const key = (token.data('placeholder-key') || '').toString();
                 const tokenId = (token.data('placeholder-token-id') || '').toString();
-                alert('DEBUG CLICK: key=' + key + ' tokenId=' + tokenId);
                 openEditorForPlaceholderToken(key, tokenId);
                 } catch (err) {
                     alert('ERROR in token click: ' + (err.message || err));
@@ -2840,18 +2955,13 @@
 
             $('#inlineHeatOptions').on('click', '.inline-heat-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#heatValueSelect').val(val);
-                renderInlineHeatOptions();
-            });
-
-            $('#heatValueSelect').on('change', function () {
-                creatorState.heatValue = ($(this).val() || '').toString().trim();
+                creatorState.heatValue = val;
                 renderInlineHeatOptions();
             });
 
             $('#btnApplyHeat').on('click', function () {
                 const tokenId = creatorState.activeHeatTokenId;
-                const val = ($('#heatValueSelect').val() || '').toString().trim();
+                const val = (creatorState.heatValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.heatValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
@@ -2885,17 +2995,13 @@
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#equipmentValueSelect').val(val);
-                renderInlineEquipmentOptions();
-            });
-
-            $('#equipmentValueSelect').on('change', function () {
+                creatorState.equipmentValue = val;
                 renderInlineEquipmentOptions();
             });
 
             $('#btnApplyEquipment').on('click', function () {
                 const tokenId = creatorState.activeEquipmentTokenId;
-                const val = ($('#equipmentValueSelect').val() || '').toString().trim();
+                const val = (creatorState.equipmentValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
@@ -2905,17 +3011,13 @@
 
             $('#inlineStateOptions').on('click', '.inline-state-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#stateValueSelect').val(val);
-                renderInlineStateOptions();
-            });
-
-            $('#stateValueSelect').on('change', function () {
+                creatorState.stateValue = val;
                 renderInlineStateOptions();
             });
 
             $('#btnApplyState').on('click', function () {
                 const tokenId = creatorState.activeStateTokenId;
-                const val = ($('#stateValueSelect').val() || '').toString().trim();
+                const val = (creatorState.stateValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeStateEditor();
@@ -2952,6 +3054,29 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeShapeEditor();
                 showCreatorToast('Schnittform eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineBaseOptions').on('click', '.inline-base-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#baseValueInput').val(val);
+                creatorState.baseValue = val;
+                renderInlineBaseOptions();
+            });
+
+            $('#baseValueInput').on('input', function () {
+                creatorState.baseValue = ($(this).val() || '').toString().trim();
+                renderInlineBaseOptions();
+            });
+
+            $('#btnApplyBase').on('click', function () {
+                const tokenId = creatorState.activeBaseTokenId;
+                const val = ($('#baseValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.baseValue = val;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeBaseEditor();
+                showCreatorToast('Basis eingesetzt');
                 renderTemplateCards();
             });
 
