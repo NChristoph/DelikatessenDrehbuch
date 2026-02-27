@@ -404,6 +404,13 @@
                                         <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="heatEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Hitze-Stufe einsetzen</div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <select id="heatValueSelect" class="form-select form-select-sm" style="max-width:220px"></select>
+                                        <button type="button" id="btnApplyHeat" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                                 <div id="pronounEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Pronomen einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
@@ -1379,6 +1386,8 @@
             activeTemperatureTokenId: '',
             temperatureValue: 180,
             temperatureUnit: 'celsius',
+            activeHeatTokenId: '',
+            heatValue: 'mittlerer',
             activePronounTokenId: '',
             activeEquipmentTokenId: '',
             activeStateTokenId: '',
@@ -1469,6 +1478,11 @@
         function isTemperaturePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'temp' || value === 'temperature';
+        }
+
+        function isHeatPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'heat';
         }
 
         function isEquipmentPlaceholderKey(key) {
@@ -1564,6 +1578,39 @@
         function closeTemperatureEditor() {
             creatorState.activeTemperatureTokenId = '';
             $('#temperatureEditor').addClass('d-none');
+        }
+
+        function getHeatOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('heat', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            return ['niedriger', 'mittlerer', 'hoher'];
+        }
+
+        function openHeatEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeHeatTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.heatValue || '').toString().trim().toLowerCase();
+            const options = getHeatOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
+            creatorState.heatValue = selected;
+
+            const html = options.map(function (option) {
+                const safe = $('<div>').text(option).html();
+                const isSelected = option === selected ? ' selected' : '';
+                return `<option value="${safe}"${isSelected}>${safe}</option>`;
+            }).join('');
+
+            $('#heatValueSelect').html(html).val(selected);
+            $('#heatEditor').removeClass('d-none');
+        }
+
+        function closeHeatEditor() {
+            creatorState.activeHeatTokenId = '';
+            $('#heatEditor').addClass('d-none');
         }
 
         function openPronounEditorForToken(tokenId) {
@@ -1707,6 +1754,7 @@
         function closeAllEditors() {
             closeDurationEditor();
             closeTemperatureEditor();
+            closeHeatEditor();
             closePronounEditor();
             closeEquipmentEditor();
             closeStateEditor();
@@ -1772,7 +1820,7 @@
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = getDurationInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
-                    else if (key.includes('heat')) vars[key] = 'mittlerer Hitze';
+                    else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = 'Messer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else vars[key] = key;
@@ -2453,6 +2501,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openTemperatureEditorForToken(tokenId);
                     showCreatorToast('Temperatur setzen');
+                } else if (isHeatPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openHeatEditorForToken(tokenId);
+                    showCreatorToast('Hitze-Stufe wählen');
                 } else if (isEquipmentPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openEquipmentEditorForToken(tokenId);
@@ -2572,6 +2624,21 @@
                 creatorState.placeholderAssignments[tokenId] = getTemperatureInsertText();
                 closeTemperatureEditor();
                 showCreatorToast('Temperatur eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#heatValueSelect').on('change', function () {
+                creatorState.heatValue = ($(this).val() || 'mittlerer').toString().trim();
+            });
+
+            $('#btnApplyHeat').on('click', function () {
+                const tokenId = creatorState.activeHeatTokenId;
+                const val = ($('#heatValueSelect').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.heatValue = val;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeHeatEditor();
+                showCreatorToast('Hitze-Stufe eingesetzt');
                 renderTemplateCards();
             });
 
