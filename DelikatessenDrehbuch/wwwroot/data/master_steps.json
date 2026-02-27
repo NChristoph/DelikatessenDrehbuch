@@ -409,7 +409,7 @@
       "equipment": 2,
       "description": "Braten bei starker Hitze (Schnitzel, Steak, Bratkartoffeln)",
       "templates": {
-        "de": "Brate {{ingredient}} in {{fat}} bei {{heat}} Hitze {{duration}} pro Seite, bis {{state}}.",
+        "de": "Brate {{ingredient}} in {{fat}} bei {{heat}} Hitze {{duration}} pro Seite an, bis {{pronoun}} {{state}} ist.",
         "en": "Fry {{ingredient}} in {{fat}} over {{heat}} heat for {{duration}} per side until {{state}}.",
         "esp": "Fríe {{ingredient}} en {{fat}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
         "prt": "Frite {{ingredient}} em {{fat}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
@@ -420,7 +420,7 @@
         "no": "Stek {{ingredient}} i {{fat}} på {{heat}} varme i {{duration}} per side til {{state}}.",
         "ms": "Goreng {{ingredient}} dalam {{fat}} pada api {{heat}} selama {{duration}} setiap sisi sehingga {{state}}."
       },
-      "variables": [ "ingredient", "fat", "heat", "duration", "state" ]
+      "variables": [ "ingredient", "fat", "heat", "duration", "pronoun", "state" ]
     },
     {
       "master_id": "COOK_DEEPFRY_01",
