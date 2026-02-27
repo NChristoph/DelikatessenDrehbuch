@@ -17,24 +17,68 @@
     let mappingLoaded = false;
     let loadingPromise = null;
 
+    function parseJsonWithCommentFallback(raw) {
+        const text = String(raw || '').replace(/^\uFEFF/, '');
+        if (!text.trim()) return null;
+
+        try {
+            return JSON.parse(text);
+        } catch (_) {
+            const jsoncLike = text
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/^\s*\/\/.*$/gm, '');
+
+            try {
+                return JSON.parse(jsoncLike);
+            } catch (err) {
+                console.error('RecipeStepSuggest: invalid JSON payload', err);
+                return null;
+            }
+        }
+    }
+
+    function fetchJson(url, required) {
+        return fetch(url)
+            .then(function (r) {
+                if (!r.ok) {
+                    if (required) {
+                        throw new Error('Failed to fetch ' + url + ' (' + r.status + ')');
+                    }
+                    return null;
+                }
+                return r.text();
+            })
+            .then(function (raw) {
+                if (raw == null) return null;
+                const parsed = parseJsonWithCommentFallback(raw);
+                if (required && !parsed) {
+                    throw new Error('Invalid JSON in ' + url);
+                }
+                return parsed;
+            });
+    }
+
     /** Load mapping JSON files (cached after first load) */
     function loadMapping() {
         if (loadingPromise) return loadingPromise;
 
         loadingPromise = Promise.all([
-            fetch('/data/recipe_step_mapping.json').then(r => r.json()),
-            fetch('/data/recipe_category_scoring.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null),
-            fetch('/data/master_steps.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null)
+            fetchJson('/data/recipe_step_mapping.json', true),
+            fetchJson('/data/recipe_category_scoring.json', false).catch(() => null),
+            fetchJson('/data/master_steps.json', false).catch(() => null)
         ]).then(([stepData, categoryData, masterData]) => {
             mappingData = stepData;
             categoryScoringData = categoryData;
             masterStepsData = masterData;
             mappingLoaded = true;
             return { stepData, categoryData, masterData };
+        }).catch((err) => {
+            console.error('RecipeStepSuggest: loadMapping failed', err);
+            mappingData = null;
+            categoryScoringData = null;
+            masterStepsData = null;
+            mappingLoaded = false;
+            return null;
         });
 
         return loadingPromise;
