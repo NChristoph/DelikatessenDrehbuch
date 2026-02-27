@@ -208,7 +208,7 @@
       "equipment": 9,
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
-        "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}}.",
+        "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}} ist.",
         "en": "Knead {{dough}} for {{duration}} until {{state}}.",
         "esp": "Amasa {{dough}} durante {{duration}} hasta que {{state}}.",
         "prt": "Sove {{dough}} por {{duration}} até {{state}}.",
@@ -469,7 +469,7 @@
       "equipment": 3,
       "description": "Köcheln bei niedriger Hitze (Saucen, Suppen, Eintöpfe)",
       "templates": {
-        "de": "Reduziere die Hitze und lasse {{dish}} bei niedriger Stufe {{duration}} köcheln, bis {{pronoun}} {{state}}.",
+        "de": "Reduziere die Hitze und lasse {{dish}} bei niedriger Stufe {{duration}} köcheln, bis {{pronoun}} {{state}} ist.",
         "en": "Reduce heat and let {{dish}} simmer on low for {{duration}} until {{state}}.",
         "esp": "Reduce el fuego y deja que {{dish}} hierva a fuego lento durante {{duration}} hasta que {{state}}.",
         "prt": "Reduza o fogo e deixe {{dish}} cozinhar em fogo baixo por {{duration}} até que {{state}}.",
@@ -529,7 +529,7 @@
       "equipment": 1,
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
       "templates": {
-        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}}.",
+        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} ist.",
         "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} for {{duration}} until {{state}}.",
         "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} durante {{duration}} hasta que {{state}}.",
         "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{state}}.",
@@ -990,16 +990,16 @@
       "ms": ["rendah", "sederhana", "tinggi"]
     },
     "state": {
-      "de": ["goldbraun", "weich", "glasig", "gar", "knusprig", "cremig", "bissfest", "eingedickt", "sprudelnd"],
-      "en": ["golden brown", "soft", "translucent", "cooked through", "crispy", "creamy", "al dente", "thickened", "bubbling"],
-      "esp": ["dorado", "suave", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente"],
-      "prt": ["dourado", "macio", "translúcido", "cozido", "crocante", "cremoso", "al dente", "encorpado", "borbulhando"],
-      "id": ["keemasan", "lembut", "bening", "matang", "renyah", "kremi", "al dente", "mengental", "mendidih perlahan"],
-      "nl": ["goudbruin", "zacht", "glazig", "gaar", "knapperig", "romig", "beetgaar", "ingedikt", "zacht borrelend"],
-      "sv": ["gyllenbrun", "mjuk", "glansig", "genomstekt", "krispig", "krämig", "al dente", "förtjockad", "sjudande"],
-      "da": ["gyldenbrun", "blød", "klar", "gennemtilberedt", "sprød", "cremet", "al dente", "indkogt", "småkogene"],
-      "no": ["gyllenbrun", "myk", "blank", "gjennomkokt", "sprø", "kremet", "al dente", "innkokt", "småkoker"],
-      "ms": ["perang keemasan", "lembut", "jernih", "masak", "rangup", "berkrim", "al dente", "pekat", "merenih" ]
+      "de": ["goldbraun", "weich", "glasig", "gar", "knusprig", "cremig", "bissfest", "eingedickt", "sprudelnd", "verdoppelt", "zart", "angeröstet", "geschmolzen", "schaumig", "reduziert (eingekocht)", "abgekühlt", "lauwarm", "fest", "fluffig", "karamellisiert"],
+      "en": ["golden brown", "soft", "translucent", "cooked through", "crispy", "creamy", "al dente", "thickened", "bubbling", "doubled", "tender", "toasted", "melted", "foamy", "reduced", "cooled", "lukewarm", "firm", "fluffy", "caramelized"],
+      "esp": ["dorado", "suave", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente", "duplicado", "tierno", "tostado", "derretido", "espumoso", "reducido", "enfriado", "tibio", "firme", "esponjoso", "caramelizado"],
+      "prt": ["dourado", "macio", "translúcido", "cozido", "crocante", "cremoso", "al dente", "encorpado", "borbulhando", "dobrado", "tenro", "tostado", "derretido", "espumoso", "reduzido", "arrefecido", "morno", "firme", "fofo", "caramelizado"],
+      "id": ["keemasan", "lembut", "bening", "matang", "renyah", "kremi", "al dente", "mengental", "mendidih perlahan", "dua kali lipat", "empuk", "terpanggang", "meleleh", "berbusa", "tereduksi", "dingin", "suam-suam kuku", "padat", "mengembang", "terkaramelisasi"],
+      "nl": ["goudbruin", "zacht", "glazig", "gaar", "knapperig", "romig", "beetgaar", "ingedikt", "zacht borrelend", "verdubbeld", "mals", "geroosterd", "gesmolten", "schuimig", "gereduceerd", "afgekoeld", "lauw", "stevig", "luchtig", "gekaramelliseerd"],
+      "sv": ["gyllenbrun", "mjuk", "glansig", "genomstekt", "krispig", "krämig", "al dente", "förtjockad", "sjudande", "fördubblad", "mör", "rostad", "smält", "skummig", "reducerad", "avsvalnad", "ljummen", "fast", "fluffig", "karamelliserad"],
+      "da": ["gyldenbrun", "blød", "klar", "gennemtilberedt", "sprød", "cremet", "al dente", "indkogt", "småkogene", "fordoblet", "mør", "ristet", "smeltet", "skummende", "reduceret", "afkølet", "lunken", "fast", "luftig", "karamelliseret"],
+      "no": ["gyllenbrun", "myk", "blank", "gjennomkokt", "sprø", "kremet", "al dente", "innkokt", "småkoker", "doblet", "mør", "ristet", "smeltet", "skummende", "redusert", "avkjølt", "lunken", "fast", "luftig", "karamellisert"],
+      "ms": ["perang keemasan", "lembut", "jernih", "masak", "rangup", "berkrim", "al dente", "pekat", "merenih", "berganda", "lembut", "terpanggang", "cair", "berbuih", "terkurang", "disejukkan", "suam", "pejal", "gebu", "terkaramel" ]
     },
     "equipment": {
       "de": ["Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb"],
