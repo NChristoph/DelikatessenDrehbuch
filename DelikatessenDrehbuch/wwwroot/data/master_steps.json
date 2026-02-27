@@ -1,9 +1,9 @@
 {
   //gramatik anpassen
   "_meta": {
-    "version": "1.4.3",
+    "version": "1.4.4",
     "created_at": "2026-02-17",
-    "updated_at": "2026-02-28",
+    "updated_at": "2026-03-01",
     "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
     "usage": {
       "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
@@ -18,7 +18,10 @@
       "Restored missing master steps from original: COOK_DEGLAZE_02, COOK_STIR_01, COOK_STRAIN_01.",
       "Added backward compatible alias variables: spices (SEASON_ADJUST_01).",
       "Added localized heat level options (low/medium/high) for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options.",
-      "Added localized equipment and state options for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options."
+      "Added localized equipment and state options for de/en/esp/prt/id/nl/sv/da/no/ms in variable_options.",
+      "Grammar fixes: PREP_KNEAD_01 (en), PREP_DOUGH_RISE_01 (de/esp), COOK_BRAISE_01 (de/en), COOK_DEGLAZE_02 (da).",
+      "Consistency fixes: COOK_STRAIN_01 now uses equipment variable; PREP_LAYER_01 moved to phase 1.",
+      "Expanded pronoun variable_hints with language-specific guidance for all supported languages."
     ]
   },
   "phases": {
@@ -210,7 +213,7 @@
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
         "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}} ist.",
-        "en": "Knead {{dough}} for {{duration}} until {{state}}.",
+        "en": "Knead {{dough}} for {{duration}} until the dough is {{state}}.",
         "esp": "Amasa {{dough}} durante {{duration}} hasta que {{state}}.",
         "prt": "Sove {{dough}} por {{duration}} até {{state}}.",
         "id": "Uleni {{dough}} selama {{duration}} sampai {{state}}.",
@@ -229,9 +232,9 @@
       "equipment": 9,
       "description": "Teig gehen lassen",
       "templates": {
-        "de": "Lasse {{dough}} an einem warmen Ort für {{duration}} gehen, bis sich das Volumen {{state}} hat.",
+        "de": "Lasse {{dough}} an einem warmen Ort für {{duration}} gehen, bis sich das Volumen {{state}}.",
         "en": "Let {{dough}} rise in a warm place for {{duration}} until the volume has {{state}}.",
-        "esp": "Deja que {{dough}} suba en un lugar cálido durante {{duration}} hasta que el volumen se haya {{state}}.",
+        "esp": "Deja que {{dough}} suba en un lugar cálido durante {{duration}} hasta que el volumen haya {{state}}.",
         "prt": "Deixe {{dough}} crescer em um lugar morno por {{duration}} até que o volume tenha {{state}}.",
         "id": "Diamkan {{dough}} di tempat hangat selama {{duration}} sampai volumenya {{state}}.",
         "nl": "Laat {{dough}} op een warme plek {{duration}} rijzen tot het volume {{state}} is.",
@@ -598,7 +601,7 @@
         "id": "Deglaze {{ingredient}} dengan {{liquid}} sambil mengangkat sisa karamelnya.",
         "nl": "Blus {{ingredient}} af met {{liquid}} en maak de aanbaksels los.",
         "sv": "Slå på {{liquid}} till {{ingredient}} och skrapa loss stekresterna.",
-        "da": "Hæld {{liquid}} på {{ingredient}} og skrab stegeresterne løs.",
+        "da": "Hæld {{liquid}} over {{ingredient}} og skrab stegeresterne løs.",
         "no": "Hell {{liquid}} over {{ingredient}} og skrap løs stekerestene.",
         "ms": "Tuang {{liquid}} ke {{ingredient}} dan kikis sisa hangusnya."
       },
@@ -695,18 +698,18 @@
       "equipment": 10,
       "description": "Abseihen/Filtern und etwas auffangen",
       "templates": {
-        "de": "Gieße {{ingredient}} durch ein {{tool}} ab und fange {{keep}} auf.",
-        "en": "Strain {{ingredient}} through a {{tool}} and reserve {{keep}}.",
-        "esp": "Cuela {{pronoun}} {{ingredient}} con un {{tool}} y reserva {{keep}}.",
-        "prt": "Coe {{pronoun}} {{ingredient}} com um {{tool}} e reserve {{keep}}.",
-        "id": "Saring {{ingredient}} dengan {{tool}} dan simpan {{keep}}.",
-        "nl": "Zeef {{ingredient}} door een {{tool}} en bewaar {{keep}}.",
-        "sv": "Sila {{ingredient}} genom en {{tool}} och spara {{keep}}.",
-        "da": "Si {{ingredient}} gennem en {{tool}} og gem {{keep}}.",
-        "no": "Sil {{ingredient}} gjennom en {{tool}} og ta vare på {{keep}}.",
-        "ms": "Tapis {{ingredient}} menggunakan {{tool}} dan simpan {{keep}}."
+        "de": "Gieße {{ingredient}} durch ein {{equipment}} ab und fange {{keep}} auf.",
+        "en": "Strain {{ingredient}} through a {{equipment}} and reserve {{keep}}.",
+        "esp": "Cuela {{pronoun}} {{ingredient}} con un {{equipment}} y reserva {{keep}}.",
+        "prt": "Coe {{pronoun}} {{ingredient}} com um {{equipment}} e reserve {{keep}}.",
+        "id": "Saring {{ingredient}} dengan {{equipment}} dan simpan {{keep}}.",
+        "nl": "Zeef {{ingredient}} door een {{equipment}} en bewaar {{keep}}.",
+        "sv": "Sila {{ingredient}} genom en {{equipment}} och spara {{keep}}.",
+        "da": "Si {{ingredient}} gennem en {{equipment}} og gem {{keep}}.",
+        "no": "Sil {{ingredient}} gjennom en {{equipment}} og ta vare på {{keep}}.",
+        "ms": "Tapis {{ingredient}} menggunakan {{equipment}} dan simpan {{keep}}."
       },
-      "variables": [ "ingredient", "tool", "keep" ]
+      "variables": [ "ingredient", "equipment", "keep" ]
     },
 
     {
@@ -779,8 +782,8 @@
       "equipment": 4,
       "description": "Schmoren im Bräter (Braten, Ragouts)",
       "templates": {
-        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmoren {{duration}}, bis {{state}}.",
-        "en": "Add {{liquid}} to {{ingredient}} in the {{equipment}}, cover, and braise for {{duration}} until {{state}}.",
+        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmore {{duration}}, bis {{state}}.",
+        "en": "Add {{liquid}} to {{ingredient}} in the {{equipment}}, cover and braise for {{duration}} until {{state}}.",
         "esp": "Añade {{liquid}} a {{pronoun}} {{ingredient}} en {{equipment}}, tapa y guisa {{duration}} hasta que {{state}}.",
         "prt": "Adicione {{liquid}} a {{pronoun}} {{ingredient}} no {{equipment}}, tampe e cozinhe {{duration}} até {{state}}.",
         "id": "Tuang {{liquid}} ke {{ingredient}} di {{equipment}}, tutup, lalu braise selama {{duration}} hingga {{state}}.",
@@ -795,7 +798,7 @@
 
     {
       "master_id": "PREP_LAYER_01",
-      "phase": 2,
+      "phase": 1,
       "action": "layer",
       "equipment": 4,
       "description": "Schichten (Lasagne, Auflauf, Dessert im Glas)",
@@ -941,7 +944,7 @@
   "variable_hints": {
     "ingredient": "Name der Zutat, z.B. 'die Tomaten', 'das Hähnchen', 'den Knoblauch'",
     "ingredients": "Mehrere Zutaten als Aufzählung, z.B. 'Mehl, Backpulver und Salz'",
-    "pronoun": "Pronomen passend zur Zutat: 'es' / 'sie' / 'ihn' (de), 'it' / 'them' (en). Für neue Sprachen möglichst neutral halten.",
+    "pronoun": "Pronomen passend zur Zutat: de 'es/sie/ihn', en 'it/them', esp 'lo/la/los/las', prt 'o/a/os/as', id 'nya', nl 'hem/haar/het', sv 'den/det', da 'den/det', no 'den/det', ms 'nya'.",
     "shape": "Schnittform, z.B. 'Würfel', 'Scheiben', 'feine Streifen'",
     "tool": "Werkzeug, z.B. 'Sparschäler', 'Reibe', 'Sieb'",
     "grind_size": "Reibgröße, z.B. 'fein', 'grob', 'als Zeste'",
