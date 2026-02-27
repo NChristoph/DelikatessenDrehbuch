@@ -365,7 +365,10 @@
                                 <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
                             </div>
                             <div class="preview-step-card" id="masterPreviewCard">
-                                <div class="preview-step-title">Aktueller Step</div>
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="preview-step-title mb-0">Aktueller Step</div>
+                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
+                            </div>
                                 <div id="masterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                                 <div id="durationEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Zeit einsetzen</div>
@@ -419,9 +422,6 @@
                                         <input type="text" id="shapeValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Würfel, Scheiben" />
                                         <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
-                                </div>
-                                <div class="d-flex justify-content-end mt-3">
-                                    <button type="button" id="btnAddRenderedStep" class="btn creator-cta-primary">Step akzeptieren</button>
                                 </div>
                             </div>
                             <div class="template-selection-wrap">
@@ -1169,6 +1169,8 @@
         transition: padding .22s ease;
     }
 
+    #creatorBottomSheet { display: none !important; }
+
     .bottom-sheet-editor {
         border-bottom: 1px solid var(--creator-border);
         padding-bottom: 10px;
@@ -1202,7 +1204,7 @@
         border-radius: 14px;
         padding: 8px 12px;
         font-size: .82rem;
-        white-space: normal;
+        white-space: nowrap;
         flex: 0 0 auto;
         margin: 1px 0;
         transition: all .2s ease;
