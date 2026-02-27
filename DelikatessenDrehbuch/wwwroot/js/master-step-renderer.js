@@ -181,7 +181,7 @@
 
     function getVariablePresets(variableName, lang) {
         const normalizedLang = (lang || 'de').toLowerCase();
-        const options = masterStepsData && masterStepsData.variable_options;
+        const options = data && data.variable_options;
         const localized = options && options[variableName];
 
         if (localized && typeof localized === 'object') {
