@@ -393,6 +393,13 @@
                                         <button type="button" id="btnApplyDuration" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="countEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Anzahl einsetzen</div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="number" min="1" step="1" id="countValueInput" class="form-control form-control-sm" style="max-width:110px" value="2" />
+                                        <button type="button" id="btnApplyCount" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                                 <div id="temperatureEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Temperatur einsetzen</div>
                                     <div class="d-flex gap-2 align-items-center">
@@ -1384,6 +1391,8 @@
             activeDurationTokenId: '',
             durationValue: 10,
             durationUnit: 'minute',
+            activeCountTokenId: '',
+            countValue: 2,
             activeTemperatureTokenId: '',
             temperatureValue: 180,
             temperatureUnit: 'celsius',
@@ -1483,7 +1492,7 @@
 
         function isHeatPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
-            return value === 'heat';
+            return value === 'heat' || value.includes('heat');
         }
 
         function isEquipmentPlaceholderKey(key) {
@@ -1493,7 +1502,7 @@
 
         function isStatePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
-            return value === 'state';
+            return value === 'state' || value.includes('state') || value.includes('consistency');
         }
 
         function isToolPlaceholderKey(key) {
@@ -1504,6 +1513,11 @@
         function isShapePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'shape';
+        }
+
+        function isCountPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'count' || value === 'servings' || value.includes('count');
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -1569,6 +1583,27 @@
         function closeDurationEditor() {
             creatorState.activeDurationTokenId = '';
             $('#durationEditor').addClass('d-none');
+        }
+
+        function getCountInsertText() {
+            const value = parseInt(creatorState.countValue, 10);
+            const safeValue = Number.isFinite(value) && value > 0 ? value : 1;
+            return `${safeValue}`;
+        }
+
+        function openCountEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeCountTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const parsed = currentText.match(/^(\d+)/);
+            if (parsed) creatorState.countValue = parseInt(parsed[1], 10);
+            $('#countValueInput').val(creatorState.countValue || 2);
+            $('#countEditor').removeClass('d-none');
+        }
+
+        function closeCountEditor() {
+            creatorState.activeCountTokenId = '';
+            $('#countEditor').addClass('d-none');
         }
 
         function getTemperatureInsertText() {
@@ -1791,6 +1826,7 @@
 
         function closeAllEditors() {
             closeDurationEditor();
+            closeCountEditor();
             closeTemperatureEditor();
             closeHeatEditor();
             closePronounEditor();
@@ -1857,6 +1893,7 @@
                     if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = getDurationInsertText();
+                    else if (isCountPlaceholderKey(key)) vars[key] = getCountInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = 'Messer';
@@ -2531,6 +2568,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openDurationEditorForToken(tokenId);
                     showCreatorToast('Zeit setzen');
+                } else if (isCountPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openCountEditorForToken(tokenId);
+                    showCreatorToast('Anzahl setzen');
                 } else if (isPronounPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = tokenId;
                     openPronounEditorForToken(tokenId);
@@ -2644,6 +2685,20 @@
                 creatorState.placeholderAssignments[tokenId] = getDurationInsertText();
                 closeDurationEditor();
                 showCreatorToast('Zeit eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#countValueInput').on('input', function () {
+                const value = parseInt($(this).val(), 10);
+                creatorState.countValue = Number.isFinite(value) && value > 0 ? value : 1;
+            });
+
+            $('#btnApplyCount').on('click', function () {
+                const tokenId = creatorState.activeCountTokenId;
+                if (!tokenId) return;
+                creatorState.placeholderAssignments[tokenId] = getCountInsertText();
+                closeCountEditor();
+                showCreatorToast('Anzahl eingesetzt');
                 renderTemplateCards();
             });
 
