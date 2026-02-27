@@ -347,15 +347,19 @@
                 <div id="selectedIngredients" class="mt-3 selected-zone"></div>
             </section>
 
-            <section class="creator-card mb-3" id="card-smart-creator">
+            <!-- 4) STEPS + SANDBOX -->
+            <section class="creator-card mb-3" id="card-steps">
                 <div class="creator-card-head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-magic"></i></div>
+                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
                         <div>
-                            <div class="creator-card-title">Smart Step Creator</div>
-                            <div class="creator-card-sub">Wähle Zutat + Template wie im Creator Flow</div>
+                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
+                                Add & sortiere wie ein Script
+                            </div>
                         </div>
                     </div>
+                    <span class="badge rounded-pill text-bg-light border">4/5</span>
                 </div>
 
                 <div class="creator-card-body">
@@ -446,8 +450,8 @@
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Hitze-Stufe wählen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nível de calor">Hitze-Stufe wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-outline-light label-lang"
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-warning label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -456,8 +460,8 @@
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-outline-light label-lang"
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-warning label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -466,8 +470,8 @@
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Zielzustand wählen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-outline-light label-lang"
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-warning label-lang"
                                             data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                 </div>
                             </div>
@@ -484,25 +488,6 @@
 
                     </div>
 
-                </div>
-            </section>
-
-            <!-- 4) STEPS + SANDBOX -->
-            <section class="creator-card mb-3" id="card-steps">
-                <div class="creator-card-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
-                        <div>
-                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
-                                Add & sortiere wie ein Script
-                            </div>
-                        </div>
-                    </div>
-                    <span class="badge rounded-pill text-bg-light border">4/5</span>
-                </div>
-
-                <div class="creator-card-body">
                     <div class="mt-1">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
