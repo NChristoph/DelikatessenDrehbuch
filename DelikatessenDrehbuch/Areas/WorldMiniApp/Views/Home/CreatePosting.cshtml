@@ -1331,6 +1331,12 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="~/js/master-step-renderer.js"></script>
     <script>
+        window.onerror = function(msg, url, line, col, error) {
+            alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
+            return false;
+        };
+    </script>
+    <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
          var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
@@ -1700,10 +1706,12 @@
         }
 
         function openHeatEditorForToken(tokenId) {
+            try {
             if (!tokenId) return;
             creatorState.activeHeatTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.heatValue || '').toString().trim().toLowerCase();
             const options = getHeatOptions();
+            alert('DEBUG openHeatEditor: options=' + JSON.stringify(options) + ' heatEditor exists=' + $('#heatEditor').length);
             const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
             creatorState.heatValue = selected;
             populateHeatSelect();
@@ -1711,6 +1719,7 @@
             renderInlineHeatOptions();
             $('#heatEditor').removeClass('d-none');
             scrollEditorIntoView('#heatEditor');
+            } catch (err) { alert('ERROR openHeatEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeHeatEditor() {
@@ -1768,16 +1777,19 @@
         }
 
         function openEquipmentEditorForToken(tokenId) {
+            try {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getEquipmentOptions();
+            alert('DEBUG openEquipmentEditor: options=' + JSON.stringify(options) + ' equipmentEditor exists=' + $('#equipmentEditor').length);
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
             populateEquipmentSelect();
             $('#equipmentValueSelect').val(selected);
             renderInlineEquipmentOptions();
             $('#equipmentEditor').removeClass('d-none');
             scrollEditorIntoView('#equipmentEditor');
+            } catch (err) { alert('ERROR openEquipmentEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeEquipmentEditor() {
@@ -1821,16 +1833,19 @@
         }
 
         function openStateEditorForToken(tokenId) {
+            try {
             if (!tokenId) return;
             creatorState.activeStateTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getStateOptions();
+            alert('DEBUG openStateEditor: options=' + JSON.stringify(options) + ' stateEditor exists=' + $('#stateEditor').length);
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'goldbraun';
             populateStateSelect();
             $('#stateValueSelect').val(selected);
             renderInlineStateOptions();
             $('#stateEditor').removeClass('d-none');
             scrollEditorIntoView('#stateEditor');
+            } catch (err) { alert('ERROR openStateEditor: ' + err.message + '\n' + err.stack); }
         }
 
         function closeStateEditor() {
@@ -2630,7 +2645,8 @@
             });
 
             function openEditorForPlaceholderToken(key, tokenId) {
-                if (!key || !tokenId) return;
+                try {
+                if (!key || !tokenId) { alert('DEBUG: key=' + key + ' tokenId=' + tokenId + ' → skip'); return; }
 
                 closeAllEditors();
                 creatorState.ingredientReplaceArmed = false;
@@ -2690,15 +2706,23 @@
                 }
 
                 renderTemplateCards();
+                } catch (err) {
+                    alert('ERROR in openEditorForPlaceholderToken: ' + (err.message || err) + '\nStack: ' + (err.stack || ''));
+                }
             }
 
             $('#masterPreviewText').on('click', '.placeholder-token, .placeholder-wrap', function (e) {
+                try {
                 if ($(e.target).closest('.placeholder-reset').length) return;
 
                 const token = $(this).hasClass('placeholder-token') ? $(this) : $(this).find('.placeholder-token').first();
                 const key = (token.data('placeholder-key') || '').toString();
                 const tokenId = (token.data('placeholder-token-id') || '').toString();
+                alert('DEBUG CLICK: key=' + key + ' tokenId=' + tokenId);
                 openEditorForPlaceholderToken(key, tokenId);
+                } catch (err) {
+                    alert('ERROR in token click: ' + (err.message || err));
+                }
             });
 
             $('#masterIngredientButtons').on('dragstart', '.ingredient-chip', function (e) {
