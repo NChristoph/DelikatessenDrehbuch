@@ -411,45 +411,12 @@
                                         <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="heatEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1 label-lang"
-                                         data-de="Hitze-Stufe einsetzen" data-en="Set heat level" data-esp="Ajustar nivel de calor" data-prt="Definir nível de calor">Hitze-Stufe einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <select id="heatValueSelect" class="form-select form-select-sm" style="max-width:200px"></select>
-                                        <input type="text" id="heatValueInput" class="form-control form-control-sm d-none" style="max-width:200px" placeholder="z.B. mittlerer" />
-                                        <button type="button" id="btnApplyHeat" class="btn btn-sm btn-outline-light label-lang"
-                                                data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                    </div>
-                                </div>
                                 <div id="pronounEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Pronomen einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
                                     <div class="d-flex gap-2 align-items-center">
                                         <input type="text" id="pronounValueInput" class="form-control form-control-sm" style="max-width:160px" placeholder="z.B. ihn/sie/es" />
                                         <button type="button" id="btnApplyPronoun" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="equipmentEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1 label-lang"
-                                         data-de="Gerät einsetzen" data-en="Set equipment" data-esp="Establecer equipo" data-prt="Definir equipamento">Gerät einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <select id="equipmentValueSelect" class="form-select form-select-sm" style="max-width:200px"></select>
-                                        <input type="text" id="equipmentValueInput" class="form-control form-control-sm d-none" style="max-width:200px" placeholder="z.B. Pfanne, Topf" />
-                                        <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-outline-light label-lang"
-                                                data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="stateEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1 label-lang"
-                                         data-de="Zielzustand einsetzen" data-en="Set target state" data-esp="Establecer estado objetivo" data-prt="Definir estado alvo">Zielzustand einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <select id="stateValueSelect" class="form-select form-select-sm" style="max-width:200px"></select>
-                                        <input type="text" id="stateValueInput" class="form-control form-control-sm d-none" style="max-width:200px" placeholder="z.B. goldbraun, weich" />
-                                        <button type="button" id="btnApplyState" class="btn btn-sm btn-outline-light label-lang"
-                                                data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="toolEditor" class="duration-editor d-none mt-2">
@@ -477,7 +444,44 @@
                             <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
                         </div>
 
-                        <div class="creator-bottom-sheet">
+                        <div class="creator-bottom-sheet" id="creatorBottomSheet">
+                            <!-- Inline editors for State / Heat / Equipment – visible at bottom -->
+                            <div id="heatEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Hitze-Stufe wählen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nível de calor">Hitze-Stufe wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select id="heatValueSelect" class="form-select form-select-sm flex-grow-1"></select>
+                                    <input type="text" id="heatValueInput" class="form-control form-control-sm d-none" placeholder="z.B. mittlerer" />
+                                    <button type="button" id="btnApplyHeat" class="btn btn-sm btn-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
+                            <div id="equipmentEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select id="equipmentValueSelect" class="form-select form-select-sm flex-grow-1"></select>
+                                    <input type="text" id="equipmentValueInput" class="form-control form-control-sm d-none" placeholder="z.B. Pfanne, Topf" />
+                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm btn-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
+                            <div id="stateEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Zielzustand wählen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select id="stateValueSelect" class="form-select form-select-sm flex-grow-1"></select>
+                                    <input type="text" id="stateValueInput" class="form-control form-control-sm d-none" placeholder="z.B. goldbraun, weich" />
+                                    <button type="button" id="btnApplyState" class="btn btn-sm btn-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
                             <div class="action-bar">
                                 <div class="story-meta">
                                     <span id="storyStepCount">Schritte: 0</span>
@@ -1095,6 +1099,9 @@
         text-shadow: 0 0 16px rgba(255,208,95,.35);
         cursor: pointer;
         border-bottom: 1px dashed rgba(255,224,138,.75);
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(255,224,138,.3);
     }
 
     .placeholder-token.token-active {
@@ -1112,6 +1119,8 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        touch-action: manipulation;
+        cursor: pointer;
         margin-right: 2px;
     }
 
@@ -1166,6 +1175,18 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+        z-index: 10;
+        transition: padding .22s ease;
+    }
+
+    .bottom-sheet-editor {
+        border-bottom: 1px solid var(--creator-border);
+        padding-bottom: 10px;
+        margin-bottom: 4px;
+    }
+
+    .bottom-sheet-editor .btn-primary {
+        white-space: nowrap;
     }
 
     .sheet-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -1689,6 +1710,7 @@
             $('#heatValueSelect').val(selected);
             renderInlineHeatOptions();
             $('#heatEditor').removeClass('d-none');
+            scrollEditorIntoView('#heatEditor');
         }
 
         function closeHeatEditor() {
@@ -1755,6 +1777,7 @@
             $('#equipmentValueSelect').val(selected);
             renderInlineEquipmentOptions();
             $('#equipmentEditor').removeClass('d-none');
+            scrollEditorIntoView('#equipmentEditor');
         }
 
         function closeEquipmentEditor() {
@@ -1807,6 +1830,7 @@
             $('#stateValueSelect').val(selected);
             renderInlineStateOptions();
             $('#stateEditor').removeClass('d-none');
+            scrollEditorIntoView('#stateEditor');
         }
 
         function closeStateEditor() {
@@ -1886,6 +1910,17 @@
             closeStateEditor();
             closeToolEditor();
             closeShapeEditor();
+        }
+
+        function scrollEditorIntoView(selectorOrEl) {
+            try {
+                const el = typeof selectorOrEl === 'string'
+                    ? document.querySelector(selectorOrEl)
+                    : (selectorOrEl instanceof jQuery ? selectorOrEl[0] : selectorOrEl);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            } catch (e) { /* ignore scroll errors */ }
         }
 
         function renderInlineShapeOptions() {
