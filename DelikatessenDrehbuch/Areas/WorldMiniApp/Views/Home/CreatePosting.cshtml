@@ -889,6 +889,81 @@
         box-shadow: 0 6px 18px rgba(0,0,0,0.05);
     }
 
+    #selectedSteps .step-row {
+        border: 1px solid var(--creator-border);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.08);
+        color: var(--creator-text);
+        padding: 10px;
+        box-shadow: none;
+    }
+
+    #selectedSteps .step-badge {
+        display: none;
+    }
+
+    #selectedSteps .display-step-selected {
+        color: var(--creator-text);
+    }
+
+    #selectedSteps .step-text-content {
+        display: block;
+        font-weight: 700;
+        margin-top: 6px;
+    }
+
+    .step-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .keyword-btn {
+        border-color: var(--creator-border);
+        color: var(--creator-text);
+        background: rgba(255,255,255,0.08);
+    }
+
+    .keyword-btn.btn-secondary,
+    .keyword-btn.active {
+        background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
+        border-color: transparent;
+        color: #fff;
+    }
+
+    .keyword-pill {
+        border: 1px solid var(--creator-border);
+        background: rgba(255,255,255,0.08) !important;
+        color: #fff !important;
+        padding: 8px 12px;
+    }
+
+
+    #card-keywords {
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: var(--creator-bg);
+        color: var(--creator-text);
+        box-shadow: 0 18px 40px rgba(16,20,40,0.26);
+    }
+
+    #card-keywords .creator-card-head {
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        background: rgba(12,16,28,0.28);
+    }
+
+    #card-keywords .creator-card-title,
+    #card-keywords .creator-card-sub {
+        color: var(--creator-text);
+    }
+
+    #card-keywords .badge {
+        color: var(--creator-text) !important;
+        border-color: var(--creator-border) !important;
+        background: rgba(255,255,255,0.08) !important;
+    }
+
     #ingredientsDbTable .ingredient-inline-inputs .form-control,
     #ingredientsDbTable .ingredient-inline-inputs .form-select {
         min-height: 38px;
@@ -2656,13 +2731,13 @@
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
                     <span class="step-text-content">${text}</span>
-                </div>
-                <div class="btn-group ms-2" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
-                    ${chipBtnHtml}
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                    <div class="step-row-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
+                        ${chipBtnHtml}
+                        <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                    </div>
                 </div>
             </div>`);
 
