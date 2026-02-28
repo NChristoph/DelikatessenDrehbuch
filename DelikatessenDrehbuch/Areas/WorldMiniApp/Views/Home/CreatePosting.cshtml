@@ -1702,6 +1702,22 @@
             return selected.map(x => x.name);
         }
 
+        function getSelectedIngredientNamesWithArticle(langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const ingredients = getSelectedIngredientsForSandbox();
+            if (!ingredients.length) return [];
+
+            const selectedIds = creatorState.selectedIngredientIds || [];
+            if (!selectedIds.length) return [];
+
+            return ingredients
+                .filter(x => selectedIds.includes(x.id))
+                .map(x => {
+                    const grammar = resolveGrammarForIngredient(x.name, x.genusByLang || {}, lang);
+                    return applyArticleToName(x.name, grammar.article, lang) || x.name;
+                });
+        }
+
         function getSelectedIngredientForCreator() {
             const ingredients = getSelectedIngredientsForSandbox();
             const selectedId = (creatorState.selectedIngredientIds || [])[0] || '';
@@ -1714,12 +1730,13 @@
                 id: selected.id || '',
                 name: selected.name || '',
                 genusDe: selected.genusDe || '',
-                genusLocalized: selected.genusLocalized || ''
+                genusLocalized: selected.genusLocalized || '',
+                genusByLang: selected.genusByLang || {}
             };
         }
 
         function getSelectedIngredientValueForInsert() {
-            const names = getSelectedIngredientNames();
+            const names = getSelectedIngredientNamesWithArticle(currentLang);
             return names.length ? names.join(', ') : '';
         }
 
