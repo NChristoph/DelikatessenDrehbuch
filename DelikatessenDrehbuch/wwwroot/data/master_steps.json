@@ -99,7 +99,7 @@
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
       "templates": {
-        "de": "Schneide {{ingredient}} in {{grind_size}}e {{shape}}.",
+        "de": "Schneide {{ingredient}} in {{grind_size}} {{shape}}.",
         "en": "Cut {{ingredient}} into {{grind_size}} {{shape}}.",
         "esp": "Corta {{ingredient}} en {{grind_size}} {{shape}}.",
         "prt": "Corte {{ingredient}} em {{grind_size}} {{shape}}.",
@@ -1013,7 +1013,7 @@
       "ms": [ "putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih" ]
     },
     "grind_size": {
-      "de": [ "feine", "mittlere", "grobe", "dünne", "breite", "kleine", "große", "ca. 1 cm groß", "ca. 0,5 mm groß" ],
+      "de": [ "feine", "mittlere", "grobe", "dünne", "breite", "kleine", "große", "ca. 1 cm große", "ca. 0,5 mm große" ],
       "en": [ "fine", "medium", "coarse", "thin", "wide", "small", "large", "about 3/8-inch", "about 0.02-inch" ],
       "esp": [ "finas", "medianas", "gruesas", "delgadas", "anchas", "pequeñas", "grandes" ],
       "prt": [ "finas", "médias", "grossas", "finas", "largas", "pequenas", "grandes" ],
@@ -1025,7 +1025,7 @@
       "ms": [ "halus", "sederhana", "kasar", "nipis", "lebar", "kecil", "besar" ]
     },
     "item": {
-      "de": [ "der Teig", "die Masse", "die Mischung", "das Gericht" ],
+      "de": [ "den Teig", "die Masse", "die Mischung", "das Gericht" ],
       "en": [ "dough", "batter", "mixture", "dish" ],
       "esp": [ "masa", "mezcla", "preparación", "plato" ],
       "prt": [ "massa", "mistura", "preparação", "prato" ],

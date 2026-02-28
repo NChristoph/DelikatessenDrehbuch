@@ -1543,7 +1543,7 @@
             grindSizeValue: 'feine',
             shapeValue: 'Würfel',
             activeItemTokenId: '',
-            itemValue: 'der Teig',
+            itemValue: 'den Teig',
             baseValue: 'Teig'
         };
 
@@ -2000,7 +2000,7 @@
                 }
             }
             const fallback = {
-                de: ['feine', 'mittlere', 'grobe', 'dünne', 'breite', 'kleine', 'große', 'ca. 1 cm groß', 'ca. 0,5 mm groß'],
+                de: ['feine', 'mittlere', 'grobe', 'dünne', 'breite', 'kleine', 'große', 'ca. 1 cm große', 'ca. 0,5 mm große'],
                 en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large', 'about 3/8-inch', 'about 0.02-inch'],
                 esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeñas', 'grandes'],
                 prt: ['finas', 'médias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
@@ -2045,7 +2045,7 @@
         }
 
         function getShapeOptions() {
-            return ['Würfel', 'Scheiben', 'Streifen', 'feine Würfel', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
+            return ['Würfel', 'Scheiben', 'Streifen', 'Spalten', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
         }
 
         function openShapeEditorForToken(tokenId) {
@@ -2111,7 +2111,7 @@
                 }
             }
             const fallback = {
-                de: ['der Teig', 'die Masse', 'die Mischung', 'das Gericht'],
+                de: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht'],
                 en: ['dough', 'batter', 'mixture', 'dish'],
                 esp: ['masa', 'mezcla', 'preparación', 'plato'],
                 prt: ['massa', 'mistura', 'preparação', 'prato'],
@@ -2130,7 +2130,7 @@
             creatorState.activeItemTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
             const options = getItemOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'der Teig';
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
             creatorState.itemValue = selected;
             renderInlineItemOptions();
             placeEditorLikeTemperature('#itemEditor');
@@ -2254,7 +2254,7 @@
             }
 
             if (keyNorm === 'item') {
-                return getItemOptions()[0] || 'der Teig';
+                return getItemOptions()[0] || 'den Teig';
             }
 
             return '';
@@ -2292,7 +2292,7 @@
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
-                    else if (key === 'item') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'der Teig';
+                    else if (key === 'item') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
                     else {
