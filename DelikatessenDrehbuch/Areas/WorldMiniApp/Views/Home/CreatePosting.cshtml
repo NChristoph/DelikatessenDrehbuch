@@ -369,11 +369,12 @@
                         </div>
                         <div class="mb-2">
                             <label class="small text-muted mb-1 d-block">Menge</label>
-                            <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm candy-purple-input" />
+                            <input type="number" step="0.01" min="0" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm candy-purple-input" />
                         </div>
                         <div class="mb-3">
                             <label class="small text-muted mb-1 d-block">Einheit</label>
-                            <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input"></select>
+                            <input type="hidden" id="ingredientConfigUnit" />
+                            <div id="ingredientConfigUnitButtons" class="ingredient-unit-buttons"></div>
                         </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-sm btn-outline-light" id="btnCancelIngredientConfig">Abbrechen</button>
@@ -803,14 +804,20 @@
     }
 
     #card-ingredients {
-        border-color: var(--creator-border);
-        background: rgba(2,6,23,0.9);
-        box-shadow: none;
+        --creator-bg: radial-gradient(120% 120% at 10% 0%, #2f2f5f 0%, #17172a 45%, #0f1119 100%);
+        --creator-sheet: rgba(20, 25, 40, 0.62);
+        --creator-border: rgba(255,255,255,0.18);
+        --creator-text: #f8f9ff;
+        --creator-sub: rgba(248,249,255,0.72);
+        border-color: rgba(255,255,255,0.12);
+        background: var(--creator-bg);
+        box-shadow: 0 18px 40px rgba(16,20,40,0.26);
+        color: var(--creator-text);
     }
 
     #card-ingredients .creator-card-head {
-        border-bottom-color: var(--creator-border);
-        background: rgba(15,23,42,0.8);
+        border-bottom-color: rgba(255,255,255,0.12);
+        background: rgba(12, 16, 28, 0.28);
     }
 
     #card-ingredients .creator-card-title,
@@ -984,12 +991,13 @@
         align-items: center;
         justify-content: space-between;
         width: 100% !important;
-        background: rgba(15,23,42,0.92);
-        border-radius: 14px;
-        padding: 12px 14px;
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 16px;
         border: 1px solid var(--creator-border);
         color: var(--creator-text);
-        box-shadow: none;
+        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(12px);
         margin: 0 !important;
         cursor: pointer;
     }
@@ -1005,24 +1013,55 @@
     }
 
     .ingredient-config-overlay {
-        margin-top: 10px;
+        width: 100%;
+        margin-top: 8px;
     }
 
     .ingredient-config-card {
         width: 100%;
-        background: var(--creator-sheet);
+        background: rgba(255,255,255,0.12);
         border: 1px solid var(--creator-border);
-        border-radius: 16px;
-        padding: 14px;
+        border-radius: 22px;
+        padding: 16px;
+        color: var(--creator-text);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(12px);
+    }
+
+    .ingredient-config-row-host td {
+        background: transparent !important;
+        border: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .ingredient-unit-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ingredient-unit-btn {
+        border: 1px solid var(--creator-border);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        color: var(--creator-text);
+        padding: 4px 10px;
+        font-size: .78rem;
+    }
+
+    .ingredient-unit-btn.active {
+        border-color: rgba(141,99,255,.8);
+        background: rgba(141,99,255,.25);
+        box-shadow: 0 0 0 2px rgba(141,99,255,.22);
     }
 
     /* Design-Anpassung für die Inputs innerhalb der Karte */
     .candy-purple-input {
-        border: none !important;
-        background-color: rgba(139, 92, 246, 0.08) !important;
-        color: #7c3aed !important;
-        font-weight: bold;
-        border-radius: 10px !important;
+        border: 1px solid var(--creator-border) !important;
+        background-color: rgba(10, 14, 24, 0.72) !important;
+        color: var(--creator-text) !important;
+        font-weight: 700;
+        border-radius: 12px !important;
     }
 
     .selected-zone {
@@ -1651,14 +1690,40 @@
             return (map[lang] || unitObj.de || '').toString();
         }
 
-        function buildUnitOptionsHtml(selectedDe) {
+        function renderIngredientUnitButtons(selectedDe) {
             const selected = (selectedDe || '').toString().trim().toLowerCase();
-            return (dbUnits || []).map(u => {
+            const html = (dbUnits || []).map(u => {
                 const de = (u?.de || '').toString();
+                if (!de) return '';
                 const label = getUnitLabel(u, currentLang) || de;
-                const isSelected = de.toLowerCase() === selected;
-                return `<option value="${$('<div>').text(de).html()}" ${isSelected ? 'selected' : ''}>${$('<div>').text(label).html()}</option>`;
+                const active = de.toLowerCase() === selected ? 'active' : '';
+                return `<button type="button" class="ingredient-unit-btn ${active}" data-unit="${$('<div>').text(de).html()}">${$('<div>').text(label).html()}</button>`;
             }).join('');
+            $('#ingredientConfigUnitButtons').html(html);
+            if (selected) $('#ingredientConfigUnit').val(selectedDe);
+            else {
+                const first = (dbUnits?.[0]?.de || '').toString();
+                $('#ingredientConfigUnit').val(first);
+                $('#ingredientConfigUnitButtons .ingredient-unit-btn').first().addClass('active');
+            }
+        }
+
+        function placeIngredientPopupUnderTarget(targetElement) {
+            const overlay = $('#ingredientConfigOverlay');
+            const target = $(targetElement);
+            if (!overlay.length || !target.length) return;
+
+            $('.ingredient-config-row-host').remove();
+
+            if (target.is('tr')) {
+                const host = $('<tr class="ingredient-config-row-host"><td colspan="2"></td></tr>');
+                target.after(host);
+                host.find('td').append(overlay);
+            } else {
+                target.after(overlay);
+            }
+
+            overlay.removeClass('d-none');
         }
 
         function openIngredientConfigPopup(row) {
@@ -1671,8 +1736,9 @@
             const unitDe = (target.find('.ingredient-unit-hidden').val() || '').toString();
             $('#ingredientConfigTitle').text(name || 'Zutat');
             $('#ingredientConfigQty').val(qty);
-            $('#ingredientConfigUnit').html(buildUnitOptionsHtml(unitDe));
+            renderIngredientUnitButtons(unitDe);
             $('#ingredientConfigOverlay').removeClass('d-none');
+            placeIngredientPopupUnderTarget(target);
         }
 
         function openIngredientConfigForDbRow(row) {
@@ -1689,14 +1755,18 @@
             const unitDe = existingRow.length ? (existingRow.find('.ingredient-unit-hidden').val() || '').toString() : (target.find('.js-db-unit').val() || (dbUnits?.[0]?.de || ''));
             $('#ingredientConfigTitle').text(name || 'Zutat');
             $('#ingredientConfigQty').val(qty);
-            $('#ingredientConfigUnit').html(buildUnitOptionsHtml(unitDe));
+            renderIngredientUnitButtons(unitDe);
             $('#ingredientConfigOverlay').removeClass('d-none');
+            placeIngredientPopupUnderTarget(target);
         }
 
         function closeIngredientConfigPopup() {
             activeIngredientConfigRow = null;
             activeIngredientDbRow = null;
-            $('#ingredientConfigOverlay').addClass('d-none');
+            const overlay = $('#ingredientConfigOverlay');
+            overlay.addClass('d-none');
+            $('.ingredient-config-row-host').remove();
+            $('#selectedIngredients').after(overlay);
         }
 
         function applyIngredientConfigPopup() {
@@ -4352,6 +4422,14 @@
 
             $('#btnApplyIngredientConfig').on('click', function () {
                 applyIngredientConfigPopup();
+            });
+
+            $('#ingredientConfigUnitButtons').on('click', '.ingredient-unit-btn', function () {
+                const unit = ($(this).data('unit') || '').toString();
+                if (!unit) return;
+                $('#ingredientConfigUnit').val(unit);
+                $('#ingredientConfigUnitButtons .ingredient-unit-btn').removeClass('active');
+                $(this).addClass('active');
             });
 
             $('#ingredientConfigOverlay').on('click', function (e) {

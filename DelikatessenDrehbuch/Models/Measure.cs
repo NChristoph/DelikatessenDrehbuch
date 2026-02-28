@@ -27,7 +27,7 @@ namespace DelikatessenDrehbuch.Models
 
         public string GetLocalized(string langKey)
         {
-            var lang = (langKey || "de").ToLowerInvariant();
+            var lang = (string.IsNullOrWhiteSpace(langKey) ? "de" : langKey).ToLowerInvariant();
             return lang switch
             {
                 "en" => Metriks_EN,
@@ -42,6 +42,7 @@ namespace DelikatessenDrehbuch.Models
                 _ => Metriks_DE
             } ?? Metriks_DE ?? string.Empty;
         }
+       
 
         public bool IsPieceUnit()
         {
