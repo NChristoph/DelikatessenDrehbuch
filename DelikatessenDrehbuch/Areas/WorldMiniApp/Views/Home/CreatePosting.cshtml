@@ -305,14 +305,20 @@
                                             data-name-en="@item.Name_EN"
                                             data-name-esp="@item.Name_ESP"
                                             data-name-prt="@item.Name_PRT"
+                                            data-name-id="@item.Name_ID"
+                                            data-name-nl="@item.Name_NL"
+                                            data-name-sv="@item.Name_SE"
+                                            data-name-da="@item.Name_DK"
+                                            data-name-no="@item.Name_NO"
+                                            data-name-ms="@item.Name_MS"
                                             data-genus-de="@item.Genus_DE"
                                             data-genus-en="@item.Genus_EN"
                                             data-genus-esp="@item.Genus_ESP"
                                             data-genus-prt="@item.Genus_PRT"
                                             data-genus-id="@item.Genus_ID"
                                             data-genus-nl="@item.Genus_NL"
-                                            data-genus-se="@item.Genus_SE"
-                                            data-genus-dk="@item.Genus_DK"
+                                            data-genus-sv="@item.Genus_SE"
+                                            data-genus-da="@item.Genus_DK"
                                             data-genus-no="@item.Genus_NO"
                                             data-genus-ms="@item.Genus_MS">
                                             <td>
@@ -1456,6 +1462,8 @@
             const normalized = (value || 'de').toLowerCase();
             if (normalized === 'es') return 'esp';
             if (normalized === 'pt') return 'prt';
+            if (normalized === 'se') return 'sv';
+            if (normalized === 'dk') return 'da';
             return normalized;
         }
 
@@ -1506,9 +1514,25 @@
                 const row = $(this);
                 const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
                 const name = row.find('.display-name-selected').text()?.trim() || '';
-                const genusDe = (row.data('genus-de') || '').toString().trim();
-                const genusLocalized = (row.data('genus-' + currentLang) || '').toString().trim();
-                return { id, name, genusDe, genusLocalized };
+                const genusByLang = {
+                    de: (row.data('genus-de') || '').toString().trim(),
+                    en: (row.data('genus-en') || '').toString().trim(),
+                    esp: (row.data('genus-esp') || '').toString().trim(),
+                    prt: (row.data('genus-prt') || '').toString().trim(),
+                    id: (row.data('genus-id') || '').toString().trim(),
+                    nl: (row.data('genus-nl') || '').toString().trim(),
+                    sv: (row.data('genus-sv') || '').toString().trim(),
+                    da: (row.data('genus-da') || '').toString().trim(),
+                    no: (row.data('genus-no') || '').toString().trim(),
+                    ms: (row.data('genus-ms') || '').toString().trim()
+                };
+                return {
+                    id,
+                    name,
+                    genusDe: genusByLang.de || '',
+                    genusLocalized: genusByLang[currentLang] || '',
+                    genusByLang
+                };
             }).get().filter(x => x.id || x.name);
 
             if (fromSelected.length) {
@@ -1516,7 +1540,8 @@
                     id: x.id || '',
                     name: x.name || 'Zutat',
                     genusDe: x.genusDe || '',
-                    genusLocalized: x.genusLocalized || ''
+                    genusLocalized: x.genusLocalized || '',
+                    genusByLang: x.genusByLang || {}
                 }));
             }
             return [];
@@ -1577,36 +1602,56 @@
             return '🥣';
         }
 
-        function resolveGermanGrammarForIngredient(ingredientName, genusHint = '') {
+        function resolveGrammarForIngredient(ingredientName, genusByLang = {}, langKey = 'de') {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
             const value = (ingredientName || '').toString().trim().toLowerCase();
-            const genus = (genusHint || '').toString().trim().toLowerCase();
-            const known = {
-                m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
-                f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
-                n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
-            };
+            const genusRaw = (genusByLang?.[lang] || genusByLang?.de || '').toString().trim().toLowerCase();
 
-            const femaleHints = ['f', 'fem', 'femin', 'die'];
-            const neutralHints = ['n', 'neu', 'neut', 'das'];
-            const maleHints = ['m', 'mas', 'mask', 'der'];
+            const hasAny = (hints) => hints.some(x => genusRaw === x || genusRaw.includes(x));
 
-            if (femaleHints.some(x => genus === x || genus.includes(x))) {
-                return { pronoun: 'sie', article: 'die' };
-            }
-            if (neutralHints.some(x => genus === x || genus.includes(x))) {
-                return { pronoun: 'es', article: 'das' };
-            }
-            if (maleHints.some(x => genus === x || genus.includes(x))) {
+            if (lang === 'de') {
+                const known = {
+                    m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
+                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
+                    n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
+                };
+                if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };
+                if (hasAny(['n', 'neu', 'neut', 'das'])) return { pronoun: 'es', article: 'das' };
+                if (hasAny(['m', 'mas', 'mask', 'der'])) return { pronoun: 'ihn', article: 'den' };
+
+                let gender = 'm';
+                if (known.f.some(x => value.includes(x))) gender = 'f';
+                else if (known.n.some(x => value.includes(x))) gender = 'n';
+                if (gender === 'f') return { pronoun: 'sie', article: 'die' };
+                if (gender === 'n') return { pronoun: 'es', article: 'das' };
                 return { pronoun: 'ihn', article: 'den' };
             }
 
-            let gender = 'm';
-            if (known.f.some(x => value.includes(x))) gender = 'f';
-            else if (known.n.some(x => value.includes(x))) gender = 'n';
+            if (lang === 'esp') {
+                if (hasAny(['f', 'fem', 'la'])) return { pronoun: 'la', article: 'la' };
+                return { pronoun: 'lo', article: 'el' };
+            }
 
-            if (gender === 'f') return { pronoun: 'sie', article: 'die' };
-            if (gender === 'n') return { pronoun: 'es', article: 'das' };
-            return { pronoun: 'ihn', article: 'den' };
+            if (lang === 'prt') {
+                if (hasAny(['f', 'fem', 'a'])) return { pronoun: 'a', article: 'a' };
+                return { pronoun: 'o', article: 'o' };
+            }
+
+            if (lang === 'nl') {
+                if (hasAny(['het', 'n'])) return { pronoun: 'het', article: 'het' };
+                return { pronoun: 'hem', article: 'de' };
+            }
+
+            if (lang === 'sv' || lang === 'da' || lang === 'no') {
+                if (hasAny(['ett', 'n', 'neut'])) return { pronoun: 'det', article: '' };
+                return { pronoun: 'den', article: '' };
+            }
+
+            if (lang === 'id' || lang === 'ms') {
+                return { pronoun: 'dia', article: '' };
+            }
+
+            return { pronoun: 'it', article: 'the' };
         }
 
         function getPlaceholderKeysFromTemplate(template) {
@@ -2307,7 +2352,7 @@
             const selectedIngredient = getSelectedIngredientForCreator();
             const selectedNames = getSelectedIngredientNames();
             const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
-            const grammar = resolveGermanGrammarForIngredient(ingredientName, selectedIngredient?.genusDe || '');
+            const grammar = resolveGrammarForIngredient(ingredientName, selectedIngredient?.genusByLang || {}, currentLang);
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
             creatorState.computedArticle = creatorState.advancedArticleOverride || grammar.article;
@@ -2777,14 +2822,22 @@
             const row = $(btn).closest('.ingredient-db-row');
             const name = row.data('name-' + currentLang) || row.data('name-de');
             const genusDe = (row.data('genus-de') || '').toString().trim();
-            const genusLocalized = (row.data('genus-' + currentLang) || '').toString().trim();
+            const genusEn = (row.data('genus-en') || '').toString().trim();
+            const genusEsp = (row.data('genus-esp') || '').toString().trim();
+            const genusPrt = (row.data('genus-prt') || '').toString().trim();
+            const genusId = (row.data('genus-id') || '').toString().trim();
+            const genusNl = (row.data('genus-nl') || '').toString().trim();
+            const genusSv = (row.data('genus-sv') || '').toString().trim();
+            const genusDa = (row.data('genus-da') || '').toString().trim();
+            const genusNo = (row.data('genus-no') || '').toString().trim();
+            const genusMs = (row.data('genus-ms') || '').toString().trim();
             const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
             const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
             const unitOptions = dbUnits.map(u => `<option value="${u}" ${u === selectedUnit ? 'selected' : ''}>${u}</option>`).join('');
 
             // Neues Element erstellen
             const newIngredient = `
-            <div class="dynamic-item ingredient-row shadow-sm" data-genus-de="${$('<div>').text(genusDe).html()}" data-genus-${currentLang}="${$('<div>').text(genusLocalized).html()}">
+            <div class="dynamic-item ingredient-row shadow-sm" data-genus-de="${$('<div>').text(genusDe).html()}" data-genus-en="${$('<div>').text(genusEn).html()}" data-genus-esp="${$('<div>').text(genusEsp).html()}" data-genus-prt="${$('<div>').text(genusPrt).html()}" data-genus-id="${$('<div>').text(genusId).html()}" data-genus-nl="${$('<div>').text(genusNl).html()}" data-genus-sv="${$('<div>').text(genusSv).html()}" data-genus-da="${$('<div>').text(genusDa).html()}" data-genus-no="${$('<div>').text(genusNo).html()}" data-genus-ms="${$('<div>').text(genusMs).html()}">
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
 
                 <div class="d-flex justify-content-between align-items-center mb-2">
