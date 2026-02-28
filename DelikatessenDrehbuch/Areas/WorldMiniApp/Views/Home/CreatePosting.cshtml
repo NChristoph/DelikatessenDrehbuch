@@ -460,6 +460,21 @@
                                         <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="balanceEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Balance einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceArticleOptions"></div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyBalance" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="seasoningsEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Seasonings einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineSeasoningsOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplySeasonings" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -1315,7 +1330,9 @@
     .bottom-sheet-editor .inline-equipment-opt,
     .bottom-sheet-editor .inline-tool-opt,
     .bottom-sheet-editor .inline-base-opt,
-    .bottom-sheet-editor .inline-item-opt {
+    .bottom-sheet-editor .inline-item-opt,
+    .bottom-sheet-editor .inline-balance-opt,
+    .bottom-sheet-editor .inline-seasonings-opt {
         white-space: nowrap;
     }
 
@@ -1323,7 +1340,9 @@
     .bottom-sheet-editor .inline-equipment-opt.btn-outline-light,
     .bottom-sheet-editor .inline-tool-opt.btn-outline-light,
     .bottom-sheet-editor .inline-base-opt.btn-outline-light,
-    .bottom-sheet-editor .inline-item-opt.btn-outline-light {
+    .bottom-sheet-editor .inline-item-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-balance-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-seasonings-opt.btn-outline-light {
         background: transparent;
         color: var(--creator-text);
         border-color: rgba(255,255,255,0.45);
@@ -1333,7 +1352,9 @@
     .bottom-sheet-editor .inline-equipment-opt.btn-light,
     .bottom-sheet-editor .inline-tool-opt.btn-light,
     .bottom-sheet-editor .inline-base-opt.btn-light,
-    .bottom-sheet-editor .inline-item-opt.btn-light {
+    .bottom-sheet-editor .inline-item-opt.btn-light,
+    .bottom-sheet-editor .inline-balance-opt.btn-light,
+    .bottom-sheet-editor .inline-seasonings-opt.btn-light {
         background: #fff;
         border-color: #fff;
         color: #10131f;
@@ -1672,7 +1693,12 @@
             itemValue: 'den Teig',
             itemArticleValue: 'den',
             baseValue: 'den Teig',
-            baseArticleValue: 'den'
+            baseArticleValue: 'den',
+            activeBalanceTokenId: '',
+            balanceValue: 'die Säure',
+            balanceArticleValue: 'die',
+            activeSeasoningsTokenId: '',
+            seasoningsValue: 'Salz und Pfeffer'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1881,6 +1907,16 @@
         function isCountPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'count' || value === 'servings' || value.includes('count');
+        }
+
+        function isBalancePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'balance';
+        }
+
+        function isSeasoningsPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'seasonings' || value === 'spices';
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -2579,6 +2615,103 @@
             wrap.html(html);
         }
 
+        function getBalanceOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const map = {
+                de: ['die Säure', 'die Süße', 'die Schärfe'],
+                en: ['the acidity', 'the sweetness', 'the spiciness'],
+                esp: ['la acidez', 'la dulzura', 'el picante'],
+                prt: ['a acidez', 'a doçura', 'o picante'],
+                id: ['keasaman', 'kemanisan', 'kepedasan'],
+                nl: ['de zuurgraad', 'de zoetheid', 'de pittigheid'],
+                sv: ['syran', 'sötman', 'hettan'],
+                da: ['syren', 'sødmen', 'styrken'],
+                no: ['syren', 'sødmen', 'styrken'],
+                ms: ['keasidan', 'kemanisan', 'kepedasan']
+            };
+            return map[lang] || map.de;
+        }
+
+        function openBalanceEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeBalanceTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
+            const options = getBalanceOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die Säure';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.balanceArticleValue = parts.article;
+            creatorState.balanceValue = selected;
+            renderInlineBalanceOptions();
+            placeEditorLikeTemperature('#balanceEditor');
+            $('#balanceEditor').removeClass('d-none');
+        }
+
+        function closeBalanceEditor() {
+            creatorState.activeBalanceTokenId = '';
+            $('#balanceEditor').addClass('d-none');
+        }
+
+        function renderInlineBalanceOptions() {
+            const wrap = $('#inlineBalanceOptions');
+            if (!wrap.length) return;
+            renderArticleOptions('#inlineBalanceArticleOptions', creatorState.balanceArticleValue);
+            const options = getNounOptions(getBalanceOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-balance-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getSeasoningsOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const map = {
+                de: ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze'],
+                en: ['salt', 'pepper', 'salt and pepper', 'herbs', 'spices'],
+                esp: ['sal', 'pimienta', 'sal y pimienta', 'hierbas', 'especias'],
+                prt: ['sal', 'pimenta', 'sal e pimenta', 'ervas', 'especiarias'],
+                id: ['garam', 'lada', 'garam dan lada', 'herba', 'rempah'],
+                nl: ['zout', 'peper', 'zout en peper', 'kruiden', 'specerijen'],
+                sv: ['salt', 'peppar', 'salt och peppar', 'örter', 'kryddor'],
+                da: ['salt', 'peber', 'salt og peber', 'urter', 'krydderier'],
+                no: ['salt', 'pepper', 'salt og pepper', 'urter', 'krydder'],
+                ms: ['garam', 'lada', 'garam dan lada', 'herba', 'rempah']
+            };
+            return map[lang] || map.de;
+        }
+
+        function openSeasoningsEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeSeasoningsTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.seasoningsValue || '').toString().trim();
+            const options = getSeasoningsOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Salz';
+            creatorState.seasoningsValue = selected;
+            renderInlineSeasoningsOptions();
+            placeEditorLikeTemperature('#seasoningsEditor');
+            $('#seasoningsEditor').removeClass('d-none');
+        }
+
+        function closeSeasoningsEditor() {
+            creatorState.activeSeasoningsTokenId = '';
+            $('#seasoningsEditor').addClass('d-none');
+        }
+
+        function renderInlineSeasoningsOptions() {
+            const wrap = $('#inlineSeasoningsOptions');
+            if (!wrap.length) return;
+            const options = getSeasoningsOptions();
+            const currentVal = (creatorState.seasoningsValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-seasonings-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function closeAllEditors() {
             closeDurationEditor();
             closeCountEditor();
@@ -2593,6 +2726,8 @@
             closeShapeEditor();
             closeBaseEditor();
             closeItemEditor();
+            closeBalanceEditor();
+            closeSeasoningsEditor();
         }
 
         function placeEditorLikeTemperature(editorSelector) {
@@ -2707,6 +2842,14 @@
                 return getItemOptions()[0] || 'den Teig';
             }
 
+            if (keyNorm === 'balance') {
+                return getBalanceOptions()[0] || 'die Säure';
+            }
+
+            if (keyNorm === 'seasonings' || keyNorm === 'spices') {
+                return getSeasoningsOptions()[2] || getSeasoningsOptions()[0] || 'Salz und Pfeffer';
+            }
+
             return '';
         }
 
@@ -2746,6 +2889,8 @@
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
                     else if (key === 'item' || key === 'dish') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
+                    else if (key === 'balance') vars[key] = creatorState.balanceValue || getBalanceOptions()[0] || 'die Säure';
+                    else if (key === 'seasonings' || key === 'spices') vars[key] = creatorState.seasoningsValue || getSeasoningsOptions()[2] || 'Salz und Pfeffer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'den Teig';
                     else {
@@ -3609,6 +3754,14 @@
                     creatorState.activePlaceholderTokenId = '';
                     openItemEditorForToken(tokenId);
                     showCreatorToast('Item wählen');
+                } else if (isBalancePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openBalanceEditorForToken(tokenId);
+                    showCreatorToast('Balance wählen');
+                } else if (isSeasoningsPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openSeasoningsEditorForToken(tokenId);
+                    showCreatorToast('Seasonings wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -3842,6 +3995,14 @@
                 renderInlineItemOptions();
             });
 
+            $('#inlineBalanceArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.balanceArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun;
+                creatorState.balanceValue = composeArticleAndNoun(val, noun);
+                renderInlineBalanceOptions();
+            });
+
             $('#btnApplyEquipment').on('click', function () {
                 const tokenId = creatorState.activeEquipmentTokenId;
                 const val = (creatorState.equipmentValue || '').toString().trim();
@@ -3947,6 +4108,38 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeItemEditor();
                 showCreatorToast('Item eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineBalanceOptions').on('click', '.inline-balance-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.balanceValue = composeArticleAndNoun(creatorState.balanceArticleValue, val);
+                renderInlineBalanceOptions();
+            });
+
+            $('#btnApplyBalance').on('click', function () {
+                const tokenId = creatorState.activeBalanceTokenId;
+                const val = (creatorState.balanceValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeBalanceEditor();
+                showCreatorToast('Balance eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineSeasoningsOptions').on('click', '.inline-seasonings-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.seasoningsValue = val;
+                renderInlineSeasoningsOptions();
+            });
+
+            $('#btnApplySeasonings').on('click', function () {
+                const tokenId = creatorState.activeSeasoningsTokenId;
+                const val = (creatorState.seasoningsValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeSeasoningsEditor();
+                showCreatorToast('Seasonings eingesetzt');
                 renderTemplateCards();
             });
 

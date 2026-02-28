@@ -222,7 +222,9 @@
             equipment: ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb', 'Küchenmaschine', 'Zange', 'Schneidebrett'],
             state: ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'],
             garnish: ['frischen Kräutern', 'Sesam', 'Parmesan', 'Nüssen'],
-            base: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum']
+            base: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum'],
+            seasonings: ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze', 'salt', 'pepper', 'salt and pepper', 'herbs', 'spices'],
+            balance: ['die Säure', 'die Süße', 'die Schärfe', 'the acidity', 'the sweetness', 'the spiciness']
         };
 
         return presets[variableName] || [];

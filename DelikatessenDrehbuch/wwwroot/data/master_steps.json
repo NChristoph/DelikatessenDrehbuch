@@ -1012,6 +1012,30 @@
       "no": [ "eggehviten", "massen", "deigen", "kremen", "sausen", "glasuren", "fyllet", "marinaden", "emulsjonen", "skummet" ],
       "ms": [ "putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih" ]
     },
+    "seasonings": {
+      "de": [ "Salz", "Pfeffer", "Salz und Pfeffer", "Kräuter", "Gewürze" ],
+      "en": [ "salt", "pepper", "salt and pepper", "herbs", "spices" ],
+      "esp": [ "sal", "pimienta", "sal y pimienta", "hierbas", "especias" ],
+      "prt": [ "sal", "pimenta", "sal e pimenta", "ervas", "especiarias" ],
+      "id": [ "garam", "lada", "garam dan lada", "herba", "rempah" ],
+      "nl": [ "zout", "peper", "zout en peper", "kruiden", "specerijen" ],
+      "sv": [ "salt", "peppar", "salt och peppar", "örter", "kryddor" ],
+      "da": [ "salt", "peber", "salt og peber", "urter", "krydderier" ],
+      "no": [ "salt", "pepper", "salt og pepper", "urter", "krydder" ],
+      "ms": [ "garam", "lada", "garam dan lada", "herba", "rempah" ]
+    },
+    "balance": {
+      "de": [ "die Säure", "die Süße", "die Schärfe" ],
+      "en": [ "the acidity", "the sweetness", "the spiciness" ],
+      "esp": [ "la acidez", "la dulzura", "el picante" ],
+      "prt": [ "a acidez", "a doçura", "o picante" ],
+      "id": [ "keasaman", "kemanisan", "kepedasan" ],
+      "nl": [ "de zuurgraad", "de zoetheid", "de pittigheid" ],
+      "sv": [ "syran", "sötman", "hettan" ],
+      "da": [ "syren", "sødmen", "styrken" ],
+      "no": [ "syren", "sødmen", "styrken" ],
+      "ms": [ "keasidan", "kemanisan", "kepedasan" ]
+    },
     "grind_size": {
       "de": [ "feine", "mittlere", "grobe", "dünne", "breite", "kleine", "große", "ca. 1 cm große", "ca. 0,5 mm große" ],
       "en": [ "fine", "medium", "coarse", "thin", "wide", "small", "large", "about 3/8-inch", "about 0.02-inch" ],
