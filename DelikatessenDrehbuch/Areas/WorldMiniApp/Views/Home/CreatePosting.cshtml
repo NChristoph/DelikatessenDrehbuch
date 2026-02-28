@@ -322,7 +322,9 @@
                                             data-genus-no="@item.Genus_NO"
                                             data-genus-ms="@item.Genus_MS">
                                             <td>
-                                                <div class="fw-bold display-name">@item.Name_DE</div>
+                                                <div class="ingredient-db-card preview-step-card">
+                                                    <div class="fw-bold display-name">@item.Name_DE</div>
+                                                </div>
 
                                                 <div class="row g-2 mt-2 ingredient-inline-inputs align-items-end">
                                                     <div class="col-5" style="max-width: 26%">
@@ -955,14 +957,23 @@
         cursor: pointer;
     }
 
+    .ingredient-db-card {
+        margin-top: 0;
+        padding: 14px 16px;
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+    }
+
     .ingredient-db-row td {
         background: transparent !important;
         border-color: var(--creator-border) !important;
     }
 
     .ingredient-db-row .display-name {
-        color: var(--creator-text);
+        color: #fff;
         font-weight: 700;
+        margin: 0;
     }
 
     .ingredient-db-row .ingredient-inline-inputs {
@@ -1006,6 +1017,7 @@
 
     .ingredient-config-overlay {
         margin-top: 10px;
+        width: 100%;
     }
 
     .ingredient-config-card {
@@ -1014,6 +1026,10 @@
         border: 1px solid var(--creator-border);
         border-radius: 16px;
         padding: 14px;
+    }
+
+    .ingredient-config-popup-anchor {
+        margin-top: 10px;
     }
 
     /* Design-Anpassung für die Inputs innerhalb der Karte */
@@ -1632,6 +1648,34 @@
         let ingredientArticleRules = null;
         let activeIngredientConfigRow = null;
         let activeIngredientDbRow = null;
+        let ingredientConfigPopupHome = null;
+
+        function placeIngredientConfigPopup(target) {
+            const popup = $('#ingredientConfigOverlay');
+            if (!popup.length || !target || !target.length) return;
+            if (!ingredientConfigPopupHome || !ingredientConfigPopupHome.length) {
+                ingredientConfigPopupHome = popup.parent();
+            }
+            popup.detach();
+            if (target.hasClass('ingredient-db-row')) {
+                const colCount = target.children('td').length || 1;
+                const popupRow = $(`<tr class="ingredient-config-popup-anchor"><td colspan="${colCount}"></td></tr>`);
+                popupRow.find('td').append(popup);
+                target.after(popupRow);
+            } else {
+                target.after(popup);
+            }
+        }
+
+        function resetIngredientConfigPopupPosition() {
+            const popup = $('#ingredientConfigOverlay');
+            $('.ingredient-config-popup-anchor').remove();
+            if (!popup.length) return;
+            if (!ingredientConfigPopupHome || !ingredientConfigPopupHome.length) {
+                ingredientConfigPopupHome = $('#card-ingredients .creator-card-body').first();
+            }
+            popup.detach().appendTo(ingredientConfigPopupHome);
+        }
 
         function getUnitLabel(unitObj, langKey = currentLang) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
@@ -1664,6 +1708,7 @@
         function openIngredientConfigPopup(row) {
             const target = $(row);
             if (!target.length) return;
+            placeIngredientConfigPopup(target);
             activeIngredientConfigRow = target;
             activeIngredientDbRow = null;
             const name = (target.find('.display-name-selected').first().text() || '').trim();
@@ -1678,6 +1723,7 @@
         function openIngredientConfigForDbRow(row) {
             const target = $(row);
             if (!target.length) return;
+            placeIngredientConfigPopup(target);
             activeIngredientDbRow = target;
             activeIngredientConfigRow = null;
             const name = (target.data('name-' + currentLang) || target.data('name-de') || '').toString();
@@ -1697,6 +1743,7 @@
             activeIngredientConfigRow = null;
             activeIngredientDbRow = null;
             $('#ingredientConfigOverlay').addClass('d-none');
+            resetIngredientConfigPopupPosition();
         }
 
         function applyIngredientConfigPopup() {
