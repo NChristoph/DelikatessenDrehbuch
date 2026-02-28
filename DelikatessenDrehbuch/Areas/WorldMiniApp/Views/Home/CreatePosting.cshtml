@@ -1614,7 +1614,7 @@
             activePronounTokenId: '',
             pronounValue: '',
             activeEquipmentTokenId: '',
-            equipmentValue: 'Pfanne',
+            equipmentValue: 'die Pfanne',
             activeStateTokenId: '',
             stateValue: 'goldbraun',
             activeToolTokenId: '',
@@ -2013,6 +2013,71 @@
             wrap.html(html);
         }
 
+        function ensureEquipmentArticle(value, langKey) {
+            const raw = (value || '').toString().trim();
+            if (!raw) return '';
+
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const articlePrefixesByLang = {
+                de: ['der', 'die', 'das', 'den', 'dem', 'des'],
+                en: ['the'],
+                esp: ['el', 'la', 'los', 'las'],
+                prt: ['o', 'a', 'os', 'as'],
+                nl: ['de', 'het']
+            };
+
+            const lower = raw.toLowerCase();
+            const existing = articlePrefixesByLang[lang] || [];
+            if (existing.some(x => lower.startsWith(`${x} `))) return raw;
+
+            const articleMapByLang = {
+                de: {
+                    'backofen': 'den',
+                    'pfanne': 'die',
+                    'bräter': 'den',
+                    'topf': 'den',
+                    'küchenmaschine': 'die',
+                    'auflaufform': 'die'
+                },
+                en: {
+                    'oven': 'the',
+                    'pan': 'the',
+                    'roaster': 'the',
+                    'pot': 'the',
+                    'food processor': 'the',
+                    'baking dish': 'the'
+                },
+                esp: {
+                    'horno': 'el',
+                    'sartén': 'la',
+                    'asador': 'el',
+                    'olla': 'la',
+                    'procesador de alimentos': 'el',
+                    'fuente para horno': 'la'
+                },
+                prt: {
+                    'forno': 'o',
+                    'frigideira': 'a',
+                    'assadeira': 'a',
+                    'panela': 'a',
+                    'processador de alimentos': 'o',
+                    'travessa de forno': 'a'
+                },
+                nl: {
+                    'oven': 'de',
+                    'pan': 'de',
+                    'braadslede': 'de',
+                    'kookpot': 'de',
+                    'keukenmachine': 'de',
+                    'ovenschaal': 'de'
+                }
+            };
+
+            const article = articleMapByLang[lang]?.[lower] || '';
+            if (!article) return raw;
+            return `${article} ${raw}`;
+        }
+
         function getEquipmentOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
             const fallbackByLang = {
@@ -2034,7 +2099,7 @@
 
             const fallback = fallbackByLang[lang] || fallbackByLang.de;
             const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
-                .map(x => (x || '').toString().trim())
+                .map(x => ensureEquipmentArticle((x || '').toString().trim(), lang))
                 .filter(Boolean);
 
             return Array.from(new Set(merged));
@@ -2045,7 +2110,7 @@
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getEquipmentOptions();
-            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
+            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'die Pfanne';
             creatorState.equipmentValue = selected;
             renderInlineEquipmentOptions();
             placeEditorLikeTemperature('#equipmentEditor');
@@ -2421,7 +2486,7 @@
             }
 
             if (keyNorm === 'equipment') {
-                return getEquipmentOptions()[0] || 'Pfanne';
+                return getEquipmentOptions()[0] || 'die Pfanne';
             }
 
             if (keyNorm === 'tool') {
