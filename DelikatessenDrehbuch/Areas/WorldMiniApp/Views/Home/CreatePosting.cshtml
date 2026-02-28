@@ -418,17 +418,15 @@
                                 <div id="grindSizeEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="grindSizeValueInput" class="form-control form-control-sm" style="max-width:220px" placeholder="z.B. fein, grob, dünn" />
-                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="shapeEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Schnittform einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="shapeValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Würfel, Scheiben" />
-                                        <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="baseEditor" class="duration-editor d-none mt-2">
@@ -1536,6 +1534,7 @@
             activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
             grindSizeValue: 'feine',
+            shapeValue: 'Würfel',
             baseValue: 'Teig'
         };
 
@@ -1839,7 +1838,7 @@
             const currentVal = ($('#pronounValueInput').val() || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-light text-dark opacity-75';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-pronoun-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -1987,8 +1986,8 @@
                 }
             }
             const fallback = {
-                de: ['feine', 'mittlere', 'grobe', 'dünne', 'breite', 'kleine', 'große'],
-                en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large'],
+                de: ['feine', 'mittlere', 'grobe', 'dünne', 'breite', 'kleine', 'große', 'ca. 1 cm groß', 'ca. 0,5 mm groß'],
+                en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large', 'about 3/8-inch', 'about 0.02-inch'],
                 esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeñas', 'grandes'],
                 prt: ['finas', 'médias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
                 id: ['halus', 'sedang', 'kasar', 'tipis', 'tebal', 'kecil', 'besar'],
@@ -2008,7 +2007,6 @@
             const options = getGrindSizeOptions();
             const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'feine';
             creatorState.grindSizeValue = selected;
-            $('#grindSizeValueInput').val(selected);
             renderInlineGrindSizeOptions();
             $('#grindSizeEditor').removeClass('d-none');
         }
@@ -2022,10 +2020,10 @@
             const wrap = $('#inlineGrindSizeOptions');
             if (!wrap.length) return;
             const options = getGrindSizeOptions();
-            const currentVal = ($('#grindSizeValueInput').val() || creatorState.grindSizeValue || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.grindSizeValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-light text-dark opacity-75';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-grind-size-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -2038,8 +2036,8 @@
         function openShapeEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeShapeTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#shapeValueInput').val(currentText || 'Würfel');
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.shapeValue || '').toString().trim();
+            creatorState.shapeValue = currentText || 'Würfel';
             renderInlineShapeOptions();
             $('#shapeEditor').removeClass('d-none');
         }
@@ -2116,10 +2114,10 @@
             const wrap = $('#inlineShapeOptions');
             if (!wrap.length) return;
             const options = getShapeOptions();
-            const currentVal = ($('#shapeValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.shapeValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-light text-dark opacity-75';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-shape-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -3314,21 +3312,15 @@
 
             $('#inlineGrindSizeOptions').on('click', '.inline-grind-size-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#grindSizeValueInput').val(val);
                 creatorState.grindSizeValue = val;
                 renderInlineGrindSizeOptions();
             });
 
-            $('#grindSizeValueInput').on('input', function () {
-                creatorState.grindSizeValue = ($(this).val() || '').toString().trim();
-            });
-
             $('#btnApplyGrindSize').on('click', function () {
                 const tokenId = creatorState.activeGrindSizeTokenId;
-                const val = ($('#grindSizeValueInput').val() || '').toString().trim();
+                const val = (creatorState.grindSizeValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
-                creatorState.grindSizeValue = val;
                 closeGrindSizeEditor();
                 showCreatorToast('Schnittgröße eingesetzt');
                 renderTemplateCards();
@@ -3336,13 +3328,13 @@
 
             $('#inlineShapeOptions').on('click', '.inline-shape-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#shapeValueInput').val(val);
+                creatorState.shapeValue = val;
                 renderInlineShapeOptions();
             });
 
             $('#btnApplyShape').on('click', function () {
                 const tokenId = creatorState.activeShapeTokenId;
-                const val = ($('#shapeValueInput').val() || '').toString().trim();
+                const val = (creatorState.shapeValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeShapeEditor();

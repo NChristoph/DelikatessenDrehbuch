@@ -1013,8 +1013,8 @@
       "ms": [ "putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih" ]
     },
     "grind_size": {
-      "de": [ "feine", "mittlere", "grobe", "dünne", "breite", "kleine", "große" ],
-      "en": [ "fine", "medium", "coarse", "thin", "wide", "small", "large" ],
+      "de": [ "feine", "mittlere", "grobe", "dünne", "breite", "kleine", "große", "ca. 1 cm groß", "ca. 0,5 mm groß" ],
+      "en": [ "fine", "medium", "coarse", "thin", "wide", "small", "large", "about 3/8-inch", "about 0.02-inch" ],
       "esp": [ "finas", "medianas", "gruesas", "delgadas", "anchas", "pequeñas", "grandes" ],
       "prt": [ "finas", "médias", "grossas", "finas", "largas", "pequenas", "grandes" ],
       "id": [ "halus", "sedang", "kasar", "tipis", "tebal", "kecil", "besar" ],
