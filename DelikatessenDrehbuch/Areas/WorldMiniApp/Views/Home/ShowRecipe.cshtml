@@ -12,7 +12,7 @@
     {
         var nutri = item.Ingredient.IngredientsAndNutrients;
         var quantity = (decimal)item.Ingredient.Quantity.Quantitys;
-        var unit = item.Ingredient.Measure.UnitOfMeasurement.ToLower();
+        var unit = item.Ingredient.Measure.Metriks_DE.ToLower();
 
         decimal factor = (unit == "stk" || unit == "stück")
             ? (quantity * nutri.Weight_per_piece) / 100m
@@ -401,7 +401,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
                                     <span class="text-muted small">
-                                        <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.UnitOfMeasurement
+                                        <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.Metriks_DE
                                     </span>
                                 </div>
                             </div>
