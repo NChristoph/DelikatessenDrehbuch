@@ -267,7 +267,7 @@ window.initAutoLogin = async (level) => {
         return;
     }
 
-    showLoginModalWithFallback();
+    // Nur Status initialisieren. Login-Modal wird als Fallback erst bei Nutzeraktion geoeffnet.
 };
 
 window.getStoredUserHash = getStoredUserHash;
