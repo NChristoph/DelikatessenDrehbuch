@@ -2013,39 +2013,31 @@
             wrap.html(html);
         }
 
-        function getUnifiedToolEquipmentOptions() {
+        function getEquipmentOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
-            const localizedFallbacks = {
-                de: ['Pfanne', 'Topf', 'Backofen', 'Rührschüssel', 'Sieb', 'Mixer', 'Pürierstab', 'Küchenmaschine', 'Schneebesen', 'Spatel', 'Holzlöffel', 'Suppenkelle', 'Messer', 'Sparschäler', 'Reibe', 'Schneidebrett', 'Zange', 'Bräter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform', 'Messbecher', 'Teigschaber', 'Nudelholz'],
-                en: ['pan', 'pot', 'oven', 'mixing bowl', 'strainer', 'blender', 'immersion blender', 'food processor', 'whisk', 'spatula', 'wooden spoon', 'ladle', 'knife', 'peeler', 'grater', 'cutting board', 'tongs', 'roaster', 'wok', 'grill', 'steamer', 'baking dish', 'measuring cup', 'dough scraper', 'rolling pin'],
-                esp: ['sartén', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'batidor', 'espátula', 'cuchara de madera', 'cucharón', 'cuchillo', 'pelador', 'rallador', 'tabla de cortar', 'pinzas', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno', 'vaso medidor', 'rasqueta de masa', 'rodillo'],
-                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mão', 'processador de alimentos', 'batedor', 'espátula', 'colher de pau', 'concha', 'faca', 'descascador', 'ralador', 'tábua de corte', 'pinça', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno', 'copo medidor', 'raspador de massa', 'rolo de massa'],
-                id: ['wajan', 'panci', 'oven', 'mangkuk adonan', 'saringan', 'blender', 'blender tangan', 'food processor', 'pengocok', 'spatula', 'sendok kayu', 'sendok sayur', 'pisau', 'pengupas', 'parutan', 'talenan', 'penjepit', 'loyang panggang', 'wok', 'pemanggang', 'kukusan', 'pinggan oven', 'gelas ukur', 'scraper adonan', 'rolling pin'],
-                nl: ['pan', 'kookpot', 'oven', 'mengkom', 'zeef', 'blender', 'staafmixer', 'keukenmachine', 'garde', 'spatel', 'houten lepel', 'soeplepel', 'mes', 'dunschiller', 'rasp', 'snijplank', 'tang', 'braadslede', 'wok', 'grill', 'stoomkoker', 'ovenschaal', 'maatbeker', 'deegschraper', 'deegroller'],
-                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskål', 'sil', 'mixer', 'stavmixer', 'matberedare', 'visp', 'stekspade', 'träslev', 'slev', 'kniv', 'potatisskalare', 'rivjärn', 'skärbräda', 'tång', 'stekgryta', 'wok', 'grill', 'ångkokare', 'ugnsform', 'måttkopp', 'degskrapa', 'kavel'],
-                da: ['pande', 'gryde', 'ovn', 'røreskål', 'si', 'blender', 'stavblender', 'foodprocessor', 'piskeris', 'spatel', 'træske', 'suppeske', 'kniv', 'skræller', 'rivejern', 'skærebræt', 'tang', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad', 'målebæger', 'dejskraber', 'kagerulle'],
-                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjøkkenmaskin', 'visp', 'stekespade', 'tresleiv', 'øse', 'kniv', 'skreller', 'rivjern', 'skjærefjøl', 'klype', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form', 'målebeger', 'deigskrape', 'kjevle'],
-                ms: ['kuali', 'periuk', 'ketuhar', 'mangkuk adunan', 'penapis', 'pengisar', 'pengisar tangan', 'pemproses makanan', 'pemukul', 'spatula', 'sudu kayu', 'senduk', 'pisau', 'pengupas', 'parut', 'papan pemotong', 'penyepit', 'dulang pembakar', 'wok', 'pemanggang', 'pengukus', 'bekas pembakar', 'cawan penyukat', 'pengikis doh', 'penggelek doh']
+            const fallbackByLang = {
+                de: ['Pfanne', 'Topf', 'Backofen', 'Rührschüssel', 'Sieb', 'Mixer', 'Pürierstab', 'Küchenmaschine', 'Bräter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform'],
+                en: ['pan', 'pot', 'oven', 'mixing bowl', 'strainer', 'blender', 'immersion blender', 'food processor', 'roaster', 'wok', 'grill', 'steamer', 'baking dish'],
+                esp: ['sartén', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno'],
+                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mão', 'processador de alimentos', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno'],
+                id: ['wajan', 'panci', 'oven', 'mangkuk adonan', 'saringan', 'blender', 'blender tangan', 'food processor', 'loyang panggang', 'wok', 'pemanggang', 'kukusan', 'pinggan oven'],
+                nl: ['pan', 'kookpot', 'oven', 'mengkom', 'zeef', 'blender', 'staafmixer', 'keukenmachine', 'braadslede', 'wok', 'grill', 'stoomkoker', 'ovenschaal'],
+                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskål', 'sil', 'mixer', 'stavmixer', 'matberedare', 'stekgryta', 'wok', 'grill', 'ångkokare', 'ugnsform'],
+                da: ['pande', 'gryde', 'ovn', 'røreskål', 'si', 'blender', 'stavblender', 'foodprocessor', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad'],
+                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjøkkenmaskin', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form'],
+                ms: ['kuali', 'periuk', 'ketuhar', 'mangkuk adunan', 'penapis', 'pengisar', 'pengisar tangan', 'pemproses makanan', 'dulang pembakar', 'wok', 'pemanggang', 'pengukus', 'bekas pembakar']
             };
 
-            const fromRenderer = [];
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const equipmentOptions = MasterStepRenderer.getVariablePresets('equipment', lang);
-                const toolOptions = MasterStepRenderer.getVariablePresets('tool', lang);
-                if (Array.isArray(equipmentOptions)) fromRenderer.push(...equipmentOptions);
-                if (Array.isArray(toolOptions)) fromRenderer.push(...toolOptions);
-            }
+            const rendererOptions = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('equipment', lang)
+                : [];
 
-            const fallback = localizedFallbacks[lang] || localizedFallbacks.de;
-            const merged = [...fromRenderer, ...fallback]
+            const fallback = fallbackByLang[lang] || fallbackByLang.de;
+            const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
                 .map(x => (x || '').toString().trim())
                 .filter(Boolean);
 
             return Array.from(new Set(merged));
-        }
-
-        function getEquipmentOptions() {
-            return getUnifiedToolEquipmentOptions();
         }
 
         function openEquipmentEditorForToken(tokenId) {
@@ -2119,19 +2111,47 @@
         }
 
         function getToolOptions() {
-            return getUnifiedToolEquipmentOptions();
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const fallbackByLang = {
+                de: ['Messer', 'Sparschäler', 'Reibe', 'Schneebesen', 'Spatel', 'Zange', 'Holzlöffel', 'Suppenkelle', 'Schneidebrett', 'Messbecher', 'Nudelholz', 'Teigschaber'],
+                en: ['knife', 'peeler', 'grater', 'whisk', 'spatula', 'tongs', 'wooden spoon', 'ladle', 'cutting board', 'measuring cup', 'rolling pin', 'dough scraper'],
+                esp: ['cuchillo', 'pelador', 'rallador', 'batidor', 'espátula', 'pinzas', 'cuchara de madera', 'cucharón', 'tabla de cortar', 'vaso medidor', 'rodillo', 'rasqueta de masa'],
+                prt: ['faca', 'descascador', 'ralador', 'batedor', 'espátula', 'pinça', 'colher de pau', 'concha', 'tábua de corte', 'copo medidor', 'rolo de massa', 'raspador de massa'],
+                id: ['pisau', 'pengupas', 'parutan', 'pengocok', 'spatula', 'penjepit', 'sendok kayu', 'sendok sayur', 'talenan', 'gelas ukur', 'rolling pin', 'scraper adonan'],
+                nl: ['mes', 'dunschiller', 'rasp', 'garde', 'spatel', 'tang', 'houten lepel', 'soeplepel', 'snijplank', 'maatbeker', 'deegroller', 'deegschraper'],
+                sv: ['kniv', 'potatisskalare', 'rivjärn', 'visp', 'stekspade', 'tång', 'träslev', 'slev', 'skärbräda', 'måttkopp', 'kavel', 'degskrapa'],
+                da: ['kniv', 'skræller', 'rivejern', 'piskeris', 'spatel', 'tang', 'træske', 'suppeske', 'skærebræt', 'målebæger', 'kagerulle', 'dejskraber'],
+                no: ['kniv', 'skreller', 'rivjern', 'visp', 'stekespade', 'klype', 'tresleiv', 'øse', 'skjærefjøl', 'målebeger', 'kjevle', 'deigskrape'],
+                ms: ['pisau', 'pengupas', 'parut', 'pemukul', 'spatula', 'penyepit', 'sudu kayu', 'senduk', 'papan pemotong', 'cawan penyukat', 'penggelek doh', 'pengikis doh']
+            };
+
+            const rendererOptions = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('tool', lang)
+                : [];
+
+            const fallback = fallbackByLang[lang] || fallbackByLang.de;
+            const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
+                .map(x => (x || '').toString().trim())
+                .filter(Boolean);
+
+            return Array.from(new Set(merged));
         }
 
         function openToolEditorForToken(tokenId) {
             if (!tokenId) return;
-            // Tool und Equipment verwenden denselben Editor + dieselbe große Auswahlliste.
             creatorState.activeToolTokenId = tokenId;
-            openEquipmentEditorForToken(tokenId);
+            const currentText = (creatorState.placeholderAssignments[tokenId] || $('#toolValueInput').val() || '').toString().trim();
+            const options = getToolOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Messer';
+            $('#toolValueInput').val(selected);
+            renderInlineToolOptions();
+            placeEditorLikeTemperature('#toolEditor');
+            $('#toolEditor').removeClass('d-none');
         }
 
         function closeToolEditor() {
             creatorState.activeToolTokenId = '';
-            closeEquipmentEditor();
+            $('#toolEditor').addClass('d-none');
         }
 
         function renderInlineToolOptions() {
@@ -2400,8 +2420,12 @@
                 return map[lang] || map.de;
             }
 
-            if (keyNorm === 'equipment' || keyNorm === 'tool') {
-                return getUnifiedToolEquipmentOptions()[0] || 'Pfanne';
+            if (keyNorm === 'equipment') {
+                return getEquipmentOptions()[0] || 'Pfanne';
+            }
+
+            if (keyNorm === 'tool') {
+                return getToolOptions()[0] || 'Messer';
             }
 
             if (keyNorm === 'grind_size' || keyNorm === 'grindsize') {
