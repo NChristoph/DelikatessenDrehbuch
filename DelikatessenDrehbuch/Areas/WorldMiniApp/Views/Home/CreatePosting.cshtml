@@ -1840,7 +1840,7 @@
 
         function isItemPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
-            return value === 'item' || value.includes('item');
+            return value === 'item' || value === 'dish' || value.includes('item');
         }
 
         function isCountPlaceholderKey(key) {
@@ -2415,16 +2415,16 @@
                 }
             }
             const fallback = {
-                de: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht'],
-                en: ['dough', 'batter', 'mixture', 'dish'],
-                esp: ['masa', 'mezcla', 'preparación', 'plato'],
-                prt: ['massa', 'mistura', 'preparação', 'prato'],
-                id: ['adonan', 'campuran', 'olahan', 'hidangan'],
-                nl: ['deeg', 'mengsel', 'mix', 'gerecht'],
-                sv: ['deg', 'smet', 'blandning', 'rätt'],
-                da: ['dej', 'masse', 'blanding', 'ret'],
-                no: ['deig', 'røre', 'blanding', 'rett'],
-                ms: ['doh', 'adunan', 'campuran', 'hidangan']
+                de: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht', 'die Suppe', 'die Soße', 'den Auflauf'],
+                en: ['the dough', 'the batter', 'the mixture', 'the dish', 'the soup', 'the sauce', 'the casserole'],
+                esp: ['la masa', 'la mezcla', 'la preparación', 'el plato', 'la sopa', 'la salsa', 'el gratén'],
+                prt: ['a massa', 'a mistura', 'a preparação', 'o prato', 'a sopa', 'o molho', 'a caçarola'],
+                id: ['adonan', 'campuran', 'olahan', 'hidangan', 'sup', 'saus', 'casserole'],
+                nl: ['het deeg', 'het mengsel', 'de mix', 'het gerecht', 'de soep', 'de saus', 'de ovenschotel'],
+                sv: ['degen', 'smeten', 'blandningen', 'rätten', 'soppan', 'såsen', 'gratängen'],
+                da: ['dejen', 'blandingen', 'retten', 'suppen', 'saucen', 'ovnretten'],
+                no: ['deigen', 'røren', 'blandingen', 'retten', 'suppen', 'sausen', 'gratengen'],
+                ms: ['doh', 'adunan', 'campuran', 'hidangan', 'sup', 'sos', 'kaserol']
             };
             return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
         }
@@ -2562,7 +2562,7 @@
                 return getGrindSizeOptions()[0] || 'feine';
             }
 
-            if (keyNorm === 'item') {
+            if (keyNorm === 'item' || keyNorm === 'dish') {
                 return getItemOptions()[0] || 'den Teig';
             }
 
@@ -2604,7 +2604,7 @@
                     else if (isModePlaceholderKey(key)) vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
-                    else if (key === 'item') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
+                    else if (key === 'item' || key === 'dish') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
                     else {
