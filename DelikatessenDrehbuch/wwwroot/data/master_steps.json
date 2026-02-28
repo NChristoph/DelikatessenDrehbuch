@@ -99,18 +99,18 @@
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
       "templates": {
-        "de": "Schneide {{ingredient}} in {{shape}}.",
-        "en": "Cut {{ingredient}} into {{shape}}.",
-        "esp": "Corta {{ingredient}} en {{shape}}.",
-        "prt": "Corte {{ingredient}} em {{shape}}.",
-        "id": "Potong {{ingredient}} menjadi {{shape}}.",
-        "nl": "Snijd {{ingredient}} in {{shape}}.",
-        "sv": "Skär {{ingredient}} i {{shape}}.",
-        "da": "Skær {{ingredient}} i {{shape}}.",
-        "no": "Skjær {{ingredient}} i {{shape}}.",
-        "ms": "Potong {{ingredient}} kepada {{shape}}."
+        "de": "Schneide {{ingredient}} in {{grind_size}}e {{shape}}.",
+        "en": "Cut {{ingredient}} into {{grind_size}} {{shape}}.",
+        "esp": "Corta {{ingredient}} en {{grind_size}} {{shape}}.",
+        "prt": "Corte {{ingredient}} em {{grind_size}} {{shape}}.",
+        "id": "Potong {{ingredient}} menjadi {{grind_size}} {{shape}}.",
+        "nl": "Snijd {{ingredient}} in {{grind_size}} {{shape}}.",
+        "sv": "Skär {{ingredient}} i {{grind_size}} {{shape}}.",
+        "da": "Skær {{ingredient}} i {{grind_size}} {{shape}}.",
+        "no": "Skjær {{ingredient}} i {{grind_size}} {{shape}}.",
+        "ms": "Potong {{ingredient}} kepada {{grind_size}} {{shape}}."
       },
-      "variables": [ "ingredient", "shape" ]
+      "variables": [ "ingredient", "grind_size", "shape" ]
     },
     {
       "master_id": "PREP_GRATE_01",
@@ -299,18 +299,18 @@
       "equipment": 0,
       "description": "Teig ausrollen (Pizza, Naan, Mürbteig)",
       "templates": {
-        "de": "Rolle {{dough}} auf {{surface}} zu {{shape}} aus.",
-        "en": "Roll out {{dough}} on {{surface}} into {{shape}}.",
-        "esp": "Extiende {{dough}} sobre {{surface}} hasta {{shape}}.",
-        "prt": "Abra {{dough}} sobre {{surface}} em {{shape}}.",
-        "id": "Gilas {{dough}} di atas {{surface}} hingga berbentuk {{shape}}.",
-        "nl": "Rol {{dough}} uit op {{surface}} tot {{shape}}.",
-        "sv": "Kavla ut {{dough}} på {{surface}} till {{shape}}.",
-        "da": "Rul {{dough}} ud på {{surface}} til {{shape}}.",
-        "no": "Kjevle {{dough}} ut på {{surface}} til {{shape}}.",
-        "ms": "Canai {{dough}} di atas {{surface}} hingga menjadi {{shape}}."
+        "de": "Rolle {{dough}} auf {{surface}} zu {{grind_size}}en {{shape}} aus.",
+        "en": "Roll out {{dough}} on {{surface}} into {{grind_size}} {{shape}}.",
+        "esp": "Extiende {{dough}} sobre {{surface}} hasta {{grind_size}} {{shape}}.",
+        "prt": "Abra {{dough}} sobre {{surface}} em {{grind_size}} {{shape}}.",
+        "id": "Gilas {{dough}} di atas {{surface}} hingga berbentuk {{grind_size}} {{shape}}.",
+        "nl": "Rol {{dough}} uit op {{surface}} tot {{grind_size}} {{shape}}.",
+        "sv": "Kavla ut {{dough}} på {{surface}} till {{grind_size}} {{shape}}.",
+        "da": "Rul {{dough}} ud på {{surface}} til {{grind_size}} {{shape}}.",
+        "no": "Kjevle {{dough}} ut på {{surface}} til {{grind_size}} {{shape}}.",
+        "ms": "Canai {{dough}} di atas {{surface}} hingga menjadi {{grind_size}} {{shape}}."
       },
-      "variables": [ "dough", "surface", "shape" ]
+      "variables": [ "dough", "surface", "grind_size", "shape" ]
     },
     {
       "master_id": "PREP_BREAD_3STEP_01",
@@ -1011,6 +1011,18 @@
       "da": [ "æggehviderne", "massen", "dejen", "cremen", "saucen", "glasuren", "fyldet", "marinaden", "emulsionen", "skummet" ],
       "no": [ "eggehviten", "massen", "deigen", "kremen", "sausen", "glasuren", "fyllet", "marinaden", "emulsjonen", "skummet" ],
       "ms": [ "putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih" ]
+    },
+    "grind_size": {
+      "de": [ "feine", "mittlere", "grobe", "dünne", "breite", "kleine", "große" ],
+      "en": [ "fine", "medium", "coarse", "thin", "wide", "small", "large" ],
+      "esp": [ "finas", "medianas", "gruesas", "delgadas", "anchas", "pequeñas", "grandes" ],
+      "prt": [ "finas", "médias", "grossas", "finas", "largas", "pequenas", "grandes" ],
+      "id": [ "halus", "sedang", "kasar", "tipis", "tebal", "kecil", "besar" ],
+      "nl": [ "fijne", "middelgrote", "grove", "dunne", "brede", "kleine", "grote" ],
+      "sv": [ "fina", "medelgrova", "grova", "tunna", "breda", "små", "stora" ],
+      "da": [ "fine", "mellemstore", "grove", "tynde", "brede", "små", "store" ],
+      "no": [ "fine", "middels", "grove", "tynne", "brede", "små", "store" ],
+      "ms": [ "halus", "sederhana", "kasar", "nipis", "lebar", "kecil", "besar" ]
     },
     "equipment": {
       "de": [ "Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb" ],

@@ -415,6 +415,14 @@
                                         <button type="button" id="btnApplyTool" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="grindSizeEditor" class="duration-editor d-none mt-2">
+                                    <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="text" id="grindSizeValueInput" class="form-control form-control-sm" style="max-width:220px" placeholder="z.B. fein, grob, dünn" />
+                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
                                 <div id="shapeEditor" class="duration-editor d-none mt-2">
                                     <div class="small text-muted mb-1">Schnittform einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
@@ -1525,7 +1533,9 @@
             stateValue: 'goldbraun',
             activeToolTokenId: '',
             activeShapeTokenId: '',
+            activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
+            grindSizeValue: 'feine',
             baseValue: 'Teig'
         };
 
@@ -1632,6 +1642,11 @@
         function isToolPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'tool';
+        }
+
+        function isGrindSizePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'grind_size' || value === 'grindsize' || value.includes('grind');
         }
 
         function isShapePlaceholderKey(key) {
@@ -1964,6 +1979,58 @@
             wrap.html(html);
         }
 
+        function getGrindSizeOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('grind_size', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            const fallback = {
+                de: ['feine', 'mittlere', 'grobe', 'dünne', 'breite', 'kleine', 'große'],
+                en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large'],
+                esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeñas', 'grandes'],
+                prt: ['finas', 'médias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
+                id: ['halus', 'sedang', 'kasar', 'tipis', 'tebal', 'kecil', 'besar'],
+                nl: ['fijne', 'middelgrote', 'grove', 'dunne', 'brede', 'kleine', 'grote'],
+                sv: ['fina', 'medelgrova', 'grova', 'tunna', 'breda', 'små', 'stora'],
+                da: ['fine', 'mellemstore', 'grove', 'tynde', 'brede', 'små', 'store'],
+                no: ['fine', 'middels', 'grove', 'tynne', 'brede', 'små', 'store'],
+                ms: ['halus', 'sederhana', 'kasar', 'nipis', 'lebar', 'kecil', 'besar']
+            };
+            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+        }
+
+        function openGrindSizeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeGrindSizeTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.grindSizeValue || '').toString().trim();
+            const options = getGrindSizeOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'feine';
+            creatorState.grindSizeValue = selected;
+            $('#grindSizeValueInput').val(selected);
+            renderInlineGrindSizeOptions();
+            $('#grindSizeEditor').removeClass('d-none');
+        }
+
+        function closeGrindSizeEditor() {
+            creatorState.activeGrindSizeTokenId = '';
+            $('#grindSizeEditor').addClass('d-none');
+        }
+
+        function renderInlineGrindSizeOptions() {
+            const wrap = $('#inlineGrindSizeOptions');
+            if (!wrap.length) return;
+            const options = getGrindSizeOptions();
+            const currentVal = ($('#grindSizeValueInput').val() || creatorState.grindSizeValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-grind-size-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function getShapeOptions() {
             return ['Würfel', 'Scheiben', 'Streifen', 'feine Würfel', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
         }
@@ -2031,6 +2098,7 @@
             closeEquipmentEditor();
             closeStateEditor();
             closeToolEditor();
+            closeGrindSizeEditor();
             closeShapeEditor();
             closeBaseEditor();
         }
@@ -2114,6 +2182,10 @@
                 return getUnifiedToolEquipmentOptions()[0] || 'Pfanne';
             }
 
+            if (keyNorm === 'grind_size' || keyNorm === 'grindsize') {
+                return getGrindSizeOptions()[0] || 'feine';
+            }
+
             return '';
         }
 
@@ -2148,6 +2220,7 @@
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
+                    else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
                     else {
@@ -3002,6 +3075,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openToolEditorForToken(tokenId);
                     showCreatorToast('Tool / Gerät wählen');
+                } else if (isGrindSizePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openGrindSizeEditorForToken(tokenId);
+                    showCreatorToast('Schnittgröße wählen');
                 } else if (isShapePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openShapeEditorForToken(tokenId);
@@ -3232,6 +3309,28 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeToolEditor();
                 showCreatorToast('Werkzeug eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineGrindSizeOptions').on('click', '.inline-grind-size-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                $('#grindSizeValueInput').val(val);
+                creatorState.grindSizeValue = val;
+                renderInlineGrindSizeOptions();
+            });
+
+            $('#grindSizeValueInput').on('input', function () {
+                creatorState.grindSizeValue = ($(this).val() || '').toString().trim();
+            });
+
+            $('#btnApplyGrindSize').on('click', function () {
+                const tokenId = creatorState.activeGrindSizeTokenId;
+                const val = ($('#grindSizeValueInput').val() || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                creatorState.grindSizeValue = val;
+                closeGrindSizeEditor();
+                showCreatorToast('Schnittgröße eingesetzt');
                 renderTemplateCards();
             });
 
