@@ -920,9 +920,9 @@
     }
 
     .keyword-btn {
-        border-color: var(--creator-border);
-        color: var(--creator-text);
-        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.55);
+        color: #111827;
+        background: #ffffff;
     }
 
     .keyword-btn.btn-secondary,
@@ -933,19 +933,19 @@
     }
 
     .keyword-pill {
-        border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.12) !important;
         color: #fff !important;
         padding: 8px 12px;
     }
 
-
     #card-keywords {
         border-radius: 24px;
         border: 1px solid rgba(255,255,255,0.12);
-        background: var(--creator-bg);
-        color: var(--creator-text);
+        background: radial-gradient(120% 120% at 10% 0%, #2f2f5f 0%, #17172a 45%, #0f1119 100%);
+        color: #f8f9ff;
         box-shadow: 0 18px 40px rgba(16,20,40,0.26);
+        overflow: hidden;
     }
 
     #card-keywords .creator-card-head {
@@ -953,15 +953,23 @@
         background: rgba(12,16,28,0.28);
     }
 
-    #card-keywords .creator-card-title,
+    #card-keywords .creator-card-title {
+        color: #f8f9ff;
+    }
+
     #card-keywords .creator-card-sub {
-        color: var(--creator-text);
+        color: rgba(248,249,255,0.72);
     }
 
     #card-keywords .badge {
-        color: var(--creator-text) !important;
-        border-color: var(--creator-border) !important;
+        color: #f8f9ff !important;
+        border-color: rgba(255,255,255,0.22) !important;
         background: rgba(255,255,255,0.08) !important;
+    }
+
+    .smart-step-creator .btn.btn-sm:not(.advanced-gear),
+    #card-keywords .btn.btn-sm {
+        border-radius: 999px;
     }
 
     #ingredientsDbTable .ingredient-inline-inputs .form-control,
