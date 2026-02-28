@@ -304,7 +304,17 @@
                                             data-name-de="@item.Name_DE"
                                             data-name-en="@item.Name_EN"
                                             data-name-esp="@item.Name_ESP"
-                                            data-name-prt="@item.Name_PRT">
+                                            data-name-prt="@item.Name_PRT"
+                                            data-genus-de="@item.Genus_DE"
+                                            data-genus-en="@item.Genus_EN"
+                                            data-genus-esp="@item.Genus_ESP"
+                                            data-genus-prt="@item.Genus_PRT"
+                                            data-genus-id="@item.Genus_ID"
+                                            data-genus-nl="@item.Genus_NL"
+                                            data-genus-se="@item.Genus_SE"
+                                            data-genus-dk="@item.Genus_DK"
+                                            data-genus-no="@item.Genus_NO"
+                                            data-genus-ms="@item.Genus_MS">
                                             <td>
                                                 <div class="fw-bold display-name">@item.Name_DE</div>
 
@@ -1496,11 +1506,18 @@
                 const row = $(this);
                 const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
                 const name = row.find('.display-name-selected').text()?.trim() || '';
-                return { id, name };
+                const genusDe = (row.data('genus-de') || '').toString().trim();
+                const genusLocalized = (row.data('genus-' + currentLang) || '').toString().trim();
+                return { id, name, genusDe, genusLocalized };
             }).get().filter(x => x.id || x.name);
 
             if (fromSelected.length) {
-                return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
+                return fromSelected.map(x => ({
+                    id: x.id || '',
+                    name: x.name || 'Zutat',
+                    genusDe: x.genusDe || '',
+                    genusLocalized: x.genusLocalized || ''
+                }));
             }
             return [];
         }
@@ -1560,13 +1577,28 @@
             return '🥣';
         }
 
-        function resolveGermanGrammarForIngredient(ingredientName) {
+        function resolveGermanGrammarForIngredient(ingredientName, genusHint = '') {
             const value = (ingredientName || '').toString().trim().toLowerCase();
+            const genus = (genusHint || '').toString().trim().toLowerCase();
             const known = {
                 m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
                 f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
                 n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
             };
+
+            const femaleHints = ['f', 'fem', 'femin', 'die'];
+            const neutralHints = ['n', 'neu', 'neut', 'das'];
+            const maleHints = ['m', 'mas', 'mask', 'der'];
+
+            if (femaleHints.some(x => genus === x || genus.includes(x))) {
+                return { pronoun: 'sie', article: 'die' };
+            }
+            if (neutralHints.some(x => genus === x || genus.includes(x))) {
+                return { pronoun: 'es', article: 'das' };
+            }
+            if (maleHints.some(x => genus === x || genus.includes(x))) {
+                return { pronoun: 'ihn', article: 'den' };
+            }
 
             let gender = 'm';
             if (known.f.some(x => value.includes(x))) gender = 'f';
@@ -1598,9 +1630,19 @@
         }
 
         function getSelectedIngredientForCreator() {
-            const names = getSelectedIngredientNames();
-            if (!names.length) return null;
-            return { id: (creatorState.selectedIngredientIds || [])[0] || '', name: names[0] };
+            const ingredients = getSelectedIngredientsForSandbox();
+            const selectedId = (creatorState.selectedIngredientIds || [])[0] || '';
+            if (!selectedId) return null;
+
+            const selected = ingredients.find(x => x.id === selectedId);
+            if (!selected) return null;
+
+            return {
+                id: selected.id || '',
+                name: selected.name || '',
+                genusDe: selected.genusDe || '',
+                genusLocalized: selected.genusLocalized || ''
+            };
         }
 
         function getSelectedIngredientValueForInsert() {
@@ -2262,9 +2304,10 @@
 
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
+            const selectedIngredient = getSelectedIngredientForCreator();
             const selectedNames = getSelectedIngredientNames();
-            const ingredientName = selectedNames.length ? selectedNames.join(', ') : '';
-            const grammar = resolveGermanGrammarForIngredient(ingredientName);
+            const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
+            const grammar = resolveGermanGrammarForIngredient(ingredientName, selectedIngredient?.genusDe || '');
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
             creatorState.computedArticle = creatorState.advancedArticleOverride || grammar.article;
@@ -2733,13 +2776,15 @@
 
             const row = $(btn).closest('.ingredient-db-row');
             const name = row.data('name-' + currentLang) || row.data('name-de');
+            const genusDe = (row.data('genus-de') || '').toString().trim();
+            const genusLocalized = (row.data('genus-' + currentLang) || '').toString().trim();
             const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
             const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
             const unitOptions = dbUnits.map(u => `<option value="${u}" ${u === selectedUnit ? 'selected' : ''}>${u}</option>`).join('');
 
             // Neues Element erstellen
             const newIngredient = `
-            <div class="dynamic-item ingredient-row shadow-sm">
+            <div class="dynamic-item ingredient-row shadow-sm" data-genus-de="${$('<div>').text(genusDe).html()}" data-genus-${currentLang}="${$('<div>').text(genusLocalized).html()}">
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
 
                 <div class="d-flex justify-content-between align-items-center mb-2">
