@@ -1562,8 +1562,19 @@
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
-         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => new { id = x.Id, de = x.Metriks_DE, en = x.Metriks_EN, esp = x.Metriks_ESP, prt = x.Metriks_PRT, idn = x.Metriks_ID, ms = x.Metriks_MS, nl = x.Metriks_NL, sv = x.Metriks_SE, da = x.Metriks_DK, no = x.Metriks_NO }).ToList() ?? new List<object>()));
-
+var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => new { 
+                                                                                    id = x.Id, 
+                                                                                    de = x.Metriks_DE, 
+                                                                                    en = x.Metriks_EN, 
+                                                                                    esp = x.Metriks_ESP, 
+                                                                                    prt = x.Metriks_PRT, 
+                                                                                    idn = x.Metriks_ID, 
+                                                                                    ms = x.Metriks_MS, 
+                                                                                    nl = x.Metriks_NL, 
+                                                                                    sv = x.Metriks_SE, 
+                                                                                    da = x.Metriks_DK, 
+                                                                                    no = x.Metriks_NO 
+                                                                                }).ToList()));
          function getCookieValue(name) {
              const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
              return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
