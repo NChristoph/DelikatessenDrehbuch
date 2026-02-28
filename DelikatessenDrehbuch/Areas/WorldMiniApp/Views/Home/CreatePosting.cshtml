@@ -415,12 +415,11 @@
                                         <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="pronounEditor" class="duration-editor d-none mt-2">
+                                <div id="pronounEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Pronomen einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="pronounValueInput" class="form-control form-control-sm" style="max-width:160px" placeholder="z.B. ihn/sie/es" />
-                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="toolEditor" class="duration-editor d-none mt-2">
@@ -1613,6 +1612,7 @@
             activeHeatTokenId: '',
             heatValue: 'mittlerer',
             activePronounTokenId: '',
+            pronounValue: '',
             activeEquipmentTokenId: '',
             equipmentValue: 'Pfanne',
             activeStateTokenId: '',
@@ -1989,8 +1989,9 @@
             if (!tokenId) return;
             creatorState.activePronounTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.computedPronoun || '').toString().trim();
-            $('#pronounValueInput').val(currentText);
+            creatorState.pronounValue = currentText;
             renderInlinePronounOptions();
+            placeEditorLikeTemperature('#pronounEditor');
             $('#pronounEditor').removeClass('d-none');
         }
 
@@ -2003,7 +2004,7 @@
             const wrap = $('#inlinePronounOptions');
             if (!wrap.length) return;
             const options = getPronounSuggestionsForLang(currentLang);
-            const currentVal = ($('#pronounValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.pronounValue || creatorState.computedPronoun || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
@@ -3082,7 +3083,6 @@
                     <div class="step-row-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
                         ${chipBtnHtml}
                         <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
                     </div>
@@ -3096,31 +3096,6 @@
         function removeStep(btn) {
             $(btn).closest('.step-row').remove();
             updateStepIndices();
-        }
-
-        function editStepText(btn) {
-            const row = $(btn).closest('.step-row');
-            const textNode = row.find('.step-text-content').first();
-            const currentText = (textNode.text() || '').trim();
-            const updatedText = prompt('Schritt bearbeiten:', currentText);
-            if (updatedText === null) return;
-            const trimmed = updatedText.trim();
-            if (!trimmed) return;
-
-            textNode.text(trimmed);
-
-            const langMap = { de: '.step-hidden-de', en: '.step-hidden-en', esp: '.step-hidden-esp', prt: '.step-hidden-prt' };
-            const targetSelector = langMap[currentLang] || '.step-hidden-de';
-            const targetInput = row.find(targetSelector).first();
-            if (targetInput.length) {
-                targetInput.val(trimmed);
-            }
-
-            const deInput = row.find('.step-hidden-de').first();
-            const enInput = row.find('.step-hidden-en').first();
-            if (deInput.length && !deInput.val()) deInput.val(trimmed);
-            if (enInput.length && !enInput.val()) enInput.val(trimmed);
-
         }
 
         function toggleKeyword(id, btn) {
@@ -3494,15 +3469,16 @@
 
             $('#inlinePronounOptions').on('click', '.inline-pronoun-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#pronounValueInput').val(val);
+                creatorState.pronounValue = val;
                 renderInlinePronounOptions();
             });
 
             $('#btnApplyPronoun').on('click', function () {
                 const tokenId = creatorState.activePronounTokenId;
-                const val = ($('#pronounValueInput').val() || '').toString().trim();
+                const val = (creatorState.pronounValue || creatorState.computedPronoun || '').toString().trim();
                 if (!val) return;
                 creatorState.advancedPronounOverride = val;
+                creatorState.computedPronoun = val;
                 if (tokenId && tokenId !== '__global__') {
                     creatorState.placeholderAssignments[tokenId] = val;
                 }
