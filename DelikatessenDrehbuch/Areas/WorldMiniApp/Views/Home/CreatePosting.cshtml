@@ -437,6 +437,13 @@
                                         <button type="button" id="btnApplyBase" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
+                                <div id="itemEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Item einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="template-selection-wrap">
                                 <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
@@ -1535,6 +1542,8 @@
             activeBaseTokenId: '',
             grindSizeValue: 'feine',
             shapeValue: 'Würfel',
+            activeItemTokenId: '',
+            itemValue: 'Teig',
             baseValue: 'Teig'
         };
 
@@ -1656,6 +1665,11 @@
         function isBasePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'base';
+        }
+
+        function isItemPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'item' || value.includes('item');
         }
 
         function isCountPlaceholderKey(key) {
@@ -2089,6 +2103,58 @@
             wrap.html(html);
         }
 
+        function getItemOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('item', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            const fallback = {
+                de: ['Teig', 'Masse', 'Mischung', 'Gericht'],
+                en: ['dough', 'batter', 'mixture', 'dish'],
+                esp: ['masa', 'mezcla', 'preparación', 'plato'],
+                prt: ['massa', 'mistura', 'preparação', 'prato'],
+                id: ['adonan', 'campuran', 'olahan', 'hidangan'],
+                nl: ['deeg', 'mengsel', 'mix', 'gerecht'],
+                sv: ['deg', 'smet', 'blandning', 'rätt'],
+                da: ['dej', 'masse', 'blanding', 'ret'],
+                no: ['deig', 'røre', 'blanding', 'rett'],
+                ms: ['doh', 'adunan', 'campuran', 'hidangan']
+            };
+            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+        }
+
+        function openItemEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeItemTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
+            const options = getItemOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Teig';
+            creatorState.itemValue = selected;
+            renderInlineItemOptions();
+            placeEditorLikeTemperature('#itemEditor');
+            $('#itemEditor').removeClass('d-none');
+        }
+
+        function closeItemEditor() {
+            creatorState.activeItemTokenId = '';
+            $('#itemEditor').addClass('d-none');
+        }
+
+        function renderInlineItemOptions() {
+            const wrap = $('#inlineItemOptions');
+            if (!wrap.length) return;
+            const options = getItemOptions();
+            const currentVal = (creatorState.itemValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-item-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function closeAllEditors() {
             closeDurationEditor();
             closeCountEditor();
@@ -2101,6 +2167,7 @@
             closeGrindSizeEditor();
             closeShapeEditor();
             closeBaseEditor();
+            closeItemEditor();
         }
 
         function placeEditorLikeTemperature(editorSelector) {
@@ -2186,6 +2253,10 @@
                 return getGrindSizeOptions()[0] || 'feine';
             }
 
+            if (keyNorm === 'item') {
+                return getItemOptions()[0] || 'Teig';
+            }
+
             return '';
         }
 
@@ -2221,6 +2292,7 @@
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
+                    else if (key === 'item') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'Teig';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
                     else {
@@ -3087,6 +3159,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openBaseEditorForToken(tokenId);
                     showCreatorToast('Basis wählen');
+                } else if (isItemPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openItemEditorForToken(tokenId);
+                    showCreatorToast('Item wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -3364,6 +3440,22 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeBaseEditor();
                 showCreatorToast('Basis eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineItemOptions').on('click', '.inline-item-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.itemValue = val;
+                renderInlineItemOptions();
+            });
+
+            $('#btnApplyItem').on('click', function () {
+                const tokenId = creatorState.activeItemTokenId;
+                const val = (creatorState.itemValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeItemEditor();
+                showCreatorToast('Item eingesetzt');
                 renderTemplateCards();
             });
 

@@ -1024,6 +1024,18 @@
       "no": [ "fine", "middels", "grove", "tynne", "brede", "små", "store" ],
       "ms": [ "halus", "sederhana", "kasar", "nipis", "lebar", "kecil", "besar" ]
     },
+    "item": {
+      "de": [ "Teig", "Masse", "Mischung", "Gericht" ],
+      "en": [ "dough", "batter", "mixture", "dish" ],
+      "esp": [ "masa", "mezcla", "preparación", "plato" ],
+      "prt": [ "massa", "mistura", "preparação", "prato" ],
+      "id": [ "adonan", "campuran", "olahan", "hidangan" ],
+      "nl": [ "deeg", "mengsel", "mix", "gerecht" ],
+      "sv": [ "deg", "smet", "blandning", "rätt" ],
+      "da": [ "dej", "masse", "blanding", "ret" ],
+      "no": [ "deig", "røre", "blanding", "rett" ],
+      "ms": [ "doh", "adunan", "campuran", "hidangan" ]
+    },
     "equipment": {
       "de": [ "Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb" ],
       "en": [ "pan", "pot", "oven", "roasting pan", "stovetop", "blender", "grill", "steamer", "bowl", "strainer" ],
