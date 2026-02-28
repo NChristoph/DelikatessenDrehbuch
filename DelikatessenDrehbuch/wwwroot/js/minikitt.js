@@ -179,11 +179,10 @@ window.triggerLogin = (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
     const storedHash = getStoredUserHash();
-    const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 
     // Security: userHash wird nicht mehr als URL-Parameter gesendet.
     // Die Identitaet kommt ausschliesslich aus der serverseitigen Session.
-    if (storedHash && rememberLogin) {
+    if (storedHash) {
         window.location.href = redirectUrl;
         return;
     }
@@ -191,13 +190,28 @@ window.triggerLogin = (level, redirectUrl) => {
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
-    openModal('loginModal');
-    bindConsentButton();
+    showLoginModalWithFallback();
 };
 
-window.retryVerification = () => {
+function showLoginModalWithFallback() {
     openModal('loginModal');
     bindConsentButton();
+
+    const loginModal = document.getElementById('loginModal');
+    if (!loginModal) {
+        return;
+    }
+
+    window.setTimeout(() => {
+        if (!loginModal.classList.contains('show')) {
+            openModal('loginModal');
+            bindConsentButton();
+        }
+    }, 180);
+}
+
+window.retryVerification = () => {
+    showLoginModalWithFallback();
 };
 
 window.initAutoLogin = (level) => {
@@ -212,8 +226,8 @@ window.initAutoLogin = (level) => {
         return;
     }
 
-    openModal('loginModal');
-    bindConsentButton();
+    sessionStorage.removeItem("user_verified");
+    showLoginModalWithFallback();
 };
 
 window.getStoredUserHash = getStoredUserHash;
