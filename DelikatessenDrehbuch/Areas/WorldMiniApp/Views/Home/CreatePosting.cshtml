@@ -415,14 +415,14 @@
                                         <button type="button" id="btnApplyTool" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="grindSizeEditor" class="duration-editor d-none mt-2">
+                                <div id="grindSizeEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
                                     <div class="d-flex justify-content-end align-items-center">
                                         <button type="button" id="btnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="shapeEditor" class="duration-editor d-none mt-2">
+                                <div id="shapeEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Schnittform einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
                                     <div class="d-flex justify-content-end align-items-center">
@@ -1838,7 +1838,7 @@
             const currentVal = ($('#pronounValueInput').val() || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-light text-dark opacity-75';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-pronoun-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -2008,6 +2008,7 @@
             const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'feine';
             creatorState.grindSizeValue = selected;
             renderInlineGrindSizeOptions();
+            placeEditorLikeTemperature('#grindSizeEditor');
             $('#grindSizeEditor').removeClass('d-none');
         }
 
@@ -2023,7 +2024,7 @@
             const currentVal = (creatorState.grindSizeValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-light text-dark opacity-75';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-grind-size-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -2039,6 +2040,7 @@
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.shapeValue || '').toString().trim();
             creatorState.shapeValue = currentText || 'Würfel';
             renderInlineShapeOptions();
+            placeEditorLikeTemperature('#shapeEditor');
             $('#shapeEditor').removeClass('d-none');
         }
 
@@ -2117,7 +2119,7 @@
             const currentVal = (creatorState.shapeValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-light text-dark opacity-75';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-shape-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
