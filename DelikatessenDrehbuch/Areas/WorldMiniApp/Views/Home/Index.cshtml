@@ -235,29 +235,9 @@
                 rememberToggle.checked = localStorage.getItem("remember_login") === "true";
             }
 
-            const storedHash = window.getStoredUserHash
-                ? window.getStoredUserHash()
-                : (sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken"));
-            if (storedHash) {
-                document.querySelectorAll('.app-link').forEach(link => {
-                    const url = new URL(link.href, window.location.origin);
-                    if (!url.searchParams.get('userHash')) {
-                        url.searchParams.set('userHash', storedHash);
-                        link.href = url.toString();
-                    }
-                });
-            }
 
             document.querySelectorAll('.app-link').forEach(link => {
                 link.addEventListener('click', function (event) {
-                    const currentHash = window.getStoredUserHash
-                        ? window.getStoredUserHash()
-                        : (sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken"));
-
-                    if (currentHash) {
-                        return;
-                    }
-
                     event.preventDefault();
                     if (window.triggerLogin) {
                         window.triggerLogin('device', this.href);
@@ -265,7 +245,7 @@
                 });
             });
 
-            if (!storedHash && window.initAutoLogin) {
+            if (window.initAutoLogin) {
                 window.initAutoLogin('device');
             }
 

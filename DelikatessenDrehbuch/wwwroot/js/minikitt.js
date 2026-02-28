@@ -165,11 +165,7 @@ function getRememberLoginValue() {
 }
 
 
-async function syncTokenFromServerSession(rememberLogin) {
-    if (!rememberLogin) {
-        return null;
-    }
-
+async function getServerSessionUserHash() {
     try {
         const response = await fetch('/WorldMiniApp/Auth/SessionStatus', { method: 'GET' });
         if (!response.ok) {
@@ -177,18 +173,37 @@ async function syncTokenFromServerSession(rememberLogin) {
         }
 
         const data = await response.json();
-        const serverUserHash = data?.isLoggedIn ? data?.userHash : null;
-        if (!serverUserHash) {
-            return null;
-        }
-
-        localStorage.setItem("UserToken", serverUserHash);
-        sessionStorage.setItem("user_verified", "true");
-        localStorage.setItem(REMEMBER_LOGIN_KEY, "true");
-        return serverUserHash;
+        return data?.isLoggedIn ? (data?.userHash || null) : null;
     } catch (_) {
         return null;
     }
+}
+
+async function resolveActiveUserHash() {
+    const rememberLogin = getRememberLoginValue();
+    const storedHash = getStoredUserHash();
+    const serverUserHash = await getServerSessionUserHash();
+
+    if (serverUserHash) {
+        if (rememberLogin) {
+            localStorage.setItem("UserToken", serverUserHash);
+            localStorage.setItem(REMEMBER_LOGIN_KEY, "true");
+            sessionStorage.removeItem("UserToken");
+        } else {
+            sessionStorage.setItem("UserToken", serverUserHash);
+            localStorage.removeItem("UserToken");
+        }
+        sessionStorage.setItem("user_verified", "true");
+        return serverUserHash;
+    }
+
+    if (storedHash) {
+        sessionStorage.removeItem("UserToken");
+        localStorage.removeItem("UserToken");
+    }
+
+    sessionStorage.removeItem("user_verified");
+    return null;
 }
 
 function updateStoredLoginInfo(userHash, verifyLevel) {
@@ -205,16 +220,11 @@ function updateStoredLoginInfo(userHash, verifyLevel) {
 window.triggerLogin = async (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
-    let storedHash = getStoredUserHash();
-    const rememberLogin = getRememberLoginValue();
-
-    if (!storedHash && rememberLogin) {
-        storedHash = await syncTokenFromServerSession(true);
-    }
+    const activeHash = await resolveActiveUserHash();
 
     // Security: userHash wird nicht mehr als URL-Parameter gesendet.
     // Die Identitaet kommt ausschliesslich aus der serverseitigen Session.
-    if (storedHash) {
+    if (activeHash) {
         window.location.href = redirectUrl;
         return;
     }
@@ -247,24 +257,16 @@ window.retryVerification = () => {
 };
 
 window.initAutoLogin = async (level) => {
-    let storedHash = getStoredUserHash();
-    const rememberLogin = getRememberLoginValue();
-
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
 
-    if (!storedHash && rememberLogin) {
-        storedHash = await syncTokenFromServerSession(true);
-    }
+    const activeHash = await resolveActiveUserHash();
+    updateStoredLoginInfo(activeHash, level);
 
-    updateStoredLoginInfo(storedHash, level);
-
-    if (storedHash) {
-        sessionStorage.setItem("user_verified", "true");
+    if (activeHash) {
         return;
     }
 
-    sessionStorage.removeItem("user_verified");
     showLoginModalWithFallback();
 };
 
