@@ -273,7 +273,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .Select(k => k.KeywordId)
                     .ToList() ?? new List<int>(),
                 AvailableIngredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
-                AvailableMeasures = await _context.Metrics.OrderBy(x => x.UnitOfMeasurement).ToListAsync(),
+                AvailableMeasures = await _context.Metrics.OrderBy(x => x.Metriks_DE).ToListAsync(),
                 AvailableSteps = await _context.RecipePreperationSteps.ToListAsync(),
                 AvailableKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync(),
                 IngredientStepJoins = await _context.JoinIngredientPreperationStep
@@ -1268,7 +1268,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var nutrient = ingredient?.IngredientsAndNutrients;
                     var name = nutrient?.Name_DE?.Trim();
                     var groupName = nutrient?.Group?.Name ?? "Sonstiges";
-                    var unit = ingredient?.Measure?.UnitOfMeasurement ?? string.Empty;
+                    var unit = ingredient?.Measure?.Metriks_DE ?? string.Empty;
                     var quantity = ingredient?.Quantity?.Quantitys ;
 
                     if (string.IsNullOrWhiteSpace(name))
@@ -1371,7 +1371,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     }
 
                     var quantity = ingredient.Quantity?.Quantitys ?? 0;
-                    var unit = ingredient.Measure?.UnitOfMeasurement ?? string.Empty;
+                    var unit = ingredient.Measure?.Metriks_DE ?? string.Empty;
                     var grams = (decimal)quantity;
 
                     if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)

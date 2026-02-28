@@ -1,0 +1,53 @@
+{
+  "_comment": "Article/pronoun rules by language + grammatical gender key (masc/fem/neut).",
+  "de": {
+    "masc": { "article": "den", "pronoun": "ihn" },
+    "fem": { "article": "die", "pronoun": "sie" },
+    "neut": { "article": "das", "pronoun": "es" }
+  },
+  "en": {
+    "masc": { "article": "the", "pronoun": "it" },
+    "fem": { "article": "the", "pronoun": "it" },
+    "neut": { "article": "the", "pronoun": "it" }
+  },
+  "esp": {
+    "masc": { "article": "el", "pronoun": "lo" },
+    "fem": { "article": "la", "pronoun": "la" },
+    "neut": { "article": "el", "pronoun": "lo" }
+  },
+  "prt": {
+    "masc": { "article": "o", "pronoun": "o" },
+    "fem": { "article": "a", "pronoun": "a" },
+    "neut": { "article": "o", "pronoun": "o" }
+  },
+  "id": {
+    "masc": { "article": "", "pronoun": "dia" },
+    "fem": { "article": "", "pronoun": "dia" },
+    "neut": { "article": "", "pronoun": "dia" }
+  },
+  "nl": {
+    "masc": { "article": "de", "pronoun": "hem" },
+    "fem": { "article": "de", "pronoun": "haar" },
+    "neut": { "article": "het", "pronoun": "het" }
+  },
+  "sv": {
+    "masc": { "article": "", "pronoun": "den" },
+    "fem": { "article": "", "pronoun": "den" },
+    "neut": { "article": "", "pronoun": "det" }
+  },
+  "da": {
+    "masc": { "article": "", "pronoun": "den" },
+    "fem": { "article": "", "pronoun": "den" },
+    "neut": { "article": "", "pronoun": "det" }
+  },
+  "no": {
+    "masc": { "article": "", "pronoun": "den" },
+    "fem": { "article": "", "pronoun": "den" },
+    "neut": { "article": "", "pronoun": "det" }
+  },
+  "ms": {
+    "masc": { "article": "", "pronoun": "dia" },
+    "fem": { "article": "", "pronoun": "dia" },
+    "neut": { "article": "", "pronoun": "dia" }
+  }
+}
