@@ -252,7 +252,12 @@ function showLoginModalWithFallback() {
     }, 180);
 }
 
-window.retryVerification = () => {
+window.retryVerification = async () => {
+    const activeHash = await resolveActiveUserHash();
+    updateStoredLoginInfo(activeHash, currentConfig.level || 'device');
+    if (activeHash) {
+        return;
+    }
     showLoginModalWithFallback();
 };
 

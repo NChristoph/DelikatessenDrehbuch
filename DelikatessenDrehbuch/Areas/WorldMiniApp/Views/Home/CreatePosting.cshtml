@@ -297,12 +297,14 @@
                                      data-selected-qty="0"
                                      data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
 
-                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                        <div class="preview-step-text display-name mb-0">@item.Name_DE</div>
-                                        <button type="button" class="btn btn-sm creator-cta-primary" onclick="addIngredient('@item.Id', this)">
+                                    <div class="d-flex align-items-start gap-2 mb-1 ingredient-card-head">
+                                        <div class="preview-step-text display-name mb-0 flex-grow-1">@item.Name_DE</div>
+                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)">
                                             Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
                                         </button>
                                     </div>
+
+                                    <div class="small text-white-50 text-center label-lang" data-de="Tippen für Menge & Maßeinheit" data-en="Tap for quantity & unit" data-esp="Toca para cantidad y unidad" data-prt="Toque para quantidade e unidade">Tippen für Menge & Maßeinheit</div>
 
                                     <div class="duration-editor mt-2 ingredient-db-details d-none">
                                         <div class="d-flex gap-2 align-items-center">
@@ -939,6 +941,14 @@
         padding-right: 5px;
     }
 
+
+    .ingredient-card-head {
+        width: 100%;
+    }
+
+    .ingredient-card-head .display-name {
+        margin-right: 8px;
+    }
     .ingredient-db-details {
         border-top: 1px solid rgba(255,255,255,0.14);
         padding-top: 10px;
