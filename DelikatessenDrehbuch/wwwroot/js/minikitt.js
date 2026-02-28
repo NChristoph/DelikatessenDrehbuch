@@ -164,6 +164,33 @@ function getRememberLoginValue() {
     return localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 }
 
+
+async function syncTokenFromServerSession(rememberLogin) {
+    if (!rememberLogin) {
+        return null;
+    }
+
+    try {
+        const response = await fetch('/WorldMiniApp/Auth/SessionStatus', { method: 'GET' });
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = await response.json();
+        const serverUserHash = data?.isLoggedIn ? data?.userHash : null;
+        if (!serverUserHash) {
+            return null;
+        }
+
+        localStorage.setItem("UserToken", serverUserHash);
+        sessionStorage.setItem("user_verified", "true");
+        localStorage.setItem(REMEMBER_LOGIN_KEY, "true");
+        return serverUserHash;
+    } catch (_) {
+        return null;
+    }
+}
+
 function updateStoredLoginInfo(userHash, verifyLevel) {
     const hashEl = document.getElementById('storedUserHash');
     const levelEl = document.getElementById('storedVerifyLevel');
@@ -175,10 +202,15 @@ function updateStoredLoginInfo(userHash, verifyLevel) {
     }
 }
 
-window.triggerLogin = (level, redirectUrl) => {
+window.triggerLogin = async (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
-    const storedHash = getStoredUserHash();
+    let storedHash = getStoredUserHash();
+    const rememberLogin = getRememberLoginValue();
+
+    if (!storedHash && rememberLogin) {
+        storedHash = await syncTokenFromServerSession(true);
+    }
 
     // Security: userHash wird nicht mehr als URL-Parameter gesendet.
     // Die Identitaet kommt ausschliesslich aus der serverseitigen Session.
@@ -214,11 +246,17 @@ window.retryVerification = () => {
     showLoginModalWithFallback();
 };
 
-window.initAutoLogin = (level) => {
-    const storedHash = getStoredUserHash();
+window.initAutoLogin = async (level) => {
+    let storedHash = getStoredUserHash();
+    const rememberLogin = getRememberLoginValue();
 
     currentConfig.level = level;
     currentConfig.redirectUrl = "";
+
+    if (!storedHash && rememberLogin) {
+        storedHash = await syncTokenFromServerSession(true);
+    }
+
     updateStoredLoginInfo(storedHash, level);
 
     if (storedHash) {
