@@ -2470,28 +2470,45 @@
             creatorState.activeShapeTokenId = '';
             $('#shapeEditor').addClass('d-none');
         }
+        function getBaseAndItemOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const rendererBase = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('base', lang)
+                : [];
+            const rendererItem = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('item', lang)
+                : [];
+
+            const fallback = {
+                de: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum', 'die Mischung', 'das Gericht', 'die Suppe', 'die Soße', 'den Auflauf'],
+                en: ['the egg white foam', 'the mixture', 'the dough', 'the cream', 'the sauce', 'the glaze', 'the filling', 'the marinade', 'the emulsion', 'the foam', 'the batter', 'the dish', 'the soup', 'the casserole'],
+                esp: ['la clara montada', 'la mezcla', 'la masa', 'la crema', 'la salsa', 'el glaseado', 'el relleno', 'la marinada', 'la emulsión', 'la espuma', 'la preparación', 'el plato', 'la sopa', 'el gratén'],
+                prt: ['a clara em neve', 'a mistura', 'a massa', 'o creme', 'o molho', 'a cobertura', 'o recheio', 'a marinada', 'a emulsão', 'a espuma', 'a preparação', 'o prato', 'a sopa', 'a caçarola'],
+                id: ['buih putih telur', 'campuran', 'adonan', 'krim', 'saus', 'glasir', 'isian', 'marinade', 'emulsi', 'busa', 'olahan', 'hidangan', 'sup', 'casserole'],
+                nl: ['het eiwitschuim', 'het mengsel', 'het deeg', 'de crème', 'de saus', 'het glazuur', 'de vulling', 'de marinade', 'de emulsie', 'het schuim', 'de mix', 'het gerecht', 'de soep', 'de ovenschotel'],
+                sv: ['äggviteskummet', 'blandningen', 'degen', 'krämen', 'såsen', 'glasyren', 'fyllningen', 'marinaden', 'emulsionen', 'skummet', 'smeten', 'rätten', 'soppan', 'gratängen'],
+                da: ['æggehvideskummet', 'blandingen', 'dejen', 'cremen', 'saucen', 'glasuren', 'fyldet', 'marinaden', 'emulsionen', 'skummet', 'retten', 'suppen', 'ovnretten'],
+                no: ['eggehviteskummet', 'blandingen', 'deigen', 'kremen', 'sausen', 'glasuren', 'fyllet', 'marinaden', 'emulsjonen', 'skummet', 'røren', 'retten', 'suppen', 'gratengen'],
+                ms: ['buih putih telur', 'campuran', 'doh', 'krim', 'sos', 'glasur', 'inti', 'perapan', 'emulsi', 'buih', 'adunan', 'hidangan', 'sup', 'kaserol']
+            };
+
+            const merged = [
+                ...(Array.isArray(rendererBase) ? rendererBase : []),
+                ...(Array.isArray(rendererItem) ? rendererItem : []),
+                ...((fallback[lang] || fallback.de))
+            ].map(x => (x || '').toString().trim()).filter(Boolean);
+
+            const seen = new Set();
+            return merged.filter(x => {
+                const key = x.toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
 
         function getBaseOptions() {
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('base', currentLang || 'de');
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
-            }
-            const fallback = {
-                de: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum'],
-                en: ['the egg white foam', 'the mixture', 'the dough', 'the cream', 'the sauce', 'the glaze', 'the filling', 'the marinade', 'the emulsion', 'the foam'],
-                esp: ['la clara montada', 'la mezcla', 'la masa', 'la crema', 'la salsa', 'el glaseado', 'el relleno', 'la marinada', 'la emulsión', 'la espuma'],
-                prt: ['a clara em neve', 'a mistura', 'a massa', 'o creme', 'o molho', 'a cobertura', 'o recheio', 'a marinada', 'a emulsão', 'a espuma'],
-                id: ['buih putih telur', 'campuran', 'adonan', 'krim', 'saus', 'glasir', 'isian', 'marinade', 'emulsi', 'busa'],
-                nl: ['het eiwitschuim', 'het mengsel', 'het deeg', 'de crème', 'de saus', 'het glazuur', 'de vulling', 'de marinade', 'de emulsie', 'het schuim'],
-                sv: ['äggviteskummet', 'blandningen', 'degen', 'krämen', 'såsen', 'glasyren', 'fyllningen', 'marinaden', 'emulsionen', 'skummet'],
-                da: ['æggehvideskummet', 'blandingen', 'dejen', 'cremen', 'saucen', 'glasuren', 'fyldet', 'marinaden', 'emulsionen', 'skummet'],
-                no: ['eggehviteskummet', 'blandingen', 'deigen', 'kremen', 'sausen', 'glasuren', 'fyllet', 'marinaden', 'emulsjonen', 'skummet'],
-                ms: ['buih putih telur', 'campuran', 'doh', 'krim', 'sos', 'glasur', 'inti', 'perapan', 'emulsi', 'buih']
-            };
-            const lang = (currentLang || 'de').toString().toLowerCase();
-            return fallback[lang] || fallback.de;
+            return getBaseAndItemOptions();
         }
 
         function openBaseEditorForToken(tokenId) {
@@ -2525,27 +2542,8 @@
             }).join('');
             wrap.html(html);
         }
-
         function getItemOptions() {
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('item', currentLang || 'de');
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
-            }
-            const fallback = {
-                de: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht', 'die Suppe', 'die Soße', 'den Auflauf'],
-                en: ['the dough', 'the batter', 'the mixture', 'the dish', 'the soup', 'the sauce', 'the casserole'],
-                esp: ['la masa', 'la mezcla', 'la preparación', 'el plato', 'la sopa', 'la salsa', 'el gratén'],
-                prt: ['a massa', 'a mistura', 'a preparação', 'o prato', 'a sopa', 'o molho', 'a caçarola'],
-                id: ['adonan', 'campuran', 'olahan', 'hidangan', 'sup', 'saus', 'casserole'],
-                nl: ['het deeg', 'het mengsel', 'de mix', 'het gerecht', 'de soep', 'de saus', 'de ovenschotel'],
-                sv: ['degen', 'smeten', 'blandningen', 'rätten', 'soppan', 'såsen', 'gratängen'],
-                da: ['dejen', 'blandingen', 'retten', 'suppen', 'saucen', 'ovnretten'],
-                no: ['deigen', 'røren', 'blandingen', 'retten', 'suppen', 'sausen', 'gratengen'],
-                ms: ['doh', 'adunan', 'campuran', 'hidangan', 'sup', 'sos', 'kaserol']
-            };
-            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+            return getBaseAndItemOptions();
         }
 
         function openItemEditorForToken(tokenId) {
