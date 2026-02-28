@@ -284,7 +284,7 @@
                         </div>
                     </div>
 
-                    <div class="template-library" id="ingredientsCatalog" style="height: 400px; overflow-y: auto; padding-right: 5px;">
+                    <div class="template-library ingredient-catalog-scroll" id="ingredientsCatalog">
                         @if (Model.ToSelectIngredientsAndNutrients != null)
                         {
                             foreach (var item in Model.ToSelectIngredientsAndNutrients)
@@ -297,16 +297,16 @@
                                      data-selected-qty="0"
                                      data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
 
-                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                        <div class="preview-step-title mb-0">Zutat hinzufügen</div>
+                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                        <div class="preview-step-text display-name mb-0">@item.Name_DE</div>
                                         <button type="button" class="btn btn-sm creator-cta-primary" onclick="addIngredient('@item.Id', this)">
                                             Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
                                         </button>
                                     </div>
 
-                                    <div class="preview-step-text display-name">@item.Name_DE</div>
+                                    <div class="small text-white-50">Tippen für Menge & Einheit</div>
 
-                                    <div class="duration-editor mt-2">
+                                    <div class="duration-editor mt-2 ingredient-db-details d-none">
                                         <div class="small text-muted mb-2">Menge & Einheit festlegen</div>
                                         <div class="d-flex gap-2 align-items-center">
                                             <input type="text" inputmode="decimal"
@@ -929,6 +929,18 @@
         display: none !important;
     }
 
+
+    .ingredient-catalog-scroll {
+        height: 420px;
+        max-height: 56vh;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .ingredient-db-details {
+        border-top: 1px solid rgba(255,255,255,0.14);
+        padding-top: 10px;
+    }
     .ingredient-catalog-card {
         margin-top: 2px;
         border-radius: 18px;
@@ -4354,7 +4366,13 @@
 
             $(document).on('click', '.ingredient-db-row', function (e) {
                 if ($(e.target).closest('button, input, select, label').length) return;
-                openIngredientConfigForDbRow(this);
+                const details = $(this).find('.ingredient-db-details').first();
+                if (!details.length) return;
+                const shouldOpen = details.hasClass('d-none');
+                $('.ingredient-db-details').addClass('d-none');
+                if (shouldOpen) {
+                    details.removeClass('d-none');
+                }
             });
 
             $('#btnCloseIngredientConfig, #btnCancelIngredientConfig').on('click', function () {
