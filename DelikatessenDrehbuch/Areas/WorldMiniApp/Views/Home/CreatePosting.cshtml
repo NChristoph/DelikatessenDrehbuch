@@ -304,7 +304,23 @@
                                             data-name-de="@item.Name_DE"
                                             data-name-en="@item.Name_EN"
                                             data-name-esp="@item.Name_ESP"
-                                            data-name-prt="@item.Name_PRT">
+                                            data-name-prt="@item.Name_PRT"
+                                            data-name-id="@item.Name_ID"
+                                            data-name-nl="@item.Name_NL"
+                                            data-name-sv="@item.Name_SE"
+                                            data-name-da="@item.Name_DK"
+                                            data-name-no="@item.Name_NO"
+                                            data-name-ms="@item.Name_MS"
+                                            data-genus-de="@item.Genus_DE"
+                                            data-genus-en="@item.Genus_EN"
+                                            data-genus-esp="@item.Genus_ESP"
+                                            data-genus-prt="@item.Genus_PRT"
+                                            data-genus-id="@item.Genus_ID"
+                                            data-genus-nl="@item.Genus_NL"
+                                            data-genus-sv="@item.Genus_SE"
+                                            data-genus-da="@item.Genus_DK"
+                                            data-genus-no="@item.Genus_NO"
+                                            data-genus-ms="@item.Genus_MS">
                                             <td>
                                                 <div class="fw-bold display-name">@item.Name_DE</div>
 
@@ -415,12 +431,18 @@
                                         <button type="button" id="btnApplyTool" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="shapeEditor" class="duration-editor d-none mt-2">
+                                <div id="grindSizeEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="shapeEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Schnittform einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="shapeValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Würfel, Scheiben" />
-                                        <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="baseEditor" class="duration-editor d-none mt-2">
@@ -429,6 +451,13 @@
                                     <div class="d-flex gap-2 align-items-center">
                                         <input type="text" id="baseValueInput" class="form-control form-control-sm" style="max-width:240px" placeholder="z.B. Teig, Creme" />
                                         <button type="button" id="btnApplyBase" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="itemEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Item einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                             </div>
@@ -454,7 +483,7 @@
 
                             <div id="equipmentEditor" class="bottom-sheet-editor d-none">
                                 <div class="small text-muted mb-1 label-lang"
-                                     data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
+                                     data-de="Tool / Gerät wählen" data-en="Choose tool / equipment" data-esp="Elegir herramienta / equipo" data-prt="Escolher ferramenta / equipamento">Tool / Gerät wählen</div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
                                 <div class="d-flex justify-content-end align-items-center">
                                     <button type="button" id="btnApplyEquipment" class="btn btn-sm creator-cta-primary label-lang"
@@ -887,6 +916,89 @@
         margin-bottom: 10px;
         border: 1px solid rgba(0,0,0,0.05);
         box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
+
+    #selectedSteps .step-row {
+        border: 1px solid var(--creator-border);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.08);
+        color: var(--creator-text);
+        padding: 10px;
+        box-shadow: none;
+    }
+
+    #selectedSteps .step-badge {
+        display: none;
+    }
+
+    #selectedSteps .display-step-selected {
+        color: var(--creator-text);
+    }
+
+    #selectedSteps .step-text-content {
+        display: block;
+        font-weight: 700;
+        margin-top: 6px;
+    }
+
+    .step-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .keyword-btn {
+        border-color: rgba(255,255,255,0.55);
+        color: #111827;
+        background: #ffffff;
+    }
+
+    .keyword-btn.btn-secondary,
+    .keyword-btn.active {
+        background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
+        border-color: transparent;
+        color: #fff;
+    }
+
+    .keyword-pill {
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.12) !important;
+        color: #fff !important;
+        padding: 8px 12px;
+    }
+
+    #card-keywords {
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: radial-gradient(120% 120% at 10% 0%, #2f2f5f 0%, #17172a 45%, #0f1119 100%);
+        color: #f8f9ff;
+        box-shadow: 0 18px 40px rgba(16,20,40,0.26);
+        overflow: hidden;
+    }
+
+    #card-keywords .creator-card-head {
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        background: rgba(12,16,28,0.28);
+    }
+
+    #card-keywords .creator-card-title {
+        color: #f8f9ff;
+    }
+
+    #card-keywords .creator-card-sub {
+        color: rgba(248,249,255,0.72);
+    }
+
+    #card-keywords .badge {
+        color: #f8f9ff !important;
+        border-color: rgba(255,255,255,0.22) !important;
+        background: rgba(255,255,255,0.08) !important;
+    }
+
+    .smart-step-creator .btn.btn-sm:not(.advanced-gear),
+    #card-keywords .btn.btn-sm {
+        border-radius: 999px;
     }
 
     #ingredientsDbTable .ingredient-inline-inputs .form-control,
@@ -1350,6 +1462,8 @@
             const normalized = (value || 'de').toLowerCase();
             if (normalized === 'es') return 'esp';
             if (normalized === 'pt') return 'prt';
+            if (normalized === 'se') return 'sv';
+            if (normalized === 'dk') return 'da';
             return normalized;
         }
 
@@ -1400,11 +1514,35 @@
                 const row = $(this);
                 const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
                 const name = row.find('.display-name-selected').text()?.trim() || '';
-                return { id, name };
+                const genusByLang = {
+                    de: (row.data('genus-de') || '').toString().trim(),
+                    en: (row.data('genus-en') || '').toString().trim(),
+                    esp: (row.data('genus-esp') || '').toString().trim(),
+                    prt: (row.data('genus-prt') || '').toString().trim(),
+                    id: (row.data('genus-id') || '').toString().trim(),
+                    nl: (row.data('genus-nl') || '').toString().trim(),
+                    sv: (row.data('genus-sv') || '').toString().trim(),
+                    da: (row.data('genus-da') || '').toString().trim(),
+                    no: (row.data('genus-no') || '').toString().trim(),
+                    ms: (row.data('genus-ms') || '').toString().trim()
+                };
+                return {
+                    id,
+                    name,
+                    genusDe: genusByLang.de || '',
+                    genusLocalized: genusByLang[currentLang] || '',
+                    genusByLang
+                };
             }).get().filter(x => x.id || x.name);
 
             if (fromSelected.length) {
-                return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
+                return fromSelected.map(x => ({
+                    id: x.id || '',
+                    name: x.name || 'Zutat',
+                    genusDe: x.genusDe || '',
+                    genusLocalized: x.genusLocalized || '',
+                    genusByLang: x.genusByLang || {}
+                }));
             }
             return [];
         }
@@ -1442,7 +1580,12 @@
             stateValue: 'goldbraun',
             activeToolTokenId: '',
             activeShapeTokenId: '',
+            activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
+            grindSizeValue: 'feine',
+            shapeValue: 'Würfel',
+            activeItemTokenId: '',
+            itemValue: 'den Teig',
             baseValue: 'Teig'
         };
 
@@ -1459,21 +1602,56 @@
             return '🥣';
         }
 
-        function resolveGermanGrammarForIngredient(ingredientName) {
+        function resolveGrammarForIngredient(ingredientName, genusByLang = {}, langKey = 'de') {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
             const value = (ingredientName || '').toString().trim().toLowerCase();
-            const known = {
-                m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
-                f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
-                n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
-            };
+            const genusRaw = (genusByLang?.[lang] || genusByLang?.de || '').toString().trim().toLowerCase();
 
-            let gender = 'm';
-            if (known.f.some(x => value.includes(x))) gender = 'f';
-            else if (known.n.some(x => value.includes(x))) gender = 'n';
+            const hasAny = (hints) => hints.some(x => genusRaw === x || genusRaw.includes(x));
 
-            if (gender === 'f') return { pronoun: 'sie', article: 'die' };
-            if (gender === 'n') return { pronoun: 'es', article: 'das' };
-            return { pronoun: 'ihn', article: 'den' };
+            if (lang === 'de') {
+                const known = {
+                    m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
+                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
+                    n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
+                };
+                if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };
+                if (hasAny(['n', 'neu', 'neut', 'das'])) return { pronoun: 'es', article: 'das' };
+                if (hasAny(['m', 'mas', 'mask', 'der'])) return { pronoun: 'ihn', article: 'den' };
+
+                let gender = 'm';
+                if (known.f.some(x => value.includes(x))) gender = 'f';
+                else if (known.n.some(x => value.includes(x))) gender = 'n';
+                if (gender === 'f') return { pronoun: 'sie', article: 'die' };
+                if (gender === 'n') return { pronoun: 'es', article: 'das' };
+                return { pronoun: 'ihn', article: 'den' };
+            }
+
+            if (lang === 'esp') {
+                if (hasAny(['f', 'fem', 'la'])) return { pronoun: 'la', article: 'la' };
+                return { pronoun: 'lo', article: 'el' };
+            }
+
+            if (lang === 'prt') {
+                if (hasAny(['f', 'fem', 'a'])) return { pronoun: 'a', article: 'a' };
+                return { pronoun: 'o', article: 'o' };
+            }
+
+            if (lang === 'nl') {
+                if (hasAny(['het', 'n'])) return { pronoun: 'het', article: 'het' };
+                return { pronoun: 'hem', article: 'de' };
+            }
+
+            if (lang === 'sv' || lang === 'da' || lang === 'no') {
+                if (hasAny(['ett', 'n', 'neut'])) return { pronoun: 'det', article: '' };
+                return { pronoun: 'den', article: '' };
+            }
+
+            if (lang === 'id' || lang === 'ms') {
+                return { pronoun: 'dia', article: '' };
+            }
+
+            return { pronoun: 'it', article: 'the' };
         }
 
         function getPlaceholderKeysFromTemplate(template) {
@@ -1497,9 +1675,19 @@
         }
 
         function getSelectedIngredientForCreator() {
-            const names = getSelectedIngredientNames();
-            if (!names.length) return null;
-            return { id: (creatorState.selectedIngredientIds || [])[0] || '', name: names[0] };
+            const ingredients = getSelectedIngredientsForSandbox();
+            const selectedId = (creatorState.selectedIngredientIds || [])[0] || '';
+            if (!selectedId) return null;
+
+            const selected = ingredients.find(x => x.id === selectedId);
+            if (!selected) return null;
+
+            return {
+                id: selected.id || '',
+                name: selected.name || '',
+                genusDe: selected.genusDe || '',
+                genusLocalized: selected.genusLocalized || ''
+            };
         }
 
         function getSelectedIngredientValueForInsert() {
@@ -1551,6 +1739,11 @@
             return value === 'tool';
         }
 
+        function isGrindSizePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'grind_size' || value === 'grindsize' || value.includes('grind');
+        }
+
         function isShapePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'shape';
@@ -1559,6 +1752,11 @@
         function isBasePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'base';
+        }
+
+        function isItemPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'item' || value.includes('item');
         }
 
         function isCountPlaceholderKey(key) {
@@ -1741,20 +1939,45 @@
             const currentVal = ($('#pronounValueInput').val() || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-pronoun-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
         }
 
-        function getEquipmentOptions() {
+        function getUnifiedToolEquipmentOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const localizedFallbacks = {
+                de: ['Pfanne', 'Topf', 'Backofen', 'Rührschüssel', 'Sieb', 'Mixer', 'Pürierstab', 'Küchenmaschine', 'Schneebesen', 'Spatel', 'Holzlöffel', 'Suppenkelle', 'Messer', 'Sparschäler', 'Reibe', 'Schneidebrett', 'Zange', 'Bräter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform', 'Messbecher', 'Teigschaber', 'Nudelholz'],
+                en: ['pan', 'pot', 'oven', 'mixing bowl', 'strainer', 'blender', 'immersion blender', 'food processor', 'whisk', 'spatula', 'wooden spoon', 'ladle', 'knife', 'peeler', 'grater', 'cutting board', 'tongs', 'roaster', 'wok', 'grill', 'steamer', 'baking dish', 'measuring cup', 'dough scraper', 'rolling pin'],
+                esp: ['sartén', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'batidor', 'espátula', 'cuchara de madera', 'cucharón', 'cuchillo', 'pelador', 'rallador', 'tabla de cortar', 'pinzas', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno', 'vaso medidor', 'rasqueta de masa', 'rodillo'],
+                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mão', 'processador de alimentos', 'batedor', 'espátula', 'colher de pau', 'concha', 'faca', 'descascador', 'ralador', 'tábua de corte', 'pinça', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno', 'copo medidor', 'raspador de massa', 'rolo de massa'],
+                id: ['wajan', 'panci', 'oven', 'mangkuk adonan', 'saringan', 'blender', 'blender tangan', 'food processor', 'pengocok', 'spatula', 'sendok kayu', 'sendok sayur', 'pisau', 'pengupas', 'parutan', 'talenan', 'penjepit', 'loyang panggang', 'wok', 'pemanggang', 'kukusan', 'pinggan oven', 'gelas ukur', 'scraper adonan', 'rolling pin'],
+                nl: ['pan', 'kookpot', 'oven', 'mengkom', 'zeef', 'blender', 'staafmixer', 'keukenmachine', 'garde', 'spatel', 'houten lepel', 'soeplepel', 'mes', 'dunschiller', 'rasp', 'snijplank', 'tang', 'braadslede', 'wok', 'grill', 'stoomkoker', 'ovenschaal', 'maatbeker', 'deegschraper', 'deegroller'],
+                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskål', 'sil', 'mixer', 'stavmixer', 'matberedare', 'visp', 'stekspade', 'träslev', 'slev', 'kniv', 'potatisskalare', 'rivjärn', 'skärbräda', 'tång', 'stekgryta', 'wok', 'grill', 'ångkokare', 'ugnsform', 'måttkopp', 'degskrapa', 'kavel'],
+                da: ['pande', 'gryde', 'ovn', 'røreskål', 'si', 'blender', 'stavblender', 'foodprocessor', 'piskeris', 'spatel', 'træske', 'suppeske', 'kniv', 'skræller', 'rivejern', 'skærebræt', 'tang', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad', 'målebæger', 'dejskraber', 'kagerulle'],
+                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjøkkenmaskin', 'visp', 'stekespade', 'tresleiv', 'øse', 'kniv', 'skreller', 'rivjern', 'skjærefjøl', 'klype', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form', 'målebeger', 'deigskrape', 'kjevle'],
+                ms: ['kuali', 'periuk', 'ketuhar', 'mangkuk adunan', 'penapis', 'pengisar', 'pengisar tangan', 'pemproses makanan', 'pemukul', 'spatula', 'sudu kayu', 'senduk', 'pisau', 'pengupas', 'parut', 'papan pemotong', 'penyepit', 'dulang pembakar', 'wok', 'pemanggang', 'pengukus', 'bekas pembakar', 'cawan penyukat', 'pengikis doh', 'penggelek doh']
+            };
+
+            const fromRenderer = [];
             if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('equipment', currentLang || 'de');
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
+                const equipmentOptions = MasterStepRenderer.getVariablePresets('equipment', lang);
+                const toolOptions = MasterStepRenderer.getVariablePresets('tool', lang);
+                if (Array.isArray(equipmentOptions)) fromRenderer.push(...equipmentOptions);
+                if (Array.isArray(toolOptions)) fromRenderer.push(...toolOptions);
             }
-            return ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'];
+
+            const fallback = localizedFallbacks[lang] || localizedFallbacks.de;
+            const merged = [...fromRenderer, ...fallback]
+                .map(x => (x || '').toString().trim())
+                .filter(Boolean);
+
+            return Array.from(new Set(merged));
+        }
+
+        function getEquipmentOptions() {
+            return getUnifiedToolEquipmentOptions();
         }
 
         function openEquipmentEditorForToken(tokenId) {
@@ -1828,21 +2051,19 @@
         }
 
         function getToolOptions() {
-            return ['Messer', 'Sparschäler', 'Reibe', 'Küchenmaschine', 'Schneebesen', 'Holzlöffel', 'Zange'];
+            return getUnifiedToolEquipmentOptions();
         }
 
         function openToolEditorForToken(tokenId) {
             if (!tokenId) return;
+            // Tool und Equipment verwenden denselben Editor + dieselbe große Auswahlliste.
             creatorState.activeToolTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#toolValueInput').val(currentText || 'Messer');
-            renderInlineToolOptions();
-            $('#toolEditor').removeClass('d-none');
+            openEquipmentEditorForToken(tokenId);
         }
 
         function closeToolEditor() {
             creatorState.activeToolTokenId = '';
-            $('#toolEditor').addClass('d-none');
+            closeEquipmentEditor();
         }
 
         function renderInlineToolOptions() {
@@ -1858,16 +2079,69 @@
             wrap.html(html);
         }
 
+        function getGrindSizeOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('grind_size', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            const fallback = {
+                de: ['feine', 'mittlere', 'grobe', 'dünne', 'breite', 'kleine', 'große', 'ca. 1 cm große', 'ca. 0,5 mm große'],
+                en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large', 'about 3/8-inch', 'about 0.02-inch'],
+                esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeñas', 'grandes'],
+                prt: ['finas', 'médias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
+                id: ['halus', 'sedang', 'kasar', 'tipis', 'tebal', 'kecil', 'besar'],
+                nl: ['fijne', 'middelgrote', 'grove', 'dunne', 'brede', 'kleine', 'grote'],
+                sv: ['fina', 'medelgrova', 'grova', 'tunna', 'breda', 'små', 'stora'],
+                da: ['fine', 'mellemstore', 'grove', 'tynde', 'brede', 'små', 'store'],
+                no: ['fine', 'middels', 'grove', 'tynne', 'brede', 'små', 'store'],
+                ms: ['halus', 'sederhana', 'kasar', 'nipis', 'lebar', 'kecil', 'besar']
+            };
+            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+        }
+
+        function openGrindSizeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeGrindSizeTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.grindSizeValue || '').toString().trim();
+            const options = getGrindSizeOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'feine';
+            creatorState.grindSizeValue = selected;
+            renderInlineGrindSizeOptions();
+            placeEditorLikeTemperature('#grindSizeEditor');
+            $('#grindSizeEditor').removeClass('d-none');
+        }
+
+        function closeGrindSizeEditor() {
+            creatorState.activeGrindSizeTokenId = '';
+            $('#grindSizeEditor').addClass('d-none');
+        }
+
+        function renderInlineGrindSizeOptions() {
+            const wrap = $('#inlineGrindSizeOptions');
+            if (!wrap.length) return;
+            const options = getGrindSizeOptions();
+            const currentVal = (creatorState.grindSizeValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-grind-size-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function getShapeOptions() {
-            return ['Würfel', 'Scheiben', 'Streifen', 'feine Würfel', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
+            return ['Würfel', 'Scheiben', 'Streifen', 'Spalten', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
         }
 
         function openShapeEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeShapeTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#shapeValueInput').val(currentText || 'Würfel');
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.shapeValue || '').toString().trim();
+            creatorState.shapeValue = currentText || 'Würfel';
             renderInlineShapeOptions();
+            placeEditorLikeTemperature('#shapeEditor');
             $('#shapeEditor').removeClass('d-none');
         }
 
@@ -1916,6 +2190,58 @@
             wrap.html(html);
         }
 
+        function getItemOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('item', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            const fallback = {
+                de: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht'],
+                en: ['dough', 'batter', 'mixture', 'dish'],
+                esp: ['masa', 'mezcla', 'preparación', 'plato'],
+                prt: ['massa', 'mistura', 'preparação', 'prato'],
+                id: ['adonan', 'campuran', 'olahan', 'hidangan'],
+                nl: ['deeg', 'mengsel', 'mix', 'gerecht'],
+                sv: ['deg', 'smet', 'blandning', 'rätt'],
+                da: ['dej', 'masse', 'blanding', 'ret'],
+                no: ['deig', 'røre', 'blanding', 'rett'],
+                ms: ['doh', 'adunan', 'campuran', 'hidangan']
+            };
+            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+        }
+
+        function openItemEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeItemTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
+            const options = getItemOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            creatorState.itemValue = selected;
+            renderInlineItemOptions();
+            placeEditorLikeTemperature('#itemEditor');
+            $('#itemEditor').removeClass('d-none');
+        }
+
+        function closeItemEditor() {
+            creatorState.activeItemTokenId = '';
+            $('#itemEditor').addClass('d-none');
+        }
+
+        function renderInlineItemOptions() {
+            const wrap = $('#inlineItemOptions');
+            if (!wrap.length) return;
+            const options = getItemOptions();
+            const currentVal = (creatorState.itemValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-item-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function closeAllEditors() {
             closeDurationEditor();
             closeCountEditor();
@@ -1925,8 +2251,10 @@
             closeEquipmentEditor();
             closeStateEditor();
             closeToolEditor();
+            closeGrindSizeEditor();
             closeShapeEditor();
             closeBaseEditor();
+            closeItemEditor();
         }
 
         function placeEditorLikeTemperature(editorSelector) {
@@ -1942,10 +2270,10 @@
             const wrap = $('#inlineShapeOptions');
             if (!wrap.length) return;
             const options = getShapeOptions();
-            const currentVal = ($('#shapeValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.shapeValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-shape-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -2004,14 +2332,27 @@
                 return map[lang] || map.de;
             }
 
+            if (keyNorm === 'equipment' || keyNorm === 'tool') {
+                return getUnifiedToolEquipmentOptions()[0] || 'Pfanne';
+            }
+
+            if (keyNorm === 'grind_size' || keyNorm === 'grindsize') {
+                return getGrindSizeOptions()[0] || 'feine';
+            }
+
+            if (keyNorm === 'item') {
+                return getItemOptions()[0] || 'den Teig';
+            }
+
             return '';
         }
 
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
+            const selectedIngredient = getSelectedIngredientForCreator();
             const selectedNames = getSelectedIngredientNames();
-            const ingredientName = selectedNames.length ? selectedNames.join(', ') : '';
-            const grammar = resolveGermanGrammarForIngredient(ingredientName);
+            const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
+            const grammar = resolveGrammarForIngredient(ingredientName, selectedIngredient?.genusByLang || {}, currentLang);
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
             creatorState.computedArticle = creatorState.advancedArticleOverride || grammar.article;
@@ -2037,7 +2378,9 @@
                     else if (isCountPlaceholderKey(key)) vars[key] = getCountInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
-                    else if (key.includes('tool')) vars[key] = 'Messer';
+                    else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
+                    else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
+                    else if (key === 'item') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
                     else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
                     else {
@@ -2478,13 +2821,23 @@
 
             const row = $(btn).closest('.ingredient-db-row');
             const name = row.data('name-' + currentLang) || row.data('name-de');
+            const genusDe = (row.data('genus-de') || '').toString().trim();
+            const genusEn = (row.data('genus-en') || '').toString().trim();
+            const genusEsp = (row.data('genus-esp') || '').toString().trim();
+            const genusPrt = (row.data('genus-prt') || '').toString().trim();
+            const genusId = (row.data('genus-id') || '').toString().trim();
+            const genusNl = (row.data('genus-nl') || '').toString().trim();
+            const genusSv = (row.data('genus-sv') || '').toString().trim();
+            const genusDa = (row.data('genus-da') || '').toString().trim();
+            const genusNo = (row.data('genus-no') || '').toString().trim();
+            const genusMs = (row.data('genus-ms') || '').toString().trim();
             const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
             const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
             const unitOptions = dbUnits.map(u => `<option value="${u}" ${u === selectedUnit ? 'selected' : ''}>${u}</option>`).join('');
 
             // Neues Element erstellen
             const newIngredient = `
-            <div class="dynamic-item ingredient-row shadow-sm">
+            <div class="dynamic-item ingredient-row shadow-sm" data-genus-de="${$('<div>').text(genusDe).html()}" data-genus-en="${$('<div>').text(genusEn).html()}" data-genus-esp="${$('<div>').text(genusEsp).html()}" data-genus-prt="${$('<div>').text(genusPrt).html()}" data-genus-id="${$('<div>').text(genusId).html()}" data-genus-nl="${$('<div>').text(genusNl).html()}" data-genus-sv="${$('<div>').text(genusSv).html()}" data-genus-da="${$('<div>').text(genusDa).html()}" data-genus-no="${$('<div>').text(genusNo).html()}" data-genus-ms="${$('<div>').text(genusMs).html()}">
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
 
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -2656,13 +3009,13 @@
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
                     <span class="step-text-content">${text}</span>
-                </div>
-                <div class="btn-group ms-2" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
-                    ${chipBtnHtml}
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                    <div class="step-row-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
+                        ${chipBtnHtml}
+                        <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                    </div>
                 </div>
             </div>`);
 
@@ -2883,7 +3236,7 @@
                 } else if (isEquipmentPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openEquipmentEditorForToken(tokenId);
-                    showCreatorToast('Gerät wählen');
+                    showCreatorToast('Tool / Gerät wählen');
                 } else if (isStatePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openStateEditorForToken(tokenId);
@@ -2891,7 +3244,11 @@
                 } else if (isToolPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openToolEditorForToken(tokenId);
-                    showCreatorToast('Werkzeug wählen');
+                    showCreatorToast('Tool / Gerät wählen');
+                } else if (isGrindSizePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openGrindSizeEditorForToken(tokenId);
+                    showCreatorToast('Schnittgröße wählen');
                 } else if (isShapePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openShapeEditorForToken(tokenId);
@@ -2900,6 +3257,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openBaseEditorForToken(tokenId);
                     showCreatorToast('Basis wählen');
+                } else if (isItemPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openItemEditorForToken(tokenId);
+                    showCreatorToast('Item wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -3089,7 +3450,7 @@
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
-                showCreatorToast('Gerät eingesetzt');
+                showCreatorToast('Tool / Gerät eingesetzt');
                 renderTemplateCards();
             });
 
@@ -3125,15 +3486,31 @@
                 renderTemplateCards();
             });
 
+            $('#inlineGrindSizeOptions').on('click', '.inline-grind-size-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.grindSizeValue = val;
+                renderInlineGrindSizeOptions();
+            });
+
+            $('#btnApplyGrindSize').on('click', function () {
+                const tokenId = creatorState.activeGrindSizeTokenId;
+                const val = (creatorState.grindSizeValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeGrindSizeEditor();
+                showCreatorToast('Schnittgröße eingesetzt');
+                renderTemplateCards();
+            });
+
             $('#inlineShapeOptions').on('click', '.inline-shape-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#shapeValueInput').val(val);
+                creatorState.shapeValue = val;
                 renderInlineShapeOptions();
             });
 
             $('#btnApplyShape').on('click', function () {
                 const tokenId = creatorState.activeShapeTokenId;
-                const val = ($('#shapeValueInput').val() || '').toString().trim();
+                const val = (creatorState.shapeValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeShapeEditor();
@@ -3161,6 +3538,22 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeBaseEditor();
                 showCreatorToast('Basis eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineItemOptions').on('click', '.inline-item-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.itemValue = val;
+                renderInlineItemOptions();
+            });
+
+            $('#btnApplyItem').on('click', function () {
+                const tokenId = creatorState.activeItemTokenId;
+                const val = (creatorState.itemValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeItemEditor();
+                showCreatorToast('Item eingesetzt');
                 renderTemplateCards();
             });
 
