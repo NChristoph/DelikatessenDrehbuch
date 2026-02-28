@@ -1491,9 +1491,9 @@
             const ingredients = getSelectedIngredientsForSandbox();
             if (!ingredients.length) return [];
             const selectedIds = creatorState.selectedIngredientIds || [];
+            if (!selectedIds.length) return [];
             const selected = ingredients.filter(x => selectedIds.includes(x.id));
-            if (selected.length) return selected.map(x => x.name);
-            return ingredients.map(x => x.name);
+            return selected.map(x => x.name);
         }
 
         function getSelectedIngredientForCreator() {
@@ -2917,6 +2917,7 @@
                 }
                 closeAllEditors();
                 showCreatorToast('Platzhalter zurückgesetzt');
+                renderIngredientChips();
                 renderTemplateCards();
             });
 
