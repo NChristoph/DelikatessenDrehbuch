@@ -264,101 +264,79 @@
             </section>
 
             <!-- 3) INGREDIENTS -->
-            <section class="creator-card mb-3" id="card-ingredients">
-                <div class="creator-card-head">
+            <section class="smart-step-creator mb-3" id="card-ingredients" data-theme="dark">
+                <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
                         <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
-                            <div class="creator-card-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
-                                Suche + hinzufügen wie im Creator Flow
-                            </div>
+                            <div class="sheet-title label-lang" data-de="Zutaten Auswahl" data-en="Ingredients Selection">Zutaten Auswahl</div>
+                            <div class="sheet-sub label-lang" data-de="Suche & konfiguriere deine Zutaten">Suche & konfiguriere deine Zutaten</div>
                         </div>
                     </div>
-                    <span class="badge rounded-pill text-bg-light border">3/5</span>
+                    <span class="badge rounded-pill bg-transparent border border-light text-light">3/5</span>
                 </div>
 
-                <div class="creator-card-body">
-                    <div class="mb-2">
-                        <input type="text"
-                               id="ingredientSearch"
-                               class="form-control form-control-sm"
-                               placeholder="Zutaten suchen..." />
-                    </div>
-
-                    <div class="table-responsive creator-table-wrap">
-                        <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
-                            <thead>
-                                <tr>
-                                    <th class="small text-muted">Zutat, Menge, Einheit</th>
-                                    <th class="d-none" aria-hidden="true"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.ToSelectIngredientsAndNutrients != null)
-                                {
-                                    foreach (var item in Model.ToSelectIngredientsAndNutrients)
-                                    {
-                                        <tr class="ingredient-db-row"
-                                            data-ingredient-id="@item.Id"
-                                            data-name-de="@item.Name_DE"
-                                            data-name-en="@item.Name_EN"
-                                            data-name-esp="@item.Name_ESP"
-                                            data-name-prt="@item.Name_PRT"
-                                            data-name-id="@item.Name_ID"
-                                            data-name-nl="@item.Name_NL"
-                                            data-name-sv="@item.Name_SE"
-                                            data-name-da="@item.Name_DK"
-                                            data-name-no="@item.Name_NO"
-                                            data-name-ms="@item.Name_MS"
-                                            data-genus-de="@item.Genus_DE"
-                                            data-genus-en="@item.Genus_EN"
-                                            data-genus-esp="@item.Genus_ESP"
-                                            data-genus-prt="@item.Genus_PRT"
-                                            data-genus-id="@item.Genus_ID"
-                                            data-genus-nl="@item.Genus_NL"
-                                            data-genus-sv="@item.Genus_SE"
-                                            data-genus-da="@item.Genus_DK"
-                                            data-genus-no="@item.Genus_NO"
-                                            data-genus-ms="@item.Genus_MS"
-                                            data-selected-qty="0"
-                                            data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? string.Empty)">
-                                            <td>
-                                                <div class="ingredient-catalog-card">
-                                                    <div class="fw-bold display-name">@item.Name_DE</div>
-                                                </div>
-                                            </td>
-                                            <td class="d-none" aria-hidden="true"></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    
-                </div>
-                <div id="selectedIngredients" class="mt-3 selected-zone"></div>
-                <div id="ingredientConfigDock" class="d-none">
-                    <div id="ingredientConfigOverlay" class="ingredient-config-overlay d-none">
-                        <div class="ingredient-config-card">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="fw-bold" id="ingredientConfigTitle">Zutat</div>
-                                <button type="button" class="btn btn-sm btn-outline-light" id="btnCloseIngredientConfig">✕</button>
-                            </div>
-                            <div class="mb-2">
-                                <label class="small text-muted mb-1 d-block">Menge</label>
-                                <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm candy-purple-input" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="small text-muted mb-1 d-block">Einheit</label>
-                                <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input"></select>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-light" id="btnCancelIngredientConfig">Abbrechen</button>
-                                <button type="button" class="btn btn-sm creator-cta-primary" id="btnApplyIngredientConfig">Auswählen</button>
-                            </div>
+                <div class="creator-preview-canvas">
+                    <div class="mb-4">
+                        <div class="input-pill" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18);">
+                            <i class="bi bi-search text-white-50"></i>
+                            <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none" placeholder="Zutat suchen..." />
                         </div>
+                    </div>
+
+                    <div class="template-library" id="ingredientsCatalog" style="height: 400px; overflow-y: auto; padding-right: 5px;">
+                        @if (Model.ToSelectIngredientsAndNutrients != null)
+                        {
+                            foreach (var item in Model.ToSelectIngredientsAndNutrients)
+                            {
+                                <div class="preview-step-card mb-3 ingredient-db-row"
+                                     data-ingredient-id="@item.Id"
+                                     data-name-de="@item.Name_DE"
+                                     data-name-en="@item.Name_EN"
+                                     data-genus-de="@item.Genus_DE"
+                                     data-selected-qty="0"
+                                     data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
+
+                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                        <div class="preview-step-title mb-0">Zutat hinzufügen</div>
+                                        <button type="button" class="btn btn-sm creator-cta-primary" onclick="addIngredient('@item.Id', this)">
+                                            Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="preview-step-text display-name">@item.Name_DE</div>
+
+                                    <div class="duration-editor mt-2">
+                                        <div class="small text-muted mb-2">Menge & Einheit festlegen</div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="text" inputmode="decimal"
+                                                   class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
+                                                   style="max-width:85px; border-radius: 12px;" placeholder="0"
+                                                   oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
+
+                                            <select class="form-select form-select-sm js-db-unit candy-purple-input"
+                                                    style="max-width:140px; border-radius: 12px; cursor: pointer;"
+                                                    onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
+                                                @if (Model.Measure != null)
+                                                {
+                                                    foreach (var m in Model.Measure)
+                                                    {
+                                                        <option value="@m.Metriks_DE">@m.Metriks_DE</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div id="ingredientFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
+
+                    <div class="ingredient-top-strip mt-4">
+                        <div class="ingredient-top-title">Ausgewählte Zutaten</div>
+                        <div id="selectedIngredients" class="selected-zone mt-2"></div>
                     </div>
                 </div>
             </section>
