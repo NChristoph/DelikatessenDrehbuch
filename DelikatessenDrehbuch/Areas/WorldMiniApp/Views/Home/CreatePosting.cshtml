@@ -1740,6 +1740,28 @@
             return names.length ? names.join(', ') : '';
         }
 
+        function syncGrammarAssignmentsForSelectedIngredient() {
+            const selectedIngredient = getSelectedIngredientForCreator();
+            const grammar = resolveGrammarForIngredient(selectedIngredient?.name || '', selectedIngredient?.genusByLang || {}, currentLang);
+            const pronounValue = (creatorState.advancedPronounOverride || grammar.pronoun || '').toString().trim();
+            const articleValue = (creatorState.advancedArticleOverride || grammar.article || '').toString().trim();
+
+            creatorState.computedPronoun = pronounValue;
+            creatorState.computedArticle = articleValue;
+
+            Object.keys(creatorState.placeholderAssignments || {}).forEach(tokenId => {
+                const key = (tokenId || '').toString().split('__')[0].trim().toLowerCase();
+                if (key === 'pronoun') {
+                    if (pronounValue) creatorState.placeholderAssignments[tokenId] = pronounValue;
+                    else delete creatorState.placeholderAssignments[tokenId];
+                }
+                if (key === 'article') {
+                    if (articleValue) creatorState.placeholderAssignments[tokenId] = articleValue;
+                    else delete creatorState.placeholderAssignments[tokenId];
+                }
+            });
+        }
+
         function getEffectiveTemplateId() {
             return creatorState.selectedTemplateId;
         }
@@ -3200,6 +3222,7 @@
 
                 creatorState.advancedPronounOverride = '';
                 creatorState.advancedArticleOverride = '';
+                syncGrammarAssignmentsForSelectedIngredient();
 
                 if (creatorState.activePlaceholderTokenId) {
                     const key = getPlaceholderKeyByTokenId(creatorState.activePlaceholderTokenId);
@@ -3622,6 +3645,7 @@
                 } else {
                     creatorState.selectedIngredientIds = [...selected, id];
                 }
+                syncGrammarAssignmentsForSelectedIngredient();
                 renderIngredientChips();
             });
 
