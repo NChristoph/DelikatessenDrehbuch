@@ -152,6 +152,10 @@
     </div>
 
     <div class="mt-auto text-center pt-5">
+        <button type="button" id="manualLoginButton" class="btn btn-dark rounded-pill px-4 mb-3 shadow-sm">
+            <i class="bi bi-box-arrow-in-right me-1"></i>
+            @T("Jetzt einloggen", "Log in now", "Iniciar sesión ahora", "Entrar agora")
+        </button>
         <p class="text-muted opacity-50" style="font-size: 0.75rem;">
             @Html.Raw(T("Gemacht mit <i class='bi bi-heart-fill text-danger mx-1'></i> für die World App", "Made with <i class='bi bi-heart-fill text-danger mx-1'></i> for World App", "Hecho con <i class='bi bi-heart-fill text-danger mx-1'></i> para World App", "Feito com <i class='bi bi-heart-fill text-danger mx-1'></i> para World App"))
         </p>
@@ -247,6 +251,15 @@
 
             if (window.initAutoLogin) {
                 window.initAutoLogin('device');
+            }
+
+            const manualLoginButton = document.getElementById('manualLoginButton');
+            if (manualLoginButton) {
+                manualLoginButton.addEventListener('click', function () {
+                    if (window.retryVerification) {
+                        window.retryVerification();
+                    }
+                });
             }
 
         });
