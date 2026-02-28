@@ -1122,5 +1122,428 @@
       "ms": "Panaskan minyak zaitun dalam kuali besar dan tumis bawang selama 3–4 minit hingga lutsinar."
     },
     "_note": "{{ingredient}} wird pro Sprache mit korrektem Artikel und Genus befüllt. Der Renderer muss die sprachspezifische ingredient-Form aus den Zutaten-Stammdaten ziehen."
-  }
+  },
+
+  "recipe_presets": [
+
+    {
+      "recipe_id": "lasagne",
+      "name": {
+        "de": "Lasagne",
+        "en": "Lasagna",
+        "esp": "Lasaña",
+        "prt": "Lasanha",
+        "id": "Lasagna",
+        "nl": "Lasagne",
+        "sv": "Lasagne",
+        "da": "Lasagne",
+        "no": "Lasagne",
+        "ms": "Lasagna"
+      },
+      "category": "main",
+      "equipment_needed": [1, 2, 3, 4],
+      "_comment": "Alle Variablen bleiben als {{placeholder}} – keine hardcodierten Zutaten. Werte kommen aus den Rezept-Stammdaten.",
+      "steps": [
+        {
+          "order": 1,
+          "master_id": "PREP_HEAT_01",
+          "label": { "de": "Ofen vorheizen", "en": "Preheat oven" },
+          "variables": {
+            "equipment": "{{ofen}}",
+            "temp": "{{backtemperatur}}",
+            "mode": "{{ofenmodus}}"
+          }
+        },
+        {
+          "order": 2,
+          "master_id": "PREP_CUT_01",
+          "label": { "de": "Gemüse schneiden", "en": "Chop vegetables" },
+          "variables": {
+            "ingredient": "{{gemüse}}",
+            "grind_size": "{{schnittgröße}}",
+            "shape": "{{schnittform}}"
+          }
+        },
+        {
+          "order": 3,
+          "master_id": "PREP_MINCE_01",
+          "label": { "de": "Aromaten fein hacken", "en": "Mince aromatics" },
+          "variables": {
+            "ingredient": "{{aromaten}}"
+          }
+        },
+        {
+          "order": 4,
+          "master_id": "COOK_SAUTE_01",
+          "label": { "de": "Aromaten anschwitzen", "en": "Sauté aromatics" },
+          "variables": {
+            "fat": "{{fett}}",
+            "equipment": "{{pfanne_oder_topf}}",
+            "ingredient": "{{aromaten}}",
+            "duration": "{{andunst_dauer}}",
+            "state": "{{zustand_glasig}}"
+          }
+        },
+        {
+          "order": 5,
+          "master_id": "COOK_FRY_01",
+          "label": { "de": "Hackfleisch anbraten", "en": "Brown the meat" },
+          "variables": {
+            "ingredient": "{{hackfleisch}}",
+            "fat": "{{fett}}",
+            "heat": "{{hitze_stark}}",
+            "duration": "{{anbraten_dauer}}",
+            "pronoun": "{{pronomen_hackfleisch}}",
+            "state": "{{zustand_krümelig}}"
+          }
+        },
+        {
+          "order": 6,
+          "master_id": "COOK_ADD_01",
+          "label": { "de": "Tomatenmark anrösten", "en": "Toast tomato paste" },
+          "variables": {
+            "ingredient": "{{tomatenmark}}",
+            "method": "{{kurz_anrösten}}"
+          }
+        },
+        {
+          "order": 7,
+          "master_id": "COOK_DEGLAZE_01",
+          "label": { "de": "Ablöschen", "en": "Deglaze" },
+          "variables": {
+            "liquid": "{{ablöschen_flüssigkeit}}",
+            "equipment": "{{pfanne_oder_topf}}"
+          }
+        },
+        {
+          "order": 8,
+          "master_id": "COOK_ADD_01",
+          "label": { "de": "Tomaten einrühren", "en": "Add tomatoes" },
+          "variables": {
+            "ingredient": "{{tomaten}}",
+            "method": "{{gut_umrühren}}"
+          }
+        },
+        {
+          "order": 9,
+          "master_id": "COOK_SIMMER_01",
+          "label": { "de": "Ragù köcheln lassen", "en": "Simmer the ragù" },
+          "variables": {
+            "dish": "{{ragù}}",
+            "duration": "{{köchel_dauer}}",
+            "state": "{{zustand_eingedickt}}",
+            "pronoun": "{{pronomen_ragù}}"
+          }
+        },
+        {
+          "order": 10,
+          "master_id": "COOK_THICKEN_01",
+          "label": { "de": "Béchamel ansetzen und binden", "en": "Make and thicken béchamel" },
+          "variables": {
+            "dish": "{{béchamel}}",
+            "thickener": "{{mehlschwitze}}",
+            "state": "{{zustand_cremig}}"
+          }
+        },
+        {
+          "order": 11,
+          "master_id": "SEASON_ADJUST_01",
+          "label": { "de": "Ragù und Béchamel abschmecken", "en": "Season ragù and béchamel" },
+          "variables": {
+            "dish": "{{ragù_und_béchamel}}",
+            "seasonings": "{{gewürze}}",
+            "balance": "{{geschmacksbalance}}"
+          }
+        },
+        {
+          "order": 12,
+          "master_id": "PREP_LAYER_01",
+          "label": { "de": "Lasagne schichten", "en": "Layer the lasagna" },
+          "variables": {
+            "components": "{{schichtkomponenten}}",
+            "equipment": "{{auflaufform}}",
+            "finish": "{{abschluss_schicht}}"
+          }
+        },
+        {
+          "order": 13,
+          "master_id": "COOK_BAKE_01",
+          "label": { "de": "Im Ofen backen", "en": "Bake in the oven" },
+          "variables": {
+            "dish": "{{lasagne}}",
+            "pronoun": "{{pronomen_lasagne}}",
+            "temp": "{{backtemperatur}}",
+            "mode": "{{ofenmodus}}",
+            "duration": "{{back_dauer}}",
+            "state": "{{zustand_goldbraun}}"
+          }
+        },
+        {
+          "order": 14,
+          "master_id": "FINISH_REST_01",
+          "label": { "de": "Ruhen lassen", "en": "Let it rest" },
+          "variables": {
+            "dish": "{{lasagne}}",
+            "duration": "{{ruhe_dauer}}",
+            "reason": "{{ruhe_grund}}"
+          }
+        },
+        {
+          "order": 15,
+          "master_id": "FINISH_SERVE_01",
+          "label": { "de": "Servieren", "en": "Serve" },
+          "variables": {
+            "dish": "{{lasagne}}",
+            "extra": "{{servierhinweis}}"
+          }
+        }
+      ]
+    },
+
+    {
+      "recipe_id": "spaghetti_carbonara",
+      "name": {
+        "de": "Spaghetti Carbonara",
+        "en": "Spaghetti Carbonara",
+        "esp": "Espaguetis a la Carbonara",
+        "prt": "Espaguete à Carbonara",
+        "id": "Spageti Karbonara",
+        "nl": "Spaghetti Carbonara",
+        "sv": "Spaghetti Carbonara",
+        "da": "Spaghetti Carbonara",
+        "no": "Spaghetti Carbonara",
+        "ms": "Spageti Carbonara"
+      },
+      "category": "main",
+      "equipment_needed": [2, 3, 10],
+      "_comment": "Alle Variablen bleiben als {{placeholder}}. Kein Sahne-Schritt – klassische Ei-Käse-Emulsion.",
+      "steps": [
+        {
+          "order": 1,
+          "master_id": "PREP_CUT_01",
+          "label": { "de": "Speck/Guanciale schneiden", "en": "Slice cured pork" },
+          "variables": {
+            "ingredient": "{{speck}}",
+            "grind_size": "{{schnittgröße}}",
+            "shape": "{{schnittform}}"
+          }
+        },
+        {
+          "order": 2,
+          "master_id": "PREP_GRATE_01",
+          "label": { "de": "Käse reiben", "en": "Grate the cheese" },
+          "variables": {
+            "ingredient": "{{käse}}",
+            "grind_size": "{{reibgröße}}",
+            "tool": "{{reibe}}"
+          }
+        },
+        {
+          "order": 3,
+          "master_id": "PREP_WHISK_01",
+          "label": { "de": "Ei-Käse-Masse verrühren", "en": "Whisk egg-cheese mixture" },
+          "variables": {
+            "ingredients": "{{eier_und_käse}}",
+            "tool": "{{rührgabel_oder_schneebesen}}",
+            "state": "{{zustand_cremig}}"
+          }
+        },
+        {
+          "order": 4,
+          "master_id": "COOK_BOIL_01",
+          "label": { "de": "Pasta kochen", "en": "Cook the pasta" },
+          "variables": {
+            "liquid": "{{salzwasser}}",
+            "ingredient": "{{pasta}}",
+            "pronoun": "{{pronomen_pasta}}",
+            "duration": "{{kochzeit}}",
+            "state": "{{zustand_al_dente}}"
+          }
+        },
+        {
+          "order": 5,
+          "master_id": "COOK_STRAIN_01",
+          "label": { "de": "Pasta abgießen, Kochwasser aufheben", "en": "Drain pasta, reserve cooking water" },
+          "variables": {
+            "ingredient": "{{pasta}}",
+            "equipment": "{{sieb}}",
+            "keep": "{{kochwasser}}"
+          }
+        },
+        {
+          "order": 6,
+          "master_id": "COOK_FRY_01",
+          "label": { "de": "Speck/Guanciale anbraten", "en": "Fry the cured pork" },
+          "variables": {
+            "ingredient": "{{speck}}",
+            "fat": "{{fett}}",
+            "heat": "{{hitze_mittel}}",
+            "duration": "{{braten_dauer}}",
+            "pronoun": "{{pronomen_speck}}",
+            "state": "{{zustand_knusprig}}"
+          }
+        },
+        {
+          "order": 7,
+          "master_id": "COOK_STIR_01",
+          "label": { "de": "Pasta in die Pfanne geben", "en": "Add pasta to the pan" },
+          "variables": {
+            "ingredient": "{{pasta}}",
+            "method": "{{gut_vermengen}}",
+            "dish": "{{pfanne_mit_speck}}"
+          }
+        },
+        {
+          "order": 8,
+          "master_id": "COOK_ADD_01",
+          "label": { "de": "Ei-Käse-Sauce einarbeiten", "en": "Work in the egg-cheese sauce" },
+          "variables": {
+            "ingredient": "{{ei_käse_sauce}}",
+            "method": "{{schnell_rühren_mit_kochwasser}}"
+          }
+        },
+        {
+          "order": 9,
+          "master_id": "SEASON_ADJUST_01",
+          "label": { "de": "Abschmecken", "en": "Season" },
+          "variables": {
+            "dish": "{{carbonara}}",
+            "seasonings": "{{gewürze}}",
+            "balance": "{{geschmacksbalance_pfeffer}}"
+          }
+        },
+        {
+          "order": 10,
+          "master_id": "FINISH_SERVE_01",
+          "label": { "de": "Sofort servieren", "en": "Serve immediately" },
+          "variables": {
+            "dish": "{{carbonara}}",
+            "extra": "{{servierhinweis}}"
+          }
+        }
+      ]
+    },
+
+    {
+      "recipe_id": "chili_con_carne",
+      "name": {
+        "de": "Chili con Carne",
+        "en": "Chili con Carne",
+        "esp": "Chili con Carne",
+        "prt": "Chili con Carne",
+        "id": "Chili con Carne",
+        "nl": "Chili con Carne",
+        "sv": "Chili con Carne",
+        "da": "Chili con Carne",
+        "no": "Chili con Carne",
+        "ms": "Chili con Carne"
+      },
+      "category": "main",
+      "equipment_needed": [3, 4],
+      "_comment": "Alle Variablen bleiben als {{placeholder}}. Gewürzmischung wird als Variable übergeben, nicht als Liste.",
+      "steps": [
+        {
+          "order": 1,
+          "master_id": "PREP_CUT_01",
+          "label": { "de": "Gemüse schneiden", "en": "Chop vegetables" },
+          "variables": {
+            "ingredient": "{{gemüse}}",
+            "grind_size": "{{schnittgröße}}",
+            "shape": "{{schnittform}}"
+          }
+        },
+        {
+          "order": 2,
+          "master_id": "PREP_MINCE_01",
+          "label": { "de": "Aromaten fein hacken", "en": "Mince aromatics" },
+          "variables": {
+            "ingredient": "{{aromaten}}"
+          }
+        },
+        {
+          "order": 3,
+          "master_id": "COOK_SAUTE_01",
+          "label": { "de": "Gemüse und Aromaten anschwitzen", "en": "Sauté vegetables and aromatics" },
+          "variables": {
+            "fat": "{{fett}}",
+            "equipment": "{{topf}}",
+            "ingredient": "{{gemüse_und_aromaten}}",
+            "duration": "{{andunst_dauer}}",
+            "state": "{{zustand_weich}}"
+          }
+        },
+        {
+          "order": 4,
+          "master_id": "COOK_FRY_01",
+          "label": { "de": "Hackfleisch scharf anbraten", "en": "Brown the mince" },
+          "variables": {
+            "ingredient": "{{hackfleisch}}",
+            "fat": "{{fett}}",
+            "heat": "{{hitze_stark}}",
+            "duration": "{{anbraten_dauer}}",
+            "pronoun": "{{pronomen_hackfleisch}}",
+            "state": "{{zustand_krümelig}}"
+          }
+        },
+        {
+          "order": 5,
+          "master_id": "COOK_ADD_01",
+          "label": { "de": "Gewürzmischung hinzufügen und anrösten", "en": "Add spice blend and toast briefly" },
+          "variables": {
+            "ingredient": "{{gewürzmischung}}",
+            "method": "{{kurz_anrösten}}"
+          }
+        },
+        {
+          "order": 6,
+          "master_id": "COOK_DEGLAZE_01",
+          "label": { "de": "Ablöschen", "en": "Deglaze" },
+          "variables": {
+            "liquid": "{{ablöschen_flüssigkeit}}",
+            "equipment": "{{topf}}"
+          }
+        },
+        {
+          "order": 7,
+          "master_id": "COOK_ADD_01",
+          "label": { "de": "Tomaten und Bohnen hinzufügen", "en": "Add tomatoes and beans" },
+          "variables": {
+            "ingredient": "{{tomaten_und_bohnen}}",
+            "method": "{{gut_umrühren}}"
+          }
+        },
+        {
+          "order": 8,
+          "master_id": "COOK_SIMMER_01",
+          "label": { "de": "Chili köcheln lassen", "en": "Simmer the chili" },
+          "variables": {
+            "dish": "{{chili}}",
+            "duration": "{{köchel_dauer}}",
+            "state": "{{zustand_eingedickt}}",
+            "pronoun": "{{pronomen_chili}}"
+          }
+        },
+        {
+          "order": 9,
+          "master_id": "SEASON_ADJUST_01",
+          "label": { "de": "Abschmecken", "en": "Season" },
+          "variables": {
+            "dish": "{{chili}}",
+            "seasonings": "{{gewürze}}",
+            "balance": "{{geschmacksbalance_schärfe}}"
+          }
+        },
+        {
+          "order": 10,
+          "master_id": "FINISH_SERVE_01",
+          "label": { "de": "Servieren", "en": "Serve" },
+          "variables": {
+            "dish": "{{chili}}",
+            "extra": "{{servierhinweis}}"
+          }
+        }
+      ]
+    }
+
+  ]
 }
