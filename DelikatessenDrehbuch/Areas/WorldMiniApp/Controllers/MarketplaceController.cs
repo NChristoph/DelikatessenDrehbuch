@@ -640,7 +640,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     if (nutrient == null) continue;
 
                     var quantity = ingredient.Quantity?.Quantitys ?? 0;
-                    var unit = ingredient.Measure?.UnitOfMeasurement ?? string.Empty;
+                    var unit = ingredient.Measure?.Metriks_DE ?? string.Empty;
                     var grams = (decimal)quantity;
 
                     if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)
