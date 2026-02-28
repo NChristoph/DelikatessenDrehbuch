@@ -320,35 +320,24 @@
                                             data-genus-sv="@item.Genus_SE"
                                             data-genus-da="@item.Genus_DK"
                                             data-genus-no="@item.Genus_NO"
-                                            data-genus-ms="@item.Genus_MS">
+                                            data-genus-ms="@item.Genus_MS"
+                                            onclick="openIngredientConfigForDbRow(this)">
                                             <td>
-                                                <div class="fw-bold display-name">@item.Name_DE</div>
-
-                                                <div class="row g-2 mt-2 ingredient-inline-inputs align-items-end">
-                                                    <div class="col-5" style="max-width: 26%">
-                                                        <label class="small text-muted">Menge</label>
-                                                        <input type="text" inputmode="decimal" class="form-control form-control-sm js-db-qty js-decimal-input" value="0" />
-                                                    </div>
-
-                                                    <div class="col-5" style="max-width: 54%">
-                                                        <label class="small text-muted">Einheit</label>
-                                                        <select class="form-select form-select-sm js-db-unit">
-                                                            @if (Model.Measure != null)
-                                                            {
-                                                                foreach (var measure in Model.Measure)
-                                                                {
-                                                                    <option value="@measure.Metriks_DE">@measure.Metriks_DE</option>
-                                                                }
-                                                            }
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="col-2 text-end" style="max-width: fit-content">
-                                                        <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)">
-                                                            <i class="bi bi-plus"></i>
-                                                        </button>
-                                                    </div>
+                                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                                    <div class="fw-bold display-name">@item.Name_DE</div>
+                                                    <span class="ingredient-db-add-icon"><i class="bi bi-plus-lg"></i></span>
                                                 </div>
+                                                <input type="text" inputmode="decimal" class="d-none js-db-qty js-decimal-input" value="0" />
+                                                <select class="d-none js-db-unit">
+                                                    @if (Model.Measure != null)
+                                                    {
+                                                        foreach (var measure in Model.Measure)
+                                                        {
+                                                            <option value="@measure.Metriks_DE">@measure.Metriks_DE</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <button type="button" class="d-none" onclick="addIngredient('@item.Id', this)"></button>
                                             </td>
                                             <td class="d-none" aria-hidden="true"></td>
                                         </tr>
@@ -361,27 +350,6 @@
                     
                 </div>
                 <div id="selectedIngredients" class="mt-3 selected-zone"></div>
-                <div id="ingredientConfigOverlay" class="ingredient-config-overlay d-none">
-                    <div class="ingredient-config-card">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold" id="ingredientConfigTitle">Zutat</div>
-                            <button type="button" class="btn btn-sm btn-outline-light" id="btnCloseIngredientConfig">✕</button>
-                        </div>
-                        <div class="mb-2">
-                            <label class="small text-muted mb-1 d-block">Menge</label>
-                            <input type="number" step="0.01" min="0" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm candy-purple-input" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="small text-muted mb-1 d-block">Einheit</label>
-                            <input type="hidden" id="ingredientConfigUnit" />
-                            <div id="ingredientConfigUnitButtons" class="ingredient-unit-buttons"></div>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-light" id="btnCancelIngredientConfig">Abbrechen</button>
-                            <button type="button" class="btn btn-sm creator-cta-primary" id="btnApplyIngredientConfig">Übernehmen</button>
-                        </div>
-                    </div>
-                </div>
             </section>
 
                     <div class="smart-step-creator mt-3 mb-4" data-theme="dark">
@@ -634,6 +602,41 @@
             </div>
 
         </form>
+    </div>
+</div>
+
+<!-- Ingredient Config Modal (fixed, portal-rendered) -->
+<div id="ingredientConfigOverlay" class="ingredient-config-overlay d-none" role="dialog" aria-modal="true">
+    <div class="ingredient-config-backdrop"></div>
+    <div class="ingredient-config-sheet">
+        <div class="ingredient-config-card">
+            <div class="ingredient-config-handle"></div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="ingredient-config-name" id="ingredientConfigTitle">Zutat</div>
+                <button type="button" class="btn btn-sm ingredient-config-close" id="btnCloseIngredientConfig" aria-label="Schließen">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="mb-3">
+                <label class="ingredient-config-label mb-2 d-block">Menge</label>
+                <div class="ingredient-config-qty-wrap">
+                    <i class="bi bi-123 text-muted"></i>
+                    <input type="number" step="0.01" min="0" inputmode="decimal" id="ingredientConfigQty"
+                           class="form-control border-0 bg-transparent shadow-none fw-bold" placeholder="0" />
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="ingredient-config-label mb-2 d-block">Einheit</label>
+                <input type="hidden" id="ingredientConfigUnit" />
+                <div id="ingredientConfigUnitButtons" class="ingredient-unit-buttons"></div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm ingredient-config-cancel flex-fill" id="btnCancelIngredientConfig">Abbrechen</button>
+                <button type="button" class="btn btn-sm creator-cta-primary flex-fill" id="btnApplyIngredientConfig">
+                    <i class="bi bi-check2 me-1"></i>Übernehmen
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -950,6 +953,10 @@
 
     /* ---------- Tables / Selected Zone ---------- */
     .creator-table-wrap {
+        --creator-border: rgba(255,255,255,0.18);
+        --creator-text: #f8f9ff;
+        --creator-sub: rgba(248,249,255,0.72);
+        --creator-accent: #8d63ff;
         border-radius: 18px;
         overflow: hidden;
         border: 1px solid var(--creator-border);
@@ -958,22 +965,40 @@
         overflow-y: auto;
     }
 
+    /* Rows styled like template-cards from Smart Step Creator */
     .ingredient-db-row {
         cursor: pointer;
+        transition: background .16s ease;
     }
 
     .ingredient-db-row td {
         background: transparent !important;
         border-color: var(--creator-border) !important;
+        padding: 10px 14px !important;
+        vertical-align: middle;
+    }
+
+    .ingredient-db-row:hover td {
+        background: rgba(141,99,255,.12) !important;
     }
 
     .ingredient-db-row .display-name {
         color: var(--creator-text);
         font-weight: 700;
+        font-size: .88rem;
     }
 
-    .ingredient-db-row .ingredient-inline-inputs {
-        display: none !important;
+    .ingredient-db-add-icon {
+        color: var(--creator-accent);
+        font-size: 1rem;
+        opacity: .8;
+        flex-shrink: 0;
+        transition: opacity .16s ease, transform .16s ease;
+    }
+
+    .ingredient-db-row:hover .ingredient-db-add-icon {
+        opacity: 1;
+        transform: scale(1.15);
     }
 
     /* Der Bereich, in dem die ausgewählten Zutaten landen */
@@ -1000,6 +1025,11 @@
         backdrop-filter: blur(12px);
         margin: 0 !important;
         cursor: pointer;
+        transition: background .16s ease;
+    }
+
+    .ingredient-row.dynamic-item:hover {
+        background: rgba(141,99,255,.18);
     }
 
     .display-name-selected {
@@ -1012,26 +1042,110 @@
         color: var(--creator-sub);
     }
 
+    /* ---------- Ingredient Config Modal (fixed bottom-sheet) ---------- */
     .ingredient-config-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2600;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .ingredient-config-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(8,10,20,0.58);
+        backdrop-filter: blur(6px);
+        cursor: pointer;
+    }
+
+    .ingredient-config-sheet {
+        position: relative;
+        z-index: 1;
         width: 100%;
-        margin-top: 8px;
+        max-width: 540px;
+        padding: 0 12px 12px;
+        animation: ingredientSheetUp .28s cubic-bezier(.22,1,.36,1) forwards;
+    }
+
+    @@keyframes ingredientSheetUp {
+        from { transform: translateY(48px); opacity: .7; }
+        to   { transform: translateY(0);    opacity: 1; }
     }
 
     .ingredient-config-card {
-        width: 100%;
-        background: rgba(255,255,255,0.12);
-        border: 1px solid var(--creator-border);
-        border-radius: 22px;
-        padding: 16px;
-        color: var(--creator-text);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
-        backdrop-filter: blur(12px);
+        background: rgba(20,25,40,0.96);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 28px;
+        padding: 20px 18px 18px;
+        color: #f8f9ff;
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(141,99,255,.12);
+        backdrop-filter: blur(20px);
     }
 
-    .ingredient-config-row-host td {
-        background: transparent !important;
-        border: 0 !important;
-        padding-top: 0 !important;
+    .ingredient-config-handle {
+        width: 36px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.22);
+        margin: 0 auto 14px;
+    }
+
+    .ingredient-config-name {
+        font-weight: 800;
+        font-size: 1.08rem;
+        color: #f8f9ff;
+    }
+
+    .ingredient-config-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.08);
+        color: #f8f9ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        line-height: 1;
+        font-size: .8rem;
+    }
+
+    .ingredient-config-label {
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: rgba(248,249,255,0.62);
+    }
+
+    .ingredient-config-qty-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.07);
+        color: #f8f9ff;
+    }
+
+    .ingredient-config-qty-wrap .form-control {
+        color: #f8f9ff !important;
+        font-weight: 800;
+        font-size: 1.05rem;
+        padding: 0;
+        min-height: unset;
+    }
+
+    .ingredient-config-qty-wrap .form-control::placeholder { color: rgba(248,249,255,0.45); }
+
+    .ingredient-config-cancel {
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.07);
+        color: #f8f9ff;
+        border-radius: 999px;
     }
 
     .ingredient-unit-buttons {
@@ -1041,27 +1155,26 @@
     }
 
     .ingredient-unit-btn {
-        border: 1px solid var(--creator-border);
+        border: 1px solid rgba(255,255,255,0.18);
         border-radius: 999px;
         background: rgba(255,255,255,0.08);
-        color: var(--creator-text);
-        padding: 4px 10px;
+        color: #f8f9ff;
+        padding: 5px 11px;
         font-size: .78rem;
+        cursor: pointer;
+        transition: background .14s ease, border-color .14s ease;
+    }
+
+    .ingredient-unit-btn:hover {
+        background: rgba(141,99,255,.18);
+        border-color: rgba(141,99,255,.5);
     }
 
     .ingredient-unit-btn.active {
-        border-color: rgba(141,99,255,.8);
-        background: rgba(141,99,255,.25);
+        border-color: rgba(141,99,255,.9);
+        background: rgba(141,99,255,.28);
         box-shadow: 0 0 0 2px rgba(141,99,255,.22);
-    }
-
-    /* Design-Anpassung für die Inputs innerhalb der Karte */
-    .candy-purple-input {
-        border: 1px solid var(--creator-border) !important;
-        background-color: rgba(10, 14, 24, 0.72) !important;
-        color: var(--creator-text) !important;
         font-weight: 700;
-        border-radius: 12px !important;
     }
 
     .selected-zone {
@@ -1160,12 +1273,6 @@
         border-radius: 999px;
     }
 
-    #ingredientsDbTable .ingredient-inline-inputs .form-control,
-    #ingredientsDbTable .ingredient-inline-inputs .form-select {
-        min-height: 38px;
-    }
-
-
     /* ---------- Bottom Bar ---------- */
     .creator-bottom {
         left: 50% !important;
@@ -1233,11 +1340,11 @@
             overflow-x: hidden;
         }
 
-        #ingredientsDbTable thead, #stepsDbTable thead {
+        #stepsDbTable thead {
             display: none;
         }
 
-        #ingredientsDbTable tbody tr, #stepsDbTable tbody tr {
+        #stepsDbTable tbody tr {
             display: block;
             margin-bottom: 12px;
             background: rgba(255,255,255,0.95);
@@ -1246,13 +1353,12 @@
             box-shadow: 0 6px 18px rgba(0,0,0,0.06);
         }
 
-        #ingredientsDbTable tbody td, #stepsDbTable tbody td {
+        #stepsDbTable tbody td {
             display: block;
             border: 0;
             padding: 0;
         }
 
-            #ingredientsDbTable tbody td + td,
             #stepsDbTable tbody td + td {
                 margin-top: 10px;
                 text-align: right !important;
@@ -1710,20 +1816,10 @@
 
         function placeIngredientPopupUnderTarget(targetElement) {
             const overlay = $('#ingredientConfigOverlay');
-            const target = $(targetElement);
-            if (!overlay.length || !target.length) return;
-
-            $('.ingredient-config-row-host').remove();
-
-            if (target.is('tr')) {
-                const host = $('<tr class="ingredient-config-row-host"><td colspan="2"></td></tr>');
-                target.after(host);
-                host.find('td').append(overlay);
-            } else {
-                target.after(overlay);
-            }
-
+            if (!overlay.length) return;
             overlay.removeClass('d-none');
+            // Trap click on backdrop to close
+            overlay.find('.ingredient-config-backdrop').off('click.iconfig').on('click.iconfig', closeIngredientConfigPopup);
         }
 
         function openIngredientConfigPopup(row) {
@@ -1763,10 +1859,7 @@
         function closeIngredientConfigPopup() {
             activeIngredientConfigRow = null;
             activeIngredientDbRow = null;
-            const overlay = $('#ingredientConfigOverlay');
-            overlay.addClass('d-none');
-            $('.ingredient-config-row-host').remove();
-            $('#selectedIngredients').after(overlay);
+            $('#ingredientConfigOverlay').addClass('d-none');
         }
 
         function applyIngredientConfigPopup() {
