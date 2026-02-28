@@ -96,16 +96,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         {
             var existing = await _context.IngredientMeasureQuantity
                 .FirstOrDefaultAsync(x => x.IngredientsAndNutrients.Name_DE == incoming.IngredientsAndNutrients.Name_DE
-                                       && x.Measure.UnitOfMeasurement == incoming.Measure.UnitOfMeasurement
+                                       && x.Measure.Metriks_DE == incoming.Measure.Metriks_DE
                                        && x.Quantity.Quantitys == incoming.Quantity.Quantitys);
 
             if (existing != null) return existing;
 
-            if (incoming.Measure.UnitOfMeasurement == "Gramm")
-                incoming.Measure.UnitOfMeasurement = "g.";
+            if (incoming.Measure.Metriks_DE == "Gramm")
+                incoming.Measure.Metriks_DE = "g.";
 
             var nutrientRef = await _context.IngredientsAndNutrients.FirstOrDefaultAsync(x => x.Id == incoming.IngredientsAndNutrients.Id);
-            var measureRef = await _context.Metrics.FirstOrDefaultAsync(x => x.UnitOfMeasurement.ToLower() == incoming.Measure.UnitOfMeasurement.ToLower());
+            var measureRef = await _context.Metrics.FirstOrDefaultAsync(x => x.Metriks_DE.ToLower() == incoming.Measure.Metriks_DE.ToLower());
             var quantityRef = await _context.Quantities.FirstOrDefaultAsync(x => x.Quantitys == incoming.Quantity.Quantitys);
 
             if (nutrientRef == null || measureRef == null || quantityRef == null)
