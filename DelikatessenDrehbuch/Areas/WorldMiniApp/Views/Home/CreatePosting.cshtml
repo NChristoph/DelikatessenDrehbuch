@@ -443,12 +443,11 @@
                                         <button type="button" id="btnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="baseEditor" class="duration-editor d-none mt-2">
+                                <div id="baseEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Basis einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="baseValueInput" class="form-control form-control-sm" style="max-width:240px" placeholder="z.B. Teig, Creme" />
-                                        <button type="button" id="btnApplyBase" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyBase" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                                 <div id="itemEditor" class="bottom-sheet-editor d-none">
@@ -1637,7 +1636,7 @@
             shapeValue: 'Würfel',
             activeItemTokenId: '',
             itemValue: 'den Teig',
-            baseValue: 'Teig'
+            baseValue: 'den Teig'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -2373,7 +2372,20 @@
                     return options;
                 }
             }
-            return ['Eischnee', 'Masse', 'Teig', 'Creme', 'Sauce', 'Glasur', 'Füllung', 'Marinade', 'Emulsion', 'Schaum'];
+            const fallback = {
+                de: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum'],
+                en: ['the egg white foam', 'the mixture', 'the dough', 'the cream', 'the sauce', 'the glaze', 'the filling', 'the marinade', 'the emulsion', 'the foam'],
+                esp: ['la clara montada', 'la mezcla', 'la masa', 'la crema', 'la salsa', 'el glaseado', 'el relleno', 'la marinada', 'la emulsión', 'la espuma'],
+                prt: ['a clara em neve', 'a mistura', 'a massa', 'o creme', 'o molho', 'a cobertura', 'o recheio', 'a marinada', 'a emulsão', 'a espuma'],
+                id: ['buih putih telur', 'campuran', 'adonan', 'krim', 'saus', 'glasir', 'isian', 'marinade', 'emulsi', 'busa'],
+                nl: ['het eiwitschuim', 'het mengsel', 'het deeg', 'de crème', 'de saus', 'het glazuur', 'de vulling', 'de marinade', 'de emulsie', 'het schuim'],
+                sv: ['äggviteskummet', 'blandningen', 'degen', 'krämen', 'såsen', 'glasyren', 'fyllningen', 'marinaden', 'emulsionen', 'skummet'],
+                da: ['æggehvideskummet', 'blandingen', 'dejen', 'cremen', 'saucen', 'glasuren', 'fyldet', 'marinaden', 'emulsionen', 'skummet'],
+                no: ['eggehviteskummet', 'blandingen', 'deigen', 'kremen', 'sausen', 'glasuren', 'fyllet', 'marinaden', 'emulsjonen', 'skummet'],
+                ms: ['buih putih telur', 'campuran', 'doh', 'krim', 'sos', 'glasur', 'inti', 'perapan', 'emulsi', 'buih']
+            };
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            return fallback[lang] || fallback.de;
         }
 
         function openBaseEditorForToken(tokenId) {
@@ -2381,9 +2393,8 @@
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
             const options = getBaseOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Teig';
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
             creatorState.baseValue = selected;
-            $('#baseValueInput').val(selected);
             renderInlineBaseOptions();
             $('#baseEditor').removeClass('d-none');
         }
@@ -2397,7 +2408,7 @@
             const wrap = $('#inlineBaseOptions');
             if (!wrap.length) return;
             const options = getBaseOptions();
-            const currentVal = ($('#baseValueInput').val() || creatorState.baseValue || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.baseValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
@@ -2519,15 +2530,15 @@
 
             if (keyNorm === 'base') {
                 const map = {
-                    de: 'Teig',
-                    en: 'dough',
-                    esp: 'masa',
-                    prt: 'massa',
+                    de: 'den Teig',
+                    en: 'the dough',
+                    esp: 'la masa',
+                    prt: 'a massa',
                     id: 'adonan',
-                    nl: 'deeg',
-                    sv: 'deg',
-                    da: 'dej',
-                    no: 'deig',
+                    nl: 'het deeg',
+                    sv: 'degen',
+                    da: 'dejen',
+                    no: 'deigen',
                     ms: 'doh'
                 };
                 return map[lang] || map.de;
@@ -2545,6 +2556,27 @@
                     da: 'dejen',
                     no: 'deigen',
                     ms: 'doh'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'step1') {
+                const map = {
+                    de: 'Mehl', en: 'flour', esp: 'harina', prt: 'farinha', id: 'tepung', nl: 'bloem', sv: 'mjöl', da: 'mel', no: 'mel', ms: 'tepung'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'step2') {
+                const map = {
+                    de: 'Ei', en: 'egg', esp: 'huevo', prt: 'ovo', id: 'telur', nl: 'ei', sv: 'ägg', da: 'æg', no: 'egg', ms: 'telur'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'step3') {
+                const map = {
+                    de: 'Brösel', en: 'breadcrumbs', esp: 'pan rallado', prt: 'farinha de rosca', id: 'tepung roti', nl: 'paneermeel', sv: 'ströbröd', da: 'rasp', no: 'brødsmuler', ms: 'serbuk roti'
                 };
                 return map[lang] || map.de;
             }
@@ -2605,7 +2637,7 @@
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
                     else if (key === 'item' || key === 'dish') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
-                    else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
+                    else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'den Teig';
                     else {
                         const localizedFallback = getLocalizedFallbackForVariable(key, currentLang);
                         vars[key] = localizedFallback || key;
@@ -3745,19 +3777,13 @@
 
             $('#inlineBaseOptions').on('click', '.inline-base-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#baseValueInput').val(val);
                 creatorState.baseValue = val;
-                renderInlineBaseOptions();
-            });
-
-            $('#baseValueInput').on('input', function () {
-                creatorState.baseValue = ($(this).val() || '').toString().trim();
                 renderInlineBaseOptions();
             });
 
             $('#btnApplyBase').on('click', function () {
                 const tokenId = creatorState.activeBaseTokenId;
-                const val = ($('#baseValueInput').val() || '').toString().trim();
+                const val = (creatorState.baseValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.baseValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
