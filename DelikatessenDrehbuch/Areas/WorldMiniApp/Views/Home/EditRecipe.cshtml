@@ -105,11 +105,11 @@
                                 {
                                     if (measure.Id == Model.Ingredients[i].MeasureId)
                                     {
-                                        <option value="@measure.Id" selected>@measure.UnitOfMeasurement</option>
+                                        <option value="@measure.Id" selected>@measure.Metriks_DE</option>
                                     }
                                     else
                                     {
-                                        <option value="@measure.Id">@measure.UnitOfMeasurement</option>
+                                        <option value="@measure.Id">@measure.Metriks_DE</option>
                                     }
                                 }
                             </select>
@@ -147,7 +147,7 @@
             <select class="form-select rounded-3 ingredient-measure" required>
                 @foreach (var measure in Model.AvailableMeasures)
                 {
-                    <option value="@measure.Id">@measure.UnitOfMeasurement</option>
+                    <option value="@measure.Id">@measure.Metriks_DE</option>
                 }
             </select>
         </div>
