@@ -2194,12 +2194,23 @@
             }
             wrap.removeClass('d-none');
             const current = (selectedArticle || '').toString().trim().toLowerCase();
-            const html = options.map(x => {
+            const noArticleLabelByLang = {
+                de: 'ohne',
+                en: 'none',
+                esp: 'sin',
+                prt: 'sem',
+                nl: 'zonder'
+            };
+            const noArticleLabel = noArticleLabelByLang[resolveLangKey(currentLang)] || 'none';
+            const optionHtml = options.map(x => {
                 const isActive = current === x.toLowerCase();
                 const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-article-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
-            wrap.html(html);
+            const noArticleIsActive = !current;
+            const noArticleBtnClass = noArticleIsActive ? 'btn-light text-dark' : 'btn-outline-light';
+            const noArticleHtml = `<button type="button" class="btn btn-sm ${noArticleBtnClass} inline-article-opt" data-value="">${$('<div>').text(noArticleLabel).html()}</button>`;
+            wrap.html(noArticleHtml + optionHtml);
         }
 
         function getEquipmentOptions() {
@@ -2355,7 +2366,7 @@
             const currentVal = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-tool-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -2481,7 +2492,7 @@
             const currentVal = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-base-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
