@@ -304,7 +304,23 @@
                                             data-name-de="@item.Name_DE"
                                             data-name-en="@item.Name_EN"
                                             data-name-esp="@item.Name_ESP"
-                                            data-name-prt="@item.Name_PRT">
+                                            data-name-prt="@item.Name_PRT"
+                                            data-name-id="@item.Name_ID"
+                                            data-name-nl="@item.Name_NL"
+                                            data-name-sv="@item.Name_SE"
+                                            data-name-da="@item.Name_DK"
+                                            data-name-no="@item.Name_NO"
+                                            data-name-ms="@item.Name_MS"
+                                            data-genus-de="@item.Genus_DE"
+                                            data-genus-en="@item.Genus_EN"
+                                            data-genus-esp="@item.Genus_ESP"
+                                            data-genus-prt="@item.Genus_PRT"
+                                            data-genus-id="@item.Genus_ID"
+                                            data-genus-nl="@item.Genus_NL"
+                                            data-genus-sv="@item.Genus_SE"
+                                            data-genus-da="@item.Genus_DK"
+                                            data-genus-no="@item.Genus_NO"
+                                            data-genus-ms="@item.Genus_MS">
                                             <td>
                                                 <div class="fw-bold display-name">@item.Name_DE</div>
 
@@ -321,7 +337,7 @@
                                                             {
                                                                 foreach (var measure in Model.Measure)
                                                                 {
-                                                                    <option value="@measure.UnitOfMeasurement">@measure.UnitOfMeasurement</option>
+                                                                    <option value="@measure.Metriks_DE">@measure.Metriks_DE</option>
                                                                 }
                                                             }
                                                         </select>
@@ -345,6 +361,26 @@
                     
                 </div>
                 <div id="selectedIngredients" class="mt-3 selected-zone"></div>
+                <div id="ingredientConfigOverlay" class="ingredient-config-overlay d-none">
+                    <div class="ingredient-config-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-bold" id="ingredientConfigTitle">Zutat</div>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="btnCloseIngredientConfig">✕</button>
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted mb-1 d-block">Menge</label>
+                            <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm candy-purple-input" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1 d-block">Einheit</label>
+                            <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input"></select>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-light" id="btnCancelIngredientConfig">Abbrechen</button>
+                            <button type="button" class="btn btn-sm creator-cta-primary" id="btnApplyIngredientConfig">Übernehmen</button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
                     <div class="smart-step-creator mt-3 mb-4" data-theme="dark">
@@ -399,36 +435,64 @@
                                         <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="pronounEditor" class="duration-editor d-none mt-2">
+                                <div id="pronounEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Pronomen einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="pronounValueInput" class="form-control form-control-sm" style="max-width:160px" placeholder="z.B. ihn/sie/es" />
-                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="toolEditor" class="duration-editor d-none mt-2">
+                                <div id="toolEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Werkzeug einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolArticleOptions"></div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="toolValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Messer, Reibe" />
-                                        <button type="button" id="btnApplyTool" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyTool" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="shapeEditor" class="duration-editor d-none mt-2">
+                                <div id="grindSizeEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="shapeEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Schnittform einsetzen</div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="shapeValueInput" class="form-control form-control-sm" style="max-width:200px" placeholder="z.B. Würfel, Scheiben" />
-                                        <button type="button" id="btnApplyShape" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
-                                <div id="baseEditor" class="duration-editor d-none mt-2">
+                                <div id="baseEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Basis einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseArticleOptions"></div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="text" id="baseValueInput" class="form-control form-control-sm" style="max-width:240px" placeholder="z.B. Teig, Creme" />
-                                        <button type="button" id="btnApplyBase" class="btn btn-sm btn-outline-light">Einsetzen</button>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyBase" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="itemEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Item einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemArticleOptions"></div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="balanceEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Balance einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceArticleOptions"></div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplyBalance" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                                    </div>
+                                </div>
+                                <div id="seasoningsEditor" class="bottom-sheet-editor d-none">
+                                    <div class="small text-muted mb-1">Seasonings einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineSeasoningsOptions"></div>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" id="btnApplySeasonings" class="btn btn-sm creator-cta-primary">Einsetzen</button>
                                     </div>
                                 </div>
                             </div>
@@ -452,9 +516,20 @@
                                 </div>
                             </div>
 
+                            <div id="modeEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Ofenmodus wählen" data-en="Choose oven mode" data-esp="Elegir modo del horno" data-prt="Escolher modo do forno">Ofenmodus wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineModeOptions"></div>
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyMode" class="btn btn-sm creator-cta-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
                             <div id="equipmentEditor" class="bottom-sheet-editor d-none">
                                 <div class="small text-muted mb-1 label-lang"
-                                     data-de="Gerät wählen" data-en="Choose equipment" data-esp="Elegir equipo" data-prt="Escolher equipamento">Gerät wählen</div>
+                                     data-de="Tool / Gerät wählen" data-en="Choose tool / equipment" data-esp="Elegir herramienta / equipo" data-prt="Escolher ferramenta / equipamento">Tool / Gerät wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentArticleOptions"></div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
                                 <div class="d-flex justify-content-end align-items-center">
                                     <button type="button" id="btnApplyEquipment" class="btn btn-sm creator-cta-primary label-lang"
@@ -847,24 +922,55 @@
     /* Der Bereich, in dem die ausgewählten Zutaten landen */
     #selectedIngredients {
         display: flex !important;
-        flex-direction: column !important; /* Zwingt Elemente untereinander */
-        gap: 15px; /* Erzeugt den Abstand zwischen den Karten */
+        flex-direction: column !important;
+        gap: 10px;
         width: 100%;
         position: relative;
         padding: 5px;
     }
 
-    /* Die einzelne Zutat-Karte */
     .ingredient-row.dynamic-item {
-        display: block !important; /* Kein Flex-Layout für die äußere Box */
-        position: relative !important; /* Verhindert das Übereinanderstapeln (absolute) */
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
         width: 100% !important;
-        background: #ffffff;
-        border-radius: 18px;
-        padding: 15px;
-        border: 1px solid rgba(0,0,0,0.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        margin: 0 !important; /* Abstand wird über 'gap' im Parent geregelt */
+        background: rgba(15,23,42,0.92);
+        border-radius: 14px;
+        padding: 12px 14px;
+        border: 1px solid var(--creator-border);
+        color: var(--creator-text);
+        box-shadow: none;
+        margin: 0 !important;
+        cursor: pointer;
+    }
+
+    .display-name-selected {
+        color: var(--creator-text) !important;
+        font-weight: 700;
+    }
+
+    .ingredient-row-meta {
+        font-size: .78rem;
+        color: var(--creator-sub);
+    }
+
+    .ingredient-config-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2,6,23,0.62);
+        z-index: 1200;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .ingredient-config-card {
+        width: min(560px, 100%);
+        background: var(--creator-sheet);
+        border: 1px solid var(--creator-border);
+        border-radius: 16px;
+        padding: 14px;
     }
 
     /* Design-Anpassung für die Inputs innerhalb der Karte */
@@ -887,6 +993,89 @@
         margin-bottom: 10px;
         border: 1px solid rgba(0,0,0,0.05);
         box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
+
+    #selectedSteps .step-row {
+        border: 1px solid var(--creator-border);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.08);
+        color: var(--creator-text);
+        padding: 10px;
+        box-shadow: none;
+    }
+
+    #selectedSteps .step-badge {
+        display: none;
+    }
+
+    #selectedSteps .display-step-selected {
+        color: var(--creator-text);
+    }
+
+    #selectedSteps .step-text-content {
+        display: block;
+        font-weight: 700;
+        margin-top: 6px;
+    }
+
+    .step-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .keyword-btn {
+        border-color: rgba(255,255,255,0.55);
+        color: #111827;
+        background: #ffffff;
+    }
+
+    .keyword-btn.btn-secondary,
+    .keyword-btn.active {
+        background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
+        border-color: transparent;
+        color: #fff;
+    }
+
+    .keyword-pill {
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.12) !important;
+        color: #fff !important;
+        padding: 8px 12px;
+    }
+
+    #card-keywords {
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: radial-gradient(120% 120% at 10% 0%, #2f2f5f 0%, #17172a 45%, #0f1119 100%);
+        color: #f8f9ff;
+        box-shadow: 0 18px 40px rgba(16,20,40,0.26);
+        overflow: hidden;
+    }
+
+    #card-keywords .creator-card-head {
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        background: rgba(12,16,28,0.28);
+    }
+
+    #card-keywords .creator-card-title {
+        color: #f8f9ff;
+    }
+
+    #card-keywords .creator-card-sub {
+        color: rgba(248,249,255,0.72);
+    }
+
+    #card-keywords .badge {
+        color: #f8f9ff !important;
+        border-color: rgba(255,255,255,0.22) !important;
+        background: rgba(255,255,255,0.08) !important;
+    }
+
+    .smart-step-creator .btn.btn-sm:not(.advanced-gear),
+    #card-keywords .btn.btn-sm {
+        border-radius: 999px;
     }
 
     #ingredientsDbTable .ingredient-inline-inputs .form-control,
@@ -1188,6 +1377,40 @@
         white-space: nowrap;
     }
 
+    .bottom-sheet-editor .inline-article-opt,
+    .bottom-sheet-editor .inline-equipment-opt,
+    .bottom-sheet-editor .inline-tool-opt,
+    .bottom-sheet-editor .inline-base-opt,
+    .bottom-sheet-editor .inline-item-opt,
+    .bottom-sheet-editor .inline-balance-opt,
+    .bottom-sheet-editor .inline-seasonings-opt {
+        white-space: nowrap;
+    }
+
+    .bottom-sheet-editor .inline-article-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-equipment-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-tool-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-base-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-item-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-balance-opt.btn-outline-light,
+    .bottom-sheet-editor .inline-seasonings-opt.btn-outline-light {
+        background: transparent;
+        color: var(--creator-text);
+        border-color: rgba(255,255,255,0.45);
+    }
+
+    .bottom-sheet-editor .inline-article-opt.btn-light,
+    .bottom-sheet-editor .inline-equipment-opt.btn-light,
+    .bottom-sheet-editor .inline-tool-opt.btn-light,
+    .bottom-sheet-editor .inline-base-opt.btn-light,
+    .bottom-sheet-editor .inline-item-opt.btn-light,
+    .bottom-sheet-editor .inline-balance-opt.btn-light,
+    .bottom-sheet-editor .inline-seasonings-opt.btn-light {
+        background: #fff;
+        border-color: #fff;
+        color: #10131f;
+    }
+
     .sheet-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
     .sheet-title { font-weight: 800; }
     .sheet-sub { font-size: .77rem; color: var(--creator-sub); }
@@ -1339,7 +1562,7 @@
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
-         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => x.UnitOfMeasurement).ToList() ?? new List<string>()));
+         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => new { id = x.Id, de = x.Metriks_DE, en = x.Metriks_EN, esp = x.Metriks_ESP, prt = x.Metriks_PRT, idn = x.Metriks_ID, ms = x.Metriks_MS, nl = x.Metriks_NL, sv = x.Metriks_SE, da = x.Metriks_DK, no = x.Metriks_NO }).ToList() ?? new List<object>()));
 
          function getCookieValue(name) {
              const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -1350,11 +1573,111 @@
             const normalized = (value || 'de').toLowerCase();
             if (normalized === 'es') return 'esp';
             if (normalized === 'pt') return 'prt';
+            if (normalized === 'se') return 'sv';
+            if (normalized === 'dk') return 'da';
             return normalized;
         }
 
         let currentLang = resolveLangKey(getCookieValue('deli-lang'));
         let tempStepIdCounter = -1;
+        let ingredientArticleRules = null;
+        let activeIngredientConfigRow = null;
+
+        function getUnitLabel(unitObj, langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            if (!unitObj || typeof unitObj !== 'object') return '';
+            const map = {
+                de: unitObj.de,
+                en: unitObj.en,
+                esp: unitObj.esp,
+                prt: unitObj.prt,
+                id: unitObj.idn,
+                ms: unitObj.ms,
+                nl: unitObj.nl,
+                sv: unitObj.sv,
+                da: unitObj.da,
+                no: unitObj.no
+            };
+            return (map[lang] || unitObj.de || '').toString();
+        }
+
+        function buildUnitOptionsHtml(selectedDe) {
+            const selected = (selectedDe || '').toString().trim().toLowerCase();
+            return (dbUnits || []).map(u => {
+                const de = (u?.de || '').toString();
+                const label = getUnitLabel(u, currentLang) || de;
+                const isSelected = de.toLowerCase() === selected;
+                return `<option value="${$('<div>').text(de).html()}" ${isSelected ? 'selected' : ''}>${$('<div>').text(label).html()}</option>`;
+            }).join('');
+        }
+
+        function openIngredientConfigPopup(row) {
+            const target = $(row);
+            if (!target.length) return;
+            activeIngredientConfigRow = target;
+            const name = (target.find('.display-name-selected').first().text() || '').trim();
+            const qty = (target.find('.ingredient-qty-hidden').val() || '0').toString();
+            const unitDe = (target.find('.ingredient-unit-hidden').val() || '').toString();
+            $('#ingredientConfigTitle').text(name || 'Zutat');
+            $('#ingredientConfigQty').val(qty);
+            $('#ingredientConfigUnit').html(buildUnitOptionsHtml(unitDe));
+            $('#ingredientConfigOverlay').removeClass('d-none');
+        }
+
+        function closeIngredientConfigPopup() {
+            activeIngredientConfigRow = null;
+            $('#ingredientConfigOverlay').addClass('d-none');
+        }
+
+        function applyIngredientConfigPopup() {
+            if (!activeIngredientConfigRow || !activeIngredientConfigRow.length) return;
+            const qty = normalizeDecimalInputValue($('#ingredientConfigQty').val()) || '0';
+            const unitDe = ($('#ingredientConfigUnit').val() || '').toString();
+            const unitObj = (dbUnits || []).find(u => (u?.de || '').toString().toLowerCase() === unitDe.toLowerCase());
+            const unitLabel = getUnitLabel(unitObj, currentLang) || unitDe;
+            activeIngredientConfigRow.find('.ingredient-qty-hidden').val(qty);
+            activeIngredientConfigRow.find('.ingredient-unit-hidden').val(unitDe);
+            activeIngredientConfigRow.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
+            closeIngredientConfigPopup();
+        }
+
+        async function loadIngredientArticleRules() {
+            try {
+                const response = await fetch('/data/ingredient_article_rules.json', { cache: 'no-store' });
+                if (!response.ok) return;
+                ingredientArticleRules = await response.json();
+            } catch (_) {
+                ingredientArticleRules = null;
+            }
+        }
+
+        function normalizeGenusKey(genusRaw = '') {
+            const value = (genusRaw || '').toString().trim().toLowerCase();
+            if (!value) return '';
+            if (['m', 'masc', 'mask', 'masculine', 'masculin', 'der', 'el', 'o', 'de'].some(x => value === x || value.includes(x))) return 'masc';
+            if (['f', 'fem', 'feminine', 'femin', 'die', 'la', 'a'].some(x => value === x || value.includes(x))) return 'fem';
+            if (['n', 'neut', 'neuter', 'das', 'het', 'det'].some(x => value === x || value.includes(x))) return 'neut';
+            return '';
+        }
+
+        function applyArticleToName(name, article, lang) {
+            const base = (name || '').toString().trim();
+            const art = (article || '').toString().trim();
+            if (!base || !art) return base;
+
+            const langRules = {
+                de: ['der', 'die', 'das', 'den', 'dem', 'des'],
+                en: ['the', 'a', 'an'],
+                esp: ['el', 'la', 'los', 'las', 'un', 'una'],
+                prt: ['o', 'a', 'os', 'as', 'um', 'uma'],
+                nl: ['de', 'het', 'een']
+            };
+
+            const prefixList = langRules[resolveLangKey(lang || currentLang || 'de')] || [];
+            const lower = base.toLowerCase();
+            if (prefixList.some(x => lower.startsWith(`${x} `))) return base;
+            return `${art} ${base}`;
+        }
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1400,11 +1723,35 @@
                 const row = $(this);
                 const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
                 const name = row.find('.display-name-selected').text()?.trim() || '';
-                return { id, name };
+                const genusByLang = {
+                    de: (row.data('genus-de') || '').toString().trim(),
+                    en: (row.data('genus-en') || '').toString().trim(),
+                    esp: (row.data('genus-esp') || '').toString().trim(),
+                    prt: (row.data('genus-prt') || '').toString().trim(),
+                    id: (row.data('genus-id') || '').toString().trim(),
+                    nl: (row.data('genus-nl') || '').toString().trim(),
+                    sv: (row.data('genus-sv') || '').toString().trim(),
+                    da: (row.data('genus-da') || '').toString().trim(),
+                    no: (row.data('genus-no') || '').toString().trim(),
+                    ms: (row.data('genus-ms') || '').toString().trim()
+                };
+                return {
+                    id,
+                    name,
+                    genusDe: genusByLang.de || '',
+                    genusLocalized: genusByLang[currentLang] || '',
+                    genusByLang
+                };
             }).get().filter(x => x.id || x.name);
 
             if (fromSelected.length) {
-                return fromSelected.map(x => ({ id: x.id || '', name: x.name || 'Zutat' }));
+                return fromSelected.map(x => ({
+                    id: x.id || '',
+                    name: x.name || 'Zutat',
+                    genusDe: x.genusDe || '',
+                    genusLocalized: x.genusLocalized || '',
+                    genusByLang: x.genusByLang || {}
+                }));
             }
             return [];
         }
@@ -1435,15 +1782,33 @@
             temperatureUnit: 'celsius',
             activeHeatTokenId: '',
             heatValue: 'mittlerer',
+            activeModeTokenId: '',
+            modeValue: 'Ober- und Unterhitze',
             activePronounTokenId: '',
+            pronounValue: '',
             activeEquipmentTokenId: '',
-            equipmentValue: 'Pfanne',
+            equipmentValue: 'die Pfanne',
+            equipmentArticleValue: 'die',
             activeStateTokenId: '',
             stateValue: 'goldbraun',
             activeToolTokenId: '',
+            toolValue: 'Messer',
+            toolArticleValue: '',
             activeShapeTokenId: '',
+            activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
-            baseValue: 'Teig'
+            grindSizeValue: 'feine',
+            shapeValue: 'Würfel',
+            activeItemTokenId: '',
+            itemValue: 'den Teig',
+            itemArticleValue: 'den',
+            baseValue: 'den Teig',
+            baseArticleValue: 'den',
+            activeBalanceTokenId: '',
+            balanceValue: 'die Säure',
+            balanceArticleValue: 'die',
+            activeSeasoningsTokenId: '',
+            seasoningsValue: 'Salz und Pfeffer'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -1459,22 +1824,46 @@
             return '🥣';
         }
 
-        function resolveGermanGrammarForIngredient(ingredientName) {
+        function resolveGrammarForIngredient(ingredientName, genusByLang = {}, langKey = 'de') {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
             const value = (ingredientName || '').toString().trim().toLowerCase();
-            const known = {
-                m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
-                f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
-                n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
-            };
+            const genusRaw = (genusByLang?.[lang] || genusByLang?.de || '').toString().trim().toLowerCase();
+            const genusKey = normalizeGenusKey(genusRaw);
 
-            let gender = 'm';
-            if (known.f.some(x => value.includes(x))) gender = 'f';
-            else if (known.n.some(x => value.includes(x))) gender = 'n';
+            const fromRules = ingredientArticleRules && ingredientArticleRules[lang] && ingredientArticleRules[lang][genusKey]
+                ? ingredientArticleRules[lang][genusKey]
+                : null;
 
-            if (gender === 'f') return { pronoun: 'sie', article: 'die' };
-            if (gender === 'n') return { pronoun: 'es', article: 'das' };
-            return { pronoun: 'ihn', article: 'den' };
+            if (fromRules && (fromRules.article != null || fromRules.pronoun != null)) {
+                return {
+                    pronoun: (fromRules.pronoun || '').toString(),
+                    article: (fromRules.article || '').toString()
+                };
+            }
+
+            const hasAny = (hints) => hints.some(x => genusRaw === x || genusRaw.includes(x));
+
+            if (lang === 'de') {
+                const known = {
+                    m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
+                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
+                    n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
+                };
+                if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };
+                if (hasAny(['n', 'neu', 'neut', 'das'])) return { pronoun: 'es', article: 'das' };
+                if (hasAny(['m', 'mas', 'mask', 'der'])) return { pronoun: 'ihn', article: 'den' };
+
+                let gender = 'm';
+                if (known.f.some(x => value.includes(x))) gender = 'f';
+                else if (known.n.some(x => value.includes(x))) gender = 'n';
+                if (gender === 'f') return { pronoun: 'sie', article: 'die' };
+                if (gender === 'n') return { pronoun: 'es', article: 'das' };
+                return { pronoun: 'ihn', article: 'den' };
+            }
+
+            return { pronoun: 'it', article: lang === 'en' ? 'the' : '' };
         }
+
 
         function getPlaceholderKeysFromTemplate(template) {
             const tpl = template?.templates?.de || template?.templates?.en || '';
@@ -1496,15 +1885,64 @@
             return selected.map(x => x.name);
         }
 
+        function getSelectedIngredientNamesWithArticle(langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const ingredients = getSelectedIngredientsForSandbox();
+            if (!ingredients.length) return [];
+
+            const selectedIds = creatorState.selectedIngredientIds || [];
+            if (!selectedIds.length) return [];
+
+            return ingredients
+                .filter(x => selectedIds.includes(x.id))
+                .map(x => {
+                    const grammar = resolveGrammarForIngredient(x.name, x.genusByLang || {}, lang);
+                    return applyArticleToName(x.name, grammar.article, lang) || x.name;
+                });
+        }
+
         function getSelectedIngredientForCreator() {
-            const names = getSelectedIngredientNames();
-            if (!names.length) return null;
-            return { id: (creatorState.selectedIngredientIds || [])[0] || '', name: names[0] };
+            const ingredients = getSelectedIngredientsForSandbox();
+            const selectedId = (creatorState.selectedIngredientIds || [])[0] || '';
+            if (!selectedId) return null;
+
+            const selected = ingredients.find(x => x.id === selectedId);
+            if (!selected) return null;
+
+            return {
+                id: selected.id || '',
+                name: selected.name || '',
+                genusDe: selected.genusDe || '',
+                genusLocalized: selected.genusLocalized || '',
+                genusByLang: selected.genusByLang || {}
+            };
         }
 
         function getSelectedIngredientValueForInsert() {
-            const names = getSelectedIngredientNames();
+            const names = getSelectedIngredientNamesWithArticle(currentLang);
             return names.length ? names.join(', ') : '';
+        }
+
+        function syncGrammarAssignmentsForSelectedIngredient() {
+            const selectedIngredient = getSelectedIngredientForCreator();
+            const grammar = resolveGrammarForIngredient(selectedIngredient?.name || '', selectedIngredient?.genusByLang || {}, currentLang);
+            const pronounValue = (creatorState.advancedPronounOverride || grammar.pronoun || '').toString().trim();
+            const articleValue = (creatorState.advancedArticleOverride || grammar.article || '').toString().trim();
+
+            creatorState.computedPronoun = pronounValue;
+            creatorState.computedArticle = articleValue;
+
+            Object.keys(creatorState.placeholderAssignments || {}).forEach(tokenId => {
+                const key = (tokenId || '').toString().split('__')[0].trim().toLowerCase();
+                if (key === 'pronoun') {
+                    if (pronounValue) creatorState.placeholderAssignments[tokenId] = pronounValue;
+                    else delete creatorState.placeholderAssignments[tokenId];
+                }
+                if (key === 'article') {
+                    if (articleValue) creatorState.placeholderAssignments[tokenId] = articleValue;
+                    else delete creatorState.placeholderAssignments[tokenId];
+                }
+            });
         }
 
         function getEffectiveTemplateId() {
@@ -1536,6 +1974,11 @@
             return value === 'heat' || value.includes('heat');
         }
 
+        function isModePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'mode' || value.includes('mode');
+        }
+
         function isEquipmentPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'equipment';
@@ -1551,6 +1994,11 @@
             return value === 'tool';
         }
 
+        function isGrindSizePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'grind_size' || value === 'grindsize' || value.includes('grind');
+        }
+
         function isShapePlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'shape';
@@ -1561,9 +2009,24 @@
             return value === 'base';
         }
 
+        function isItemPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'item' || value === 'dish' || value.includes('item');
+        }
+
         function isCountPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'count' || value === 'servings' || value.includes('count');
+        }
+
+        function isBalancePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'balance';
+        }
+
+        function isSeasoningsPlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'seasonings' || value === 'spices';
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -1720,12 +2183,60 @@
             $('#heatEditor').addClass('d-none');
         }
 
+        function getModeOptions() {
+            const fallback = {
+                de: ['Oberhitze', 'Unterhitze', 'Ober- und Unterhitze', 'Umluft'],
+                en: ['top heat', 'bottom heat', 'top and bottom heat', 'convection'],
+                esp: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convección'],
+                prt: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecção'],
+                id: ['panas atas', 'panas bawah', 'panas atas dan bawah', 'konveksi'],
+                nl: ['bovenwarmte', 'onderwarmte', 'boven- en onderwarmte', 'hetelucht'],
+                sv: ['övervärme', 'undervärme', 'över- och undervärme', 'varmluft'],
+                da: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
+                no: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
+                ms: ['haba atas', 'haba bawah', 'haba atas dan bawah', 'peredaran udara']
+            };
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            return fallback[lang] || fallback.de;
+        }
+
+        function openModeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeModeTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.modeValue || '').toString().trim().toLowerCase();
+            const options = getModeOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText) || options[2] || options[0] || 'Ober- und Unterhitze';
+            creatorState.modeValue = selected;
+            renderInlineModeOptions();
+            placeEditorLikeTemperature('#modeEditor');
+            $('#modeEditor').removeClass('d-none');
+        }
+
+        function closeModeEditor() {
+            creatorState.activeModeTokenId = '';
+            $('#modeEditor').addClass('d-none');
+        }
+
+        function renderInlineModeOptions() {
+            const wrap = $('#inlineModeOptions');
+            if (!wrap.length) return;
+            const options = getModeOptions();
+            const currentVal = (creatorState.modeValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-mode-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function openPronounEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activePronounTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.computedPronoun || '').toString().trim();
-            $('#pronounValueInput').val(currentText);
+            creatorState.pronounValue = currentText;
             renderInlinePronounOptions();
+            placeEditorLikeTemperature('#pronounEditor');
             $('#pronounEditor').removeClass('d-none');
         }
 
@@ -1738,31 +2249,185 @@
             const wrap = $('#inlinePronounOptions');
             if (!wrap.length) return;
             const options = getPronounSuggestionsForLang(currentLang);
-            const currentVal = ($('#pronounValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.pronounValue || creatorState.computedPronoun || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-pronoun-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
         }
 
-        function getEquipmentOptions() {
+        function ensureEquipmentArticle(value, langKey) {
+            const raw = (value || '').toString().trim();
+            if (!raw) return '';
+
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const articlePrefixesByLang = {
+                de: ['der', 'die', 'das', 'den', 'dem', 'des'],
+                en: ['the'],
+                esp: ['el', 'la', 'los', 'las'],
+                prt: ['o', 'a', 'os', 'as'],
+                nl: ['de', 'het']
+            };
+
+            const lower = raw.toLowerCase();
+            const existing = articlePrefixesByLang[lang] || [];
+            if (existing.some(x => lower.startsWith(`${x} `))) return raw;
+
+            const articleMapByLang = {
+                de: {
+                    'backofen': 'den',
+                    'pfanne': 'die',
+                    'bräter': 'den',
+                    'topf': 'den',
+                    'küchenmaschine': 'die',
+                    'auflaufform': 'die'
+                },
+                en: {
+                    'oven': 'the',
+                    'pan': 'the',
+                    'roaster': 'the',
+                    'pot': 'the',
+                    'food processor': 'the',
+                    'baking dish': 'the'
+                },
+                esp: {
+                    'horno': 'el',
+                    'sartén': 'la',
+                    'asador': 'el',
+                    'olla': 'la',
+                    'procesador de alimentos': 'el',
+                    'fuente para horno': 'la'
+                },
+                prt: {
+                    'forno': 'o',
+                    'frigideira': 'a',
+                    'assadeira': 'a',
+                    'panela': 'a',
+                    'processador de alimentos': 'o',
+                    'travessa de forno': 'a'
+                },
+                nl: {
+                    'oven': 'de',
+                    'pan': 'de',
+                    'braadslede': 'de',
+                    'kookpot': 'de',
+                    'keukenmachine': 'de',
+                    'ovenschaal': 'de'
+                }
+            };
+
+            const article = articleMapByLang[lang]?.[lower] || '';
+            if (!article) return raw;
+            return `${article} ${raw}`;
+        }
+
+        function getEditorArticleOptions(langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
             if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('equipment', currentLang || 'de');
+                const options = MasterStepRenderer.getVariablePresets('articles', lang);
                 if (Array.isArray(options) && options.length) {
-                    return options;
+                    return options.filter(x => (x || '').toString().trim() !== '');
                 }
             }
-            return ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb'];
+            const map = {
+                de: ['der', 'die', 'das', 'den'],
+                en: ['the'],
+                esp: ['el', 'la', 'los', 'las'],
+                prt: ['o', 'a', 'os', 'as'],
+                nl: ['de', 'het']
+            };
+            return map[lang] || [];
+        }
+
+        function splitLeadingArticle(value, langKey = currentLang) {
+            const raw = (value || '').toString().trim();
+            if (!raw) return { article: '', noun: '' };
+            const options = getEditorArticleOptions(langKey);
+            const lower = raw.toLowerCase();
+            const found = options.find(x => lower.startsWith(`${x.toLowerCase()} `));
+            if (!found) return { article: '', noun: raw };
+            return { article: found, noun: raw.substring(found.length).trim() };
+        }
+
+        function composeArticleAndNoun(article, noun) {
+            const art = (article || '').toString().trim();
+            const n = (noun || '').toString().trim();
+            if (!n) return '';
+            return art ? `${art} ${n}` : n;
+        }
+
+        function getNounOptions(options, langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const result = (options || []).map(x => splitLeadingArticle(x, lang).noun).filter(Boolean);
+            return Array.from(new Set(result));
+        }
+
+        function renderArticleOptions(wrapSelector, selectedArticle) {
+            const wrap = $(wrapSelector);
+            if (!wrap.length) return;
+            const options = getEditorArticleOptions(currentLang);
+            if (!options.length) {
+                wrap.empty().addClass('d-none');
+                return;
+            }
+            wrap.removeClass('d-none');
+            const current = (selectedArticle || '').toString().trim().toLowerCase();
+            const noArticleLabelByLang = {
+                de: 'ohne',
+                en: 'none',
+                esp: 'sin',
+                prt: 'sem',
+                nl: 'zonder'
+            };
+            const noArticleLabel = noArticleLabelByLang[resolveLangKey(currentLang)] || 'none';
+            const optionHtml = options.map(x => {
+                const isActive = current === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-article-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            const noArticleIsActive = !current;
+            const noArticleBtnClass = noArticleIsActive ? 'btn-light text-dark' : 'btn-outline-light';
+            const noArticleHtml = `<button type="button" class="btn btn-sm ${noArticleBtnClass} inline-article-opt" data-value="">${$('<div>').text(noArticleLabel).html()}</button>`;
+            wrap.html(noArticleHtml + optionHtml);
+        }
+
+        function getEquipmentOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const fallbackByLang = {
+                de: ['Pfanne', 'Topf', 'Backofen', 'Rührschüssel', 'Sieb', 'Mixer', 'Pürierstab', 'Küchenmaschine', 'Bräter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform', 'Zange', 'Schneidebrett'],
+                en: ['pan', 'pot', 'oven', 'mixing bowl', 'strainer', 'blender', 'immersion blender', 'food processor', 'roaster', 'wok', 'grill', 'steamer', 'baking dish', 'tongs', 'cutting board'],
+                esp: ['sartén', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno', 'pinzas', 'tabla de cortar'],
+                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mão', 'processador de alimentos', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno', 'pinça', 'tábua de corte'],
+                id: ['wajan', 'panci', 'oven', 'mangkuk adonan', 'saringan', 'blender', 'blender tangan', 'food processor', 'loyang panggang', 'wok', 'pemanggang', 'kukusan', 'pinggan oven', 'penjepit', 'talenan'],
+                nl: ['pan', 'kookpot', 'oven', 'mengkom', 'zeef', 'blender', 'staafmixer', 'keukenmachine', 'braadslede', 'wok', 'grill', 'stoomkoker', 'ovenschaal', 'tang', 'snijplank'],
+                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskål', 'sil', 'mixer', 'stavmixer', 'matberedare', 'stekgryta', 'wok', 'grill', 'ångkokare', 'ugnsform', 'tång', 'skärbräda'],
+                da: ['pande', 'gryde', 'ovn', 'røreskål', 'si', 'blender', 'stavblender', 'foodprocessor', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad', 'tang', 'skærebræt'],
+                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjøkkenmaskin', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form', 'klype', 'skjærefjøl'],
+                ms: ['kuali', 'periuk', 'ketuhar', 'mangkuk adunan', 'penapis', 'pengisar', 'pengisar tangan', 'pemproses makanan', 'dulang pembakar', 'wok', 'pemanggang', 'pengukus', 'bekas pembakar', 'penyepit', 'papan pemotong']
+            };
+
+            const rendererOptions = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('equipment', lang)
+                : [];
+
+            const fallback = fallbackByLang[lang] || fallbackByLang.de;
+            const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
+                .map(x => ensureEquipmentArticle((x || '').toString().trim(), lang))
+                .filter(Boolean);
+
+            return Array.from(new Set(merged));
         }
 
         function openEquipmentEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
             const options = getEquipmentOptions();
-            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'Pfanne';
+            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'die Pfanne';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.equipmentArticleValue = parts.article;
             creatorState.equipmentValue = selected;
             renderInlineEquipmentOptions();
             placeEditorLikeTemperature('#equipmentEditor');
@@ -1777,8 +2442,9 @@
         function renderInlineEquipmentOptions() {
             const wrap = $('#inlineEquipmentOptions');
             if (!wrap.length) return;
-            const options = getEquipmentOptions();
-            const currentVal = (creatorState.equipmentValue || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
+            const options = getNounOptions(getEquipmentOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
@@ -1828,14 +2494,41 @@
         }
 
         function getToolOptions() {
-            return ['Messer', 'Sparschäler', 'Reibe', 'Küchenmaschine', 'Schneebesen', 'Holzlöffel', 'Zange'];
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const fallbackByLang = {
+                de: ['Messer', 'Sparschäler', 'Reibe', 'Schneebesen', 'Spatel', 'Holzlöffel', 'Suppenkelle', 'Messbecher', 'Nudelholz', 'Teigschaber'],
+                en: ['knife', 'peeler', 'grater', 'whisk', 'spatula', 'wooden spoon', 'ladle', 'measuring cup', 'rolling pin', 'dough scraper'],
+                esp: ['cuchillo', 'pelador', 'rallador', 'batidor', 'espátula', 'cuchara de madera', 'cucharón', 'vaso medidor', 'rodillo', 'rasqueta de masa'],
+                prt: ['faca', 'descascador', 'ralador', 'batedor', 'espátula', 'colher de pau', 'concha', 'copo medidor', 'rolo de massa', 'raspador de massa'],
+                id: ['pisau', 'pengupas', 'parutan', 'pengocok', 'spatula', 'sendok kayu', 'sendok sayur', 'gelas ukur', 'rolling pin', 'scraper adonan'],
+                nl: ['mes', 'dunschiller', 'rasp', 'garde', 'spatel', 'houten lepel', 'soeplepel', 'maatbeker', 'deegroller', 'deegschraper'],
+                sv: ['kniv', 'potatisskalare', 'rivjärn', 'visp', 'stekspade', 'träslev', 'slev', 'måttkopp', 'kavel', 'degskrapa'],
+                da: ['kniv', 'skræller', 'rivejern', 'piskeris', 'spatel', 'træske', 'suppeske', 'målebæger', 'kagerulle', 'dejskraber'],
+                no: ['kniv', 'skreller', 'rivjern', 'visp', 'stekespade', 'tresleiv', 'øse', 'målebeger', 'kjevle', 'deigskrape'],
+                ms: ['pisau', 'pengupas', 'parut', 'pemukul', 'spatula', 'sudu kayu', 'senduk', 'cawan penyukat', 'penggelek doh', 'pengikis doh']
+            };
+
+            const rendererOptions = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('tool', lang)
+                : [];
+
+            const fallback = fallbackByLang[lang] || fallbackByLang.de;
+            const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
+                .map(x => (x || '').toString().trim())
+                .filter(Boolean);
+
+            return Array.from(new Set(merged));
         }
 
         function openToolEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeToolTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#toolValueInput').val(currentText || 'Messer');
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
+            const options = getToolOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Messer';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.toolArticleValue = parts.article;
+            creatorState.toolValue = composeArticleAndNoun(parts.article, parts.noun || selected);
             renderInlineToolOptions();
             $('#toolEditor').removeClass('d-none');
         }
@@ -1848,26 +2541,80 @@
         function renderInlineToolOptions() {
             const wrap = $('#inlineToolOptions');
             if (!wrap.length) return;
-            const options = getToolOptions();
-            const currentVal = ($('#toolValueInput').val() || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineToolArticleOptions', creatorState.toolArticleValue);
+            const options = getNounOptions(getToolOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-tool-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
         }
 
+        function getGrindSizeOptions() {
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('grind_size', currentLang || 'de');
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            const fallback = {
+                de: ['fein', 'feine', 'mittel', 'mittlere', 'grob', 'grobe', 'dünn', 'dünne', 'breit', 'breite', 'klein', 'kleine', 'groß', 'große', 'ca. 1 cm groß', 'ca. 1 cm große', 'ca. 0,5 mm groß', 'ca. 0,5 mm große'],
+                en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large', 'about 3/8-inch', 'about 0.02-inch'],
+                esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeñas', 'grandes'],
+                prt: ['finas', 'médias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
+                id: ['halus', 'sedang', 'kasar', 'tipis', 'tebal', 'kecil', 'besar'],
+                nl: ['fijne', 'middelgrote', 'grove', 'dunne', 'brede', 'kleine', 'grote'],
+                sv: ['fina', 'medelgrova', 'grova', 'tunna', 'breda', 'små', 'stora'],
+                da: ['fine', 'mellemstore', 'grove', 'tynde', 'brede', 'små', 'store'],
+                no: ['fine', 'middels', 'grove', 'tynne', 'brede', 'små', 'store'],
+                ms: ['halus', 'sederhana', 'kasar', 'nipis', 'lebar', 'kecil', 'besar']
+            };
+            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+        }
+
+        function openGrindSizeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeGrindSizeTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.grindSizeValue || '').toString().trim();
+            const options = getGrindSizeOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'feine';
+            creatorState.grindSizeValue = selected;
+            renderInlineGrindSizeOptions();
+            placeEditorLikeTemperature('#grindSizeEditor');
+            $('#grindSizeEditor').removeClass('d-none');
+        }
+
+        function closeGrindSizeEditor() {
+            creatorState.activeGrindSizeTokenId = '';
+            $('#grindSizeEditor').addClass('d-none');
+        }
+
+        function renderInlineGrindSizeOptions() {
+            const wrap = $('#inlineGrindSizeOptions');
+            if (!wrap.length) return;
+            const options = getGrindSizeOptions();
+            const currentVal = (creatorState.grindSizeValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-grind-size-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function getShapeOptions() {
-            return ['Würfel', 'Scheiben', 'Streifen', 'feine Würfel', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
+            return ['Würfel', 'Scheiben', 'Streifen', 'Spalten', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
         }
 
         function openShapeEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeShapeTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            $('#shapeValueInput').val(currentText || 'Würfel');
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.shapeValue || '').toString().trim();
+            creatorState.shapeValue = currentText || 'Würfel';
             renderInlineShapeOptions();
+            placeEditorLikeTemperature('#shapeEditor');
             $('#shapeEditor').removeClass('d-none');
         }
 
@@ -1875,15 +2622,45 @@
             creatorState.activeShapeTokenId = '';
             $('#shapeEditor').addClass('d-none');
         }
+        function getBaseAndItemOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            const rendererBase = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('base', lang)
+                : [];
+            const rendererItem = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
+                ? MasterStepRenderer.getVariablePresets('item', lang)
+                : [];
+
+            const fallbackByLang = {
+                de: ['den Teig', 'die Masse'],
+                en: ['the dough', 'the mixture'],
+                esp: ['la masa', 'la mezcla'],
+                prt: ['a massa', 'a mistura'],
+                id: ['adonan', 'campuran'],
+                nl: ['het deeg', 'het mengsel'],
+                sv: ['degen', 'blandningen'],
+                da: ['dejen', 'blandingen'],
+                no: ['deigen', 'blandingen'],
+                ms: ['doh', 'campuran']
+            };
+
+            const merged = [
+                ...(Array.isArray(rendererBase) ? rendererBase : []),
+                ...(Array.isArray(rendererItem) ? rendererItem : []),
+                ...((fallbackByLang[lang] || fallbackByLang.de))
+            ].map(x => (x || '').toString().trim()).filter(Boolean);
+
+            const seen = new Set();
+            return merged.filter(x => {
+                const key = x.toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
 
         function getBaseOptions() {
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('base', currentLang || 'de');
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
-            }
-            return ['Eischnee', 'Masse', 'Teig', 'Creme', 'Sauce', 'Glasur', 'Füllung', 'Marinade', 'Emulsion', 'Schaum'];
+            return getBaseAndItemOptions();
         }
 
         function openBaseEditorForToken(tokenId) {
@@ -1891,9 +2668,10 @@
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
             const options = getBaseOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Teig';
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.baseArticleValue = parts.article;
             creatorState.baseValue = selected;
-            $('#baseValueInput').val(selected);
             renderInlineBaseOptions();
             $('#baseEditor').removeClass('d-none');
         }
@@ -1906,12 +2684,134 @@
         function renderInlineBaseOptions() {
             const wrap = $('#inlineBaseOptions');
             if (!wrap.length) return;
-            const options = getBaseOptions();
-            const currentVal = ($('#baseValueInput').val() || creatorState.baseValue || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineBaseArticleOptions', creatorState.baseArticleValue);
+            const options = getNounOptions(getBaseOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-base-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+        function getItemOptions() {
+            return getBaseAndItemOptions();
+        }
+
+        function openItemEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeItemTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
+            const options = getItemOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.itemArticleValue = parts.article;
+            creatorState.itemValue = selected;
+            renderInlineItemOptions();
+            placeEditorLikeTemperature('#itemEditor');
+            $('#itemEditor').removeClass('d-none');
+        }
+
+        function closeItemEditor() {
+            creatorState.activeItemTokenId = '';
+            $('#itemEditor').addClass('d-none');
+        }
+
+        function renderInlineItemOptions() {
+            const wrap = $('#inlineItemOptions');
+            if (!wrap.length) return;
+            renderArticleOptions('#inlineItemArticleOptions', creatorState.itemArticleValue);
+            const options = getNounOptions(getItemOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.itemValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-item-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getBalanceOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('balance', lang);
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            return ['die Säure', 'die Süße', 'die Schärfe'];
+        }
+
+        function openBalanceEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeBalanceTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
+            const options = getBalanceOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die Säure';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.balanceArticleValue = parts.article;
+            creatorState.balanceValue = selected;
+            renderInlineBalanceOptions();
+            placeEditorLikeTemperature('#balanceEditor');
+            $('#balanceEditor').removeClass('d-none');
+        }
+
+        function closeBalanceEditor() {
+            creatorState.activeBalanceTokenId = '';
+            $('#balanceEditor').addClass('d-none');
+        }
+
+        function renderInlineBalanceOptions() {
+            const wrap = $('#inlineBalanceOptions');
+            if (!wrap.length) return;
+            renderArticleOptions('#inlineBalanceArticleOptions', creatorState.balanceArticleValue);
+            const options = getNounOptions(getBalanceOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-balance-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
+        function getSeasoningsOptions() {
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                const options = MasterStepRenderer.getVariablePresets('seasonings', lang);
+                if (Array.isArray(options) && options.length) {
+                    return options;
+                }
+            }
+            return ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze'];
+        }
+
+        function openSeasoningsEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeSeasoningsTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.seasoningsValue || '').toString().trim();
+            const options = getSeasoningsOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Salz';
+            creatorState.seasoningsValue = selected;
+            renderInlineSeasoningsOptions();
+            placeEditorLikeTemperature('#seasoningsEditor');
+            $('#seasoningsEditor').removeClass('d-none');
+        }
+
+        function closeSeasoningsEditor() {
+            creatorState.activeSeasoningsTokenId = '';
+            $('#seasoningsEditor').addClass('d-none');
+        }
+
+        function renderInlineSeasoningsOptions() {
+            const wrap = $('#inlineSeasoningsOptions');
+            if (!wrap.length) return;
+            const options = getSeasoningsOptions();
+            const currentVal = (creatorState.seasoningsValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-seasonings-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
         }
@@ -1921,12 +2821,17 @@
             closeCountEditor();
             closeTemperatureEditor();
             closeHeatEditor();
+            closeModeEditor();
             closePronounEditor();
             closeEquipmentEditor();
             closeStateEditor();
             closeToolEditor();
+            closeGrindSizeEditor();
             closeShapeEditor();
             closeBaseEditor();
+            closeItemEditor();
+            closeBalanceEditor();
+            closeSeasoningsEditor();
         }
 
         function placeEditorLikeTemperature(editorSelector) {
@@ -1942,10 +2847,10 @@
             const wrap = $('#inlineShapeOptions');
             if (!wrap.length) return;
             const options = getShapeOptions();
-            const currentVal = ($('#shapeValueInput').val() || '').toString().trim().toLowerCase();
+            const currentVal = (creatorState.shapeValue || '').toString().trim().toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
                 return `<button type="button" class="btn btn-sm ${btnClass} inline-shape-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
             }).join('');
             wrap.html(html);
@@ -1974,15 +2879,15 @@
 
             if (keyNorm === 'base') {
                 const map = {
-                    de: 'Teig',
-                    en: 'dough',
-                    esp: 'masa',
-                    prt: 'massa',
+                    de: 'den Teig',
+                    en: 'the dough',
+                    esp: 'la masa',
+                    prt: 'a massa',
                     id: 'adonan',
-                    nl: 'deeg',
-                    sv: 'deg',
-                    da: 'dej',
-                    no: 'deig',
+                    nl: 'het deeg',
+                    sv: 'degen',
+                    da: 'dejen',
+                    no: 'deigen',
                     ms: 'doh'
                 };
                 return map[lang] || map.de;
@@ -2004,20 +2909,67 @@
                 return map[lang] || map.de;
             }
 
+            if (keyNorm === 'step1') {
+                const map = {
+                    de: 'Mehl', en: 'flour', esp: 'harina', prt: 'farinha', id: 'tepung', nl: 'bloem', sv: 'mjöl', da: 'mel', no: 'mel', ms: 'tepung'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'step2') {
+                const map = {
+                    de: 'Ei', en: 'egg', esp: 'huevo', prt: 'ovo', id: 'telur', nl: 'ei', sv: 'ägg', da: 'æg', no: 'egg', ms: 'telur'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'step3') {
+                const map = {
+                    de: 'Brösel', en: 'breadcrumbs', esp: 'pan rallado', prt: 'farinha de rosca', id: 'tepung roti', nl: 'paneermeel', sv: 'ströbröd', da: 'rasp', no: 'brødsmuler', ms: 'serbuk roti'
+                };
+                return map[lang] || map.de;
+            }
+
+            if (keyNorm === 'equipment') {
+                return getEquipmentOptions()[0] || 'die Pfanne';
+            }
+
+            if (keyNorm === 'tool') {
+                return getToolOptions()[0] || 'Messer';
+            }
+
+            if (keyNorm === 'grind_size' || keyNorm === 'grindsize') {
+                return getGrindSizeOptions()[0] || 'feine';
+            }
+
+            if (keyNorm === 'item' || keyNorm === 'dish') {
+                return getItemOptions()[0] || 'den Teig';
+            }
+
+            if (keyNorm === 'balance') {
+                return getBalanceOptions()[0] || 'die Säure';
+            }
+
+            if (keyNorm === 'seasonings' || keyNorm === 'spices') {
+                return getSeasoningsOptions()[2] || getSeasoningsOptions()[0] || 'Salz und Pfeffer';
+            }
+
             return '';
         }
 
         function buildVariablesForTemplate(templateId) {
             const template = MasterStepRenderer.findTemplate(templateId);
+            const selectedIngredient = getSelectedIngredientForCreator();
             const selectedNames = getSelectedIngredientNames();
-            const ingredientName = selectedNames.length ? selectedNames.join(', ') : '';
-            const grammar = resolveGermanGrammarForIngredient(ingredientName);
+            const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
+            const grammar = resolveGrammarForIngredient(ingredientName, selectedIngredient?.genusByLang || {}, currentLang);
+            const ingredientNameWithArticle = applyArticleToName(ingredientName, grammar.article, currentLang);
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
             creatorState.computedArticle = creatorState.advancedArticleOverride || grammar.article;
 
             const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
-                ingredientName: ingredientName,
+                ingredientName: ingredientNameWithArticle || ingredientName,
                 recipeCategory: $('#Recipe_Category').val()
             }) || {};
 
@@ -2037,9 +2989,14 @@
                     else if (isCountPlaceholderKey(key)) vars[key] = getCountInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
-                    else if (key.includes('tool')) vars[key] = 'Messer';
+                    else if (isModePlaceholderKey(key)) vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
+                    else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
+                    else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
+                    else if (key === 'item' || key === 'dish') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
+                    else if (key === 'balance') vars[key] = creatorState.balanceValue || getBalanceOptions()[0] || 'die Säure';
+                    else if (key === 'seasonings' || key === 'spices') vars[key] = creatorState.seasoningsValue || getSeasoningsOptions()[2] || 'Salz und Pfeffer';
                     else if (key.includes('shape')) vars[key] = 'feine Stücke';
-                    else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'Teig';
+                    else if (key === 'base') vars[key] = creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'den Teig';
                     else {
                         const localizedFallback = getLocalizedFallbackForVariable(key, currentLang);
                         vars[key] = localizedFallback || key;
@@ -2143,7 +3100,9 @@
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const emoji = getIngredientEmoji(item.name);
-                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${item.name}">${emoji} ${item.name}</button>`;
+                const grammar = resolveGrammarForIngredient(item.name, item.genusByLang || {}, currentLang);
+                const displayName = applyArticleToName(item.name, grammar.article, currentLang) || item.name;
+                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${displayName}">${emoji} ${displayName}</button>`;
                 wrap.append(chipHtml);
                 stepsWrap.append(chipHtml);
             });
@@ -2430,6 +3389,16 @@
             $('.lang-ph').each(function () { $(this).attr('placeholder', $(this).data('ph-' + langKey)); });
             $('.lang-opt').each(function () { $(this).text($(this).data('txt-' + langKey)); });
             $('.ingredient-db-row').each(function () { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
+            $('#selectedIngredients .ingredient-row').each(function () {
+                const row = $(this);
+                const n = row.data('name-' + langKey) || row.data('name-de') || row.find('.display-name-selected').text();
+                row.find('.display-name-selected').text(n);
+                const qty = (row.find('.ingredient-qty-hidden').val() || '').toString();
+                const unitDe = (row.find('.ingredient-unit-hidden').val() || '').toString();
+                const unitObj = (dbUnits || []).find(u => (u?.de || '').toString().toLowerCase() === unitDe.toLowerCase());
+                const unitLabel = getUnitLabel(unitObj, langKey) || unitDe;
+                row.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
+            });
             syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
@@ -2478,41 +3447,37 @@
 
             const row = $(btn).closest('.ingredient-db-row');
             const name = row.data('name-' + currentLang) || row.data('name-de');
+            const genusDe = (row.data('genus-de') || '').toString().trim();
+            const genusEn = (row.data('genus-en') || '').toString().trim();
+            const genusEsp = (row.data('genus-esp') || '').toString().trim();
+            const genusPrt = (row.data('genus-prt') || '').toString().trim();
+            const genusId = (row.data('genus-id') || '').toString().trim();
+            const genusNl = (row.data('genus-nl') || '').toString().trim();
+            const genusSv = (row.data('genus-sv') || '').toString().trim();
+            const genusDa = (row.data('genus-da') || '').toString().trim();
+            const genusNo = (row.data('genus-no') || '').toString().trim();
+            const genusMs = (row.data('genus-ms') || '').toString().trim();
             const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
-            const selectedUnit = row.find('.js-db-unit').val() || (dbUnits[0] ?? 'Gramm');
-            const unitOptions = dbUnits.map(u => `<option value="${u}" ${u === selectedUnit ? 'selected' : ''}>${u}</option>`).join('');
+            const selectedUnit = (row.find('.js-db-unit').val() || (dbUnits?.[0]?.de ?? 'g.')).toString();
+            const selectedUnitObj = (dbUnits || []).find(x => (x?.de || '').toString().toLowerCase() === selectedUnit.toLowerCase());
+            const selectedUnitLabel = getUnitLabel(selectedUnitObj, currentLang) || selectedUnit;
 
-            // Neues Element erstellen
             const newIngredient = `
-            <div class="dynamic-item ingredient-row shadow-sm">
+            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" data-name-de="${$('<div>').text(row.data('name-de') || name).html()}" data-name-en="${$('<div>').text(row.data('name-en') || name).html()}" data-name-esp="${$('<div>').text(row.data('name-esp') || name).html()}" data-name-prt="${$('<div>').text(row.data('name-prt') || name).html()}" data-name-id="${$('<div>').text(row.data('name-id') || name).html()}" data-name-nl="${$('<div>').text(row.data('name-nl') || name).html()}" data-name-sv="${$('<div>').text(row.data('name-sv') || name).html()}" data-name-da="${$('<div>').text(row.data('name-da') || name).html()}" data-name-no="${$('<div>').text(row.data('name-no') || name).html()}" data-name-ms="${$('<div>').text(row.data('name-ms') || name).html()}" data-genus-de="${$('<div>').text(genusDe).html()}" data-genus-en="${$('<div>').text(genusEn).html()}" data-genus-esp="${$('<div>').text(genusEsp).html()}" data-genus-prt="${$('<div>').text(genusPrt).html()}" data-genus-id="${$('<div>').text(genusId).html()}" data-genus-nl="${$('<div>').text(genusNl).html()}" data-genus-sv="${$('<div>').text(genusSv).html()}" data-genus-da="${$('<div>').text(genusDa).html()}" data-genus-no="${$('<div>').text(genusNo).html()}" data-genus-ms="${$('<div>').text(genusMs).html()}">
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
+                <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
+                <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metriks_DE" class="ingredient-unit-hidden" value="${$('<div>').text(selectedUnit).html()}" />
 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="fw-bold display-name-selected text-dark">${name}</div>
-                    <button type="button" class="btn btn-sm text-danger p-0" onclick="removeIngredientRow(this)">
-                        <i class="bi bi-trash3"></i>
-                    </button>
+                <div>
+                    <div class="fw-bold display-name-selected">${name}</div>
+                    <div class="ingredient-row-meta">${selectedQuantity} ${selectedUnitLabel}</div>
                 </div>
 
-                <div class="row g-2 align-items-center">
-                    <div class="col-5">
-                        <label class="small text-muted d-block mb-1">Menge</label>
-                        <input type="text" inputmode="decimal"
-                               name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys"
-                               class="form-control form-control-sm js-decimal-input candy-purple-input"
-                               value="${selectedQuantity}" />
-                    </div>
-                    <div class="col-7">
-                        <label class="small text-muted d-block mb-1">Einheit</label>
-                        <select name="IngredientMeasureQuantity[INDEX].Measure.UnitOfMeasurement"
-                                class="form-select form-select-sm candy-purple-input">
-                            ${unitOptions}
-                        </select>
-                    </div>
-                </div>
+                <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)">
+                    <i class="bi bi-trash3"></i>
+                </button>
             </div>`;
 
-            // Am Ende des Containers anfügen
             $('#selectedIngredients').append(newIngredient);
 
             refreshMasterTemplateBuilder();
@@ -2656,13 +3621,12 @@
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
                     <span class="step-text-content">${text}</span>
-                </div>
-                <div class="btn-group ms-2" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
-                    ${chipBtnHtml}
-                    <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                    <div class="step-row-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
+                        ${chipBtnHtml}
+                        <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
+                    </div>
                 </div>
             </div>`);
 
@@ -2673,31 +3637,6 @@
         function removeStep(btn) {
             $(btn).closest('.step-row').remove();
             updateStepIndices();
-        }
-
-        function editStepText(btn) {
-            const row = $(btn).closest('.step-row');
-            const textNode = row.find('.step-text-content').first();
-            const currentText = (textNode.text() || '').trim();
-            const updatedText = prompt('Schritt bearbeiten:', currentText);
-            if (updatedText === null) return;
-            const trimmed = updatedText.trim();
-            if (!trimmed) return;
-
-            textNode.text(trimmed);
-
-            const langMap = { de: '.step-hidden-de', en: '.step-hidden-en', esp: '.step-hidden-esp', prt: '.step-hidden-prt' };
-            const targetSelector = langMap[currentLang] || '.step-hidden-de';
-            const targetInput = row.find(targetSelector).first();
-            if (targetInput.length) {
-                targetInput.val(trimmed);
-            }
-
-            const deInput = row.find('.step-hidden-de').first();
-            const enInput = row.find('.step-hidden-en').first();
-            if (deInput.length && !deInput.val()) deInput.val(trimmed);
-            if (enInput.length && !enInput.val()) enInput.val(trimmed);
-
         }
 
         function toggleKeyword(id, btn) {
@@ -2776,6 +3715,7 @@
                 syncIngredientSourceVisibility();
             });
             refreshDurationUnitControls();
+            loadIngredientArticleRules().finally(() => {
             MasterStepRenderer.load().then((result) => {
                 if (!result) {
                     const loadError = typeof MasterStepRenderer.getLastLoadError === 'function' ? MasterStepRenderer.getLastLoadError() : 'Template-Datei konnte nicht geladen werden.';
@@ -2783,6 +3723,7 @@
                     return;
                 }
                 refreshMasterTemplateBuilder();
+            });
             });
 
             $('#masterIngredientButtons').on('click', '.ingredient-chip', function () {
@@ -2797,6 +3738,7 @@
 
                 creatorState.advancedPronounOverride = '';
                 creatorState.advancedArticleOverride = '';
+                syncGrammarAssignmentsForSelectedIngredient();
 
                 if (creatorState.activePlaceholderTokenId) {
                     const key = getPlaceholderKeyByTokenId(creatorState.activePlaceholderTokenId);
@@ -2880,10 +3822,14 @@
                     creatorState.activePlaceholderTokenId = '';
                     openHeatEditorForToken(tokenId);
                     showCreatorToast('Hitze-Stufe wählen');
+                } else if (isModePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openModeEditorForToken(tokenId);
+                    showCreatorToast('Ofenmodus wählen');
                 } else if (isEquipmentPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openEquipmentEditorForToken(tokenId);
-                    showCreatorToast('Gerät wählen');
+                    showCreatorToast('Tool / Gerät wählen');
                 } else if (isStatePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openStateEditorForToken(tokenId);
@@ -2891,7 +3837,11 @@
                 } else if (isToolPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openToolEditorForToken(tokenId);
-                    showCreatorToast('Werkzeug wählen');
+                    showCreatorToast('Tool / Gerät wählen');
+                } else if (isGrindSizePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openGrindSizeEditorForToken(tokenId);
+                    showCreatorToast('Schnittgröße wählen');
                 } else if (isShapePlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openShapeEditorForToken(tokenId);
@@ -2900,6 +3850,18 @@
                     creatorState.activePlaceholderTokenId = '';
                     openBaseEditorForToken(tokenId);
                     showCreatorToast('Basis wählen');
+                } else if (isItemPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openItemEditorForToken(tokenId);
+                    showCreatorToast('Item wählen');
+                } else if (isBalancePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openBalanceEditorForToken(tokenId);
+                    showCreatorToast('Balance wählen');
+                } else if (isSeasoningsPlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openSeasoningsEditorForToken(tokenId);
+                    showCreatorToast('Seasonings wählen');
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -3054,21 +4016,39 @@
                 renderTemplateCards();
             });
 
+            $('#inlineModeOptions').on('click', '.inline-mode-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.modeValue = val;
+                renderInlineModeOptions();
+            });
+
+            $('#btnApplyMode').on('click', function () {
+                const tokenId = creatorState.activeModeTokenId;
+                const val = (creatorState.modeValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.modeValue = val;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeModeEditor();
+                showCreatorToast('Ofenmodus eingesetzt');
+                renderTemplateCards();
+            });
+
             $('#btnOpenAdvancedSettings').on('click', function () {
                 openPronounEditorForToken(creatorState.activePronounTokenId || '__global__');
             });
 
             $('#inlinePronounOptions').on('click', '.inline-pronoun-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#pronounValueInput').val(val);
+                creatorState.pronounValue = val;
                 renderInlinePronounOptions();
             });
 
             $('#btnApplyPronoun').on('click', function () {
                 const tokenId = creatorState.activePronounTokenId;
-                const val = ($('#pronounValueInput').val() || '').toString().trim();
+                const val = (creatorState.pronounValue || creatorState.computedPronoun || '').toString().trim();
                 if (!val) return;
                 creatorState.advancedPronounOverride = val;
+                creatorState.computedPronoun = val;
                 if (tokenId && tokenId !== '__global__') {
                     creatorState.placeholderAssignments[tokenId] = val;
                 }
@@ -3079,17 +4059,58 @@
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.equipmentValue = val;
+                creatorState.equipmentValue = composeArticleAndNoun(creatorState.equipmentArticleValue, val);
                 renderInlineEquipmentOptions();
+            });
+
+            $('#inlineEquipmentArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.equipmentArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun;
+                creatorState.equipmentValue = composeArticleAndNoun(val, noun);
+                renderInlineEquipmentOptions();
+            });
+
+            $('#inlineToolArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.toolArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun;
+                creatorState.toolValue = composeArticleAndNoun(val, noun);
+                renderInlineToolOptions();
+            });
+
+            $('#inlineBaseArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.baseArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun;
+                creatorState.baseValue = composeArticleAndNoun(val, noun);
+                renderInlineBaseOptions();
+            });
+
+            $('#inlineItemArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.itemArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.itemValue || '', currentLang).noun;
+                creatorState.itemValue = composeArticleAndNoun(val, noun);
+                renderInlineItemOptions();
+            });
+
+            $('#inlineBalanceArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.balanceArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun;
+                creatorState.balanceValue = composeArticleAndNoun(val, noun);
+                renderInlineBalanceOptions();
             });
 
             $('#btnApplyEquipment').on('click', function () {
                 const tokenId = creatorState.activeEquipmentTokenId;
                 const val = (creatorState.equipmentValue || '').toString().trim();
                 if (!tokenId || !val) return;
+                creatorState.equipmentValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
-                showCreatorToast('Gerät eingesetzt');
+                showCreatorToast('Tool / Gerät eingesetzt');
                 renderTemplateCards();
             });
 
@@ -3111,13 +4132,13 @@
 
             $('#inlineToolOptions').on('click', '.inline-tool-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#toolValueInput').val(val);
+                creatorState.toolValue = composeArticleAndNoun(creatorState.toolArticleValue, val);
                 renderInlineToolOptions();
             });
 
             $('#btnApplyTool').on('click', function () {
                 const tokenId = creatorState.activeToolTokenId;
-                const val = ($('#toolValueInput').val() || '').toString().trim();
+                const val = (creatorState.toolValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeToolEditor();
@@ -3125,15 +4146,31 @@
                 renderTemplateCards();
             });
 
+            $('#inlineGrindSizeOptions').on('click', '.inline-grind-size-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.grindSizeValue = val;
+                renderInlineGrindSizeOptions();
+            });
+
+            $('#btnApplyGrindSize').on('click', function () {
+                const tokenId = creatorState.activeGrindSizeTokenId;
+                const val = (creatorState.grindSizeValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeGrindSizeEditor();
+                showCreatorToast('Schnittgröße eingesetzt');
+                renderTemplateCards();
+            });
+
             $('#inlineShapeOptions').on('click', '.inline-shape-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#shapeValueInput').val(val);
+                creatorState.shapeValue = val;
                 renderInlineShapeOptions();
             });
 
             $('#btnApplyShape').on('click', function () {
                 const tokenId = creatorState.activeShapeTokenId;
-                const val = ($('#shapeValueInput').val() || '').toString().trim();
+                const val = (creatorState.shapeValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeShapeEditor();
@@ -3143,25 +4180,81 @@
 
             $('#inlineBaseOptions').on('click', '.inline-base-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                $('#baseValueInput').val(val);
-                creatorState.baseValue = val;
-                renderInlineBaseOptions();
-            });
-
-            $('#baseValueInput').on('input', function () {
-                creatorState.baseValue = ($(this).val() || '').toString().trim();
+                creatorState.baseValue = composeArticleAndNoun(creatorState.baseArticleValue, val);
                 renderInlineBaseOptions();
             });
 
             $('#btnApplyBase').on('click', function () {
                 const tokenId = creatorState.activeBaseTokenId;
-                const val = ($('#baseValueInput').val() || '').toString().trim();
+                const val = (creatorState.baseValue || '').toString().trim();
                 if (!tokenId || !val) return;
                 creatorState.baseValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeBaseEditor();
                 showCreatorToast('Basis eingesetzt');
                 renderTemplateCards();
+            });
+
+            $('#inlineItemOptions').on('click', '.inline-item-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.itemValue = composeArticleAndNoun(creatorState.itemArticleValue, val);
+                renderInlineItemOptions();
+            });
+
+            $('#btnApplyItem').on('click', function () {
+                const tokenId = creatorState.activeItemTokenId;
+                const val = (creatorState.itemValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeItemEditor();
+                showCreatorToast('Item eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineBalanceOptions').on('click', '.inline-balance-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.balanceValue = composeArticleAndNoun(creatorState.balanceArticleValue, val);
+                renderInlineBalanceOptions();
+            });
+
+            $('#btnApplyBalance').on('click', function () {
+                const tokenId = creatorState.activeBalanceTokenId;
+                const val = (creatorState.balanceValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeBalanceEditor();
+                showCreatorToast('Balance eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineSeasoningsOptions').on('click', '.inline-seasonings-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.seasoningsValue = val;
+                renderInlineSeasoningsOptions();
+            });
+
+            $('#btnApplySeasonings').on('click', function () {
+                const tokenId = creatorState.activeSeasoningsTokenId;
+                const val = (creatorState.seasoningsValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeSeasoningsEditor();
+                showCreatorToast('Seasonings eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#btnCloseIngredientConfig, #btnCancelIngredientConfig').on('click', function () {
+                closeIngredientConfigPopup();
+            });
+
+            $('#btnApplyIngredientConfig').on('click', function () {
+                applyIngredientConfigPopup();
+            });
+
+            $('#ingredientConfigOverlay').on('click', function (e) {
+                if (e.target === this) {
+                    closeIngredientConfigPopup();
+                }
             });
 
             $('#btnAddRenderedStep').on('click', async function () {
@@ -3179,6 +4272,7 @@
                 } else {
                     creatorState.selectedIngredientIds = [...selected, id];
                 }
+                syncGrammarAssignmentsForSelectedIngredient();
                 renderIngredientChips();
             });
 
