@@ -424,6 +424,7 @@
                                 </div>
                                 <div id="toolEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Werkzeug einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolArticleOptions"></div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolOptions"></div>
                                     <div class="d-flex justify-content-end align-items-center">
                                         <button type="button" id="btnApplyTool" class="btn btn-sm creator-cta-primary">Einsetzen</button>
@@ -445,6 +446,7 @@
                                 </div>
                                 <div id="baseEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Basis einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseArticleOptions"></div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
                                     <div class="d-flex justify-content-end align-items-center">
                                         <button type="button" id="btnApplyBase" class="btn btn-sm creator-cta-primary">Einsetzen</button>
@@ -452,6 +454,7 @@
                                 </div>
                                 <div id="itemEditor" class="bottom-sheet-editor d-none">
                                     <div class="small text-muted mb-1">Item einsetzen</div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemArticleOptions"></div>
                                     <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemOptions"></div>
                                     <div class="d-flex justify-content-end align-items-center">
                                         <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
@@ -491,6 +494,7 @@
                             <div id="equipmentEditor" class="bottom-sheet-editor d-none">
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Tool / Gerät wählen" data-en="Choose tool / equipment" data-esp="Elegir herramienta / equipo" data-prt="Escolher ferramenta / equipamento">Tool / Gerät wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentArticleOptions"></div>
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
                                 <div class="d-flex justify-content-end align-items-center">
                                     <button type="button" id="btnApplyEquipment" class="btn btn-sm creator-cta-primary label-lang"
@@ -1625,10 +1629,12 @@
             pronounValue: '',
             activeEquipmentTokenId: '',
             equipmentValue: 'die Pfanne',
+            equipmentArticleValue: 'die',
             activeStateTokenId: '',
             stateValue: 'goldbraun',
             activeToolTokenId: '',
             toolValue: 'Messer',
+            toolArticleValue: '',
             activeShapeTokenId: '',
             activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
@@ -1636,7 +1642,9 @@
             shapeValue: 'Würfel',
             activeItemTokenId: '',
             itemValue: 'den Teig',
-            baseValue: 'den Teig'
+            itemArticleValue: 'den',
+            baseValue: 'den Teig',
+            baseArticleValue: 'den'
         };
 
         const upsertStepUrl = '@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })';
@@ -2141,6 +2149,59 @@
             return `${article} ${raw}`;
         }
 
+        function getEditorArticleOptions(langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const map = {
+                de: ['der', 'die', 'das', 'den'],
+                en: ['the'],
+                esp: ['el', 'la', 'los', 'las'],
+                prt: ['o', 'a', 'os', 'as'],
+                nl: ['de', 'het']
+            };
+            return map[lang] || [];
+        }
+
+        function splitLeadingArticle(value, langKey = currentLang) {
+            const raw = (value || '').toString().trim();
+            if (!raw) return { article: '', noun: '' };
+            const options = getEditorArticleOptions(langKey);
+            const lower = raw.toLowerCase();
+            const found = options.find(x => lower.startsWith(`${x.toLowerCase()} `));
+            if (!found) return { article: '', noun: raw };
+            return { article: found, noun: raw.substring(found.length).trim() };
+        }
+
+        function composeArticleAndNoun(article, noun) {
+            const art = (article || '').toString().trim();
+            const n = (noun || '').toString().trim();
+            if (!n) return '';
+            return art ? `${art} ${n}` : n;
+        }
+
+        function getNounOptions(options, langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const result = (options || []).map(x => splitLeadingArticle(x, lang).noun).filter(Boolean);
+            return Array.from(new Set(result));
+        }
+
+        function renderArticleOptions(wrapSelector, selectedArticle) {
+            const wrap = $(wrapSelector);
+            if (!wrap.length) return;
+            const options = getEditorArticleOptions(currentLang);
+            if (!options.length) {
+                wrap.empty().addClass('d-none');
+                return;
+            }
+            wrap.removeClass('d-none');
+            const current = (selectedArticle || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = current === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-article-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function getEquipmentOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
             const fallbackByLang = {
@@ -2171,9 +2232,11 @@
         function openEquipmentEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
-            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
             const options = getEquipmentOptions();
             const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'die Pfanne';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.equipmentArticleValue = parts.article;
             creatorState.equipmentValue = selected;
             renderInlineEquipmentOptions();
             placeEditorLikeTemperature('#equipmentEditor');
@@ -2188,8 +2251,9 @@
         function renderInlineEquipmentOptions() {
             const wrap = $('#inlineEquipmentOptions');
             if (!wrap.length) return;
-            const options = getEquipmentOptions();
-            const currentVal = (creatorState.equipmentValue || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
+            const options = getNounOptions(getEquipmentOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
@@ -2271,7 +2335,9 @@
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
             const options = getToolOptions();
             const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Messer';
-            creatorState.toolValue = selected;
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.toolArticleValue = parts.article;
+            creatorState.toolValue = composeArticleAndNoun(parts.article, parts.noun || selected);
             renderInlineToolOptions();
             $('#toolEditor').removeClass('d-none');
         }
@@ -2284,8 +2350,9 @@
         function renderInlineToolOptions() {
             const wrap = $('#inlineToolOptions');
             if (!wrap.length) return;
-            const options = getToolOptions();
-            const currentVal = (creatorState.toolValue || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineToolArticleOptions', creatorState.toolArticleValue);
+            const options = getNounOptions(getToolOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
@@ -2394,6 +2461,8 @@
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
             const options = getBaseOptions();
             const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.baseArticleValue = parts.article;
             creatorState.baseValue = selected;
             renderInlineBaseOptions();
             $('#baseEditor').removeClass('d-none');
@@ -2407,8 +2476,9 @@
         function renderInlineBaseOptions() {
             const wrap = $('#inlineBaseOptions');
             if (!wrap.length) return;
-            const options = getBaseOptions();
-            const currentVal = (creatorState.baseValue || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineBaseArticleOptions', creatorState.baseArticleValue);
+            const options = getNounOptions(getBaseOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-primary' : 'btn-outline-primary';
@@ -2445,6 +2515,8 @@
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
             const options = getItemOptions();
             const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            const parts = splitLeadingArticle(selected, currentLang);
+            creatorState.itemArticleValue = parts.article;
             creatorState.itemValue = selected;
             renderInlineItemOptions();
             placeEditorLikeTemperature('#itemEditor');
@@ -2459,8 +2531,9 @@
         function renderInlineItemOptions() {
             const wrap = $('#inlineItemOptions');
             if (!wrap.length) return;
-            const options = getItemOptions();
-            const currentVal = (creatorState.itemValue || '').toString().trim().toLowerCase();
+            renderArticleOptions('#inlineItemArticleOptions', creatorState.itemArticleValue);
+            const options = getNounOptions(getItemOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.itemValue || '', currentLang).noun.toLowerCase();
             const html = options.map(x => {
                 const isActive = currentVal === x.toLowerCase();
                 const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
@@ -3696,8 +3769,40 @@
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.equipmentValue = val;
+                creatorState.equipmentValue = composeArticleAndNoun(creatorState.equipmentArticleValue, val);
                 renderInlineEquipmentOptions();
+            });
+
+            $('#inlineEquipmentArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.equipmentArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun;
+                creatorState.equipmentValue = composeArticleAndNoun(val, noun);
+                renderInlineEquipmentOptions();
+            });
+
+            $('#inlineToolArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.toolArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun;
+                creatorState.toolValue = composeArticleAndNoun(val, noun);
+                renderInlineToolOptions();
+            });
+
+            $('#inlineBaseArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.baseArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun;
+                creatorState.baseValue = composeArticleAndNoun(val, noun);
+                renderInlineBaseOptions();
+            });
+
+            $('#inlineItemArticleOptions').on('click', '.inline-article-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.itemArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.itemValue || '', currentLang).noun;
+                creatorState.itemValue = composeArticleAndNoun(val, noun);
+                renderInlineItemOptions();
             });
 
             $('#btnApplyEquipment').on('click', function () {
@@ -3729,7 +3834,7 @@
 
             $('#inlineToolOptions').on('click', '.inline-tool-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.toolValue = val;
+                creatorState.toolValue = composeArticleAndNoun(creatorState.toolArticleValue, val);
                 renderInlineToolOptions();
             });
 
@@ -3777,7 +3882,7 @@
 
             $('#inlineBaseOptions').on('click', '.inline-base-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.baseValue = val;
+                creatorState.baseValue = composeArticleAndNoun(creatorState.baseArticleValue, val);
                 renderInlineBaseOptions();
             });
 
@@ -3794,7 +3899,7 @@
 
             $('#inlineItemOptions').on('click', '.inline-item-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.itemValue = val;
+                creatorState.itemValue = composeArticleAndNoun(creatorState.itemArticleValue, val);
                 renderInlineItemOptions();
             });
 
