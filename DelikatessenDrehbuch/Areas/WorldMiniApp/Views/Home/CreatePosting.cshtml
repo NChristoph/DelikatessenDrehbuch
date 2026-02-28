@@ -480,6 +480,16 @@
                                 </div>
                             </div>
 
+                            <div id="modeEditor" class="bottom-sheet-editor d-none">
+                                <div class="small text-muted mb-1 label-lang"
+                                     data-de="Ofenmodus wählen" data-en="Choose oven mode" data-esp="Elegir modo del horno" data-prt="Escolher modo do forno">Ofenmodus wählen</div>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineModeOptions"></div>
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" id="btnApplyMode" class="btn btn-sm creator-cta-primary label-lang"
+                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
+                                </div>
+                            </div>
+
                             <div id="equipmentEditor" class="bottom-sheet-editor d-none">
                                 <div class="small text-muted mb-1 label-lang"
                                      data-de="Tool / Gerät wählen" data-en="Choose tool / equipment" data-esp="Elegir herramienta / equipo" data-prt="Escolher ferramenta / equipamento">Tool / Gerät wählen</div>
@@ -1611,6 +1621,8 @@
             temperatureUnit: 'celsius',
             activeHeatTokenId: '',
             heatValue: 'mittlerer',
+            activeModeTokenId: '',
+            modeValue: 'Ober- und Unterhitze',
             activePronounTokenId: '',
             pronounValue: '',
             activeEquipmentTokenId: '',
@@ -1789,6 +1801,11 @@
         function isHeatPlaceholderKey(key) {
             const value = (key || '').toString().trim().toLowerCase();
             return value === 'heat' || value.includes('heat');
+        }
+
+        function isModePlaceholderKey(key) {
+            const value = (key || '').toString().trim().toLowerCase();
+            return value === 'mode' || value.includes('mode');
         }
 
         function isEquipmentPlaceholderKey(key) {
@@ -1983,6 +2000,53 @@
         function closeHeatEditor() {
             creatorState.activeHeatTokenId = '';
             $('#heatEditor').addClass('d-none');
+        }
+
+        function getModeOptions() {
+            const fallback = {
+                de: ['Oberhitze', 'Unterhitze', 'Ober- und Unterhitze', 'Umluft'],
+                en: ['top heat', 'bottom heat', 'top and bottom heat', 'convection'],
+                esp: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convección'],
+                prt: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecção'],
+                id: ['panas atas', 'panas bawah', 'panas atas dan bawah', 'konveksi'],
+                nl: ['bovenwarmte', 'onderwarmte', 'boven- en onderwarmte', 'hetelucht'],
+                sv: ['övervärme', 'undervärme', 'över- och undervärme', 'varmluft'],
+                da: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
+                no: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
+                ms: ['haba atas', 'haba bawah', 'haba atas dan bawah', 'peredaran udara']
+            };
+            const lang = (currentLang || 'de').toString().toLowerCase();
+            return fallback[lang] || fallback.de;
+        }
+
+        function openModeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeModeTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.modeValue || '').toString().trim().toLowerCase();
+            const options = getModeOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText) || options[2] || options[0] || 'Ober- und Unterhitze';
+            creatorState.modeValue = selected;
+            renderInlineModeOptions();
+            placeEditorLikeTemperature('#modeEditor');
+            $('#modeEditor').removeClass('d-none');
+        }
+
+        function closeModeEditor() {
+            creatorState.activeModeTokenId = '';
+            $('#modeEditor').addClass('d-none');
+        }
+
+        function renderInlineModeOptions() {
+            const wrap = $('#inlineModeOptions');
+            if (!wrap.length) return;
+            const options = getModeOptions();
+            const currentVal = (creatorState.modeValue || '').toString().trim().toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-mode-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
         }
 
         function openPronounEditorForToken(tokenId) {
@@ -2400,6 +2464,7 @@
             closeCountEditor();
             closeTemperatureEditor();
             closeHeatEditor();
+            closeModeEditor();
             closePronounEditor();
             closeEquipmentEditor();
             closeStateEditor();
@@ -2536,6 +2601,7 @@
                     else if (isCountPlaceholderKey(key)) vars[key] = getCountInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
+                    else if (isModePlaceholderKey(key)) vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
                     else if (key === 'item') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
@@ -3370,6 +3436,10 @@
                     creatorState.activePlaceholderTokenId = '';
                     openHeatEditorForToken(tokenId);
                     showCreatorToast('Hitze-Stufe wählen');
+                } else if (isModePlaceholderKey(key)) {
+                    creatorState.activePlaceholderTokenId = '';
+                    openModeEditorForToken(tokenId);
+                    showCreatorToast('Ofenmodus wählen');
                 } else if (isEquipmentPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
                     openEquipmentEditorForToken(tokenId);
@@ -3549,6 +3619,23 @@
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeHeatEditor();
                 showCreatorToast('Hitze-Stufe eingesetzt');
+                renderTemplateCards();
+            });
+
+            $('#inlineModeOptions').on('click', '.inline-mode-opt', function () {
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.modeValue = val;
+                renderInlineModeOptions();
+            });
+
+            $('#btnApplyMode').on('click', function () {
+                const tokenId = creatorState.activeModeTokenId;
+                const val = (creatorState.modeValue || '').toString().trim();
+                if (!tokenId || !val) return;
+                creatorState.modeValue = val;
+                creatorState.placeholderAssignments[tokenId] = val;
+                closeModeEditor();
+                showCreatorToast('Ofenmodus eingesetzt');
                 renderTemplateCards();
             });
 
