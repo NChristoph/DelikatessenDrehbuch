@@ -804,15 +804,15 @@
     }
 
     #card-ingredients {
-        border-color: var(--creator-border);
-        background: var(--creator-bg);
-        box-shadow: none;
+        border-color: rgba(255,255,255,0.14);
+        background: radial-gradient(120% 120% at 10% 0%, #2f2f5f 0%, #17172a 45%, #0f1119 100%);
+        box-shadow: 0 18px 40px rgba(16,20,40,0.26);
         color: var(--creator-text);
     }
 
     #card-ingredients .creator-card-head {
-        border-bottom-color: var(--creator-border);
-        background: rgba(12,16,28,0.42);
+        border-bottom-color: rgba(255,255,255,0.12);
+        background: rgba(12, 16, 28, 0.28);
     }
 
     #card-ingredients .creator-card-title,
@@ -986,12 +986,13 @@
         align-items: center;
         justify-content: space-between;
         width: 100% !important;
-        background: rgba(255,255,255,0.08);
-        border-radius: 14px;
-        padding: 12px 14px;
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 14px 16px;
         border: 1px solid var(--creator-border);
         color: var(--creator-text);
-        box-shadow: none;
+        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(12px);
         margin: 0 !important;
         cursor: pointer;
     }
@@ -1007,20 +1008,25 @@
     }
 
     .ingredient-config-overlay {
-        position: fixed;
-        z-index: 1080;
-        width: min(400px, calc(100vw - 20px));
+        width: 100%;
+        margin-top: 8px;
     }
 
     .ingredient-config-card {
         width: 100%;
-        background: var(--creator-sheet);
+        background: rgba(255,255,255,0.12);
         border: 1px solid var(--creator-border);
-        border-radius: 16px;
-        padding: 14px;
+        border-radius: 22px;
+        padding: 16px;
         color: var(--creator-text);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.28);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(12px);
+    }
+
+    .ingredient-config-row-host td {
+        background: transparent !important;
+        border: 0 !important;
+        padding-top: 0 !important;
     }
 
     .ingredient-unit-buttons {
@@ -1046,11 +1052,11 @@
 
     /* Design-Anpassung für die Inputs innerhalb der Karte */
     .candy-purple-input {
-        border: none !important;
-        background-color: rgba(139, 92, 246, 0.08) !important;
-        color: #7c3aed !important;
-        font-weight: bold;
-        border-radius: 10px !important;
+        border: 1px solid var(--creator-border) !important;
+        background-color: rgba(10, 14, 24, 0.72) !important;
+        color: var(--creator-text) !important;
+        font-weight: 700;
+        border-radius: 12px !important;
     }
 
     .selected-zone {
@@ -1697,15 +1703,22 @@
             }
         }
 
-        function positionIngredientPopupUnderRow(targetElement) {
+        function placeIngredientPopupUnderTarget(targetElement) {
             const overlay = $('#ingredientConfigOverlay');
             const target = $(targetElement);
             if (!overlay.length || !target.length) return;
-            const rect = target[0].getBoundingClientRect();
-            const width = Math.min(400, window.innerWidth - 20);
-            const left = Math.max(10, Math.min(rect.left, window.innerWidth - width - 10));
-            const top = Math.min(rect.bottom + 8, window.innerHeight - 220);
-            overlay.css({ left: `${left}px`, top: `${Math.max(top, 10)}px` });
+
+            $('.ingredient-config-row-host').remove();
+
+            if (target.is('tr')) {
+                const host = $('<tr class="ingredient-config-row-host"><td colspan="2"></td></tr>');
+                target.after(host);
+                host.find('td').append(overlay);
+            } else {
+                target.after(overlay);
+            }
+
+            overlay.removeClass('d-none');
         }
 
         function openIngredientConfigPopup(row) {
@@ -1720,7 +1733,7 @@
             $('#ingredientConfigQty').val(qty);
             renderIngredientUnitButtons(unitDe);
             $('#ingredientConfigOverlay').removeClass('d-none');
-            positionIngredientPopupUnderRow(target);
+            placeIngredientPopupUnderTarget(target);
         }
 
         function openIngredientConfigForDbRow(row) {
@@ -1739,14 +1752,16 @@
             $('#ingredientConfigQty').val(qty);
             renderIngredientUnitButtons(unitDe);
             $('#ingredientConfigOverlay').removeClass('d-none');
-            positionIngredientPopupUnderRow(target);
+            placeIngredientPopupUnderTarget(target);
         }
 
         function closeIngredientConfigPopup() {
             activeIngredientConfigRow = null;
             activeIngredientDbRow = null;
-            $('#ingredientConfigOverlay').addClass('d-none');
-            $('#ingredientConfigOverlay').removeAttr('style');
+            const overlay = $('#ingredientConfigOverlay');
+            overlay.addClass('d-none');
+            $('.ingredient-config-row-host').remove();
+            $('#selectedIngredients').after(overlay);
         }
 
         function applyIngredientConfigPopup() {
