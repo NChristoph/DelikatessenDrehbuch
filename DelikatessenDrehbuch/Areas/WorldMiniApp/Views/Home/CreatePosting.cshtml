@@ -1320,7 +1320,16 @@
         100% { opacity: 0; transform: translate(0,-120px) scale(1.04); }
     }
 
+    #selectedSteps .step-row {
+        margin-bottom: 8px;
+    }
 
+    #selectedSteps .step-row .template-title {
+        font-size: .92rem;
+        line-height: 1.4;
+        font-weight: 700;
+        white-space: normal;
+    }
 
 </style>
 
@@ -2643,7 +2652,7 @@
                 ? `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(this)" title="Zutat per Chip ändern">🥣</button>`
                 : '';
 
-            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
+            $('#selectedSteps').append(`<div class="template-card step-row" draggable="true" data-step-id="${id}" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
@@ -2652,12 +2661,12 @@
                 <input type="hidden" class="step-hidden-prt" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStepData.prt).html()}" />
                 <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
                 <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
-                <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
-                <div class="small flex-grow-1 display-step-selected">
+                <div class="step-badge d-none">0</div>
+                <div class="display-step-selected mb-1">
                     ${phaseBadge}
-                    <span class="step-text-content">${text}</span>
+                    <span class="step-text-content template-title">${text}</span>
                 </div>
-                <div class="btn-group ms-2" role="group">
+                <div class="d-flex gap-2 mt-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
