@@ -304,10 +304,7 @@
                                         </button>
                                     </div>
 
-                                    <div class="small text-white-50">Tippen für Menge & Einheit</div>
-
                                     <div class="duration-editor mt-2 ingredient-db-details d-none">
-                                        <div class="small text-muted mb-2">Menge & Einheit festlegen</div>
                                         <div class="d-flex gap-2 align-items-center">
                                             <input type="text" inputmode="decimal"
                                                    class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
@@ -325,6 +322,11 @@
                                                     }
                                                 }
                                             </select>
+                                        </div>
+                                        <div class="common-unit-chips mt-2" role="group" aria-label="Schnelle Einheiten">
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g" data-label-de="g." data-label-en="g." data-label-esp="g." data-label-prt="g." data-label-id="g." data-label-nl="g." data-label-sv="g." data-label-da="g." data-label-no="g." data-label-ms="g.">g.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml" data-label-de="ml." data-label-en="ml." data-label-esp="ml." data-label-prt="ml." data-label-id="ml." data-label-nl="ml." data-label-sv="ml." data-label-da="ml." data-label-no="ml." data-label-ms="ml.">ml.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece" data-label-de="Stk." data-label-en="pcs." data-label-esp="uds." data-label-prt="un." data-label-id="pcs." data-label-nl="st." data-label-sv="st." data-label-da="stk." data-label-no="stk." data-label-ms="unit">Stk.</button>
                                         </div>
                                     </div>
                                 </div>
@@ -940,6 +942,28 @@
     .ingredient-db-details {
         border-top: 1px solid rgba(255,255,255,0.14);
         padding-top: 10px;
+    }
+
+    .common-unit-chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .common-unit-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(255,255,255,0.06);
+        color: #f8fafc;
+        font-weight: 700;
+        padding: 2px 10px;
+        line-height: 1.5;
+    }
+
+    .common-unit-chip:hover {
+        border-color: rgba(255,255,255,0.45);
+        background: rgba(255,255,255,0.12);
+        color: #fff;
     }
     .ingredient-catalog-card {
         margin-top: 2px;
@@ -3504,6 +3528,35 @@
 
 
 
+
+        function getCommonUnitChipLabel(chip, langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            return chip.data('label-' + lang) || chip.data('label-de') || chip.text();
+        }
+
+        function resolveSelectUnitValueByKey(selectEl, unitKey) {
+            const options = Array.from(selectEl.options || []);
+            if (!options.length) return '';
+
+            const normalize = (v) => (v || '').toString().toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+            const key = (unitKey || '').toString().toLowerCase();
+            const aliases = {
+                g: ['g', 'gr', 'gramm', 'gram'],
+                ml: ['ml', 'milliliter', 'millilitre'],
+                piece: ['stk', 'stk.', 'stueck', 'stück', 'piece', 'pieces', 'pcs', 'pcs.', 'unit', 'units', 'uds', 'un']
+            };
+            const accepted = aliases[key] || [key];
+            const match = options.find(opt => accepted.includes(normalize(opt.value)) || accepted.includes(normalize(opt.text)));
+            return match ? match.value : '';
+        }
+
+        function updateCommonUnitChipLabels() {
+            $('.js-common-unit-chip').each(function () {
+                const chip = $(this);
+                chip.text(getCommonUnitChipLabel(chip, currentLang));
+            });
+        }
+
         function updateLanguageLabels() {
             const langKey = resolveLangKey(currentLang);
             $('.label-lang').each(function () { $(this).text($(this).data(langKey)); });
@@ -3524,6 +3577,7 @@
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             refreshDurationUnitControls();
+            updateCommonUnitChipLabels();
             refreshMasterTemplateBuilder();
         }
 
@@ -3834,6 +3888,18 @@
 
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
+            });
+
+            $(document).on('click', '.js-common-unit-chip', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const row = $(this).closest('.ingredient-db-row');
+                const select = row.find('.js-db-unit').first();
+                if (!select.length) return;
+
+                const unitValue = resolveSelectUnitValueByKey(select[0], $(this).data('unit-key'));
+                if (!unitValue) return;
+                select.val(unitValue).trigger('change');
             });
             refreshDurationUnitControls();
             loadIngredientArticleRules().finally(() => {
