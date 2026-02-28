@@ -12,6 +12,9 @@ let currentConfig = {
     redirectUrl: '/WorldMiniApp/Home/Setup'
 };
 
+let loginModalRetryTimer = null;
+let loginModalOpening = false;
+
 function log(msg, error = false) {
     console.log(msg);
     const el = document.getElementById('login-status');
@@ -145,7 +148,7 @@ async function completeVerify(payload) {
 function openModal(modalId = 'loginModal') {
     const el = document.getElementById(modalId);
     if (el) {
-        const modal = new bootstrap.Offcanvas(el, { backdrop: true });
+        const modal = bootstrap.Offcanvas.getOrCreateInstance(el, { backdrop: true });
         modal.show();
     }
 }
@@ -236,20 +239,32 @@ window.triggerLogin = async (level, redirectUrl) => {
 };
 
 function showLoginModalWithFallback() {
-    openModal('loginModal');
-    bindConsentButton();
-
     const loginModal = document.getElementById('loginModal');
     if (!loginModal) {
         return;
     }
 
-    window.setTimeout(() => {
+    if (loginModal.classList.contains('show') || loginModalOpening) {
+        bindConsentButton();
+        return;
+    }
+
+    loginModalOpening = true;
+    openModal('loginModal');
+    bindConsentButton();
+
+    if (loginModalRetryTimer) {
+        window.clearTimeout(loginModalRetryTimer);
+    }
+
+    loginModalRetryTimer = window.setTimeout(() => {
+        loginModalRetryTimer = null;
+        loginModalOpening = false;
         if (!loginModal.classList.contains('show')) {
             openModal('loginModal');
             bindConsentButton();
         }
-    }, 180);
+    }, 220);
 }
 
 window.retryVerification = async () => {
@@ -280,7 +295,20 @@ window.getStoredUserHash = getStoredUserHash;
 document.addEventListener('DOMContentLoaded', () => {
     const loginModal = document.getElementById('loginModal');
     if (loginModal) {
+        loginModal.addEventListener('shown.bs.offcanvas', () => {
+            loginModalOpening = false;
+            if (loginModalRetryTimer) {
+                window.clearTimeout(loginModalRetryTimer);
+                loginModalRetryTimer = null;
+            }
+        });
+
         loginModal.addEventListener('hidden.bs.offcanvas', () => {
+            loginModalOpening = false;
+            if (loginModalRetryTimer) {
+                window.clearTimeout(loginModalRetryTimer);
+                loginModalRetryTimer = null;
+            }
             if (sessionStorage.getItem("user_verified") !== "true") {
                 handleLoginAbort();
             }
