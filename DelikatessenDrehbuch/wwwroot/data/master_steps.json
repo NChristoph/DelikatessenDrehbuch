@@ -259,7 +259,7 @@
       "equipment": 9,
       "description": "Teig/Masse ruhen lassen (gehen, quellen, entspannen)",
       "templates": {
-        "de": "Decke {{item}} ab und lasse {{pronoun}} {{duration}} ruhen, bis {{state}}.",
+        "de": "Decke {{item}} ab und lasse {{pronoun}} {{duration}} ruhen, bis {{pronoun}} {{state}} ist.",
         "en": "Cover {{item}} and let it rest for {{duration}} until {{state}}.",
         "esp": "Cubre {{item}} y deja reposar {{duration}} hasta que {{state}}.",
         "prt": "Cubra {{item}} e deixe repousar por {{duration}} até {{state}}.",
@@ -1025,7 +1025,7 @@
       "ms": [ "halus", "sederhana", "kasar", "nipis", "lebar", "kecil", "besar" ]
     },
     "item": {
-      "de": [ "Teig", "Masse", "Mischung", "Gericht" ],
+      "de": [ "der Teig", "die Masse", "die Mischung", "das Gericht" ],
       "en": [ "dough", "batter", "mixture", "dish" ],
       "esp": [ "masa", "mezcla", "preparación", "plato" ],
       "prt": [ "massa", "mistura", "preparação", "prato" ],
