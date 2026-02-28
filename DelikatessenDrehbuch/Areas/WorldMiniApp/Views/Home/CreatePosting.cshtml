@@ -1562,7 +1562,13 @@
     <script>
         const stepCatalog = @Html.Raw(stepCatalogJson);
          const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
-         var dbUnits = @Html.Raw(JsonConvert.SerializeObject(Model.Measure?.Select(x => new { id = x.Id, de = x.Metriks_DE, en = x.Metriks_EN, esp = x.Metriks_ESP, prt = x.Metriks_PRT, idn = x.Metriks_ID, ms = x.Metriks_MS, nl = x.Metriks_NL, sv = x.Metriks_SE, da = x.Metriks_DK, no = x.Metriks_NO }).ToList() ?? new List<object>()));
+         var dbUnits = @Html.Raw(JsonConvert.SerializeObject((Model.Measure ?? new List<DelikatessenDrehbuch.Models.Measure>()).Select(x => new { de = (x.Metriks_DE ?? string.Empty).Trim(), en = (x.Metriks_EN ?? x.Metriks_DE ?? string.Empty).Trim(), esp = (x.Metriks_ESP ?? x.Metriks_DE ?? string.Empty).Trim(), prt = (x.Metriks_PRT ?? x.Metriks_DE ?? string.Empty).Trim(), id = (x.Metriks_ID ?? x.Metriks_DE ?? string.Empty).Trim(), ms = (x.Metriks_MS ?? x.Metriks_DE ?? string.Empty).Trim(), nl = (x.Metriks_NL ?? x.Metriks_DE ?? string.Empty).Trim(), sv = (x.Metriks_SE ?? x.Metriks_DE ?? string.Empty).Trim(), da = (x.Metriks_DK ?? x.Metriks_DE ?? string.Empty).Trim(), no = (x.Metriks_NO ?? x.Metriks_DE ?? string.Empty).Trim() }).Where(x => !string.IsNullOrWhiteSpace(x.de)).ToList()));
+         if (!Array.isArray(dbUnits) || !dbUnits.length) {
+             dbUnits = ($('.js-db-unit option').map(function () {
+                 const de = ($(this).val() || $(this).text() || '').toString().trim();
+                 return de ? { de, en: de, esp: de, prt: de, id: de, ms: de, nl: de, sv: de, da: de, no: de } : null;
+             }).get()).filter(Boolean);
+         }
 
          function getCookieValue(name) {
              const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -1591,7 +1597,7 @@
                 en: unitObj.en,
                 esp: unitObj.esp,
                 prt: unitObj.prt,
-                id: unitObj.idn,
+                id: unitObj.id,
                 ms: unitObj.ms,
                 nl: unitObj.nl,
                 sv: unitObj.sv,
