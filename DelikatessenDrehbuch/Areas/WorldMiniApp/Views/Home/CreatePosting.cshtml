@@ -1469,6 +1469,45 @@
 
         let currentLang = resolveLangKey(getCookieValue('deli-lang'));
         let tempStepIdCounter = -1;
+        let ingredientArticleRules = null;
+
+        async function loadIngredientArticleRules() {
+            try {
+                const response = await fetch('/data/ingredient_article_rules.json', { cache: 'no-store' });
+                if (!response.ok) return;
+                ingredientArticleRules = await response.json();
+            } catch (_) {
+                ingredientArticleRules = null;
+            }
+        }
+
+        function normalizeGenusKey(genusRaw = '') {
+            const value = (genusRaw || '').toString().trim().toLowerCase();
+            if (!value) return '';
+            if (['m', 'masc', 'mask', 'masculine', 'masculin', 'der', 'el', 'o', 'de'].some(x => value === x || value.includes(x))) return 'masc';
+            if (['f', 'fem', 'feminine', 'femin', 'die', 'la', 'a'].some(x => value === x || value.includes(x))) return 'fem';
+            if (['n', 'neut', 'neuter', 'das', 'het', 'det'].some(x => value === x || value.includes(x))) return 'neut';
+            return '';
+        }
+
+        function applyArticleToName(name, article, lang) {
+            const base = (name || '').toString().trim();
+            const art = (article || '').toString().trim();
+            if (!base || !art) return base;
+
+            const langRules = {
+                de: ['der', 'die', 'das', 'den', 'dem', 'des'],
+                en: ['the', 'a', 'an'],
+                esp: ['el', 'la', 'los', 'las', 'un', 'una'],
+                prt: ['o', 'a', 'os', 'as', 'um', 'uma'],
+                nl: ['de', 'het', 'een']
+            };
+
+            const prefixList = langRules[resolveLangKey(lang || currentLang || 'de')] || [];
+            const lower = base.toLowerCase();
+            if (prefixList.some(x => lower.startsWith(`${x} `))) return base;
+            return `${art} ${base}`;
+        }
 
         function getAllStepRows() {
             return Array.isArray(stepCatalog) ? stepCatalog : [];
@@ -1606,6 +1645,18 @@
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const value = (ingredientName || '').toString().trim().toLowerCase();
             const genusRaw = (genusByLang?.[lang] || genusByLang?.de || '').toString().trim().toLowerCase();
+            const genusKey = normalizeGenusKey(genusRaw);
+
+            const fromRules = ingredientArticleRules && ingredientArticleRules[lang] && ingredientArticleRules[lang][genusKey]
+                ? ingredientArticleRules[lang][genusKey]
+                : null;
+
+            if (fromRules && (fromRules.article != null || fromRules.pronoun != null)) {
+                return {
+                    pronoun: (fromRules.pronoun || '').toString(),
+                    article: (fromRules.article || '').toString()
+                };
+            }
 
             const hasAny = (hints) => hints.some(x => genusRaw === x || genusRaw.includes(x));
 
@@ -1627,32 +1678,9 @@
                 return { pronoun: 'ihn', article: 'den' };
             }
 
-            if (lang === 'esp') {
-                if (hasAny(['f', 'fem', 'la'])) return { pronoun: 'la', article: 'la' };
-                return { pronoun: 'lo', article: 'el' };
-            }
-
-            if (lang === 'prt') {
-                if (hasAny(['f', 'fem', 'a'])) return { pronoun: 'a', article: 'a' };
-                return { pronoun: 'o', article: 'o' };
-            }
-
-            if (lang === 'nl') {
-                if (hasAny(['het', 'n'])) return { pronoun: 'het', article: 'het' };
-                return { pronoun: 'hem', article: 'de' };
-            }
-
-            if (lang === 'sv' || lang === 'da' || lang === 'no') {
-                if (hasAny(['ett', 'n', 'neut'])) return { pronoun: 'det', article: '' };
-                return { pronoun: 'den', article: '' };
-            }
-
-            if (lang === 'id' || lang === 'ms') {
-                return { pronoun: 'dia', article: '' };
-            }
-
-            return { pronoun: 'it', article: 'the' };
+            return { pronoun: 'it', article: lang === 'en' ? 'the' : '' };
         }
+
 
         function getPlaceholderKeysFromTemplate(template) {
             const tpl = template?.templates?.de || template?.templates?.en || '';
@@ -2353,12 +2381,13 @@
             const selectedNames = getSelectedIngredientNames();
             const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
             const grammar = resolveGrammarForIngredient(ingredientName, selectedIngredient?.genusByLang || {}, currentLang);
+            const ingredientNameWithArticle = applyArticleToName(ingredientName, grammar.article, currentLang);
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
             creatorState.computedArticle = creatorState.advancedArticleOverride || grammar.article;
 
             const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
-                ingredientName: ingredientName,
+                ingredientName: ingredientNameWithArticle || ingredientName,
                 recipeCategory: $('#Recipe_Category').val()
             }) || {};
 
@@ -2486,7 +2515,9 @@
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const emoji = getIngredientEmoji(item.name);
-                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${item.name}">${emoji} ${item.name}</button>`;
+                const grammar = resolveGrammarForIngredient(item.name, item.genusByLang || {}, currentLang);
+                const displayName = applyArticleToName(item.name, grammar.article, currentLang) || item.name;
+                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${displayName}">${emoji} ${displayName}</button>`;
                 wrap.append(chipHtml);
                 stepsWrap.append(chipHtml);
             });
@@ -3129,6 +3160,7 @@
                 syncIngredientSourceVisibility();
             });
             refreshDurationUnitControls();
+            loadIngredientArticleRules().finally(() => {
             MasterStepRenderer.load().then((result) => {
                 if (!result) {
                     const loadError = typeof MasterStepRenderer.getLastLoadError === 'function' ? MasterStepRenderer.getLastLoadError() : 'Template-Datei konnte nicht geladen werden.';
@@ -3136,6 +3168,7 @@
                     return;
                 }
                 refreshMasterTemplateBuilder();
+            });
             });
 
             $('#masterIngredientButtons').on('click', '.ingredient-chip', function () {
