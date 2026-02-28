@@ -264,121 +264,79 @@
             </section>
 
             <!-- 3) INGREDIENTS -->
-            <section class="creator-card mb-3" id="card-ingredients">
-                <div class="creator-card-head">
+            <section class="smart-step-creator mb-3" id="card-ingredients" data-theme="dark">
+                <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
                         <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Zutaten" data-en="Ingredients" data-esp="Ingredientes" data-prt="Ingredientes">Zutaten</div>
-                            <div class="creator-card-sub label-lang" data-de="Suche + hinzufügen wie im Creator Flow" data-en="Search + add like a creator flow" data-esp="Buscar + añadir como flujo" data-prt="Buscar + adicionar como fluxo">
-                                Suche + hinzufügen wie im Creator Flow
-                            </div>
+                            <div class="sheet-title label-lang" data-de="Zutaten Auswahl" data-en="Ingredients Selection">Zutaten Auswahl</div>
+                            <div class="sheet-sub label-lang" data-de="Suche & konfiguriere deine Zutaten">Suche & konfiguriere deine Zutaten</div>
                         </div>
                     </div>
-                    <span class="badge rounded-pill text-bg-light border">3/5</span>
+                    <span class="badge rounded-pill bg-transparent border border-light text-light">3/5</span>
                 </div>
 
-                <div class="creator-card-body">
-                    <div class="mb-2">
-                        <input type="text"
-                               id="ingredientSearch"
-                               class="form-control form-control-sm"
-                               placeholder="Zutaten suchen..." />
+                <div class="creator-preview-canvas">
+                    <div class="mb-4">
+                        <div class="input-pill" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18);">
+                            <i class="bi bi-search text-white-50"></i>
+                            <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none" placeholder="Zutat suchen..." />
+                        </div>
                     </div>
 
-                    <div class="table-responsive creator-table-wrap">
-                        <table id="ingredientsDbTable" class="table table-hover align-middle small border-0 w-100">
-                            <thead>
-                                <tr>
-                                    <th class="small text-muted">Zutat, Menge, Einheit</th>
-                                    <th class="d-none" aria-hidden="true"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.ToSelectIngredientsAndNutrients != null)
-                                {
-                                    foreach (var item in Model.ToSelectIngredientsAndNutrients)
-                                    {
-                                        <tr class="ingredient-db-row"
-                                            data-ingredient-id="@item.Id"
-                                            data-name-de="@item.Name_DE"
-                                            data-name-en="@item.Name_EN"
-                                            data-name-esp="@item.Name_ESP"
-                                            data-name-prt="@item.Name_PRT"
-                                            data-name-id="@item.Name_ID"
-                                            data-name-nl="@item.Name_NL"
-                                            data-name-sv="@item.Name_SE"
-                                            data-name-da="@item.Name_DK"
-                                            data-name-no="@item.Name_NO"
-                                            data-name-ms="@item.Name_MS"
-                                            data-genus-de="@item.Genus_DE"
-                                            data-genus-en="@item.Genus_EN"
-                                            data-genus-esp="@item.Genus_ESP"
-                                            data-genus-prt="@item.Genus_PRT"
-                                            data-genus-id="@item.Genus_ID"
-                                            data-genus-nl="@item.Genus_NL"
-                                            data-genus-sv="@item.Genus_SE"
-                                            data-genus-da="@item.Genus_DK"
-                                            data-genus-no="@item.Genus_NO"
-                                            data-genus-ms="@item.Genus_MS">
-                                            <td>
-                                                <div class="fw-bold display-name">@item.Name_DE</div>
+                    <div class="template-library" id="ingredientsCatalog" style="height: 400px; overflow-y: auto; padding-right: 5px;">
+                        @if (Model.ToSelectIngredientsAndNutrients != null)
+                        {
+                            foreach (var item in Model.ToSelectIngredientsAndNutrients)
+                            {
+                                <div class="preview-step-card mb-3 ingredient-db-row"
+                                     data-ingredient-id="@item.Id"
+                                     data-name-de="@item.Name_DE"
+                                     data-name-en="@item.Name_EN"
+                                     data-genus-de="@item.Genus_DE"
+                                     data-selected-qty="0"
+                                     data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
 
-                                                <div class="row g-2 mt-2 ingredient-inline-inputs align-items-end">
-                                                    <div class="col-5" style="max-width: 26%">
-                                                        <label class="small text-muted">Menge</label>
-                                                        <input type="text" inputmode="decimal" class="form-control form-control-sm js-db-qty js-decimal-input" value="0" />
-                                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                        <div class="preview-step-title mb-0">Zutat hinzufügen</div>
+                                        <button type="button" class="btn btn-sm creator-cta-primary" onclick="addIngredient('@item.Id', this)">
+                                            Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
+                                        </button>
+                                    </div>
 
-                                                    <div class="col-5" style="max-width: 54%">
-                                                        <label class="small text-muted">Einheit</label>
-                                                        <select class="form-select form-select-sm js-db-unit">
-                                                            @if (Model.Measure != null)
-                                                            {
-                                                                foreach (var measure in Model.Measure)
-                                                                {
-                                                                    <option value="@measure.Metriks_DE">@measure.Metriks_DE</option>
-                                                                }
-                                                            }
-                                                        </select>
-                                                    </div>
+                                    <div class="preview-step-text display-name">@item.Name_DE</div>
 
-                                                    <div class="col-2 text-end" style="max-width: fit-content">
-                                                        <button type="button" class="btn btn-sm candy-green rounded-circle shadow-sm" onclick="addIngredient('@item.Id', this)">
-                                                            <i class="bi bi-plus"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="d-none" aria-hidden="true"></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
+                                    <div class="duration-editor mt-2">
+                                        <div class="small text-muted mb-2">Menge & Einheit festlegen</div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="text" inputmode="decimal"
+                                                   class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
+                                                   style="max-width:85px; border-radius: 12px;" placeholder="0"
+                                                   oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
+
+                                            <select class="form-select form-select-sm js-db-unit candy-purple-input"
+                                                    style="max-width:140px; border-radius: 12px; cursor: pointer;"
+                                                    onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
+                                                @if (Model.Measure != null)
+                                                {
+                                                    foreach (var m in Model.Measure)
+                                                    {
+                                                        <option value="@m.Metriks_DE">@m.Metriks_DE</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
 
-                    
-                </div>
-                <div id="selectedIngredients" class="mt-3 selected-zone"></div>
-                <div id="ingredientConfigOverlay" class="ingredient-config-overlay d-none">
-                    <div class="ingredient-config-card">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold" id="ingredientConfigTitle">Zutat</div>
-                            <button type="button" class="btn btn-sm btn-outline-light" id="btnCloseIngredientConfig">✕</button>
-                        </div>
-                        <div class="mb-2">
-                            <label class="small text-muted mb-1 d-block">Menge</label>
-                            <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm candy-purple-input" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="small text-muted mb-1 d-block">Einheit</label>
-                            <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input"></select>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-light" id="btnCancelIngredientConfig">Abbrechen</button>
-                            <button type="button" class="btn btn-sm creator-cta-primary" id="btnApplyIngredientConfig">Übernehmen</button>
-                        </div>
+                    <div id="ingredientFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
+
+                    <div class="ingredient-top-strip mt-4">
+                        <div class="ingredient-top-title">Ausgewählte Zutaten</div>
+                        <div id="selectedIngredients" class="selected-zone mt-2"></div>
                     </div>
                 </div>
             </section>
@@ -961,12 +919,31 @@
     }
 
     .ingredient-db-row .display-name {
-        color: var(--creator-text);
-        font-weight: 700;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 1.02rem;
+        text-shadow: 0 2px 8px rgba(0,0,0,.35);
     }
 
     .ingredient-db-row .ingredient-inline-inputs {
         display: none !important;
+    }
+
+    .ingredient-catalog-card {
+        margin-top: 2px;
+        border-radius: 18px;
+        border: 1px solid var(--creator-border);
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+        padding: 14px 16px;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .ingredient-db-row:hover .ingredient-catalog-card {
+        transform: translateY(-1px);
+        border-color: rgba(255,255,255,0.32);
+        box-shadow: 0 18px 36px rgba(0,0,0,0.24);
     }
 
     /* Der Bereich, in dem die ausgewählten Zutaten landen */
@@ -1006,6 +983,10 @@
 
     .ingredient-config-overlay {
         margin-top: 10px;
+    }
+
+    #ingredientConfigDock {
+        width: 100%;
     }
 
     .ingredient-config-card {
@@ -1661,6 +1642,21 @@
             }).join('');
         }
 
+        function dockIngredientConfigUnder(anchorElement) {
+            const overlay = $('#ingredientConfigOverlay');
+            const dock = $('#ingredientConfigDock');
+            if (!overlay.length || !dock.length) return;
+            dock.removeClass('d-none');
+            overlay.removeClass('d-none');
+            if (anchorElement && anchorElement.length) {
+                if (anchorElement.hasClass('ingredient-db-row')) {
+                    anchorElement.find('td').first().append(dock);
+                } else {
+                    anchorElement.after(dock);
+                }
+            }
+        }
+
         function openIngredientConfigPopup(row) {
             const target = $(row);
             if (!target.length) return;
@@ -1672,7 +1668,7 @@
             $('#ingredientConfigTitle').text(name || 'Zutat');
             $('#ingredientConfigQty').val(qty);
             $('#ingredientConfigUnit').html(buildUnitOptionsHtml(unitDe));
-            $('#ingredientConfigOverlay').removeClass('d-none');
+            dockIngredientConfigUnder(target);
         }
 
         function openIngredientConfigForDbRow(row) {
@@ -1685,18 +1681,24 @@
             const existingRow = $('#selectedIngredients .ingredient-row').filter(function () {
                 return ($(this).find('input[name$="IngredientsAndNutrients.Id"]').val() || '').toString() === id;
             }).first();
-            const qty = existingRow.length ? (existingRow.find('.ingredient-qty-hidden').val() || '0').toString() : (normalizeDecimalInputValue(target.find('.js-db-qty').val()) || '0');
-            const unitDe = existingRow.length ? (existingRow.find('.ingredient-unit-hidden').val() || '').toString() : (target.find('.js-db-unit').val() || (dbUnits?.[0]?.de || ''));
+            const qty = existingRow.length
+                ? (existingRow.find('.ingredient-qty-hidden').val() || '0').toString()
+                : (normalizeDecimalInputValue(target.data('selected-qty')) || '0');
+            const unitDe = existingRow.length
+                ? (existingRow.find('.ingredient-unit-hidden').val() || '').toString()
+                : ((target.data('selected-unit') || dbUnits?.[0]?.de || '').toString());
             $('#ingredientConfigTitle').text(name || 'Zutat');
             $('#ingredientConfigQty').val(qty);
             $('#ingredientConfigUnit').html(buildUnitOptionsHtml(unitDe));
-            $('#ingredientConfigOverlay').removeClass('d-none');
+            dockIngredientConfigUnder(target);
         }
 
         function closeIngredientConfigPopup() {
             activeIngredientConfigRow = null;
             activeIngredientDbRow = null;
             $('#ingredientConfigOverlay').addClass('d-none');
+            $('#ingredientConfigDock').addClass('d-none');
+            $('#card-ingredients .creator-card-body').append($('#ingredientConfigDock'));
         }
 
         function applyIngredientConfigPopup() {
@@ -1709,6 +1711,16 @@
                 activeIngredientConfigRow.find('.ingredient-qty-hidden').val(qty);
                 activeIngredientConfigRow.find('.ingredient-unit-hidden').val(unitDe);
                 activeIngredientConfigRow.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
+                const ingredientId = (activeIngredientConfigRow.find('input[name$="IngredientsAndNutrients.Id"]').val() || '').toString();
+                if (ingredientId) {
+                    const sourceRow = $('.ingredient-db-row').filter(function () {
+                        return ($(this).data('ingredient-id') || '').toString() === ingredientId;
+                    }).first();
+                    if (sourceRow.length) {
+                        sourceRow.attr('data-selected-qty', qty);
+                        sourceRow.attr('data-selected-unit', unitDe);
+                    }
+                }
                 closeIngredientConfigPopup();
                 return;
             }
@@ -1719,6 +1731,10 @@
                     closeIngredientConfigPopup();
                     return;
                 }
+
+                activeIngredientDbRow.attr('data-selected-qty', qty);
+                activeIngredientDbRow.attr('data-selected-unit', unitDe);
+
                 const existingRow = $('#selectedIngredients .ingredient-row').filter(function () {
                     return ($(this).find('input[name$="IngredientsAndNutrients.Id"]').val() || '').toString() === ingredientId;
                 }).first();
@@ -1728,12 +1744,7 @@
                     existingRow.find('.ingredient-unit-hidden').val(unitDe);
                     existingRow.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
                 } else {
-                    activeIngredientDbRow.find('.js-db-qty').val(qty);
-                    activeIngredientDbRow.find('.js-db-unit').val(unitDe);
-                    const addBtn = activeIngredientDbRow.find('button[onclick^="addIngredient"]').first();
-                    if (addBtn.length) {
-                        addIngredient(ingredientId, addBtn[0]);
-                    }
+                    addIngredient(ingredientId, activeIngredientDbRow[0]);
                 }
                 closeIngredientConfigPopup();
             }
@@ -3536,14 +3547,14 @@
             return value.toString().trim().replace(/\s/g, '').replace(',', '.');
         }
 
-               function addIngredient(id, btn) {
+               function addIngredient(id, rowElement) {
             const existing = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').filter(function () {
                 return $(this).val()?.toString() === id.toString();
             }).length > 0;
 
             if (existing) return;
 
-            const row = $(btn).closest('.ingredient-db-row');
+            const row = $(rowElement).closest('.ingredient-db-row');
             const name = row.data('name-' + currentLang) || row.data('name-de');
             const genusDe = (row.data('genus-de') || '').toString().trim();
             const genusEn = (row.data('genus-en') || '').toString().trim();
@@ -3555,8 +3566,8 @@
             const genusDa = (row.data('genus-da') || '').toString().trim();
             const genusNo = (row.data('genus-no') || '').toString().trim();
             const genusMs = (row.data('genus-ms') || '').toString().trim();
-            const selectedQuantity = normalizeDecimalInputValue(row.find('.js-db-qty').val()) || '0';
-            const selectedUnit = (row.find('.js-db-unit').val() || (dbUnits?.[0]?.de ?? 'g.')).toString();
+            const selectedQuantity = normalizeDecimalInputValue(row.attr('data-selected-qty')) || '0';
+            const selectedUnit = (row.attr('data-selected-unit') || (dbUnits?.[0]?.de ?? 'g.')).toString();
             const selectedUnitObj = (dbUnits || []).find(x => (x?.de || '').toString().toLowerCase() === selectedUnit.toLowerCase());
             const selectedUnitLabel = getUnitLabel(selectedUnitObj, currentLang) || selectedUnit;
 
