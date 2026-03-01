@@ -2141,84 +2141,33 @@
             return creatorState.selectedTemplateId;
         }
 
-        function isIngredientPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'ingredient' || value === 'ingredients' || value === 'liquid' || value === 'fat';
+        function normalizePlaceholderKey(key) {
+            return (key || '').toString().trim().toLowerCase();
         }
 
-        function isDurationPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value.includes('duration');
-        }
+        const placeholderTypeMatchers = [
+            { type: 'ingredient', match: key => key === 'ingredient' || key === 'ingredients' || key === 'liquid' || key === 'fat' },
+            { type: 'duration', match: key => key.includes('duration') },
+            { type: 'count', match: key => key === 'count' || key === 'servings' || key.includes('count') },
+            { type: 'pronoun', match: key => key === 'pronoun' },
+            { type: 'temperature', match: key => key === 'temp' || key === 'temperature' },
+            { type: 'heat', match: key => key === 'heat' || key.includes('heat') },
+            { type: 'mode', match: key => key === 'mode' || key.includes('mode') },
+            { type: 'equipment', match: key => key === 'equipment' },
+            { type: 'state', match: key => key === 'state' || key.includes('state') || key.includes('consistency') },
+            { type: 'tool', match: key => key === 'tool' },
+            { type: 'grindSize', match: key => key === 'grind_size' || key === 'grindsize' || key.includes('grind') },
+            { type: 'shape', match: key => key === 'shape' },
+            { type: 'base', match: key => key === 'base' },
+            { type: 'item', match: key => key === 'item' || key === 'dish' || key.includes('item') },
+            { type: 'balance', match: key => key === 'balance' },
+            { type: 'seasonings', match: key => key === 'seasonings' || key === 'spices' }
+        ];
 
-        function isPronounPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'pronoun';
-        }
-
-        function isTemperaturePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'temp' || value === 'temperature';
-        }
-
-        function isHeatPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'heat' || value.includes('heat');
-        }
-
-        function isModePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'mode' || value.includes('mode');
-        }
-
-        function isEquipmentPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'equipment';
-        }
-
-        function isStatePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'state' || value.includes('state') || value.includes('consistency');
-        }
-
-        function isToolPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'tool';
-        }
-
-        function isGrindSizePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'grind_size' || value === 'grindsize' || value.includes('grind');
-        }
-
-        function isShapePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'shape';
-        }
-
-        function isBasePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'base';
-        }
-
-        function isItemPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'item' || value === 'dish' || value.includes('item');
-        }
-
-        function isCountPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'count' || value === 'servings' || value.includes('count');
-        }
-
-        function isBalancePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'balance';
-        }
-
-        function isSeasoningsPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'seasonings' || value === 'spices';
+        function getPlaceholderType(key) {
+            const normalizedKey = normalizePlaceholderKey(key);
+            const matched = placeholderTypeMatchers.find(entry => entry.match(normalizedKey));
+            return matched ? matched.type : '';
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -3178,10 +3127,10 @@
                     if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = getDurationInsertText();
-                    else if (isCountPlaceholderKey(key)) vars[key] = getCountInsertText();
+                    else if (getPlaceholderType(key) === 'count') vars[key] = getCountInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
-                    else if (isModePlaceholderKey(key)) vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
+                    else if (getPlaceholderType(key) === 'mode') vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
                     else if (key === 'item' || key === 'dish') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
@@ -3384,7 +3333,7 @@
             keys.forEach(function (key) {
                 const current = (normalized[key] || '').toString().trim();
 
-                if (isIngredientPlaceholderKey(key)) {
+                if (getPlaceholderType(key) === 'ingredient') {
                     normalized[key] = ingredientValue || current;
                     return;
                 }
@@ -3426,12 +3375,11 @@
         }
 
         function buildRenderedPayloadFromTemplate(template, vars) {
-            return {
-                de: renderTemplateForPersist(template, 'de', vars),
-                en: renderTemplateForPersist(template, 'en', vars),
-                esp: renderTemplateForPersist(template, 'esp', vars),
-                prt: renderTemplateForPersist(template, 'prt', vars)
-            };
+            const supportedLanguages = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
+            return supportedLanguages.reduce((payload, lang) => {
+                payload[lang] = renderTemplateForPersist(template, lang, vars);
+                return payload;
+            }, {});
         }
 
         function getCurrentUserHashForRequests() {
@@ -4026,7 +3974,7 @@
 
                 if (creatorState.activePlaceholderTokenId) {
                     const key = getPlaceholderKeyByTokenId(creatorState.activePlaceholderTokenId);
-                    if (isIngredientPlaceholderKey(key)) {
+                    if (getPlaceholderType(key) === 'ingredient') {
                         const selectedValue = getSelectedIngredientValueForInsert();
                         if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
                         creatorState.ingredientReplaceArmed = false;
@@ -4056,103 +4004,73 @@
                 showCreatorToast('Template gewählt');
             });
 
-            function openEditorForPlaceholderToken(key, tokenId) {
-                try {
-                if (!key || !tokenId) { return; }
+            function handleIngredientPlaceholderSelection(tokenId) {
+                creatorState.activePlaceholderTokenId = tokenId;
+                creatorState.ingredientReplaceArmed = true;
+                $('#masterPreviewCard').addClass('token-replace-active');
 
-                closeAllEditors();
-                creatorState.ingredientReplaceArmed = false;
-                $('#masterPreviewCard').removeClass('token-replace-active');
-
-                if (isIngredientPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = tokenId;
-                    creatorState.ingredientReplaceArmed = true;
-                    $('#masterPreviewCard').addClass('token-replace-active');
-                    const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-                    if (hasExistingAssignment) {
-                        // Bereits belegt – Chips leeren und Ersetzen-Modus aktivieren
-                        clearSelectedIngredientChips();
-                        showCreatorToast('Neue Zutat auswählen zum Ersetzen');
-                    } else {
-                        const selectedValue = getSelectedIngredientValueForInsert();
-                        if (selectedValue) {
-                            creatorState.placeholderAssignments[tokenId] = selectedValue;
-                            clearSelectedIngredientChips();
-                            creatorState.activePlaceholderTokenId = '';
-                            creatorState.ingredientReplaceArmed = false;
-                            $('#masterPreviewCard').removeClass('token-replace-active');
-                            showCreatorToast('Platzhalter ersetzt');
-                        } else {
-                            showCreatorToast('Erst Zutaten auswählen');
-                        }
-                    }
-                } else if (isDurationPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openDurationEditorForToken(tokenId);
-                    showCreatorToast('Zeit setzen');
-                } else if (isCountPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openCountEditorForToken(tokenId);
-                    showCreatorToast('Anzahl setzen');
-                } else if (isPronounPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = tokenId;
-                    openPronounEditorForToken(tokenId);
-                    showCreatorToast('Pronomen wählen');
-                } else if (isTemperaturePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openTemperatureEditorForToken(tokenId);
-                    showCreatorToast('Temperatur setzen');
-                } else if (isHeatPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openHeatEditorForToken(tokenId);
-                    showCreatorToast('Hitze-Stufe wählen');
-                } else if (isModePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openModeEditorForToken(tokenId);
-                    showCreatorToast('Ofenmodus wählen');
-                } else if (isEquipmentPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openEquipmentEditorForToken(tokenId);
-                    showCreatorToast('Tool / Gerät wählen');
-                } else if (isStatePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openStateEditorForToken(tokenId);
-                    showCreatorToast('Zustand wählen');
-                } else if (isToolPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openToolEditorForToken(tokenId);
-                    showCreatorToast('Tool / Gerät wählen');
-                } else if (isGrindSizePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openGrindSizeEditorForToken(tokenId);
-                    showCreatorToast('Schnittgröße wählen');
-                } else if (isShapePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openShapeEditorForToken(tokenId);
-                    showCreatorToast('Schnittform wählen');
-                } else if (isBasePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openBaseEditorForToken(tokenId);
-                    showCreatorToast('Basis wählen');
-                } else if (isItemPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openItemEditorForToken(tokenId);
-                    showCreatorToast('Item wählen');
-                } else if (isBalancePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openBalanceEditorForToken(tokenId);
-                    showCreatorToast('Balance wählen');
-                } else if (isSeasoningsPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openSeasoningsEditorForToken(tokenId);
-                    showCreatorToast('Seasonings wählen');
-                } else {
-                    creatorState.activePlaceholderTokenId = '';
+                const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+                if (hasExistingAssignment) {
+                    clearSelectedIngredientChips();
+                    showCreatorToast('Neue Zutat auswählen zum Ersetzen');
+                    return;
                 }
 
-                renderTemplateCards();
+                const selectedValue = getSelectedIngredientValueForInsert();
+                if (selectedValue) {
+                    creatorState.placeholderAssignments[tokenId] = selectedValue;
+                    clearSelectedIngredientChips();
+                    creatorState.activePlaceholderTokenId = '';
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    showCreatorToast('Platzhalter ersetzt');
+                    return;
+                }
+
+                showCreatorToast('Erst Zutaten auswählen');
+            }
+
+            function openEditorForPlaceholderToken(key, tokenId) {
+                try {
+                    if (!key || !tokenId) return;
+
+                    closeAllEditors();
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+
+                    const placeholderType = getPlaceholderType(key);
+                    const editorDispatch = {
+                        duration: { open: openDurationEditorForToken, toast: 'Zeit setzen' },
+                        count: { open: openCountEditorForToken, toast: 'Anzahl setzen' },
+                        pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wählen', keepTokenActive: true },
+                        temperature: { open: openTemperatureEditorForToken, toast: 'Temperatur setzen' },
+                        heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wählen' },
+                        mode: { open: openModeEditorForToken, toast: 'Ofenmodus wählen' },
+                        equipment: { open: openEquipmentEditorForToken, toast: 'Tool / Gerät wählen' },
+                        state: { open: openStateEditorForToken, toast: 'Zustand wählen' },
+                        tool: { open: openToolEditorForToken, toast: 'Tool / Gerät wählen' },
+                        grindSize: { open: openGrindSizeEditorForToken, toast: 'Schnittgröße wählen' },
+                        shape: { open: openShapeEditorForToken, toast: 'Schnittform wählen' },
+                        base: { open: openBaseEditorForToken, toast: 'Basis wählen' },
+                        item: { open: openItemEditorForToken, toast: 'Item wählen' },
+                        balance: { open: openBalanceEditorForToken, toast: 'Balance wählen' },
+                        seasonings: { open: openSeasoningsEditorForToken, toast: 'Seasonings wählen' }
+                    };
+
+                    if (placeholderType === 'ingredient') {
+                        handleIngredientPlaceholderSelection(tokenId);
+                    } else if (editorDispatch[placeholderType]) {
+                        creatorState.activePlaceholderTokenId = editorDispatch[placeholderType].keepTokenActive ? tokenId : '';
+                        editorDispatch[placeholderType].open(tokenId);
+                        showCreatorToast(editorDispatch[placeholderType].toast);
+                    } else {
+                        creatorState.activePlaceholderTokenId = '';
+                    }
+
+                    renderTemplateCards();
                 } catch (err) {
-                    alert('ERROR in openEditorForPlaceholderToken: ' + (err.message || err) + '\nStack: ' + (err.stack || ''));
+                    alert('ERROR in openEditorForPlaceholderToken: ' + (err.message || err) + '
+Stack: ' + (err.stack || ''));
                 }
             }
 
@@ -4179,7 +4097,7 @@
 
             $('#masterPreviewText').on('dragover', '.placeholder-token', function (e) {
                 const key = ($(this).data('placeholder-key') || '').toString();
-                if (!isIngredientPlaceholderKey(key)) return;
+                if (getPlaceholderType(key) !== 'ingredient') return;
                 e.preventDefault();
                 $(this).addClass('drag-over');
                 e.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -4196,7 +4114,7 @@
                 const key = ($(this).data('placeholder-key') || '').toString();
                 const dropped = e.originalEvent.dataTransfer.getData('text/plain') || creatorState.dragIngredientName || '';
                 if (!tokenId || !dropped) return;
-                if (!isIngredientPlaceholderKey(key)) {
+                if (getPlaceholderType(key) !== 'ingredient') {
                     showCreatorToast('Drag & Drop nur für ingredient/ingredients');
                     return;
                 }
