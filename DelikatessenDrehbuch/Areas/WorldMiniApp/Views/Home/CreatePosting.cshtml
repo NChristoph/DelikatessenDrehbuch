@@ -342,6 +342,18 @@
                         <div class="ingredient-top-title">Ausgewählte Zutaten</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
                     </div>
+
+                    <div class="preview-step-card mt-2" id="ingredientProbabilityBox">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="preview-step-title mb-0 label-lang"
+                                 data-de="Was könnte es sein?"
+                                 data-en="What could it be?"
+                                 data-esp="¿Qué podría ser?"
+                                 data-prt="O que poderia ser?">Was könnte es sein?</div>
+                            <i class="bi bi-graph-up-arrow text-white-50"></i>
+                        </div>
+                        <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
+                    </div>
                 </div>
             </section>
 
@@ -1623,6 +1635,7 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script>window.MasterStepRendererConfig = { dataUrl: "@Url.Content("~/data/master_steps.json")" };</script>
     <script src="~/js/master-step-renderer.js"></script>
+    <script src="~/js/recipe-step-suggest.js"></script>
     <script>
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
@@ -3567,6 +3580,39 @@
             });
         }
 
+        async function refreshIngredientProbabilityHints() {
+            const container = $('#ingredientProbabilityBadges');
+            if (!container.length) return;
+
+            const selectedIngredientIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                const v = parseInt($(this).val(), 10);
+                return Number.isNaN(v) ? null : v;
+            }).get().filter(v => v !== null);
+
+            if (!selectedIngredientIds.length) {
+                container.text('Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.');
+                return;
+            }
+
+            if (!window.RecipeStepSuggest) {
+                container.text('Analyse-Modul nicht verfügbar.');
+                return;
+            }
+
+            try {
+                await window.RecipeStepSuggest.loadMapping();
+                const recipeTypes = window.RecipeStepSuggest.detectRecipeTypes(selectedIngredientIds) || [];
+                if (!recipeTypes.length) {
+                    container.text('Noch keine klare Tendenz erkannt.');
+                    return;
+                }
+
+                container.html(window.RecipeStepSuggest.renderRecipeTypeBadges(recipeTypes, 5));
+            } catch (err) {
+                container.text('Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.');
+            }
+        }
+
         function updateLanguageLabels() {
             const langKey = resolveLangKey(currentLang);
             $('.label-lang').each(function () { $(this).text($(this).data(langKey)); });
@@ -3589,6 +3635,7 @@
             refreshDurationUnitControls();
             updateCommonUnitChipLabels();
             refreshMasterTemplateBuilder();
+            refreshIngredientProbabilityHints();
         }
 
         function handleVideoUpload(input) {
@@ -3669,6 +3716,7 @@
             if (typeof syncIngredientSourceVisibility === "function") {
                 syncIngredientSourceVisibility();
             }
+            refreshIngredientProbabilityHints();
         }
 
         function startStepIngredientEdit(btn) {
@@ -3720,6 +3768,7 @@
             $(btn).closest('.ingredient-row').remove();
             refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
+            refreshIngredientProbabilityHints();
         }
 
         // Entfernt alle Steps die für dieselben Zutaten+Phase gebunden sind wie der neue Step
@@ -3899,6 +3948,7 @@
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
             });
+            refreshIngredientProbabilityHints();
 
             $(document).on('click', '.js-common-unit-chip', function (e) {
                 e.preventDefault();
