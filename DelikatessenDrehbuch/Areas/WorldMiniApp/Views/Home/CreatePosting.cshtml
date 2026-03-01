@@ -3606,25 +3606,55 @@
             });
         }
 
+        const probabilityUiText = {
+            selectIngredients: 'Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
+            moduleMissing: 'Analyse-Modul nicht verfügbar.',
+            noTrend: 'Noch keine klare Tendenz erkannt.',
+            analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.',
+            templatesUnavailable: 'Template-Vorschläge sind aktuell nicht verfügbar.',
+            selectIngredientsFirst: 'Bitte zuerst Zutaten auswählen.',
+            noTemplates: 'Keine passenden Templates gefunden.'
+        };
+
+        function escapeHtml(value) {
+            return $('<div>').text(value ?? '').html();
+        }
+
+        function getSelectedIngredientIdsForProbability() {
+            return $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                const value = parseInt($(this).val(), 10);
+                return Number.isNaN(value) ? null : value;
+            }).get().filter(v => v !== null);
+        }
+
+        function setProbabilityStatus(container, text) {
+            container.text(text || probabilityUiText.analysisUnavailable);
+        }
+
+        function renderProbabilityTypeButtons(recipeTypes) {
+            return (recipeTypes || []).slice(0, 5).map((recipeType, idx) => {
+                const colorClass = recipeType.score >= 60 ? 'btn-success' : (recipeType.score >= 35 ? 'btn-primary' : 'btn-secondary');
+                const icon = idx === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
+                return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${escapeHtml(recipeType.type || '')}" data-name="${escapeHtml(recipeType.name || '')}" data-score="${recipeType.score}">${icon}${recipeType.score}% ${escapeHtml(recipeType.name || '')}</button>`;
+            }).join('');
+        }
+
         async function refreshIngredientProbabilityHints() {
             const container = $('#ingredientProbabilityBadges');
             const templatesBox = $('#ingredientProbabilityTemplates');
             if (!container.length) return;
 
-            const selectedIngredientIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
-                const v = parseInt($(this).val(), 10);
-                return Number.isNaN(v) ? null : v;
-            }).get().filter(v => v !== null);
+            const selectedIngredientIds = getSelectedIngredientIdsForProbability();
 
             templatesBox.addClass('d-none').empty();
 
             if (!selectedIngredientIds.length) {
-                container.text('Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.');
+                setProbabilityStatus(container, probabilityUiText.selectIngredients);
                 return;
             }
 
             if (!window.RecipeStepSuggest) {
-                container.text('Analyse-Modul nicht verfügbar.');
+                setProbabilityStatus(container, probabilityUiText.moduleMissing);
                 return;
             }
 
@@ -3632,19 +3662,13 @@
                 await window.RecipeStepSuggest.loadMapping();
                 const recipeTypes = window.RecipeStepSuggest.detectRecipeTypes(selectedIngredientIds) || [];
                 if (!recipeTypes.length) {
-                    container.text('Noch keine klare Tendenz erkannt.');
+                    setProbabilityStatus(container, probabilityUiText.noTrend);
                     return;
                 }
 
-                const chipsHtml = recipeTypes.slice(0, 5).map((rt, idx) => {
-                    const colorClass = rt.score >= 60 ? 'btn-success' : (rt.score >= 35 ? 'btn-primary' : 'btn-secondary');
-                    const icon = idx === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
-                    return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${$('<div>').text(rt.type || '').html()}" data-name="${$('<div>').text(rt.name || '').html()}" data-score="${rt.score}">${icon}${rt.score}% ${$('<div>').text(rt.name || '').html()}</button>`;
-                }).join('');
-
-                container.html(chipsHtml);
+                container.html(renderProbabilityTypeButtons(recipeTypes));
             } catch (err) {
-                container.text('Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.');
+                setProbabilityStatus(container, probabilityUiText.analysisUnavailable);
             }
         }
 
@@ -3652,11 +3676,13 @@
             if (probabilityTemplatePresets) return probabilityTemplatePresets;
             if (probabilityTemplatePresetsPromise) return probabilityTemplatePresetsPromise;
 
+            const defaultPresets = { types: {} };
+
             probabilityTemplatePresetsPromise = fetch('/data/probability_template_presets.json')
                 .then(r => r.ok ? r.json() : null)
                 .catch(() => null)
                 .then(data => {
-                    probabilityTemplatePresets = data && typeof data === 'object' ? data : { types: {} };
+                    probabilityTemplatePresets = data && typeof data === 'object' ? data : defaultPresets;
                     return probabilityTemplatePresets;
                 })
                 .finally(() => {
@@ -3681,9 +3707,37 @@
         }
 
         function buildTemplateCardHtml(masterId, displayText) {
-            const safeId = $('<div>').text(masterId || '').html();
-            const safeText = $('<div>').text(displayText || masterId || '').html();
+            const safeId = escapeHtml(masterId || '');
+            const safeText = escapeHtml(displayText || masterId || '');
             return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
+        }
+
+        function buildPreferredTemplateCards(preferredTemplateIds, varsByTemplate) {
+            const cards = [];
+            (preferredTemplateIds || []).forEach(masterId => {
+                const tpl = MasterStepRenderer.findTemplate(masterId);
+                if (!tpl) return;
+                const vars = buildVariablesForTemplate(masterId);
+                varsByTemplate[masterId] = vars;
+                const snippet = MasterStepRenderer.render(masterId, vars, currentLang) || tpl.description || masterId;
+                cards.push(buildTemplateCardHtml(masterId, snippet));
+            });
+            return cards;
+        }
+
+        function buildFallbackTemplateCards(ingredientNames) {
+            const preview = window.RecipeStepSuggest.getMasterStepPreview(ingredientNames, { lang: currentLang }) || [];
+            if (!preview.length) return [];
+
+            const cards = [];
+            const seen = new Set();
+            preview.forEach(item => {
+                const masterId = (item.masterId || '').toString();
+                if (!masterId || seen.has(masterId)) return;
+                seen.add(masterId);
+                cards.push(buildTemplateCardHtml(masterId, item.text || masterId));
+            });
+            return cards;
         }
 
         async function showProbabilityTemplateSuggestions(typeId, typeName, score) {
@@ -3691,49 +3745,30 @@
             if (!box.length) return;
 
             if (!window.RecipeStepSuggest || !window.MasterStepRenderer) {
-                box.removeClass('d-none').html('<div class="small text-white-50">Template-Vorschläge sind aktuell nicht verfügbar.</div>');
+                box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(probabilityUiText.templatesUnavailable)}</div>`);
                 return;
             }
 
             const ingredients = getSelectedIngredientsForSandbox().map(x => x.name).filter(Boolean);
             if (!ingredients.length) {
-                box.removeClass('d-none').html('<div class="small text-white-50">Bitte zuerst Zutaten auswählen.</div>');
+                box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(probabilityUiText.selectIngredientsFirst)}</div>`);
                 return;
             }
 
             await loadProbabilityTemplatePresets();
             const preferredTemplateIds = getPreferredMasterTemplateIdsForType(typeId);
             const varsByTemplate = {};
-            const cards = [];
-
-            if (preferredTemplateIds.length) {
-                preferredTemplateIds.forEach(masterId => {
-                    const tpl = MasterStepRenderer.findTemplate(masterId);
-                    if (!tpl) return;
-                    const vars = buildVariablesForTemplate(masterId);
-                    varsByTemplate[masterId] = vars;
-                    const snippet = MasterStepRenderer.render(masterId, vars, currentLang) || tpl.description || masterId;
-                    cards.push(buildTemplateCardHtml(masterId, snippet));
-                });
-            }
+            let cards = buildPreferredTemplateCards(preferredTemplateIds, varsByTemplate);
 
             if (!cards.length) {
-                const preview = window.RecipeStepSuggest.getMasterStepPreview(ingredients, { lang: currentLang }) || [];
-                if (!preview.length) {
-                    box.removeClass('d-none').html('<div class="small text-white-50">Keine passenden Templates gefunden.</div>');
+                cards = buildFallbackTemplateCards(ingredients);
+                if (!cards.length) {
+                    box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(probabilityUiText.noTemplates)}</div>`);
                     return;
                 }
-
-                const seen = new Set();
-                preview.forEach(item => {
-                    const masterId = (item.masterId || '').toString();
-                    if (!masterId || seen.has(masterId)) return;
-                    seen.add(masterId);
-                    cards.push(buildTemplateCardHtml(masterId, item.text || masterId));
-                });
             }
 
-            const head = `<div class="small text-white-50 mb-2">${$('<div>').text(typeName || typeId || 'Typ').html()} (${score || 0}%) · Template-Auswahl</div>`;
+            const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
             box.removeClass('d-none').html(head + cards.join(''));
             document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
