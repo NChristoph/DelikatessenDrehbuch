@@ -126,6 +126,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
         }
 
+
+        [HttpGet]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> SessionStatus()
+        {
+            var userHash = HttpContext.Session.GetString(SessionUserHashKey);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Ok(new { isLoggedIn = false });
+            }
+
+            var user = await _context.WorldAppUser.AsNoTracking().FirstOrDefaultAsync(x => x.UserHash == userHash);
+            if (user == null)
+            {
+                return Ok(new { isLoggedIn = false });
+            }
+
+            return Ok(new
+            {
+                isLoggedIn = true,
+                userHash = user.UserHash,
+                rememberLogin = user.RememberLogin,
+                isVerified = user.IsVerified
+            });
+        }
+
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> RefreshStatus([FromBody] RefreshLoginRequest request)
