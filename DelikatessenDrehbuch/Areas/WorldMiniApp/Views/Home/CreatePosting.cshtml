@@ -1659,6 +1659,7 @@
     <script>window.MasterStepRendererConfig = { dataUrl: "@Url.Content("~/data/master_steps.json")" };</script>
     <script src="~/js/master-step-renderer.js"></script>
     <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/create-posting-probability.js"></script>
     <script>
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
@@ -1948,9 +1949,6 @@
         }
 
         const isDarkTheme = true;
-        let probabilityTemplatePresets = null;
-        let probabilityTemplatePresetsPromise = null;
-
         const creatorState = {
             selectedIngredientIds: [],
             selectedTemplateId: '',
@@ -3606,171 +3604,29 @@
             });
         }
 
-        const probabilityUiText = {
-            selectIngredients: 'Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
-            moduleMissing: 'Analyse-Modul nicht verfügbar.',
-            noTrend: 'Noch keine klare Tendenz erkannt.',
-            analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.',
-            templatesUnavailable: 'Template-Vorschläge sind aktuell nicht verfügbar.',
-            selectIngredientsFirst: 'Bitte zuerst Zutaten auswählen.',
-            noTemplates: 'Keine passenden Templates gefunden.'
-        };
-
-        function escapeHtml(value) {
-            return $('<div>').text(value ?? '').html();
-        }
-
-        function getSelectedIngredientIdsForProbability() {
-            return $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+        const probabilityFeature = window.CreatePostingProbability?.create({
+            getCurrentLang: () => currentLang,
+            getSelectedIngredientIds: () => $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
                 const value = parseInt($(this).val(), 10);
                 return Number.isNaN(value) ? null : value;
-            }).get().filter(v => v !== null);
-        }
-
-        function setProbabilityStatus(container, text) {
-            container.text(text || probabilityUiText.analysisUnavailable);
-        }
-
-        function renderProbabilityTypeButtons(recipeTypes) {
-            return (recipeTypes || []).slice(0, 5).map((recipeType, idx) => {
-                const colorClass = recipeType.score >= 60 ? 'btn-success' : (recipeType.score >= 35 ? 'btn-primary' : 'btn-secondary');
-                const icon = idx === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
-                return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${escapeHtml(recipeType.type || '')}" data-name="${escapeHtml(recipeType.name || '')}" data-score="${recipeType.score}">${icon}${recipeType.score}% ${escapeHtml(recipeType.name || '')}</button>`;
-            }).join('');
-        }
+            }).get().filter(v => v !== null),
+            getSelectedIngredientNames: () => getSelectedIngredientsForSandbox().map(x => x.name).filter(Boolean),
+            findTemplate: (masterId) => MasterStepRenderer.findTemplate(masterId),
+            renderTemplate: (masterId, vars, lang) => MasterStepRenderer.render(masterId, vars, lang),
+            buildVariablesForTemplate,
+            detectRecipeTypes: (ingredientIds) => window.RecipeStepSuggest.detectRecipeTypes(ingredientIds) || [],
+            loadMapping: () => window.RecipeStepSuggest.loadMapping(),
+            getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || []
+        });
 
         async function refreshIngredientProbabilityHints() {
-            const container = $('#ingredientProbabilityBadges');
-            const templatesBox = $('#ingredientProbabilityTemplates');
-            if (!container.length) return;
-
-            const selectedIngredientIds = getSelectedIngredientIdsForProbability();
-
-            templatesBox.addClass('d-none').empty();
-
-            if (!selectedIngredientIds.length) {
-                setProbabilityStatus(container, probabilityUiText.selectIngredients);
-                return;
-            }
-
-            if (!window.RecipeStepSuggest) {
-                setProbabilityStatus(container, probabilityUiText.moduleMissing);
-                return;
-            }
-
-            try {
-                await window.RecipeStepSuggest.loadMapping();
-                const recipeTypes = window.RecipeStepSuggest.detectRecipeTypes(selectedIngredientIds) || [];
-                if (!recipeTypes.length) {
-                    setProbabilityStatus(container, probabilityUiText.noTrend);
-                    return;
-                }
-
-                container.html(renderProbabilityTypeButtons(recipeTypes));
-            } catch (err) {
-                setProbabilityStatus(container, probabilityUiText.analysisUnavailable);
-            }
-        }
-
-        async function loadProbabilityTemplatePresets() {
-            if (probabilityTemplatePresets) return probabilityTemplatePresets;
-            if (probabilityTemplatePresetsPromise) return probabilityTemplatePresetsPromise;
-
-            const defaultPresets = { types: {} };
-
-            probabilityTemplatePresetsPromise = fetch('/data/probability_template_presets.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null)
-                .then(data => {
-                    probabilityTemplatePresets = data && typeof data === 'object' ? data : defaultPresets;
-                    return probabilityTemplatePresets;
-                })
-                .finally(() => {
-                    probabilityTemplatePresetsPromise = null;
-                });
-
-            return probabilityTemplatePresetsPromise;
-        }
-
-        function getPreferredMasterTemplateIdsForType(typeId) {
-            const key = (typeId || '').toString().trim().toLowerCase();
-            const types = probabilityTemplatePresets && probabilityTemplatePresets.types
-                ? probabilityTemplatePresets.types
-                : {};
-            const fromExact = Array.isArray(types[key]) ? types[key] : [];
-            if (fromExact.length) return fromExact;
-
-            if (key === 'lasagna' && Array.isArray(types['lasagne'])) {
-                return types['lasagne'];
-            }
-            return [];
-        }
-
-        function buildTemplateCardHtml(masterId, displayText) {
-            const safeId = escapeHtml(masterId || '');
-            const safeText = escapeHtml(displayText || masterId || '');
-            return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
-        }
-
-        function buildPreferredTemplateCards(preferredTemplateIds, varsByTemplate) {
-            const cards = [];
-            (preferredTemplateIds || []).forEach(masterId => {
-                const tpl = MasterStepRenderer.findTemplate(masterId);
-                if (!tpl) return;
-                const vars = buildVariablesForTemplate(masterId);
-                varsByTemplate[masterId] = vars;
-                const snippet = MasterStepRenderer.render(masterId, vars, currentLang) || tpl.description || masterId;
-                cards.push(buildTemplateCardHtml(masterId, snippet));
-            });
-            return cards;
-        }
-
-        function buildFallbackTemplateCards(ingredientNames) {
-            const preview = window.RecipeStepSuggest.getMasterStepPreview(ingredientNames, { lang: currentLang }) || [];
-            if (!preview.length) return [];
-
-            const cards = [];
-            const seen = new Set();
-            preview.forEach(item => {
-                const masterId = (item.masterId || '').toString();
-                if (!masterId || seen.has(masterId)) return;
-                seen.add(masterId);
-                cards.push(buildTemplateCardHtml(masterId, item.text || masterId));
-            });
-            return cards;
+            if (!probabilityFeature) return;
+            await probabilityFeature.refresh();
         }
 
         async function showProbabilityTemplateSuggestions(typeId, typeName, score) {
-            const box = $('#ingredientProbabilityTemplates');
-            if (!box.length) return;
-
-            if (!window.RecipeStepSuggest || !window.MasterStepRenderer) {
-                box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(probabilityUiText.templatesUnavailable)}</div>`);
-                return;
-            }
-
-            const ingredients = getSelectedIngredientsForSandbox().map(x => x.name).filter(Boolean);
-            if (!ingredients.length) {
-                box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(probabilityUiText.selectIngredientsFirst)}</div>`);
-                return;
-            }
-
-            await loadProbabilityTemplatePresets();
-            const preferredTemplateIds = getPreferredMasterTemplateIdsForType(typeId);
-            const varsByTemplate = {};
-            let cards = buildPreferredTemplateCards(preferredTemplateIds, varsByTemplate);
-
-            if (!cards.length) {
-                cards = buildFallbackTemplateCards(ingredients);
-                if (!cards.length) {
-                    box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(probabilityUiText.noTemplates)}</div>`);
-                    return;
-                }
-            }
-
-            const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
-            box.removeClass('d-none').html(head + cards.join(''));
-            document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (!probabilityFeature) return;
+            await probabilityFeature.showSuggestions(typeId, typeName, score);
         }
 
         function updateLanguageLabels() {
