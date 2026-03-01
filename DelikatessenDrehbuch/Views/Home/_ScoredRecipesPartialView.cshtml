@@ -1,0 +1,40 @@
+@using DelikatessenDrehbuch.Models
+@model List<RecipeWithScore>
+
+<div class="flex flexColumn w100 flex-wrap jspaceBetween mt-3">
+    @{
+        <h1 id="count" style="align-self:center">Es wurden @Model.Count Rezepte gefunden</h1>
+        foreach (var item in Model)
+        {
+            var recipe = item.Recipe;
+            <a asp-route-id="@recipe.Id" asp-controller="SelectedRecipe" asp-action="Index" type="button" typeof="button" class="text-dark btn w50 flex flexRow m-2" style="align-self:center;text-align:left">
+                <div class="col iw25">
+                    @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                    {
+                        <img class="w100 recipeImage" src="@recipe.ImagePath" loading="lazy" />
+                    }
+                    else
+                    {
+                        <img class="w100 recipeImage" src="not-found.png" loading="lazy" />
+                    }
+                </div>
+
+                <div class="col m-1">
+                    <h4 class="recipeName">@recipe.Name</h4>
+                    <p class="recipeDescriptions" style="overflow:hidden;max-height:20px">@recipe.Preparation</p>
+                    <p>Dieses Rezept gefällt @recipe.LikeCount Personen</p>
+                    <div style="margin-top:4px">
+                        <small>@item.MatchingIngredients von @item.TotalIngredients Zutaten vorhanden</small>
+                        <div class="progress" style="height:14px;margin-top:2px">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width:@item.ScorePercent%"
+                                 aria-valuenow="@item.ScorePercent" aria-valuemin="0" aria-valuemax="100">
+                                @item.ScorePercent%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        }
+    }
+</div>

@@ -1,4 +1,4 @@
-﻿
+
 @{
     ViewData["Title"] = "Rezepte";
 }
@@ -21,18 +21,123 @@
     </button>
 </div>
 
+<div class="flex jcenter row mt-2">
+    <hr style="width:90%" />
+</div>
+
+<div class="flex flexColumn jcenter mt-2" style="align-items:center">
+    <h5>Welches Gericht kann ich kochen?</h5>
+    <div class="flex flexRow" style="gap:6px;align-items:center">
+        <input id="ingredientSearch" class="w30" placeholder="Zutat suchen..." style="border-radius:5px;" />
+        <button onclick="AddIngredient()" class="btn btn-outline-success" type="button">+ Hinzufügen</button>
+        <button onclick="FindDish()" class="btn btn-success" type="button">Gericht finden</button>
+        <button onclick="ClearIngredients()" class="btn btn-outline-secondary" type="button">Zurücksetzen</button>
+    </div>
+    <ul id="ingredientSuggestions" style="list-style:none;padding:0;margin:4px 0;background:#fff;border:1px solid #ccc;border-radius:4px;display:none;min-width:220px;position:absolute;z-index:100;max-height:200px;overflow-y:auto;"></ul>
+    <div id="selectedIngredients" class="flex flexRow flex-wrap mt-2" style="gap:6px;justify-content:center;max-width:600px;"></div>
+</div>
+
 <div id="RecipesPartial" class="mt-2 flex jcenter w100" >
 </div>
 
 
 
 <script>
+    var selectedIngredientIds = [];
+    var selectedIngredientNames = [];
+
     function SearchRecipe()
     {
-      
         var keyWord = $('#keyWord').val();
-        var encodeKeyWord=encodeURIComponent(keyWord);
-        debugger;
-        $('#RecipesPartial').load('Home/SearchRecipes?keyWord='+encodeKeyWord)
+        var encodeKeyWord = encodeURIComponent(keyWord);
+        $('#RecipesPartial').load('Home/SearchRecipes?keyWord=' + encodeKeyWord);
+    }
+
+    // Autocomplete for ingredient search
+    $('#ingredientSearch').on('input', function () {
+        var search = $(this).val();
+        if (search.length < 1) {
+            $('#ingredientSuggestions').hide();
+            return;
+        }
+        $.getJSON('/Home/GetIngredients?search=' + encodeURIComponent(search), function (data) {
+            var ul = $('#ingredientSuggestions');
+            ul.empty();
+            if (data.length === 0) {
+                ul.hide();
+                return;
+            }
+            data.forEach(function (item) {
+                var li = $('<li>')
+                    .text(item.name)
+                    .css({ padding: '6px 12px', cursor: 'pointer' })
+                    .hover(function () { $(this).css('background', '#f0f0f0'); },
+                           function () { $(this).css('background', '#fff'); })
+                    .click(function () {
+                        SelectIngredient(item.id, item.name);
+                        ul.hide();
+                        $('#ingredientSearch').val('');
+                    });
+                ul.append(li);
+            });
+            var rect = document.getElementById('ingredientSearch').getBoundingClientRect();
+            ul.css({ top: (rect.bottom + window.scrollY) + 'px', left: rect.left + 'px' });
+            ul.show();
+        });
+    });
+
+    $(document).click(function (e) {
+        if (!$(e.target).is('#ingredientSearch')) {
+            $('#ingredientSuggestions').hide();
+        }
+    });
+
+    function AddIngredient() {
+        var search = $('#ingredientSearch').val().trim();
+        if (!search) return;
+        $.getJSON('/Home/GetIngredients?search=' + encodeURIComponent(search), function (data) {
+            if (data.length > 0) {
+                SelectIngredient(data[0].id, data[0].name);
+                $('#ingredientSearch').val('');
+            }
+        });
+    }
+
+    function SelectIngredient(id, name) {
+        if (selectedIngredientIds.indexOf(id) !== -1) return;
+        selectedIngredientIds.push(id);
+        selectedIngredientNames.push(name);
+
+        var badge = $('<span>')
+            .addClass('badge bg-success')
+            .css({ padding: '6px 10px', cursor: 'pointer', fontSize: '0.9rem' })
+            .attr('data-id', id)
+            .text(name + ' ×')
+            .click(function () {
+                var idx = selectedIngredientIds.indexOf(id);
+                if (idx > -1) {
+                    selectedIngredientIds.splice(idx, 1);
+                    selectedIngredientNames.splice(idx, 1);
+                }
+                $(this).remove();
+            });
+        $('#selectedIngredients').append(badge);
+    }
+
+    function FindDish() {
+        if (selectedIngredientIds.length === 0) return;
+
+        var params = selectedIngredientIds.map(function (id) {
+            return 'ingredientIds=' + id;
+        }).join('&');
+
+        $('#RecipesPartial').load('Home/FindDishByIngredients?' + params);
+    }
+
+    function ClearIngredients() {
+        selectedIngredientIds = [];
+        selectedIngredientNames = [];
+        $('#selectedIngredients').empty();
+        $('#RecipesPartial').empty();
     }
 </script>
