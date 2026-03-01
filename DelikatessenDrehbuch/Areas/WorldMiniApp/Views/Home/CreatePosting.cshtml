@@ -353,6 +353,7 @@
                             <i class="bi bi-graph-up-arrow text-white-50"></i>
                         </div>
                         <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
+                        <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
                     </div>
                 </div>
             </section>
@@ -966,6 +967,28 @@
         padding-top: 10px;
     }
 
+
+    .probability-type-btn {
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .probability-type-btn:hover {
+        border-color: rgba(255,255,255,0.4);
+        background: rgba(255,255,255,0.16);
+        color: #fff;
+    }
+
+    .probability-template-card {
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+    }
     .common-unit-chips {
         display: flex;
         gap: 6px;
@@ -3582,12 +3605,15 @@
 
         async function refreshIngredientProbabilityHints() {
             const container = $('#ingredientProbabilityBadges');
+            const templatesBox = $('#ingredientProbabilityTemplates');
             if (!container.length) return;
 
             const selectedIngredientIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
                 const v = parseInt($(this).val(), 10);
                 return Number.isNaN(v) ? null : v;
             }).get().filter(v => v !== null);
+
+            templatesBox.addClass('d-none').empty();
 
             if (!selectedIngredientIds.length) {
                 container.text('Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.');
@@ -3607,10 +3633,57 @@
                     return;
                 }
 
-                container.html(window.RecipeStepSuggest.renderRecipeTypeBadges(recipeTypes, 5));
+                const chipsHtml = recipeTypes.slice(0, 5).map((rt, idx) => {
+                    const colorClass = rt.score >= 60 ? 'btn-success' : (rt.score >= 35 ? 'btn-primary' : 'btn-secondary');
+                    const icon = idx === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
+                    return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${$('<div>').text(rt.type || '').html()}" data-name="${$('<div>').text(rt.name || '').html()}" data-score="${rt.score}">${icon}${rt.score}% ${$('<div>').text(rt.name || '').html()}</button>`;
+                }).join('');
+
+                container.html(chipsHtml);
             } catch (err) {
                 container.text('Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.');
             }
+        }
+
+        function showProbabilityTemplateSuggestions(typeId, typeName, score) {
+            const box = $('#ingredientProbabilityTemplates');
+            if (!box.length) return;
+
+            if (!window.RecipeStepSuggest || !window.MasterStepRenderer) {
+                box.removeClass('d-none').html('<div class="small text-white-50">Template-Vorschläge sind aktuell nicht verfügbar.</div>');
+                return;
+            }
+
+            const ingredients = getSelectedIngredientsForSandbox().map(x => x.name).filter(Boolean);
+            if (!ingredients.length) {
+                box.removeClass('d-none').html('<div class="small text-white-50">Bitte zuerst Zutaten auswählen.</div>');
+                return;
+            }
+
+            const preview = window.RecipeStepSuggest.getMasterStepPreview(ingredients, { lang: currentLang }) || [];
+            if (!preview.length) {
+                box.removeClass('d-none').html('<div class="small text-white-50">Keine passenden Templates gefunden.</div>');
+                return;
+            }
+
+            const uniqueTemplates = [];
+            const seen = new Set();
+            preview.forEach(item => {
+                const masterId = (item.masterId || '').toString();
+                if (!masterId || seen.has(masterId)) return;
+                seen.add(masterId);
+                uniqueTemplates.push(item);
+            });
+
+            const head = `<div class="small text-white-50 mb-2">${$('<div>').text(typeName || typeId || 'Typ').html()} (${score || 0}%) · Template-Auswahl</div>`;
+            const cards = uniqueTemplates.slice(0, 12).map(item => {
+                const safeId = $('<div>').text(item.masterId || '').html();
+                const safeText = $('<div>').text(item.text || item.masterId || '').html();
+                return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
+            }).join('');
+
+            box.removeClass('d-none').html(head + cards);
+            document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function updateLanguageLabels() {
@@ -3960,6 +4033,27 @@
                 const unitValue = resolveSelectUnitValueByKey(select[0], $(this).data('unit-key'));
                 if (!unitValue) return;
                 select.val(unitValue).trigger('change');
+            });
+
+            $(document).on('click', '.js-probability-type', function () {
+                const typeId = ($(this).data('type') || '').toString();
+                const typeName = ($(this).data('name') || '').toString();
+                const score = parseInt($(this).data('score'), 10) || 0;
+                showProbabilityTemplateSuggestions(typeId, typeName, score);
+            });
+
+            $(document).on('click', '.js-probability-template', function () {
+                const masterId = ($(this).data('master-id') || '').toString();
+                if (!masterId) return;
+
+                creatorState.selectedTemplateId = masterId;
+                creatorState.activePlaceholderTokenId = '';
+                creatorState.placeholderAssignments = {};
+                closeAllEditors();
+                renderTemplateCards();
+                updatePreviewText();
+                showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
+                document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
             refreshDurationUnitControls();
             loadIngredientArticleRules().finally(() => {
