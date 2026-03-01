@@ -3645,6 +3645,32 @@
             }
         }
 
+        function getPreferredMasterTemplateIdsForType(typeId) {
+            const key = (typeId || '').toString().trim().toLowerCase();
+            if (key === 'lasagne' || key === 'lasagna') {
+                return [
+                    'PREP_CUT_01',
+                    'PREP_MINCE_01',
+                    'COOK_SAUTE_01',
+                    'COOK_DEGLAZE_01',
+                    'COOK_SIMMER_01',
+                    'PREP_WHISK_01',
+                    'COOK_THICKEN_01',
+                    'PREP_LAYER_01',
+                    'COOK_BAKE_01',
+                    'COOK_GRATINATE_01',
+                    'PREP_REST_01'
+                ];
+            }
+            return [];
+        }
+
+        function buildTemplateCardHtml(masterId, displayText) {
+            const safeId = $('<div>').text(masterId || '').html();
+            const safeText = $('<div>').text(displayText || masterId || '').html();
+            return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
+        }
+
         function showProbabilityTemplateSuggestions(typeId, typeName, score) {
             const box = $('#ingredientProbabilityTemplates');
             if (!box.length) return;
@@ -3660,29 +3686,39 @@
                 return;
             }
 
-            const preview = window.RecipeStepSuggest.getMasterStepPreview(ingredients, { lang: currentLang }) || [];
-            if (!preview.length) {
-                box.removeClass('d-none').html('<div class="small text-white-50">Keine passenden Templates gefunden.</div>');
-                return;
+            const preferredTemplateIds = getPreferredMasterTemplateIdsForType(typeId);
+            const varsByTemplate = {};
+            const cards = [];
+
+            if (preferredTemplateIds.length) {
+                preferredTemplateIds.forEach(masterId => {
+                    const tpl = MasterStepRenderer.findTemplate(masterId);
+                    if (!tpl) return;
+                    const vars = buildVariablesForTemplate(masterId);
+                    varsByTemplate[masterId] = vars;
+                    const snippet = MasterStepRenderer.render(masterId, vars, currentLang) || tpl.description || masterId;
+                    cards.push(buildTemplateCardHtml(masterId, snippet));
+                });
             }
 
-            const uniqueTemplates = [];
-            const seen = new Set();
-            preview.forEach(item => {
-                const masterId = (item.masterId || '').toString();
-                if (!masterId || seen.has(masterId)) return;
-                seen.add(masterId);
-                uniqueTemplates.push(item);
-            });
+            if (!cards.length) {
+                const preview = window.RecipeStepSuggest.getMasterStepPreview(ingredients, { lang: currentLang }) || [];
+                if (!preview.length) {
+                    box.removeClass('d-none').html('<div class="small text-white-50">Keine passenden Templates gefunden.</div>');
+                    return;
+                }
+
+                const seen = new Set();
+                preview.forEach(item => {
+                    const masterId = (item.masterId || '').toString();
+                    if (!masterId || seen.has(masterId)) return;
+                    seen.add(masterId);
+                    cards.push(buildTemplateCardHtml(masterId, item.text || masterId));
+                });
+            }
 
             const head = `<div class="small text-white-50 mb-2">${$('<div>').text(typeName || typeId || 'Typ').html()} (${score || 0}%) · Template-Auswahl</div>`;
-            const cards = uniqueTemplates.slice(0, 12).map(item => {
-                const safeId = $('<div>').text(item.masterId || '').html();
-                const safeText = $('<div>').text(item.text || item.masterId || '').html();
-                return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
-            }).join('');
-
-            box.removeClass('d-none').html(head + cards);
+            box.removeClass('d-none').html(head + cards.join(''));
             document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
