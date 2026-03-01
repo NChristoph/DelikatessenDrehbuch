@@ -1948,6 +1948,9 @@
         }
 
         const isDarkTheme = true;
+        let probabilityTemplatePresets = null;
+        let probabilityTemplatePresetsPromise = null;
+
         const creatorState = {
             selectedIngredientIds: [],
             selectedTemplateId: '',
@@ -3645,22 +3648,34 @@
             }
         }
 
+        async function loadProbabilityTemplatePresets() {
+            if (probabilityTemplatePresets) return probabilityTemplatePresets;
+            if (probabilityTemplatePresetsPromise) return probabilityTemplatePresetsPromise;
+
+            probabilityTemplatePresetsPromise = fetch('/data/probability_template_presets.json')
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+                .then(data => {
+                    probabilityTemplatePresets = data && typeof data === 'object' ? data : { types: {} };
+                    return probabilityTemplatePresets;
+                })
+                .finally(() => {
+                    probabilityTemplatePresetsPromise = null;
+                });
+
+            return probabilityTemplatePresetsPromise;
+        }
+
         function getPreferredMasterTemplateIdsForType(typeId) {
             const key = (typeId || '').toString().trim().toLowerCase();
-            if (key === 'lasagne' || key === 'lasagna') {
-                return [
-                    'PREP_CUT_01',
-                    'PREP_MINCE_01',
-                    'COOK_SAUTE_01',
-                    'COOK_DEGLAZE_01',
-                    'COOK_SIMMER_01',
-                    'PREP_WHISK_01',
-                    'COOK_THICKEN_01',
-                    'PREP_LAYER_01',
-                    'COOK_BAKE_01',
-                    'COOK_GRATINATE_01',
-                    'PREP_REST_01'
-                ];
+            const types = probabilityTemplatePresets && probabilityTemplatePresets.types
+                ? probabilityTemplatePresets.types
+                : {};
+            const fromExact = Array.isArray(types[key]) ? types[key] : [];
+            if (fromExact.length) return fromExact;
+
+            if (key === 'lasagna' && Array.isArray(types['lasagne'])) {
+                return types['lasagne'];
             }
             return [];
         }
@@ -3671,7 +3686,7 @@
             return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
         }
 
-        function showProbabilityTemplateSuggestions(typeId, typeName, score) {
+        async function showProbabilityTemplateSuggestions(typeId, typeName, score) {
             const box = $('#ingredientProbabilityTemplates');
             if (!box.length) return;
 
@@ -3686,6 +3701,7 @@
                 return;
             }
 
+            await loadProbabilityTemplatePresets();
             const preferredTemplateIds = getPreferredMasterTemplateIdsForType(typeId);
             const varsByTemplate = {};
             const cards = [];
@@ -4071,11 +4087,11 @@
                 select.val(unitValue).trigger('change');
             });
 
-            $(document).on('click', '.js-probability-type', function () {
+            $(document).on('click', '.js-probability-type', async function () {
                 const typeId = ($(this).data('type') || '').toString();
                 const typeName = ($(this).data('name') || '').toString();
                 const score = parseInt($(this).data('score'), 10) || 0;
-                showProbabilityTemplateSuggestions(typeId, typeName, score);
+                await showProbabilityTemplateSuggestions(typeId, typeName, score);
             });
 
             $(document).on('click', '.js-probability-template', function () {
