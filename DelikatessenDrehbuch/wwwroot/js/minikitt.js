@@ -12,6 +12,9 @@ let currentConfig = {
     redirectUrl: '/WorldMiniApp/Home/Setup'
 };
 
+let loginModalRetryTimer = null;
+let loginModalOpening = false;
+
 function log(msg, error = false) {
     console.log(msg);
     const el = document.getElementById('login-status');
@@ -145,7 +148,7 @@ async function completeVerify(payload) {
 function openModal(modalId = 'loginModal') {
     const el = document.getElementById(modalId);
     if (el) {
-        const modal = new bootstrap.Offcanvas(el, { backdrop: true });
+        const modal = bootstrap.Offcanvas.getOrCreateInstance(el, { backdrop: true });
         modal.show();
     }
 }
@@ -164,6 +167,48 @@ function getRememberLoginValue() {
     return localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
 }
 
+
+async function getServerSessionUserHash() {
+    try {
+        const response = await fetch('/WorldMiniApp/Auth/SessionStatus', { method: 'GET' });
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = await response.json();
+        return data?.isLoggedIn ? (data?.userHash || null) : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+async function resolveActiveUserHash() {
+    const rememberLogin = getRememberLoginValue();
+    const storedHash = getStoredUserHash();
+    const serverUserHash = await getServerSessionUserHash();
+
+    if (serverUserHash) {
+        if (rememberLogin) {
+            localStorage.setItem("UserToken", serverUserHash);
+            localStorage.setItem(REMEMBER_LOGIN_KEY, "true");
+            sessionStorage.removeItem("UserToken");
+        } else {
+            sessionStorage.setItem("UserToken", serverUserHash);
+            localStorage.removeItem("UserToken");
+        }
+        sessionStorage.setItem("user_verified", "true");
+        return serverUserHash;
+    }
+
+    if (storedHash) {
+        sessionStorage.removeItem("UserToken");
+        localStorage.removeItem("UserToken");
+    }
+
+    sessionStorage.removeItem("user_verified");
+    return null;
+}
+
 function updateStoredLoginInfo(userHash, verifyLevel) {
     const hashEl = document.getElementById('storedUserHash');
     const levelEl = document.getElementById('storedVerifyLevel');
@@ -175,15 +220,14 @@ function updateStoredLoginInfo(userHash, verifyLevel) {
     }
 }
 
-window.triggerLogin = (level, redirectUrl) => {
+window.triggerLogin = async (level, redirectUrl) => {
     console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
-    const storedHash = getStoredUserHash();
-    const rememberLogin = localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+    const activeHash = await resolveActiveUserHash();
 
     // Security: userHash wird nicht mehr als URL-Parameter gesendet.
     // Die Identitaet kommt ausschliesslich aus der serverseitigen Session.
-    if (storedHash && rememberLogin) {
+    if (activeHash) {
         window.location.href = redirectUrl;
         return;
     }
@@ -191,29 +235,59 @@ window.triggerLogin = (level, redirectUrl) => {
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
-    openModal('loginModal');
-    bindConsentButton();
+    showLoginModalWithFallback();
 };
 
-window.retryVerification = () => {
-    openModal('loginModal');
-    bindConsentButton();
-};
-
-window.initAutoLogin = (level) => {
-    const storedHash = getStoredUserHash();
-
-    currentConfig.level = level;
-    currentConfig.redirectUrl = "";
-    updateStoredLoginInfo(storedHash, level);
-
-    if (storedHash) {
-        sessionStorage.setItem("user_verified", "true");
+function showLoginModalWithFallback() {
+    const loginModal = document.getElementById('loginModal');
+    if (!loginModal) {
         return;
     }
 
+    if (loginModal.classList.contains('show') || loginModalOpening) {
+        bindConsentButton();
+        return;
+    }
+
+    loginModalOpening = true;
     openModal('loginModal');
     bindConsentButton();
+
+    if (loginModalRetryTimer) {
+        window.clearTimeout(loginModalRetryTimer);
+    }
+
+    loginModalRetryTimer = window.setTimeout(() => {
+        loginModalRetryTimer = null;
+        loginModalOpening = false;
+        if (!loginModal.classList.contains('show')) {
+            openModal('loginModal');
+            bindConsentButton();
+        }
+    }, 220);
+}
+
+window.retryVerification = async () => {
+    const activeHash = await resolveActiveUserHash();
+    updateStoredLoginInfo(activeHash, currentConfig.level || 'device');
+    if (activeHash) {
+        return;
+    }
+    showLoginModalWithFallback();
+};
+
+window.initAutoLogin = async (level) => {
+    currentConfig.level = level;
+    currentConfig.redirectUrl = "";
+
+    const activeHash = await resolveActiveUserHash();
+    updateStoredLoginInfo(activeHash, level);
+
+    if (activeHash) {
+        return;
+    }
+
+    // Nur Status initialisieren. Login-Modal wird als Fallback erst bei Nutzeraktion geoeffnet.
 };
 
 window.getStoredUserHash = getStoredUserHash;
@@ -221,7 +295,20 @@ window.getStoredUserHash = getStoredUserHash;
 document.addEventListener('DOMContentLoaded', () => {
     const loginModal = document.getElementById('loginModal');
     if (loginModal) {
+        loginModal.addEventListener('shown.bs.offcanvas', () => {
+            loginModalOpening = false;
+            if (loginModalRetryTimer) {
+                window.clearTimeout(loginModalRetryTimer);
+                loginModalRetryTimer = null;
+            }
+        });
+
         loginModal.addEventListener('hidden.bs.offcanvas', () => {
+            loginModalOpening = false;
+            if (loginModalRetryTimer) {
+                window.clearTimeout(loginModalRetryTimer);
+                loginModalRetryTimer = null;
+            }
             if (sessionStorage.getItem("user_verified") !== "true") {
                 handleLoginAbort();
             }

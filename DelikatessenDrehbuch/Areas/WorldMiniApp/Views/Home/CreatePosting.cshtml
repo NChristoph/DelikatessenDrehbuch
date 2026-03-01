@@ -284,7 +284,7 @@
                         </div>
                     </div>
 
-                    <div class="template-library" id="ingredientsCatalog" style="height: 400px; overflow-y: auto; padding-right: 5px;">
+                    <div class="template-library ingredient-catalog-scroll" id="ingredientsCatalog">
                         @if (Model.ToSelectIngredientsAndNutrients != null)
                         {
                             foreach (var item in Model.ToSelectIngredientsAndNutrients)
@@ -297,17 +297,16 @@
                                      data-selected-qty="0"
                                      data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
 
-                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                        <div class="preview-step-title mb-0">Zutat hinzufügen</div>
-                                        <button type="button" class="btn btn-sm creator-cta-primary" onclick="addIngredient('@item.Id', this)">
+                                    <div class="d-flex align-items-start gap-2 mb-1 ingredient-card-head">
+                                        <div class="preview-step-text display-name mb-0 flex-grow-1">@item.Name_DE</div>
+                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)">
                                             Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
                                         </button>
                                     </div>
 
-                                    <div class="preview-step-text display-name">@item.Name_DE</div>
+                                    <div class="small text-white-50 text-center label-lang" data-de="Tippen für Menge & Maßeinheit" data-en="Tap for quantity & unit" data-esp="Toca para cantidad y unidad" data-prt="Toque para quantidade e unidade">Tippen für Menge & Maßeinheit</div>
 
-                                    <div class="duration-editor mt-2">
-                                        <div class="small text-muted mb-2">Menge & Einheit festlegen</div>
+                                    <div class="duration-editor mt-2 ingredient-db-details d-none">
                                         <div class="d-flex gap-2 align-items-center">
                                             <input type="text" inputmode="decimal"
                                                    class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
@@ -326,6 +325,11 @@
                                                 }
                                             </select>
                                         </div>
+                                        <div class="common-unit-chips mt-2" role="group" aria-label="Schnelle Einheiten">
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g" data-label-de="g." data-label-en="g." data-label-esp="g." data-label-prt="g." data-label-id="g." data-label-nl="g." data-label-sv="g." data-label-da="g." data-label-no="g." data-label-ms="g.">g.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml" data-label-de="ml." data-label-en="ml." data-label-esp="ml." data-label-prt="ml." data-label-id="ml." data-label-nl="ml." data-label-sv="ml." data-label-da="ml." data-label-no="ml." data-label-ms="ml.">ml.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece" data-label-de="Stk." data-label-en="pcs." data-label-esp="uds." data-label-prt="un." data-label-id="pcs." data-label-nl="st." data-label-sv="st." data-label-da="stk." data-label-no="stk." data-label-ms="unit">Stk.</button>
+                                        </div>
                                     </div>
                                 </div>
                             }
@@ -337,6 +341,19 @@
                     <div class="ingredient-top-strip mt-4">
                         <div class="ingredient-top-title">Ausgewählte Zutaten</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
+                    </div>
+
+                    <div class="preview-step-card mt-2" id="ingredientProbabilityBox">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="preview-step-title mb-0 label-lang"
+                                 data-de="Was könnte es sein?"
+                                 data-en="What could it be?"
+                                 data-esp="¿Qué podría ser?"
+                                 data-prt="O que poderia ser?">Was könnte es sein?</div>
+                            <i class="bi bi-graph-up-arrow text-white-50"></i>
+                        </div>
+                        <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
+                        <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
                     </div>
                 </div>
             </section>
@@ -929,6 +946,70 @@
         display: none !important;
     }
 
+
+    .ingredient-catalog-scroll {
+        height: 420px;
+        max-height: 56vh;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+
+    .ingredient-card-head {
+        width: 100%;
+    }
+
+    .ingredient-card-head .display-name {
+        margin-right: 8px;
+    }
+    .ingredient-db-details {
+        border-top: 1px solid rgba(255,255,255,0.14);
+        padding-top: 10px;
+    }
+
+
+    .probability-type-btn {
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .probability-type-btn:hover {
+        border-color: rgba(255,255,255,0.4);
+        background: rgba(255,255,255,0.16);
+        color: #fff;
+    }
+
+    .probability-template-card {
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+    }
+    .common-unit-chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .common-unit-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(255,255,255,0.06);
+        color: #f8fafc;
+        font-weight: 700;
+        padding: 2px 10px;
+        line-height: 1.5;
+    }
+
+    .common-unit-chip:hover {
+        border-color: rgba(255,255,255,0.45);
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+    }
     .ingredient-catalog-card {
         margin-top: 2px;
         border-radius: 18px;
@@ -1577,6 +1658,8 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script>window.MasterStepRendererConfig = { dataUrl: "@Url.Content("~/data/master_steps.json")" };</script>
     <script src="~/js/master-step-renderer.js"></script>
+    <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/create-posting-probability.js"></script>
     <script>
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
@@ -2058,84 +2141,33 @@
             return creatorState.selectedTemplateId;
         }
 
-        function isIngredientPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'ingredient' || value === 'ingredients' || value === 'liquid' || value === 'fat';
+        function normalizePlaceholderKey(key) {
+            return (key || '').toString().trim().toLowerCase();
         }
 
-        function isDurationPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value.includes('duration');
-        }
+        const placeholderTypeMatchers = [
+            { type: 'ingredient', match: key => key === 'ingredient' || key === 'ingredients' || key === 'liquid' || key === 'fat' },
+            { type: 'duration', match: key => key.includes('duration') },
+            { type: 'count', match: key => key === 'count' || key === 'servings' || key.includes('count') },
+            { type: 'pronoun', match: key => key === 'pronoun' },
+            { type: 'temperature', match: key => key === 'temp' || key === 'temperature' },
+            { type: 'heat', match: key => key === 'heat' || key.includes('heat') },
+            { type: 'mode', match: key => key === 'mode' || key.includes('mode') },
+            { type: 'equipment', match: key => key === 'equipment' },
+            { type: 'state', match: key => key === 'state' || key.includes('state') || key.includes('consistency') },
+            { type: 'tool', match: key => key === 'tool' },
+            { type: 'grindSize', match: key => key === 'grind_size' || key === 'grindsize' || key.includes('grind') },
+            { type: 'shape', match: key => key === 'shape' },
+            { type: 'base', match: key => key === 'base' },
+            { type: 'item', match: key => key === 'item' || key === 'dish' || key.includes('item') },
+            { type: 'balance', match: key => key === 'balance' },
+            { type: 'seasonings', match: key => key === 'seasonings' || key === 'spices' }
+        ];
 
-        function isPronounPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'pronoun';
-        }
-
-        function isTemperaturePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'temp' || value === 'temperature';
-        }
-
-        function isHeatPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'heat' || value.includes('heat');
-        }
-
-        function isModePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'mode' || value.includes('mode');
-        }
-
-        function isEquipmentPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'equipment';
-        }
-
-        function isStatePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'state' || value.includes('state') || value.includes('consistency');
-        }
-
-        function isToolPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'tool';
-        }
-
-        function isGrindSizePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'grind_size' || value === 'grindsize' || value.includes('grind');
-        }
-
-        function isShapePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'shape';
-        }
-
-        function isBasePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'base';
-        }
-
-        function isItemPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'item' || value === 'dish' || value.includes('item');
-        }
-
-        function isCountPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'count' || value === 'servings' || value.includes('count');
-        }
-
-        function isBalancePlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'balance';
-        }
-
-        function isSeasoningsPlaceholderKey(key) {
-            const value = (key || '').toString().trim().toLowerCase();
-            return value === 'seasonings' || value === 'spices';
+        function getPlaceholderType(key) {
+            const normalizedKey = normalizePlaceholderKey(key);
+            const matched = placeholderTypeMatchers.find(entry => entry.match(normalizedKey));
+            return matched ? matched.type : '';
         }
 
         function getPlaceholderKeyByTokenId(tokenId) {
@@ -3095,10 +3127,10 @@
                     if (key === 'pronoun') vars[key] = creatorState.computedPronoun;
                     else if (key === 'article') vars[key] = creatorState.computedArticle;
                     else if (key.includes('duration')) vars[key] = getDurationInsertText();
-                    else if (isCountPlaceholderKey(key)) vars[key] = getCountInsertText();
+                    else if (getPlaceholderType(key) === 'count') vars[key] = getCountInsertText();
                     else if (key === 'temp' || key === 'temperature') vars[key] = getTemperatureInsertText();
                     else if (key.includes('heat')) vars[key] = creatorState.heatValue || 'mittlerer';
-                    else if (isModePlaceholderKey(key)) vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
+                    else if (getPlaceholderType(key) === 'mode') vars[key] = creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
                     else if (key.includes('tool')) vars[key] = getToolOptions()[0] || 'Messer';
                     else if (key.includes('grind')) vars[key] = creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
                     else if (key === 'item' || key === 'dish') vars[key] = creatorState.itemValue || getItemOptions()[0] || 'den Teig';
@@ -3301,7 +3333,7 @@
             keys.forEach(function (key) {
                 const current = (normalized[key] || '').toString().trim();
 
-                if (isIngredientPlaceholderKey(key)) {
+                if (getPlaceholderType(key) === 'ingredient') {
                     normalized[key] = ingredientValue || current;
                     return;
                 }
@@ -3343,12 +3375,11 @@
         }
 
         function buildRenderedPayloadFromTemplate(template, vars) {
-            return {
-                de: renderTemplateForPersist(template, 'de', vars),
-                en: renderTemplateForPersist(template, 'en', vars),
-                esp: renderTemplateForPersist(template, 'esp', vars),
-                prt: renderTemplateForPersist(template, 'prt', vars)
-            };
+            const supportedLanguages = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
+            return supportedLanguages.reduce((payload, lang) => {
+                payload[lang] = renderTemplateForPersist(template, lang, vars);
+                return payload;
+            }, {});
         }
 
         function getCurrentUserHashForRequests() {
@@ -3492,6 +3523,60 @@
 
 
 
+
+        function getCommonUnitChipLabel(chip, langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            return chip.data('label-' + lang) || chip.data('label-de') || chip.text();
+        }
+
+        function resolveSelectUnitValueByKey(selectEl, unitKey) {
+            const options = Array.from(selectEl.options || []);
+            if (!options.length) return '';
+
+            const normalize = (v) => (v || '').toString().toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+            const key = (unitKey || '').toString().toLowerCase();
+            const aliases = {
+                g: ['g', 'gr', 'gramm', 'gram'],
+                ml: ['ml', 'milliliter', 'millilitre'],
+                piece: ['stk', 'stk.', 'stueck', 'stück', 'piece', 'pieces', 'pcs', 'pcs.', 'unit', 'units', 'uds', 'un']
+            };
+            const accepted = aliases[key] || [key];
+            const match = options.find(opt => accepted.includes(normalize(opt.value)) || accepted.includes(normalize(opt.text)));
+            return match ? match.value : '';
+        }
+
+        function updateCommonUnitChipLabels() {
+            $('.js-common-unit-chip').each(function () {
+                const chip = $(this);
+                chip.text(getCommonUnitChipLabel(chip, currentLang));
+            });
+        }
+
+        const probabilityFeature = window.CreatePostingProbability?.create({
+            getCurrentLang: () => currentLang,
+            getSelectedIngredientIds: () => $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+                const value = parseInt($(this).val(), 10);
+                return Number.isNaN(value) ? null : value;
+            }).get().filter(v => v !== null),
+            getSelectedIngredientNames: () => getSelectedIngredientsForSandbox().map(x => x.name).filter(Boolean),
+            findTemplate: (masterId) => MasterStepRenderer.findTemplate(masterId),
+            renderTemplate: (masterId, vars, lang) => MasterStepRenderer.render(masterId, vars, lang),
+            buildVariablesForTemplate,
+            detectRecipeTypes: (ingredientIds) => window.RecipeStepSuggest.detectRecipeTypes(ingredientIds) || [],
+            loadMapping: () => window.RecipeStepSuggest.loadMapping(),
+            getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || []
+        });
+
+        async function refreshIngredientProbabilityHints() {
+            if (!probabilityFeature) return;
+            await probabilityFeature.refresh();
+        }
+
+        async function showProbabilityTemplateSuggestions(typeId, typeName, score) {
+            if (!probabilityFeature) return;
+            await probabilityFeature.showSuggestions(typeId, typeName, score);
+        }
+
         function updateLanguageLabels() {
             const langKey = resolveLangKey(currentLang);
             $('.label-lang').each(function () { $(this).text($(this).data(langKey)); });
@@ -3512,7 +3597,9 @@
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             refreshDurationUnitControls();
+            updateCommonUnitChipLabels();
             refreshMasterTemplateBuilder();
+            refreshIngredientProbabilityHints();
         }
 
         function handleVideoUpload(input) {
@@ -3593,6 +3680,7 @@
             if (typeof syncIngredientSourceVisibility === "function") {
                 syncIngredientSourceVisibility();
             }
+            refreshIngredientProbabilityHints();
         }
 
         function startStepIngredientEdit(btn) {
@@ -3644,6 +3732,7 @@
             $(btn).closest('.ingredient-row').remove();
             refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
+            refreshIngredientProbabilityHints();
         }
 
         // Entfernt alle Steps die für dieselben Zutaten+Phase gebunden sind wie der neue Step
@@ -3823,6 +3912,40 @@
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
             });
+            refreshIngredientProbabilityHints();
+
+            $(document).on('click', '.js-common-unit-chip', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const row = $(this).closest('.ingredient-db-row');
+                const select = row.find('.js-db-unit').first();
+                if (!select.length) return;
+
+                const unitValue = resolveSelectUnitValueByKey(select[0], $(this).data('unit-key'));
+                if (!unitValue) return;
+                select.val(unitValue).trigger('change');
+            });
+
+            $(document).on('click', '.js-probability-type', async function () {
+                const typeId = ($(this).data('type') || '').toString();
+                const typeName = ($(this).data('name') || '').toString();
+                const score = parseInt($(this).data('score'), 10) || 0;
+                await showProbabilityTemplateSuggestions(typeId, typeName, score);
+            });
+
+            $(document).on('click', '.js-probability-template', function () {
+                const masterId = ($(this).data('master-id') || '').toString();
+                if (!masterId) return;
+
+                creatorState.selectedTemplateId = masterId;
+                creatorState.activePlaceholderTokenId = '';
+                creatorState.placeholderAssignments = {};
+                closeAllEditors();
+                renderTemplateCards();
+                updatePreviewText();
+                showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
+                document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
             refreshDurationUnitControls();
             loadIngredientArticleRules().finally(() => {
             MasterStepRenderer.load().then((result) => {
@@ -3851,7 +3974,7 @@
 
                 if (creatorState.activePlaceholderTokenId) {
                     const key = getPlaceholderKeyByTokenId(creatorState.activePlaceholderTokenId);
-                    if (isIngredientPlaceholderKey(key)) {
+                    if (getPlaceholderType(key) === 'ingredient') {
                         const selectedValue = getSelectedIngredientValueForInsert();
                         if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
                         creatorState.ingredientReplaceArmed = false;
@@ -3881,103 +4004,73 @@
                 showCreatorToast('Template gewählt');
             });
 
-            function openEditorForPlaceholderToken(key, tokenId) {
-                try {
-                if (!key || !tokenId) { return; }
+            function handleIngredientPlaceholderSelection(tokenId) {
+                creatorState.activePlaceholderTokenId = tokenId;
+                creatorState.ingredientReplaceArmed = true;
+                $('#masterPreviewCard').addClass('token-replace-active');
 
-                closeAllEditors();
-                creatorState.ingredientReplaceArmed = false;
-                $('#masterPreviewCard').removeClass('token-replace-active');
-
-                if (isIngredientPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = tokenId;
-                    creatorState.ingredientReplaceArmed = true;
-                    $('#masterPreviewCard').addClass('token-replace-active');
-                    const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-                    if (hasExistingAssignment) {
-                        // Bereits belegt – Chips leeren und Ersetzen-Modus aktivieren
-                        clearSelectedIngredientChips();
-                        showCreatorToast('Neue Zutat auswählen zum Ersetzen');
-                    } else {
-                        const selectedValue = getSelectedIngredientValueForInsert();
-                        if (selectedValue) {
-                            creatorState.placeholderAssignments[tokenId] = selectedValue;
-                            clearSelectedIngredientChips();
-                            creatorState.activePlaceholderTokenId = '';
-                            creatorState.ingredientReplaceArmed = false;
-                            $('#masterPreviewCard').removeClass('token-replace-active');
-                            showCreatorToast('Platzhalter ersetzt');
-                        } else {
-                            showCreatorToast('Erst Zutaten auswählen');
-                        }
-                    }
-                } else if (isDurationPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openDurationEditorForToken(tokenId);
-                    showCreatorToast('Zeit setzen');
-                } else if (isCountPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openCountEditorForToken(tokenId);
-                    showCreatorToast('Anzahl setzen');
-                } else if (isPronounPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = tokenId;
-                    openPronounEditorForToken(tokenId);
-                    showCreatorToast('Pronomen wählen');
-                } else if (isTemperaturePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openTemperatureEditorForToken(tokenId);
-                    showCreatorToast('Temperatur setzen');
-                } else if (isHeatPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openHeatEditorForToken(tokenId);
-                    showCreatorToast('Hitze-Stufe wählen');
-                } else if (isModePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openModeEditorForToken(tokenId);
-                    showCreatorToast('Ofenmodus wählen');
-                } else if (isEquipmentPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openEquipmentEditorForToken(tokenId);
-                    showCreatorToast('Tool / Gerät wählen');
-                } else if (isStatePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openStateEditorForToken(tokenId);
-                    showCreatorToast('Zustand wählen');
-                } else if (isToolPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openToolEditorForToken(tokenId);
-                    showCreatorToast('Tool / Gerät wählen');
-                } else if (isGrindSizePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openGrindSizeEditorForToken(tokenId);
-                    showCreatorToast('Schnittgröße wählen');
-                } else if (isShapePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openShapeEditorForToken(tokenId);
-                    showCreatorToast('Schnittform wählen');
-                } else if (isBasePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openBaseEditorForToken(tokenId);
-                    showCreatorToast('Basis wählen');
-                } else if (isItemPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openItemEditorForToken(tokenId);
-                    showCreatorToast('Item wählen');
-                } else if (isBalancePlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openBalanceEditorForToken(tokenId);
-                    showCreatorToast('Balance wählen');
-                } else if (isSeasoningsPlaceholderKey(key)) {
-                    creatorState.activePlaceholderTokenId = '';
-                    openSeasoningsEditorForToken(tokenId);
-                    showCreatorToast('Seasonings wählen');
-                } else {
-                    creatorState.activePlaceholderTokenId = '';
+                const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+                if (hasExistingAssignment) {
+                    clearSelectedIngredientChips();
+                    showCreatorToast('Neue Zutat auswählen zum Ersetzen');
+                    return;
                 }
 
-                renderTemplateCards();
+                const selectedValue = getSelectedIngredientValueForInsert();
+                if (selectedValue) {
+                    creatorState.placeholderAssignments[tokenId] = selectedValue;
+                    clearSelectedIngredientChips();
+                    creatorState.activePlaceholderTokenId = '';
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+                    showCreatorToast('Platzhalter ersetzt');
+                    return;
+                }
+
+                showCreatorToast('Erst Zutaten auswählen');
+            }
+
+            function openEditorForPlaceholderToken(key, tokenId) {
+                try {
+                    if (!key || !tokenId) return;
+
+                    closeAllEditors();
+                    creatorState.ingredientReplaceArmed = false;
+                    $('#masterPreviewCard').removeClass('token-replace-active');
+
+                    const placeholderType = getPlaceholderType(key);
+                    const editorDispatch = {
+                        duration: { open: openDurationEditorForToken, toast: 'Zeit setzen' },
+                        count: { open: openCountEditorForToken, toast: 'Anzahl setzen' },
+                        pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wählen', keepTokenActive: true },
+                        temperature: { open: openTemperatureEditorForToken, toast: 'Temperatur setzen' },
+                        heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wählen' },
+                        mode: { open: openModeEditorForToken, toast: 'Ofenmodus wählen' },
+                        equipment: { open: openEquipmentEditorForToken, toast: 'Tool / Gerät wählen' },
+                        state: { open: openStateEditorForToken, toast: 'Zustand wählen' },
+                        tool: { open: openToolEditorForToken, toast: 'Tool / Gerät wählen' },
+                        grindSize: { open: openGrindSizeEditorForToken, toast: 'Schnittgröße wählen' },
+                        shape: { open: openShapeEditorForToken, toast: 'Schnittform wählen' },
+                        base: { open: openBaseEditorForToken, toast: 'Basis wählen' },
+                        item: { open: openItemEditorForToken, toast: 'Item wählen' },
+                        balance: { open: openBalanceEditorForToken, toast: 'Balance wählen' },
+                        seasonings: { open: openSeasoningsEditorForToken, toast: 'Seasonings wählen' }
+                    };
+
+                    if (placeholderType === 'ingredient') {
+                        handleIngredientPlaceholderSelection(tokenId);
+                    } else if (editorDispatch[placeholderType]) {
+                        creatorState.activePlaceholderTokenId = editorDispatch[placeholderType].keepTokenActive ? tokenId : '';
+                        editorDispatch[placeholderType].open(tokenId);
+                        showCreatorToast(editorDispatch[placeholderType].toast);
+                    } else {
+                        creatorState.activePlaceholderTokenId = '';
+                    }
+
+                    renderTemplateCards();
                 } catch (err) {
-                    alert('ERROR in openEditorForPlaceholderToken: ' + (err.message || err) + '\nStack: ' + (err.stack || ''));
+                    alert('ERROR in openEditorForPlaceholderToken: ' + (err.message || err) + '
+Stack: ' + (err.stack || ''));
                 }
             }
 
@@ -4004,7 +4097,7 @@
 
             $('#masterPreviewText').on('dragover', '.placeholder-token', function (e) {
                 const key = ($(this).data('placeholder-key') || '').toString();
-                if (!isIngredientPlaceholderKey(key)) return;
+                if (getPlaceholderType(key) !== 'ingredient') return;
                 e.preventDefault();
                 $(this).addClass('drag-over');
                 e.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -4021,7 +4114,7 @@
                 const key = ($(this).data('placeholder-key') || '').toString();
                 const dropped = e.originalEvent.dataTransfer.getData('text/plain') || creatorState.dragIngredientName || '';
                 if (!tokenId || !dropped) return;
-                if (!isIngredientPlaceholderKey(key)) {
+                if (getPlaceholderType(key) !== 'ingredient') {
                     showCreatorToast('Drag & Drop nur für ingredient/ingredients');
                     return;
                 }
@@ -4354,7 +4447,13 @@
 
             $(document).on('click', '.ingredient-db-row', function (e) {
                 if ($(e.target).closest('button, input, select, label').length) return;
-                openIngredientConfigForDbRow(this);
+                const details = $(this).find('.ingredient-db-details').first();
+                if (!details.length) return;
+                const shouldOpen = details.hasClass('d-none');
+                $('.ingredient-db-details').addClass('d-none');
+                if (shouldOpen) {
+                    details.removeClass('d-none');
+                }
             });
 
             $('#btnCloseIngredientConfig, #btnCancelIngredientConfig').on('click', function () {

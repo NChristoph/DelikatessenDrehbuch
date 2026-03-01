@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "description": "Kuratiert vorgeschlagene Master-Step-Templates je erkanntem Wahrscheinlichkeitstyp.",
+  "types": {
+    "lasagne": [
+      "PREP_CUT_01",
+      "PREP_MINCE_01",
+      "COOK_SAUTE_01",
+      "COOK_DEGLAZE_01",
+      "COOK_SIMMER_01",
+      "PREP_WHISK_01",
+      "COOK_THICKEN_01",
+      "PREP_LAYER_01",
+      "COOK_BAKE_01",
+      "COOK_GRATINATE_01",
+      "PREP_REST_01"
+    ]
+  }
+}
