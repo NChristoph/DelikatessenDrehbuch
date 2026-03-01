@@ -3512,7 +3512,32 @@
             buildVariablesForTemplate,
             detectRecipeTypes: (ingredientIds) => window.RecipeStepSuggest.detectRecipeTypes(ingredientIds) || [],
             loadMapping: () => window.RecipeStepSuggest.loadMapping(),
-            getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || []
+            getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || [],
+            /**
+             * Returns typical ingredients for a category that aren't yet selected,
+             * augmented with their localized name from the catalog.
+             */
+            getTypicalIngredientSuggestions: (typeId) => {
+                if (!window.RecipeStepSuggest || !window.RecipeStepSuggest.getCategoryById) return [];
+                const cat = window.RecipeStepSuggest.getCategoryById(typeId);
+                if (!cat || !Array.isArray(cat.typical_ingredients)) return [];
+
+                const alreadySelected = new Set(
+                    $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]')
+                        .map(function () { return parseInt($(this).val(), 10); })
+                        .get().filter(v => !isNaN(v))
+                );
+
+                const suggestions = [];
+                cat.typical_ingredients.forEach(ingId => {
+                    if (alreadySelected.has(ingId)) return;
+                    const catalogRow = $(`.ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
+                    if (!catalogRow.length) return; // not in this creator's catalog
+                    const name = catalogRow.data('name-' + (currentLang || 'de')) || catalogRow.data('name-de') || String(ingId);
+                    suggestions.push({ id: ingId, name: name });
+                });
+                return suggestions;
+            }
         });
 
         async function refreshIngredientProbabilityHints() {
@@ -3915,6 +3940,27 @@
                 updatePreviewText();
                 showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
                 document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
+            $(document).on('click', '.js-typical-ingredient-chip', function () {
+                const ingId = ($(this).data('ingredient-id') || '').toString();
+                if (!ingId) return;
+
+                const catalogRow = $(`.ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
+                if (!catalogRow.length) {
+                    showCreatorToast('Zutat nicht im Katalog gefunden');
+                    return;
+                }
+
+                addIngredient(ingId, catalogRow[0]);
+                showCreatorToast(`Zutat hinzugefügt`);
+
+                // Chip deaktivieren nach dem Hinzufügen
+                $(this).prop('disabled', true).addClass('opacity-50');
+
+                // Kurz zum Katalog scrollen, damit der User die Zutat sehen kann
+                catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
             refreshDurationUnitControls();
             loadIngredientArticleRules().finally(() => {

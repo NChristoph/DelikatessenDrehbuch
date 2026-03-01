@@ -8,7 +8,9 @@
         analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.',
         templatesUnavailable: 'Template-Vorschläge sind aktuell nicht verfügbar.',
         selectIngredientsFirst: 'Bitte zuerst Zutaten auswählen.',
-        noTemplates: 'Keine passenden Templates gefunden.'
+        noTemplates: 'Keine passenden Templates gefunden.',
+        suggestedIngredients: 'Vorgeschlagene Zutaten',
+        suggestedIngredientsHint: 'Tippen zum Hinzufügen'
     };
 
     function escapeHtml(value) {
@@ -43,6 +45,28 @@
             const icon = idx === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
             return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${escapeHtml(recipeType.type || '')}" data-name="${escapeHtml(recipeType.name || '')}" data-score="${recipeType.score}">${icon}${recipeType.score}% ${escapeHtml(recipeType.name || '')}</button>`;
         }).join('');
+    }
+
+    /**
+     * Builds HTML for the "suggested ingredients" strip beneath the template cards.
+     * Calls deps.getTypicalIngredientSuggestions(typeId) to retrieve unselected typical ingredients.
+     * Each chip has data-ingredient-id so the view can handle the click (highlight/add).
+     */
+    function buildIngredientSuggestionHtml(typeId, deps) {
+        if (!deps.getTypicalIngredientSuggestions) return '';
+        const suggestions = deps.getTypicalIngredientSuggestions(typeId) || [];
+        if (!suggestions.length) return '';
+
+        const chips = suggestions.map(ing => {
+            const safeId = escapeHtml(String(ing.id || ''));
+            const safeName = escapeHtml(ing.name || String(ing.id));
+            return `<button type="button" class="btn btn-sm btn-outline-warning js-typical-ingredient-chip" data-ingredient-id="${safeId}" title="${UI_TEXT.suggestedIngredientsHint}">${safeName}</button>`;
+        }).join('');
+
+        return `<div class="mt-3 pt-2" style="border-top:1px solid rgba(255,255,255,.12)">
+  <div class="small text-white-50 mb-2">${escapeHtml(UI_TEXT.suggestedIngredients)} <span class="opacity-50">&middot; ${escapeHtml(UI_TEXT.suggestedIngredientsHint)}</span></div>
+  <div class="d-flex flex-wrap gap-2">${chips}</div>
+</div>`;
     }
 
     function create(deps) {
@@ -161,7 +185,8 @@
             }
 
             const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
-            box.removeClass('d-none').html(head + cards.join(''));
+            const ingredientSuggestions = buildIngredientSuggestionHtml(typeId, deps);
+            box.removeClass('d-none').html(head + cards.join('') + ingredientSuggestions);
             document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 

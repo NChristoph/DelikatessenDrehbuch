@@ -1,10 +1,16 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "generated_from": "ingredients_and_nutrients (new IDs)",
   "scoring": {
     "description": "Score pro Kategorie anhand gematchter ingredient_id aus der neuen ingredients_and_nutrients Liste.",
-    "formula": "score_percent = (sum(weights of matched IDs) / sum(all category weights)) * 100",
-    "normalization": "0-100% pro Kategorie"
+    "formula": "score = base × false_positive_penalty × required_boost (v3: hybride Formel mit Pflicht-Zutaten und False-Positive-Penalty)",
+    "normalization": "0-100% pro Kategorie",
+    "details": {
+      "base": "(sum(matched weights) / sum(all weights)) = Basisanteil",
+      "false_positive_penalty": "Abzug für ausgewählte Zutaten, die NICHT typisch für diese Kategorie sind",
+      "required_boost": "×1.5 wenn alle required_ingredient_ids vorhanden, ×0.2 wenn keine vorhanden",
+      "min_match": "Mindestanzahl Zutaten, die übereinstimmen müssen"
+    }
   },
   "categories": [
     {
@@ -15,6 +21,8 @@
         "prt": "Lasanha",
         "esp": "Lasaña"
       },
+      "required_ingredient_ids": [2, 218, 39],
+      "min_match": 2,
       "typical_ingredients": [
         2,
         114,
@@ -32,62 +40,20 @@
         82
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 2,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 114,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 14,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 39,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 40,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 32,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 5,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 27,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 113,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 218,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 220,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.35
-        },
-        {
-          "ingredient_id": 198,
-          "weight": 0.35
-        },
-        {
-          "ingredient_id": 82,
-          "weight": 0.25
-        }
+        { "ingredient_id": 2,   "weight": 1.0  },
+        { "ingredient_id": 114, "weight": 0.95 },
+        { "ingredient_id": 14,  "weight": 0.8  },
+        { "ingredient_id": 39,  "weight": 0.9  },
+        { "ingredient_id": 40,  "weight": 0.75 },
+        { "ingredient_id": 32,  "weight": 0.55 },
+        { "ingredient_id": 5,   "weight": 0.45 },
+        { "ingredient_id": 27,  "weight": 0.45 },
+        { "ingredient_id": 113, "weight": 0.4  },
+        { "ingredient_id": 218, "weight": 0.85 },
+        { "ingredient_id": 220, "weight": 0.85 },
+        { "ingredient_id": 11,  "weight": 0.35 },
+        { "ingredient_id": 198, "weight": 0.35 },
+        { "ingredient_id": 82,  "weight": 0.25 }
       ]
     },
     {
@@ -98,6 +64,8 @@
         "prt": "Ensopado",
         "esp": "Guiso"
       },
+      "required_ingredient_ids": [161, 117],
+      "min_match": 2,
       "typical_ingredients": [
         20,
         15,
@@ -114,58 +82,19 @@
         79
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 20,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 15,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 149,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 80,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 14,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 65,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 161,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 117,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 94,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 116,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 127,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 79,
-          "weight": 0.25
-        }
+        { "ingredient_id": 20,  "weight": 0.8  },
+        { "ingredient_id": 15,  "weight": 0.75 },
+        { "ingredient_id": 11,  "weight": 0.6  },
+        { "ingredient_id": 149, "weight": 0.55 },
+        { "ingredient_id": 80,  "weight": 0.5  },
+        { "ingredient_id": 14,  "weight": 0.45 },
+        { "ingredient_id": 65,  "weight": 0.4  },
+        { "ingredient_id": 161, "weight": 0.85 },
+        { "ingredient_id": 117, "weight": 0.8  },
+        { "ingredient_id": 94,  "weight": 0.7  },
+        { "ingredient_id": 116, "weight": 0.55 },
+        { "ingredient_id": 127, "weight": 0.5  },
+        { "ingredient_id": 79,  "weight": 0.25 }
       ]
     },
     {
@@ -176,6 +105,8 @@
         "prt": "Prato de Massa",
         "esp": "Plato de Pasta"
       },
+      "required_ingredient_ids": [2],
+      "min_match": 2,
       "typical_ingredients": [
         2,
         10,
@@ -188,42 +119,15 @@
         39
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 2,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 10,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 198,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 114,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 40,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 7,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 82,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 52,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 39,
-          "weight": 0.5
-        }
+        { "ingredient_id": 2,   "weight": 1.0  },
+        { "ingredient_id": 10,  "weight": 0.7  },
+        { "ingredient_id": 198, "weight": 0.45 },
+        { "ingredient_id": 114, "weight": 0.75 },
+        { "ingredient_id": 40,  "weight": 0.7  },
+        { "ingredient_id": 7,   "weight": 0.5  },
+        { "ingredient_id": 82,  "weight": 0.45 },
+        { "ingredient_id": 52,  "weight": 0.45 },
+        { "ingredient_id": 39,  "weight": 0.5  }
       ]
     },
     {
@@ -234,6 +138,8 @@
         "prt": "Assado",
         "esp": "Asado"
       },
+      "required_ingredient_ids": [105, 104, 95],
+      "min_match": 2,
       "typical_ingredients": [
         105,
         104,
@@ -250,58 +156,19 @@
         161
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 105,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 104,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 95,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 94,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 31,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 15,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 80,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 119,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 78,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 13,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 81,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 161,
-          "weight": 0.55
-        }
+        { "ingredient_id": 105, "weight": 0.9  },
+        { "ingredient_id": 104, "weight": 0.85 },
+        { "ingredient_id": 95,  "weight": 0.85 },
+        { "ingredient_id": 94,  "weight": 0.8  },
+        { "ingredient_id": 31,  "weight": 0.8  },
+        { "ingredient_id": 15,  "weight": 0.55 },
+        { "ingredient_id": 11,  "weight": 0.55 },
+        { "ingredient_id": 80,  "weight": 0.5  },
+        { "ingredient_id": 119, "weight": 0.45 },
+        { "ingredient_id": 78,  "weight": 0.4  },
+        { "ingredient_id": 13,  "weight": 0.4  },
+        { "ingredient_id": 81,  "weight": 0.45 },
+        { "ingredient_id": 161, "weight": 0.55 }
       ]
     },
     {
@@ -312,6 +179,8 @@
         "prt": "Prato de Frigideira",
         "esp": "Plato de Sartén"
       },
+      "required_ingredient_ids": [22, 89],
+      "min_match": 2,
       "typical_ingredients": [
         22,
         89,
@@ -327,54 +196,18 @@
         186
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 22,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 89,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 64,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 65,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 66,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 86,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 198,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 87,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 195,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 3,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 186,
-          "weight": 0.65
-        }
+        { "ingredient_id": 22,  "weight": 0.8  },
+        { "ingredient_id": 89,  "weight": 0.8  },
+        { "ingredient_id": 64,  "weight": 0.45 },
+        { "ingredient_id": 65,  "weight": 0.45 },
+        { "ingredient_id": 66,  "weight": 0.45 },
+        { "ingredient_id": 86,  "weight": 0.55 },
+        { "ingredient_id": 11,  "weight": 0.45 },
+        { "ingredient_id": 198, "weight": 0.45 },
+        { "ingredient_id": 87,  "weight": 0.6  },
+        { "ingredient_id": 195, "weight": 0.5  },
+        { "ingredient_id": 3,   "weight": 0.55 },
+        { "ingredient_id": 186, "weight": 0.65 }
       ]
     },
     {
@@ -385,6 +218,8 @@
         "prt": "Salada",
         "esp": "Ensalada"
       },
+      "required_ingredient_ids": [4],
+      "min_match": 2,
       "typical_ingredients": [
         4,
         84,
@@ -399,50 +234,17 @@
         9
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 4,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 84,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 51,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 83,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 19,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 136,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 137,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 144,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 159,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 10,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 9,
-          "weight": 0.55
-        }
+        { "ingredient_id": 4,   "weight": 1.0  },
+        { "ingredient_id": 84,  "weight": 0.8  },
+        { "ingredient_id": 51,  "weight": 0.75 },
+        { "ingredient_id": 83,  "weight": 0.65 },
+        { "ingredient_id": 19,  "weight": 0.65 },
+        { "ingredient_id": 136, "weight": 0.55 },
+        { "ingredient_id": 137, "weight": 0.55 },
+        { "ingredient_id": 144, "weight": 0.65 },
+        { "ingredient_id": 159, "weight": 0.7  },
+        { "ingredient_id": 10,  "weight": 0.65 },
+        { "ingredient_id": 9,   "weight": 0.55 }
       ]
     },
     {
@@ -453,6 +255,8 @@
         "prt": "Sopa",
         "esp": "Sopa"
       },
+      "required_ingredient_ids": [117, 207],
+      "min_match": 2,
       "typical_ingredients": [
         117,
         207,
@@ -466,46 +270,16 @@
         276
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 117,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 207,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 15,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 20,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 149,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 80,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 33,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 277,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 276,
-          "weight": 0.8
-        }
+        { "ingredient_id": 117, "weight": 0.95 },
+        { "ingredient_id": 207, "weight": 0.95 },
+        { "ingredient_id": 11,  "weight": 0.7  },
+        { "ingredient_id": 15,  "weight": 0.65 },
+        { "ingredient_id": 20,  "weight": 0.65 },
+        { "ingredient_id": 149, "weight": 0.65 },
+        { "ingredient_id": 80,  "weight": 0.6  },
+        { "ingredient_id": 33,  "weight": 0.45 },
+        { "ingredient_id": 277, "weight": 0.8  },
+        { "ingredient_id": 276, "weight": 0.8  }
       ]
     },
     {
@@ -516,6 +290,8 @@
         "prt": "Caril",
         "esp": "Curry"
       },
+      "required_ingredient_ids": [67, 68],
+      "min_match": 2,
       "typical_ingredients": [
         67,
         68,
@@ -531,54 +307,18 @@
         257
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 67,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 68,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 69,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 71,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 70,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 63,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 198,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 65,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 22,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 154,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 257,
-          "weight": 0.5
-        }
+        { "ingredient_id": 67,  "weight": 0.95 },
+        { "ingredient_id": 68,  "weight": 0.95 },
+        { "ingredient_id": 69,  "weight": 0.7  },
+        { "ingredient_id": 71,  "weight": 0.7  },
+        { "ingredient_id": 70,  "weight": 0.65 },
+        { "ingredient_id": 63,  "weight": 0.6  },
+        { "ingredient_id": 11,  "weight": 0.55 },
+        { "ingredient_id": 198, "weight": 0.5  },
+        { "ingredient_id": 65,  "weight": 0.45 },
+        { "ingredient_id": 22,  "weight": 0.6  },
+        { "ingredient_id": 154, "weight": 0.6  },
+        { "ingredient_id": 257, "weight": 0.5  }
       ]
     },
     {
@@ -589,6 +329,8 @@
         "prt": "Pizza",
         "esp": "Pizza"
       },
+      "required_ingredient_ids": [176, 75],
+      "min_match": 2,
       "typical_ingredients": [
         5,
         176,
@@ -602,46 +344,16 @@
         82
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 5,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 176,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 75,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 10,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 114,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 39,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 40,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 51,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 7,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 82,
-          "weight": 0.45
-        }
+        { "ingredient_id": 5,   "weight": 0.9  },
+        { "ingredient_id": 176, "weight": 0.95 },
+        { "ingredient_id": 75,  "weight": 0.6  },
+        { "ingredient_id": 10,  "weight": 0.5  },
+        { "ingredient_id": 114, "weight": 0.75 },
+        { "ingredient_id": 39,  "weight": 0.85 },
+        { "ingredient_id": 40,  "weight": 0.65 },
+        { "ingredient_id": 51,  "weight": 0.5  },
+        { "ingredient_id": 7,   "weight": 0.45 },
+        { "ingredient_id": 82,  "weight": 0.45 }
       ]
     },
     {
@@ -652,6 +364,8 @@
         "prt": "Risoto",
         "esp": "Risotto"
       },
+      "required_ingredient_ids": [135],
+      "min_match": 2,
       "typical_ingredients": [
         135,
         81,
@@ -665,46 +379,16 @@
         15
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 135,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 81,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 27,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 40,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 117,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 124,
-          "weight": 0.6
-        },
-        {
-          "ingredient_id": 77,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 211,
-          "weight": 0.55
-        },
-        {
-          "ingredient_id": 15,
-          "weight": 0.45
-        }
+        { "ingredient_id": 135, "weight": 1.0  },
+        { "ingredient_id": 81,  "weight": 0.6  },
+        { "ingredient_id": 11,  "weight": 0.55 },
+        { "ingredient_id": 27,  "weight": 0.45 },
+        { "ingredient_id": 40,  "weight": 0.75 },
+        { "ingredient_id": 117, "weight": 0.8  },
+        { "ingredient_id": 124, "weight": 0.6  },
+        { "ingredient_id": 77,  "weight": 0.55 },
+        { "ingredient_id": 211, "weight": 0.55 },
+        { "ingredient_id": 15,  "weight": 0.45 }
       ]
     },
     {
@@ -715,6 +399,8 @@
         "prt": "Hambúrguer",
         "esp": "Hamburguesa"
       },
+      "required_ingredient_ids": [218, 219],
+      "min_match": 2,
       "typical_ingredients": [
         218,
         219,
@@ -729,50 +415,17 @@
         51
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 218,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 219,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 220,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.5
-        },
-        {
-          "ingredient_id": 198,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 85,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 43,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 97,
-          "weight": 0.45
-        },
-        {
-          "ingredient_id": 96,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 84,
-          "weight": 0.4
-        },
-        {
-          "ingredient_id": 51,
-          "weight": 0.4
-        }
+        { "ingredient_id": 218, "weight": 0.95 },
+        { "ingredient_id": 219, "weight": 0.9  },
+        { "ingredient_id": 220, "weight": 0.9  },
+        { "ingredient_id": 11,  "weight": 0.5  },
+        { "ingredient_id": 198, "weight": 0.4  },
+        { "ingredient_id": 85,  "weight": 0.45 },
+        { "ingredient_id": 43,  "weight": 0.4  },
+        { "ingredient_id": 97,  "weight": 0.45 },
+        { "ingredient_id": 96,  "weight": 0.4  },
+        { "ingredient_id": 84,  "weight": 0.4  },
+        { "ingredient_id": 51,  "weight": 0.4  }
       ]
     },
     {
@@ -783,6 +436,8 @@
         "prt": "Chili",
         "esp": "Chili"
       },
+      "required_ingredient_ids": [99, 150],
+      "min_match": 2,
       "typical_ingredients": [
         99,
         150,
@@ -792,30 +447,12 @@
         14
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 99,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 150,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 152,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 218,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 114,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 14,
-          "weight": 0.7
-        }
+        { "ingredient_id": 99,  "weight": 0.9  },
+        { "ingredient_id": 150, "weight": 0.85 },
+        { "ingredient_id": 152, "weight": 0.8  },
+        { "ingredient_id": 218, "weight": 1.0  },
+        { "ingredient_id": 114, "weight": 0.75 },
+        { "ingredient_id": 14,  "weight": 0.7  }
       ]
     },
     {
@@ -826,6 +463,8 @@
         "prt": "Bolonhesa",
         "esp": "Boloñesa"
       },
+      "required_ingredient_ids": [218, 114],
+      "min_match": 2,
       "typical_ingredients": [
         2,
         218,
@@ -835,30 +474,12 @@
         15
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 2,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 218,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 114,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 14,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 11,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 15,
-          "weight": 0.65
-        }
+        { "ingredient_id": 2,   "weight": 0.95 },
+        { "ingredient_id": 218, "weight": 1.0  },
+        { "ingredient_id": 114, "weight": 0.85 },
+        { "ingredient_id": 14,  "weight": 0.8  },
+        { "ingredient_id": 11,  "weight": 0.7  },
+        { "ingredient_id": 15,  "weight": 0.65 }
       ]
     },
     {
@@ -869,6 +490,8 @@
         "prt": "Bowl",
         "esp": "Bowl"
       },
+      "required_ingredient_ids": [257, 254],
+      "min_match": 2,
       "typical_ingredients": [
         3,
         257,
@@ -881,42 +504,15 @@
         84
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 3,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 257,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 141,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 151,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 153,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 154,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 22,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 254,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 84,
-          "weight": 0.7
-        }
+        { "ingredient_id": 3,   "weight": 0.8  },
+        { "ingredient_id": 257, "weight": 0.9  },
+        { "ingredient_id": 141, "weight": 0.8  },
+        { "ingredient_id": 151, "weight": 0.75 },
+        { "ingredient_id": 153, "weight": 0.75 },
+        { "ingredient_id": 154, "weight": 0.7  },
+        { "ingredient_id": 22,  "weight": 0.8  },
+        { "ingredient_id": 254, "weight": 0.9  },
+        { "ingredient_id": 84,  "weight": 0.7  }
       ]
     },
     {
@@ -927,6 +523,8 @@
         "prt": "Wrap / Burrito",
         "esp": "Wrap / Burrito"
       },
+      "required_ingredient_ids": [142, 163],
+      "min_match": 2,
       "typical_ingredients": [
         142,
         163,
@@ -936,30 +534,12 @@
         209
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 142,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 163,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 150,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 218,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 22,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 209,
-          "weight": 0.7
-        }
+        { "ingredient_id": 142, "weight": 0.95 },
+        { "ingredient_id": 163, "weight": 0.9  },
+        { "ingredient_id": 150, "weight": 0.75 },
+        { "ingredient_id": 218, "weight": 0.85 },
+        { "ingredient_id": 22,  "weight": 0.8  },
+        { "ingredient_id": 209, "weight": 0.7  }
       ]
     },
     {
@@ -970,6 +550,8 @@
         "prt": "Prato Asiático de Wok",
         "esp": "Plato Asiático al Wok"
       },
+      "required_ingredient_ids": [87, 186],
+      "min_match": 2,
       "typical_ingredients": [
         87,
         195,
@@ -981,38 +563,14 @@
         280
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 87,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 195,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 186,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 309,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 308,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 307,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 63,
-          "weight": 0.65
-        },
-        {
-          "ingredient_id": 280,
-          "weight": 0.75
-        }
+        { "ingredient_id": 87,  "weight": 0.95 },
+        { "ingredient_id": 195, "weight": 0.8  },
+        { "ingredient_id": 186, "weight": 0.85 },
+        { "ingredient_id": 309, "weight": 0.8  },
+        { "ingredient_id": 308, "weight": 0.8  },
+        { "ingredient_id": 307, "weight": 0.8  },
+        { "ingredient_id": 63,  "weight": 0.65 },
+        { "ingredient_id": 280, "weight": 0.75 }
       ]
     },
     {
@@ -1023,6 +581,8 @@
         "prt": "Ensopado Vegetariano",
         "esp": "Guiso Vegetariano"
       },
+      "required_ingredient_ids": [181, 267],
+      "min_match": 2,
       "typical_ingredients": [
         181,
         267,
@@ -1031,26 +591,11 @@
         116
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 181,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 267,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 240,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 62,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 116,
-          "weight": 0.8
-        }
+        { "ingredient_id": 181, "weight": 0.9  },
+        { "ingredient_id": 267, "weight": 0.9  },
+        { "ingredient_id": 240, "weight": 0.85 },
+        { "ingredient_id": 62,  "weight": 0.85 },
+        { "ingredient_id": 116, "weight": 0.8  }
       ]
     },
     {
@@ -1061,6 +606,8 @@
         "prt": "Massa com Fermento",
         "esp": "Masa con Levadura"
       },
+      "required_ingredient_ids": [74, 176],
+      "min_match": 2,
       "typical_ingredients": [
         74,
         176,
@@ -1070,30 +617,12 @@
         75
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 74,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 176,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 5,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 45,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 306,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 75,
-          "weight": 0.7
-        }
+        { "ingredient_id": 74,  "weight": 0.95 },
+        { "ingredient_id": 176, "weight": 0.95 },
+        { "ingredient_id": 5,   "weight": 0.85 },
+        { "ingredient_id": 45,  "weight": 0.75 },
+        { "ingredient_id": 306, "weight": 0.75 },
+        { "ingredient_id": 75,  "weight": 0.7  }
       ]
     },
     {
@@ -1104,6 +633,8 @@
         "prt": "Quiche",
         "esp": "Quiche"
       },
+      "required_ingredient_ids": [164, 85],
+      "min_match": 2,
       "typical_ingredients": [
         164,
         85,
@@ -1112,26 +643,11 @@
         124
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 164,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 85,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 33,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 40,
-          "weight": 0.7
-        },
-        {
-          "ingredient_id": 124,
-          "weight": 0.75
-        }
+        { "ingredient_id": 164, "weight": 0.9  },
+        { "ingredient_id": 85,  "weight": 0.95 },
+        { "ingredient_id": 33,  "weight": 0.85 },
+        { "ingredient_id": 40,  "weight": 0.7  },
+        { "ingredient_id": 124, "weight": 0.75 }
       ]
     },
     {
@@ -1142,6 +658,8 @@
         "prt": "Muffins",
         "esp": "Muffins"
       },
+      "required_ingredient_ids": [60, 5],
+      "min_match": 2,
       "typical_ingredients": [
         5,
         60,
@@ -1150,26 +668,11 @@
         32
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 5,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 60,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 85,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 1,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 32,
-          "weight": 0.75
-        }
+        { "ingredient_id": 5,  "weight": 0.9  },
+        { "ingredient_id": 60, "weight": 0.95 },
+        { "ingredient_id": 85, "weight": 0.8  },
+        { "ingredient_id": 1,  "weight": 0.85 },
+        { "ingredient_id": 32, "weight": 0.75 }
       ]
     },
     {
@@ -1180,6 +683,8 @@
         "prt": "Cheesecake",
         "esp": "Cheesecake"
       },
+      "required_ingredient_ids": [37, 38],
+      "min_match": 2,
       "typical_ingredients": [
         37,
         38,
@@ -1189,30 +694,12 @@
         85
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 37,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 38,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 36,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 200,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 225,
-          "weight": 0.75
-        },
-        {
-          "ingredient_id": 85,
-          "weight": 0.7
-        }
+        { "ingredient_id": 37,  "weight": 0.95 },
+        { "ingredient_id": 38,  "weight": 0.9  },
+        { "ingredient_id": 36,  "weight": 0.85 },
+        { "ingredient_id": 200, "weight": 0.8  },
+        { "ingredient_id": 225, "weight": 0.75 },
+        { "ingredient_id": 85,  "weight": 0.7  }
       ]
     },
     {
@@ -1223,6 +710,8 @@
         "prt": "Gelado / Parfait",
         "esp": "Helado / Parfait"
       },
+      "required_ingredient_ids": [57, 170],
+      "min_match": 2,
       "typical_ingredients": [
         33,
         85,
@@ -1231,26 +720,11 @@
         129
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 33,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 85,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 57,
-          "weight": 0.8
-        },
-        {
-          "ingredient_id": 170,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 129,
-          "weight": 0.75
-        }
+        { "ingredient_id": 33,  "weight": 0.9  },
+        { "ingredient_id": 85,  "weight": 0.85 },
+        { "ingredient_id": 57,  "weight": 0.8  },
+        { "ingredient_id": 170, "weight": 0.85 },
+        { "ingredient_id": 129, "weight": 0.75 }
       ]
     },
     {
@@ -1261,24 +735,17 @@
         "prt": "Prato de Bife",
         "esp": "Plato de Steak"
       },
+      "required_ingredient_ids": [89, 90, 91],
+      "min_match": 1,
       "typical_ingredients": [
         89,
         90,
         91
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 89,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 90,
-          "weight": 1.0
-        },
-        {
-          "ingredient_id": 91,
-          "weight": 1.0
-        }
+        { "ingredient_id": 89, "weight": 1.0 },
+        { "ingredient_id": 90, "weight": 1.0 },
+        { "ingredient_id": 91, "weight": 1.0 }
       ]
     },
     {
@@ -1289,6 +756,8 @@
         "prt": "Prato de Peixe",
         "esp": "Plato de Pescado"
       },
+      "required_ingredient_ids": [100, 265, 234, 270, 316],
+      "min_match": 1,
       "typical_ingredients": [
         100,
         265,
@@ -1297,26 +766,11 @@
         316
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 100,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 265,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 234,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 270,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 316,
-          "weight": 0.85
-        }
+        { "ingredient_id": 100, "weight": 0.95 },
+        { "ingredient_id": 265, "weight": 0.9  },
+        { "ingredient_id": 234, "weight": 0.9  },
+        { "ingredient_id": 270, "weight": 0.9  },
+        { "ingredient_id": 316, "weight": 0.85 }
       ]
     },
     {
@@ -1327,6 +781,8 @@
         "prt": "Taco",
         "esp": "Taco"
       },
+      "required_ingredient_ids": [163, 142],
+      "min_match": 2,
       "typical_ingredients": [
         163,
         142,
@@ -1334,22 +790,10 @@
         201
       ],
       "ingredient_weights": [
-        {
-          "ingredient_id": 163,
-          "weight": 0.95
-        },
-        {
-          "ingredient_id": 142,
-          "weight": 0.9
-        },
-        {
-          "ingredient_id": 205,
-          "weight": 0.85
-        },
-        {
-          "ingredient_id": 201,
-          "weight": 0.8
-        }
+        { "ingredient_id": 163, "weight": 0.95 },
+        { "ingredient_id": 142, "weight": 0.9  },
+        { "ingredient_id": 205, "weight": 0.85 },
+        { "ingredient_id": 201, "weight": 0.8  }
       ]
     }
   ]

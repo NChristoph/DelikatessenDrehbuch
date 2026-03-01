@@ -95,16 +95,30 @@
 
     /**
      * Preferred recipe-type detection using recipe_category_scoring.json (new ingredients_and_nutrients IDs).
+     *
+     * Scoring v3 (hybrid formula):
+     * 1. base        = weightedMatched / weightedTotal
+     * 2. fp_penalty  = Abzug für ausgewählte Zutaten, die NICHT in dieser Kategorie sind
+     *                  adjusted = base × (1 - falsePositiveRatio × 0.5)
+     * 3. required    = Falls required_ingredient_ids definiert:
+     *                  - Alle matched  → ×1.5 (capped 1.0)
+     *                  - Keine matched → ×0.2
+     *                  - Teils matched → ×(1 + ratio×0.5), capped 1.0
+     * 4. min_match   = Mindestanzahl Treffer (aus JSON oder Fallback: ≥5 Zutaten → min 2)
      */
     function detectRecipeTypesFromCategoryScoring(selectedIngredientIds) {
         if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return [];
 
         const selectedSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+        const selectedCount = selectedSet.size;
         const results = [];
 
         categoryScoringData.categories.forEach(cat => {
             const weights = Array.isArray(cat.ingredient_weights) ? cat.ingredient_weights : [];
             if (!weights.length) return;
+
+            // Build category ingredient ID set for false-positive detection
+            const categoryIngredientIds = new Set(weights.map(w => parseInt(w.ingredient_id, 10)));
 
             let weightedTotal = 0;
             let weightedMatched = 0;
@@ -124,20 +138,63 @@
 
             if (matchedCount === 0 || weightedTotal <= 0) return;
 
-            const score = Math.round((weightedMatched / weightedTotal) * 100);
+            // Minimum match check
+            const minMatch = (typeof cat.min_match === 'number')
+                ? cat.min_match
+                : (weights.length >= 5 ? 2 : 1);
+            if (matchedCount < minMatch) return;
+
+            // 1. Base score
+            let score = weightedMatched / weightedTotal;
+
+            // 2. False-positive penalty:
+            //    ingredients selected that don't belong to this category reduce confidence
+            const notInCategory = Array.from(selectedSet).filter(id => !categoryIngredientIds.has(id)).length;
+            const falsePositiveRatio = selectedCount > 0 ? notInCategory / selectedCount : 0;
+            score = score * (1 - falsePositiveRatio * 0.5);
+
+            // 3. Required ingredient boost / penalty
+            const requiredIds = Array.isArray(cat.required_ingredient_ids) ? cat.required_ingredient_ids : [];
+            if (requiredIds.length > 0) {
+                const requiredMatched = requiredIds.filter(id => selectedSet.has(parseInt(id, 10))).length;
+                if (requiredMatched === 0) {
+                    score = score * 0.2;
+                } else if (requiredMatched === requiredIds.length) {
+                    score = Math.min(score * 1.5, 1.0);
+                } else {
+                    const requiredRatio = requiredMatched / requiredIds.length;
+                    score = Math.min(score * (1 + requiredRatio * 0.5), 1.0);
+                }
+            }
+
+            const finalScore = Math.round(score * 100);
+            if (finalScore < 10) return;
+
             const localizedName = cat?.display_name?.de || cat?.display_name?.en || cat.id || 'Unbekannt';
 
             results.push({
                 type: cat.id,
                 name: localizedName,
-                score: score,
+                score: finalScore,
                 matchedSignatureCount: matchedCount,
-                totalSignature: weights.length
+                totalSignature: weights.length,
+                typicalIngredientIds: Array.isArray(cat.typical_ingredients) ? cat.typical_ingredients : []
             });
         });
 
         results.sort((a, b) => b.score - a.score);
         return results;
+    }
+
+    /**
+     * Returns the full category object for a given typeId (from recipe_category_scoring.json).
+     * Useful for retrieving typical_ingredients, required_ingredient_ids, etc.
+     * @param {string} typeId
+     * @returns {Object|null}
+     */
+    function getCategoryById(typeId) {
+        if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return null;
+        return categoryScoringData.categories.find(cat => cat.id === typeId) || null;
     }
 
     /**
@@ -439,6 +496,7 @@
         suggestStepsForIngredients: suggestStepsForIngredients,
         renderRecipeTypeBadges: renderRecipeTypeBadges,
         getMasterStepPreview: getMasterStepPreview,
+        getCategoryById: getCategoryById,
         hasMasterSteps: function () { return !!(masterStepsData && Array.isArray(masterStepsData.master_steps) && masterStepsData.master_steps.length); },
         isLoaded: function () { return mappingLoaded; }
     };
