@@ -42,9 +42,8 @@
         }).join('');
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>
+  <button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}"><span class="probability-template-text">${safeText}</span></button>
   <div class="probability-inline-editor d-none mt-2 p-2 border rounded" style="border-color:rgba(255,193,7,.5)!important;background:rgba(17,24,39,.55)">
-    <div class="small text-warning fw-semibold mb-2">Direkt bearbeiten</div>
     <div class="small text-white mb-2 js-probability-inline-preview"></div>
     <div class="d-flex flex-wrap gap-2 mb-2">${vars || '<span class="small text-white-50">Keine Variablen</span>'}</div>
     <button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-template-apply" data-master-id="${safeId}">Übernehmen</button>
