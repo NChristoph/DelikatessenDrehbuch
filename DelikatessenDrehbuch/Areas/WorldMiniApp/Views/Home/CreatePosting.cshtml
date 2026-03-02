@@ -303,8 +303,8 @@
 
                                     <div class="d-flex align-items-start gap-2 mb-1 ingredient-card-head">
                                         <div class="preview-step-text display-name mb-0 flex-grow-1">@item.Name_DE</div>
-                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)">
-                                            Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
+                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" aria-label="Zutat hinzufügen">
+                                            <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>
 
@@ -342,6 +342,7 @@
 
                     <div class="ingredient-top-strip mt-4">
                         <div class="ingredient-top-title">Ausgewählte Zutaten</div>
+                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar" data-id="Ketuk untuk mengedit" data-nl="Tik om te bewerken" data-sv="Tryck för att redigera" data-da="Tryk for at redigere" data-no="Trykk for å redigere" data-ms="Ketik untuk edit">Zum Bearbeiten antippen</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
                         <div id="selectedIngredientsSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
@@ -782,7 +783,7 @@
 
     #card-ingredients {
         border-color: var(--creator-border);
-        background: rgba(2,6,23,0.9);
+        background: var(--creator-bg);
         box-shadow: none;
     }
 
@@ -3700,7 +3701,7 @@
 
         function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName }) {
             return `
-            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" ${buildIngredientDataAttributes(localizedData)}>
+            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" ${buildIngredientDataAttributes(localizedData)}>
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metriks_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
