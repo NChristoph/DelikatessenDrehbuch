@@ -1,9 +1,13 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
+using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Text;
 
@@ -13,6 +17,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     public class FeedController : Controller
     {
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
+        private const string SessionWalletWLD = "WorldWallet_WLD";
+        private const string SessionWalletUSDT = "WorldWallet_USDT";
         private static readonly Dictionary<string, string[]> CategoryAliases = new(StringComparer.OrdinalIgnoreCase)
         {
             ["appetizer"] = new[] { "appetizer", "aperetizer", "vorspeise", "entrada" },
@@ -164,14 +170,166 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["Category"] = category;
             ViewData["MaxPrepTime"] = maxPrepTime?.ToString() ?? string.Empty;
             ViewData["UserHash"] = userHash;
-            ViewData["MarketplaceListings"] = await _context.MealPlanListings
+            var marketplaceListings = await _context.MealPlanListings
+                .Include(x => x.MealPlan)
                 .AsNoTracking()
                 .Where(x => x.IsActive)
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(100)
                 .ToListAsync();
 
+            var recipeIds = marketplaceListings
+                .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Distinct()
+                .ToList();
+            var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
+
+            ViewData["MarketplaceListings"] = marketplaceListings;
+            ViewData["CreatorShopCards"] = marketplaceListings.Select(listing =>
+            {
+                var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan);
+                var heroImages = listingRecipeIds
+                    .Where(recipeMediaMap.ContainsKey)
+                    .Select(id => recipeMediaMap[id])
+                    .Where(media => !string.IsNullOrWhiteSpace(media.ImageUrl))
+                    .ToList();
+
+                return new PlanCardViewModel
+                {
+                    ListingId = listing.Id,
+                    Title = listing.Title,
+                    TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
+                    Description = listing.Description,
+                    CreatorName = listing.SellerName,
+                    CreatorHash = (listing.SellerHash ?? string.Empty).ToLowerInvariant(),
+                    SellerWalletAddress = listing.SellerWalletAddress,
+                    DayCount = listing.DayCount,
+                    RecipeCount = listing.RecipeCount,
+                    CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
+                    PriceWld = listing.Price,
+                    Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
+                    SoldCount = listing.SoldCount,
+                    ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
+                    IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                    IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
+                        || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase),
+                    HeroSlides = heroImages.Select(x => new PlanCardHeroSlideViewModel { ImageUrl = x.ImageUrl, RecipeTitle = x.RecipeTitle }).ToList(),
+                    HeroImageUrls = heroImages.Select(x => x.ImageUrl).ToList(),
+                    HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
+                };
+            }).ToList();
+
+            ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
+            ViewData["WalletUSDT"] = HttpContext.Session.GetString(SessionWalletUSDT) ?? "";
+            ViewData["WorldChainId"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:ChainId"] ?? "480";
+            ViewData["WorldChainWldToken"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:WldTokenAddress"] ?? "";
+            ViewData["WorldChainUsdtToken"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:UsdtTokenAddress"] ?? "";
+            ViewData["WorldChainMarketplace"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:MarketplaceContractAddress"] ?? "";
+            ViewData["WorldChainTestMode"] = bool.TryParse(HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:TestMode"], out var testMode) && testMode;
+
             return View(model);
+        }
+
+        private static List<int> ExtractRecipeIdsFromMealPlanJson(string? mealPlanJson)
+        {
+            if (string.IsNullOrWhiteSpace(mealPlanJson)) return new List<int>();
+            try
+            {
+                var indexIds = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(mealPlanJson);
+                return indexIds?.Values.SelectMany(x => x).ToList() ?? new List<int>();
+            }
+            catch
+            {
+                return new List<int>();
+            }
+        }
+
+        private async Task<Dictionary<int, (string ImageUrl, string RecipeTitle)>> BuildRecipeMediaMapAsync(List<int> recipeIds)
+        {
+            var result = new Dictionary<int, (string ImageUrl, string RecipeTitle)>();
+            if (!recipeIds.Any()) return result;
+
+            var postingMedia = await _context.WorldUserPosting
+                .AsNoTracking()
+                .Where(p => p.Recipe != null && recipeIds.Contains(p.Recipe.Id))
+                .Select(p => new
+                {
+                    RecipeId = p.Recipe.Id,
+                    p.ThumbnailUrl,
+                    p.Source,
+                    RecipeTitle = p.Recipe.Title,
+                    p.CreationTime
+                })
+                .OrderByDescending(p => p.CreationTime)
+                .ToListAsync();
+
+            foreach (var group in postingMedia.GroupBy(x => x.RecipeId))
+            {
+                var preferredImage = group
+                    .Select(x => x.ThumbnailUrl)
+                    .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path));
+
+                preferredImage ??= group
+                    .Select(x => x.Source)
+                    .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && !IsVideoPath(path));
+
+                preferredImage ??= group
+                    .Select(x => x.Source)
+                    .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path));
+
+                if (string.IsNullOrWhiteSpace(preferredImage))
+                    continue;
+
+                var title = group.Select(x => x.RecipeTitle).FirstOrDefault() ?? string.Empty;
+                result[group.Key] = (NormalizeRecipeImagePath(preferredImage), title);
+            }
+
+            var missingBaseRecipeIds = recipeIds.Where(id => !result.ContainsKey(id)).ToList();
+
+            var baseRecipes = await _context.RecipeBaseData
+                .Include(r => r.Images)
+                .AsNoTracking()
+                .Where(r => missingBaseRecipeIds.Contains(r.Id))
+                .ToListAsync();
+
+            foreach (var recipe in baseRecipes)
+            {
+                var image = recipe.Images?.FirstOrDefault()?.Image;
+                if (string.IsNullOrWhiteSpace(image)) continue;
+                result[recipe.Id] = (NormalizeRecipeImagePath(image), recipe.Title ?? string.Empty);
+            }
+
+            var missingIds = recipeIds.Where(id => !result.ContainsKey(id)).ToList();
+            if (missingIds.Any())
+            {
+                var classicRecipes = await _context.Recipes
+                    .AsNoTracking()
+                    .Where(r => missingIds.Contains(r.Id) && r.ImagePath != null)
+                    .ToListAsync();
+
+                foreach (var recipe in classicRecipes)
+                {
+                    if (string.IsNullOrWhiteSpace(recipe.ImagePath)) continue;
+                    result[recipe.Id] = (NormalizeRecipeImagePath(recipe.ImagePath), recipe.Name ?? string.Empty);
+                }
+            }
+
+            return result;
+        }
+
+
+        private string NormalizeRecipeImagePath(string imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath)) return string.Empty;
+            if (Uri.IsWellFormedUriString(imagePath, UriKind.Absolute)) return ChangePath(imagePath);
+            return ChangePath(FrontendFunctions.GetSmallImagePath(imagePath));
+        }
+
+        private static bool IsVideoPath(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            var lower = path.ToLowerInvariant();
+            return lower.Contains(".mp4") || lower.Contains(".mov") || lower.Contains(".webm") || lower.Contains(".m3u8");
         }
 
         private static string? ResolveCanonicalCategory(string? input)

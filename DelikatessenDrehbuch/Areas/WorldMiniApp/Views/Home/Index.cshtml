@@ -210,10 +210,6 @@
     <script type="module" src="~/js/minikitt.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            if (window.initAutoLogin) {
-                window.initAutoLogin('device');
-            }
-
             const rememberToggle = document.getElementById('rememberLoginToggle');
             if (rememberToggle) {
                 rememberToggle.checked = localStorage.getItem("remember_login") === "true";
@@ -230,6 +226,27 @@
                         link.href = url.toString();
                     }
                 });
+            }
+
+            document.querySelectorAll('.app-link').forEach(link => {
+                link.addEventListener('click', function (event) {
+                    const currentHash = window.getStoredUserHash
+                        ? window.getStoredUserHash()
+                        : (sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken"));
+
+                    if (currentHash) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    if (window.triggerLogin) {
+                        window.triggerLogin('device', this.href);
+                    }
+                });
+            });
+
+            if (!storedHash && window.initAutoLogin) {
+                window.initAutoLogin('device');
             }
 
         });

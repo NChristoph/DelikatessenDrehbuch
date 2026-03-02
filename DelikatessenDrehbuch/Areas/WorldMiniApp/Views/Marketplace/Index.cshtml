@@ -12,7 +12,10 @@
     var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
     var allowSelfPurchaseForTesting = (bool?)ViewData["WorldChainAllowSelfPurchaseForTesting"] ?? false;
     var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
+    var creatorShopCards = ViewData["CreatorShopCards"] as List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel> ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel>();
 }
+
+<link rel="stylesheet" href="~/css/creator-shop-cards.css" />
 
 <style>
     .mp-hero {
@@ -135,27 +138,47 @@
     }
     .preview-btn:hover { border-color: #94a3b8; background: #f8fafc; color: #1e293b; }
 
-    .token-toggle {
-        display: inline-flex;
-        border-radius: .6rem;
-        overflow: hidden;
-        border: 1.5px solid #e2e8f0;
-        font-size: .75rem;
-    }
-    .token-toggle label {
-        padding: .25rem .65rem;
-        cursor: pointer;
+    .token-switch-row {
         background: #fff;
-        color: #64748b;
-        font-weight: 600;
-        transition: all .15s;
-        margin: 0;
+        border: 1px solid #e2e8f0;
+        border-radius: .9rem;
+        padding: .55rem .75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .token-toggle input:checked + label {
+    .token-switch {
+        position: relative;
+        width: 52px;
+        height: 30px;
+    }
+    .token-switch input { display: none; }
+    .token-slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: #334155;
+        border-radius: 40px;
+        transition: all .2s ease;
+    }
+    .token-slider::before {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: all .2s ease;
+        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .token-switch input:checked + .token-slider {
         background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #fff;
     }
-    .token-toggle input { display: none; }
+    .token-switch input:checked + .token-slider::before {
+        transform: translateX(22px);
+    }
 
     .test-banner {
         background: linear-gradient(135deg, #fef3c7, #fde68a);
@@ -273,7 +296,7 @@
 
     <!-- Back + Title Row -->
     <div class="d-flex align-items-center gap-3 mb-3">
-        <a href="@Url.Action("Setup", "Home", new { area = "WorldMiniApp" })" class="back-link">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="back-link">
             <i class="bi bi-arrow-left fs-5"></i>
         </a>
         <div class="flex-grow-1">
@@ -306,6 +329,14 @@
                    class="btn btn-outline-light btn-sm rounded-pill">Meine</a>
             </div>
         </div>
+        <div class="d-flex justify-content-end align-items-center gap-2 mt-2">
+            <span class="small opacity-75">WLD</span>
+            <label class="token-switch" for="globalTokenSwitchTop" title="WLD / USDCE">
+                <input type="checkbox" id="globalTokenSwitchTop" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
+                <span class="token-slider"></span>
+            </label>
+            <span class="small opacity-75">USDCE</span>
+        </div>
         <div id="walletBalances" class="balance-row d-none">
             <div class="d-flex gap-3">
                 <div class="balance-badge">
@@ -329,7 +360,7 @@
     }
 
     <!-- Listings -->
-    @if (!Model.Any())
+    @if (!creatorShopCards.Any())
     {
         <div class="text-center py-5">
             <div class="mb-3">
@@ -344,81 +375,16 @@
     else
     {
         <div class="d-flex flex-column gap-3 mb-4">
-            @foreach (var listing in Model)
+            @foreach (var card in creatorShopCards)
             {
-                var isOwn = listing.SellerHash == userHash;
-                var sellerInitial = !string.IsNullOrEmpty(listing.SellerName) ? listing.SellerName[0].ToString().ToUpper() : "?";
-                var escapedTitle = Html.Encode(listing.Title).Replace("'", "\\'");
+                var isOwn = card.CreatorHash == userHash;
 
-                <div class="mp-card">
-                    <!-- Card Header -->
-                    <div class="mp-card-header">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="fw-bold fs-6 mb-1">@listing.Title</div>
-                                <div class="d-flex flex-wrap align-items-center gap-2">
-                                    <span class="seller-chip">
-                                        <span class="avatar">@sellerInitial</span>
-                                        @listing.SellerName
-                                    </span>
-                                    @if (listing.SoldCount > 0)
-                                    {
-                                        <span class="sold-badge"><i class="bi bi-bag-check-fill me-1"></i>@listing.SoldCount verkauft</span>
-                                    }
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <div class="price-tag" id="priceDisplay-@listing.Id"
-                                     data-price-wld="@listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
-                                    @listing.Price.ToString("0.##") WLD
-                                </div>
-                                <div class="converted-price mt-1" id="convertedPrice-@listing.Id"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="mp-card-body">
-                        @if (!string.IsNullOrWhiteSpace(listing.Description))
-                        {
-                            <p class="small text-muted mb-2">@listing.Description</p>
-                        }
-                        <div class="d-flex flex-wrap gap-2 mb-0">
-                            <span class="stat-chip"><i class="bi bi-calendar3"></i> @listing.DayCount Tage</span>
-                            <span class="stat-chip"><i class="bi bi-egg-fried"></i> @listing.RecipeCount Rezepte</span>
-                            <span class="stat-chip"><i class="bi bi-clock"></i> @listing.CreatedAt.ToString("dd.MM.yy")</span>
-                        </div>
-                    </div>
-
-                    <!-- Card Footer: Actions -->
-                    <div class="mp-card-footer">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <button class="preview-btn" onclick="event.stopPropagation(); showPreview(@listing.Id)">
-                                <i class="bi bi-eye me-1"></i>Vorschau
-                            </button>
-
-                            @if (isOwn && !allowSelfPurchaseForTesting)
-                            {
-                                <span class="small text-muted fw-medium">Dein Angebot</span>
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="token-toggle" id="tokenSelect-@listing.Id">
-                                        <input type="radio" name="token-@listing.Id" id="tok-wld-@listing.Id" value="WLD" checked>
-                                        <label for="tok-wld-@listing.Id">WLD</label>
-                                        <input type="radio" name="token-@listing.Id" id="tok-usdce-@listing.Id" value="USDCE">
-                                        <label for="tok-usdce-@listing.Id">USDCE</label>
-                                    </div>
-                                    <button class="buy-btn" id="buyBtn-@listing.Id"
-                                            data-seller-wallet="@(listing.SellerWalletAddress ?? "")"
-                                            onclick="event.stopPropagation(); buyListing(@listing.Id, '@escapedTitle', @listing.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))">
-                                        <i class="bi bi-wallet2 me-1"></i>Kaufen
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    </div>
+                <div class="mb-3">
+                    @if (isOwn && !allowSelfPurchaseForTesting)
+                    {
+                        <div class="small text-muted fw-medium mb-1">Dein Angebot</div>
+                    }
+                    @await Html.PartialAsync("_CreatorShopPlanCard", card)
                 </div>
             }
         </div>
@@ -442,16 +408,38 @@
 @section Scripts {
 <script>
     const USER_HASH = '@userHash';
-    let walletAddresses = { WLD: '@walletWLD', USDCE: '@walletUSDT' };
+    let walletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
     let wldPriceUsd = null;
+    let selectedPaymentToken = 'WLD';
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 
-    function getSelectedToken(listingId) {
-        const el = document.querySelector(`input[name="token-${listingId}"]:checked`);
-        return el ? el.value : 'WLD';
+    function setGlobalToken(token) {
+        selectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
+        const top = document.getElementById('globalTokenSwitchTop');
+        const checked = selectedPaymentToken === 'USDCE';
+        if (top) top.checked = checked;
+        document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = checked; });
+        updateAllListingPrices();
+    }
+
+
+    function setFeedToken(token, listingId = null) {
+        const selected = token === 'USDCE' ? 'USDCE' : 'WLD';
+        if (!listingId) {
+            setGlobalToken(selected);
+            return;
+        }
+
+        const cardSwitch = document.getElementById(`cs-switch-${listingId}`);
+        if (cardSwitch) cardSwitch.checked = selected === 'USDCE';
+        updateListingPrice(listingId, selected);
+    }
+
+    function getSelectedToken() {
+        return selectedPaymentToken;
     }
 
     function shortWallet(address) {
@@ -495,9 +483,9 @@
         }
     }
 
-    function updateListingPrice(listingId) {
-        const token = getSelectedToken(listingId);
-        const priceEl = document.getElementById(`priceDisplay-${listingId}`);
+    function updateListingPrice(listingId, tokenOverride = null) {
+        const token = tokenOverride || getSelectedToken();
+        const priceEl = document.getElementById(`priceDisplay-${listingId}`) || document.getElementById(`feedPrice-${listingId}`);
         const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
         if (!priceEl) return;
         const wldPrice = parseFloat(priceEl.dataset.priceWld);
@@ -513,8 +501,11 @@
     }
 
     function updateAllListingPrices() {
-        document.querySelectorAll('[id^="priceDisplay-"]').forEach(el => {
-            updateListingPrice(el.id.replace('priceDisplay-', ''));
+        document.querySelectorAll('[id^="priceDisplay-"], [id^="feedPrice-"]').forEach(el => {
+            const id = el.id.startsWith('feedPrice-')
+                ? el.id.replace('feedPrice-', '')
+                : el.id.replace('priceDisplay-', '');
+            updateListingPrice(id);
         });
     }
 
@@ -550,6 +541,10 @@
             if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
 
             let html = '';
+
+            if (data.description) {
+                html += `<p class="small text-muted mb-3">${data.description}</p>`;
+            }
 
             // Nutrition summary
             if (data.nutrition) {
@@ -619,7 +614,7 @@
     // ── Wallet Connect ──
     async function connectWorldWallet() {
         const storedAddr = walletAddresses.WLD || walletAddresses.USDCE;
-        if (storedAddr) { updateWalletStatusUI(); return storedAddr; }
+        if (storedAddr) { updateWalletStatusUI(); await loadWalletBalances(storedAddr); return storedAddr; }
 
         const btn = document.getElementById('connectWalletBtn');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
@@ -638,6 +633,7 @@
 
             await saveWalletToSession(address, 'WLD');
             await saveWalletToSession(address, 'USDT');
+            walletAddresses.USDT = address;
             walletAddresses.USDCE = address;
 
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
@@ -669,14 +665,23 @@
         else { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen'; }
     }
 
+
+    function showFeedPreview(listingId) {
+        return showPreview(listingId);
+    }
+
+    function buyFeedListing(listingId, title, priceWld, sellerWallet) {
+        return buyListing(listingId, title, priceWld, sellerWallet);
+    }
+
     // ── Buy Flow ──
-    async function buyListing(listingId, title, priceWld) {
-        const token = getSelectedToken(listingId);
+    async function buyListing(listingId, title, priceWld, sellerWalletOverride) {
+        const token = getSelectedToken();
 
         if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
 
         const buyBtn = document.getElementById(`buyBtn-${listingId}`);
-        const sellerWallet = buyBtn?.dataset?.sellerWallet || '';
+        const sellerWallet = sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '';
         if (!sellerWallet) { alert('Verkaeufer hat keine Wallet hinterlegt. Kauf nicht moeglich.'); return; }
 
         const actualPrice = getActualPrice(priceWld, token);
@@ -752,11 +757,13 @@
         updateWalletStatusUI();
         loadWldPrice();
 
-        document.querySelectorAll('.token-toggle input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                updateListingPrice(radio.name.replace('token-', ''));
-            });
-        });
+        setGlobalToken('WLD');
+
+        const previewParam = new URLSearchParams(window.location.search).get('previewId');
+        if (previewParam) {
+            const id = parseInt(previewParam, 10);
+            if (!isNaN(id)) showPreview(id);
+        }
 
         const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
         if (existingAddress) {
@@ -767,7 +774,7 @@
 
         if (window.ethereum?.on) {
             window.ethereum.on('accountsChanged', () => {
-                walletAddresses.WLD = ''; walletAddresses.USDCE = '';
+                walletAddresses.WLD = ''; walletAddresses.USDT = ''; walletAddresses.USDCE = '';
                 updateWalletStatusUI();
                 const balancesEl = document.getElementById('walletBalances');
                 if (balancesEl) balancesEl.classList.add('d-none');
