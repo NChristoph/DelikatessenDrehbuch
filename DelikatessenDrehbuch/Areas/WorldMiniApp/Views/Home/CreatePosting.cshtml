@@ -477,28 +477,27 @@
 
 
             <!-- 4) STEPS + SANDBOX -->
-            <section class="creator-card mb-3" id="card-steps">
-                <div class="creator-card-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-purple"><i class="bi bi-list-check"></i></div>
-                        <div>
-                            <div class="creator-card-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                            <div class="creator-card-sub label-lang" data-de="Add & sortiere wie ein Script" data-en="Add & order like a script" data-esp="Añadir y ordenar como guion" data-prt="Adicionar e ordenar como roteiro">
-                                Add & sortiere wie ein Script
-                            </div>
-                        </div>
+            <section class="smart-step-creator mt-3 mb-4" data-theme="dark" id="card-steps" style="min-height:auto">
+                <div class="sheet-head creator-top-head">
+                    <div>
+                        <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
+                        <div class="sheet-sub label-lang" data-de="Sortiere &amp; bearbeite wie ein Script" data-en="Order &amp; edit like a script" data-esp="Ordena y edita como guion" data-prt="Ordena e edita como roteiro">Sortiere &amp; bearbeite wie ein Script</div>
                     </div>
-                    <span class="badge rounded-pill text-bg-light border">4/5</span>
+                    <span class="badge rounded-pill bg-transparent border border-light text-light">4/5</span>
                 </div>
 
-                <div class="creator-card-body">
-                    <div class="mt-1">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <div class="fw-bold">Zusammengestellte Arbeitsschritte</div>
-                            <div class="small text-muted">Sortieren, prüfen und bearbeiten</div>
+                <div class="creator-preview-canvas" style="min-height:auto; padding:14px 16px;">
+                    <!-- Chip-Strip: erscheint wenn Zutat in einem Schritt geändert wird -->
+                    <div id="stepsChipStrip" class="ingredient-top-strip mb-3 d-none">
+                        <div class="ingredient-top-title">Zutat für Schritt wählen</div>
+                        <div class="ingredient-swiper ingredient-swiper-top mb-2" id="stepsIngredientButtons"></div>
+                        <div class="d-flex gap-2 mt-1">
+                            <button type="button" id="btnApplyStepIngredient" class="btn btn-sm creator-cta-primary">Einsetzen</button>
+                            <button type="button" id="btnCancelStepIngredient" class="btn btn-sm btn-outline-light">Abbrechen</button>
                         </div>
-                        <div id="selectedSteps" class="selected-zone"></div>
                     </div>
+
+                    <div id="selectedSteps" class="selected-zone"></div>
                 </div>
             </section>
 
@@ -1414,6 +1413,7 @@
         const creatorState = {
             selectedIngredientIds: [],
             selectedTemplateId: '',
+            activeStepIngredientRow: null,
             computedPronoun: 'ihn',
             computedArticle: 'den',
             previewText: '',
@@ -1491,9 +1491,9 @@
             const ingredients = getSelectedIngredientsForSandbox();
             if (!ingredients.length) return [];
             const selectedIds = creatorState.selectedIngredientIds || [];
+            if (!selectedIds.length) return [];
             const selected = ingredients.filter(x => selectedIds.includes(x.id));
-            if (selected.length) return selected.map(x => x.name);
-            return ingredients.map(x => x.name);
+            return selected.map(x => x.name);
         }
 
         function getSelectedIngredientForCreator() {
@@ -2125,11 +2125,14 @@
 
         function renderIngredientChips() {
             const wrap = $('#masterIngredientButtons');
+            const stepsWrap = $('#stepsIngredientButtons');
             const ingredients = getSelectedIngredientsForSandbox();
             wrap.empty();
+            stepsWrap.empty();
 
             if (!ingredients.length) {
                 wrap.append('<div class="small text-white-50">Wähle zuerst Zutaten aus.</div>');
+                stepsWrap.append('<div class="small text-white-50">Keine Zutaten vorhanden.</div>');
                 creatorState.selectedIngredientIds = [];
                 updatePreviewText();
                 return;
@@ -2140,7 +2143,9 @@
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const emoji = getIngredientEmoji(item.name);
-                wrap.append(`<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${item.name}">${emoji} ${item.name}</button>`);
+                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${item.name}">${emoji} ${item.name}</button>`;
+                wrap.append(chipHtml);
+                stepsWrap.append(chipHtml);
             });
 
             updatePreviewText();
@@ -2305,6 +2310,7 @@
             const rawVars = collectMasterVariables();
             const vars = normalizeVariablesForPersist(template, rawVars);
             const rendered = buildRenderedPayloadFromTemplate(template, vars);
+            const ingredientName = (vars.ingredient || vars.ingredients || vars.liquid || vars.fat || '').toString().trim();
             const payload = {
                 de: rendered.de,
                 en: rendered.en,
@@ -2347,7 +2353,7 @@
                     });
                 }
 
-                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true });
+                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true, ingredientName });
                 updateStepIndices();
             } catch (error) {
                 console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
@@ -2366,6 +2372,7 @@
 
                 addStep(fallbackId, null, rendered[currentLang] || rendered.de || 'Neuer Schritt', {
                     skipRender: true,
+                    ingredientName,
                     stepData: {
                         de: rendered.de,
                         en: rendered.en,
@@ -2514,6 +2521,51 @@
             }
         }
 
+        function startStepIngredientEdit(btn) {
+            const row = $(btn).closest('.step-row');
+            creatorState.activeStepIngredientRow = row;
+            clearSelectedIngredientChips();
+            renderIngredientChips();
+            $('#stepsChipStrip').removeClass('d-none');
+            $('#card-steps')[0]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showCreatorToast('Chip auswählen – dann Einsetzen tippen');
+        }
+
+        function applyChipToStep() {
+            const row = creatorState.activeStepIngredientRow;
+            if (!row) { cancelStepIngredientEdit(); return; }
+
+            const selectedNames = getSelectedIngredientNames();
+            if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswählen'); return; }
+
+            const newName = selectedNames.join(', ');
+            const oldName = (row.data('ingredient-name') || '').toString().trim();
+
+            if (oldName) {
+                const oldRx = new RegExp(oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                ['step-hidden-de', 'step-hidden-en', 'step-hidden-esp', 'step-hidden-prt'].forEach(cls => {
+                    const input = row.find('.' + cls);
+                    if (input.length) input.val((input.val() || '').replace(oldRx, newName));
+                });
+                const textSpan = row.find('.step-text-content');
+                textSpan.text((textSpan.text() || '').replace(oldRx, newName));
+            }
+
+            row.attr('data-ingredient-name', newName);
+            creatorState.activeStepIngredientRow = null;
+            clearSelectedIngredientChips();
+            renderIngredientChips();
+            $('#stepsChipStrip').addClass('d-none');
+            showCreatorToast('Zutat im Schritt ersetzt');
+        }
+
+        function cancelStepIngredientEdit() {
+            creatorState.activeStepIngredientRow = null;
+            clearSelectedIngredientChips();
+            renderIngredientChips();
+            $('#stepsChipStrip').addClass('d-none');
+        }
+
         function removeIngredientRow(btn) {
             $(btn).closest('.ingredient-row').remove();
             refreshMasterTemplateBuilder();
@@ -2586,8 +2638,12 @@
             const stepIdAsInt = parseInt(id, 10);
             const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
             const phaseBadge = getPhaseLabel(normalizedStepData.phase);
+            const stepIngredientName = (options?.ingredientName || '').toString().trim();
+            const chipBtnHtml = stepIngredientName
+                ? `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(this)" title="Zutat per Chip ändern">🥣</button>`
+                : '';
 
-            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}">
+            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
@@ -2605,6 +2661,7 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="editStepText(this)"><i class="bi bi-pencil"></i></button>
+                    ${chipBtnHtml}
                     <button type="button" class="btn btn-sm text-danger opacity-50" onclick="removeStep(this)"><i class="bi bi-trash3"></i></button>
                 </div>
             </div>`);
@@ -2785,14 +2842,23 @@
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
                     $('#masterPreviewCard').addClass('token-replace-active');
-                    const selectedValue = getSelectedIngredientValueForInsert();
-                    if (selectedValue) {
-                        creatorState.placeholderAssignments[tokenId] = selectedValue;
+                    const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+                    if (hasExistingAssignment) {
+                        // Bereits belegt – Chips leeren und Ersetzen-Modus aktivieren
                         clearSelectedIngredientChips();
-                        creatorState.activePlaceholderTokenId = '';
-                        showCreatorToast('Platzhalter ersetzt');
+                        showCreatorToast('Neue Zutat auswählen zum Ersetzen');
                     } else {
-                        showCreatorToast('Erst Zutaten auswählen');
+                        const selectedValue = getSelectedIngredientValueForInsert();
+                        if (selectedValue) {
+                            creatorState.placeholderAssignments[tokenId] = selectedValue;
+                            clearSelectedIngredientChips();
+                            creatorState.activePlaceholderTokenId = '';
+                            creatorState.ingredientReplaceArmed = false;
+                            $('#masterPreviewCard').removeClass('token-replace-active');
+                            showCreatorToast('Platzhalter ersetzt');
+                        } else {
+                            showCreatorToast('Erst Zutaten auswählen');
+                        }
                     }
                 } else if (isDurationPlaceholderKey(key)) {
                     creatorState.activePlaceholderTokenId = '';
@@ -2917,6 +2983,7 @@
                 }
                 closeAllEditors();
                 showCreatorToast('Platzhalter zurückgesetzt');
+                renderIngredientChips();
                 renderTemplateCards();
             });
 
@@ -3102,6 +3169,21 @@
                 updateStoryProgress();
                 showCreatorToast('Step akzeptiert');
             });
+
+            $('#stepsIngredientButtons').on('click', '.ingredient-chip', function () {
+                const id = ($(this).data('id') || '').toString();
+                if (!id) return;
+                const selected = creatorState.selectedIngredientIds || [];
+                if (selected.includes(id)) {
+                    creatorState.selectedIngredientIds = selected.filter(x => x !== id);
+                } else {
+                    creatorState.selectedIngredientIds = [...selected, id];
+                }
+                renderIngredientChips();
+            });
+
+            $('#btnApplyStepIngredient').on('click', function () { applyChipToStep(); });
+            $('#btnCancelStepIngredient').on('click', function () { cancelStepIngredientEdit(); });
 
             $('#selectedSteps').on('dragstart', '.step-row', function (e) {
                 draggedStepRow = this;
