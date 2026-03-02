@@ -35,11 +35,11 @@
     }
 
     /**
-     * Renders a template card where each {{variable}} in the template text
-     * becomes a clickable yellow-underlined span (like the Smart Step Creator).
-     * Clicking a span opens the probVarEditorDock bottom sheet.
+     * Renders a template card styled like Smart Step Creator template cards.
+     * {{variable}} placeholders become clickable yellow spans for inline editing.
+     * The card itself acts as the "choose template" button.
      */
-    function buildTemplateCardHtml(masterId, tpl, vars, lang) {
+    function buildTemplateCardHtml(masterId, tpl, vars, lang, description, icon) {
         const safeId = escapeHtml(masterId || '');
         let occurrence = 0;
 
@@ -51,10 +51,14 @@
             return `<span class="token-highlight prob-ph-token" data-master-id="${safeId}" data-var-key="${safeKey}" data-occurrence="${occurrence++}">${safeVal}</span>`;
         });
 
-        return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <div class="probability-template-card prob-template-text">${renderedHtml || escapeHtml(tpl || masterId)}</div>
-  <button type="button" class="btn btn-sm creator-cta-primary w-100 mt-2 js-probability-template" data-master-id="${safeId}">${escapeHtml(UI_TEXT.chooseTemplate)}</button>
-</div>`;
+        const safeIcon = escapeHtml(icon || '✨');
+        const safeTitle = escapeHtml(description || masterId || '');
+        const snippetHtml = renderedHtml || escapeHtml(tpl || masterId);
+
+        return `<button type="button" class="template-card js-probability-template" data-master-id="${safeId}" style="width:100%;text-align:left;">
+  <div class="template-title">${safeIcon} ${safeTitle}</div>
+  <div class="template-snippet prob-template-text">${snippetHtml}</div>
+</button>`;
     }
 
     function renderProbabilityTypeButtons(recipeTypes) {
@@ -129,7 +133,9 @@
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
                 const tpl = template?.templates?.[lang] || template?.templates?.de || template?.templates?.en || '';
-                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang));
+                const description = (template?.description || '').toString().trim();
+                const icon = template?.categoryIcon || '✨';
+                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang, description, icon));
             });
             return cards;
         }
@@ -148,7 +154,9 @@
                 const template = deps.findTemplate(masterId);
                 const vars = deps.buildVariablesForTemplate(masterId);
                 const tpl = template?.templates?.[lang] || template?.templates?.de || template?.templates?.en || item.text || masterId;
-                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang));
+                const description = (template?.description || item.title || '').toString().trim();
+                const icon = template?.categoryIcon || '✨';
+                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang, description, icon));
                 varsByTemplate[masterId] = vars;
             });
             return cards;
