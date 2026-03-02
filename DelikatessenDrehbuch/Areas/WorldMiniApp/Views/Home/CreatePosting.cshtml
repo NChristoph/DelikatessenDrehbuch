@@ -1687,29 +1687,63 @@
         100% { opacity: 0; transform: translate(0,-120px) scale(1.04); }
     }
 
-    /* === Ingredient Edit Bottom Sheet === */
+    /* === Ingredient Edit Inline Popup === */
     #ingredientConfigOverlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 1050;
+        background: transparent;
+        z-index: 500;
+        display: none;
+    }
+
+    #ingredientConfigOverlay.ing-active {
+        display: block;
+    }
+
+    #ingredientConfigDock {
+        display: none;
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 16px;
+        padding: 12px 14px;
+        margin-top: 6px;
+        position: relative;
+        z-index: 501;
+    }
+
+    #ingredientConfigDock.ing-active {
+        display: block;
+        animation: ingDockSlideIn 0.18s ease;
+    }
+
+    @@keyframes ingDockSlideIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === Probability Variable Editor Bottom Sheet === */
+    #probVarEditorOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 1052;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.25s ease;
     }
 
-    #ingredientConfigOverlay.ing-active {
+    #probVarEditorOverlay.ing-active {
         opacity: 1;
         pointer-events: auto;
     }
 
-    #ingredientConfigDock {
+    #probVarEditorDock {
         position: fixed;
         bottom: 0;
         left: 50%;
         transform: translateX(-50%) translateY(100%);
         width: min(480px, 100%);
-        z-index: 1051;
+        z-index: 1053;
         background: #1a1a2e;
         border-radius: 20px 20px 0 0;
         padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
@@ -1720,12 +1754,12 @@
         pointer-events: none;
     }
 
-    #ingredientConfigDock.ing-active {
+    #probVarEditorDock.ing-active {
         transform: translateX(-50%) translateY(0);
         pointer-events: auto;
     }
 
-    #ingredientConfigDock .ing-sheet-handle {
+    #probVarEditorDock .ing-sheet-handle {
         width: 40px;
         height: 4px;
         background: rgba(255,255,255,0.25);
@@ -1733,30 +1767,110 @@
         margin: 0 auto 16px;
     }
 
+    .prob-var-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(255,193,7,0.5);
+        background: rgba(255,193,7,0.08);
+        color: #ffc107;
+        font-weight: 700;
+        padding: 6px 14px;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+    }
+
+    .prob-var-chip:hover, .prob-var-chip.active {
+        background: rgba(255,193,7,0.22);
+        border-color: #ffc107;
+        color: #fff;
+    }
+
 </style>
 
 <!-- ===== Ingredient Edit Bottom Sheet ===== -->
 <div id="ingredientConfigOverlay" aria-hidden="true"></div>
-<div id="ingredientConfigDock" role="dialog" aria-modal="true" aria-labelledby="ingredientConfigTitle">
-    <div class="ing-sheet-handle"></div>
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="fw-bold text-white fs-6" id="ingredientConfigTitle">Zutat bearbeiten</div>
-        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm btn-outline-secondary rounded-circle p-0" style="width:30px;height:30px;line-height:1;" aria-label="Schließen">
+<div id="ingredientConfigDockParking" style="display:none;"></div>
+<div id="ingredientConfigDock" role="dialog" aria-labelledby="ingredientConfigTitle">
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="fw-bold text-white small" id="ingredientConfigTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50" style="flex-shrink:0;" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
-    <div class="d-flex gap-2 align-items-center mb-3">
+    <div class="d-flex gap-2 align-items-center mb-2">
         <input type="text" inputmode="decimal" id="ingredientConfigQty"
-               class="form-control form-control-sm candy-purple-input" style="max-width:90px;" placeholder="0" />
+               class="form-control form-control-sm candy-purple-input" style="max-width:80px;" placeholder="0" />
         <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input" style="flex:1;"></select>
+        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3" aria-label="Übernehmen">
+            <i class="bi bi-check-lg"></i>
+        </button>
     </div>
-    <div class="d-flex gap-2">
-        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary flex-grow-1">
-            <i class="bi bi-check-lg me-1"></i><span class="label-lang" data-de="Übernehmen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Übernehmen</span>
+    <div class="common-unit-chips">
+        <button type="button" class="btn btn-sm common-unit-chip js-config-unit-chip" data-unit-key="g">g.</button>
+        <button type="button" class="btn btn-sm common-unit-chip js-config-unit-chip" data-unit-key="ml">ml.</button>
+        <button type="button" class="btn btn-sm common-unit-chip js-config-unit-chip" data-unit-key="piece">Stk.</button>
+    </div>
+</div>
+
+<!-- ===== Probability Variable Editor Bottom Sheet ===== -->
+<div id="probVarEditorOverlay" aria-hidden="true"></div>
+<div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
+    <div class="ing-sheet-handle"></div>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="fw-bold text-white" id="probVarEditorTitle">Variable auswählen</div>
+        <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" style="font-size:1.1rem;" aria-label="Schließen">
+            <i class="bi bi-x-lg"></i>
         </button>
-        <button type="button" id="btnCancelIngredientConfig" class="btn btn-sm btn-outline-secondary">
-            <span class="label-lang" data-de="Abbrechen" data-en="Cancel" data-esp="Cancelar" data-prt="Cancelar">Abbrechen</span>
+    </div>
+
+    <!-- Ingredient chips -->
+    <div id="probVarIngredientArea" class="d-none">
+        <div class="small text-white-50 mb-2">Zutat auswählen:</div>
+        <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Duration -->
+    <div id="probVarDurationArea" class="d-none">
+        <div class="d-flex gap-2 align-items-center">
+            <input type="number" id="probVarDurationVal" class="form-control form-control-sm candy-purple-input" style="max-width:90px" value="5" min="1" />
+            <select id="probVarDurationUnit" class="form-select form-select-sm candy-purple-input" style="flex:1">
+                <option value="minute">Minuten</option>
+                <option value="hour">Stunden</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Count -->
+    <div id="probVarCountArea" class="d-none">
+        <input type="number" id="probVarCountVal" class="form-control form-control-sm candy-purple-input" style="max-width:120px" value="1" min="1" />
+    </div>
+
+    <!-- Temperature -->
+    <div id="probVarTempArea" class="d-none">
+        <div class="d-flex gap-2 align-items-center">
+            <input type="number" id="probVarTempVal" class="form-control form-control-sm candy-purple-input" style="max-width:90px" value="180" min="0" max="500" step="5" />
+            <select id="probVarTempUnit" class="form-select form-select-sm candy-purple-input" style="max-width:80px">
+                <option value="celsius">°C</option>
+                <option value="fahrenheit">°F</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Option chips (heat, mode, tool, etc.) -->
+    <div id="probVarOptionsArea" class="d-none">
+        <div id="probVarOptionChips" class="d-flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Text fallback -->
+    <div id="probVarTextArea" class="d-none">
+        <input type="text" id="probVarTextVal" class="form-control form-control-sm candy-purple-input" placeholder="Wert eingeben..." />
+    </div>
+
+    <!-- Buttons (only needed for non-chip areas) -->
+    <div class="d-flex gap-2 mt-3" id="probVarApplyRow">
+        <button type="button" id="btnApplyProbVar" class="btn btn-sm creator-cta-primary flex-grow-1">
+            <i class="bi bi-check-lg me-1"></i>Übernehmen
         </button>
+        <button type="button" id="btnCancelProbVar" class="btn btn-sm btn-outline-secondary">Abbrechen</button>
     </div>
 </div>
 
@@ -1836,8 +1950,13 @@
             const overlay = $('#ingredientConfigOverlay');
             const dock = $('#ingredientConfigDock');
             if (!overlay.length || !dock.length) return;
+            dock.removeClass('ing-active');
+            if (anchorElement && anchorElement.length) {
+                anchorElement.after(dock);
+            }
             overlay.addClass('ing-active').attr('aria-hidden', 'false');
-            setTimeout(function () { dock.addClass('ing-active'); }, 10);
+            void dock[0].offsetWidth; // force reflow for animation
+            dock.addClass('ing-active');
             $('#ingredientConfigQty').focus();
         }
 
@@ -1858,6 +1977,7 @@
             activeIngredientConfigRow = null;
             $('#ingredientConfigDock').removeClass('ing-active');
             $('#ingredientConfigOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
+            $('#ingredientConfigDockParking').append($('#ingredientConfigDock'));
         }
 
         function applyIngredientConfigPopup() {
@@ -1884,6 +2004,106 @@
                 return;
             }
         }
+
+        /* ===== Probability Variable Editor ===== */
+        let probVarEditorCallback = null;
+
+        function openProbVarEditor(masterId, varKey, currentVal, onApply) {
+            probVarEditorCallback = onApply;
+            const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
+            $('#probVarEditorTitle').text(cleanKey || 'Wert');
+            $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea').addClass('d-none');
+            $('#probVarApplyRow').addClass('d-none');
+
+            const varType = typeof getPlaceholderType === 'function' ? getPlaceholderType(varKey) : '';
+
+            if (varType === 'ingredient') {
+                const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
+                const chips = ings.map(ing => {
+                    const safe = $('<div>').text(ing.name || '').html();
+                    return `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
+                }).join('');
+                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
+                $('#probVarIngredientArea').removeClass('d-none');
+
+            } else if (varType === 'duration') {
+                const num = parseInt((currentVal || '').split(' ')[0], 10) || 5;
+                const isHour = (currentVal || '').toLowerCase().includes('stund') || (currentVal || '').toLowerCase().includes('hour');
+                $('#probVarDurationVal').val(num);
+                $('#probVarDurationUnit').val(isHour ? 'hour' : 'minute');
+                $('#probVarDurationArea').removeClass('d-none');
+                $('#probVarApplyRow').removeClass('d-none');
+
+            } else if (varType === 'count') {
+                $('#probVarCountVal').val(parseInt(currentVal, 10) || 1);
+                $('#probVarCountArea').removeClass('d-none');
+                $('#probVarApplyRow').removeClass('d-none');
+
+            } else if (varType === 'temperature') {
+                const tempNum = parseInt(currentVal, 10) || 180;
+                const isFahr = (currentVal || '').includes('°F') || (currentVal || '').includes('F');
+                $('#probVarTempVal').val(tempNum);
+                $('#probVarTempUnit').val(isFahr ? 'fahrenheit' : 'celsius');
+                $('#probVarTempArea').removeClass('d-none');
+                $('#probVarApplyRow').removeClass('d-none');
+
+            } else {
+                // Options or text fallback — try to get presets from MasterStepRenderer
+                let options = [];
+                if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                    options = MasterStepRenderer.getVariablePresets(varKey, currentLang || 'de') || [];
+                }
+                if (!options.length && varType === 'heat' && typeof getHeatOptions === 'function') options = getHeatOptions();
+                if (!options.length && varType === 'mode') options = (modeOptionsByLang[resolveLangKey(currentLang)] || modeOptionsByLang.de || []);
+                if (!options.length && varType === 'tool' && typeof getToolOptions === 'function') options = getToolOptions();
+
+                if (options.length) {
+                    const chips = options.map(opt => {
+                        const safe = $('<div>').text(opt).html();
+                        const active = opt === currentVal ? ' active' : '';
+                        return `<button type="button" class="btn btn-sm prob-var-chip js-prob-option-chip${active}" data-value="${safe}">${safe}</button>`;
+                    }).join('');
+                    $('#probVarOptionChips').html(chips);
+                    $('#probVarOptionsArea').removeClass('d-none');
+                } else {
+                    $('#probVarTextVal').val(currentVal || '');
+                    $('#probVarTextArea').removeClass('d-none');
+                    $('#probVarApplyRow').removeClass('d-none');
+                }
+            }
+
+            $('#probVarEditorOverlay').addClass('ing-active').attr('aria-hidden', 'false');
+            setTimeout(function () { $('#probVarEditorDock').addClass('ing-active'); }, 10);
+        }
+
+        function closeProbVarEditor() {
+            probVarEditorCallback = null;
+            $('#probVarEditorDock').removeClass('ing-active');
+            $('#probVarEditorOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
+        }
+
+        function applyProbVarEditor() {
+            let value = null;
+            if (!$('#probVarDurationArea').hasClass('d-none')) {
+                const num = parseInt($('#probVarDurationVal').val(), 10) || 1;
+                const unit = $('#probVarDurationUnit').val() || 'minute';
+                const label = typeof getDurationUnitLabel === 'function' ? getDurationUnitLabel(unit, currentLang) : unit;
+                value = `${num} ${label}`;
+            } else if (!$('#probVarCountArea').hasClass('d-none')) {
+                value = (parseInt($('#probVarCountVal').val(), 10) || 1).toString();
+            } else if (!$('#probVarTempArea').hasClass('d-none')) {
+                const num = $('#probVarTempVal').val() || '180';
+                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? '°F' : '°C';
+                value = `${num} ${unit}`;
+            } else if (!$('#probVarTextArea').hasClass('d-none')) {
+                value = ($('#probVarTextVal').val() || '').toString().trim();
+            }
+            if (value !== null && probVarEditorCallback) {
+                probVarEditorCallback(value);
+            }
+            closeProbVarEditor();
+        }
+        /* ===== End Probability Variable Editor ===== */
 
         async function loadIngredientArticleRules() {
             try {
@@ -3699,7 +3919,8 @@
                     suggestions.push({ id: ingId, name: name });
                 });
                 return suggestions;
-            }
+            },
+            openProbVarEditor: (masterId, varKey, currentVal, onApply) => openProbVarEditor(masterId, varKey, currentVal, onApply)
         });
 
         async function refreshIngredientProbabilityHints() {
@@ -4088,6 +4309,15 @@
                 const unitValue = resolveSelectUnitValueByKey(select[0], $(this).data('unit-key'));
                 if (!unitValue) return;
                 select.val(unitValue).trigger('change');
+            });
+
+            // Quick unit chips inside the ingredient config dock
+            $(document).on('click', '.js-config-unit-chip', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const unitValue = resolveSelectUnitValueByKey($('#ingredientConfigUnit')[0], $(this).data('unit-key'));
+                if (!unitValue) return;
+                $('#ingredientConfigUnit').val(unitValue);
             });
 
             $(document).on('click', '.js-probability-type', async function () {
@@ -4633,6 +4863,33 @@
                 if (e.target === this) {
                     closeIngredientConfigPopup();
                 }
+            });
+
+            // === Probability Variable Editor handlers ===
+            $('#btnCloseProbVarEditor, #btnCancelProbVar').on('click', function () {
+                closeProbVarEditor();
+            });
+
+            $('#btnApplyProbVar').on('click', function () {
+                applyProbVarEditor();
+            });
+
+            $('#probVarEditorOverlay').on('click', function (e) {
+                if (e.target === this) closeProbVarEditor();
+            });
+
+            // Ingredient chip → auto-apply and close
+            $(document).on('click', '.js-prob-ingredient-chip', function () {
+                const value = ($(this).data('value') || $(this).text()).toString();
+                if (probVarEditorCallback) probVarEditorCallback(value);
+                closeProbVarEditor();
+            });
+
+            // Option chip → auto-apply and close
+            $(document).on('click', '.js-prob-option-chip', function () {
+                const value = ($(this).data('value') || $(this).text()).toString();
+                if (probVarEditorCallback) probVarEditorCallback(value);
+                closeProbVarEditor();
             });
 
             $('#btnAddRenderedStep').on('click', async function () {

@@ -187,12 +187,22 @@
 
                 const currentVars = getMergedVars(masterId);
                 const currentVal = (currentVars[varKey] || '').toString();
-                const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
-                if (nextVal == null) return;
 
-                if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                state.inlineOverrides[masterId][varKey] = nextVal;
-                refreshInlinePreview(masterId, wrap);
+                if (deps.openProbVarEditor) {
+                    deps.openProbVarEditor(masterId, varKey, currentVal, function (newVal) {
+                        if (newVal == null) return;
+                        if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
+                        state.inlineOverrides[masterId][varKey] = newVal;
+                        chip.text(newVal);
+                        refreshInlinePreview(masterId, wrap);
+                    });
+                } else {
+                    const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
+                    if (nextVal == null) return;
+                    if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
+                    state.inlineOverrides[masterId][varKey] = nextVal;
+                    refreshInlinePreview(masterId, wrap);
+                }
             });
 
             $(document).off('click.probabilityInlineApply').on('click.probabilityInlineApply', '.js-probability-template-apply', function () {
