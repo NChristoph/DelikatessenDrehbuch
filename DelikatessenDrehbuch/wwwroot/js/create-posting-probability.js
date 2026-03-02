@@ -42,11 +42,11 @@
         }).join('');
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}"><span class="probability-template-text">${safeText}</span></button>
-  <div class="probability-inline-editor d-none mt-2 p-2 border rounded" style="border-color:rgba(255,193,7,.5)!important;background:rgba(17,24,39,.55)">
-    <div class="small text-white mb-2 js-probability-inline-preview"></div>
-    <div class="d-flex flex-wrap gap-2 mb-2">${vars || '<span class="small text-white-50">Keine Variablen</span>'}</div>
-    <button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-template-apply" data-master-id="${safeId}">Übernehmen</button>
+  <div class="probability-template-card w-100 text-start">
+    <button type="button" class="probability-template-select js-probability-template" data-master-id="${safeId}">
+      <span class="probability-template-text">${safeText}</span>
+    </button>
+    <span class="probability-template-inline-vars">${vars || ''}</span>
   </div>
 </div>`;
     }
@@ -154,28 +154,7 @@
             const overrides = state.inlineOverrides[masterId] || {};
             return { ...base, ...overrides };
         }
-
-        function refreshInlinePreview(masterId, wrap) {
-            const previewEl = wrap.find('.js-probability-inline-preview');
-            if (!previewEl.length) return;
-            const vars = getMergedVars(masterId);
-            const text = deps.renderTemplate(masterId, vars, getLang()) || masterId;
-            previewEl.text(text);
-        }
-
         function bindInlineEvents() {
-            $(document).off('click.probabilityInlineOpen').on('click.probabilityInlineOpen', '.js-probability-template', function () {
-                const btn = $(this);
-                const masterId = (btn.data('master-id') || '').toString();
-                if (!masterId) return;
-                const wrap = btn.closest('.probability-template-wrap');
-                const editor = wrap.find('.probability-inline-editor');
-                const shouldOpen = editor.hasClass('d-none');
-                $('.probability-inline-editor').addClass('d-none');
-                if (!shouldOpen) return;
-                editor.removeClass('d-none');
-                refreshInlinePreview(masterId, wrap);
-            });
 
             $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function () {
                 const chip = $(this);
@@ -193,25 +172,16 @@
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
                         chip.text(newVal);
-                        refreshInlinePreview(masterId, wrap);
+                        const next = deps.renderTemplate(masterId, getMergedVars(masterId), getLang()) || masterId;
+                        wrap.find('.probability-template-text').text(next);
                     });
                 } else {
                     const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;
-                    refreshInlinePreview(masterId, wrap);
-                }
-            });
-
-            $(document).off('click.probabilityInlineApply').on('click.probabilityInlineApply', '.js-probability-template-apply', function () {
-                const btn = $(this);
-                const masterId = (btn.data('master-id') || '').toString();
-                if (!masterId) return;
-
-                const target = $(`.js-probability-template[data-master-id="${masterId.replace(/"/g, '\"')}"]`).first();
-                if (target.length) {
-                    target.trigger('click');
+                    const next = deps.renderTemplate(masterId, getMergedVars(masterId), getLang()) || masterId;
+                    wrap.find('.probability-template-text').text(next);
                 }
             });
         }
