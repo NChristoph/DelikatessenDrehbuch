@@ -1028,8 +1028,8 @@
         background: rgba(15,23,42,0.92);
         backdrop-filter: blur(12px);
         box-shadow: none;
-        padding: 12px 14px;
-        width: 96%;
+        padding: 8px 10px;
+        width: 92%;
         margin-left: auto;
         margin-right: auto;
         transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
@@ -4575,6 +4575,11 @@
 
             $('#btnApplyStepIngredient').on('click', function () { applyChipToStep(); });
             $('#btnCancelStepIngredient').on('click', function () { cancelStepIngredientEdit(); });
+
+            $('#selectedIngredients').on('click', '.ingredient-row', function (e) {
+                if ($(e.target).closest('button, input, select, label').length) return;
+                openIngredientConfigPopup(this);
+            });
 
             $('#selectedSteps').on('dragstart', '.step-row', function (e) {
                 draggedStepRow = this;
