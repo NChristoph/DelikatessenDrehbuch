@@ -1778,6 +1778,25 @@
         pointer-events: auto;
     }
 
+    #probVarEditorDock.inline-mode {
+        position: relative;
+        inset: auto;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 14px;
+        margin-top: 8px;
+        padding: 14px;
+        z-index: 2;
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    #probVarEditorDock.inline-mode.ing-active {
+        transform: none;
+    }
+
     #probVarEditorDock .ing-sheet-handle {
         width: 40px;
         height: 4px;
@@ -1832,6 +1851,7 @@
 
 <!-- ===== Probability Variable Editor Bottom Sheet ===== -->
 <div id="probVarEditorOverlay" aria-hidden="true"></div>
+<div id="probVarEditorDockParking" class="d-none"></div>
 <div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
     <div class="ing-sheet-handle"></div>
     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -2026,8 +2046,9 @@
 
         /* ===== Probability Variable Editor ===== */
         let probVarEditorCallback = null;
+        let probVarEditorInlineHost = null;
 
-        function openProbVarEditor(masterId, varKey, currentVal, onApply) {
+        function openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement) {
             probVarEditorCallback = onApply;
             const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
             $('#probVarEditorTitle').text(cleanKey || 'Wert');
@@ -2091,14 +2112,34 @@
                 }
             }
 
-            $('#probVarEditorOverlay').addClass('ing-active').attr('aria-hidden', 'false');
-            setTimeout(function () { $('#probVarEditorDock').addClass('ing-active'); }, 10);
+            const dock = $('#probVarEditorDock');
+            const anchor = anchorElement ? $(anchorElement) : $();
+            const hostCard = anchor.length ? anchor.closest('.js-probability-template') : $();
+
+            if (hostCard.length) {
+                probVarEditorInlineHost = hostCard;
+                dock.addClass('inline-mode');
+                hostCard.after(dock);
+                $('#probVarEditorOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
+            } else {
+                probVarEditorInlineHost = null;
+                dock.removeClass('inline-mode');
+                $('#probVarEditorOverlay').addClass('ing-active').attr('aria-hidden', 'false');
+            }
+
+            setTimeout(function () { dock.addClass('ing-active'); }, 10);
         }
 
         function closeProbVarEditor() {
             probVarEditorCallback = null;
-            $('#probVarEditorDock').removeClass('ing-active');
+            const dock = $('#probVarEditorDock');
+            dock.removeClass('ing-active');
             $('#probVarEditorOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
+            if (probVarEditorInlineHost) {
+                $('#probVarEditorDockParking').append(dock);
+                dock.removeClass('inline-mode');
+                probVarEditorInlineHost = null;
+            }
             if (creatorState && creatorState.activePlaceholderTokenId) {
                 creatorState.activePlaceholderTokenId = '';
                 renderTemplateCards();
@@ -3943,7 +3984,7 @@
                 });
                 return suggestions;
             },
-            openProbVarEditor: (masterId, varKey, currentVal, onApply) => openProbVarEditor(masterId, varKey, currentVal, onApply)
+            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement)
         });
 
         async function refreshIngredientProbabilityHints() {

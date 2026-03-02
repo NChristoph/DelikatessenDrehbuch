@@ -187,7 +187,7 @@
                         $('.prob-ph-token').filter(function () {
                             return $(this).data('master-id') === masterId && $(this).data('var-key') === varKey;
                         }).text(newVal);
-                    });
+                    }, this);
                 }
             });
         }
