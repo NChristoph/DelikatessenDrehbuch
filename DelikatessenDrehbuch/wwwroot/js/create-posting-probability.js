@@ -55,8 +55,7 @@
         const safeTitle = escapeHtml(description || masterId || '');
         const snippetHtml = renderedHtml || escapeHtml(tpl || masterId);
 
-        return `<button type="button" class="template-card js-probability-template" data-master-id="${safeId}" style="width:100%;text-align:left;">
-  <div class="template-title">${safeIcon} ${safeTitle}</div>
+        return `<button type="button" class="template-card prob-template-card js-probability-template" data-master-id="${safeId}" aria-label="${safeIcon} ${safeTitle}" style="width:100%;text-align:left;">
   <div class="template-snippet prob-template-text">${snippetHtml}</div>
 </button>`;
     }
