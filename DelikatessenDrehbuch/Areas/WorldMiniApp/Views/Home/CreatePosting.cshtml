@@ -476,7 +476,6 @@
                                 </div>
                             </div>
                             <div class="template-selection-wrap">
-                                <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
                                 <div class="template-library template-library-fixed" id="masterTemplateCards"></div>
                             </div>
                             <div id="templateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
@@ -1729,46 +1728,30 @@
     #probVarEditorOverlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.6);
+        background: transparent;
         z-index: 1052;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
+        display: none;
     }
 
     #probVarEditorOverlay.ing-active {
-        opacity: 1;
-        pointer-events: auto;
+        display: block;
     }
 
     #probVarEditorDock {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%) translateY(100%);
-        width: min(480px, 100%);
+        display: none;
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 16px;
+        padding: 14px;
+        margin-top: 8px;
+        position: relative;
         z-index: 1053;
-        background: #1a1a2e;
-        border-radius: 20px 20px 0 0;
-        padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
-        border-top: 1px solid rgba(255,255,255,0.15);
-        border-left: 1px solid rgba(255,255,255,0.08);
-        border-right: 1px solid rgba(255,255,255,0.08);
-        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
-        pointer-events: none;
+        font-size: 1.05rem;
     }
 
     #probVarEditorDock.ing-active {
-        transform: translateX(-50%) translateY(0);
-        pointer-events: auto;
-    }
-
-    #probVarEditorDock .ing-sheet-handle {
-        width: 40px;
-        height: 4px;
-        background: rgba(255,255,255,0.25);
-        border-radius: 999px;
-        margin: 0 auto 16px;
+        display: block;
+        animation: ingDockSlideIn 0.18s ease;
     }
 
     .prob-var-chip {
@@ -1777,7 +1760,8 @@
         background: rgba(255,193,7,0.08);
         color: #ffc107;
         font-weight: 700;
-        padding: 6px 14px;
+        padding: 8px 16px;
+        font-size: .98rem;
         cursor: pointer;
         transition: background 0.15s, border-color 0.15s;
     }
@@ -1817,10 +1801,10 @@
 
 <!-- ===== Probability Variable Editor Bottom Sheet ===== -->
 <div id="probVarEditorOverlay" aria-hidden="true"></div>
+<div id="probVarEditorDockParking" style="display:none;"></div>
 <div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
-    <div class="ing-sheet-handle"></div>
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="fw-bold text-white" id="probVarEditorTitle">Variable auswählen</div>
+        <div class="fw-bold text-white fs-5" id="probVarEditorTitle">Variable auswählen</div>
         <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" style="font-size:1.1rem;" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
@@ -1828,7 +1812,7 @@
 
     <!-- Ingredient chips -->
     <div id="probVarIngredientArea" class="d-none">
-        <div class="small text-white-50 mb-2">Zutat auswählen:</div>
+        <div class="text-white-50 mb-2">Zutat auswählen:</div>
         <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
     </div>
 
@@ -2011,9 +1995,29 @@
 
         /* ===== Probability Variable Editor ===== */
         let probVarEditorCallback = null;
+        let probVarEditorAnchor = null;
 
-        function openProbVarEditor(masterId, varKey, currentVal, onApply) {
+        function dockProbVarEditorUnder(anchorElement) {
+            const overlay = $('#probVarEditorOverlay');
+            const dock = $('#probVarEditorDock');
+            if (!overlay.length || !dock.length) return;
+
+            dock.removeClass('ing-active');
+            if (anchorElement && anchorElement.length) {
+                anchorElement.after(dock);
+            }
+
+            overlay.addClass('ing-active').attr('aria-hidden', 'false');
+            void dock[0].offsetWidth;
+            dock.addClass('ing-active');
+
+            const firstInput = dock.find('input:visible, select:visible').first();
+            if (firstInput.length) firstInput.focus();
+        }
+
+        function openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement) {
             probVarEditorCallback = onApply;
+            probVarEditorAnchor = anchorElement && anchorElement.length ? anchorElement : null;
             const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
             $('#probVarEditorTitle').text(cleanKey || 'Wert');
             $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea').addClass('d-none');
@@ -2076,14 +2080,15 @@
                 }
             }
 
-            $('#probVarEditorOverlay').addClass('ing-active').attr('aria-hidden', 'false');
-            setTimeout(function () { $('#probVarEditorDock').addClass('ing-active'); }, 10);
+            dockProbVarEditorUnder(probVarEditorAnchor);
         }
 
         function closeProbVarEditor() {
             probVarEditorCallback = null;
+            probVarEditorAnchor = null;
             $('#probVarEditorDock').removeClass('ing-active');
             $('#probVarEditorOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
+            $('#probVarEditorDockParking').append($('#probVarEditorDock'));
             if (creatorState && creatorState.activePlaceholderTokenId) {
                 creatorState.activePlaceholderTokenId = '';
                 renderTemplateCards();
@@ -4467,6 +4472,7 @@
                     } else {
                         creatorState.activePlaceholderTokenId = tokenId;
                         const currentValue = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+                        const anchorCard = $('#masterTemplateCards .template-card.active').first();
                         openProbVarEditor(creatorState.selectedTemplateId, key, currentValue, function (selectedValue) {
                             if (selectedValue) {
                                 creatorState.placeholderAssignments[tokenId] = selectedValue;
@@ -4476,7 +4482,7 @@
                             creatorState.activePlaceholderTokenId = '';
                             renderTemplateCards();
                             showCreatorToast('Platzhalter aktualisiert');
-                        });
+                        }, anchorCard);
 
                         if (placeholderEditorDispatch[placeholderType]?.toast) {
                             showCreatorToast(placeholderEditorDispatch[placeholderType].toast);
