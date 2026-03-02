@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
-    [Area("WorldMiniApp")]
+    [Area("WorldMiniApp")]//
     public class AuthController : Controller
     {
         private const string SessionUserHashKey = "WorldMiniAppUserHash";
