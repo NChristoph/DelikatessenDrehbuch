@@ -1028,6 +1028,14 @@
     .probability-template-card:focus {
         color: #fff;
     }
+
+    .probability-inline-editor .js-probability-var {
+        color: #111827;
+        background-color: #facc15;
+        border-color: #facc15;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
     .common-unit-chips {
         display: flex;
         gap: 6px;
@@ -4347,7 +4355,6 @@
                 renderTemplateCards();
                 updatePreviewText();
                 showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
-                document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
 
             // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
