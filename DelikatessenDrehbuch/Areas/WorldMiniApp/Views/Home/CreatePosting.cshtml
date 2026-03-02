@@ -2084,6 +2084,10 @@
             probVarEditorCallback = null;
             $('#probVarEditorDock').removeClass('ing-active');
             $('#probVarEditorOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
+            if (creatorState && creatorState.activePlaceholderTokenId) {
+                creatorState.activePlaceholderTokenId = '';
+                renderTemplateCards();
+            }
         }
 
         function applyProbVarEditor() {
@@ -4460,12 +4464,25 @@
 
                     if (placeholderType === 'ingredient') {
                         handleIngredientPlaceholderSelection(tokenId);
-                    } else if (placeholderEditorDispatch[placeholderType]) {
-                        creatorState.activePlaceholderTokenId = placeholderEditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
-                        placeholderEditorDispatch[placeholderType].open(tokenId);
-                        showCreatorToast(placeholderEditorDispatch[placeholderType].toast);
                     } else {
-                        creatorState.activePlaceholderTokenId = '';
+                        creatorState.activePlaceholderTokenId = tokenId;
+                        const currentValue = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+                        openProbVarEditor(creatorState.selectedTemplateId, key, currentValue, function (selectedValue) {
+                            if (selectedValue) {
+                                creatorState.placeholderAssignments[tokenId] = selectedValue;
+                            } else {
+                                delete creatorState.placeholderAssignments[tokenId];
+                            }
+                            creatorState.activePlaceholderTokenId = '';
+                            renderTemplateCards();
+                            showCreatorToast('Platzhalter aktualisiert');
+                        });
+
+                        if (placeholderEditorDispatch[placeholderType]?.toast) {
+                            showCreatorToast(placeholderEditorDispatch[placeholderType].toast);
+                        } else {
+                            showCreatorToast('Wert auswählen');
+                        }
                     }
 
                     renderTemplateCards();
