@@ -1625,8 +1625,15 @@
 
     .template-card.template-tap { transform: scale(.98); }
 
-    .template-title { font-weight: 700; font-size: .86rem; }
-    .template-snippet { font-size: .76rem; color: var(--creator-sub); white-space: normal; overflow: visible; text-overflow: unset; line-height: 1.35; }
+    .template-snippet {
+        font-size: .95rem;
+        font-weight: 700;
+        color: var(--creator-sub);
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        line-height: 1.45;
+    }
 
     .action-bar {
         display:flex;
@@ -3619,10 +3626,7 @@
                 const icon = step.categoryIcon || (index % 3 === 0 ? '✨' : index % 3 === 1 ? '🔥' : '🔪');
                 const vars = buildVariablesForTemplate(step.master_id);
                 const snippet = MasterStepRenderer.render(step.master_id, vars, currentLang) || step.master_id;
-                const title = (step.description || '').toString().trim() || `Template ${index + 1}`;
-
-                box.append(`<button type="button" class="template-card ${active}" data-id="${step.master_id}" data-title="${title}">
-                    <div class="template-title">${icon} ${title}</div>
+                box.append(`<button type="button" class="template-card ${active}" data-id="${step.master_id}">
                     <div class="template-snippet">${snippet}</div>
                 </button>`);
             });
