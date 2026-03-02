@@ -10,7 +10,8 @@
         selectIngredientsFirst: 'Bitte zuerst Zutaten auswählen.',
         noTemplates: 'Keine passenden Templates gefunden.',
         suggestedIngredients: 'Vorgeschlagene Zutaten',
-        suggestedIngredientsHint: 'Tippen zum Hinzufügen'
+        suggestedIngredientsHint: 'Tippen zum Hinzufügen',
+        chooseTemplate: 'Template wählen'
     };
 
     function escapeHtml(value) {
@@ -33,22 +34,26 @@
         return [];
     }
 
-    function buildTemplateCardHtml(masterId, displayText, variables) {
+    /**
+     * Renders a template card where each {{variable}} in the template text
+     * becomes a clickable yellow-underlined span (like the Smart Step Creator).
+     * Clicking a span opens the probVarEditorDock bottom sheet.
+     */
+    function buildTemplateCardHtml(masterId, tpl, vars, lang) {
         const safeId = escapeHtml(masterId || '');
-        const safeText = escapeHtml(displayText || masterId || '');
-        const vars = (variables || []).map(v => {
-            const safeVar = escapeHtml(v);
-            return `<button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-var" data-var-key="${safeVar}">${safeVar}</button>`;
-        }).join('');
+        let occurrence = 0;
+
+        const renderedHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+            const k = (key || '').trim();
+            const value = (vars && vars[k] != null) ? String(vars[k]).trim() : k;
+            const safeVal = escapeHtml(value || k);
+            const safeKey = escapeHtml(k);
+            return `<span class="token-highlight prob-ph-token" data-master-id="${safeId}" data-var-key="${safeKey}" data-occurrence="${occurrence++}">${safeVal}</span>`;
+        });
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>
-  <div class="probability-inline-editor d-none mt-2 p-2 border rounded" style="border-color:rgba(255,193,7,.5)!important;background:rgba(17,24,39,.55)">
-    <div class="small text-warning fw-semibold mb-2">Direkt bearbeiten</div>
-    <div class="small text-white mb-2 js-probability-inline-preview"></div>
-    <div class="d-flex flex-wrap gap-2 mb-2">${vars || '<span class="small text-white-50">Keine Variablen</span>'}</div>
-    <button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-template-apply" data-master-id="${safeId}">Übernehmen</button>
-  </div>
+  <div class="probability-template-card prob-template-text">${renderedHtml || escapeHtml(tpl || masterId)}</div>
+  <button type="button" class="btn btn-sm creator-cta-primary w-100 mt-2 js-probability-template" data-master-id="${safeId}">${escapeHtml(UI_TEXT.chooseTemplate)}</button>
 </div>`;
     }
 
@@ -62,8 +67,6 @@
 
     /**
      * Builds HTML for the "suggested ingredients" strip beneath the template cards.
-     * Calls deps.getTypicalIngredientSuggestions(typeId) to retrieve unselected typical ingredients.
-     * Each chip has data-ingredient-id so the view can handle the click (highlight/add).
      */
     function buildIngredientSuggestionHtml(typeId, deps, options) {
         options = options || {};
@@ -119,14 +122,14 @@
 
         function buildPreferredCards(preferredTemplateIds, varsByTemplate) {
             const cards = [];
+            const lang = getLang();
             (preferredTemplateIds || []).forEach(masterId => {
                 const template = deps.findTemplate(masterId);
                 if (!template) return;
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
-                const snippet = deps.renderTemplate(masterId, vars, getLang()) || template.description || masterId;
-                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
-                cards.push(buildTemplateCardHtml(masterId, snippet, variableKeys));
+                const tpl = template?.templates?.[lang] || template?.templates?.de || template?.templates?.en || '';
+                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang));
             });
             return cards;
         }
@@ -137,14 +140,15 @@
 
             const cards = [];
             const seen = new Set();
+            const lang = getLang();
             preview.forEach(item => {
                 const masterId = (item.masterId || '').toString();
                 if (!masterId || seen.has(masterId)) return;
                 seen.add(masterId);
                 const template = deps.findTemplate(masterId);
                 const vars = deps.buildVariablesForTemplate(masterId);
-                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
-                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, variableKeys));
+                const tpl = template?.templates?.[lang] || template?.templates?.de || template?.templates?.en || item.text || masterId;
+                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang));
                 varsByTemplate[masterId] = vars;
             });
             return cards;
@@ -156,33 +160,18 @@
             return { ...base, ...overrides };
         }
 
-        function refreshInlinePreview(masterId, wrap) {
-            const previewEl = wrap.find('.js-probability-inline-preview');
-            if (!previewEl.length) return;
-            const vars = getMergedVars(masterId);
-            const text = deps.renderTemplate(masterId, vars, getLang()) || masterId;
-            previewEl.text(text);
-        }
-
         function bindInlineEvents() {
-            $(document).off('click.probabilityInlineOpen').on('click.probabilityInlineOpen', '.js-probability-template', function () {
-                const btn = $(this);
-                const masterId = (btn.data('master-id') || '').toString();
-                if (!masterId) return;
-                const wrap = btn.closest('.probability-template-wrap');
-                const editor = wrap.find('.probability-inline-editor');
-                const shouldOpen = editor.hasClass('d-none');
-                $('.probability-inline-editor').addClass('d-none');
-                if (!shouldOpen) return;
-                editor.removeClass('d-none');
-                refreshInlinePreview(masterId, wrap);
-            });
+            // Remove old handlers
+            $(document).off('click.probabilityInlineOpen');
+            $(document).off('click.probabilityInlineApply');
+            $(document).off('click.probabilityInlineVar');
 
-            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function () {
-                const chip = $(this);
-                const wrap = chip.closest('.probability-template-wrap');
-                const masterId = (wrap.data('master-id') || '').toString();
-                const varKey = (chip.data('var-key') || '').toString();
+            // Clicking a yellow placeholder span opens the bottom sheet editor
+            $(document).on('click.probabilityInlineVar', '.prob-ph-token', function (e) {
+                e.stopPropagation();
+                const span = $(this);
+                const masterId = (span.data('master-id') || '').toString();
+                const varKey = (span.data('var-key') || '').toString();
                 if (!masterId || !varKey) return;
 
                 const currentVars = getMergedVars(masterId);
@@ -193,26 +182,11 @@
                         if (newVal == null) return;
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
-                        chip.text(newVal);
-                        refreshInlinePreview(masterId, wrap);
+                        // Update all matching spans for this masterId + varKey
+                        $('.prob-ph-token').filter(function () {
+                            return $(this).data('master-id') === masterId && $(this).data('var-key') === varKey;
+                        }).text(newVal);
                     });
-                } else {
-                    const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
-                    if (nextVal == null) return;
-                    if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                    state.inlineOverrides[masterId][varKey] = nextVal;
-                    refreshInlinePreview(masterId, wrap);
-                }
-            });
-
-            $(document).off('click.probabilityInlineApply').on('click.probabilityInlineApply', '.js-probability-template-apply', function () {
-                const btn = $(this);
-                const masterId = (btn.data('master-id') || '').toString();
-                if (!masterId) return;
-
-                const target = $(`.js-probability-template[data-master-id="${masterId.replace(/"/g, '\"')}"]`).first();
-                if (target.length) {
-                    target.trigger('click');
                 }
             });
         }
