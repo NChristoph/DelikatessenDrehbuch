@@ -186,7 +186,7 @@
                         const nextHtml = buildInlineTemplateText(template, getLang(), merged);
                         const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
                         wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
-                    });
+                    }, chip);
                 } else {
                     const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
