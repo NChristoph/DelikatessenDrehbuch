@@ -33,10 +33,23 @@
         return [];
     }
 
-    function buildTemplateCardHtml(masterId, displayText) {
+    function buildTemplateCardHtml(masterId, displayText, variables) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        return `<button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>`;
+        const vars = (variables || []).map(v => {
+            const safeVar = escapeHtml(v);
+            return `<button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-var" data-var-key="${safeVar}">${safeVar}</button>`;
+        }).join('');
+
+        return `<div class="probability-template-wrap" data-master-id="${safeId}">
+  <button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>
+  <div class="probability-inline-editor d-none mt-2 p-2 border rounded" style="border-color:rgba(255,193,7,.5)!important;background:rgba(17,24,39,.55)">
+    <div class="small text-warning fw-semibold mb-2">Direkt bearbeiten</div>
+    <div class="small text-white mb-2 js-probability-inline-preview"></div>
+    <div class="d-flex flex-wrap gap-2 mb-2">${vars || '<span class="small text-white-50">Keine Variablen</span>'}</div>
+    <button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-template-apply" data-master-id="${safeId}">Übernehmen</button>
+  </div>
+</div>`;
     }
 
     function renderProbabilityTypeButtons(recipeTypes) {
@@ -78,7 +91,9 @@
     function create(deps) {
         const state = {
             presets: null,
-            presetsPromise: null
+            presetsPromise: null,
+            varsByTemplate: {},
+            inlineOverrides: {}
         };
 
         const getLang = () => (deps.getCurrentLang ? deps.getCurrentLang() : 'de');
@@ -110,12 +125,13 @@
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
                 const snippet = deps.renderTemplate(masterId, vars, getLang()) || template.description || masterId;
-                cards.push(buildTemplateCardHtml(masterId, snippet));
+                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
+                cards.push(buildTemplateCardHtml(masterId, snippet, variableKeys));
             });
             return cards;
         }
 
-        function buildFallbackCards(ingredientNames) {
+        function buildFallbackCards(ingredientNames, varsByTemplate) {
             const preview = deps.getMasterStepPreview(ingredientNames, { lang: getLang() }) || [];
             if (!preview.length) return [];
 
@@ -125,9 +141,70 @@
                 const masterId = (item.masterId || '').toString();
                 if (!masterId || seen.has(masterId)) return;
                 seen.add(masterId);
-                cards.push(buildTemplateCardHtml(masterId, item.text || masterId));
+                const template = deps.findTemplate(masterId);
+                const vars = deps.buildVariablesForTemplate(masterId);
+                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
+                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, variableKeys));
+                varsByTemplate[masterId] = vars;
             });
             return cards;
+        }
+
+        function getMergedVars(masterId) {
+            const base = { ...(state.varsByTemplate[masterId] || deps.buildVariablesForTemplate(masterId) || {}) };
+            const overrides = state.inlineOverrides[masterId] || {};
+            return { ...base, ...overrides };
+        }
+
+        function refreshInlinePreview(masterId, wrap) {
+            const previewEl = wrap.find('.js-probability-inline-preview');
+            if (!previewEl.length) return;
+            const vars = getMergedVars(masterId);
+            const text = deps.renderTemplate(masterId, vars, getLang()) || masterId;
+            previewEl.text(text);
+        }
+
+        function bindInlineEvents() {
+            $(document).off('click.probabilityInlineOpen').on('click.probabilityInlineOpen', '.js-probability-template', function () {
+                const btn = $(this);
+                const masterId = (btn.data('master-id') || '').toString();
+                if (!masterId) return;
+                const wrap = btn.closest('.probability-template-wrap');
+                const editor = wrap.find('.probability-inline-editor');
+                const shouldOpen = editor.hasClass('d-none');
+                $('.probability-inline-editor').addClass('d-none');
+                if (!shouldOpen) return;
+                editor.removeClass('d-none');
+                refreshInlinePreview(masterId, wrap);
+            });
+
+            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function () {
+                const chip = $(this);
+                const wrap = chip.closest('.probability-template-wrap');
+                const masterId = (wrap.data('master-id') || '').toString();
+                const varKey = (chip.data('var-key') || '').toString();
+                if (!masterId || !varKey) return;
+
+                const currentVars = getMergedVars(masterId);
+                const currentVal = (currentVars[varKey] || '').toString();
+                const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
+                if (nextVal == null) return;
+
+                if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
+                state.inlineOverrides[masterId][varKey] = nextVal;
+                refreshInlinePreview(masterId, wrap);
+            });
+
+            $(document).off('click.probabilityInlineApply').on('click.probabilityInlineApply', '.js-probability-template-apply', function () {
+                const btn = $(this);
+                const masterId = (btn.data('master-id') || '').toString();
+                if (!masterId) return;
+
+                const target = $(`.js-probability-template[data-master-id="${masterId.replace(/"/g, '\"')}"]`).first();
+                if (target.length) {
+                    target.trigger('click');
+                }
+            });
         }
 
         async function refresh() {
@@ -188,7 +265,7 @@
             let cards = buildPreferredCards(preferredTemplateIds, varsByTemplate);
 
             if (!cards.length) {
-                cards = buildFallbackCards(ingredients);
+                cards = buildFallbackCards(ingredients, varsByTemplate);
                 if (!cards.length) {
                     box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(UI_TEXT.noTemplates)}</div>`);
                     selectedIngredientSuggestionBox.empty();
@@ -199,9 +276,11 @@
             const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
             const ingredientSuggestions = buildIngredientSuggestionHtml(typeId, deps, { withHeader: true });
             const compactIngredientSuggestions = buildIngredientSuggestionHtml(typeId, deps, { withHeader: false });
+            state.varsByTemplate = varsByTemplate;
+            state.inlineOverrides = {};
             box.removeClass('d-none').html(head + cards.join('') + ingredientSuggestions);
             selectedIngredientSuggestionBox.html(compactIngredientSuggestions);
-            document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            bindInlineEvents();
         }
 
         return {

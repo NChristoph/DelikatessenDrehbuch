@@ -1023,12 +1023,15 @@
     }
     .ingredient-catalog-card {
         margin-top: 2px;
-        border-radius: 18px;
+        border-radius: 14px;
         border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.12);
+        background: rgba(15,23,42,0.92);
         backdrop-filter: blur(12px);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
-        padding: 14px 16px;
+        box-shadow: none;
+        padding: 12px 14px;
+        width: 96%;
+        margin-left: auto;
+        margin-right: auto;
         transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
 
@@ -1071,6 +1074,12 @@
     .ingredient-row-meta {
         font-size: .78rem;
         color: var(--creator-sub);
+    }
+
+    .ingredient-row-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .ingredient-config-overlay {
@@ -3711,9 +3720,14 @@
                     <div class="ingredient-row-meta">${escapeAttr(selectedQuantity)} ${escapeAttr(selectedUnitLabel)}</div>
                 </div>
 
-                <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)">
-                    <i class="bi bi-trash3"></i>
-                </button>
+                <div class="ingredient-row-actions">
+                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" onclick="event.stopPropagation(); openIngredientConfigPopup(this.closest('.ingredient-row'))" title="Zutat bearbeiten" aria-label="Zutat bearbeiten">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)" title="Zutat entfernen" aria-label="Zutat entfernen">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
             </div>`;
         }
 
