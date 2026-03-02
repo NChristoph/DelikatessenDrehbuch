@@ -124,7 +124,7 @@
                 if (!template) return;
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
-                const snippet = deps.renderTemplate(masterId, vars, getLang()) || template.description || masterId;
+                const snippet = deps.renderTemplate(masterId, vars, getLang()) || masterId;
                 const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
                 cards.push(buildTemplateCardHtml(masterId, snippet, variableKeys));
             });
