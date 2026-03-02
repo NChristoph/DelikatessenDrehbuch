@@ -1786,11 +1786,13 @@
         transform: none;
         width: 100%;
         max-width: 100%;
-        border-radius: 14px;
-        margin-top: 8px;
-        padding: 14px;
+        border-radius: 0;
+        margin-top: 10px;
+        padding: 12px 0 0;
         z-index: 2;
-        border: 1px solid rgba(255,255,255,0.12);
+        border: 0;
+        border-top: 2px solid rgba(255,255,255,0.9);
+        background: transparent;
     }
 
     #probVarEditorDock.inline-mode.ing-active {
@@ -1807,18 +1809,33 @@
 
     .prob-var-chip {
         border-radius: 999px;
-        border: 1px solid rgba(255,193,7,0.5);
-        background: rgba(255,193,7,0.08);
-        color: #ffc107;
         font-weight: 700;
         padding: 6px 14px;
         cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
 
-    .prob-var-chip:hover, .prob-var-chip.active {
+    .prob-var-chip-ingredient {
+        border: 1px solid rgba(255,193,7,0.5);
+        background: rgba(255,193,7,0.08);
+        color: #ffc107;
+    }
+
+    .prob-var-chip-ingredient:hover, .prob-var-chip-ingredient.active {
         background: rgba(255,193,7,0.22);
         border-color: #ffc107;
+        color: #fff;
+    }
+
+    .prob-var-chip-option {
+        border: 1px solid rgba(255,255,255,0.6);
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+    }
+
+    .prob-var-chip-option:hover, .prob-var-chip-option.active {
+        background: rgba(255,255,255,0.2);
+        border-color: #fff;
         color: #fff;
     }
 
@@ -2061,7 +2078,7 @@
                 const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
                 const chips = ings.map(ing => {
                     const safe = $('<div>').text(ing.name || '').html();
-                    return `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
+                    return `<button type="button" class="btn btn-sm prob-var-chip prob-var-chip-ingredient js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
                 }).join('');
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
                 $('#probVarIngredientArea').removeClass('d-none');
@@ -2101,7 +2118,7 @@
                     const chips = options.map(opt => {
                         const safe = $('<div>').text(opt).html();
                         const active = opt === currentVal ? ' active' : '';
-                        return `<button type="button" class="btn btn-sm prob-var-chip js-prob-option-chip${active}" data-value="${safe}">${safe}</button>`;
+                        return `<button type="button" class="btn btn-sm prob-var-chip prob-var-chip-option js-prob-option-chip${active}" data-value="${safe}">${safe}</button>`;
                     }).join('');
                     $('#probVarOptionChips').html(chips);
                     $('#probVarOptionsArea').removeClass('d-none');
