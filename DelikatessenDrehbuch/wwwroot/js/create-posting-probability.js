@@ -43,10 +43,11 @@
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card w-100 text-start">
+    <div class="probability-template-kicker">Aktueller Step</div>
     <button type="button" class="probability-template-select js-probability-template" data-master-id="${safeId}">
       <span class="probability-template-text">${safeText}</span>
     </button>
-    <span class="probability-template-inline-vars">${vars || ''}</span>
+    <div class="probability-template-inline-vars">${vars || ''}</div>
   </div>
 </div>`;
     }
