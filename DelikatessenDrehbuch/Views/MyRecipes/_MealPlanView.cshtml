@@ -1,0 +1,94 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model List<string>
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="flexColumn mobieleWidth90 mobileCenter mt-4">
+
+    <div class=" flex flexRow w-100 flexJustifyContendCenter flexAlginItemCenter ">
+        <div class="flex flexRow flexAlginItemCenter">
+            <span class="m-3">Menü´s Filtern:</span>
+            <div class="dropdown" >
+
+                <button class="btn dropdown-toggle Border-Gold bgRed m-1" style="color:white" type="button" data-bs-auto-close="true" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
+                    Filter auswählen
+                </button>
+                <ul class="dropdown-menu  " style="overflow:scroll;overflow-x:hidden;max-height:250px">
+
+
+                    @{
+                        
+
+                        foreach (var category in Model)
+                        {
+                            <li class="flexRow flexAlginItemCenter">
+                                <label class="dropdown-item" href="#">@category
+                                    <input name="Filtercheckbox" class="form-check-input" type="checkbox" value="@category">
+                                </label>
+                                
+                            </li>
+                        }
+                    }
+
+
+
+                </ul>
+
+            </div>
+
+            <button class="btn  Border-Gold bgRed m-1" onclick="ApplyFilter()" style="color:white" type="button">
+                Anwenden
+            </button>
+           
+        </div>
+
+
+    </div>
+
+    <div id="menuePartialView"></div>
+
+    
+
+    @{
+        if (!User.IsInRole("PremiumUser"))
+        {
+            <hr />
+            //TODO:PremiumAboAbschluss ermöglichen
+            <div class="flexColumn flexAlginItemCenter mt-3">
+                <span class="mt-2 ">Auf Premium Upgraden für mehr Menü`s</span>
+
+                <span class="mt-2">Premium ist bald verfügbar</span>
+                <span class="mt-2">Ohne Premium sehen sie immer nur die gleichen 10 Menü´s</span>
+            </div>
+
+        }
+
+    }
+</div>
+
+
+<script>
+        function ApplyFilter()
+        {
+           
+             var checkedCategories = $("input[name='Filtercheckbox']:checked")
+                         .map(function() {
+                          return $(this).val();
+                         }).get();
+
+
+
+                   $.ajax({
+                     url: '/MyRecipes/FilterMenues', 
+                     type: 'POST',               
+                     contentType: 'application/json', 
+                     data: JSON.stringify(checkedCategories), 
+                     success: function(response) {
+
+                            $("#menuePartialView").html(response);
+                     },
+        
+                   });
+        }
+</script>
+

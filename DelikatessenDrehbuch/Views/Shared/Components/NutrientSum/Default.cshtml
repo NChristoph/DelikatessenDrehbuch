@@ -1,0 +1,158 @@
+﻿@model List<NutrienHandler>
+
+@{
+    var calories = ViewBag.SumCalories;
+}
+
+<style>
+    /* =========================================
+               Delikatessen Styles - Aggregierte Ansicht
+               ========================================= */
+
+    .deli-summary-card {
+        background-color: #fff;
+        border: 1px solid #D4AF37; /* Gold */
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    /* Header */
+    .deli-summary-header {
+        background-color: #FEFFF2; /* Creme */
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        text-align: center;
+    }
+
+    .deli-title {
+        color: #770f0f; /* Dunkelrot */
+        font-weight: 700;
+        margin: 0;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Kalorien Hero */
+    .deli-hero-section {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        background: linear-gradient(to bottom, #FEFFF2 0%, #fff 100%);
+    }
+
+    .hero-number {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #2a3440;
+        line-height: 1;
+        display: block;
+    }
+
+    .hero-label {
+        color: #D4AF37; /* Gold */
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        margin-top: 0.4rem;
+        display: block;
+    }
+
+    /* Grid Layout */
+    .deli-nutrient-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 1px;
+        background-color: rgba(212, 175, 55, 0.2); /* Linienfarbe */
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .deli-nutrient-item {
+        background-color: #fff;
+        padding: 1rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: background-color 0.2s;
+    }
+
+        .deli-nutrient-item:hover {
+            background-color: #fafafa;
+        }
+
+    .nutrient-name {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.3rem;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .nutrient-val {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #2a3440;
+    }
+
+    .nutrient-unit {
+        font-size: 0.7rem;
+        color: #999;
+        font-weight: normal;
+        margin-left: 2px;
+    }
+
+    /* Farb-Akzente */
+    .val-protein {
+        color: #0d6efd;
+    }
+
+    .val-fat {
+        color: #ffc107;
+    }
+
+    .val-carbs {
+        color: #198754;
+    }
+
+</style>
+
+<div class="deli-summary-card">
+
+    <div class="deli-summary-header">
+        <h3 class="deli-title">
+            <i class="bi bi-pie-chart-fill me-2"></i> Rezept Bilanz
+        </h3>
+    </div>
+
+      <div class="deli-hero-section">
+        <span id="caloriesIdSum" data-baseData="@calories" class="hero-number">@calories</span>
+        <span class="hero-label"><i class="bi bi-fire"></i> Kalorien (kcal)</span>
+    </div> 
+
+    @{
+        
+        <div class="deli-nutrient-grid">
+            @foreach (var item in Model.OrderBy(x => x.Nutrients.Nutrient))
+            {
+                // Farb-Helper
+                var nameLower = item.Nutrients.Nutrient.ToLower();
+                var colorClass = "";
+                if (nameLower.Contains("protein") || nameLower.Contains("eiweiß")) colorClass = "val-protein";
+                else if (nameLower.Contains("fat")) colorClass = "val-fat";
+                else if (nameLower.Contains("kohlenhydrat")) colorClass = "val-carbs";
+
+                <div class="deli-nutrient-item">
+                    <span class="nutrient-name">@item.Nutrients.Nutrient</span>
+                    <span class="nutrient-val @colorClass">
+                        @Math.Round(item.Quantity.Quantitys, 1)
+                        <span class="nutrient-unit">@item.Metrics.UnitOfMeasurement</span>
+                    </span>
+                </div>
+            }
+        </div>
+    }
+
+</div>

@@ -1,0 +1,94 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+
+@{
+    if (!User.IsInRole("PremiumUser"))
+    {
+        <head>
+            <title>Buy cool new product</title>
+            <link rel="stylesheet" href="style.css">
+            <script src="https://js.stripe.com/v3/"></script>
+        </head>
+
+        <div class="card maxWidth50 mobieleWidth90">
+            <div class="card-header bgRedGardien" style="color:white;font-size:medium;text-align:center">
+                🎉 Werde Premium und erlebe das Beste! 🎉
+            </div>
+            <div class="card-body Bg-Cream flex">
+                <div class="col">
+                    <div class="row">
+                        <ul style="list-style-type:none;font-size:small">
+                            <li>
+                                ✨ Werbefrei:
+                                <ul>
+                                    <li>
+                                        Sag "Auf Wiedersehen" zu störenden Werbeanzeigen und erlebe eine saubere und angenehme Nutzeroberfläche
+                                        – ohne Ablenkungen!
+                                    </li>
+
+                                </ul>
+                            </li>
+                            <li>
+                                📋 Exklusive Inhalte:
+                                <ul>
+                                    <li>
+                                        Mit dem Premium-Update erhältst du exklusiven Zugriff auf alle Menüs unserer Rezepte-Datenbank – perfekt abgestimmt auf jede Gelegenheit. Spare wertvolle Zeit mit unseren zeitsparenden Gesamtzubereitungen und entdecke die umfassenden Inhaltsstoffe zahlreicher Zutaten. So kochst du nicht nur effizienter, sondern auch gesünder und bewusster. Werde Premium-User und erlebe das volle Potenzial deiner Rezepte-Webseite! Als Premium-Mitglied erhältst du Zugang zu speziellen Inhalten, die dich im Alltag unterstützen.
+
+                                    </li>
+                                </ul>
+
+                            </li>
+                            @{
+                                // <li>
+                                //     Wocheneinkaufslisten:
+                                //     <ul>
+                                //         <li>
+                                //             Plane deine Woche stressfrei mit unseren individuell zusammengestellten Einkaufslisten,
+                                //             die perfekt auf unsere leckeren Rezepte abgestimmt sind.
+                                //         </li>
+                                //     </ul>
+                                // </li>
+                                // <li>
+                                //     📈 Mehr Features, mehr Komfort:
+                                //     <ul>
+                                //         <li>
+                                //             Profitiere von erweiterten Funktionen, die dir helfen, deine Essensplanung,
+                                //             Einkauf und Kochen einfacher und effizienter zu gestalten.
+                                //         </li>
+                                //     </ul>
+                                // </li>
+                            }
+                           
+                        </ul>
+                    </div>
+                </div>
+
+
+            </div>
+
+            @{
+                <div class="card-footer">
+                    <div class="flexRow minWidth100 flexJustifyContendSpaceBetween">
+                        <div class="description" style="max-width:fit-content">
+                            <span>Abokosten</span>
+                            <span>1,59 Euro</span>
+                        </div>
+                        <section style="max-width:fit-content;">
+                          <button class="bgRed Border-Gold" style="color:white">Premium bald verfügbar! </button>
+
+                        </section>
+                    </div>
+                </div>
+                //ToDo:Wider inn die section wen premium verfügbar
+                // <form action="/create-checkout-session" method="POST">
+                //     <button class="bgRed Border-Gold" type="submit" id="checkout-button" style="color:white">Premium werden </button>
+                // </form>
+            }
+           
+
+        </div>
+
+        }
+}

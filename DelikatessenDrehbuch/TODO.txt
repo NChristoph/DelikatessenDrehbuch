@@ -1,14 +1,54 @@
-Image Server erstellen und verbinden
-Image Hochladen ermöglichen
+Hab die Rezeptesuche in die Layout.cshtml geschrieben.
+Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
 
-selected recipe seite desingnen
+//TODO:suche noch verbessern noch filter einfügen unnd die zutaten in ganzen anzeigen also die inhalte fürs ganze menü
+//ToDo: nutze umgebungsvarieablen
+//ToDo:Nutriens anzeige auf die im Rezept vorkommende Mänge anpassen ,auserdem eine ligth versiun der nutrienanzeige 
+//     fur _selectedRechipes noch machen(Ligth Version = free ,full Version=Premiun user abo)
+//TODO:Nutrients Hinzufügen für alle menü komponenten dazu eigene view erstellen mit auswah nutriens 
+//Todo Wochenplan Fürs essen machen und filter für filter steicghern
+Nacher Essensplaner erstellen 
 
-Rezept moddal  slogan kategorie  
-bewertung in eigenes model packen und model für bereits gelikte rezepte einfügen bzw datatable
-
-LikeButton noch erstellen und einbinden Likes und bewertung erstellen eigene View wen das rezept öffnet zum anzeigen
+eine eigene seite für Zutaten Inhaltsstoffe noch bereitstellen Das NutrirntLexikon Nur für Premium User und das im selectet
 
 
-Eingaben auf null or emty prüfen bei der rezepterstellung und bearbeitung
+Rezepte Hochladen
+
+Mauszeiger am anfang bei der bewertung funktionirt nicht wie er soll wen ich einen tipfehler korigiern
+mochte startet der curser auch am anfang das ist nicht ziehlfürend
+
+
+
+Mein Bereich das ändern von Userdaten ermöglichen und vl noch das Rezept des Monats anzeigen.
+
+
+Bei den Grid Style Sheed noch die convention vereinheitlichen.
+
+
+
+Mach eine Dokumentation und Kommentier alles gut aus
+
+arbeiten mit api noch lernen
+
+
+
 
 Code Übersichtlicher machen 
+//
+AQAAAAEAACcQAAAAEE9SEX1nmdEgjN8i+jo3vcUc7uCV/juEnU3yYYuKIkWWO7G784QyL/7zvIrIMp24Tw==
+
+Data Source=tcp:delikatessen-drehbuch-server.database.windows.net,1433;Initial Catalog=DelikatessenDrehbuchDb;User Id=DelikatessenDrehbuch@delikatessen-drehbuch-server;Password=Ni049753!
+
+kay 1
+IR@c45a96d9-72f5-44d0-8029-3067291a477b@DelikatessenDrehbuch@nore@a16jvZusTPa+tmZaX7UFwSWH/36T7RegjgYoYqOchwk=
+
+kay 2
+IR@c45a96d9-72f5-44d0-8029-3067291a477b@DelikatessenDrehbuch@nore@aHUxG+EHjyKb75ZO5zmHp1A5Sbd9SDjkehXN9FrUPN4=
+
+{
+ for (var pair of formData.entries()) {
+                console.log(pair[0] + ', '+pair[1]);
+            }
+}
+Formdata in console ausgeben
+

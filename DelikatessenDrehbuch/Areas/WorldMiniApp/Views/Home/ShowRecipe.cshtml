@@ -1,0 +1,496 @@
+﻿@model DelikatessenDrehbuch.Models.RecipeBaseData
+@using System.Globalization
+
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = Model.Title;
+
+    // --- C# Berechnung der Initial-Werte (Basis) ---
+    decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
+
+    foreach (var item in Model.Ingredients)
+    {
+        var nutri = item.Ingredient.IngredientsAndNutrients;
+        var quantity = (decimal)item.Ingredient.Quantity.Quantitys;
+        var unit = item.Ingredient.Measure.UnitOfMeasurement.ToLower();
+
+        decimal factor = (unit == "stk" || unit == "stück")
+            ? (quantity * nutri.Weight_per_piece) / 100m
+            : quantity / 100m;
+
+        totalCalories += nutri.Calories_a_100g * factor;
+        totalProtein += nutri.Protein_a_100g * factor;
+        totalFat += nutri.Fat_a_100g * factor;
+        totalCarbs += nutri.Carbohydrates_a_100g * factor;
+        totalSugar += nutri.Sugar_a_100g * factor;
+        totalFiber += nutri.Fiber_a_100g * factor;
+    }
+
+    var basePortions = Model.PersonCount;
+    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
+    string IngredientName(DelikatessenDrehbuch.Models.IngredientsAndNutrients item) => language switch
+    {
+        "en" => item.Name_EN,
+        "es" => item.Name_ESP,
+        "pt" => item.Name_PRT,
+        _ => item.Name_DE
+    };
+
+    string StepText(DelikatessenDrehbuch.Models.RecipePreperationSteps step) => language switch
+    {
+        "en" => step.Step_EN,
+        "es" => step.Step_ESP,
+        "pt" => step.Step_PRT,
+        _ => step.Step_DE
+    };
+
+    var canPublishToFeed = ViewData["CanPublishToFeed"] as bool? == true;
+    var existingPostingId = ViewData["ExistingPostingId"] as int?;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --deli-primary: #2D4F1E;
+        --deli-gold: #D4AF37;
+        --deli-cream: #FEFFF2;
+        --deli-dark: #1A1A1A;
+        --deli-bg: #F8F9F5;
+        --shadow-sm: 0 4px 12px rgba(0,0,0,0.05);
+        --shadow-md: 0 12px 24px rgba(0,0,0,0.08);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--deli-bg);
+        color: var(--deli-dark);
+        margin: 0;
+        padding: 0;
+    }
+
+    h1, h2, .serif-font {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+    }
+
+    /* --- Immersive Hero Header --- */
+    .hero-container {
+        position: relative;
+        height: 50vh;
+        min-height: 400px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .hero-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .header-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, rgba(0,0,0,0.6) 100%);
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 50px;
+        left: 20px;
+        z-index: 100;
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-md);
+        color: var(--deli-dark);
+    }
+
+    /* --- Content Body --- */
+    .recipe-main-content {
+        position: relative;
+        margin-top: -45px;
+        background: var(--deli-bg);
+        border-top-left-radius: 40px;
+        border-top-right-radius: 40px;
+        padding-top: 20px;
+        z-index: 20;
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+    }
+
+    .drag-handle {
+        width: 45px;
+        height: 5px;
+        background: #D1D1D1;
+        border-radius: 10px;
+        margin: 0 auto 25px;
+    }
+
+    .title-section {
+        padding: 0 25px;
+        margin-bottom: 30px;
+    }
+
+    .badge-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .premium-badge {
+        background: white;
+        padding: 10px 16px;
+        border-radius: 18px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: 1px solid rgba(212, 175, 55, 0.1);
+    }
+
+    /* --- Custom Tab Navigation --- */
+    .nav-pills-custom {
+        background: #EEEFEA;
+        padding: 6px;
+        border-radius: 22px;
+        margin: 0 20px 30px;
+        display: flex;
+    }
+
+        .nav-pills-custom .nav-link {
+            flex: 1;
+            border-radius: 18px;
+            color: #707070;
+            font-weight: 700;
+            border: none;
+            padding: 14px 5px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            background: transparent;
+        }
+
+            .nav-pills-custom .nav-link.active {
+                background: white;
+                color: var(--deli-primary);
+                box-shadow: var(--shadow-sm);
+            }
+
+    /* --- Ingredients Section --- */
+    .portion-selector-wrapper {
+        margin-bottom: 25px;
+    }
+
+    .portion-stepper {
+        background: white;
+        border-radius: 100px;
+        padding: 10px 24px;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .ingredient-card {
+        background: white;
+        margin: 0 20px 12px;
+        padding: 18px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+
+        .ingredient-card.checked {
+            background: #F1F1F1;
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+    .check-box {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        border: 2px solid var(--deli-gold);
+        margin-right: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+    .checked .check-box {
+        background: var(--deli-primary);
+        border-color: var(--deli-primary);
+    }
+
+    /* --- Preparation Steps --- */
+    .step-container {
+        padding: 0 20px;
+    }
+
+    .step-card {
+        position: relative;
+        padding: 25px;
+        background: white;
+        border-radius: 24px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+        border-left: 5px solid var(--deli-gold);
+    }
+
+    .step-badge {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--deli-gold);
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    /* --- Nutrition Grid --- */
+    .nutri-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        padding: 0 20px;
+    }
+
+    .nutri-item {
+        background: white;
+        padding: 22px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .nutri-item-main {
+        grid-column: span 2;
+        background: var(--deli-primary);
+        color: white;
+    }
+
+    .nutri-val {
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .nutri-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        opacity: 0.7;
+        letter-spacing: 1px;
+    }
+</style>
+
+<div class="min-vh-100 pb-5">
+
+    <div class="hero-container">
+        <div class="header-overlay"></div>
+        <a href="javascript:history.back()" class="back-btn text-decoration-none">
+            <i class="bi bi-chevron-left fs-5"></i>
+        </a>
+
+        @if (Model.Images != null && Model.Images.Any())
+        {
+            <img src="@Model.Images.First().Image" class="hero-image" alt="@Model.Title" />
+        }
+        else
+        {
+            <img src="https://cdn.pixabay.com/photo/2014/12/21/23/28/recipe-575434_640.png" class="hero-image" alt="Recipe" />
+        }
+    </div>
+
+    <div class="recipe-main-content">
+        <div class="drag-handle"></div>
+
+        <div class="title-section text-center">
+            <h1 class="display-6 mb-3">@Model.Title</h1>
+
+            <div class="badge-row">
+                <div class="premium-badge">
+                    <i class="bi bi-clock text-warning"></i> @Model.PreperationTime Min.
+                </div>
+                <div class="premium-badge">
+                    <i class="bi bi-fire text-danger"></i>
+                    <span id="headerCalories" data-base="@(totalCalories / Model.PersonCount)">@Math.Round(totalCalories / Model.PersonCount)</span> kcal
+                </div>
+            </div>
+
+
+            @if (canPublishToFeed)
+            {
+                <div class="mt-3">
+                    @if (existingPostingId.HasValue)
+                    {
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = existingPostingId.Value })">
+                            <i class="bi bi-pencil-square me-1"></i> Feed-Posting bearbeiten
+                        </a>
+                    }
+                    else
+                    {
+                        <form asp-action="PublishRecipeBaseDataToFeed" asp-controller="Home" asp-area="WorldMiniApp" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="recipeBaseDataId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-broadcast-pin me-1"></i> Als Feed-Posting anlegen
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
+        </div>
+
+        <nav class="nav nav-pills-custom" id="recipeTab" role="tablist">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#ingredients" type="button">@T("Einkauf", "Ingredients", "Compra", "Compras")</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#preparation" type="button">@T("Schritte", "Steps", "Pasos", "Passos")</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#nutrition" type="button">@T("Nährwerte", "Nutrition", "Nutrición", "Nutrição")</button>
+        </nav>
+
+        <div class="tab-content">
+
+            <div class="tab-pane fade show active" id="ingredients" role="tabpanel">
+                <div class="text-center portion-selector-wrapper">
+                    <div class="portion-stepper">
+                        <span class="me-2 fw-bold text-muted small">@T("Zutaten für", "Servings for", "Personas:", "Pessoas:")</span>
+                        <input type="number" id="portionInput" class="fw-bold text-center" value="@Model.PersonCount" min="1" onchange="updatePortions()"
+                               style="width: 45px; border:none; background:transparent; color:var(--deli-primary); font-size: 1.1rem;">
+                    </div>
+                </div>
+
+                @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "General"))
+                {
+                    <h6 class="text-uppercase fw-bold opacity-50 mb-3 px-4" style="font-size: 0.7rem; letter-spacing: 2px;">@group.Key</h6>
+                    @foreach (var item in group)
+                    {
+                        <div class="ingredient-card shadow-sm" onclick="toggleCheck(this)">
+                            <div class="check-box">
+                                <i class="bi bi-check-lg text-white d-none"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
+                                    <span class="text-muted small">
+                                        <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.UnitOfMeasurement
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="tab-pane fade" id="preparation" role="tabpanel">
+                <div class="step-container">
+                    @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
+                    {
+                        <div class="step-card">
+                            <span class="step-badge">@T("Schritt", "Step", "Paso", "Passo") @step.StepIndex</span>
+                            <p class="mb-0 lh-lg" style="font-size: 1.05rem; color: #444;">@StepText(step.RecipePreperationStep)</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="nutrition" role="tabpanel">
+                <div class="nutri-grid">
+                    <div class="nutri-item nutri-item-main shadow-lg">
+                        <span class="nutri-val dyn-nutri" data-base="@totalCalories" style="font-size: 3rem;">@Math.Round(totalCalories)</span>
+                        <span class="nutri-label">Gesamt Kcal</span>
+                    </div>
+                    <div class="nutri-item">
+                        <span class="nutri-val dyn-nutri" data-base="@totalProtein">@Math.Round(totalProtein)</span>
+                        <span class="nutri-label">@T("Protein (g)", "Protein", "Proteína", "Proteína")</span>
+                    </div>
+                    <div class="nutri-item">
+                        <span class="nutri-val dyn-nutri" data-base="@totalCarbs">@Math.Round(totalCarbs)</span>
+                        <span class="nutri-label">@T("Carbs (g)", "Carbs", "Carbo", "Carbo")</span>
+                    </div>
+                    <div class="nutri-item">
+                        <span class="nutri-val dyn-nutri" data-base="@totalFat">@Math.Round(totalFat)</span>
+                        <span class="nutri-label">@T("Fett (g)", "Fat", "Grasa", "Gordura")</span>
+                    </div>
+                    <div class="nutri-item">
+                        <span class="nutri-val dyn-nutri" data-base="@totalSugar">@Math.Round(totalSugar, 1)</span>
+                        <span class="nutri-label">@T("Zucker (g)", "Sugar", "Azúcar", "Açúcar")</span>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5 px-4 text-muted small fst-italic">
+                    @T("Alle Werte basieren auf Standard-Nährwertangaben.", "Values based on standard estimates.", "Valores estimados.", "Valores estimados.")
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const basePortionCount = @basePortions;
+
+    function toggleCheck(element) {
+        element.classList.toggle('checked');
+        const icon = element.querySelector('.bi-check-lg');
+        if (icon) icon.classList.toggle('d-none');
+    }
+
+    function updatePortions() {
+        const input = document.getElementById('portionInput');
+        let newCount = parseFloat(input.value);
+        if (isNaN(newCount) || newCount < 0.1) newCount = 1;
+
+        const ratio = newCount / basePortionCount;
+
+        // 1. Update Mengen (Zutaten)
+        document.querySelectorAll('.dyn-qty').forEach(el => {
+            const baseQty = parseFloat(el.getAttribute('data-base-qty').replace(',', '.'));
+            if(!isNaN(baseQty)) {
+                let newVal = (baseQty * ratio);
+                el.innerText = (Math.round(newVal * 100) / 100).toString().replace('.', ',');
+            }
+        });
+
+        // 2. Update Kcal im Header
+        const headerCal = document.getElementById('headerCalories');
+        const baseHeaderCal = parseFloat(headerCal.getAttribute('data-base').replace(',', '.'));
+        headerCal.innerText = Math.round(baseHeaderCal * (newCount / basePortionCount)).toString();
+
+        // 3. Update Nährwert-Tab
+        document.querySelectorAll('.dyn-nutri').forEach(el => {
+            const baseNutri = parseFloat(el.getAttribute('data-base').replace(',', '.'));
+            if(!isNaN(baseNutri)) {
+                el.innerText = Math.round(baseNutri * ratio).toString();
+            }
+        });
+    }
+</script>

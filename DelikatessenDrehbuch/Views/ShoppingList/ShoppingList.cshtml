@@ -1,0 +1,328 @@
+﻿@using DelikatessenDrehbuch.ShoppingList.Model
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@model List<ShoppingListModel>
+
+@{
+    ViewData["Title"] = "Einkaufsliste - Geteilt";
+    Layout = SignInManager.IsSignedIn(User) ? "_Layout" : "_MinimalLayout";
+
+    // 1. Nach Kategorie gruppieren
+    // Wir nutzen "Sonstiges" als Fallback, falls Category null ist
+    var groupedItems = Model
+        .OrderBy(x => x.IsBought) // Erledigtes nach unten (optional)
+        .GroupBy(x => x.Category ?? "Sonstiges")
+        .OrderBy(g => g.Key)
+        .ToList();
+}
+
+<style>
+    /* =========================================
+           Delikatessen Styles - Shared List (Final)
+           ========================================= */
+
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .shared-list-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 1rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding-bottom: 80px; /* Platz für Reset Button */
+    }
+
+    @@media (min-width: 992px) {
+        .shared-list-wrapper
+
+    {
+        grid-template-columns: 2fr 1fr;
+    }
+
+    }
+
+    /* Header */
+    .list-header {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-top: 4px solid #D4AF37;
+        margin-bottom: 1.5rem;
+    }
+
+    .list-title {
+        font-family: 'Playfair Display', serif;
+        color: #770f0f;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .list-subtitle {
+        color: #888;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Gruppen Header */
+    .cat-header {
+        color: #2a3440;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 1.5rem 0 0.5rem 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .cat-header i {
+            color: #D4AF37;
+        }
+
+    /* Die Liste */
+    .shopping-card {
+        background: #fff;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: background 0.1s;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-row:active {
+            background-color: #f5f5f5;
+        }
+
+    /* Checkbox Optik */
+    .check-circle {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        color: transparent;
+        background: #fff;
+    }
+
+    .item-content {
+        flex-grow: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.05rem;
+        display: block;
+        line-height: 1.3;
+    }
+
+    .item-qty {
+        font-size: 0.85rem;
+        color: #770f0f;
+        font-weight: 700;
+        background: #FEFFF2;
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-top: 4px;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    /* Zustand: Erledigt */
+    .item-row.done {
+        background-color: #fafafa;
+    }
+
+        .item-row.done .check-circle {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: #fff;
+        }
+
+        .item-row.done .item-name {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        .item-row.done .item-qty {
+            background: #eee;
+            color: #aaa;
+            text-decoration: line-through;
+            border-color: transparent;
+        }
+
+    /* Werbung */
+    .ad-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .ad-slot {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 1rem;
+        min-height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        font-size: 0.8rem;
+        overflow: hidden;
+        text-transform: uppercase;
+    }
+
+    /* Reset Link */
+    .reset-link {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+        .reset-link button {
+            background: none;
+            border: none;
+            color: #999;
+            text-decoration: underline;
+            font-size: 0.85rem;
+        }
+</style>
+
+<div class="shared-list-wrapper">
+
+    <div>
+        <div class="list-header">
+            <h1 class="list-title">Einkaufsliste</h1>
+            <p class="list-subtitle">Viel Erfolg beim Einkauf! 🛒</p>
+        </div>
+
+        @foreach (var group in groupedItems)
+        {
+            <div class="cat-header">
+                <i class="bi bi-basket2-fill"></i> @group.Key
+            </div>
+
+            <div class="shopping-card">
+                @foreach (var item in group)
+                {
+                    var uniqueId = $"shop_{item.Id}";
+                    // Prüfen ob DB sagt "gekauft"
+                    var isDoneClass = item.IsBought ? "done" : "";
+
+                    <div class="item-row @isDoneClass" id="@uniqueId" onclick="toggleCheck('@uniqueId')">
+                        <div class="check-circle">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+
+                        <div class="item-content">
+                            <span class="item-name">@item.Name</span>
+
+                            @if (item.Quantity.HasValue && item.Quantity > 0)
+                            {
+                                <span class="item-qty">
+                                    @item.Quantity.Value.ToString("0.##").Replace(",", ".") @item.UnitOfMeasurement
+                                </span>
+                            }
+                            else if (!string.IsNullOrEmpty(item.UnitOfMeasurement))
+                            {
+                                <span class="item-qty">@item.UnitOfMeasurement</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="p-5 text-center text-muted">
+                <i class="bi bi-basket3 display-4 mb-3 opacity-25"></i>
+                <p>Die Liste ist leer.</p>
+            </div>
+        }
+
+        <div class="reset-link">
+            <button onclick="resetList()">Alle Markierungen entfernen</button>
+        </div>
+    </div>
+
+    <aside class="ad-container">
+        <div class="ad-slot">
+            <span>Werbung</span>
+        </div>
+        <div class="ad-slot">
+            <span>Werbung</span>
+        </div>
+    </aside>
+
+</div>
+
+<script>
+    // LocalStorage Key basierend auf URL (damit jede Liste eigenständig ist)
+    const STORAGE_KEY = "shopping_state_" + window.location.search;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadState();
+    });
+
+    function toggleCheck(id) {
+        const row = document.getElementById(id);
+        if (row) {
+            row.classList.toggle('done');
+            saveState();
+        }
+    }
+
+    function saveState() {
+        const state = {};
+        document.querySelectorAll('.item-row').forEach(row => {
+            if (row.classList.contains('done')) {
+                state[row.id] = true;
+            }
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+        // 1. Zuerst prüfen wir, was in der DB als "IsBought" markiert war (das ist schon im HTML als class="done")
+        // 2. Dann mischen wir das mit dem LocalStorage des Nutzers
+
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const state = JSON.parse(saved);
+            for (const id in state) {
+                const row = document.getElementById(id);
+                if (row) row.classList.add('done');
+            }
+        }
+    }
+
+    function resetList() {
+        if(confirm("Wirklich alles zurücksetzen?")) {
+            localStorage.removeItem(STORAGE_KEY);
+            document.querySelectorAll('.item-row').forEach(row => row.classList.remove('done'));
+        }
+    }
+</script>

@@ -1,0 +1,274 @@
+﻿@using DelikatessenDrehbuch.Models
+@model (IEnumerable<IGrouping<string, IngredientHandlerModel>> group, bool salt, bool pepper)
+
+@{
+    var (groupIng, salt, pepper) = Model;
+
+    // Wir sammeln alle IDs, um später den Share-Link zu bauen
+    // (Optional, falls du den Link lieber per JS baust)
+}
+
+<style>
+    /* =========================================
+           Delikatessen Styles - Küchen-Check V2
+           ========================================= */
+
+    .shopping-wrapper {
+        max-width: 650px;
+        margin: 0 auto;
+        font-family: 'Segoe UI', sans-serif;
+        padding-bottom: 100px;
+    }
+
+    /* Header */
+    .shop-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .shop-title {
+        font-family: 'Playfair Display', serif;
+        color: #770f0f;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .shop-subtitle {
+        color: #D4AF37;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 0.5rem;
+    }
+
+    /* Gruppen Header */
+    .category-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #2a3440;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-top: 1.8rem;
+        margin-bottom: 0.8rem;
+        border-bottom: 2px solid #FEFFF2;
+        padding-bottom: 0.2rem;
+    }
+
+        .category-header i {
+            color: #D4AF37;
+        }
+
+    /* Die Zutat-Zeile */
+    .shop-row {
+        display: grid;
+        /* Checkbox | Input | Einheit | Name */
+        grid-template-columns: 40px 70px 50px 1fr;
+        align-items: center;
+        background: #fff;
+        border: 1px solid #eee;
+        border-left: 4px solid transparent; /* Marker links */
+        border-radius: 0.6rem;
+        padding: 0.8rem 0.5rem; /* Etwas mehr Platz zum Tippen */
+        margin-bottom: 0.6rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        cursor: pointer; /* Zeigt: Hier kann man klicken */
+    }
+
+        .shop-row:hover {
+            border-color: #D4AF37; /* Goldener Rahmen bei Hover */
+            transform: translateX(2px);
+        }
+
+        /* Zustand: "Hab ich zuhause" (Inaktiv) */
+        .shop-row.has-item {
+            background-color: #f8f9fa;
+            border-color: #eee;
+            border-left-color: #28a745; /* Grüner Streifen links */
+            opacity: 0.6;
+        }
+
+            .shop-row.has-item .ing-name {
+                text-decoration: line-through;
+                color: #aaa;
+            }
+
+            .shop-row.has-item input[type="number"] {
+                color: #ccc;
+                background: transparent;
+                border-color: transparent;
+                pointer-events: none;
+            }
+
+    /* Echte Checkbox (Groß & Sichtbar) */
+    .big-checkbox {
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        accent-color: #28a745; /* Grün */
+        margin: 0 auto;
+        transform: scale(1.2); /* Größer machen */
+    }
+
+    /* Input für Menge */
+    .qty-input {
+        width: 100%;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 0.3rem;
+        padding: 0.3rem 0;
+        font-weight: 700;
+        color: #770f0f;
+        background-color: #FEFFF2;
+        /* Damit man auf Mobilgeräten leichter tippen kann: */
+        font-size: 1rem;
+    }
+
+        .qty-input:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+    .unit-label {
+        font-size: 0.85rem;
+        color: #666;
+        padding-left: 5px;
+    }
+
+    .ing-name {
+        font-weight: 600;
+        color: #333;
+        padding-left: 5px;
+        line-height: 1.3;
+        font-size: 1rem;
+    }
+
+    /* Sticky Footer (Teilen Button) */
+    .share-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        padding: 1rem;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+        z-index: 1000;
+        border-top: 1px solid #eee;
+    }
+
+    .btn-share {
+        background-color: #25D366; /* WhatsApp Grün */
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.2s;
+    }
+
+        .btn-share:hover {
+            background-color: #1ebc57;
+            transform: scale(1.03);
+            color: #fff;
+        }
+
+</style>
+
+<div class="shopping-wrapper">
+
+    <div class="shop-header">
+        <h2 class="shop-title">Küchen-Check</h2>
+        <div class="shop-subtitle">Was hast du schon zuhause?</div>
+    </div>
+
+    <div id="shoppingListContainer">
+        @foreach (var ingGroup in groupIng)
+        {
+            <div class="category-header">
+                <i class="bi bi-basket2-fill"></i> @ingGroup.Key
+            </div>
+
+            @foreach (var ing in ingGroup)
+            {
+                var qty = ing.Quantity.Quantitys;
+                var displayQty = qty == 0 ? "" : Math.Round(qty, 2).ToString().Replace(",", ".");
+                var uniqueId = $"item_{ing.Ingredient.Id}_{Guid.NewGuid()}";
+
+                <div class="shop-row" id="row_@uniqueId" onclick="toggleRow('@uniqueId')">
+
+                    <div onclick="event.stopPropagation()">
+                        <input type="checkbox" class="big-checkbox"
+                               id="cb_@uniqueId"
+                               onchange="toggleRowVisuals('@uniqueId')"
+                               data-id="@ing.Ingredient.Id"
+                               data-name="@ing.Ingredient.Name"
+                               data-unit="@ing.Measure.UnitOfMeasurement"
+                               data-category="@ing.Ingredient.Group.Name"/>
+                    </div>
+
+                    <div onclick="event.stopPropagation()">
+                        <input type="number" class="qty-input" id="qty_@uniqueId" value="@displayQty" step="0.1" />
+                    </div>
+
+                    <div class="unit-label">
+                        @ing.Measure.UnitOfMeasurement
+                    </div>
+
+                    <div class="ing-name">
+                        @ing.Ingredient.Name
+                    </div>
+
+                </div>
+            }
+        }
+
+        @if (salt || pepper)
+        {
+            <div class="alert alert-warning d-flex align-items-center mt-4" style="background:#fffdf5; border:1px solid #D4AF37; color:#770f0f;">
+                <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                <div>
+                    <strong>Nicht vergessen:</strong><br>
+                    @(salt && pepper ? "Salz & Pfeffer prüfen!" : salt ? "Salz prüfen!" : "Pfeffer prüfen!")
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+<div class="share-footer">
+    <button class="btn-share" onclick="saveAndShareList()">
+        <i class="bi bi-whatsapp fs-5"></i> Liste teilen
+    </button>
+</div>
+
+<script>
+    // 1. Toggle Logik (Zeile grau machen)
+    function toggleRow(uniqueId) {
+        const cb = document.getElementById('cb_' + uniqueId);
+        // Checkbox Status umkehren
+        cb.checked = !cb.checked;
+        toggleRowVisuals(uniqueId);
+    }
+
+    function toggleRowVisuals(uniqueId) {
+        const row = document.getElementById('row_' + uniqueId);
+        const cb = document.getElementById('cb_' + uniqueId);
+
+        if (cb.checked) {
+            row.classList.add('has-item');
+        } else {
+            row.classList.remove('has-item');
+        }
+    }
+
+   
+</script>

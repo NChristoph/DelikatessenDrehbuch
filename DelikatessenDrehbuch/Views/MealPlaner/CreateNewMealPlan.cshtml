@@ -1,0 +1,625 @@
+﻿@using DelikatessenDrehbuch.Models
+@using DelikatessenDrehbuch.StaticScripts
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+@model List<MealPlanerModel>
+
+@{
+    var personCount = (int)ViewData["PersonCount"];
+    // WICHTIG: Hier sortieren wir die Liste nach Tag, damit die Darstellung stimmt
+    var groupedPerDays = Model.GroupBy(x => x.Index).OrderBy(x => x.Key).ToList();
+}
+
+<input id="personCount" value="@personCount" hidden />
+
+<style>
+    /* ===========================
+               Delikatessen Styles - Final
+               =========================== */
+    :root {
+        --mealplan-accent: #770f0f;
+        --mealplan-accent-soft: #D4AF37;
+        --mealplan-accent-contrast: #fff;
+        --mealplan-cream: #FEFFF2;
+        --deli-cream: var(--mealplan-cream);
+    }
+
+    .mealplan-accent-text {
+        color: var(--mealplan-accent);
+    }
+
+    .mealplan-accent-bg {
+        background-color: var(--mealplan-accent);
+        color: var(--mealplan-accent-contrast);
+    }
+
+    .mealplan-accent-border {
+        border-color: var(--mealplan-accent);
+    }
+
+    .mealplan-accent-outline {
+        color: var(--mealplan-accent);
+        border-color: var(--mealplan-accent);
+        background-color: transparent;
+    }
+
+        .mealplan-accent-outline:hover {
+            background-color: var(--mealplan-accent);
+            color: var(--mealplan-accent-contrast);
+        }
+
+    /* --- Hauptbereich (Links) --- */
+    .day-container {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 3rem;
+        scroll-margin-top: 100px; /* Damit Anker nicht hinter dem Header verschwinden */
+    }
+
+    .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--mealplan-cream);
+        padding-bottom: 0.5rem;
+    }
+
+    .day-title {
+        font-family: 'Playfair Display', serif;
+        color: var(--mealplan-accent);
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+    /* --- Tabs Styling --- */
+    .nav-pills .nav-link {
+        color: #666;
+        background: #fff;
+        border: 1px solid #eee;
+        margin: 0 5px 10px 5px;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--mealplan-accent);
+            color: var(--mealplan-accent-contrast);
+            border-color: var(--mealplan-accent);
+            box-shadow: 0 4px 10px rgba(119, 15, 15, 0.3);
+        }
+
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: #fcfcfc;
+            border-color: var(--mealplan-accent);
+            color: var(--mealplan-accent);
+        }
+
+    /* --- Große Karte (Tab Content) --- */
+    .meal-tab-card {
+        border: none;
+        max-width: 550px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+
+    .meal-img-wrapper {
+        position: relative;
+        height: 260px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+    }
+
+        .meal-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+    .meal-tab-card:hover .meal-img-wrapper img {
+        transform: scale(1.03);
+    }
+
+    /* Chips über dem Bild */
+    .meal-chips {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        display: flex;
+        gap: 5px;
+    }
+
+    .meal-badge {
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Karten Body */
+    .meal-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .meal-title {
+        font-weight: 800;
+        color: #2a3440;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .meal-actions {
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+    }
+
+    .btn-change {
+        background-color: #fff;
+        color: var(--mealplan-accent);
+        border: 1px solid var(--mealplan-accent);
+        padding: 0.4rem 1.2rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+        .btn-change:hover {
+            background-color: var(--mealplan-accent);
+            color: var(--mealplan-accent-contrast);
+        }
+
+    /* Empty State */
+    .empty-state {
+        height: 260px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        background-color: #f9f9f9;
+    }
+
+    /* --- SIDEBAR (Rechts) --- */
+    .desktop-sidebar {
+        display: block;
+    }
+
+    .overview-sidebar {
+        position: sticky;
+        top: 20px;
+        background: #fff;
+        border: 1px solid var(--mealplan-accent-soft);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .overview-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px dashed #eee;
+    }
+
+        .overview-item:last-child {
+            border-bottom: none;
+        }
+
+    .ov-img {
+        width: 45px;
+        height: 45px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #eee;
+    }
+
+    .ov-cat {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: var(--mealplan-accent-soft);
+        font-weight: 700;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .ov-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.2;
+        display: block;
+    }
+
+    /* --- Mobile Button & Offcanvas --- */
+    .mobile-overview-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1050;
+        border-radius: 50px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        padding: 12px 20px;
+        font-weight: 700;
+        background-color: var(--mealplan-accent);
+        color: var(--mealplan-accent-contrast);
+        border: none;
+        display: none; /* Standard aus */
+    }
+
+    .offcanvas-overview .offcanvas-body {
+        background-color: #fdfdfd;
+    }
+
+    /* Responsive Switch */
+    @@media (max-width: 992px) {
+        .desktop-sidebar {
+            display: none !important;
+        }
+
+        .mobile-overview-btn {
+            display: block !important;
+        }
+    }
+</style>
+
+<div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100"  tabindex="-1" style="min-width:50%" id="offcanvasDay_Hauptspeise">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text" style="font-family:'Playfair Display'">Hauptspeise</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);" >
+        
+    </div>
+
+</div>
+
+<div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100" tabindex="-1" style="min-width:50%" id="offcanvasDay_Dessert">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text" style="font-family:'Playfair Display'">Dessert</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);">
+    </div>
+
+</div>
+
+<div class="offcanvas offcanvas-end meal-offcanvas mobieleWidth100" tabindex="-1" style="min-width:50%" id="offcanvasDay_Vorspeise">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text" style="font-family:'Playfair Display'">Vorspeise</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" style="background-color:var(--deli-cream);">
+       
+    </div>
+
+</div>
+
+
+<div class="container mb-4">
+    <div class="card p-4 border-0 shadow-sm text-center bg-light">
+        <h5 class="fw-bold mealplan-accent-text mb-2">Schritt 2: Dein Plan</h5>
+        <p class="text-muted m-0">Passe jeden Gang individuell an oder verschiebe Tage über die Seitenleiste.</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-lg-8">
+            @foreach (var dayGroupe in groupedPerDays)
+            {
+
+                var dayId = dayGroupe.Key;
+                // Rezepte suchen
+                var vorspeise = dayGroupe.FirstOrDefault(x =>
+                (x.Recipes?.Category ?? "").Trim().ToLower() == "vorspeise");
+
+                var hauptspeise = dayGroupe.FirstOrDefault(x =>
+                (x.Recipes?.Category ?? "").Trim().ToLower() == "hauptspeise");
+
+                var dessert = dayGroupe.FirstOrDefault(x => 
+                (x.Recipes?.Category ?? "").Trim().ToLower() == "dessert");
+
+                <div class="day-container" id="day-anchor-@dayId">
+
+                    <div class="day-header">
+                        <h3 class="day-title">Tag @dayId</h3>
+                        <button class="btn btn-sm text-warning d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#overviewOffcanvas">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+
+                    <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab-@dayId" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-vor-@dayId"><i class="bi bi-egg-fill me-1"></i> Vorspeise</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-main-@dayId"><i class="bi bi-basket2-fill me-1"></i> Hauptspeise</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-dessert-@dayId"><i class="bi bi-cupcake-fill me-1"></i> Dessert</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade" id="pills-vor-@dayId">
+                            @{
+                                RenderRecipeCard(dayId, vorspeise, "Vorspeise", "apperetizer_");
+                            }
+                        </div>
+                        <div class="tab-pane fade show active" id="pills-main-@dayId">
+                            @{
+                                 RenderRecipeCard(dayId, hauptspeise, "Hauptspeise", "main_");
+                            }
+                        </div>
+                        <div class="tab-pane fade" id="pills-dessert-@dayId">
+                            @{
+                                 RenderRecipeCard(dayId, dessert, "Dessert", "dessert_");
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4 desktop-sidebar">
+            <div class="overview-sidebar">
+                <h5 class="mealplan-accent-text fw-bold mb-4 text-center"><i class="bi bi-calendar-check"></i> Wochen-Check</h5>
+
+                @foreach (var day in groupedPerDays)
+                {
+                    var isFirst = day.Key == groupedPerDays.First().Key;
+                    var isLast = day.Key == groupedPerDays.Last().Key;
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2 bg-light p-2 rounded border">
+                            <h6 class="fw-bold m-0 text-muted">Tag @day.Key</h6>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="btn-group btn-group-sm">
+                                    @if (!isFirst)
+                                    {
+                                        <button class="btn btn-outline-secondary border-0 py-0" onclick="swapDay(@day.Key, -1)" title="Nach oben"><i class="bi bi-arrow-up-short"></i></button>
+                                    }
+                                    @if (!isLast)
+                                    {
+                                        <button class="btn btn-outline-secondary border-0 py-0" onclick="swapDay(@day.Key, 1)" title="Nach unten"><i class="bi bi-arrow-down-short"></i></button>
+                                    }
+                                </div>
+                                <a href="#day-anchor-@day.Key" class="text-warning"><i class="bi bi-pencil-square"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="bg-light rounded p-2 border">
+                            @{
+                                // RenderMiniItem für DESKTOP (mit ID für JS)
+                                RenderMiniItem(day.Key, day.FirstOrDefault(x => x.Recipes?.Category == "Vorspeise"), "Vorspeise");
+                                RenderMiniItem(day.Key, day.FirstOrDefault(x => x.Recipes?.Category == "Hauptspeise"), "Hauptspeise");
+                                RenderMiniItem(day.Key, day.FirstOrDefault(x => x.Recipes?.Category == "Dessert"), "Dessert");
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="d-grid mt-3 sticky-bottom bg-white pt-2">
+                    <button class="btn btn-lg bgRed text-white" onclick="createMealPlan()">Plan Abschließen</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<button class="mobile-overview-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#overviewOffcanvas">
+    <i class="bi bi-list-check"></i> Plan sortieren & prüfen 
+</button>
+
+<div class="offcanvas offcanvas-end offcanvas-overview" tabindex="-1" id="overviewOffcanvas">
+    <div class="offcanvas-header bg-light border-bottom">
+        <h5 class="offcanvas-title fw-bold mealplan-accent-text">Wochen-Übersicht</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        @foreach (var day in groupedPerDays)
+        {
+            var isFirst = day.Key == groupedPerDays.First().Key;
+            var isLast = day.Key == groupedPerDays.Last().Key;
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2 bg-light p-2 rounded">
+                    <h6 class="fw-bold m-0 text-muted">Tag @day.Key</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm">
+                            @if (!isFirst)
+                            {
+                                <button class="btn btn-outline-secondary border-0 py-0" onclick="swapDay(@day.Key, -1)"><i class="bi bi-arrow-up-short"></i></button>
+                            }
+                            @if (!isLast)
+                            {
+                                <button class="btn btn-outline-secondary border-0 py-0" onclick="swapDay(@day.Key, 1)"><i class="bi bi-arrow-down-short"></i></button>
+                            }
+                        </div>
+                        <a href="#day-anchor-@day.Key" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('overviewOffcanvas')).hide()" class="text-warning"><i class="bi bi-pencil-square"></i></a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded p-2 border shadow-sm">
+                    @{
+                        // RenderMiniItemMobile für MOBILE (andere ID)
+                        RenderMiniItemMobile(day.Key, day.FirstOrDefault(x => x.Recipes?.Category == "Vorspeise"), "Vorspeise");
+                        RenderMiniItemMobile(day.Key, day.FirstOrDefault(x => x.Recipes?.Category == "Hauptspeise"), "Hauptspeise");
+                        RenderMiniItemMobile(day.Key, day.FirstOrDefault(x => x.Recipes?.Category == "Dessert"), "Dessert");
+                    }
+                </div>
+            </div>
+        }
+        <div class="d-grid mt-4 mb-5">
+            <button class="btn btn-lg bgRed text-white" onclick="createMealPlan()">Plan Abschließen</button>
+        </div>
+    </div>
+</div>
+
+
+@* === C# HELPER FUNKTIONEN === *@
+@functions {
+
+    // 1. Große Karte (Tabs)
+    public void RenderRecipeCard(int dayIndex, MealPlanerModel slot, string category, string namePrefix)
+    {
+        var hasRecipe = slot != null;
+        var recipeId = hasRecipe ? slot.Recipes.Id : 0;
+        var divId = $"{namePrefix}{dayIndex}";
+
+        <div class="meal-tab-card">
+            <div id="@divId">
+                @if (hasRecipe)
+                {
+                    <input name="RecipeId" class="meal-plan-input" value="@recipeId" data-day-index="@dayIndex" type="number" hidden />
+
+                    <div class="meal-img-wrapper">
+                        @if (!string.IsNullOrEmpty(slot.Recipes.ImagePath))
+                        {
+                            <img src="@slot.Recipes.ImagePath" alt="@slot.Recipes.Name" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="empty-state"><i class="bi bi-image fs-1 mb-2"></i> Kein Bild</div>
+                        }
+
+                        <div class="meal-chips">
+                            @if (slot.Recipes.PreparationTime != null)
+                            {
+                                <span class="meal-badge"><i class="bi bi-clock"></i> @slot.Recipes.PreparationTime min</span>
+                            }
+                            @if (slot.Recipes.LikeCount > 0)
+                            {
+                                <span class="meal-badge"><i class="bi bi-heart-fill text-danger"></i> @slot.Recipes.LikeCount</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="meal-body">
+                        <h5 class="meal-title text-truncate">@slot.Recipes.Name</h5>
+                        @if (!string.IsNullOrEmpty(slot.Recipes.Description))
+                        {
+                            <p class="text-muted small text-truncate" style="max-width:300px; margin:0 auto;">@Html.Raw(slot.Recipes.Description)</p>
+                        }
+                    <div class="meal-actions">
+                        <button class="btn btn-change mb-1"
+                                data-name="@namePrefix" data-index="@dayIndex" data-id="@recipeId" data-category="@category"
+                                onclick="ChangeOrAddRecipe(this)">
+                            <i class="bi bi-arrow-repeat me-1"></i> Ändern
+                        </button>
+
+                         <button class="btn btn-change"
+                                data-name="@namePrefix"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#offcanvasDay_@category" 
+                                data-index="@dayIndex" 
+                                data-id="@recipeId" 
+                                data-category="@category"
+                                onclick="GetOptionalRecipe(this)">
+                            <i class="bi bi-search me-1"></i> Ersetzen durch...
+                        </button>
+
+                        <button class="btn btn-change"
+                                data-name="@namePrefix"
+                                data-index="@dayIndex"
+                                data-category="@category"
+                                onclick="ClearMealSlot(this)">
+                            <i class="bi bi-x-circle me-1"></i> Leeren
+                        </button>
+
+
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-plus-circle display-1 mb-3 text-secondary opacity-25"></i>
+                        <h5 class="text-muted">Kein Gericht</h5>
+                        <button class="btn btn-sm mealplan-accent-bg mt-2"
+                                data-name="@namePrefix" data-index="@dayIndex" data-id="0" data-category="@category"
+                                onclick="ChangeOrAddRecipe(this)">
+                            + Hinzufügen
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+      
+      
+    }
+
+    // 2. Mini Item Desktop (ID: mini_1_Hauptspeise)
+    public void RenderMiniItem(int dayIndex, MealPlanerModel slot, string category)
+    {
+        RenderMiniItemBase($"mini_{dayIndex}_{category}", slot, category);
+    }
+
+    // 3. Mini Item Mobile (ID: mini_mobile_1_Hauptspeise)
+    public void RenderMiniItemMobile(int dayIndex, MealPlanerModel slot, string category)
+    {
+        RenderMiniItemBase($"mini_mobile_{dayIndex}_{category}", slot, category);
+    }
+
+    // Basis Funktion für Mini Items (um Code zu sparen)
+    public void RenderMiniItemBase(string elementId, MealPlanerModel slot, string category)
+    {
+        <div class="overview-item" id="@elementId">
+            @if (slot != null && !string.IsNullOrEmpty(slot.Recipes.ImagePath))
+            {
+                <img src="@FrontendFunctions.GetSmallImagePath(slot.Recipes.ImagePath)" class="ov-img" />
+            }
+            else
+            {
+                <div class="ov-img d-flex align-items-center justify-content-center small text-muted bg-light"><i class="bi bi-egg"></i></div>
+            }
+
+            <div style="flex-grow:1; overflow:hidden;">
+                <span class="ov-cat">@category</span>
+                @if (slot != null)
+                {
+                    <span class="ov-title text-truncate d-block">@slot.Recipes.Name</span>
+                }
+                else
+                {
+                    <span class="ov-title text-muted fst-italic small">- Leer -</span>
+                }
+            </div>
+        </div>
+    }
+}
+
+@section Scripts {
+    <script src="/js/CreateNewMealPlan.js" asp-append-version="true"></script>
+
+   
+}

@@ -1,34 +1,212 @@
-﻿@model List<Recipes>
+﻿@using Microsoft.AspNetCore.Identity
+@model MyRecipesModel
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
 
 @{
-
-    ViewData["Title"] = "Meine Rezepte";
+    ViewData["Title"] = "Mein Bereich";
 }
-<div class="w100 flex jcenter">
-    <table class="table" style="max-width:75%">
-        <thead class="table-dark ">
-            <tr>
-                <th>Rezept Name</th>
-                <th></th>
-            </tr>
 
-        </thead>
-        <tbody>
-            @{
-                foreach (var myRecipes in Model)
-                {
-                    <tr>
-                        <td>@myRecipes.Name</td>
-                        <td class=" flex jend">
-                            <a asp-route-id="@myRecipes.Id" asp-controller="MyRecipes" asp-action="DeleteRecipes" class="btn btn-danger m-1">Löschen</a>
-                            <a asp-route-id="@myRecipes.Id" asp-controller="NewRecipes" asp-action="Index" class=" btn btn-primary m-1">Bearbeiten</a>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
+<style>
+    /* mobile Layout fix: Checkboxen & Flex-Container */
+    .filter-card {
+        border-radius: .5rem;
+    }
+
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+        .filter-row .form-check {
+            min-width: 140px;
+            margin-bottom: .25rem;
+        }
+
+
+
+    #IngredientTable td {
+        vertical-align: top;
+    }
+
+    .form-check-input {
+        transform: scale(1.2);
+        margin-right: .35rem;
+    }
+
+    /* Mobil: Tabs nicht umbrechen lassen */
+    @@media (max-width: 576px) {
+        .nav-tabs .nav-link {
+            font-size: 13px;
+            padding: .4rem .6rem;
+        }
+    }
+</style>
+
+<style>
+    /* ====== Layout-Rahmen für die Filterseite ====== */
+    .planner-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        width: 100%;
+    }
+
+    .planner-card {
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: .75rem;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 1px 6px rgba(0,0,0,.04);
+    }
+
+        .planner-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 .5rem 0;
+            color: #2a3440;
+        }
+
+        .planner-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: .25rem 0 .5rem 0;
+            color: #2a3440;
+        }
+
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem 1rem;
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+        .filter-row .form-check {
+            min-width: 180px; /* etwas breiter für Lesbarkeit */
+            margin-bottom: .25rem;
+        }
+
+    .form-check-input {
+        transform: scale(1.15);
+        margin-right: .4rem;
+    }
+
+    /* Plan-Details Inputs in eine Zeile, bei schmalem Screen umbrechen */
+    .plan-details-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem 1rem;
+        align-items: center;
+    }
+
+        .plan-details-row .form-control {
+            width: 90px;
+        }
+
+    /* Zutaten-Boxen nebeneinander, mobil untereinander */
+    .ingredients-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .ingredients-box {
+        border-radius: .5rem;
+        padding: .75rem 1rem;
+        box-shadow: 0 1px 6px rgba(0,0,0,.05);
+    }
+
+    /* Farben wie in deinem Code angedeutet */
+    .box-dislike {
+        background-color: #FFCACA;
+    }
+
+    .box-home {
+        background-color: #CCEED5;
+    }
+
+    /* Mobile Breakpoint */
+   @@media (max-width: 992px) {
+        .planner-grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    .ingredients-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-row .form-check {
+        min-width: 150px;
+    }
+
+    }
+</style>
+
+
+<div class="col">
+    <div class="flexRow justify-content-center flexAlginItemCenter minWidth100 mobieleWidth90 bg-white mt-5">
+        <ul class="nav nav-tabs m-2" id="recipeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-black active"
+                        id="Myrecipes-tab"
+                        onclick="loadRecipesILike()"
+                        data-bs-toggle="tab"
+                        data-bs-target="#myRecipes"
+                        type="button" role="tab"
+                        style="font-size:14px;">
+                    Favoriten
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-black"
+                        id="Menue-tab"
+                        onclick="loadMealPlanView()"
+                        data-bs-toggle="tab"
+                        data-bs-target="#Menue"
+                        type="button" role="tab"
+                        style="font-size:14px;">
+                    Fertige Menüs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-black"
+                        id="Menue-tab"
+                        onclick="loadShoppingList()"
+                        data-bs-toggle="tab"
+                        data-bs-target="#Shopping"
+                        type="button" role="tab"
+                        style="font-size:14px;">
+                    Einkaufsliste anzeigen
+                </button>
+            </li>
+            
+        </ul>
+    </div>
 </div>
 
+<div class="tab-content mt-3 p-3" id="MyRecipesTabconted" style="height:min-content">
+    <div class="tab-pane fade show active Bg-Cream" id="myRecipes" role="tabpanel" style="padding:2%">
+        <div id="Favoriten"></div>
+    </div>
 
+    <div class="tab-pane fade Bg-Cream" id="Menue" role="tabpanel" style="padding:2%">
+        
+    </div>
 
+    <div class="tab-pane fade Bg-Cream" id="Shopping" role="tabpanel" style="padding:2%">
+        
+    </div>
+</div>
+
+@section Scripts {
+  <script src="/js/MealPlanerFilter.js" defer asp-append-version="true">
+  
+  </script>
+}

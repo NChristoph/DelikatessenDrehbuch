@@ -1,0 +1,39 @@
+﻿<div class="w-100 Bg-Cream  mt-4" style="min-height:100vh">
+
+    <form class="minWidth90 mt-4 min-vh-90" asp-controller="Admin" asp-action="CreateNutriernHandlers">
+        <div class=" minWidth90 mt-4  flexColumn flexJustifyContendCenter min-vh-90">
+            <input class="mb-1 mt-3"
+                   name="Ingredient"
+                   placeholder="Zutat" />
+
+            <textarea name="Nutrients"
+                      title="input"
+                      class="minWidth90 mt-4"
+                      style="height:70vh"
+                      onfocus="if(this.value === this.defaultValue) this.value='';"
+                      onblur="if(this.value === '') this.value=this.defaultValue;">
+             Layout wie Folgt
+
+             Carbohydrates#0#g
+             Proteins#23.1#g
+             Fat#1.2#g
+             Roughage#0#g
+             Vitamin A#13#µg
+             Vitamin D#0.1#µg
+             Vitamin C#0#mg
+             Calcium#5#mg
+             Iron#0.7#mg
+             Zinc#1#mg          
+            </textarea>
+
+
+            <button type="submit"
+                    class="mt-3"
+                    style="max-width:fit-content;margin-left:auto">
+                Submit
+            </button>
+        </div>
+
+    </form>
+
+</div>
