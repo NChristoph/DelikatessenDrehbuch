@@ -33,21 +33,30 @@
         return [];
     }
 
-    function buildTemplateCardHtml(masterId, displayText, variables) {
+    function buildInlineTemplateText(template, lang, vars) {
+        const templateText = (template?.templates?.[lang] || template?.templates?.de || '').toString();
+        if (!templateText) return '';
+
+        return templateText.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+            const varKey = String(key || '').trim();
+            const safeKey = escapeHtml(varKey);
+            const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
+            const safeValue = escapeHtml(nextValue || varKey);
+            return `<span class="btn btn-sm btn-warning text-dark fw-bold js-probability-var" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span>`;
+        });
+    }
+
+    function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        const vars = (variables || []).map(v => {
-            const safeVar = escapeHtml(v);
-            return `<button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-var" data-var-key="${safeVar}">${safeVar}</button>`;
-        }).join('');
+        const inlineText = buildInlineTemplateText(template, lang, vars);
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card w-100 text-start">
     <div class="probability-template-kicker">Aktueller Step</div>
     <button type="button" class="probability-template-select js-probability-template" data-master-id="${safeId}">
-      <span class="probability-template-text">${safeText}</span>
+      <span class="probability-template-text">${inlineText || safeText}</span>
     </button>
-    <div class="probability-template-inline-vars">${vars || ''}</div>
   </div>
 </div>`;
     }
@@ -125,8 +134,7 @@
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
                 const snippet = deps.renderTemplate(masterId, vars, getLang()) || masterId;
-                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
-                cards.push(buildTemplateCardHtml(masterId, snippet, variableKeys));
+                cards.push(buildTemplateCardHtml(masterId, snippet, template, vars, getLang()));
             });
             return cards;
         }
@@ -143,8 +151,7 @@
                 seen.add(masterId);
                 const template = deps.findTemplate(masterId);
                 const vars = deps.buildVariablesForTemplate(masterId);
-                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
-                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, variableKeys));
+                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, template, vars, getLang()));
                 varsByTemplate[masterId] = vars;
             });
             return cards;
@@ -157,7 +164,9 @@
         }
         function bindInlineEvents() {
 
-            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function () {
+            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
                 const chip = $(this);
                 const wrap = chip.closest('.probability-template-wrap');
                 const masterId = (wrap.data('master-id') || '').toString();
@@ -172,17 +181,22 @@
                         if (newVal == null) return;
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
-                        chip.text(newVal);
-                        const next = deps.renderTemplate(masterId, getMergedVars(masterId), getLang()) || masterId;
-                        wrap.find('.probability-template-text').text(next);
+                        const merged = getMergedVars(masterId);
+                        const template = deps.findTemplate(masterId);
+                        const nextHtml = buildInlineTemplateText(template, getLang(), merged);
+                        const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
+                        wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
                     });
                 } else {
                     const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;
-                    const next = deps.renderTemplate(masterId, getMergedVars(masterId), getLang()) || masterId;
-                    wrap.find('.probability-template-text').text(next);
+                    const merged = getMergedVars(masterId);
+                    const template = deps.findTemplate(masterId);
+                    const nextHtml = buildInlineTemplateText(template, getLang(), merged);
+                    const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
+                    wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
                 }
             });
         }
