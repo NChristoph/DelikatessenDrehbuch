@@ -283,10 +283,9 @@
                 }
             }
 
-            const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
             state.varsByTemplate = varsByTemplate;
             state.inlineOverrides = {};
-            box.removeClass('d-none').html(head + cards.join(''));
+            box.removeClass('d-none').html(cards.join(''));
             selectedIngredientSuggestionBox.empty();
             bindInlineEvents();
         }
