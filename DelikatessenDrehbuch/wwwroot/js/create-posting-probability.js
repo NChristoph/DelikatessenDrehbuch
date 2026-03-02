@@ -52,7 +52,9 @@
      * Calls deps.getTypicalIngredientSuggestions(typeId) to retrieve unselected typical ingredients.
      * Each chip has data-ingredient-id so the view can handle the click (highlight/add).
      */
-    function buildIngredientSuggestionHtml(typeId, deps) {
+    function buildIngredientSuggestionHtml(typeId, deps, options) {
+        options = options || {};
+        const withHeader = options.withHeader !== false;
         if (!deps.getTypicalIngredientSuggestions) return '';
         const suggestions = deps.getTypicalIngredientSuggestions(typeId) || [];
         if (!suggestions.length) return '';
@@ -62,6 +64,10 @@
             const safeName = escapeHtml(ing.name || String(ing.id));
             return `<button type="button" class="btn btn-sm btn-outline-warning js-typical-ingredient-chip" data-ingredient-id="${safeId}" title="${UI_TEXT.suggestedIngredientsHint}">${safeName}</button>`;
         }).join('');
+
+        if (!withHeader) {
+            return `<div class="d-flex flex-wrap gap-2">${chips}</div>`;
+        }
 
         return `<div class="mt-3 pt-2" style="border-top:1px solid rgba(255,255,255,.12)">
   <div class="small text-white-50 mb-2">${escapeHtml(UI_TEXT.suggestedIngredients)} <span class="opacity-50">&middot; ${escapeHtml(UI_TEXT.suggestedIngredientsHint)}</span></div>
@@ -127,10 +133,12 @@
         async function refresh() {
             const container = $('#ingredientProbabilityBadges');
             const templatesBox = $('#ingredientProbabilityTemplates');
+            const selectedIngredientSuggestionBox = $('#selectedIngredientsSuggestions');
             if (!container.length) return;
 
             const selectedIngredientIds = deps.getSelectedIngredientIds();
             templatesBox.addClass('d-none').empty();
+            selectedIngredientSuggestionBox.empty();
 
             if (!selectedIngredientIds.length) {
                 setStatus(container, UI_TEXT.selectIngredients);
@@ -158,16 +166,19 @@
 
         async function showSuggestions(typeId, typeName, score) {
             const box = $('#ingredientProbabilityTemplates');
+            const selectedIngredientSuggestionBox = $('#selectedIngredientsSuggestions');
             if (!box.length) return;
 
             if (!window.RecipeStepSuggest || !window.MasterStepRenderer) {
                 box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(UI_TEXT.templatesUnavailable)}</div>`);
+                selectedIngredientSuggestionBox.empty();
                 return;
             }
 
             const ingredients = deps.getSelectedIngredientNames();
             if (!ingredients.length) {
                 box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(UI_TEXT.selectIngredientsFirst)}</div>`);
+                selectedIngredientSuggestionBox.empty();
                 return;
             }
 
@@ -180,13 +191,16 @@
                 cards = buildFallbackCards(ingredients);
                 if (!cards.length) {
                     box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(UI_TEXT.noTemplates)}</div>`);
+                    selectedIngredientSuggestionBox.empty();
                     return;
                 }
             }
 
             const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
-            const ingredientSuggestions = buildIngredientSuggestionHtml(typeId, deps);
+            const ingredientSuggestions = buildIngredientSuggestionHtml(typeId, deps, { withHeader: true });
+            const compactIngredientSuggestions = buildIngredientSuggestionHtml(typeId, deps, { withHeader: false });
             box.removeClass('d-none').html(head + cards.join('') + ingredientSuggestions);
+            selectedIngredientSuggestionBox.html(compactIngredientSuggestions);
             document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 

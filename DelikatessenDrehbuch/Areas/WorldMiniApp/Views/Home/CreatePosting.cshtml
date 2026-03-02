@@ -282,6 +282,7 @@
                             <i class="bi bi-search text-white-50"></i>
                             <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none" placeholder="Zutat suchen..." />
                         </div>
+                        <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
                     </div>
 
                     <div class="template-library ingredient-catalog-scroll" id="ingredientsCatalog">
@@ -303,8 +304,6 @@
                                             Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
                                         </button>
                                     </div>
-
-                                    <div class="small text-white-50 text-center label-lang" data-de="Tippen für Menge & Maßeinheit" data-en="Tap for quantity & unit" data-esp="Toca para cantidad y unidad" data-prt="Toque para quantidade e unidade">Tippen für Menge & Maßeinheit</div>
 
                                     <div class="duration-editor mt-2 ingredient-db-details d-none">
                                         <div class="d-flex gap-2 align-items-center">
@@ -341,6 +340,7 @@
                     <div class="ingredient-top-strip mt-4">
                         <div class="ingredient-top-title">Ausgewählte Zutaten</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
+                        <div id="selectedIngredientsSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
                     <div class="preview-step-card mt-2" id="ingredientProbabilityBox">
@@ -988,6 +988,13 @@
         border-radius: 14px;
         padding: 10px 12px;
         margin-bottom: 8px;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .probability-template-card:hover,
+    .probability-template-card:focus {
+        color: #fff;
     }
     .common-unit-chips {
         display: flex;
