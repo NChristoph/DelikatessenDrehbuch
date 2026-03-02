@@ -39,7 +39,7 @@
      * {{variable}} placeholders become clickable yellow spans for inline editing.
      * The card itself acts as the "choose template" button.
      */
-    function buildTemplateCardHtml(masterId, tpl, vars, lang, description, icon) {
+    function buildTemplateCardHtml(masterId, tpl, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         let occurrence = 0;
 
@@ -51,11 +51,9 @@
             return `<span class="token-highlight prob-ph-token" data-master-id="${safeId}" data-var-key="${safeKey}" data-occurrence="${occurrence++}">${safeVal}</span>`;
         });
 
-        const safeIcon = escapeHtml(icon || '✨');
-        const safeTitle = escapeHtml(description || masterId || '');
         const snippetHtml = renderedHtml || escapeHtml(tpl || masterId);
 
-        return `<button type="button" class="template-card prob-template-card js-probability-template" data-master-id="${safeId}" aria-label="${safeIcon} ${safeTitle}" style="width:100%;text-align:left;">
+        return `<button type="button" class="template-card prob-template-card js-probability-template" data-master-id="${safeId}" aria-label="Template ${safeId}" style="width:100%;text-align:left;">
   <div class="template-snippet prob-template-text">${snippetHtml}</div>
 </button>`;
     }
@@ -132,9 +130,7 @@
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
                 const tpl = template?.templates?.[lang] || template?.templates?.de || template?.templates?.en || '';
-                const description = (template?.description || '').toString().trim();
-                const icon = template?.categoryIcon || '✨';
-                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang, description, icon));
+                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang));
             });
             return cards;
         }
@@ -153,9 +149,7 @@
                 const template = deps.findTemplate(masterId);
                 const vars = deps.buildVariablesForTemplate(masterId);
                 const tpl = template?.templates?.[lang] || template?.templates?.de || template?.templates?.en || item.text || masterId;
-                const description = (template?.description || item.title || '').toString().trim();
-                const icon = template?.categoryIcon || '✨';
-                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang, description, icon));
+                cards.push(buildTemplateCardHtml(masterId, tpl, vars, lang));
                 varsByTemplate[masterId] = vars;
             });
             return cards;
@@ -264,7 +258,7 @@
                 }
             }
 
-            const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
+            const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%)</div>`;
             state.varsByTemplate = varsByTemplate;
             state.inlineOverrides = {};
             box.removeClass('d-none').html(head + cards.join(''));
