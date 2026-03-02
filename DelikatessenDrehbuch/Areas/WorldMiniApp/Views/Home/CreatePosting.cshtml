@@ -956,6 +956,25 @@
         max-height: 56vh;
         overflow-y: auto;
         padding-right: 5px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        align-content: start;
+    }
+
+    #ingredientsCatalog .ingredient-db-row {
+        margin-bottom: 0;
+        padding: 10px 12px;
+    }
+
+    #ingredientsCatalog .ingredient-db-row .display-name {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    #ingredientsCatalog .ingredient-db-row .btn.creator-cta-primary {
+        padding: 2px 8px;
+        font-size: 0.8rem;
     }
 
 
@@ -1668,9 +1687,78 @@
         100% { opacity: 0; transform: translate(0,-120px) scale(1.04); }
     }
 
+    /* === Ingredient Edit Bottom Sheet === */
+    #ingredientConfigOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1050;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
 
+    #ingredientConfigOverlay.ing-active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #ingredientConfigDock {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: min(480px, 100%);
+        z-index: 1051;
+        background: #1a1a2e;
+        border-radius: 20px 20px 0 0;
+        padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+        border-top: 1px solid rgba(255,255,255,0.15);
+        border-left: 1px solid rgba(255,255,255,0.08);
+        border-right: 1px solid rgba(255,255,255,0.08);
+        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+        pointer-events: none;
+    }
+
+    #ingredientConfigDock.ing-active {
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+    }
+
+    #ingredientConfigDock .ing-sheet-handle {
+        width: 40px;
+        height: 4px;
+        background: rgba(255,255,255,0.25);
+        border-radius: 999px;
+        margin: 0 auto 16px;
+    }
 
 </style>
+
+<!-- ===== Ingredient Edit Bottom Sheet ===== -->
+<div id="ingredientConfigOverlay" aria-hidden="true"></div>
+<div id="ingredientConfigDock" role="dialog" aria-modal="true" aria-labelledby="ingredientConfigTitle">
+    <div class="ing-sheet-handle"></div>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="fw-bold text-white fs-6" id="ingredientConfigTitle">Zutat bearbeiten</div>
+        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm btn-outline-secondary rounded-circle p-0" style="width:30px;height:30px;line-height:1;" aria-label="Schließen">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="d-flex gap-2 align-items-center mb-3">
+        <input type="text" inputmode="decimal" id="ingredientConfigQty"
+               class="form-control form-control-sm candy-purple-input" style="max-width:90px;" placeholder="0" />
+        <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input" style="flex:1;"></select>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary flex-grow-1">
+            <i class="bi bi-check-lg me-1"></i><span class="label-lang" data-de="Übernehmen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Übernehmen</span>
+        </button>
+        <button type="button" id="btnCancelIngredientConfig" class="btn btn-sm btn-outline-secondary">
+            <span class="label-lang" data-de="Abbrechen" data-en="Cancel" data-esp="Cancelar" data-prt="Cancelar">Abbrechen</span>
+        </button>
+    </div>
+</div>
 
 
 
@@ -1748,15 +1836,9 @@
             const overlay = $('#ingredientConfigOverlay');
             const dock = $('#ingredientConfigDock');
             if (!overlay.length || !dock.length) return;
-            dock.removeClass('d-none');
-            overlay.removeClass('d-none');
-            if (anchorElement && anchorElement.length) {
-                if (anchorElement.hasClass('ingredient-db-row')) {
-                    anchorElement.find('td').first().append(dock);
-                } else {
-                    anchorElement.after(dock);
-                }
-            }
+            overlay.addClass('ing-active').attr('aria-hidden', 'false');
+            setTimeout(function () { dock.addClass('ing-active'); }, 10);
+            $('#ingredientConfigQty').focus();
         }
 
         function openIngredientConfigPopup(row) {
@@ -1774,9 +1856,8 @@
 
         function closeIngredientConfigPopup() {
             activeIngredientConfigRow = null;
-            $('#ingredientConfigOverlay').addClass('d-none');
-            $('#ingredientConfigDock').addClass('d-none');
-            $('#card-ingredients .creator-card-body').append($('#ingredientConfigDock'));
+            $('#ingredientConfigDock').removeClass('ing-active');
+            $('#ingredientConfigOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
         }
 
         function applyIngredientConfigPopup() {
