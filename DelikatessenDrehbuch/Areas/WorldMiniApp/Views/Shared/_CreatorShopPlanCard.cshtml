@@ -1,0 +1,140 @@
+@using System.Linq
+
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel
+@{
+    var carouselId = $"cs-carousel-{Model.ListingId}";
+    var heroSlides = (Model.HeroSlides ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardHeroSlideViewModel>()).Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
+    var hasMacroData = Model.CaloriesKcal.HasValue || Model.ProteinGrams.HasValue || Model.FatGrams.HasValue || Model.CarbsGrams.HasValue;
+    var totalSlides = heroSlides.Count + (hasMacroData ? 1 : 0);
+}
+
+<article class="cs-card" aria-label="Plan @Model.Title von @Model.CreatorName">
+    <div class="cs-hero">
+        @if (heroSlides.Any())
+        {
+            <div id="@carouselId" class="carousel slide cs-carousel" data-bs-ride="carousel">
+                <div class="carousel-indicators cs-indicators">
+                    @for (var i = 0; i < totalSlides; i++)
+                    {
+                        <button type="button"
+                                data-bs-target="#@carouselId"
+                                data-bs-slide-to="@i"
+                                class="@(i == 0 ? "active" : "")"
+                                aria-current="@(i == 0 ? "true" : "false")"
+                                aria-label="Slide @(i + 1)"></button>
+                    }
+                </div>
+
+                <div class="carousel-inner">
+                    @for (var i = 0; i < heroSlides.Count; i++)
+                    {
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <img src="@heroSlides[i].ImageUrl" alt="@($"Rezeptbild {i + 1} für {Model.Title}")" class="cs-hero-img" loading="lazy" />
+                            <div class="cs-recipe-caption">@heroSlides[i].RecipeTitle</div>
+                        </div>
+                    }
+
+                    @if (hasMacroData)
+                    {
+                        <div class="carousel-item @(heroSlides.Count == 0 ? "active" : "")">
+                            <div class="cs-hero-macro-slide" aria-label="Gesamtmakros dieses Plans">
+                                <div class="cs-macro-title">Gesamt-Makros</div>
+                                <div class="cs-macro-grid">
+                                    <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
+                                    <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
+                                    <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
+                                    <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="cs-hero-fallback" aria-hidden="true"></div>
+            @if (hasMacroData)
+            {
+                <div class="cs-hero-macro-slide cs-hero-macro-slide-absolute" aria-label="Gesamtmakros dieses Plans">
+                    <div class="cs-macro-title">Gesamt-Makros</div>
+                    <div class="cs-macro-grid">
+                        <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
+                        <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
+                        <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
+                        <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
+                    </div>
+                </div>
+            }
+        }
+
+        <div class="cs-overlay"></div>
+
+        <span class="cs-premium-pill">
+            <i class="bi bi-stars me-1"></i>Premium
+        </span>
+
+        <div class="cs-hero-text">
+            <h3 class="cs-title">@Model.Title</h3>
+            <p class="cs-subline mb-0">@Model.DayCount Tage · @Model.RecipeCount Rezepte · @Model.CreatedDateLabel</p>
+        </div>
+    </div>
+
+    <div class="cs-body">
+        <div class="cs-creator-label">@Model.JourneyLabel</div>
+
+        <div class="cs-macro-row" role="list" aria-label="Makros und Tags">
+            @if (Model.CaloriesKcal.HasValue)
+            {
+                <span class="cs-chip" role="listitem">@Math.Round(Model.CaloriesKcal.Value) kcal</span>
+            }
+            @if (Model.ProteinGrams.HasValue)
+            {
+                <span class="cs-chip" role="listitem">@Math.Round(Model.ProteinGrams.Value, 1)g Protein</span>
+            }
+            @if (Model.IsLowCarb)
+            {
+                <span class="cs-chip cs-chip-tag" role="listitem">Low Carb</span>
+            }
+            @if (Model.IsDietFriendly)
+            {
+                <span class="cs-chip cs-chip-tag" role="listitem">Diät</span>
+            }
+        </div>
+
+        <div class="cs-social-row" aria-label="Social Proof">
+            <span>⭐ @Model.Rating.ToString("0.0")</span>
+            <span>🔥 @Model.SoldCount verkauft</span>
+            <span>👥 @Model.ActivePlannerCount planen aktuell</span>
+        </div>
+
+
+        <div class="cs-token-toggle" title="WLD / USDCE">
+            <span>WLD</span>
+            <label class="cs-switch" for="cs-switch-@Model.ListingId">
+                <input type="checkbox" id="cs-switch-@Model.ListingId" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD', @Model.ListingId)" aria-label="Währung zwischen WLD und USDCE wechseln" />
+                <span class="cs-slider"></span>
+            </label>
+            <span>USDCE</span>
+        </div>
+
+        <div class="cs-cta-row">
+            <button type="button"
+                    class="cs-btn cs-btn-secondary"
+                    aria-label="@($"Vorschau für {Model.Title} öffnen")"
+                    onclick="showFeedPreview(@Model.ListingId)">
+                Vorschau
+            </button>
+
+            <div class="cs-buy-wrap">
+                <div class="cs-price" id="feedPrice-@Model.ListingId" data-price-wld="@Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Model.PriceLabel</div>
+                <button type="button"
+                        class="cs-btn cs-btn-primary"
+                        aria-label="@($"Plan {Model.Title} freischalten")"
+                        onclick="buyFeedListing(@Model.ListingId, '@Model.TitleJsSafe', @Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(Model.SellerWalletAddress ?? "")')">
+                    Freischalten
+                </button>
+            </div>
+        </div>
+    </div>
+</article>

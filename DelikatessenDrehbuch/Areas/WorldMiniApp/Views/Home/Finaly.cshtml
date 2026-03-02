@@ -1,0 +1,319 @@
+﻿@using DelikatessenDrehbuch.Models
+@using DelikatessenDrehbuch.StaticScripts
+
+@model List<MealPlanerModel>
+
+@{
+
+    //TODO: Morgen das speichern laden und verwalten der Essenspläne für Benutzerkonten einbauen.
+        //Und die verknüpfung für das wallet hinzufügen
+
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = "Mein Plan";
+    var language = Context.Request.Cookies["deli-lang"] ?? "de";
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
+    var personCount = (int?)ViewData["PersonCount"] ?? 1;
+    // Gruppierung
+    var groupedDays = Model.Where(x => x.Recipes != null).GroupBy(x => x.Index).OrderBy(x => x.Key).ToList();
+    var allRecipeIds = Model.Where(x => x.Recipes != null && !x.IsBaseData).Select(x => x.Recipes.Id).Distinct().ToList();
+
+    string ResolveThumbnail(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        if (path.StartsWith("http", StringComparison.OrdinalIgnoreCase) || path.Contains("_small", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        var smallPath = FrontendFunctions.GetSmallImagePath(path);
+        if (string.IsNullOrWhiteSpace(smallPath) || smallPath == "_small.webp")
+        {
+            return path;
+        }
+
+        return smallPath;
+    }
+}
+
+<input id="personCount" value="@personCount" hidden />
+
+<div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+
+    <div class="px-4 pt-4 pb-2">
+        <a href="@Url.Action("Generated", "Home", new { area = "WorldMiniApp" })" 
+           class="text-decoration-none text-muted mb-2 d-inline-flex align-items-center small opacity-75 hover-opacity">
+            <i class="bi bi-arrow-left me-1"></i> @T("Zurück zum Generator", "Back to generator", "Volver al generador", "Voltar ao gerador")
+        </a>
+
+        <h2 class="fw-bold mb-1" style="color: #2c3e50;">@T("Fertig! 🎉", "Done! 🎉", "¡Listo! 🎉", "Pronto! 🎉")</h2>
+        <p class="text-muted small">@T("Hier ist deine Wochenübersicht.", "Here is your weekly overview.", "Aquí está tu resumen semanal.", "Aqui está seu resumo semanal.")</p>
+    </div>
+
+    <div class="container px-3 mt-2">
+        
+        @foreach (var dayGroup in groupedDays)
+        {
+            var dayKey = dayGroup.Key;
+            var list = dayGroup.ToList();
+            var dayRecipeIds = list.Where(x => !x.IsBaseData).Select(x => x.Recipes.Id).ToList();
+            var dayHasBaseData = list.Any(x => x.IsBaseData);
+
+            <div class="glass-card mb-4 overflow-hidden">
+                
+                <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-light bg-white bg-opacity-50">
+                    <h5 class="fw-bold m-0 text-dark">@T("Tag", "Day", "Día", "Dia") @dayKey</h5>
+                    
+                    <button class="btn btn-sm btn-light rounded-pill border shadow-sm text-muted d-flex align-items-center gap-1"
+                            data-bs-toggle="offcanvas" data-bs-target="#offcanvasDay_@dayKey">
+                        <i class="bi bi-basket2-fill text-warning"></i> <span class="small fw-bold">@T("Zutaten", "Ingredients", "Ingredientes", "Ingredientes")</span>
+                    </button>
+                </div>
+
+                <div class="p-2">
+                    @foreach (var item in list)
+                    {
+                        var r = item.Recipes.Id;
+                        var n = item.Recipes.Name;
+                        var img = ResolveThumbnail(item.Recipes.ImagePath);
+                        var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
+
+                        if (item.IsBaseData)
+                        {
+                            <a class="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg clickable-item mb-1 text-decoration-none"
+                               href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = r })">
+                                <div class="rounded-3 overflow-hidden bg-light shadow-sm" style="width: 55px; height: 55px; flex-shrink: 0;">
+                                    @if (!string.IsNullOrEmpty(item.Recipes.ImagePath))
+                                    {
+                                        <img src="@img" class="w-100 h-100 object-fit-cover" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted"><i class="bi bi-egg"></i></div>
+                                    }
+                                </div>
+
+                                <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                                    <small class="text-uppercase fw-bold text-warning" style="font-size: 0.65rem; letter-spacing: 0.5px;">
+                                        @item.Recipes.Category
+                                    </small>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate">@n</h6>
+                                </div>
+
+                                <div class="text-muted opacity-25">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </div>
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg clickable-item mb-1"
+                                 data-bs-toggle="offcanvas" data-bs-target="#@unifiedOffId">
+                                <div class="rounded-3 overflow-hidden bg-light shadow-sm" style="width: 55px; height: 55px; flex-shrink: 0;">
+                                    @if (!string.IsNullOrEmpty(item.Recipes.ImagePath))
+                                    {
+                                        <img src="@img" class="w-100 h-100 object-fit-cover" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted"><i class="bi bi-egg"></i></div>
+                                    }
+                                </div>
+
+                                <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                                    <small class="text-uppercase fw-bold text-warning" style="font-size: 0.65rem; letter-spacing: 0.5px;">
+                                        @item.Recipes.Category
+                                    </small>
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate">@n</h6>
+                                </div>
+
+                                <div class="text-muted opacity-25">
+                                    <i class="bi bi-chevron-right"></i>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="offcanvas offcanvas-bottom h-75 rounded-top-4" tabindex="-1" id="offcanvasDay_@dayKey">
+                <div class="offcanvas-header border-bottom">
+                    <h5 class="offcanvas-title fw-bold">@T("Tag", "Day", "Día", "Dia") @dayKey: @T("Infos", "Info", "Info", "Info")</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body bg-light">
+                    <ul class="nav nav-pills nav-fill bg-white p-1 rounded-pill shadow-sm mb-3">
+                        <li class="nav-item"><button class="nav-link active rounded-pill py-1 small" data-bs-toggle="pill" data-bs-target="#ing-@dayKey">@T("Zutaten", "Ingredients", "Ingredientes", "Ingredientes")</button></li>
+                        <li class="nav-item"><button class="nav-link rounded-pill py-1 small" data-bs-toggle="pill" data-bs-target="#nut-@dayKey">@T("Nährwerte", "Nutrition", "Nutrientes", "Nutrientes")</button></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="ing-@dayKey">
+                            <div class="bg-white p-3 rounded-4 shadow-sm border">
+                                @if (dayRecipeIds.Any())
+                                {
+                                    <vc:ingredient-sum reciepe-ids="@dayRecipeIds" person-count="@personCount" view-name="Default"></vc:ingredient-sum>
+                                }
+                                else if (dayHasBaseData)
+                                {
+                                    <p class="text-muted mb-0">@T("Zutatenliste für World-Rezepte ist aktuell nicht verfügbar.", "Ingredients list for World recipes is currently unavailable.", "La lista de ingredientes para recetas World no está disponible.", "A lista de ingredientes para receitas World não está disponível.")</p>
+                                }
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="nut-@dayKey">
+                            @if (dayRecipeIds.Any())
+                            {
+                                @foreach (var rId in dayRecipeIds)
+                                {
+                                    <div class="bg-white p-3 rounded-4 shadow-sm border mb-2">
+                                        <vc:nutrient-sum recipe-id="@rId"></vc:nutrient-sum>
+                                    </div>
+                                }
+                            }
+                            else if (dayHasBaseData)
+                            {
+                                <div class="bg-white p-3 rounded-4 shadow-sm border">
+                                    <p class="text-muted mb-0">@T("Nährwerte für World-Rezepte sind aktuell nicht verfügbar.", "Nutrition info for World recipes is currently unavailable.", "La información nutricional para recetas World no está disponible.", "A informação nutricional para receitas World não está disponível.")</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @foreach (var item in list)
+            {
+                if (!item.IsBaseData)
+                {
+                    var r = item.Recipes.Id;
+                    var unifiedOffId = $"MealPlanCanvas_{r}_{dayKey}";
+
+                    <div class="offcanvas offcanvas-bottom h-100 rounded-top-0" tabindex="-1" id="@unifiedOffId" data-id="@r" name="Recipes">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title text-truncate pe-3">@item.Recipes.Name</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                        </div>
+                        <div class="offcanvas-body p-0" id="recipeContainer_@r">
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <div class="spinner-border text-warning"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    </div>
+
+    <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%); pointer-events: none;">
+        <div style="pointer-events: auto;">
+            <button class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
+                    style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);"
+                    data-bs-toggle="offcanvas" data-bs-target="#Gesamte_ZutatenListe">
+                <i class="bi bi-cart-check-fill fs-4 me-2"></i>
+                <span class="fs-5">@T("Gesamte Einkaufsliste", "Full shopping list", "Lista de compras completa", "Lista de compras completa")</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div class="offcanvas offcanvas-bottom h-100 rounded-top-0" tabindex="-1" id="Gesamte_ZutatenListe">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold">@T("Einkaufsliste", "Shopping list", "Lista de compras", "Lista de compras") 🛒</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body bg-light">
+        <div class="bg-white p-3 rounded-4 shadow-sm border">
+            @if (allRecipeIds.Any())
+            {
+                <vc:ingredient-sum reciepe-ids="@allRecipeIds" person-count="@personCount" view-Name="ShoppingList"></vc:ingredient-sum>
+            }
+            else
+            {
+                <p class="text-muted mb-0">@T("Einkaufsliste für World-Rezepte ist aktuell nicht verfügbar.", "Shopping list for World recipes is currently unavailable.", "La lista de compras para recetas World no está disponible.", "A lista de compras para receitas World não está disponível.")</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // AJAX Loader für Rezepte (Identisch zu vorher)
+        function loadRecipe(id) {
+            var container = $("#recipeContainer_" + id);
+            $.ajax({
+                // Prüf bitte kurz ob der Controller Pfad stimmt! (/CreateNewMealPlan/...)
+                url: "/CreateNewMealPlan/LoadMealPlanRecipesPartialView", 
+                type: "GET",
+                data: { id: id, personCount: @personCount },
+                success: function (html) { container.html(html); },
+                error: function () { container.html("<div class='text-danger p-4 text-center'>Konnte Rezept nicht laden.</div>"); }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Lazy Load Logic für Offcanvas
+            var recipeCanvasList = document.querySelectorAll('div[name="Recipes"]');
+            recipeCanvasList.forEach(function (offcanvasEl) {
+                offcanvasEl.addEventListener('shown.bs.offcanvas', function () {
+                    var id = offcanvasEl.getAttribute('data-id');
+                    if (!id) return;
+                    
+                    var container = document.getElementById('recipeContainer_' + id);
+                    // Nur laden, wenn noch der Spinner drin ist
+                    if (container && container.innerHTML.includes('spinner-border')) {
+                        loadRecipe(id);
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    /* STYLES (Candy Look + Helpers) */
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Klickbares Item Hover Effekt */
+    .hover-bg { transition: background-color 0.2s; cursor: pointer; }
+    .hover-bg:active { background-color: rgba(0,0,0,0.05); }
+    
+    .object-fit-cover { object-fit: cover; }
+    
+    /* Sorgt dafür, dass lange Namen abgeschnitten werden (...) */
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .btn-hover-effect:active { transform: scale(0.98); }
+
+    /* Tabs im Offcanvas */
+    .nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        color: white;
+        box-shadow: 0 4px 10px rgba(255, 94, 98, 0.3);
+    }
+    .nav-pills .nav-link {
+        color: #6c757d;
+        background: transparent;
+    }
+</style>

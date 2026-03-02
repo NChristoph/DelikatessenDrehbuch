@@ -1,0 +1,78 @@
+﻿@using DelikatessenDrehbuch.Models
+@model MealPlanerModel
+
+@{
+    // Wir brauchen diese Infos für die Buttons
+    var dayIndex = (int)ViewData["DayIndex"];
+    var category = (string)ViewData["Category"];
+    var namePrefix = (string)ViewData["NamePrefix"];
+
+    var hasRecipe = Model != null && Model.Recipes != null;
+    var recipeId = hasRecipe ? Model.Recipes.Id : 0;
+}
+
+<div class="fade-in-anim h-100">
+    @if (hasRecipe)
+    {
+        <input name="RecipeId" class="meal-plan-input" value="@recipeId" data-day-index="@dayIndex" type="number" hidden />
+
+        <div class="recipe-card-inner rounded-4 overflow-hidden position-relative bg-white shadow-sm border border-light h-100">
+
+            <div class="position-relative" style="height: 160px;">
+                @if (!string.IsNullOrEmpty(Model.Recipes.ImagePath))
+                {
+                    <img src="@Model.Recipes.ImagePath" class="w-100 h-100 object-fit-cover" loading="lazy" />
+                }
+                else
+                {
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted">
+                        <i class="bi bi-image fs-1"></i>
+                    </div>
+                }
+
+                <div class="position-absolute bottom-0 start-0 p-2 d-flex gap-1 w-100" style="background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);">
+                    @if (Model.Recipes.PreparationTime != null)
+                    {
+                        <span class="badge bg-dark bg-opacity-75 backdrop-blur"><i class="bi bi-clock me-1"></i> @Model.Recipes.PreparationTime min</span>
+                    }
+                    <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i> @category</span>
+                </div>
+            </div>
+
+            <div class="p-3">
+                <h6 class="fw-bold text-dark mb-1 text-truncate">@Model.Recipes.Name</h6>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-sm btn-outline-dark rounded-pill flex-grow-1 d-flex align-items-center justify-content-center gap-1"
+                            data-name="@namePrefix" data-index="@dayIndex" data-id="@recipeId" data-category="@category"
+                            onclick="ChangeOrAddRecipeMobile(this)">
+                        <i class="bi bi-shuffle"></i> Würfeln
+                    </button>
+
+                    <button class="btn btn-sm btn-light rounded-pill border px-3"
+                            data-name="@namePrefix"
+                            data-index="@dayIndex"
+                            data-id="@recipeId"
+                            data-category="@category"
+                            onclick="OpenMobileSearch(this)">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="recipe-card-inner rounded-4 p-4 bg-white shadow-sm border border-light text-center border-dashed h-100 d-flex flex-column justify-content-center align-items-center">
+            <div class="mb-3 text-muted opacity-50">
+                <i class="bi bi-plus-circle-dotted" style="font-size: 2.5rem;"></i>
+            </div>
+            <h6 class="text-muted">Kein Gericht</h6>
+            <button class="btn btn-warning text-dark btn-sm rounded-pill mt-2 px-4 fw-bold"
+                    data-name="@namePrefix" data-index="@dayIndex" data-id="0" data-category="@category"
+                    onclick="ChangeOrAddRecipeMobile(this)">
+                Hinzufügen
+            </button>
+        </div>
+    }
+</div>

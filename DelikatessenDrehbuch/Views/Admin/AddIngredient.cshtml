@@ -1,0 +1,168 @@
+﻿@model DelikatessenDrehbuch.Models.IngredientsAndNutrients
+
+@{
+    ViewData["Title"] = "Neue Zutat erstellen";
+}
+
+<h2>Neue Zutat hinzufügen</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-10">
+        <form asp-action="Create" method="post"
+              enctype="multipart/form-data">
+          @*   <div asp-validation-summary="ModelOnly" class="text-danger"></div> *@
+
+            <h4>Bezeichnungen</h4>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Name_DE" class="form-label">Name (Deutsch)</label>
+                    <input asp-for="Name_DE" class="form-control" />
+                    <span asp-validation-for="Name_DE" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Name_EN" class="form-label">Name (Englisch)</label>
+                    <input asp-for="Name_EN" class="form-control" />
+                    <span asp-validation-for="Name_EN" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Name_PRT" class="form-label">Name (Portugiesisch)</label>
+                    <input asp-for="Name_PRT" class="form-control" />
+                    <span asp-validation-for="Name_PRT" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Name_ESP" class="form-label">Name (Spanisch)</label>
+                    <input asp-for="Name_ESP" class="form-control" />
+                    <span asp-validation-for="Name_ESP" class="text-danger"></span>
+                </div>
+            </div>
+
+            <hr />
+
+            <h4>Basisdaten</h4>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label asp-for="Groupe" class="form-label">Lebensmittelgruppe</label>
+
+                    <select asp-for="Groupe" class="form-control" asp-items="ViewBag.GroupList">
+                        <option value="">-- Bitte wählen --</option>
+                    </select>
+
+                    <span asp-validation-for="Groupe" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Weight_per_piece" class="form-label">Gewicht pro Stück (g)</label>
+                    <input asp-for="Weight_per_piece"
+                           class="form-control"
+                           type="number"
+                           step="0.01"
+                           inputmode="decimal"
+                           lang="de-AT" />
+                    <span asp-validation-for="Weight_per_piece" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Calories_a_100g" class="form-label">Kalorien (pro 100g)</label>
+                    <input asp-for="Calories_a_100g"
+                           class="form-control"
+                           type="number"
+                           step="any"
+                           inputmode="decimal"
+                           lang="de"/>
+                    @* <span asp-validation-for="Calories_a_100g" class="text-danger"></span> *@
+                </div>
+            </div>
+
+            <hr />
+
+            <h4>Nährwerte (pro 100g)</h4>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label asp-for="Fat_a_100g" class="form-label">Fett</label>
+                    <input name="Fat_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                            
+                    @* <span asp-validation-for="Fat_a_100g" class="text-danger"></span> *@
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Saturated_fat_a_100g" class="form-label">Gesättigte Fetts.</label>
+                    <input name="Saturated_fat_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                        
+                    <span asp-validation-for="Saturated_fat_a_100g" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Carbohydrates_a_100g" class="form-label">Kohlenhydrate</label>
+                    <input name="Carbohydrates_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                           
+                    <span asp-validation-for="Carbohydrates_a_100g" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Sugar_a_100g" class="form-label">Zucker</label>
+                    <input name="Sugar_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                          
+                    <span asp-validation-for="Sugar_a_100g" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label asp-for="Protein_a_100g" class="form-label">Protein</label>
+                    <input name="Protein_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                            
+                    <span asp-validation-for="Protein_a_100g" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Salt_a_100g" class="form-label">Salz</label>
+                    <input name ="Salt_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                           
+                    <span asp-validation-for="Salt_a_100g" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Fiber_a_100g" class="form-label">Ballaststoffe</label>
+                    <input name ="Fiber_a_100g"
+                           class="form-control"
+                           type="text"
+                           inputmode="decimal" />
+                         
+                    <span asp-validation-for="Fiber_a_100g" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <input type="submit" value="Speichern" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Zurück zur Liste</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

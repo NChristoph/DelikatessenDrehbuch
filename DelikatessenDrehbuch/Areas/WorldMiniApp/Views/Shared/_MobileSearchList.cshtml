@@ -1,0 +1,40 @@
+﻿@model List<DelikatessenDrehbuch.Models.Recipes>
+
+<div class="p-3">
+    @if (Model != null && Model.Any())
+    {
+        foreach (var recipe in Model)
+        {
+            <div class="d-flex align-items-center gap-3 p-2 border-bottom cursor-pointer"
+                 onclick="SelectRecipeMobile(@recipe.Id, '@ViewBag.Category', @ViewBag.DayIndex, '@ViewBag.NamePrefix')">
+
+                <div class="rounded-3 overflow-hidden bg-light" style="width: 60px; height: 60px; flex-shrink: 0;">
+                    @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                    {
+                        <img src="@recipe.ImagePath" class="w-100 h-100 object-fit-cover" />
+                    }
+                </div>
+
+                <div class="flex-grow-1">
+                    <h6 class="mb-0 fw-bold text-dark">@recipe.Name</h6>
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i> @recipe.PreparationTime min
+                        @if (recipe.LikeCount > 0)
+                        {
+                            <span>• <i class="bi bi-heart-fill text-danger small"></i> @recipe.LikeCount</span>
+                        }
+                    </small>
+                </div>
+
+                <i class="bi bi-chevron-right text-muted opacity-50"></i>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-basket fs-1"></i>
+            <p>Keine Rezepte gefunden.</p>
+        </div>
+    }
+</div>

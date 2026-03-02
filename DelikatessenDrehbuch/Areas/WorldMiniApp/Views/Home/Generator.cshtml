@@ -1,0 +1,283 @@
+﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@model MiniAppSetupModel
+
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = "Setup";
+   
+}
+
+<div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+
+    <div class="px-4 pt-4 pb-2">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
+            <i class="bi bi-arrow-left"></i> Zurück
+        </a>
+        <h2 class="fw-bold mb-1" style="color: #2c3e50;">Dein Setup ⚙️</h2>
+        <p class="text-muted small">Was darf's sein?</p>
+    </div>
+
+    <form method="get" action="@Url.Action("Generated", "Home", new { area = "WorldMiniApp" })" class="pb-5">
+        <input type="hidden"  name="userHash" id="hiddenUserHash" value="" />
+        <div class="container px-4">
+
+            <div class="mb-5">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">Ernährungsweise</label>
+                <div class="d-grid gap-3">
+
+                    <input type="radio" class="btn-check toggle-radio" asp-for="DietType" name="DietType" id="dietAll" value="Alles">
+                    <label class="diet-card card border-0 shadow-sm p-3 rounded-4 cursor-pointer position-relative overflow-hidden" for="dietAll">
+                        <div class="d-flex align-items-center position-relative z-1">
+                            <div class="icon-box rounded-3 me-3" style="background: #fff3e0; color: #ff9800;">
+                                <i class="bi bi-egg-fried"></i>
+                            </div>
+                            <div class="text-content">
+                                <span class="d-block fw-bold title">Alles erlaubt</span>
+                                <small class="desc">Fleisch, Fisch & Gemüse</small>
+                            </div>
+                            <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
+                        </div>
+                    </label>
+
+                    <input type="radio" class="btn-check toggle-radio" asp-for="DietType" name="DietType" id="dietVeggie" value="Vegetarisch">
+                    <label class="diet-card card border-0 shadow-sm p-3 rounded-4 cursor-pointer position-relative overflow-hidden" for="dietVeggie">
+                        <div class="d-flex align-items-center position-relative z-1">
+                            <div class="icon-box rounded-3 me-3" style="background: #e8f5e9; color: #4caf50;">
+                                <i class="bi bi-flower1"></i>
+                            </div>
+                            <div class="text-content">
+                                <span class="d-block fw-bold title">Vegetarisch</span>
+                                <small class="desc">Kein Fleisch/Fisch</small>
+                            </div>
+                            <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
+                        </div>
+                    </label>
+
+                    <input type="radio" class="btn-check toggle-radio" asp-for="DietType" name="DietType" id="dietVegan" value="Vegan">
+                    <label class="diet-card card border-0 shadow-sm p-3 rounded-4 cursor-pointer position-relative overflow-hidden" for="dietVegan">
+                        <div class="d-flex align-items-center position-relative z-1">
+                            <div class="icon-box rounded-3 me-3" style="background: #e0f2f1; color: #009688;">
+                                <i class="bi bi-sprout"></i>
+                            </div>
+                            <div class="text-content">
+                                <span class="d-block fw-bold title">Vegan</span>
+                                <small class="desc">Rein pflanzlich</small>
+                            </div>
+                            <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">Fokus (Mehrfachwahl)</label>
+                <div class="d-flex flex-wrap gap-2">
+
+                    <input type="checkbox" class="btn-check" name="Filters" id="filterFast" value="CookingTimeOne">
+                    <label class="filter-chip shadow-sm rounded-pill px-4 py-2 fw-bold" for="filterFast">
+                        ⚡ Schnell
+                    </label>
+
+                   @*  <input type="checkbox" class="btn-check" name="Filters" id="filterLowCarb" value="LowCarb">
+                    <label class="filter-chip shadow-sm rounded-pill px-4 py-2 fw-bold" for="filterLowCarb">
+                        💪 Low Carb
+                    </label> *@
+
+                    <input type="checkbox" class="btn-check" name="Filters" id="filterBalance" value="BalancedDiet">
+                    <label class="filter-chip shadow-sm rounded-pill px-4 py-2 fw-bold" for="filterBalance">
+                        ⚖️ Ausgewogen
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">Umfang</label>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="counter-card p-3 rounded-4 shadow-sm text-center position-relative overflow-hidden">
+                            <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">Tage</small>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px;" onclick="changeVal('dayCount', -1)">-</button>
+                                <input asp-for="DayCount" id="dayCount" min="1" max="7" class="form-control border-0 text-center p-0 fw-bold fs-4 bg-transparent" style="width: 40px;" readonly>
+                                <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px;" onclick="changeVal('dayCount', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="counter-card p-3 rounded-4 shadow-sm text-center position-relative overflow-hidden">
+                            <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">Personen</small>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px;" onclick="changeVal('personCount', -1)">-</button>
+                                <input asp-for="PersonCount" id="personCount" min="1" max="12" class="form-control border-0 text-center p-0 fw-bold fs-4 bg-transparent" style="width: 40px;" readonly>
+                                <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px;" onclick="changeVal('personCount', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 mb-5">
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">
+                    Name des Plans *
+                </label>
+
+                <div class="card border-0 shadow-sm p-1 rounded-4 position-relative overflow-hidden bg-white">
+                    <div class="d-flex align-items-center px-3">
+                        <div class="icon-box rounded-3 me-3 text-muted" style="font-size: 1.2rem;">
+                            <i class="bi bi-pencil-fill"></i>
+                        </div>
+
+                        <input name="title"
+                               class="form-control border-0 bg-transparent py-3 fw-bold text-dark shadow-none"
+                               placeholder="z.B. Sommer-Diät"
+                               required
+                               style="outline: none; box-shadow: none;" />
+                    </div>
+                </div>
+                <span  class="text-danger small ms-2 mt-1 d-block fw-bold"></span>
+            </div>
+
+        
+
+       
+        </div>
+
+        <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%);">
+            <button type="submit" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
+                    style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
+                <span class="fs-5">Plan erstellen</span>
+                <i class="bi bi-magic ms-2 fs-5"></i>
+            </button>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+
+        document.getElementById("hiddenUserHash").value = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+        // Logik für Counter (+/-) bleibt wie gehabt
+        function changeVal(id, delta) {
+            const input = document.getElementById(id);
+            let val = parseInt(input.value) || 0;
+            val += delta;
+
+            const min = parseInt(input.getAttribute('min')) || 1;
+            const max = parseInt(input.getAttribute('max')) || 99;
+
+            if (val >= min && val <= max) {
+                input.value = val;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const radios = document.querySelectorAll('.toggle-radio');
+
+            // Aktuell vorausgewählter Radio (falls vom Model vorgegeben)
+            let currentChecked = Array.from(radios).find(r => r.checked) || null;
+
+            radios.forEach(radio => {
+                radio.addEventListener('click', function () {
+                    // Wenn erneut auf den gleichen geklickt wird → abwählen
+                    if (this === currentChecked) {
+                        this.checked = false;     // Radio abwählen
+                        currentChecked = null;    // Kein aktiver Wert
+                        return;
+                    }
+
+                    // Wenn ein anderer Radio angeklickt wird
+                    currentChecked = this;        // Browser kümmert sich ums Umstellen
+                });
+            });
+        });
+    </script>
+}
+
+
+<style>
+    /* CSS Styling bleibt identisch schön */
+    .diet-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .icon-box {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        transition: all 0.3s ease;
+    }
+
+    .check-icon {
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.3s ease;
+        font-size: 1.5rem;
+        color: white !important;
+    }
+
+    /* STATES FOR DIET CARDS */
+    #dietAll:checked + label {
+        background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        color: white;
+        transform: scale(1.02);
+    }
+
+    #dietVeggie:checked + label {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        color: white;
+        transform: scale(1.02);
+    }
+
+    #dietVegan:checked + label {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        transform: scale(1.02);
+    }
+
+    .btn-check:checked + label .text-muted {
+        color: rgba(255,255,255,0.8) !important;
+    }
+
+    .btn-check:checked + label .icon-box {
+        background: rgba(255,255,255,0.2) !important;
+        color: white !important;
+    }
+
+    .btn-check:checked + label .check-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .filter-chip {
+        background: white;
+        border: 1px solid transparent;
+        color: #555;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-check:checked + .filter-chip {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.4) !important;
+        transform: translateY(-2px);
+    }
+
+    .counter-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .btn-hover-effect:active {
+        transform: scale(0.97);
+    }
+</style>

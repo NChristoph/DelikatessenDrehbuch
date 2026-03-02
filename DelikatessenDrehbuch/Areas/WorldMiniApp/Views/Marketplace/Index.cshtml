@@ -1,0 +1,838 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanListing>
+@{
+    ViewData["Title"] = "Marketplace";
+    Layout = "_MiniAppLayout";
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
+
+    var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
+    var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
+    var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
+    var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
+    var allowSelfPurchaseForTesting = (bool?)ViewData["WorldChainAllowSelfPurchaseForTesting"] ?? false;
+    var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
+    var creatorShopCards = ViewData["CreatorShopCards"] as List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel> ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel>();
+}
+
+<link rel="stylesheet" href="~/css/creator-shop-cards.css" />
+
+<style>
+    .mp-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .mp-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .mp-card {
+        background: #fff;
+        border: none;
+        border-radius: 1.25rem;
+        box-shadow: 0 2px 16px rgba(0,0,0,.06);
+        transition: transform .2s ease, box-shadow .2s ease;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .mp-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    }
+
+    .mp-card-header {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        padding: 1rem 1.25rem .75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .mp-card-body { padding: 1rem 1.25rem; }
+
+    .mp-card-footer {
+        padding: .75rem 1.25rem;
+        background: #fafbfc;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .price-tag {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-weight: 700;
+        border-radius: .75rem;
+        padding: .35rem .85rem;
+        font-size: .95rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(245,158,11,.3);
+    }
+
+    .seller-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .78rem;
+        color: #64748b;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 2rem;
+        padding: .2rem .65rem .2rem .3rem;
+    }
+    .seller-chip .avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .65rem;
+        font-weight: 700;
+    }
+
+    .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .78rem;
+        background: #f1f5f9;
+        border-radius: .5rem;
+        padding: .3rem .65rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .buy-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: .75rem;
+        padding: .5rem 1.25rem;
+        font-size: .88rem;
+        box-shadow: 0 2px 8px rgba(245,158,11,.25);
+        transition: filter .15s, box-shadow .15s;
+    }
+    .buy-btn:hover { filter: brightness(1.08); color: #fff; box-shadow: 0 4px 16px rgba(245,158,11,.35); }
+    .buy-btn:disabled { opacity: .5; box-shadow: none; }
+
+    .preview-btn {
+        background: transparent;
+        border: 1.5px solid #e2e8f0;
+        color: #475569;
+        font-weight: 500;
+        border-radius: .75rem;
+        padding: .5rem 1rem;
+        font-size: .85rem;
+        transition: all .15s;
+    }
+    .preview-btn:hover { border-color: #94a3b8; background: #f8fafc; color: #1e293b; }
+
+    .token-switch-row {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: .9rem;
+        padding: .55rem .75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .token-switch {
+        position: relative;
+        width: 52px;
+        height: 30px;
+    }
+    .token-switch input { display: none; }
+    .token-slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: #334155;
+        border-radius: 40px;
+        transition: all .2s ease;
+    }
+    .token-slider::before {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: all .2s ease;
+        box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .token-switch input:checked + .token-slider {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .token-switch input:checked + .token-slider::before {
+        transform: translateX(22px);
+    }
+
+    .test-banner {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+        border-radius: .75rem;
+        padding: .5rem 1rem;
+        font-size: .8rem;
+        font-weight: 600;
+        border: 1px solid #fcd34d;
+    }
+
+    .wallet-bar {
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: #fff;
+        border-radius: 1rem;
+        padding: .75rem 1.25rem;
+    }
+    .wallet-status { font-size: .8rem; color: #94a3b8; }
+    .balance-row {
+        border-top: 1px solid rgba(255,255,255,.1);
+        padding-top: .6rem;
+        margin-top: .6rem;
+    }
+    .balance-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,.1);
+        border-radius: .5rem;
+        padding: .3rem .75rem;
+    }
+    .balance-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; opacity: .7; }
+    .balance-value { font-size: .9rem; font-weight: 600; }
+    .converted-price { font-size: .72rem; color: #9ca3af; font-weight: 500; }
+
+    .sold-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+        font-size: .7rem;
+        font-weight: 700;
+        border-radius: .4rem;
+        padding: .15rem .5rem;
+    }
+
+    /* Preview Offcanvas */
+    .preview-offcanvas {
+        border-radius: 1.5rem 1.5rem 0 0 !important;
+        max-height: 85vh;
+    }
+    .preview-day-header {
+        font-weight: 700;
+        font-size: .85rem;
+        color: #1e293b;
+        padding: .5rem 0 .25rem;
+        border-bottom: 2px solid #f59e0b;
+        margin-bottom: .5rem;
+    }
+    .preview-recipe {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .5rem 0;
+    }
+    .preview-recipe-img {
+        width: 50px;
+        height: 50px;
+        border-radius: .6rem;
+        object-fit: cover;
+        background: #f1f5f9;
+        flex-shrink: 0;
+    }
+    .preview-recipe-title {
+        font-weight: 600;
+        font-size: .85rem;
+        color: #1e293b;
+    }
+    .preview-recipe-meta {
+        font-size: .72rem;
+        color: #64748b;
+    }
+    .nutrition-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .5rem;
+    }
+    .nutrition-item {
+        text-align: center;
+        background: #f8fafc;
+        border-radius: .6rem;
+        padding: .5rem .25rem;
+    }
+    .nutrition-value {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+    .nutrition-label {
+        font-size: .65rem;
+        color: #64748b;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .back-link {
+        color: #64748b;
+        text-decoration: none;
+        font-size: .88rem;
+        font-weight: 500;
+        transition: color .15s;
+    }
+    .back-link:hover { color: #1e293b; }
+</style>
+
+<div class="container py-3" style="max-width:720px;">
+
+    <!-- Back + Title Row -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="back-link">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h5 class="fw-bold mb-0">Marketplace</h5>
+            <p class="text-muted small mb-0">Essensplaene kaufen & verkaufen</p>
+        </div>
+        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
+           class="btn btn-dark btn-sm rounded-pill px-3">
+            <i class="bi bi-plus-lg me-1"></i>Verkaufen
+        </a>
+    </div>
+
+    @if (testMode)
+    {
+        <p class="small mb-2 text-warning-emphasis"><i class="bi bi-info-circle me-1"></i>World Testnet (Chain @worldChainId)</p>
+    }
+
+    <!-- Wallet Bar -->
+    <div class="wallet-bar mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="small opacity-75">World Wallet</div>
+                <div class="wallet-status mt-1" id="walletStatus">nicht verbunden</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">
+                    <i class="bi bi-wallet2 me-1"></i>Verbinden
+                </button>
+                <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
+                   class="btn btn-outline-light btn-sm rounded-pill">Meine</a>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end align-items-center gap-2 mt-2">
+            <span class="small opacity-75">WLD</span>
+            <label class="token-switch" for="globalTokenSwitchTop" title="WLD / USDCE">
+                <input type="checkbox" id="globalTokenSwitchTop" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
+                <span class="token-slider"></span>
+            </label>
+            <span class="small opacity-75">USDCE</span>
+        </div>
+        <div id="walletBalances" class="balance-row d-none">
+            <div class="d-flex gap-3">
+                <div class="balance-badge">
+                    <span class="balance-label">WLD</span>
+                    <span class="balance-value" id="balanceWLD">&ndash;</span>
+                </div>
+                <div class="balance-badge">
+                    <span class="balance-label">USDCE</span>
+                    <span class="balance-value" id="balanceUSDCE">&ndash;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (allowSelfPurchaseForTesting)
+    {
+        <div class="test-banner d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-flask"></i>
+            <span>Testmodus — eigene Listings kaufbar</span>
+        </div>
+    }
+
+    <!-- Listings -->
+    @if (!creatorShopCards.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="bi bi-shop" style="font-size: 3rem; color: #cbd5e1;"></i>
+            </div>
+            <p class="text-muted mb-1">Noch keine Angebote vorhanden.</p>
+            <p class="text-muted small mb-3">Sei der Erste, der einen Essensplan verkauft!</p>
+            <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
+               class="btn btn-dark btn-sm rounded-pill px-4">Ersten Plan verkaufen</a>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3 mb-4">
+            @foreach (var card in creatorShopCards)
+            {
+                var isOwn = card.CreatorHash == userHash;
+
+                <div class="mb-3">
+                    @if (isOwn && !allowSelfPurchaseForTesting)
+                    {
+                        <div class="small text-muted fw-medium mb-1">Dein Angebot</div>
+                    }
+                    @await Html.PartialAsync("_CreatorShopPlanCard", card)
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Preview Offcanvas -->
+<div class="offcanvas offcanvas-bottom preview-offcanvas" tabindex="-1" id="previewOffcanvas">
+    <div class="offcanvas-header pb-2">
+        <h6 class="offcanvas-title fw-bold" id="previewTitle">Plan-Vorschau</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body pt-0" id="previewBody">
+        <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-secondary"></div>
+            <p class="small text-muted mt-2">Lade Vorschau...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const USER_HASH = '@userHash';
+    let walletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
+    let wldPriceUsd = null;
+    let selectedPaymentToken = 'WLD';
+
+    function getAntiForgeryToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
+    function setGlobalToken(token) {
+        selectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
+        const top = document.getElementById('globalTokenSwitchTop');
+        const checked = selectedPaymentToken === 'USDCE';
+        if (top) top.checked = checked;
+        document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = checked; });
+        updateAllListingPrices();
+    }
+
+
+    function setFeedToken(token, listingId = null) {
+        const selected = token === 'USDCE' ? 'USDCE' : 'WLD';
+        if (!listingId) {
+            setGlobalToken(selected);
+            return;
+        }
+
+        const cardSwitch = document.getElementById(`cs-switch-${listingId}`);
+        if (cardSwitch) cardSwitch.checked = selected === 'USDCE';
+        updateListingPrice(listingId, selected);
+    }
+
+    function getSelectedToken() {
+        return selectedPaymentToken;
+    }
+
+    function shortWallet(address) {
+        if (!address || address.length < 10) return address || '';
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    function updateWalletStatusUI() {
+        const el = document.getElementById('walletStatus');
+        if (!el) return;
+        const addr = walletAddresses.WLD || walletAddresses.USDCE;
+        el.textContent = addr ? shortWallet(addr) : 'nicht verbunden';
+    }
+
+    async function saveWalletToSession(address, token) {
+        const form = new FormData();
+        form.append('walletAddress', address);
+        form.append('token', token);
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+        await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
+        walletAddresses[token] = address;
+        updateWalletStatusUI();
+    }
+
+    async function loadWalletBalances(walletAddress) {
+        if (!walletAddress || !window.worldChainMarketplace?.getWalletBalances) return;
+        const balancesEl = document.getElementById('walletBalances');
+        const wldEl = document.getElementById('balanceWLD');
+        const usdceEl = document.getElementById('balanceUSDCE');
+        if (balancesEl) balancesEl.classList.remove('d-none');
+        if (wldEl) wldEl.textContent = '...';
+        if (usdceEl) usdceEl.textContent = '...';
+        try {
+            const balances = await window.worldChainMarketplace.getWalletBalances(walletAddress);
+            if (wldEl) wldEl.textContent = balances.wld ?? '\u2013';
+            if (usdceEl) usdceEl.textContent = balances.usdt ?? balances.usdce ?? '\u2013';
+        } catch (e) {
+            console.warn('[Marketplace] Balance-Fehler:', e);
+            if (wldEl) wldEl.textContent = '\u2013';
+            if (usdceEl) usdceEl.textContent = '\u2013';
+        }
+    }
+
+    function updateListingPrice(listingId, tokenOverride = null) {
+        const token = tokenOverride || getSelectedToken();
+        const priceEl = document.getElementById(`priceDisplay-${listingId}`) || document.getElementById(`feedPrice-${listingId}`);
+        const convertedEl = document.getElementById(`convertedPrice-${listingId}`);
+        if (!priceEl) return;
+        const wldPrice = parseFloat(priceEl.dataset.priceWld);
+        if (isNaN(wldPrice)) return;
+
+        if (token === 'USDCE' && wldPriceUsd) {
+            priceEl.textContent = `${(wldPrice * wldPriceUsd).toFixed(2)} USDCE`;
+            if (convertedEl) convertedEl.textContent = `= ${wldPrice} WLD`;
+        } else {
+            priceEl.textContent = `${wldPrice} WLD`;
+            if (convertedEl) convertedEl.textContent = wldPriceUsd ? `\u2248 ${(wldPrice * wldPriceUsd).toFixed(2)} USD` : '';
+        }
+    }
+
+    function updateAllListingPrices() {
+        document.querySelectorAll('[id^="priceDisplay-"], [id^="feedPrice-"]').forEach(el => {
+            const id = el.id.startsWith('feedPrice-')
+                ? el.id.replace('feedPrice-', '')
+                : el.id.replace('priceDisplay-', '');
+            updateListingPrice(id);
+        });
+    }
+
+    async function loadWldPrice() {
+        if (!window.worldChainMarketplace?.fetchWldPrice) return;
+        wldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
+        if (wldPriceUsd) updateAllListingPrices();
+    }
+
+    function getActualPrice(wldPrice, token) {
+        if (token === 'USDCE' && wldPriceUsd) return parseFloat((wldPrice * wldPriceUsd).toFixed(2));
+        return wldPrice;
+    }
+
+    // ── Preview ──
+    async function showPreview(listingId) {
+        const titleEl = document.getElementById('previewTitle');
+        const bodyEl = document.getElementById('previewBody');
+        if (titleEl) titleEl.textContent = 'Plan-Vorschau';
+        if (bodyEl) bodyEl.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-secondary"></div><p class="small text-muted mt-2">Lade Vorschau...</p></div>';
+
+        const offcanvas = new bootstrap.Offcanvas(document.getElementById('previewOffcanvas'));
+        offcanvas.show();
+
+        try {
+            const resp = await fetch(`@Url.Action("GetListingPreview", "Marketplace", new { area = "WorldMiniApp" })?listingId=${listingId}`);
+            const data = await resp.json();
+            if (!data.success) {
+                bodyEl.innerHTML = `<p class="text-danger small">${data.error || 'Vorschau nicht verfuegbar.'}</p>`;
+                return;
+            }
+
+            if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
+
+            let html = '';
+
+            if (data.description) {
+                html += `<p class="small text-muted mb-3">${data.description}</p>`;
+            }
+
+            // Nutrition summary
+            if (data.nutrition) {
+                const n = data.nutrition;
+                html += `<div class="nutrition-grid mb-3">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${Math.round(n.calories)}</div>
+                        <div class="nutrition-label">kcal</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.protein}g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.fat}g</div>
+                        <div class="nutrition-label">Fett</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.carbs}g</div>
+                        <div class="nutrition-label">Kohlenhydrate</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${n.fiber}g</div>
+                        <div class="nutrition-label">Ballaststoffe</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">${data.recipeCount}</div>
+                        <div class="nutrition-label">Rezepte</div>
+                    </div>
+                </div>`;
+                html += `<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Naehrwerte fuer den gesamten Plan (alle Tage)</p>`;
+            }
+
+            // Days + recipes
+            if (data.days && data.days.length) {
+                for (const day of data.days) {
+                    html += `<div class="preview-day-header"><i class="bi bi-calendar-event me-1"></i>Tag ${day.day}</div>`;
+                    if (!day.recipes || !day.recipes.length) {
+                        html += `<p class="text-muted small py-2">Keine Rezepte</p>`;
+                        continue;
+                    }
+                    for (const r of day.recipes) {
+                        const imgTag = r.image
+                            ? `<img src="${r.image}" class="preview-recipe-img" loading="lazy" onerror="this.style.display='none'">`
+                            : `<div class="preview-recipe-img d-flex align-items-center justify-content-center"><i class="bi bi-egg-fried text-muted"></i></div>`;
+                        const timeStr = r.time ? `${r.time} Min` : '';
+                        const catStr = r.category || '';
+                        const meta = [catStr, timeStr].filter(Boolean).join(' &middot; ');
+                        html += `<div class="preview-recipe">
+                            ${imgTag}
+                            <div>
+                                <div class="preview-recipe-title">${r.title}</div>
+                                <div class="preview-recipe-meta">${meta}</div>
+                            </div>
+                        </div>`;
+                    }
+                }
+            }
+
+            bodyEl.innerHTML = html || '<p class="text-muted">Keine Vorschau verfuegbar.</p>';
+        } catch (e) {
+            console.error('[Marketplace] Preview error:', e);
+            bodyEl.innerHTML = '<p class="text-danger small">Vorschau konnte nicht geladen werden.</p>';
+        }
+    }
+
+    // ── Wallet Connect ──
+    async function connectWorldWallet() {
+        const storedAddr = walletAddresses.WLD || walletAddresses.USDCE;
+        if (storedAddr) { updateWalletStatusUI(); await loadWalletBalances(storedAddr); return storedAddr; }
+
+        const btn = document.getElementById('connectWalletBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
+        try {
+            let address = '';
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
+            if (ethereumProvider) address = await window.worldChainMarketplace.connectWallet();
+            if (!address && window.connectWalletOnly) address = await window.connectWalletOnly();
+
+            if (!address) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+                alert('Wallet-Verbindung fehlgeschlagen.');
+                return '';
+            }
+
+            await saveWalletToSession(address, 'WLD');
+            await saveWalletToSession(address, 'USDT');
+            walletAddresses.USDT = address;
+            walletAddresses.USDCE = address;
+
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+            await loadWalletBalances(address);
+            return address;
+        } catch (error) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
+            return '';
+        }
+    }
+
+
+    async function ensureBuyerWalletForToken(token) {
+        const normalized = (token || 'WLD').toUpperCase();
+        const mappedToken = normalized === 'USDCE' ? 'USDT' : normalized;
+
+        let buyerWallet = mappedToken === 'USDT' ? (walletAddresses.USDT || walletAddresses.USDCE) : walletAddresses.WLD;
+        if (buyerWallet) return buyerWallet;
+
+        // Wallet ggf. erst nach MiniKit-Payment holen und in Session speichern
+        buyerWallet = await connectWorldWallet();
+        if (!buyerWallet) return '';
+
+        if (mappedToken === 'USDT') {
+            walletAddresses.USDT = buyerWallet;
+            walletAddresses.USDCE = buyerWallet;
+        } else {
+            walletAddresses.WLD = buyerWallet;
+        }
+
+        return buyerWallet;
+    }
+
+    // ── Finalize on Backend ──
+    async function finalizeOnBackend(listingId, txHash, walletAddress, paymentToken) {
+        const form = new FormData();
+        form.append('ListingId', listingId);
+        form.append('TxHash', txHash);
+        form.append('WalletAddress', walletAddress || '');
+        form.append('PaymentToken', paymentToken || 'WLD');
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            body: form,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const contentType = resp.headers.get('content-type') || '';
+        const rawText = await resp.text();
+
+        if (!contentType.includes('application/json')) {
+            const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            throw new Error(`Finalize lieferte kein JSON (HTTP ${resp.status}). Antwort: ${compact || 'leer'}`);
+        }
+
+        let data = null;
+        try {
+            data = JSON.parse(rawText);
+        } catch {
+            const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            throw new Error(`Ungueltige JSON-Antwort vom Server (HTTP ${resp.status}): ${compact || 'leer'}`);
+        }
+
+        if (!resp.ok) {
+            throw new Error(data?.error || `Finalize fehlgeschlagen (HTTP ${resp.status}).`);
+        }
+
+        return data;
+    }
+
+    function setBuyButtonLoading(listingId, loading) {
+        const btn = document.getElementById(`buyBtn-${listingId}`);
+        if (!btn) return;
+        if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...'; }
+        else { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen'; }
+    }
+
+
+    function showFeedPreview(listingId) {
+        return showPreview(listingId);
+    }
+
+    function buyFeedListing(listingId, title, priceWld, sellerWallet) {
+        return buyListing(listingId, title, priceWld, sellerWallet);
+    }
+
+    // ── Buy Flow ──
+    async function buyListing(listingId, title, priceWld, sellerWalletOverride) {
+        const token = getSelectedToken();
+
+        if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
+
+        const buyBtn = document.getElementById(`buyBtn-${listingId}`);
+        const sellerWallet = sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '';
+        if (!sellerWallet) { alert('Verkaeufer hat keine Wallet hinterlegt. Kauf nicht moeglich.'); return; }
+
+        const actualPrice = getActualPrice(priceWld, token);
+        if (token === 'USDCE' && !wldPriceUsd) { alert('WLD/USD Kurs nicht verfuegbar. Bitte Seite neu laden.'); return; }
+
+        setBuyButtonLoading(listingId, true);
+
+        try {
+            // MiniKit pay()
+            if (window.startMiniKitPayment) {
+                const reference = `listing-${listingId}-${Date.now()}`;
+                const payResult = await window.startMiniKitPayment({
+                    to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                    reference, description: `Essensplan: ${title}`
+                });
+
+                console.log('[Marketplace] MiniKit payResult:', JSON.stringify(payResult));
+                const txRef = payResult?.transaction_id || payResult?.txHash || payResult?.reference || '';
+                console.log('[Marketplace] TX Reference:', txRef);
+
+                if (payResult?.status === 'success' && txRef) {
+                    const buyerWallet = await ensureBuyerWalletForToken(token);
+                    const data = await finalizeOnBackend(listingId, txRef, buyerWallet, token);
+                    console.log('[Marketplace] Finalize response:', JSON.stringify(data));
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
+                    return;
+                } else if (payResult?.status === 'success') {
+                    console.warn('[Marketplace] Keine TX-Referenz, verwende Timestamp als Fallback');
+                    const fallbackRef = `minikit-${listingId}-${Date.now()}`;
+                    const buyerWallet = await ensureBuyerWalletForToken(token);
+                    const data = await finalizeOnBackend(listingId, fallbackRef, buyerWallet, token);
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
+                    return;
+                }
+            }
+
+            // Fallback: ethers.js
+            if (window.worldChainMarketplace?.buyListingWithWorldChain) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.() || window.ethereum;
+                if (ethereumProvider) {
+                    const onChainResult = await window.worldChainMarketplace.buyListingWithWorldChain({
+                        listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
+                    });
+                    const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
+                    if (data.success) { location.reload(); }
+                    else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
+                    return;
+                }
+            }
+
+            alert('Kein Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
+            setBuyButtonLoading(listingId, false);
+        } catch (error) {
+            alert(error?.message || 'Kauf fehlgeschlagen.');
+            setBuyButtonLoading(listingId, false);
+        }
+    }
+</script>
+<script>
+    window.worldChainMarketplaceConfig = {
+        chainId: Number('@worldChainId'),
+        wldTokenAddress: '@worldChainWldToken',
+        usdtTokenAddress: '@worldChainUsdtToken',
+        marketplaceAddress: '@worldChainMarketplace',
+        testMode: @(testMode ? "true" : "false")
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<script src="~/js/worldchain-marketplace.js"></script>
+<script type="module" src="~/js/minikitt.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        updateWalletStatusUI();
+        loadWldPrice();
+
+        setGlobalToken('WLD');
+
+        const previewParam = new URLSearchParams(window.location.search).get('previewId');
+        if (previewParam) {
+            const id = parseInt(previewParam, 10);
+            if (!isNaN(id)) showPreview(id);
+        }
+
+        const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
+        if (existingAddress) {
+            const btn = document.getElementById('connectWalletBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+            loadWalletBalances(existingAddress);
+        }
+
+        if (window.ethereum?.on) {
+            window.ethereum.on('accountsChanged', () => {
+                walletAddresses.WLD = ''; walletAddresses.USDT = ''; walletAddresses.USDCE = '';
+                updateWalletStatusUI();
+                const balancesEl = document.getElementById('walletBalances');
+                if (balancesEl) balancesEl.classList.add('d-none');
+                const btn = document.getElementById('connectWalletBtn');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; btn.classList.replace('btn-success', 'btn-outline-light'); }
+            });
+        }
+    });
+</script>
+@Html.AntiForgeryToken()
+}

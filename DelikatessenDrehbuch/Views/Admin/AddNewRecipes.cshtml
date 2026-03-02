@@ -1,0 +1,110 @@
+﻿@model AddNewRecipesModel
+
+
+<div class="minWidth100 mobieleWidth90 Bg-Cream flexColumn flexAlginItemCenter flexJustifyContendCenter">
+    <form asp-controller="Admin"
+          asp-action="SaveNewRecipe"
+          method="post"
+          class="minWidth100 flexColumn flexAlginItemCenter"
+          enctype="multipart/form-data">
+
+        @Html.AntiForgeryToken()
+
+        <div class="minWidth90" hidden>
+            <input class="minWidth100 m-1"
+                   asp-for="Recipes.Id" hidden
+                   type="number"
+                   value="0" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1"
+                   asp-for="Recipes.Category"
+                   placeholder="Kategorie" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1"
+                   asp-for="Recipes.Name"
+                   placeholder="Rezeptname" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1"
+                   asp-for="Recipes.RecipePersonCount"
+                   type="number"
+                   placeholder="PersonenAnzahl" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1"
+                   asp-for="MealPlan"
+                   placeholder="Essensplan" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1"
+                   asp-for="Recipes.PreparationTime"
+                   placeholder="Zubereitungszeit" />
+        </div>
+        <div class="minWidth90">
+            <input class="minWidth100 m-1"
+                   asp-for="Recipes.Calories"
+                   placeholder="Kalorien" />
+        </div>
+
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1"
+                      asp-for="Recipes.Description"
+                      placeholder="Beschreibung"
+                      style="min-height:30vh">
+           </textarea>
+        </div>
+
+
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" 
+                      asp-for="Recipes.Preparation" 
+                      placeholder="Zubereitung" 
+                      style="min-height:70vh">
+            </textarea>
+        </div>
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" 
+                      asp-for="Ingredients" 
+                      placeholder="Zutaten" 
+                      style="min-height:40vh">
+            </textarea>
+        </div>
+        <div class="minWidth90">
+            <textarea class="minWidth100 m-1" 
+                      asp-for="Querys" 
+                      placeholder="Zb:Schweinefleisch,Schnizel,....." 
+                      style="min-height:40vh">
+            </textarea>
+        </div>
+
+        <div class="flexRow minWidth90 mobieleWidth90 flexJustifyContendCenter flexAlginItemCenter">
+            <p style="margin-top:1rem;flex-basis:40%">Foto : </p>
+            <input id="fileInput" 
+                   style="flex-basis:55%;margin-top:1rem;margin-bottom:1rem;display:none" 
+                   class="form-control-file" 
+                   name="Recipes.FormFile"
+                   type="file"
+                   asp-for="Recipes.FormFile" />
+
+            <label class="btn bgRed Border-Gold" 
+                   style="color:white;text-align:center" 
+                   id="fileLable" 
+                   for="fileInput">
+                Foto Auswählen
+            </label>
+
+        </div>
+
+        <button class="btn bgRed Border-Gold m-2" 
+                style="color:white;max-width:max-content" 
+                type="submit">
+              Rezept speichern
+        </button>
+    </form>
+
+
+
+
+</div>

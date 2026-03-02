@@ -1,0 +1,45 @@
+﻿@{
+    // Diese Daten müssen vom Controller via ViewBag kommen,
+    // damit der Klick weiß, welchen Slot er updaten soll.
+    var dayIndex = ViewBag.DayIndex ?? 0;
+    var category = ViewBag.Category as string ?? "";
+
+    // Eindeutige ID für das Suchfeld erzeugen (gegen Konflikte)
+    var searchId = $"search_{category}_{dayIndex}";
+}
+
+<input id="dayIndex_@category" class="dayIndex" value="@dayIndex"  hidden/>
+<input id="category_@category" value="@category"  hidden/>
+
+<div class="sticky-top pt-2 pb-3 mb-2" style="background-color:var(--deli-cream); z-index: 10; top: -1rem;">
+    <div class="input-group shadow-sm border rounded overflow-hidden">
+        
+        <input type="text"
+               id="@category"
+               class="form-control border-0 py-2 ps-3" 
+               placeholder="Suche @category..."
+               autocomplete="off" 
+               aria-label="Suche"
+               aria-describedby="search-addon" />
+
+        <button class="btn bg-white border-0 mealplan-accent-text pe-3" 
+                type="button" 
+                id="search-addon"
+                onclick="triggerSearch('@category')"> 
+            <i class="bi bi-search"></i>
+        </button>
+    </div>
+</div>
+
+
+
+
+<div id="SearchOutPut_@category">
+    <div class="text-center py-5">
+        <div class="spinner-border mealplan-accent-text" role="status"></div>
+    </div>
+</div>
+
+
+
+

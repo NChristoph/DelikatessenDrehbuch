@@ -1,0 +1,150 @@
+﻿@using DelikatessenDrehbuch.Models
+@model (IEnumerable<IGrouping<string, IngredientHandlerModel>> group, bool salt, bool pepper)
+
+@{
+    var (groupIng, salt, pepper) = Model;
+}
+
+<style>
+    /* =========================================
+           Delikatessen Styles - Zutatenliste
+           ========================================= */
+
+    .ingredient-list-wrapper {
+        width: 100%;
+        max-width: 600px; /* Nicht zu breit ziehen auf Desktop */
+        margin: 0 auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Überschrift der Gruppe (z.B. "Gemüse") */
+    .ing-group-header {
+        color: #770f0f; /* Dunkelrot */
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #D4AF37; /* Gold */
+        padding-bottom: 0.2rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .ing-group-header i {
+            margin-right: 0.5rem;
+            color: #D4AF37;
+        }
+
+    /* Die einzelne Zutaten-Zeile */
+    .ing-item {
+        display: grid;
+        /* Layout: Checkbox | Menge | Einheit | Name */
+        grid-template-columns: 25px 50px 70px 1fr;
+        align-items: center;
+        background-color: #FEFFF2; /* Creme */
+        border: 1px solid rgba(212, 175, 55, 0.3); /* Gold transparent */
+        border-radius: 0.4rem;
+        padding: 0.5rem 0.8rem;
+        margin-bottom: 0.4rem;
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+        .ing-item:hover {
+            transform: translateX(3px);
+            border-color: #D4AF37;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+        }
+
+    /* Checkbox Icon (Deko) */
+    .ing-check {
+        color: #D4AF37;
+        font-size: 1.1rem;
+    }
+
+    /* Typografie für Menge und Einheit */
+    .ing-qty {
+        font-weight: 700;
+        text-align: right;
+        padding-right: 5px;
+        color: #2a3440;
+    }
+
+    .ing-unit {
+        color: #666;
+        font-size: 0.9rem;
+        padding-left: 5px;
+    }
+
+    .ing-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Spezial-Style für Salz & Pfeffer */
+    .spice-row {
+        background-color: #fff;
+        border: 1px dashed #D4AF37;
+        color: #555;
+        font-style: italic;
+        display: flex;
+        justify-content: center;
+        padding: 0.6rem;
+        margin-top: 1rem;
+        border-radius: 0.4rem;
+    }
+
+    /* Mobile Anpassung */
+    @@media (max-width: 400px) {
+        .ing-item {
+            grid-template-columns: 20px 40px 60px 1fr;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<div class="ingredient-list-wrapper">
+
+    @foreach (var ingGroup in groupIng)
+    {
+        <div class="ing-group-header">
+            <i class="bi bi-basket2-fill"></i>
+            @ingGroup.Key
+        </div>
+
+        @foreach (var ing in ingGroup)
+        {
+            var qty = ing.Quantity.Quantitys;
+            var displayQty = qty == 0 ? "" : Math.Round(qty, 2).ToString(); // Runden für saubere Anzeige
+
+            <div class="ing-item">
+                <div class="ing-check">
+                    <i class="bi bi-circle"></i>
+                </div>
+
+                <div class="ing-qty" data-original="@qty">
+                    @displayQty
+                </div>
+
+                <div class="ing-unit">
+                    @ing.Measure.UnitOfMeasurement
+                </div>
+
+                <div class="ing-name">
+                    @ing.Ingredient.Name
+                </div>
+            </div>
+        }
+    }
+
+    @if (salt || pepper)
+    {
+        <div class="spice-row">
+            <i class="bi bi-stars me-2 text-warning"></i>
+            <span>
+                @(salt && pepper ? "Salz und Pfeffer nach Geschmack" : salt ? "Salz nach Geschmack" : "Pfeffer nach Geschmack")
+            </span>
+        </div>
+    }
+</div>

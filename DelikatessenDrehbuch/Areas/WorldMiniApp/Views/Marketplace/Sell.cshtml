@@ -1,0 +1,416 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserMealPlan>
+@{
+    ViewData["Title"] = "Plan verkaufen";
+    Layout = "_MiniAppLayout";
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
+
+    var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
+    var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
+    var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
+    var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
+    var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
+}
+
+<style>
+    .sell-card {
+        background: #fff;
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .plan-option {
+        border: 2px solid transparent;
+        border-radius: .75rem;
+        padding: .75rem;
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+        background: rgba(0,0,0,.02);
+    }
+    .plan-option:hover { background: rgba(0,0,0,.04); }
+    .plan-option.selected {
+        border-color: #f59e0b;
+        background: rgba(245,158,11,.06);
+    }
+    .sell-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        border-radius: .75rem;
+        padding: .6rem 1.5rem;
+    }
+    .sell-btn:hover { filter: brightness(1.1); color: #fff; }
+    .sell-btn:disabled { opacity: .5; }
+    .price-input {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: .75rem;
+        max-width: 140px;
+    }
+    .price-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); outline: none; }
+    .wallet-bar-sell {
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: #fff;
+        border-radius: 1rem;
+        padding: .75rem 1.25rem;
+    }
+    .wallet-connected { color: #34d399; }
+    .split-info {
+        background: rgba(245,158,11,.08);
+        border: 1px solid rgba(245,158,11,.2);
+        border-radius: .75rem;
+        padding: .75rem 1rem;
+        font-size: .85rem;
+    }
+</style>
+
+<div class="container py-4" style="max-width:720px;">
+    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zum Marketplace
+    </a>
+
+    <div class="sell-card p-4 mb-3">
+        <h4 class="fw-bold mb-1">Essensplan verkaufen</h4>
+        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WLD fest. Optional kannst du zusätzlich eine USDT/USDC-Auszahlungsadresse speichern.</p>
+    </div>
+
+    <!-- Wallet-Verbindung (Pflicht zum Verkaufen) -->
+    <div class="wallet-bar-sell mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="small opacity-75">Deine Auszahlungs-Wallet (WLD)</div>
+                <div class="small mt-1" id="sellerWalletStatus">
+                    @if (!string.IsNullOrWhiteSpace(walletWLD))
+                    {
+                        <span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>@walletWLD.Substring(0, Math.Min(6, walletWLD.Length))...@walletWLD.Substring(Math.Max(0, walletWLD.Length - 4))</span>
+                    }
+                    else
+                    {
+                        <span class="text-warning">Nicht verbunden - Wallet wird für Auszahlung benötigt</span>
+                    }
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerWalletBtn" onclick="connectSellerWallet()">
+                <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletWLD) ? "Verbinden" : "Verbunden")
+            </button>
+        </div>
+    </div>
+
+
+    <div class="wallet-bar-sell mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="small opacity-75">Deine Auszahlungs-Wallet (USDT/USDC)</div>
+                <div class="small mt-1" id="sellerUsdtWalletStatus">
+                    @if (!string.IsNullOrWhiteSpace(walletUSDT))
+                    {
+                        <span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>@walletUSDT.Substring(0, Math.Min(6, walletUSDT.Length))...@walletUSDT.Substring(Math.Max(0, walletUSDT.Length - 4))</span>
+                    }
+                    else
+                    {
+                        <span class="text-warning">Nicht verbunden - optional für USDT/USDC-Auszahlungen</span>
+                    }
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerUsdtWalletBtn" onclick="connectSellerUsdtWallet()">
+                <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletUSDT) ? "Verbinden" : "Verbunden")
+            </button>
+        </div>
+    </div>
+
+    <!-- Revenue Split Info -->
+    <div class="split-info mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        <strong>80% für dich</strong> — Bei jedem Verkauf bekommst du automatisch 80% des Preises direkt auf deine Wallet.
+        20% gehen als Plattform-Gebühr an uns.
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted"></i>
+            <p class="text-muted mt-2">Du hast noch keine Essenspläne.</p>
+            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="btn btn-outline-dark btn-sm rounded-pill">Plan erstellen</a>
+        </div>
+    }
+    else
+    {
+        <div class="sell-card p-4">
+            <!-- Plan auswählen -->
+            <label class="fw-semibold mb-2 d-block">1. Plan auswählen</label>
+            <div class="d-flex flex-column gap-2 mb-4" id="planList">
+                @foreach (var plan in Model)
+                {
+                    <div class="plan-option" data-plan-id="@plan.Id" onclick="selectPlan(this, @plan.Id, '@(plan.Title?.Replace("'", "\\'") ?? "Essensplan")')">
+                        <div class="fw-bold">@(plan.Title ?? "Essensplan")</div>
+                        <div class="text-muted small">Erstellt: @plan.CreationTime.ToString("dd.MM.yyyy")</div>
+                    </div>
+                }
+            </div>
+
+            <!-- Titel & Beschreibung -->
+            <label class="fw-semibold mb-2 d-block">2. Angebot beschreiben</label>
+            <div class="mb-2">
+                <input type="text" id="listingTitle" class="form-control rounded-3" placeholder="Titel für dein Angebot" maxlength="100" />
+            </div>
+            <div class="mb-4">
+                <textarea id="listingDescription" class="form-control rounded-3" rows="2" placeholder="Kurze Beschreibung (optional)" maxlength="300"></textarea>
+            </div>
+
+            <!-- Preis -->
+            <label class="fw-semibold mb-2 d-block">3. Preis festlegen</label>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" oninput="updateSplitPreview()" />
+                <span class="fw-bold text-muted">WLD</span>
+            </div>
+            <div class="small text-muted mb-4" id="splitPreview">
+                Du bekommst: <strong>8.00 WLD</strong> (80%) — Plattform: 2.00 WLD (20%)
+            </div>
+
+            <!-- Submit -->
+            <button class="sell-btn w-100" id="btnSell" onclick="createListing()" disabled>
+                <i class="bi bi-tag me-2"></i>Jetzt verkaufen
+            </button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    window.worldChainMarketplaceConfig = {
+        chainId: Number('@worldChainId'),
+        wldTokenAddress: '@worldChainWldToken',
+        usdtTokenAddress: '@worldChainUsdtToken',
+        marketplaceAddress: '@worldChainMarketplace',
+        testMode: @(testMode ? "true" : "false")
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<script src="~/js/worldchain-marketplace.js"></script>
+<script type="module" src="~/js/minikitt.js"></script>
+<script>
+    let selectedPlanId = null;
+    let sellerWalletAddress = '@walletWLD';
+    let sellerUsdtWalletAddress = '@walletUSDT';
+
+    const USER_HASH = '@userHash';
+
+    function getAntiForgeryToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
+    function shortWallet(address) {
+        if (!address || address.length < 10) return address || '';
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    function updateSplitPreview() {
+        const price = parseFloat(document.getElementById('listingPrice').value) || 0;
+        const creatorAmount = (price * 0.8).toFixed(2);
+        const platformAmount = (price * 0.2).toFixed(2);
+        const el = document.getElementById('splitPreview');
+        if (el) {
+            el.innerHTML = `Du bekommst: <strong>${creatorAmount} WLD</strong> (80%) — Plattform: ${platformAmount} WLD (20%)`;
+        }
+    }
+
+    function selectPlan(el, planId, planTitle) {
+        document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedPlanId = planId;
+
+        const titleInput = document.getElementById('listingTitle');
+        if (!titleInput.value.trim()) {
+            titleInput.value = planTitle;
+        }
+
+        updateSellButtonState();
+    }
+
+    function updateSellButtonState() {
+        const btn = document.getElementById('btnSell');
+        btn.disabled = !selectedPlanId || (!sellerWalletAddress && !sellerUsdtWalletAddress);
+    }
+
+    async function connectSellerWallet() {
+        const btn = document.getElementById('connectSellerWalletBtn');
+        try {
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
+            let address = '';
+
+            // 1. Versuch: EIP-1193 Provider (Desktop-Browser)
+            if (window.worldChainMarketplace?.connectWallet) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.();
+                if (ethereumProvider) {
+                    try {
+                        address = await window.worldChainMarketplace.connectWallet();
+                    } catch (e) {
+                        console.warn('EIP-1193 connectWallet fehlgeschlagen:', e.message);
+                    }
+                }
+            }
+
+            // 2. Fallback: MiniKit walletAuth (World App)
+            if (!address && window.connectWalletOnly) {
+                address = await window.connectWalletOnly();
+            }
+
+            if (!address) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+                alert('Wallet-Verbindung fehlgeschlagen.');
+                return;
+            }
+
+            sellerWalletAddress = address;
+
+            // Wallet in Session speichern
+            const form = new FormData();
+            form.append('walletAddress', address);
+            form.append('token', 'WLD');
+            form.append('__RequestVerificationToken', getAntiForgeryToken());
+            await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                body: form
+            });
+
+            // UI aktualisieren
+            const statusEl = document.getElementById('sellerWalletStatus');
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>${shortWallet(address)}</span>`;
+            }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            updateSellButtonState();
+        } catch (error) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
+        }
+    }
+
+
+    async function connectSellerUsdtWallet() {
+        const btn = document.getElementById('connectSellerUsdtWalletBtn');
+        try {
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+
+            let address = '';
+
+            if (window.worldChainMarketplace?.connectWallet) {
+                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.();
+                if (ethereumProvider) {
+                    try {
+                        address = await window.worldChainMarketplace.connectWallet();
+                    } catch (e) {
+                        console.warn('EIP-1193 connectWallet fehlgeschlagen:', e.message);
+                    }
+                }
+            }
+
+            if (!address && window.connectWalletOnly) {
+                address = await window.connectWalletOnly();
+            }
+
+            if (!address) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+                alert('USDT/USDC-Wallet-Verbindung fehlgeschlagen.');
+                return;
+            }
+
+            sellerUsdtWalletAddress = address;
+
+            const form = new FormData();
+            form.append('walletAddress', address);
+            form.append('token', 'USDT');
+            form.append('__RequestVerificationToken', getAntiForgeryToken());
+            await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                body: form
+            });
+
+            const statusEl = document.getElementById('sellerUsdtWalletStatus');
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>${shortWallet(address)}</span>`;
+            }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            updateSellButtonState();
+        } catch (error) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+            alert(error?.message || 'USDT/USDC-Wallet-Verbindung fehlgeschlagen.');
+        }
+    }
+
+    async function createListing() {
+        if (!selectedPlanId) return;
+
+        if (!sellerWalletAddress && !sellerUsdtWalletAddress) {
+            alert('Bitte verbinde zuerst mindestens eine Wallet (WLD oder USDT/USDC), damit du Zahlungen empfangen kannst.');
+            return;
+        }
+
+        const title = document.getElementById('listingTitle').value.trim();
+        const description = document.getElementById('listingDescription').value.trim();
+        const price = parseFloat(document.getElementById('listingPrice').value) || 0;
+
+        if (!title) { alert('Bitte gib einen Titel ein.'); return; }
+        if (price < 1 || price > 1000) { alert('Preis muss zwischen 1 und 1000 WLD liegen.'); return; }
+
+        const form = new FormData();
+        form.append('mealPlanId', selectedPlanId);
+        form.append('title', title);
+        form.append('description', description);
+        form.append('price', price);
+        form.append('sellerWalletAddress', sellerWalletAddress);
+        form.append('sellerUsdtWalletAddress', sellerUsdtWalletAddress);
+        form.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        const btn = document.getElementById('btnSell');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Wird erstellt...';
+
+        try {
+            const resp = await fetch('@Url.Action("CreateListing", "Marketplace", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                body: form
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert('Angebot erstellt! Bei jedem Kauf bekommst du 80% direkt auf deine Wallet.');
+                window.location.href = '@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })';
+            } else {
+                alert(data.error || 'Fehler beim Erstellen.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-tag me-2"></i>Jetzt verkaufen';
+            }
+        } catch {
+            alert('Netzwerkfehler.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-tag me-2"></i>Jetzt verkaufen';
+        }
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSplitPreview();
+
+        // Falls Wallet schon verbunden, Button-State setzen
+        if (sellerWalletAddress) {
+            const btn = document.getElementById('connectSellerWalletBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+        }
+
+        if (sellerUsdtWalletAddress) {
+            const btnUsdt = document.getElementById('connectSellerUsdtWalletBtn');
+            if (btnUsdt) { btnUsdt.disabled = true; btnUsdt.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btnUsdt.classList.replace('btn-outline-light', 'btn-success'); }
+        }
+
+        updateSellButtonState();
+    });
+</script>
+@Html.AntiForgeryToken()
+}

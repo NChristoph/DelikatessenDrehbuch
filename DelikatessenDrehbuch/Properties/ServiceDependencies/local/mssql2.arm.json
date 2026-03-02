@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "RessourcGroup-DelikatessenDrehbuch",
+      "metadata": {
+        "_parameterType": "resourceGroup",
+        "description": "Der Name der Ressourcengruppe für die Ressource. Es wird empfohlen, Ressourcen für eine bessere Nachverfolgung in derselben Ressourcengruppe zu platzieren."
+      }
+    },
+    "resourceGroupLocation": {
+      "type": "string",
+      "defaultValue": "swedencentral",
+      "metadata": {
+        "_parameterType": "location",
+        "description": "Der Standort der Ressourcengruppe. Ressourcengruppen können andere Standorte als Ressourcen aufweisen."
+      }
+    },
+    "resourceLocation": {
+      "type": "string",
+      "defaultValue": "[parameters('resourceGroupLocation')]",
+      "metadata": {
+        "_parameterType": "location",
+        "description": "Der Standort der Ressource. Verwenden Sie standardmäßig den Standort der Ressourcengruppe, sofern der Ressourcenanbieter dort unterstützt wird."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('resourceGroupLocation')]",
+      "apiVersion": "2019-10-01"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(parameters('resourceGroupName'), 'Deployment', uniqueString(concat('DelikatessenDrehbuchDb', subscription().subscriptionId)))]",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "[parameters('resourceGroupName')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": [
+            {
+              "kind": "v12.0",
+              "location": "[parameters('resourceLocation')]",
+              "name": "delikatessen-drehbuch-server",
+              "type": "Microsoft.Sql/servers",
+              "apiVersion": "2017-10-01-preview"
+            },
+            {
+              "sku": {
+                "name": "GP_S_Gen5",
+                "tier": "GeneralPurpose",
+                "family": "Gen5",
+                "capacity": 2
+              },
+              "kind": "v12.0,user,vcore,serverless,freelimit",
+              "location": "[parameters('resourceLocation')]",
+              "name": "delikatessen-drehbuch-server/DelikatessenDrehbuchDb",
+              "type": "Microsoft.Sql/servers/databases",
+              "apiVersion": "2017-10-01-preview",
+              "dependsOn": [
+                "delikatessen-drehbuch-server"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "_dependencyType": "mssql.azure"
+  }
+}

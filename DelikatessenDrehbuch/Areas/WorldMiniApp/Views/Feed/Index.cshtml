@@ -1,0 +1,2496 @@
+﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@model List<WorldUserPosting>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Feed";
+    Layout = null;
+
+    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
+    var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
+    var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
+    var creatorShopCards = ViewData["CreatorShopCards"] as List<PlanCardViewModel> ?? new List<PlanCardViewModel>();
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
+    var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
+    var worldChainWldToken = ViewData["WorldChainWldToken"]?.ToString() ?? "";
+    var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
+    var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
+    var worldChainTestMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
+    var selectedCategory = selectedCategoryRaw switch
+    {
+        "appetizer" or "aperetizer" or "vorspeise" or "entrada" => "appetizer",
+        "main" or "maincourse" or "hauptspeise" or "plato principal" or "platoprincipal" or "prato principal" or "pratoprincipal" => "main",
+        "dessert" or "postre" or "sobremesa" or "nachspeise" => "dessert",
+        _ => selectedCategoryRaw
+    };
+}
+<!DOCTYPE html>
+<html lang="@language">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Delikatessen Feed</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/creator-shop-cards.css">
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .feed-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .feed-sections {
+            width: 200vw;
+            height: 100vh;
+            display: flex;
+            transition: transform 0.35s ease;
+        }
+
+        .feed-sections.section-marketplace {
+            transform: translateX(-100vw);
+        }
+
+        .feed-section {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .feed-item {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feed-media {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            background-color: #000;
+        }
+
+        .overlay-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .play-icon-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: rgba(255,255,255,0.8);
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .feed-item.paused .play-icon-overlay {
+            opacity: 1;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            z-index: 5;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 1.2rem;
+        }
+
+        .info-container {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            right: 80px;
+            z-index: 3;
+            color: white;
+            text-align: left;
+            pointer-events: none;
+        }
+
+            .info-container * {
+                pointer-events: auto;
+            }
+
+        .chef-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(20, 20, 20, 0.65);
+            backdrop-filter: blur(10px);
+            padding: 4px 4px 4px 12px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: fit-content;
+        }
+
+        .chef-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .separator {
+            width: 1px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.3);
+            margin-right: 4px;
+        }
+
+        .follow-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .follow-btn:active {
+                transform: scale(0.9);
+            }
+
+        .recipe-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            line-height: 1.1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+
+        .recipe-meta {
+            font-size: 0.95rem;
+            opacity: 0.95;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .action-bar {
+            position: absolute;
+            bottom: 120px;
+            right: 15px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+            .action-btn:active {
+                transform: scale(0.9);
+            }
+
+        .icon-circle {
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .action-btn.liked .icon-circle {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 94, 98, 0.5);
+        }
+
+        .action-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            border-top: 1px solid rgba(255,255,255,0.8);
+            z-index: 10;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 15px;
+        }
+
+        .nav-item {
+            color: #bdc3c7;
+            font-size: 1.8rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .add-btn-wrapper {
+            position: relative;
+            top: -25px;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.2rem;
+            box-shadow: 0 8px 25px rgba(255, 94, 98, 0.5);
+            border: 5px solid white;
+        }
+
+        .double-tap-heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 6rem;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+        }
+
+            .double-tap-heart.animate {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+
+        /* ------------ PLAN MODAL (clean, social) ------------ */
+        :root {
+            --plan-accent: #FF9966;
+            --plan-accent-border: rgba(255, 153, 102, 0.35);
+            --plan-accent-soft: rgba(255, 153, 102, 0.12);
+            --plan-accent-soft-2: rgba(255, 94, 98, 0.14);
+            --plan-surface: rgba(18, 18, 18, 0.94);
+            --plan-text: #ffffff;
+            --plan-muted-text: rgba(255, 255, 255, 0.75);
+            --plan-button-text: #111111;
+            --plan-header-bg: rgba(0, 0, 0, 0.22);
+            --plan-tools-bg: rgba(0, 0, 0, 0.58);
+            --plan-card-bg: rgba(0, 0, 0, 0.18);
+            --plan-card-border: rgba(255, 255, 255, 0.06);
+            --plan-outline: rgba(255, 255, 255, 0.08);
+            --plan-input-bg: rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-dialog {
+            max-width: 520px;
+        }
+
+        .modal-content {
+            background: radial-gradient(1200px 800px at 10% 0%, var(--plan-accent-soft), transparent 60%), radial-gradient(900px 600px at 90% 20%, var(--plan-accent-soft-2), transparent 60%), var(--plan-surface);
+            color: var(--plan-text);
+            border-radius: 26px;
+            border: 1px solid rgba(255,255,255,0.10);
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(0,0,0,0.55);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--plan-outline);
+            padding: 14px 16px;
+            background: var(--plan-header-bg);
+            backdrop-filter: blur(14px);
+        }
+
+        .modal-title {
+            color: var(--plan-accent);
+            font-weight: 900;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-close {
+            filter: invert(1);
+            opacity: 0.9;
+        }
+
+        #planModal .modal-body {
+            position: relative;
+            padding-top: 12px;
+        }
+
+        .plan-sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 70;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 8px;
+        }
+
+        .pending-recipe {
+            display: none;
+            gap: 12px;
+            align-items: center;
+            padding: 10px;
+            border-radius: 18px;
+            border: 1px solid var(--plan-accent-border);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .pending-media {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid var(--plan-accent-border);
+        }
+
+            .pending-media img,
+            .pending-media video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        .pending-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+            color: var(--plan-muted-text);
+        }
+
+        .pending-title {
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: var(--plan-text);
+            line-height: 1.2;
+        }
+
+        .plan-tools {
+            z-index: 60;
+            padding: 12px;
+            border-radius: 18px;
+            background: var(--plan-tools-bg);
+            border: 1px solid var(--plan-outline);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+            transition: transform 220ms ease, opacity 220ms ease;
+            will-change: transform, opacity;
+        }
+
+            .plan-tools.is-hidden {
+                transform: translateY(-115%);
+                opacity: 0.15;
+                pointer-events: none;
+            }
+
+        .plan-btn-primary {
+            background: var(--plan-accent);
+            border: none;
+            color: var(--plan-button-text);
+            font-weight: 900;
+            border-radius: 14px;
+        }
+
+        .plan-btn-outline {
+            border: 1px solid var(--plan-accent-border);
+            color: var(--plan-text);
+            background: var(--plan-input-bg);
+            font-weight: 800;
+            border-radius: 14px;
+        }
+
+        .plan-btn-secondary {
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
+            background: var(--plan-input-bg);
+            font-weight: 800;
+            border-radius: 14px;
+        }
+
+        .plan-tools .form-control {
+            background: var(--plan-input-bg);
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
+        }
+
+            .plan-tools .form-control::placeholder {
+                color: var(--plan-muted-text);
+            }
+
+        .plan-tools .form-label {
+            color: var(--plan-text);
+            font-weight: 700;
+        }
+
+        .plan-nutrition {
+            border-radius: 14px;
+            border: 1px solid var(--plan-outline);
+            background: var(--plan-surface);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+        }
+
+        .plan-nutrition-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--plan-text);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .plan-nutrition-toggle-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-nutrition-toggle i {
+            font-size: 0.9rem;
+            transition: transform 180ms ease;
+        }
+
+        .plan-nutrition.is-collapsed .plan-nutrition-toggle i {
+            transform: rotate(-90deg);
+        }
+
+        .plan-nutrition-body {
+            margin-top: 8px;
+        }
+
+        .plan-nutrition.is-collapsed .plan-nutrition-body {
+            display: none;
+        }
+
+        .plan-nutrition-status {
+            font-size: 0.7rem;
+            color: var(--plan-muted-text);
+        }
+
+        .plan-nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .plan-nutrition-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid var(--plan-card-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .plan-nutrition-item span {
+            font-size: 0.75rem;
+            color: var(--plan-muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .plan-nutrition-value {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--plan-text);
+            line-height: 1.1;
+        }
+
+        .plan-nutrition-unit {
+            font-size: 0.7rem;
+            color: var(--plan-muted-text);
+        }
+
+        .day-nutrition {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 14px;
+            border: 1px solid var(--plan-card-border);
+            background: rgba(0, 0, 0, 0.18);
+        }
+
+        .day-nutrition-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--plan-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .day-nutrition-toggle i {
+            font-size: 0.8rem;
+            transition: transform 180ms ease;
+        }
+
+        .day-nutrition.is-collapsed .day-nutrition-toggle i {
+            transform: rotate(-90deg);
+        }
+
+        .day-nutrition-body {
+            margin-top: 8px;
+        }
+
+        .day-nutrition.is-collapsed .day-nutrition-body {
+            display: none;
+        }
+
+        .day-nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .day-nutrition-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 6px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--plan-card-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .day-nutrition-item span {
+            font-size: 0.68rem;
+            color: var(--plan-muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .day-nutrition-value {
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: var(--plan-text);
+            line-height: 1.1;
+        }
+
+        .day-nutrition-unit {
+            font-size: 0.65rem;
+            color: var(--plan-muted-text);
+        }
+
+        .day-nutrition-status {
+            font-size: 0.65rem;
+            color: var(--plan-muted-text);
+        }
+
+        .plan-day-row {
+            margin-top: 12px;
+            border: 1px solid var(--plan-card-border);
+            background: var(--plan-card-bg);
+            border-radius: 18px;
+            padding: 12px;
+        }
+
+        .day-label {
+            font-weight: 950;
+            color: var(--plan-accent);
+            margin-bottom: 10px;
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .slot-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @@media(min-width: 350px) {
+            .slot-container {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        .meal-slot-btn {
+            background: var(--plan-surface);
+            border: 1px dashed var(--plan-accent-border);
+            color: var(--plan-text);
+            height: 112px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            position: relative;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .filled-slot {
+            background: var(--plan-surface);
+            border: 1px solid var(--plan-outline);
+            border-radius: 16px;
+            height: 112px;
+            overflow: hidden;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+            position: relative;
+            display: grid;
+            grid-template-columns: 78px 1fr;
+            align-items: stretch;
+        }
+
+        .replace-slot {
+            outline: 2px dashed var(--plan-accent-border);
+            cursor: pointer;
+        }
+
+        .mini-img {
+            width: 78px;
+            height: 112px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mini-content {
+            padding: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .mini-title {
+            font-size: 0.92rem;
+            font-weight: 950;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--plan-text);
+            line-height: 1.2;
+        }
+
+        .mini-type {
+            font-size: 0.62rem;
+            color: var(--plan-muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 800;
+        }
+
+        .slot-actions {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            display: flex;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        .slot-btn {
+            border: none;
+            background: rgba(0,0,0,0.35);
+            color: var(--plan-text);
+            width: 30px;
+            height: 30px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .slot-btn.edit-slot-btn {
+                color: var(--plan-button-text);
+                background: var(--plan-accent);
+                font-weight: 900;
+            }
+
+            .slot-btn.delete-slot-btn {
+                background: rgba(255, 94, 98, 0.18);
+                color: rgba(255,255,255,0.95);
+            }
+
+        .replace-hint {
+            position: absolute;
+            right: 10px;
+            bottom: 8px;
+            font-size: 0.68rem;
+            color: var(--plan-muted-text);
+            background: var(--plan-header-bg);
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+
+        .plan-text-muted {
+            color: var(--plan-muted-text);
+        }
+
+        .shopping-share textarea {
+            background: var(--plan-input-bg);
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
+            border-radius: 16px;
+        }
+
+        .marketplace-panel {
+            height: 100vh;
+            overflow-y: auto;
+            padding: 72px 16px 100px;
+            background: linear-gradient(180deg, #090b10 0%, #131927 100%);
+            color: #fff;
+        }
+
+        .marketplace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .marketplace-title {
+            font-size: 1.35rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .marketplace-sub {
+            font-size: 0.82rem;
+            opacity: 0.78;
+            margin: 0;
+        }
+
+        .marketplace-open {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 6px 12px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .marketplace-sell-box {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.11);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .marketplace-sell-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .marketplace-sell-box .form-control,
+        .marketplace-sell-box .form-select {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff;
+        }
+
+        .marketplace-sell-box .form-control::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .marketplace-sell-btn {
+            margin-top: 8px;
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            padding: 10px;
+            color: #fff;
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+        }
+
+        .marketplace-sell-note {
+            font-size: 0.75rem;
+            opacity: 0.75;
+            margin-top: 6px;
+        }
+
+        .marketplace-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.11);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .marketplace-price {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            color: #fff;
+        }
+
+        .marketplace-meta {
+            font-size: 0.78rem;
+            opacity: 0.82;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .marketplace-card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .marketplace-token-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            opacity: 0.9;
+        }
+
+        .marketplace-token-switch input {
+            accent-color: #FF9966;
+        }
+
+        .marketplace-action-btn {
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .marketplace-empty {
+            border-radius: 18px;
+            border: 1px dashed rgba(255,255,255,0.25);
+            padding: 24px 14px;
+            text-align: center;
+            opacity: 0.85;
+        }
+
+        .section-switch-hint {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            background: rgba(0,0,0,0.45);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            backdrop-filter: blur(7px);
+        }
+
+        .section-pill {
+            opacity: 0.55;
+        }
+
+        .section-pill.active {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+    @Html.AntiForgeryToken()
+
+    <div class="section-switch-hint" id="sectionSwitchHint">
+        <span class="section-pill active" data-section-pill="feed">Feed</span>
+        <i class="bi bi-arrow-left-right"></i>
+        <span class="section-pill" data-section-pill="marketplace">Marktplatz</span>
+    </div>
+
+    <div class="feed-container" id="feedContainer">
+        <div class="feed-sections" id="feedSections">
+            <section class="feed-section" id="feedSection">
+        @foreach (var item in Model)
+        {
+            bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
+            string thumbOrSource = !string.IsNullOrEmpty(item.ThumbnailUrl) ? item.ThumbnailUrl : item.Source;
+
+            <div class="feed-item" data-id="@item.Recipe.Id" data-creator-id="@item.CreatorId" data-creator-name="@item.CreatorName">
+                @if (isVideo)
+                {
+                    <video class="feed-media" playsinline loop muted preload="metadata" poster="@thumbOrSource">
+                        <source src="@item.Source" type="video/mp4">
+                    </video>
+                    <i class="bi bi-play-fill play-icon-overlay"></i>
+                    <div class="sound-toggle" onclick="toggleGlobalSound(this)">
+                        <i class="bi bi-volume-mute-fill"></i>
+                    </div>
+                }
+                else
+                {
+                    <img class="feed-media" src="@item.Source" alt="@item.Recipe.Title" loading="lazy">
+                }
+
+                <div class="overlay-gradient"></div>
+                <i class="bi bi-heart-fill double-tap-heart"></i>
+
+                <div class="info-container">
+                    <div class="chef-badge">
+                        <span class="chef-icon">🥑</span>
+                        <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
+                        <div class="separator"></div>
+                        <button class="follow-btn" onclick="toggleFollow(event, this, '@item?.CreatorId')">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </button>
+                    </div>
+
+                    <h2 class="recipe-title">@item.Recipe.Title</h2>
+                    <div class="recipe-meta">⏱️ @item.Recipe.PreperationTime Min</div>
+                </div>
+
+                <div class="action-bar">
+                    <div class="action-btn heart-btn">
+                        <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
+                        <span class="action-label">124</span>
+                    </div>
+
+                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
+                        <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
+                        <span class="action-label">Planen</span>
+                    </div>
+
+                    <div class="action-btn">
+                        <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none">
+                            <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        <div id="feedContent"></div>
+            </section>
+            <section class="feed-section" id="marketplaceSection">
+                <div class="marketplace-panel">
+                    <div class="marketplace-header">
+                        <div>
+                            <h2 class="marketplace-title">@T("Marktplatz", "Marketplace", "Mercado", "Mercado")</h2>
+                            <p class="marketplace-sub" id="marketplaceActiveSeller">@T("Swipe nach links: Angebote vom aktuellen Creator", "Swipe left: listings from current creator", "Desliza a la izquierda: ofertas del creador actual", "Deslize para a esquerda: ofertas do criador atual")</p>
+                        </div>
+                    </div>
+
+                                        @if (!creatorShopCards.Any())
+                    {
+                        <div class="marketplace-empty">
+                            <i class="bi bi-shop fs-3"></i>
+                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "Aún no hay ofertas.", "Ainda sem ofertas.")</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="marketplaceFilteredEmpty" class="marketplace-empty" style="display:none;">
+                            <i class="bi bi-shop fs-3"></i>
+                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador não tem ofertas no momento.")</div>
+                        </div>
+                        @foreach (var card in creatorShopCards)
+                        {
+                            <div class="js-marketplace-listing" data-seller-hash="@((card.CreatorHash ?? string.Empty).ToLowerInvariant())" data-seller-name="@card.CreatorName">
+                                @await Html.PartialAsync("_CreatorShopPlanCard", card)
+                            </div>
+                        }
+                    }
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="nav-item text-decoration-none">
+            <i class="bi bi-house-door-fill"></i>
+        </a>
+        <div class="nav-item" onclick="openPlanModal(null, null, null)">
+            <i class="bi bi-calendar-week"></i>
+        </div>
+        <div class="add-btn-wrapper">
+            <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none">
+                <i class="bi bi-plus"></i>
+            </a>
+        </div>
+        <div class="nav-item" onclick="openSearchModal()" title="Suche">
+            <i class="bi bi-search"></i>
+        </div>
+        <div class="nav-item" onclick="goToProfile()" style="cursor: pointer;">
+            <i class="bi bi-person-fill"></i>
+        </div>
+    </div>
+
+    <!-- PLAN MODAL -->
+    <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title mb-0">Wochenplaner</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body" id="planModalBody">
+                    <div class="plan-sticky-header">
+                        <div id="pendingRecipeCard" class="pending-recipe">
+                            <div class="pending-media" id="pendingRecipeMedia"></div>
+                            <div class="pending-info">
+                                <div class="pending-label">Wird hinzugefügt</div>
+                                <div class="pending-title" id="pendingRecipeTitle"></div>
+                            </div>
+                        </div>
+                        <div class="plan-nutrition is-collapsed" id="planNutrition">
+                            <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
+                                <span class="plan-nutrition-toggle-content">
+                                    <i class="bi bi-chevron-down"></i>
+                                    <span>Nährwerte gesamt</span>
+                                </span>
+                                <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
+                            </button>
+                            <div class="plan-nutrition-body">
+                                <div class="plan-nutrition-grid">
+                                    <div class="plan-nutrition-item">
+                                        <span>Kalorien</span>
+                                        <div class="plan-nutrition-value" id="planNutritionCalories">—</div>
+                                        <div class="plan-nutrition-unit">kcal</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Protein</span>
+                                        <div class="plan-nutrition-value" id="planNutritionProtein">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Fett</span>
+                                        <div class="plan-nutrition-value" id="planNutritionFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Kohlenhydrate</span>
+                                        <div class="plan-nutrition-value" id="planNutritionCarbs">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Zucker</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSugar">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Ballaststoffe</span>
+                                        <div class="plan-nutrition-value" id="planNutritionFiber">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Gesättigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Salz</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSalt">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-tools" id="planTools">
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <label class="form-label small mb-1">Plan-Name</label>
+                                <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label small mb-1">Personen</label>
+                                <input id="planPersonCount" type="number" min="1" step="1" value="1" class="form-control form-control-sm" />
+                            </div>
+
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
+                                    <i class="bi bi-check2-circle me-1"></i> Plan speichern
+                                </button>
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">
+                                    <i class="bi bi-share me-1"></i> Plan teilen
+                                </button>
+                            </div>
+
+                            <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">
+                                <i class="bi bi-trash3 me-1"></i> Plan leeren
+                            </button>
+
+                            <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
+
+                         
+                        </div>
+                    </div>
+
+                    <div id="addingModeHeader" style="display:none;">
+                        <div class="plan-text-muted small text-center mb-2">Tippe auf einen Slot 👇</div>
+                    </div>
+
+                    <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
+                        Dein aktueller Plan für die Woche
+                    </div>
+
+                    <div id="planContainer"></div>
+
+                    <div class="shopping-share mt-3">
+                        <label class="form-label small">Einkaufsliste bearbeiten & teilen</label>
+                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="prepareShoppingList()">
+                            <i class="bi bi-basket3 me-1"></i> Einkaufsliste laden
+                        </button>
+                        <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..."></textarea>
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="generateShareLink()">
+                                <i class="bi bi-link-45deg me-1"></i> Link erstellen
+                            </button>
+                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="copyShareLink()">
+                                <i class="bi bi-clipboard-check me-1"></i> Link kopieren
+                            </button>
+                        </div>
+                        <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="feedPreviewOffcanvas" style="max-height:82vh; border-radius:1.2rem 1.2rem 0 0;">
+        <div class="offcanvas-header">
+            <h6 class="offcanvas-title fw-bold" id="feedPreviewTitle">Plan-Vorschau</h6>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body" id="feedPreviewBody"></div>
+    </div>
+
+    <!-- SEARCH MODAL -->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">@T("Suche im Feed", "Search in feed", "Buscar en el feed", "Buscar no feed")</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="get" action="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })">
+                    <div class="modal-body">
+                        <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
+                        <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
+                        <div class="mb-3">
+                            <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
+                            <input type="text" name="searchTerm" class="form-control"
+                                   placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
+                                   value="@ViewData["SearchTerm"]" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
+                            <select name="category" class="form-select">
+                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
+                                <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
+                                <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
+                                <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="submit" class="btn plan-btn-primary w-100">@T("Suchen", "Search", "Buscar", "Buscar")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+    <script src="~/js/worldchain-marketplace.js"></script>
+    <script type="module" src="~/js/minikitt.js"></script>
+
+    <script>
+        window.worldChainMarketplaceConfig = {
+            chainId: Number('@worldChainId'),
+            wldTokenAddress: '@worldChainWldToken',
+            usdtTokenAddress: '@worldChainUsdtToken',
+            marketplaceAddress: '@worldChainMarketplace',
+            testMode: @(worldChainTestMode ? "true" : "false")
+        };
+
+        let feedSelectedPaymentToken = 'WLD';
+        let feedWldPriceUsd = null;
+        let feedWalletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
+        const FEED_USER_HASH = '@userHash';
+
+        // ----------------- helpers -----------------
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function getUserHash() {
+            const stored = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+            const fallback = '@ViewData["UserHash"]';
+            return stored || fallback;
+        }
+
+
+
+        let activeSection = 'feed';
+        let activeMarketplaceCreatorHash = '';
+
+        function normalizeHash(value) {
+            return (value || '').toString().trim().toLowerCase();
+        }
+
+        function getCurrentFeedCreatorContext() {
+            const x = Math.floor(window.innerWidth / 2);
+            const y = Math.floor(window.innerHeight / 2);
+            const centerElement = document.elementFromPoint(x, y);
+            const feedItem = centerElement?.closest?.('.feed-item');
+            if (!feedItem) return null;
+
+            const creatorHash = normalizeHash(feedItem.getAttribute('data-creator-id'));
+            const creatorName = (feedItem.getAttribute('data-creator-name') || '').trim();
+            if (!creatorHash) return null;
+
+            return { creatorHash, creatorName };
+        }
+
+        function updateMarketplaceForCreator(context) {
+            const sellerInfo = document.getElementById('marketplaceActiveSeller');
+            const empty = document.getElementById('marketplaceFilteredEmpty');
+            const cards = Array.from(document.querySelectorAll('.js-marketplace-listing'));
+
+            if (!cards.length) return;
+
+            const creatorHash = normalizeHash(context?.creatorHash);
+            const creatorName = (context?.creatorName || '').trim();
+            activeMarketplaceCreatorHash = creatorHash;
+
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const sellerHash = normalizeHash(card.getAttribute('data-seller-hash'));
+                const isVisible = !creatorHash || sellerHash === creatorHash;
+                card.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleCount++;
+            });
+
+            if (sellerInfo) {
+                sellerInfo.textContent = creatorName
+                    ? `Angebote von ${creatorName}`
+                    : 'Angebote vom aktuellen Creator';
+            }
+
+            if (empty) {
+                empty.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        }
+
+        function syncMarketplaceToCurrentFeedItem() {
+            const context = getCurrentFeedCreatorContext();
+            updateMarketplaceForCreator(context);
+        }
+
+        function updateSectionPills() {
+            document.querySelectorAll('[data-section-pill]').forEach(el => {
+                const section = el.getAttribute('data-section-pill');
+                el.classList.toggle('active', section === activeSection);
+            });
+        }
+
+        function setSection(section) {
+            const sections = document.getElementById('feedSections');
+            if (!sections) return;
+            activeSection = section === 'marketplace' ? 'marketplace' : 'feed';
+            sections.classList.toggle('section-marketplace', activeSection === 'marketplace');
+            if (activeSection === 'marketplace') {
+                syncMarketplaceToCurrentFeedItem();
+            }
+            updateSectionPills();
+        }
+
+        function switchSection() {
+            setSection(activeSection === 'feed' ? 'marketplace' : 'feed');
+        }
+
+        function openSearchModal() {
+            const modalElement = document.getElementById('searchModal');
+            if (!modalElement || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        }
+
+        function goToProfile() {
+            const userHash = getUserHash();
+            if (userHash) window.location.href = '/WorldMiniApp/Feed/MyProfile?userHash=' + encodeURIComponent(userHash);
+            else alert("Bitte erst einloggen!");
+        }
+
+        // ----------------- WEEKLY PLAN LOGIC (FULL) -----------------
+        let weeklyPlanData = {};
+        let pendingRecipe = null;
+        let editingSlotKey = null;
+        let saveTimer = null;
+
+        function hexToRgb(hex) {
+            const cleaned = hex.replace('#', '').trim();
+            if (cleaned.length !== 6) return null;
+            const num = parseInt(cleaned, 16);
+            return {
+                r: (num >> 16) & 255,
+                g: (num >> 8) & 255,
+                b: num & 255
+            };
+        }
+
+        function rgbaFromHex(hex, alpha) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return hex;
+            return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+        }
+
+        function getContrastText(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return '#111111';
+            const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+            return luminance > 0.6 ? '#111111' : '#ffffff';
+        }
+
+        function applyPlanThemeFromProfile() {
+            const theme = localStorage.getItem('profile_theme') || 'color';
+            const themes = {
+                color: { background: '#F8FAF7', text: '#1A1A1A', accent: '#2D4F1E' },
+                black: { background: '#000000', text: '#ffffff', accent: '#ffffff' },
+                white: { background: '#ffffff', text: '#111111', accent: '#111111' },
+                rose: { background: '#FFF5F7', text: '#852D3E', accent: '#FFB6C1' },
+                lavender: { background: '#F3F0FF', text: '#4B3D8A', accent: '#A78BFA' }
+            };
+
+            const selected = themes[theme] || themes.color;
+            const root = document.documentElement;
+            root.style.setProperty('--plan-accent', selected.accent);
+            root.style.setProperty('--plan-accent-border', rgbaFromHex(selected.accent, 0.35));
+            root.style.setProperty('--plan-accent-soft', rgbaFromHex(selected.accent, 0.12));
+            root.style.setProperty('--plan-accent-soft-2', rgbaFromHex(selected.accent, 0.18));
+            root.style.setProperty('--plan-surface', rgbaFromHex(selected.background, 0.94));
+            root.style.setProperty('--plan-text', selected.text);
+            root.style.setProperty('--plan-muted-text', rgbaFromHex(selected.text, 0.75));
+            root.style.setProperty('--plan-button-text', getContrastText(selected.accent));
+            root.style.setProperty('--plan-header-bg', rgbaFromHex(selected.background, 0.22));
+            root.style.setProperty('--plan-tools-bg', rgbaFromHex(selected.background, 0.6));
+            root.style.setProperty('--plan-card-bg', rgbaFromHex(selected.background, 0.35));
+            root.style.setProperty('--plan-card-border', rgbaFromHex(selected.text, 0.1));
+            root.style.setProperty('--plan-outline', rgbaFromHex(selected.text, 0.12));
+            root.style.setProperty('--plan-input-bg', rgbaFromHex(selected.background, 0.4));
+        }
+
+        function updatePendingRecipeCard() {
+            const card = document.getElementById('pendingRecipeCard');
+            const media = document.getElementById('pendingRecipeMedia');
+            const titleEl = document.getElementById('pendingRecipeTitle');
+            if (!card || !media || !titleEl) return;
+
+            if (!pendingRecipe) {
+                card.style.display = 'none';
+                media.innerHTML = '';
+                titleEl.textContent = '';
+                return;
+            }
+
+            const safeTitle = pendingRecipe.title || '';
+            const isVideo = pendingRecipe.img && pendingRecipe.img.endsWith('.mp4');
+            media.innerHTML = isVideo
+                ? `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata"></video>`
+                : `<img src="${pendingRecipe.img}" alt="${escapeHtml(safeTitle)}" loading="lazy" />`;
+
+            titleEl.textContent = safeTitle;
+            card.style.display = 'flex';
+        }
+
+        const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+        const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
+
+        function updatePlanModeHeader() {
+            const adding = document.getElementById('addingModeHeader');
+            const view = document.getElementById('viewModeHeader');
+            if (!adding || !view) return;
+
+            if (pendingRecipe) { adding.style.display = 'block'; view.style.display = 'none'; }
+            else { adding.style.display = 'none'; view.style.display = 'block'; }
+
+            updatePendingRecipeCard();
+        }
+
+        function showPlanTools() {
+            const tools = document.getElementById('planTools');
+            if (tools) tools.classList.remove('is-hidden');
+        }
+        function hidePlanTools() {
+            const tools = document.getElementById('planTools');
+            if (tools) tools.classList.add('is-hidden');
+        }
+
+        function openPlanModal(title, url, recipeId) {
+            const modalEl = document.getElementById('planModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            if (title && url) {
+                pendingRecipe = { title: title, img: url, recipeId: recipeId };
+
+                if (editingSlotKey) {
+                    weeklyPlanData[editingSlotKey] = pendingRecipe;
+                    editingSlotKey = null;
+                    pendingRecipe = null;
+                    scheduleDraftSave();
+                }
+            } else {
+                pendingRecipe = null;
+            }
+
+            updatePlanModeHeader();
+            renderPlan();
+            applyPlanThemeFromProfile();
+            modal.show();
+            showPlanTools();
+        }
+
+        function renderPlan() {
+            const container = document.getElementById('planContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            days.forEach((day, dayIndex) => {
+                let dayHtml = `
+                    <div class="plan-day-row">
+                        <span class="day-label">${day}</span>
+                        <div class="slot-container">`;
+
+                slots.forEach((slotName, slotIndex) => {
+                    const key = `${dayIndex}-${slotIndex}`;
+                    const item = weeklyPlanData[key];
+
+                    if (item) {
+                        const replaceMode = pendingRecipe ? 'replace-slot' : '';
+                        const replaceAction = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
+                        const replaceHint = pendingRecipe ? `<div class="replace-hint">Antippen zum Ersetzen</div>` : '';
+
+                        const media = (item.img && item.img.endsWith('.mp4'))
+                            ? `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata"></video>`
+                            : `<img src="${item.img}" class="mini-img" loading="lazy" />`;
+
+                        dayHtml += `
+                            <div class="filled-slot ${replaceMode}" ${replaceAction}>
+                                ${media}
+                                <div class="mini-content">
+                                    <div class="mini-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
+                                    <div class="mini-type">${slotName}</div>
+                                </div>
+
+                                <div class="slot-actions">
+                                    <button type="button" class="slot-btn edit-slot-btn" onclick="startEditSlot('${key}'); event.stopPropagation();">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="slot-btn delete-slot-btn" onclick="removeFromSlot('${key}'); event.stopPropagation();">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+
+                                ${replaceHint}
+                            </div>`;
+                    } else {
+                        const action = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
+                        const opacity = pendingRecipe ? '1' : '0.55';
+                        dayHtml += `<div class="meal-slot-btn" style="opacity:${opacity}" ${action}>${slotName}</div>`;
+                    }
+                });
+
+                dayHtml += `</div>
+                        <div class="day-nutrition is-collapsed" data-day-index="${dayIndex}">
+                            <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
+                                <span class="plan-nutrition-toggle-content">
+                                    <i class="bi bi-chevron-down"></i>
+                                    <span>Tages-Nährwerte</span>
+                                </span>
+                                <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
+                            </button>
+                            <div class="day-nutrition-body">
+                                <div class="day-nutrition-grid">
+                                    <div class="day-nutrition-item">
+                                        <span>Kalorien</span>
+                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">kcal</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Protein</span>
+                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Fett</span>
+                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Kohlenhydrate</span>
+                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Zucker</span>
+                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Ballaststoffe</span>
+                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Gesättigt</span>
+                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Salz</span>
+                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                container.innerHTML += dayHtml;
+            });
+
+            scheduleNutritionUpdate();
+        }
+
+        function addToSlot(key) {
+            if (!pendingRecipe) return;
+            weeklyPlanData[key] = pendingRecipe;
+            renderPlan();
+            scheduleDraftSave();
+        }
+
+        function removeFromSlot(key) {
+            delete weeklyPlanData[key];
+            renderPlan();
+            scheduleDraftSave();
+        }
+
+        function startEditSlot(key) {
+            editingSlotKey = key;
+            const modalEl = document.getElementById('planModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+            alert('Wähle jetzt im Feed ein Rezept zum Ersetzen.');
+        }
+
+        function buildMealPlanPayload() {
+            const payload = [];
+            Object.keys(weeklyPlanData).forEach(key => {
+                const item = weeklyPlanData[key];
+                if (!item || !item.recipeId || item.recipeId === '0') return;
+
+                const [dayIndex, slotIndex] = key.split('-').map(Number);
+                payload.push({
+                    DayIndex: dayIndex + 1,
+                    SlotIndex: slotIndex,
+                    RecipeId: parseInt(item.recipeId, 10),
+                    Title: item.title || '',
+                    ImagePath: item.img || ''
+                });
+            });
+            return payload;
+        }
+
+        function clearWeeklyPlanState(keepPendingRecipe = false) {
+            weeklyPlanData = {};
+            if (!keepPendingRecipe) { pendingRecipe = null; editingSlotKey = null; }
+            localStorage.removeItem(getDraftStorageKey());
+            const linkInput = document.getElementById('planShareLink');
+            if (linkInput) linkInput.value = '';
+            updatePlanModeHeader();
+            renderPlan();
+            scheduleNutritionUpdate();
+        }
+
+        function saveWeeklyPlan() {
+            const userHash = getUserHash();
+            if (!userHash) { alert("Bitte erst einloggen!"); return; }
+
+            const payload = buildMealPlanPayload();
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+
+            const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+
+            const encodedData = encodeURIComponent(JSON.stringify(payload));
+            clearWeeklyPlanState();
+            window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
+        }
+
+        async function shareWeeklyPlan() {
+            const payload = buildMealPlanPayload();
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+
+            const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : null;
+
+                const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'RequestVerificationToken': token } : {})
+                    },
+                    body: JSON.stringify({
+                        mealPlanJson: JSON.stringify(payload),
+                        personCount: personCount,
+                        title: title,
+                        userHash: getUserHash()
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    alert(`Plan konnte nicht geteilt werden. ${errorText}`);
+                    return;
+                }
+
+                const data = await response.json();
+                const linkInput = document.getElementById('planShareLink');
+                if (linkInput) linkInput.value = data.shareUrl || '';
+
+                if (!data.shareUrl) { alert("Teilen fehlgeschlagen: Kein Link erhalten."); return; }
+
+                try {
+                    if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
+                    else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); alert("Link kopiert!"); }
+                } catch (shareError) {
+                    console.warn("Teilen nicht verfügbar:", shareError);
+                }
+            } catch (error) {
+                console.error("Teilen fehlgeschlagen:", error);
+                alert("Plan konnte nicht geteilt werden.");
+            }
+        }
+
+        function getDraftStorageKey() {
+            const userHash = getUserHash();
+            return `worldminiapp_feed_plan_${userHash || 'guest'}`;
+        }
+
+        function scheduleDraftSave() {
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => saveDraft(), 600);
+        }
+
+        async function saveDraft() {
+            const payload = buildMealPlanPayload();
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+            const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Feed-Plan";
+
+            localStorage.setItem(getDraftStorageKey(), JSON.stringify({
+                mealPlanJson: JSON.stringify(payload),
+                personCount: personCount,
+                title: title
+            }));
+
+            const userHash = getUserHash();
+            if (!userHash) return;
+
+            // optional: du hattest einen endpoint - wenn du ihn willst, ist das hier ok:
+            try {
+                await fetch('/WorldMiniApp/Home/SaveFeedMealPlanDraft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mealPlanJson: JSON.stringify(payload),
+                        personCount: personCount,
+                        title: title,
+                        userHash: userHash
+                    })
+                });
+            } catch { }
+        }
+
+        function applyDraftPayload(payload, personCount, title) {
+            if (title) document.getElementById('planTitleInput').value = title;
+            if (personCount) document.getElementById('planPersonCount').value = personCount;
+
+            weeklyPlanData = {};
+            (payload || []).forEach(item => {
+                const dayIndex = (item.DayIndex || 1) - 1;
+                const slotIndex = item.SlotIndex ?? 0;
+                const key = `${dayIndex}-${slotIndex}`;
+                weeklyPlanData[key] = {
+                    title: item.Title || item.title || '',
+                    img: item.ImagePath || item.img || '',
+                    recipeId: item.RecipeId || item.recipeId
+                };
+            });
+            renderPlan();
+            scheduleNutritionUpdate();
+        }
+
+        async function loadDraft() {
+            const stored = localStorage.getItem(getDraftStorageKey());
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    const payload = parsed.mealPlanJson ? JSON.parse(parsed.mealPlanJson) : [];
+                    applyDraftPayload(payload, parsed.personCount, parsed.title);
+                    return;
+                } catch (err) {
+                    console.warn("Draft local konnte nicht geladen werden.", err);
+                }
+            }
+
+            // OPTIONAL: wenn du wieder server draft laden willst, bau hier wieder ein:
+            // const userHash = getUserHash();
+            // if (!userHash) return;
+            // const response = await fetch(`/WorldMiniApp/Home/GetFeedMealPlanDraft?userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(document.getElementById('planTitleInput').value || 'Feed-Plan')}`);
+            // if (!response.ok) return;
+            // const data = await response.json();
+            // if (!data.mealPlanJson) return;
+            // applyDraftPayload(JSON.parse(data.mealPlanJson || '[]'), data.personCount, data.title);
+        }
+
+        function getPlanRecipeIds(payload) {
+            return (payload || []).map(x => x.RecipeId).filter(id => Number.isFinite(id));
+        }
+
+        async function prepareShoppingList() {
+            const payload = buildMealPlanPayload();
+            const recipeIds = getPlanRecipeIds(payload);
+            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+
+            const personCountInput = document.getElementById('planPersonCount');
+            const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
+            if (personCountInput) personCountInput.value = personCount;
+
+            const params = new URLSearchParams();
+            recipeIds.forEach(id => params.append('recipeIds', id));
+            params.append('personCount', personCount);
+
+            const response = await fetch(`/WorldMiniApp/Home/GetShoppingListText?${params.toString()}`);
+            if (!response.ok) { alert("Einkaufsliste konnte nicht geladen werden."); return; }
+
+            const data = await response.json();
+            document.getElementById('shoppingListEditor').value = data.text || '';
+        }
+
+        function handlePlanPersonCountChange() {
+            const personInput = document.getElementById('planPersonCount');
+            if (!personInput) return;
+
+            const normalized = Math.max(1, parseInt(personInput.value || '1', 10) || 1);
+            personInput.value = normalized;
+
+            scheduleNutritionUpdate();
+            scheduleDraftSave();
+
+            const shoppingEditor = document.getElementById('shoppingListEditor');
+            if (shoppingEditor && shoppingEditor.value.trim().length > 0) {
+                prepareShoppingList().catch(() => {
+                    // noop: Fehler wird bereits in prepareShoppingList angezeigt.
+                });
+            }
+        }
+
+        let nutritionTimer = null;
+
+        function scheduleNutritionUpdate() {
+            if (nutritionTimer) clearTimeout(nutritionTimer);
+            nutritionTimer = setTimeout(() => {
+                updatePlanNutritionTotals();
+                updateDayNutritionTotals();
+            }, 400);
+        }
+
+        function formatNutritionValue(value, decimals) {
+            if (!Number.isFinite(value)) return '—';
+            return value.toLocaleString('de-DE', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function setNutritionTotals(data) {
+            const caloriesEl = document.getElementById('planNutritionCalories');
+            const proteinEl = document.getElementById('planNutritionProtein');
+            const fatEl = document.getElementById('planNutritionFat');
+            const carbsEl = document.getElementById('planNutritionCarbs');
+            const sugarEl = document.getElementById('planNutritionSugar');
+            const fiberEl = document.getElementById('planNutritionFiber');
+            const saturatedEl = document.getElementById('planNutritionSaturatedFat');
+            const saltEl = document.getElementById('planNutritionSalt');
+
+            const calories = data?.calories;
+            const protein = data?.protein;
+            const fat = data?.fat;
+            const carbs = data?.carbohydrates;
+            const sugar = data?.sugar;
+            const fiber = data?.fiber;
+            const saturatedFat = data?.saturatedFat;
+            const salt = data?.salt;
+
+            if (caloriesEl) caloriesEl.textContent = formatNutritionValue(calories, 0);
+            if (proteinEl) proteinEl.textContent = formatNutritionValue(protein, 1);
+            if (fatEl) fatEl.textContent = formatNutritionValue(fat, 1);
+            if (carbsEl) carbsEl.textContent = formatNutritionValue(carbs, 1);
+            if (sugarEl) sugarEl.textContent = formatNutritionValue(sugar, 1);
+            if (fiberEl) fiberEl.textContent = formatNutritionValue(fiber, 1);
+            if (saturatedEl) saturatedEl.textContent = formatNutritionValue(saturatedFat, 1);
+            if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
+        }
+
+        function setDayNutritionTotals(dayIndex, data) {
+            const caloriesEl = document.getElementById(`dayNutritionCalories-${dayIndex}`);
+            const proteinEl = document.getElementById(`dayNutritionProtein-${dayIndex}`);
+            const fatEl = document.getElementById(`dayNutritionFat-${dayIndex}`);
+            const carbsEl = document.getElementById(`dayNutritionCarbs-${dayIndex}`);
+            const sugarEl = document.getElementById(`dayNutritionSugar-${dayIndex}`);
+            const fiberEl = document.getElementById(`dayNutritionFiber-${dayIndex}`);
+            const saturatedEl = document.getElementById(`dayNutritionSaturatedFat-${dayIndex}`);
+            const saltEl = document.getElementById(`dayNutritionSalt-${dayIndex}`);
+
+            const calories = data?.calories;
+            const protein = data?.protein;
+            const fat = data?.fat;
+            const carbs = data?.carbohydrates;
+            const sugar = data?.sugar;
+            const fiber = data?.fiber;
+            const saturatedFat = data?.saturatedFat;
+            const salt = data?.salt;
+
+            if (caloriesEl) caloriesEl.textContent = formatNutritionValue(calories, 0);
+            if (proteinEl) proteinEl.textContent = formatNutritionValue(protein, 1);
+            if (fatEl) fatEl.textContent = formatNutritionValue(fat, 1);
+            if (carbsEl) carbsEl.textContent = formatNutritionValue(carbs, 1);
+            if (sugarEl) sugarEl.textContent = formatNutritionValue(sugar, 1);
+            if (fiberEl) fiberEl.textContent = formatNutritionValue(fiber, 1);
+            if (saturatedEl) saturatedEl.textContent = formatNutritionValue(saturatedFat, 1);
+            if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
+        }
+
+        function togglePlanNutrition() {
+            const nutritionEl = document.getElementById('planNutrition');
+            const toggle = document.getElementById('planNutritionToggle');
+            if (!nutritionEl || !toggle) return;
+
+            const isCollapsed = nutritionEl.classList.contains('is-collapsed');
+            nutritionEl.classList.toggle('is-collapsed', !isCollapsed);
+            toggle.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+        }
+
+        function toggleDayNutrition(dayIndex) {
+            const nutritionEl = document.querySelector(`.day-nutrition[data-day-index="${dayIndex}"]`);
+            const toggle = document.querySelector(`.day-nutrition-toggle[data-day-index="${dayIndex}"]`);
+            if (!nutritionEl || !toggle) return;
+
+            const isCollapsed = nutritionEl.classList.contains('is-collapsed');
+            nutritionEl.classList.toggle('is-collapsed', !isCollapsed);
+            toggle.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+        }
+
+        function getDayRecipeIds(dayIndex) {
+            const ids = [];
+            Object.keys(weeklyPlanData).forEach(key => {
+                const [dayKey] = key.split('-').map(Number);
+                if (dayKey !== dayIndex) return;
+                const item = weeklyPlanData[key];
+                if (!item || !item.recipeId || item.recipeId === '0') return;
+                const parsed = parseInt(item.recipeId, 10);
+                if (Number.isFinite(parsed)) ids.push(parsed);
+            });
+            return ids;
+        }
+
+        async function updateDayNutritionTotals() {
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+            const paramsBase = new URLSearchParams();
+            paramsBase.append('personCount', personCount);
+
+            await Promise.all(days.map(async (_, dayIndex) => {
+                const statusEl = document.getElementById(`dayNutritionStatus-${dayIndex}`);
+                const recipeIds = getDayRecipeIds(dayIndex);
+                if (recipeIds.length === 0) {
+                    if (statusEl) statusEl.textContent = 'Keine Rezepte';
+                    setDayNutritionTotals(dayIndex, null);
+                    return;
+                }
+
+                if (statusEl) statusEl.textContent = 'Lädt...';
+
+                const params = new URLSearchParams(paramsBase);
+                recipeIds.forEach(id => params.append('recipeIds', id));
+
+                try {
+                    const response = await fetch(`/WorldMiniApp/Home/GetMealPlanNutritionTotals?${params.toString()}`);
+                    if (!response.ok) throw new Error('Day nutrition fetch failed');
+                    const data = await response.json();
+                    setDayNutritionTotals(dayIndex, data);
+                    if (statusEl) statusEl.textContent = 'Aktuell';
+                } catch (error) {
+                    console.error("Tagesnährwerte konnten nicht geladen werden.", error);
+                    setDayNutritionTotals(dayIndex, null);
+                    if (statusEl) statusEl.textContent = 'Fehler';
+                }
+            }));
+        }
+
+        async function updatePlanNutritionTotals() {
+            const statusEl = document.getElementById('planNutritionStatus');
+            const payload = buildMealPlanPayload();
+            const recipeIds = getPlanRecipeIds(payload);
+            const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
+
+            if (recipeIds.length === 0) {
+                if (statusEl) statusEl.textContent = 'Keine Rezepte';
+                setNutritionTotals(null);
+                return;
+            }
+
+            if (statusEl) statusEl.textContent = 'Lädt...';
+
+            const params = new URLSearchParams();
+            recipeIds.forEach(id => params.append('recipeIds', id));
+            params.append('personCount', personCount);
+
+            try {
+                const response = await fetch(`/WorldMiniApp/Home/GetMealPlanNutritionTotals?${params.toString()}`);
+                if (!response.ok) throw new Error('Nutrition fetch failed');
+                const data = await response.json();
+                setNutritionTotals(data);
+                if (statusEl) statusEl.textContent = 'Aktuell';
+            } catch (error) {
+                console.error("Nährwerte konnten nicht geladen werden.", error);
+                setNutritionTotals(null);
+                if (statusEl) statusEl.textContent = 'Fehler';
+            }
+        }
+
+        function generateShareLink() {
+            const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
+            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einfügen."); return; }
+
+            const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
+            document.getElementById('shoppingShareLink').value = shareLink;
+        }
+
+        async function copyShareLink() {
+            const linkInput = document.getElementById('shoppingShareLink');
+            if (!linkInput.value) generateShareLink();
+            if (linkInput.value) {
+                await navigator.clipboard.writeText(linkInput.value);
+                alert("Link kopiert!");
+            }
+        }
+
+        // hide settings on scroll down (inside modal body)
+        let lastPlanScrollTop = 0;
+        let planScrollTicking = false;
+        function attachPlanScrollBehavior() {
+            const body = document.getElementById('planModalBody');
+            if (!body) return;
+            lastPlanScrollTop = body.scrollTop || 0;
+
+            body.addEventListener('scroll', () => {
+                if (planScrollTicking) return;
+                planScrollTicking = true;
+
+                requestAnimationFrame(() => {
+                    const st = body.scrollTop || 0;
+                    const delta = st - lastPlanScrollTop;
+                    if (Math.abs(delta) < 6) { planScrollTicking = false; return; }
+
+                    if (delta > 0 && st > 10) hidePlanTools();
+                    else showPlanTools();
+
+                    lastPlanScrollTop = st;
+                    planScrollTicking = false;
+                });
+            }, { passive: true });
+        }
+
+        // ----------------- FEED: Autoplay + Sound + DoubleTap Like -----------------
+        let isGlobalMuted = true;
+        let hasUserInteracted = false;
+
+        function updateSoundIcon(container, isMuted) {
+            const icon = container?.querySelector('.sound-toggle i');
+            if (!icon) return;
+            if (isMuted) {
+                icon.classList.remove('bi-volume-up-fill');
+                icon.classList.add('bi-volume-mute-fill');
+            } else {
+                icon.classList.remove('bi-volume-mute-fill');
+                icon.classList.add('bi-volume-up-fill');
+            }
+        }
+
+        function unlockAudio() {
+            if (hasUserInteracted) return;
+            hasUserInteracted = true;
+            isGlobalMuted = false;
+
+            document.querySelectorAll('.feed-item video').forEach(v => v.muted = false);
+            document.querySelectorAll('.feed-item').forEach(item => updateSoundIcon(item, false));
+
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        }
+
+        document.addEventListener('click', unlockAudio, { passive: true });
+        document.addEventListener('touchstart', unlockAudio, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyPlanThemeFromProfile();
+            const personInput = document.getElementById('planPersonCount');
+            if (personInput) {
+                personInput.addEventListener('input', handlePlanPersonCountChange);
+                personInput.addEventListener('change', handlePlanPersonCountChange);
+            }
+            const nutritionToggle = document.getElementById('planNutritionToggle');
+            if (nutritionToggle) {
+                nutritionToggle.addEventListener('click', togglePlanNutrition);
+            }
+            const planContainer = document.getElementById('planContainer');
+            if (planContainer) {
+                planContainer.addEventListener('click', (event) => {
+                    const toggle = event.target.closest('.day-nutrition-toggle');
+                    if (!toggle) return;
+                    const dayIndex = toggle.dataset.dayIndex;
+                    if (dayIndex === undefined) return;
+                    toggleDayNutrition(Number(dayIndex));
+                });
+            }
+        });
+
+        function toggleGlobalSound(btn) {
+            hasUserInteracted = true;
+            isGlobalMuted = !isGlobalMuted;
+
+            const container = btn.closest('.feed-item');
+            const video = container?.querySelector('video');
+            if (video) video.muted = isGlobalMuted;
+
+            updateSoundIcon(container, isGlobalMuted);
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const container = entry.target;
+                const video = container.querySelector('video');
+                if (!video) return;
+
+                if (entry.isIntersecting) {
+                    video.muted = isGlobalMuted;
+                    updateSoundIcon(container, isGlobalMuted);
+                    video.play().then(() => container.classList.remove('paused')).catch(() => {});
+                } else {
+                    video.pause();
+                }
+            });
+        }, { threshold: 0.6 });
+
+        async function sendLikeToBackend(recipeId) {
+            const userHash = getUserHash();
+            if (!userHash || !recipeId) return;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+
+            const formData = new FormData();
+            formData.append('userHash', userHash);
+            formData.append('recipeId', recipeId);
+            if (token) formData.append('__RequestVerificationToken', token);
+
+            try { await fetch('/WorldMiniApp/Feed/ToggleLike', { method: 'POST', body: formData }); }
+            catch (e) { console.error(e); }
+        }
+
+        function togglePlayPause(container) {
+            const video = container.querySelector('video');
+            if (!video) return;
+            if (video.paused) { video.play().catch(()=>{}); container.classList.remove('paused'); }
+            else { video.pause(); container.classList.add('paused'); }
+        }
+
+        function triggerLike(container) {
+            const recipeId = container.dataset.id;
+            if (recipeId) sendLikeToBackend(recipeId);
+
+            const heartBtn = container.querySelector('.heart-btn');
+            const bigHeart = container.querySelector('.double-tap-heart');
+
+            if (heartBtn) heartBtn.classList.toggle('liked');
+
+            if (bigHeart) {
+                bigHeart.style.display = 'block';
+                bigHeart.classList.remove('animate');
+                void bigHeart.offsetWidth;
+                bigHeart.classList.add('animate');
+                setTimeout(() => bigHeart.classList.remove('animate'), 800);
+            }
+        }
+
+        function attachFeedHandlers() {
+            document.querySelectorAll('.feed-item').forEach(item => observer.observe(item));
+
+            document.querySelectorAll('.feed-item').forEach(item => {
+                let lastTap = 0;
+                let tapTimeout = null;
+
+                item.addEventListener('click', function (e) {
+                    if (e.target.closest('.action-btn') ||
+                        e.target.closest('.sound-toggle') ||
+                        e.target.closest('.chef-badge') ||
+                        e.target.closest('.modal')) return;
+
+                    const now = Date.now();
+                    const tapLen = now - lastTap;
+
+                    if (tapLen < 300 && tapLen > 0) {
+                        clearTimeout(tapTimeout);
+                        triggerLike(this);
+                        lastTap = 0;
+                    } else {
+                        lastTap = now;
+                        tapTimeout = setTimeout(() => togglePlayPause(this), 300);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.heart-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const container = this.closest('.feed-item');
+                    const recipeId = container?.dataset?.id;
+                    if (recipeId) sendLikeToBackend(recipeId);
+                    this.classList.toggle('liked');
+                });
+            });
+        }
+
+        // ----------------- FOLLOW (fix event global) -----------------
+        async function toggleFollow(e, btn, creatorId) {
+            if (e) e.stopPropagation();
+            const userHash = getUserHash();
+            if (!userHash) { console.warn("Nicht eingeloggt!"); return; }
+
+            const icon = btn.querySelector('i');
+            const isFollowing = icon.classList.contains('bi-check-lg');
+
+            if (isFollowing) {
+                icon.classList.remove('bi-check-lg');
+                icon.classList.add('bi-person-plus-fill');
+                btn.style.color = "white";
+            } else {
+                icon.classList.remove('bi-person-plus-fill');
+                icon.classList.add('bi-check-lg');
+                btn.style.color = "#4cd137";
+            }
+
+            const formData = new FormData();
+            formData.append('userHash', userHash);
+            formData.append('creatorId', creatorId);
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            try { await fetch('/WorldMiniApp/Feed/ToggleFollow', { method: 'POST', body: formData }); }
+            catch (error) { console.error("Netzwerkfehler:", error); }
+        }
+
+
+        (function enableHorizontalSwipe() {
+            const feedContainer = document.getElementById('feedContainer');
+            if (!feedContainer) return;
+
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            feedContainer.addEventListener('touchstart', (event) => {
+                const touch = event.changedTouches?.[0];
+                if (!touch) return;
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+            }, { passive: true });
+
+            feedContainer.addEventListener('touchend', (event) => {
+                const touch = event.changedTouches?.[0];
+                if (!touch) return;
+
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+
+                if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+                if (deltaX < 0) {
+                    syncMarketplaceToCurrentFeedItem();
+                    setSection('marketplace');
+                } else {
+                    setSection('feed');
+                }
+            }, { passive: true });
+        })();
+
+
+        async function loadFeedWldPrice() {
+            if (!window.worldChainMarketplace?.fetchWldPrice) return;
+            feedWldPriceUsd = await window.worldChainMarketplace.fetchWldPrice();
+            updateFeedPrices();
+        }
+
+        function setFeedToken(token, listingId = null) {
+            const selected = token === 'USDCE' ? 'USDCE' : 'WLD';
+
+            if (listingId) {
+                const el = document.getElementById(`feedPrice-${listingId}`);
+                if (!el) return;
+                const wld = parseFloat(el.dataset.priceWld || '0');
+                el.textContent = selected === 'USDCE' && feedWldPriceUsd
+                    ? `${(wld * feedWldPriceUsd).toFixed(2)} USDCE`
+                    : `${wld} WLD`;
+                return;
+            }
+
+            feedSelectedPaymentToken = selected;
+            document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = feedSelectedPaymentToken === 'USDCE'; });
+            updateFeedPrices();
+        }
+
+        function updateFeedPrices() {
+            document.querySelectorAll('[id^="feedPrice-"]').forEach(el => {
+                const wld = parseFloat(el.dataset.priceWld || '0');
+                if (feedSelectedPaymentToken === 'USDCE' && feedWldPriceUsd) {
+                    el.textContent = `${(wld * feedWldPriceUsd).toFixed(2)} USDCE`;
+                } else {
+                    el.textContent = `${wld} WLD`;
+                }
+            });
+        }
+
+        async function ensureFeedWalletConnected() {
+            const stored = feedWalletAddresses.WLD || feedWalletAddresses.USDCE;
+            if (stored) return stored;
+            let address = '';
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
+            if (ethereumProvider && window.worldChainMarketplace?.connectWallet) address = await window.worldChainMarketplace.connectWallet();
+            if (!address && window.connectWalletOnly) address = await window.connectWalletOnly();
+            if (!address) throw new Error('Wallet-Verbindung fehlgeschlagen.');
+            feedWalletAddresses.WLD = address;
+            feedWalletAddresses.USDT = address;
+            feedWalletAddresses.USDCE = address;
+            return address;
+        }
+
+        async function finalizeFeedPurchase(listingId, txHash, walletAddress, paymentToken) {
+            const form = new FormData();
+            form.append('ListingId', listingId);
+            form.append('TxHash', txHash);
+            form.append('WalletAddress', walletAddress || '');
+            form.append('PaymentToken', paymentToken || 'WLD');
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) form.append('__RequestVerificationToken', tokenInput.value);
+            const resp = await fetch('/WorldMiniApp/Marketplace/FinalizeWorldChainPurchase', { method: 'POST', body: form });
+            return resp.json();
+        }
+
+        async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
+            if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
+            if (!sellerWallet) { alert('Verkäufer-Wallet fehlt.'); return; }
+            const token = feedSelectedPaymentToken;
+            const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
+            if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
+
+            try {
+                await ensureFeedWalletConnected();
+                if (window.startMiniKitPayment) {
+                    const payResult = await window.startMiniKitPayment({
+                        to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                        reference: `feed-listing-${listingId}-${Date.now()}`,
+                        description: `Essensplan: ${title}`
+                    });
+                    const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
+                    const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
+                    if (data.success) { return; }
+                    alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                    return;
+                }
+                alert('Kein Zahlungsweg verfügbar.');
+            } catch (e) {
+                alert(e?.message || 'Kauf fehlgeschlagen.');
+            }
+        }
+
+        async function showFeedPreview(listingId) {
+            const titleEl = document.getElementById('feedPreviewTitle');
+            const bodyEl = document.getElementById('feedPreviewBody');
+            if (titleEl) titleEl.textContent = 'Plan-Vorschau';
+            if (bodyEl) bodyEl.innerHTML = '<div class="text-center py-4">Lade Vorschau...</div>';
+
+            const offcanvas = new bootstrap.Offcanvas(document.getElementById('feedPreviewOffcanvas'));
+            offcanvas.show();
+
+            try {
+                const resp = await fetch(`/WorldMiniApp/Marketplace/GetListingPreview?listingId=${listingId}`);
+                const data = await resp.json();
+                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfügbar.</p>'; return; }
+                if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
+                let html = '';
+                if (data.description) {
+                    html += `<p class="small mb-2">${data.description}</p>`;
+                }
+                if (data.nutrition) {
+                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} · Protein: ${data.nutrition.protein}g · Fett: ${data.nutrition.fat}g · KH: ${data.nutrition.carbs}g</p>`;
+                }
+                if (data.days?.length) {
+                    data.days.forEach(day => {
+                        html += `<div class="fw-bold mt-2">Tag ${day.day}</div>`;
+                        (day.recipes || []).forEach(r => {
+                            html += `<div class="small opacity-75">• ${r.title}</div>`;
+                        });
+                    });
+                }
+                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfügbar.</p>';
+            } catch (e) {
+                bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
+            }
+        }
+
+        // ----------------- init -----------------
+        document.addEventListener('DOMContentLoaded', () => {
+            attachFeedHandlers();
+            attachPlanScrollBehavior();
+            loadDraft();
+            renderPlan();
+            updatePlanModeHeader();
+            setSection('feed');
+            syncMarketplaceToCurrentFeedItem();
+            setFeedToken('WLD');
+            loadFeedWldPrice();
+        });
+    </script>
+
+</body>
+</html>

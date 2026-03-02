@@ -1,38 +1,103 @@
-﻿
+﻿@model string
 @{
-    ViewData["Title"] = "Rezepte";
+    ViewData["Title"] = "Schnelle Rezepte & Kochideen | Delikatessen-Drehbuch";
+    ViewData["Description"] = "Was koche ich heute? Hier findest du schnelle und einfache Rezepte mit Zutaten aus dem Alltag. Perfekt für Berufstätige, Familien & Anfänger.";
+
 }
 
 
-<div class=" flex row jcenter">
-    <a class="btn nav-link text-dark" typeof="button" href="#" style="max-width: min-content;">Vegan</a>
-    <a class="btn nav-link text-dark" typeof="button" href="#" style="max-width: min-content;">Cocktails</a>
-</div>
-<div class=" flex jcenter row">
-    <hr style="width:90%" />
-</div>
 
-<div class="flex flexRow jcenter mt-2">
-    <input id="keyWord" class="w30 " placeholder="Nach Rezept suchen" style="border-radius:5px;margin-right:5px;" />
-    <button onclick="SearchRecipe()" class="btn btn-success" title="SearchButton" type="button" typeof="button" style="max-width:40px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-        </svg>
-    </button>
-</div>
 
-<div id="RecipesPartial" class="mt-2 flex jcenter w100" >
+<div class="minWidth100 flex flexJustifyContendCenter mt-1">
+
+    <div id="RecipesPartialView" class="grid-Container maxWidth80 mobieleWidth90 ">
+    </div>
 </div>
 
 
 
-<script>
-    function SearchRecipe()
-    {
-      
-        var keyWord = $('#keyWord').val();
-        var encodeKeyWord=encodeURIComponent(keyWord);
-        debugger;
-        $('#RecipesPartial').load('Home/SearchRecipes?keyWord='+encodeKeyWord)
-    }
-</script>
+
+<div id="mainContent" class="minWidth100 mobieleWidth90 flex flexJustifyContendEnd">
+    <button class="btn bgRed Border-Gold m-2 " style="color:white" onclick="LoadRecipes()">Weitere Rezepte Laden</button>
+</div>
+
+
+
+
+@section Scripts
+{
+    <script>
+       
+        $(window).on("load", function () {
+           
+            var cachedContent = localStorage.getItem("cachedRecipesPartialView");
+            var query = sessionStorage.getItem("searchQuery");
+        
+            if(!query)
+            {
+                 if (cachedContent) {
+                    const parentElement = document.getElementById("RecipesPartialView");
+
+                    if (parentElement) {
+                     parentElement.innerHTML = cachedContent;
+
+                    }
+                 }
+                else
+                {
+                   LoadRecipes();
+                }
+                
+            }
+            else{
+                
+                sessionStorage.removeItem("searchQuery");
+                 $('#RecipesPartialView').load("/Home/SearchRecipes?query=" +  encodeURIComponent(query));
+            }
+
+        });
+
+
+
+        function LoadRecipes()
+        {
+                   var RecipesIds = $("[name='RecipesId']").map(function () {
+                                       return parseInt($(this).val());
+                                      }).get();
+
+                
+
+               var url = RecipesIds
+              ? "/Home/GetRecipesPartialView?Ids=" + encodeURIComponent(RecipesIds)
+              : "/Home/GetRecipesPartialView";
+
+          // AJAX-Request, um die PartialView zu laden
+          $.get(url, function (data) {
+              // Die Antwort (`data`) als letztes Kindelement einfügen
+              $('#RecipesPartialView').append(data);
+          });
+
+
+        }
+
+        function SaveCache()
+        {
+
+             const parentElement = document.getElementById("RecipesPartialView");
+
+             if (parentElement) {
+                const childElements = parentElement.innerHTML;
+                localStorage.setItem("cachedRecipesPartialView", childElements);
+             }
+        }
+
+
+    </script>
+}
+
+
+
+
+
+
+

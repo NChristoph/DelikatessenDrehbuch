@@ -1,0 +1,75 @@
+﻿@model MealModel
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+<div class="flexRowToColumn minWidth100 mobieleWidth100">
+
+    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth90 flexJustifyContendCenter  mobileCenter p-3">
+        @{
+            foreach (var recipes in Model.Recipes)
+            {
+                <a asp-route-id="@recipes.Id" asp-controller="SelectedRecipe" asp-action="Index" class="row p-1" style="text-decoration:none;color:black">
+                    <div class="flexColumn flexAlginItemCenter minWidth40 maxWidth40 mobieleWidth100">
+                        <img src="@recipes.ImagePath" class="mobieleWidth90" alt="@recipes.Description" width="150" />
+                    </div>
+                    <div class="flexColumn flexJustifyContendCenter flexAlginItemCenter mobieleWidth100 minWidth50 maxWidth50">
+                        <span style="text-align:center">@recipes.Name</span>
+                       
+                    </div>
+
+                </a>
+
+                <hr style="width:90%" class="flexAlginSelfCenter" />
+
+            }
+        }
+    </div>
+    <div class="flexColumn minWidth50 maxWidth50 mobieleWidth90 mobileCenter Bg-Cream p-3">
+        <div class="flexRow flexJustifyContendCenter ">
+            <h3 style="font-family:'Lucida Handwriting';color:#D4AF37">Einkauf's Liste :</h3>
+
+
+        </div>
+        @{
+            foreach (var ingredient in Model.Ingredients)
+            {
+                <div class="row p-1 mobieleWidth100 mt-1 minWidth100">
+                    <div class="col minWidth30 maxWidth60" style="white-space:normal">@ingredient.Ingredient.Name</div>
+                    <div class="col minWidth20 maxWidth20">@ingredient.Quantity.Quantitys</div>
+                    <div class="col minWidth10 maxWidth10">@ingredient.Measure.UnitOfMeasurement</div>
+
+                </div>
+            }
+        }
+    </div>
+
+
+
+</div>
+
+
+<div class="minWidth100 mobieleWidth90 p-2 mt-3 Border-Gold ">
+    @{
+        
+        // Beispiel: Zeige die ersten 200 Zeichen
+
+        // Der vollständige Text der Zubereitung
+        string halfPreperation = Model.MealPlan.Preperation.Substring(0, 600) + "<strong><br><br>.....Auf Premium upgraden, um die vollständige Zubereitung zu sehen.<br><br>Premium kommt bald.<br><br>Bis dahin können Sie die Rezepte einfach anklicken und der Reihe nach machen</strong>";
+
+
+        if (User.IsInRole("PremiumUser"))
+        {
+            <p class=" p-4"><strong>Menü Zubereitung:</strong><br /><br />@Html.Raw(@Model.MealPlan.Preperation)</p>
+        }
+        else
+        {
+            <hr />
+            //TODO:PremiumAboAbschluss ermöglichen
+            <p class=" p-4"><strong>Menü Zubereitung:</strong>@Html.Raw(halfPreperation)</p>
+        }
+
+    }
+
+</div>
+

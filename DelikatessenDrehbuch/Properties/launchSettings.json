@@ -14,14 +14,27 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7179;http://localhost:5043",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BigPic": "picdelikatessendrehbuch",
+        "SmalPic": "blobsmalldelikatessendrehbuch",
+        "MediumPic": "blobmediumdelikatessendrehbuch",
+        "Azure_Acount_Name": "blobdelikatessendrehbuch",
+        "Blob_Conection_String": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/",
+        "EmailPasswort": "Ni049753!"
       }
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BigPic": "picdelikatessendrehbuch",
+        "SmalPic": "blobsmalldelikatessendrehbuch",
+        "MediumPic": "blobmediumdelikatessendrehbuch",
+        "Azure_Acount_Name": "blobdelikatessendrehbuch",
+        "Blob_Conection_String": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/",
+        "EmailPasswort": "Ni049753!"
+
       }
     }
   }
