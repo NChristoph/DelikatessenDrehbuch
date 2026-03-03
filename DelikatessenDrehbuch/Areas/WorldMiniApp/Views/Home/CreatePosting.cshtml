@@ -1024,15 +1024,6 @@
         line-height: 1.5 !important;
     }
 
-    .probability-template-kicker {
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        font-size: .76rem;
-        color: rgba(255,255,255,.62);
-        margin-bottom: 8px;
-        font-weight: 700;
-    }
-
     .probability-template-select {
         display: block;
         width: 100%;
@@ -1069,28 +1060,6 @@
         display: inline !important;
         line-height: inherit;
         cursor: pointer;
-    }
-
-    .probability-template-text .probability-var-reset-btn {
-        width: 18px;
-        height: 18px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.45);
-        background: rgba(255,255,255,0.12);
-        color: #fff;
-        font-size: .62rem;
-        line-height: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        margin-left: 4px;
-        vertical-align: middle;
-    }
-
-    .probability-template-text .probability-var-reset-btn:hover {
-        background: rgba(255,255,255,0.2);
-        border-color: rgba(255,255,255,0.65);
     }
 
     .common-unit-chips {
@@ -1919,9 +1888,9 @@
 
     <!-- Ingredient chips -->
     <div id="probVarIngredientArea" class="d-none">
-        <div class="small text-white-50 mb-2">Artikel auswählen:</div>
+        <div class="small text-white-50 mb-2">Artikel + Zutat auswählen:</div>
         <div id="probVarIngredientArticleChips" class="d-flex flex-wrap gap-2 mb-2"></div>
-        <div class="small text-white-50 mb-2">Zutat auswählen:</div>
+        <div class="small text-white-50 mb-2">Zutaten:</div>
         <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
     </div>
 
@@ -2117,13 +2086,15 @@
             const noArticleLabel = noArticleLabelByLang[resolveLangKey(currentLang)] || 'none';
 
             const noArticleActive = !current ? ' active' : '';
-            const noArticle = `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-article-chip${noArticleActive}" data-value="">${$('<div>').text(noArticleLabel).html()}</button>`;
+            const noArticleBtnClass = noArticleActive ? "btn-light text-dark" : "btn-outline-light";
+            const noArticle = `<button type="button" class="btn btn-sm ${noArticleBtnClass} inline-article-opt js-prob-ingredient-article-chip${noArticleActive}" data-value="">${$('<div>').text(noArticleLabel).html()}</button>`;
             const chips = options.map(article => {
                 const articleText = (article || '').toString();
                 const isActive = current && current === articleText.toLowerCase();
                 const active = isActive ? ' active' : '';
                 const safe = $('<div>').text(articleText).html();
-                return `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-article-chip${active}" data-value="${safe}">${safe}</button>`;
+                const btnClass = isActive ? "btn-light text-dark" : "btn-outline-light";
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-article-opt js-prob-ingredient-article-chip${active}" data-value="${safe}">${safe}</button>`;
             }).join('');
 
             wrap.html(noArticle + chips);
@@ -2145,10 +2116,14 @@
                 probVarIngredientArticleValue = (parsed.article || '').toString().trim();
                 renderProbVarIngredientArticleOptions(probVarIngredientArticleValue);
 
+                const currentNoun = (parsed.noun || '').toString().trim().toLowerCase();
                 const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
                 const chips = ings.map(ing => {
-                    const safe = $('<div>').text(ing.name || '').html();
-                    return `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
+                    const name = (ing.name || '').toString();
+                    const safe = $('<div>').text(name).html();
+                    const isActive = currentNoun && currentNoun === name.toLowerCase();
+                    const btnClass = isActive ? 'btn-light text-dark active' : 'btn-outline-light';
+                    return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
                 }).join('');
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
                 $('#probVarIngredientArea').removeClass('d-none');

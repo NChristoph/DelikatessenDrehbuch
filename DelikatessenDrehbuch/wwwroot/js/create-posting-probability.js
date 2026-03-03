@@ -42,7 +42,7 @@
             const safeKey = escapeHtml(varKey);
             const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
             const safeValue = escapeHtml(nextValue || varKey);
-            return `<span class="probability-var-inline-wrap"><span class="js-probability-var probability-var-inline-token" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span><button type="button" class="probability-var-reset-btn js-probability-var-reset" data-var-key="${safeKey}" title="Variable zurücksetzen" aria-label="Variable zurücksetzen">↺</button></span>`;
+            return `<span class="probability-var-inline-wrap"><span class="js-probability-var probability-var-inline-token" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span></span>`;
         });
     }
 
@@ -53,10 +53,9 @@
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card w-100 text-start">
-    <div class="probability-template-kicker">Aktueller Step</div>
-    <button type="button" class="probability-template-select js-probability-template" data-master-id="${safeId}">
+    <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
       <span class="probability-template-text">${inlineText || safeText}</span>
-    </button>
+    </div>
   </div>
 </div>`;
     }
@@ -197,24 +196,6 @@
                     state.inlineOverrides[masterId][varKey] = nextVal;
                     rerenderInlineText(masterId, wrap);
                 }
-            });
-
-            $(document).off('click.probabilityInlineVarReset').on('click.probabilityInlineVarReset', '.js-probability-var-reset', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                const btn = $(this);
-                const wrap = btn.closest('.probability-template-wrap');
-                const masterId = (wrap.data('master-id') || '').toString();
-                const varKey = (btn.data('var-key') || '').toString();
-                if (!masterId || !varKey) return;
-
-                if (state.inlineOverrides[masterId]) {
-                    delete state.inlineOverrides[masterId][varKey];
-                    if (!Object.keys(state.inlineOverrides[masterId]).length) {
-                        delete state.inlineOverrides[masterId];
-                    }
-                }
-                rerenderInlineText(masterId, wrap);
             });
 
         }
