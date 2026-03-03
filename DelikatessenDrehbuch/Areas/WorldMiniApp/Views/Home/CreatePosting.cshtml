@@ -4589,6 +4589,327 @@
 
         let draggedStepRow = null;
 
+
+        // =========================================================
+        // SC2 – Eingebetteter Smart Step Creator im Steps-Bereich
+        // Shares creatorState with the main creator; separate DOM
+        // =========================================================
+
+        function updateSc2PreviewText() {
+            const templateId = getEffectiveTemplateId();
+            if (!templateId || !window.MasterStepRenderer) {
+                $('#sc2MasterPreviewText').text('Wähle eine Zutat und ein Template.');
+                return;
+            }
+            const template = MasterStepRenderer.findTemplate(templateId);
+            const langKey = (currentLang || 'de').toLowerCase();
+            const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
+            const vars = buildVariablesForTemplate(templateId);
+            let placeholderOccurrence = 0;
+            const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+                const k = String(key || '').trim();
+                const tokenId = `${k}__${placeholderOccurrence++}`;
+                const fallback = vars[k] != null ? String(vars[k]).trim() : k;
+                const assigned = creatorState.placeholderAssignments[tokenId];
+                const value = assigned || fallback || k;
+                const safeValue = $('<div>').text(value).html();
+                const safeFallback = $('<div>').text(fallback || k).html();
+                const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
+                return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
+                    <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
+                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">↺</button>
+                </span>`;
+            });
+            $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
+            if (!creatorState.ingredientReplaceArmed) { $('#sc2MasterPreviewCard').removeClass('token-replace-active'); }
+            const sc2Card = $('#sc2MasterPreviewCard');
+            sc2Card.addClass('preview-animate');
+            setTimeout(() => sc2Card.removeClass('preview-animate'), 250);
+        }
+
+        function renderSc2IngredientChips() {
+            const wrap = $('#sc2MasterIngredientButtons');
+            if (!wrap.length) return;
+            const ingredients = getSelectedIngredientsForSandbox();
+            wrap.empty();
+            if (!ingredients.length) {
+                wrap.append('<div class="small text-white-50">Wähle zuerst Zutaten aus.</div>');
+                return;
+            }
+            creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
+            ingredients.forEach(item => {
+                const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
+                const emoji = getIngredientEmoji(item.name);
+                const grammar = resolveGrammarForIngredient(item.name, item.genusByLang || {}, currentLang);
+                const displayName = applyArticleToName(item.name, grammar.article, currentLang) || item.name;
+                wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${emoji} ${displayName}</button>`);
+            });
+        }
+
+        function renderSc2TemplateCards() {
+            const box = $('#sc2MasterTemplateCards');
+            if (!box.length) return;
+            box.empty();
+            if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
+                box.append('<div class="small text-white-50">Templates werden geladen ...</div>');
+                return;
+            }
+            const loadError = typeof MasterStepRenderer.getLastLoadError === 'function' ? MasterStepRenderer.getLastLoadError() : '';
+            if (loadError) { box.html(`<div class="small text-warning">Template-Fehler: ${loadError}</div>`); return; }
+            const templates = MasterStepRenderer.getAllTemplates();
+            if (!templates.length) { box.html('<div class="small text-white-50">Keine Templates gefunden.</div>'); return; }
+            templates.forEach((step, index) => {
+                const active = step.master_id === creatorState.selectedTemplateId ? 'active' : '';
+                const icon = step.categoryIcon || (index % 3 === 0 ? '✨' : index % 3 === 1 ? '🔥' : '🔪');
+                const vars = buildVariablesForTemplate(step.master_id);
+                const snippet = MasterStepRenderer.render(step.master_id, vars, currentLang) || step.master_id;
+                const title = (step.description || '').toString().trim() || `Template ${index + 1}`;
+                box.append(`<button type="button" class="template-card ${active}" data-id="${step.master_id}" data-title="${title}">
+                    <div class="template-title">${icon} ${title}</div>
+                    <div class="template-snippet">${snippet}</div>
+                </button>`);
+            });
+        }
+
+        function showSc2CreatorToast(message) {
+            const toast = $('#sc2CreatorToast');
+            toast.text(message).addClass('show');
+            setTimeout(() => toast.removeClass('show'), 1200);
+        }
+
+        // SC2 close functions
+        function closeSc2DurationEditor()    { $('#sc2DurationEditor').addClass('d-none'); }
+        function closeSc2CountEditor()       { $('#sc2CountEditor').addClass('d-none'); }
+        function closeSc2TemperatureEditor() { $('#sc2TemperatureEditor').addClass('d-none'); }
+        function closeSc2PronounEditor()     { $('#sc2PronounEditor').addClass('d-none'); }
+        function closeSc2HeatEditor()        { $('#sc2HeatEditor').addClass('d-none'); }
+        function closeSc2ModeEditor()        { $('#sc2ModeEditor').addClass('d-none'); }
+        function closeSc2ToolEditor()        { $('#sc2ToolEditor').addClass('d-none'); }
+        function closeSc2GrindSizeEditor()   { $('#sc2GrindSizeEditor').addClass('d-none'); }
+        function closeSc2ShapeEditor()       { $('#sc2ShapeEditor').addClass('d-none'); }
+        function closeSc2BaseEditor()        { $('#sc2BaseEditor').addClass('d-none'); }
+        function closeSc2ItemEditor()        { $('#sc2ItemEditor').addClass('d-none'); }
+        function closeSc2BalanceEditor()     { $('#sc2BalanceEditor').addClass('d-none'); }
+        function closeSc2SeasoningsEditor()  { $('#sc2SeasoningsEditor').addClass('d-none'); }
+        function closeSc2EquipmentEditor()   { $('#sc2EquipmentEditor').addClass('d-none'); }
+        function closeSc2StateEditor()       { $('#sc2StateEditor').addClass('d-none'); }
+
+        function closeSc2AllEditors() {
+            [closeSc2DurationEditor, closeSc2CountEditor, closeSc2TemperatureEditor,
+             closeSc2PronounEditor, closeSc2HeatEditor, closeSc2ModeEditor,
+             closeSc2ToolEditor, closeSc2GrindSizeEditor, closeSc2ShapeEditor,
+             closeSc2BaseEditor, closeSc2ItemEditor, closeSc2BalanceEditor,
+             closeSc2SeasoningsEditor, closeSc2EquipmentEditor, closeSc2StateEditor
+            ].forEach(fn => fn());
+        }
+
+        // SC2 open functions
+        function openSc2DurationEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeDurationTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const parsed = currentText.match(/^(\d+)\s+/);
+            if (parsed) creatorState.durationValue = parseInt(parsed[1], 10);
+            $('#sc2DurationValueInput').val(creatorState.durationValue || 10);
+            $('#sc2DurationUnitSelect option[value="minute"]').text(getDurationUnitLabel('minute', currentLang));
+            $('#sc2DurationUnitSelect option[value="hour"]').text(getDurationUnitLabel('hour', currentLang));
+            $('#sc2DurationUnitSelect').val(creatorState.durationUnit || 'minute');
+            $('#sc2DurationEditor').removeClass('d-none');
+        }
+        function openSc2CountEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeCountTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const parsed = currentText.match(/^(\d+)/);
+            if (parsed) creatorState.countValue = parseInt(parsed[1], 10);
+            $('#sc2CountValueInput').val(creatorState.countValue || 2);
+            $('#sc2CountEditor').removeClass('d-none');
+        }
+        function openSc2TemperatureEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeTemperatureTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
+            const parsed = currentText.match(/^(\d+)/);
+            if (parsed) {
+                creatorState.temperatureValue = parseInt(parsed[1], 10);
+                creatorState.temperatureUnit = currentText.includes('°F') ? 'fahrenheit' : 'celsius';
+            }
+            $('#sc2TemperatureValueInput').val(creatorState.temperatureValue || 180);
+            $('#sc2TemperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
+            $('#sc2TemperatureEditor').removeClass('d-none');
+        }
+        function openSc2HeatEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeHeatTokenId = tokenId;
+            renderInlineChoiceButtons('#sc2InlineHeatOptions', 'inline-heat-opt', getHeatOptions(), creatorState.heatValue || '');
+            $('#sc2HeatEditor').removeClass('d-none');
+        }
+        function openSc2ModeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeModeTokenId = tokenId;
+            renderInlineChoiceButtons('#sc2InlineModeOptions', 'inline-mode-opt', getModeOptions(), creatorState.modeValue || '');
+            $('#sc2ModeEditor').removeClass('d-none');
+        }
+        function openSc2PronounEditorForToken(tokenId) {
+            creatorState.activePronounTokenId = tokenId || '__global__';
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.computedPronoun || '').toString().trim();
+            creatorState.pronounValue = currentText;
+            renderInlineChoiceButtons('#sc2InlinePronounOptions', 'inline-pronoun-opt', getPronounSuggestionsForLang(currentLang), creatorState.pronounValue || creatorState.computedPronoun || '');
+            $('#sc2PronounEditor').removeClass('d-none');
+        }
+        function openSc2EquipmentEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeEquipmentTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
+            const parts = splitLeadingArticle(currentText, currentLang);
+            creatorState.equipmentArticleValue = parts.article;
+            creatorState.equipmentValue = parts.noun || currentText;
+            renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
+            const currentVal = (parts.noun || currentText).toLowerCase();
+            const chips = getNounOptions(getEquipmentOptions(), currentLang).map(opt => {
+                const isActive = currentVal && currentVal === opt.toLowerCase();
+                const safe = $('<div>').text(opt).html();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-equipment-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineEquipmentOptions').html(chips);
+            $('#sc2EquipmentEditor').removeClass('d-none');
+        }
+        function openSc2StateEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeStateTokenId = tokenId;
+            renderInlineChoiceButtons('#sc2InlineStateOptions', 'inline-state-opt', getStateOptions(), creatorState.stateValue || '');
+            $('#sc2StateEditor').removeClass('d-none');
+        }
+        function openSc2ToolEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeToolTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
+            const parts = splitLeadingArticle(currentText, currentLang);
+            creatorState.toolArticleValue = parts.article;
+            creatorState.toolValue = parts.noun || currentText;
+            renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
+            const currentVal = (parts.noun || currentText).toLowerCase();
+            const chips = getNounOptions(getToolOptions(), currentLang).map(opt => {
+                const isActive = currentVal && currentVal === opt.toLowerCase();
+                const safe = $('<div>').text(opt).html();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-tool-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineToolOptions').html(chips);
+            $('#sc2ToolEditor').removeClass('d-none');
+        }
+        function openSc2GrindSizeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeGrindSizeTokenId = tokenId;
+            renderInlineChoiceButtons('#sc2InlineGrindSizeOptions', 'inline-grind-size-opt', getGrindSizeOptions(), creatorState.grindSizeValue || '');
+            $('#sc2GrindSizeEditor').removeClass('d-none');
+        }
+        function openSc2ShapeEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeShapeTokenId = tokenId;
+            renderInlineChoiceButtons('#sc2InlineShapeOptions', 'inline-shape-opt', getShapeOptions(), creatorState.shapeValue || '');
+            $('#sc2ShapeEditor').removeClass('d-none');
+        }
+        function openSc2BaseEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeBaseTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
+            const parts = splitLeadingArticle(currentText, currentLang);
+            creatorState.baseArticleValue = parts.article;
+            creatorState.baseValue = parts.noun || currentText;
+            renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
+            const currentVal = (parts.noun || currentText).toLowerCase();
+            const chips = getNounOptions(getBaseOptions(), currentLang).map(opt => {
+                const isActive = currentVal && currentVal === opt.toLowerCase();
+                const safe = $('<div>').text(opt).html();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-base-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineBaseOptions').html(chips);
+            $('#sc2BaseEditor').removeClass('d-none');
+        }
+        function openSc2ItemEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeItemTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
+            const parts = splitLeadingArticle(currentText, currentLang);
+            creatorState.itemArticleValue = parts.article;
+            creatorState.itemValue = parts.noun || currentText;
+            renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
+            const currentVal = (parts.noun || currentText).toLowerCase();
+            const chips = getNounOptions(getItemOptions(), currentLang).map(opt => {
+                const isActive = currentVal && currentVal === opt.toLowerCase();
+                const safe = $('<div>').text(opt).html();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-item-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineItemOptions').html(chips);
+            $('#sc2ItemEditor').removeClass('d-none');
+        }
+        function openSc2BalanceEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeBalanceTokenId = tokenId;
+            const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
+            const parts = splitLeadingArticle(currentText, currentLang);
+            creatorState.balanceArticleValue = parts.article;
+            creatorState.balanceValue = parts.noun || currentText;
+            renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
+            const currentVal = (parts.noun || currentText).toLowerCase();
+            const chips = getNounOptions(getBalanceOptions(), currentLang).map(opt => {
+                const isActive = currentVal && currentVal === opt.toLowerCase();
+                const safe = $('<div>').text(opt).html();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-balance-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineBalanceOptions').html(chips);
+            $('#sc2BalanceEditor').removeClass('d-none');
+        }
+        function openSc2SeasoningsEditorForToken(tokenId) {
+            if (!tokenId) return;
+            creatorState.activeSeasoningsTokenId = tokenId;
+            renderInlineChoiceButtons('#sc2InlineSeasoningsOptions', 'inline-seasonings-opt', getSeasoningsOptions(), creatorState.seasoningsValue || '');
+            $('#sc2SeasoningsEditor').removeClass('d-none');
+        }
+
+        const sc2EditorDispatch = {
+            duration:    { open: openSc2DurationEditorForToken,    toast: 'Zeit setzen' },
+            count:       { open: openSc2CountEditorForToken,       toast: 'Anzahl setzen' },
+            pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wählen', keepTokenActive: true },
+            temperature: { open: openSc2TemperatureEditorForToken, toast: 'Temperatur setzen' },
+            heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wählen' },
+            mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wählen' },
+            equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / Gerät wählen' },
+            state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wählen' },
+            tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / Gerät wählen' },
+            grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'Schnittgröße wählen' },
+            shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wählen' },
+            base:        { open: openSc2BaseEditorForToken,        toast: 'Basis wählen' },
+            item:        { open: openSc2ItemEditorForToken,        toast: 'Item wählen' },
+            balance:     { open: openSc2BalanceEditorForToken,     toast: 'Balance wählen' },
+            seasonings:  { open: openSc2SeasoningsEditorForToken,  toast: 'Seasonings wählen' }
+        };
+
+        function openSc2EditorForPlaceholderToken(key, tokenId) {
+            try {
+                if (!key || !tokenId) return;
+                closeSc2AllEditors();
+                creatorState.ingredientReplaceArmed = false;
+                $('#sc2MasterPreviewCard').removeClass('token-replace-active');
+                const placeholderType = getPlaceholderType(key);
+                if (placeholderType === 'ingredient') {
+                    creatorState.activePlaceholderTokenId = tokenId;
+                    creatorState.ingredientReplaceArmed = true;
+                    $('#sc2MasterPreviewCard').addClass('token-replace-active');
+                    showSc2CreatorToast('Zutat auswählen');
+                } else if (sc2EditorDispatch[placeholderType]) {
+                    creatorState.activePlaceholderTokenId = sc2EditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
+                    sc2EditorDispatch[placeholderType].open(tokenId);
+                    showSc2CreatorToast(sc2EditorDispatch[placeholderType].toast);
+                } else {
+                    creatorState.activePlaceholderTokenId = '';
+                }
+                renderSc2TemplateCards();
+            } catch (err) {
+                console.error('SC2 openSc2EditorForPlaceholderToken error:', err);
+            }
+        }
+
         $(document).ready(function () {
             const token = sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken');
             if (token) $('#hiddenUserTokenField').val(token);
@@ -5246,326 +5567,6 @@
                 else $(this).before(draggedStepRow);
                 updateStepIndices();
             });
-
-            // =========================================================
-            // SC2 – Eingebetteter Smart Step Creator im Steps-Bereich
-            // Shares creatorState with the main creator; separate DOM
-            // =========================================================
-
-            function updateSc2PreviewText() {
-                const templateId = getEffectiveTemplateId();
-                if (!templateId || !window.MasterStepRenderer) {
-                    $('#sc2MasterPreviewText').text('Wähle eine Zutat und ein Template.');
-                    return;
-                }
-                const template = MasterStepRenderer.findTemplate(templateId);
-                const langKey = (currentLang || 'de').toLowerCase();
-                const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
-                const vars = buildVariablesForTemplate(templateId);
-                let placeholderOccurrence = 0;
-                const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
-                    const k = String(key || '').trim();
-                    const tokenId = `${k}__${placeholderOccurrence++}`;
-                    const fallback = vars[k] != null ? String(vars[k]).trim() : k;
-                    const assigned = creatorState.placeholderAssignments[tokenId];
-                    const value = assigned || fallback || k;
-                    const safeValue = $('<div>').text(value).html();
-                    const safeFallback = $('<div>').text(fallback || k).html();
-                    const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
-                    return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
-                        <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                        <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">↺</button>
-                    </span>`;
-                });
-                $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
-                if (!creatorState.ingredientReplaceArmed) { $('#sc2MasterPreviewCard').removeClass('token-replace-active'); }
-                const sc2Card = $('#sc2MasterPreviewCard');
-                sc2Card.addClass('preview-animate');
-                setTimeout(() => sc2Card.removeClass('preview-animate'), 250);
-            }
-
-            function renderSc2IngredientChips() {
-                const wrap = $('#sc2MasterIngredientButtons');
-                if (!wrap.length) return;
-                const ingredients = getSelectedIngredientsForSandbox();
-                wrap.empty();
-                if (!ingredients.length) {
-                    wrap.append('<div class="small text-white-50">Wähle zuerst Zutaten aus.</div>');
-                    return;
-                }
-                creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
-                ingredients.forEach(item => {
-                    const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
-                    const emoji = getIngredientEmoji(item.name);
-                    const grammar = resolveGrammarForIngredient(item.name, item.genusByLang || {}, currentLang);
-                    const displayName = applyArticleToName(item.name, grammar.article, currentLang) || item.name;
-                    wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${emoji} ${displayName}</button>`);
-                });
-            }
-
-            function renderSc2TemplateCards() {
-                const box = $('#sc2MasterTemplateCards');
-                if (!box.length) return;
-                box.empty();
-                if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
-                    box.append('<div class="small text-white-50">Templates werden geladen ...</div>');
-                    return;
-                }
-                const loadError = typeof MasterStepRenderer.getLastLoadError === 'function' ? MasterStepRenderer.getLastLoadError() : '';
-                if (loadError) { box.html(`<div class="small text-warning">Template-Fehler: ${loadError}</div>`); return; }
-                const templates = MasterStepRenderer.getAllTemplates();
-                if (!templates.length) { box.html('<div class="small text-white-50">Keine Templates gefunden.</div>'); return; }
-                templates.forEach((step, index) => {
-                    const active = step.master_id === creatorState.selectedTemplateId ? 'active' : '';
-                    const icon = step.categoryIcon || (index % 3 === 0 ? '✨' : index % 3 === 1 ? '🔥' : '🔪');
-                    const vars = buildVariablesForTemplate(step.master_id);
-                    const snippet = MasterStepRenderer.render(step.master_id, vars, currentLang) || step.master_id;
-                    const title = (step.description || '').toString().trim() || `Template ${index + 1}`;
-                    box.append(`<button type="button" class="template-card ${active}" data-id="${step.master_id}" data-title="${title}">
-                        <div class="template-title">${icon} ${title}</div>
-                        <div class="template-snippet">${snippet}</div>
-                    </button>`);
-                });
-            }
-
-            function showSc2CreatorToast(message) {
-                const toast = $('#sc2CreatorToast');
-                toast.text(message).addClass('show');
-                setTimeout(() => toast.removeClass('show'), 1200);
-            }
-
-            // SC2 close functions
-            function closeSc2DurationEditor()    { $('#sc2DurationEditor').addClass('d-none'); }
-            function closeSc2CountEditor()       { $('#sc2CountEditor').addClass('d-none'); }
-            function closeSc2TemperatureEditor() { $('#sc2TemperatureEditor').addClass('d-none'); }
-            function closeSc2PronounEditor()     { $('#sc2PronounEditor').addClass('d-none'); }
-            function closeSc2HeatEditor()        { $('#sc2HeatEditor').addClass('d-none'); }
-            function closeSc2ModeEditor()        { $('#sc2ModeEditor').addClass('d-none'); }
-            function closeSc2ToolEditor()        { $('#sc2ToolEditor').addClass('d-none'); }
-            function closeSc2GrindSizeEditor()   { $('#sc2GrindSizeEditor').addClass('d-none'); }
-            function closeSc2ShapeEditor()       { $('#sc2ShapeEditor').addClass('d-none'); }
-            function closeSc2BaseEditor()        { $('#sc2BaseEditor').addClass('d-none'); }
-            function closeSc2ItemEditor()        { $('#sc2ItemEditor').addClass('d-none'); }
-            function closeSc2BalanceEditor()     { $('#sc2BalanceEditor').addClass('d-none'); }
-            function closeSc2SeasoningsEditor()  { $('#sc2SeasoningsEditor').addClass('d-none'); }
-            function closeSc2EquipmentEditor()   { $('#sc2EquipmentEditor').addClass('d-none'); }
-            function closeSc2StateEditor()       { $('#sc2StateEditor').addClass('d-none'); }
-
-            function closeSc2AllEditors() {
-                [closeSc2DurationEditor, closeSc2CountEditor, closeSc2TemperatureEditor,
-                 closeSc2PronounEditor, closeSc2HeatEditor, closeSc2ModeEditor,
-                 closeSc2ToolEditor, closeSc2GrindSizeEditor, closeSc2ShapeEditor,
-                 closeSc2BaseEditor, closeSc2ItemEditor, closeSc2BalanceEditor,
-                 closeSc2SeasoningsEditor, closeSc2EquipmentEditor, closeSc2StateEditor
-                ].forEach(fn => fn());
-            }
-
-            // SC2 open functions
-            function openSc2DurationEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeDurationTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-                const parsed = currentText.match(/^(\d+)\s+/);
-                if (parsed) creatorState.durationValue = parseInt(parsed[1], 10);
-                $('#sc2DurationValueInput').val(creatorState.durationValue || 10);
-                $('#sc2DurationUnitSelect option[value="minute"]').text(getDurationUnitLabel('minute', currentLang));
-                $('#sc2DurationUnitSelect option[value="hour"]').text(getDurationUnitLabel('hour', currentLang));
-                $('#sc2DurationUnitSelect').val(creatorState.durationUnit || 'minute');
-                $('#sc2DurationEditor').removeClass('d-none');
-            }
-            function openSc2CountEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeCountTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-                const parsed = currentText.match(/^(\d+)/);
-                if (parsed) creatorState.countValue = parseInt(parsed[1], 10);
-                $('#sc2CountValueInput').val(creatorState.countValue || 2);
-                $('#sc2CountEditor').removeClass('d-none');
-            }
-            function openSc2TemperatureEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeTemperatureTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-                const parsed = currentText.match(/^(\d+)/);
-                if (parsed) {
-                    creatorState.temperatureValue = parseInt(parsed[1], 10);
-                    creatorState.temperatureUnit = currentText.includes('°F') ? 'fahrenheit' : 'celsius';
-                }
-                $('#sc2TemperatureValueInput').val(creatorState.temperatureValue || 180);
-                $('#sc2TemperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
-                $('#sc2TemperatureEditor').removeClass('d-none');
-            }
-            function openSc2HeatEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeHeatTokenId = tokenId;
-                renderInlineChoiceButtons('#sc2InlineHeatOptions', 'inline-heat-opt', getHeatOptions(), creatorState.heatValue || '');
-                $('#sc2HeatEditor').removeClass('d-none');
-            }
-            function openSc2ModeEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeModeTokenId = tokenId;
-                renderInlineChoiceButtons('#sc2InlineModeOptions', 'inline-mode-opt', getModeOptions(), creatorState.modeValue || '');
-                $('#sc2ModeEditor').removeClass('d-none');
-            }
-            function openSc2PronounEditorForToken(tokenId) {
-                creatorState.activePronounTokenId = tokenId || '__global__';
-                const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.computedPronoun || '').toString().trim();
-                creatorState.pronounValue = currentText;
-                renderInlineChoiceButtons('#sc2InlinePronounOptions', 'inline-pronoun-opt', getPronounSuggestionsForLang(currentLang), creatorState.pronounValue || creatorState.computedPronoun || '');
-                $('#sc2PronounEditor').removeClass('d-none');
-            }
-            function openSc2EquipmentEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeEquipmentTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
-                const parts = splitLeadingArticle(currentText, currentLang);
-                creatorState.equipmentArticleValue = parts.article;
-                creatorState.equipmentValue = parts.noun || currentText;
-                renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
-                const currentVal = (parts.noun || currentText).toLowerCase();
-                const chips = getNounOptions(getEquipmentOptions(), currentLang).map(opt => {
-                    const isActive = currentVal && currentVal === opt.toLowerCase();
-                    const safe = $('<div>').text(opt).html();
-                    return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-equipment-opt" data-value="${safe}">${safe}</button>`;
-                }).join('');
-                $('#sc2InlineEquipmentOptions').html(chips);
-                $('#sc2EquipmentEditor').removeClass('d-none');
-            }
-            function openSc2StateEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeStateTokenId = tokenId;
-                renderInlineChoiceButtons('#sc2InlineStateOptions', 'inline-state-opt', getStateOptions(), creatorState.stateValue || '');
-                $('#sc2StateEditor').removeClass('d-none');
-            }
-            function openSc2ToolEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeToolTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
-                const parts = splitLeadingArticle(currentText, currentLang);
-                creatorState.toolArticleValue = parts.article;
-                creatorState.toolValue = parts.noun || currentText;
-                renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
-                const currentVal = (parts.noun || currentText).toLowerCase();
-                const chips = getNounOptions(getToolOptions(), currentLang).map(opt => {
-                    const isActive = currentVal && currentVal === opt.toLowerCase();
-                    const safe = $('<div>').text(opt).html();
-                    return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-tool-opt" data-value="${safe}">${safe}</button>`;
-                }).join('');
-                $('#sc2InlineToolOptions').html(chips);
-                $('#sc2ToolEditor').removeClass('d-none');
-            }
-            function openSc2GrindSizeEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeGrindSizeTokenId = tokenId;
-                renderInlineChoiceButtons('#sc2InlineGrindSizeOptions', 'inline-grind-size-opt', getGrindSizeOptions(), creatorState.grindSizeValue || '');
-                $('#sc2GrindSizeEditor').removeClass('d-none');
-            }
-            function openSc2ShapeEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeShapeTokenId = tokenId;
-                renderInlineChoiceButtons('#sc2InlineShapeOptions', 'inline-shape-opt', getShapeOptions(), creatorState.shapeValue || '');
-                $('#sc2ShapeEditor').removeClass('d-none');
-            }
-            function openSc2BaseEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeBaseTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
-                const parts = splitLeadingArticle(currentText, currentLang);
-                creatorState.baseArticleValue = parts.article;
-                creatorState.baseValue = parts.noun || currentText;
-                renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
-                const currentVal = (parts.noun || currentText).toLowerCase();
-                const chips = getNounOptions(getBaseOptions(), currentLang).map(opt => {
-                    const isActive = currentVal && currentVal === opt.toLowerCase();
-                    const safe = $('<div>').text(opt).html();
-                    return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-base-opt" data-value="${safe}">${safe}</button>`;
-                }).join('');
-                $('#sc2InlineBaseOptions').html(chips);
-                $('#sc2BaseEditor').removeClass('d-none');
-            }
-            function openSc2ItemEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeItemTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
-                const parts = splitLeadingArticle(currentText, currentLang);
-                creatorState.itemArticleValue = parts.article;
-                creatorState.itemValue = parts.noun || currentText;
-                renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
-                const currentVal = (parts.noun || currentText).toLowerCase();
-                const chips = getNounOptions(getItemOptions(), currentLang).map(opt => {
-                    const isActive = currentVal && currentVal === opt.toLowerCase();
-                    const safe = $('<div>').text(opt).html();
-                    return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-item-opt" data-value="${safe}">${safe}</button>`;
-                }).join('');
-                $('#sc2InlineItemOptions').html(chips);
-                $('#sc2ItemEditor').removeClass('d-none');
-            }
-            function openSc2BalanceEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeBalanceTokenId = tokenId;
-                const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
-                const parts = splitLeadingArticle(currentText, currentLang);
-                creatorState.balanceArticleValue = parts.article;
-                creatorState.balanceValue = parts.noun || currentText;
-                renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
-                const currentVal = (parts.noun || currentText).toLowerCase();
-                const chips = getNounOptions(getBalanceOptions(), currentLang).map(opt => {
-                    const isActive = currentVal && currentVal === opt.toLowerCase();
-                    const safe = $('<div>').text(opt).html();
-                    return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-balance-opt" data-value="${safe}">${safe}</button>`;
-                }).join('');
-                $('#sc2InlineBalanceOptions').html(chips);
-                $('#sc2BalanceEditor').removeClass('d-none');
-            }
-            function openSc2SeasoningsEditorForToken(tokenId) {
-                if (!tokenId) return;
-                creatorState.activeSeasoningsTokenId = tokenId;
-                renderInlineChoiceButtons('#sc2InlineSeasoningsOptions', 'inline-seasonings-opt', getSeasoningsOptions(), creatorState.seasoningsValue || '');
-                $('#sc2SeasoningsEditor').removeClass('d-none');
-            }
-
-            const sc2EditorDispatch = {
-                duration:    { open: openSc2DurationEditorForToken,    toast: 'Zeit setzen' },
-                count:       { open: openSc2CountEditorForToken,       toast: 'Anzahl setzen' },
-                pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wählen', keepTokenActive: true },
-                temperature: { open: openSc2TemperatureEditorForToken, toast: 'Temperatur setzen' },
-                heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wählen' },
-                mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wählen' },
-                equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / Gerät wählen' },
-                state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wählen' },
-                tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / Gerät wählen' },
-                grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'Schnittgröße wählen' },
-                shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wählen' },
-                base:        { open: openSc2BaseEditorForToken,        toast: 'Basis wählen' },
-                item:        { open: openSc2ItemEditorForToken,        toast: 'Item wählen' },
-                balance:     { open: openSc2BalanceEditorForToken,     toast: 'Balance wählen' },
-                seasonings:  { open: openSc2SeasoningsEditorForToken,  toast: 'Seasonings wählen' }
-            };
-
-            function openSc2EditorForPlaceholderToken(key, tokenId) {
-                try {
-                    if (!key || !tokenId) return;
-                    closeSc2AllEditors();
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#sc2MasterPreviewCard').removeClass('token-replace-active');
-                    const placeholderType = getPlaceholderType(key);
-                    if (placeholderType === 'ingredient') {
-                        creatorState.activePlaceholderTokenId = tokenId;
-                        creatorState.ingredientReplaceArmed = true;
-                        $('#sc2MasterPreviewCard').addClass('token-replace-active');
-                        showSc2CreatorToast('Zutat auswählen');
-                    } else if (sc2EditorDispatch[placeholderType]) {
-                        creatorState.activePlaceholderTokenId = sc2EditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
-                        sc2EditorDispatch[placeholderType].open(tokenId);
-                        showSc2CreatorToast(sc2EditorDispatch[placeholderType].toast);
-                    } else {
-                        creatorState.activePlaceholderTokenId = '';
-                    }
-                    renderSc2TemplateCards();
-                } catch (err) {
-                    console.error('SC2 openSc2EditorForPlaceholderToken error:', err);
-                }
-            }
 
             // SC2 Event handlers
             $('#sc2MasterTemplateCards').on('click', '.template-card', function () {
