@@ -1919,6 +1919,8 @@
 
     <!-- Ingredient chips -->
     <div id="probVarIngredientArea" class="d-none">
+        <div class="small text-white-50 mb-2">Artikel auswählen:</div>
+        <div id="probVarIngredientArticleChips" class="d-flex flex-wrap gap-2 mb-2"></div>
         <div class="small text-white-50 mb-2">Zutat auswählen:</div>
         <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
     </div>
@@ -2103,6 +2105,29 @@
         /* ===== Probability Variable Editor ===== */
         let probVarEditorCallback = null;
         let probVarEditorAnchor = null;
+        let probVarIngredientArticleValue = '';
+
+        function renderProbVarIngredientArticleOptions(selectedArticle) {
+            const wrap = $('#probVarIngredientArticleChips');
+            if (!wrap.length) return;
+
+            const options = getEditorArticleOptions(currentLang) || [];
+            const current = (selectedArticle || '').toString().trim().toLowerCase();
+            const noArticleLabelByLang = { de: 'ohne', en: 'none', esp: 'sin', prt: 'sem', nl: 'zonder' };
+            const noArticleLabel = noArticleLabelByLang[resolveLangKey(currentLang)] || 'none';
+
+            const noArticleActive = !current ? ' active' : '';
+            const noArticle = `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-article-chip${noArticleActive}" data-value="">${$('<div>').text(noArticleLabel).html()}</button>`;
+            const chips = options.map(article => {
+                const articleText = (article || '').toString();
+                const isActive = current && current === articleText.toLowerCase();
+                const active = isActive ? ' active' : '';
+                const safe = $('<div>').text(articleText).html();
+                return `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-article-chip${active}" data-value="${safe}">${safe}</button>`;
+            }).join('');
+
+            wrap.html(noArticle + chips);
+        }
 
         function openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement) {
             probVarEditorCallback = onApply;
@@ -2110,11 +2135,16 @@
             const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
             $('#probVarEditorTitle').text(cleanKey || 'Wert');
             $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea').addClass('d-none');
+            $('#probVarIngredientArticleChips').empty();
             $('#probVarApplyRow').addClass('d-none');
 
             const varType = typeof getPlaceholderType === 'function' ? getPlaceholderType(varKey) : '';
 
             if (varType === 'ingredient') {
+                const parsed = splitLeadingArticle(currentVal || '', currentLang);
+                probVarIngredientArticleValue = (parsed.article || '').toString().trim();
+                renderProbVarIngredientArticleOptions(probVarIngredientArticleValue);
+
                 const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
                 const chips = ings.map(ing => {
                     const safe = $('<div>').text(ing.name || '').html();
@@ -2188,6 +2218,7 @@
         function closeProbVarEditor() {
             probVarEditorCallback = null;
             probVarEditorAnchor = null;
+            probVarIngredientArticleValue = '';
             const dock = $('#probVarEditorDock');
             dock.removeClass('ing-active prob-inline-mode');
             $('#probVarEditorDockParking').append(dock);
@@ -4989,9 +5020,18 @@
                 if (e.target === this) closeProbVarEditor();
             });
 
+            // Article chip for ingredient editor
+            $(document).on('click', '.js-prob-ingredient-article-chip', function () {
+                const value = ($(this).data('value') || '').toString().trim();
+                probVarIngredientArticleValue = value;
+                $('.js-prob-ingredient-article-chip').removeClass('active');
+                $(this).addClass('active');
+            });
+
             // Ingredient chip → auto-apply and close
             $(document).on('click', '.js-prob-ingredient-chip', function () {
-                const value = ($(this).data('value') || $(this).text()).toString();
+                const noun = ($(this).data('value') || $(this).text()).toString();
+                const value = composeArticleAndNoun(probVarIngredientArticleValue, noun);
                 if (probVarEditorCallback) probVarEditorCallback(value);
                 closeProbVarEditor();
             });
