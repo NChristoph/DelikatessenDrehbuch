@@ -33,21 +33,29 @@
         return [];
     }
 
-    function buildTemplateCardHtml(masterId, displayText, variables) {
+    function buildInlineTemplateText(template, lang, vars) {
+        const templateText = (template?.templates?.[lang] || template?.templates?.de || '').toString();
+        if (!templateText) return '';
+
+        return templateText.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+            const varKey = String(key || '').trim();
+            const safeKey = escapeHtml(varKey);
+            const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
+            const safeValue = escapeHtml(nextValue || varKey);
+            return `<span class="probability-var-inline-wrap"><span class="js-probability-var probability-var-inline-token" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span></span>`;
+        });
+    }
+
+    function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        const vars = (variables || []).map(v => {
-            const safeVar = escapeHtml(v);
-            return `<button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-var" data-var-key="${safeVar}">${safeVar}</button>`;
-        }).join('');
+        const inlineText = buildInlineTemplateText(template, lang, vars);
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <button type="button" class="probability-template-card w-100 text-start js-probability-template" data-master-id="${safeId}">${safeText}</button>
-  <div class="probability-inline-editor d-none mt-2 p-2 border rounded" style="border-color:rgba(255,193,7,.5)!important;background:rgba(17,24,39,.55)">
-    <div class="small text-warning fw-semibold mb-2">Direkt bearbeiten</div>
-    <div class="small text-white mb-2 js-probability-inline-preview"></div>
-    <div class="d-flex flex-wrap gap-2 mb-2">${vars || '<span class="small text-white-50">Keine Variablen</span>'}</div>
-    <button type="button" class="btn btn-sm btn-warning text-dark fw-bold js-probability-template-apply" data-master-id="${safeId}">Übernehmen</button>
+  <div class="probability-template-card w-100 text-start">
+    <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
+      <span class="probability-template-text">${inlineText || safeText}</span>
+    </div>
   </div>
 </div>`;
     }
@@ -124,9 +132,8 @@
                 if (!template) return;
                 const vars = deps.buildVariablesForTemplate(masterId);
                 varsByTemplate[masterId] = vars;
-                const snippet = deps.renderTemplate(masterId, vars, getLang()) || template.description || masterId;
-                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
-                cards.push(buildTemplateCardHtml(masterId, snippet, variableKeys));
+                const snippet = deps.renderTemplate(masterId, vars, getLang()) || masterId;
+                cards.push(buildTemplateCardHtml(masterId, snippet, template, vars, getLang()));
             });
             return cards;
         }
@@ -143,8 +150,7 @@
                 seen.add(masterId);
                 const template = deps.findTemplate(masterId);
                 const vars = deps.buildVariablesForTemplate(masterId);
-                const variableKeys = Array.isArray(template?.variables) ? template.variables : [];
-                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, variableKeys));
+                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, template, vars, getLang()));
                 varsByTemplate[masterId] = vars;
             });
             return cards;
@@ -155,30 +161,18 @@
             const overrides = state.inlineOverrides[masterId] || {};
             return { ...base, ...overrides };
         }
-
-        function refreshInlinePreview(masterId, wrap) {
-            const previewEl = wrap.find('.js-probability-inline-preview');
-            if (!previewEl.length) return;
-            const vars = getMergedVars(masterId);
-            const text = deps.renderTemplate(masterId, vars, getLang()) || masterId;
-            previewEl.text(text);
+        function rerenderInlineText(masterId, wrap) {
+            const merged = getMergedVars(masterId);
+            const template = deps.findTemplate(masterId);
+            const nextHtml = buildInlineTemplateText(template, getLang(), merged);
+            const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
+            wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
         }
-
         function bindInlineEvents() {
-            $(document).off('click.probabilityInlineOpen').on('click.probabilityInlineOpen', '.js-probability-template', function () {
-                const btn = $(this);
-                const masterId = (btn.data('master-id') || '').toString();
-                if (!masterId) return;
-                const wrap = btn.closest('.probability-template-wrap');
-                const editor = wrap.find('.probability-inline-editor');
-                const shouldOpen = editor.hasClass('d-none');
-                $('.probability-inline-editor').addClass('d-none');
-                if (!shouldOpen) return;
-                editor.removeClass('d-none');
-                refreshInlinePreview(masterId, wrap);
-            });
 
-            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function () {
+            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
                 const chip = $(this);
                 const wrap = chip.closest('.probability-template-wrap');
                 const masterId = (wrap.data('master-id') || '').toString();
@@ -193,28 +187,17 @@
                         if (newVal == null) return;
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
-                        chip.text(newVal);
-                        refreshInlinePreview(masterId, wrap);
-                    });
+                        rerenderInlineText(masterId, wrap);
+                    }, chip);
                 } else {
                     const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;
-                    refreshInlinePreview(masterId, wrap);
+                    rerenderInlineText(masterId, wrap);
                 }
             });
 
-            $(document).off('click.probabilityInlineApply').on('click.probabilityInlineApply', '.js-probability-template-apply', function () {
-                const btn = $(this);
-                const masterId = (btn.data('master-id') || '').toString();
-                if (!masterId) return;
-
-                const target = $(`.js-probability-template[data-master-id="${masterId.replace(/"/g, '\"')}"]`).first();
-                if (target.length) {
-                    target.trigger('click');
-                }
-            });
         }
 
         async function refresh() {
@@ -283,10 +266,9 @@
                 }
             }
 
-            const head = `<div class="small text-white-50 mb-2">${escapeHtml(typeName || typeId || 'Typ')} (${score || 0}%) · Template-Auswahl</div>`;
             state.varsByTemplate = varsByTemplate;
             state.inlineOverrides = {};
-            box.removeClass('d-none').html(head + cards.join(''));
+            box.removeClass('d-none').html(cards.join(''));
             selectedIngredientSuggestionBox.empty();
             bindInlineEvents();
         }

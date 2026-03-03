@@ -1009,16 +1009,59 @@
         border: 1px solid rgba(255,255,255,0.18);
         background: rgba(255,255,255,0.06);
         border-radius: 14px;
-        padding: 10px 12px;
+        padding: 12px 14px;
         margin-bottom: 8px;
-        color: #fff;
-        font-weight: 600;
+        color: #fff !important;
+        font-weight: 800 !important;
+        font-size: 1.08rem !important;
+        line-height: 1.5 !important;
+    }
+
+    .probability-template-text {
+        color: #fff !important;
+        font-weight: 800 !important;
+        font-size: 1.08rem !important;
+        line-height: 1.5 !important;
+    }
+
+    .probability-template-select {
+        display: block;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        padding: 0;
+        margin: 0;
     }
 
     .probability-template-card:hover,
     .probability-template-card:focus {
         color: #fff;
     }
+
+    .probability-template-text .probability-var-inline-wrap {
+        display: inline;
+        margin-right: 2px;
+    }
+
+    .probability-template-text .probability-var-inline-token,
+    .probability-template-text .js-probability-var {
+        color: #facc15 !important;
+        text-decoration: underline !important;
+        text-underline-offset: 2px;
+        font-weight: 800;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: inline !important;
+        line-height: inherit;
+        cursor: pointer;
+    }
+
     .common-unit-chips {
         display: flex;
         gap: 6px;
@@ -1759,6 +1802,26 @@
         pointer-events: auto;
     }
 
+    #probVarEditorDock.prob-inline-mode {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        width: 100%;
+        z-index: 2;
+        border-radius: 14px;
+        margin-top: 12px;
+        padding: 14px;
+        background: rgba(39,42,61,0.98);
+        border: 1px solid rgba(255,255,255,0.16);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.3);
+        pointer-events: auto;
+    }
+
+    #probVarEditorDock.prob-inline-mode .ing-sheet-handle {
+        display: none;
+    }
+
     #probVarEditorDock .ing-sheet-handle {
         width: 40px;
         height: 4px;
@@ -1769,9 +1832,9 @@
 
     .prob-var-chip {
         border-radius: 999px;
-        border: 1px solid rgba(255,193,7,0.5);
-        background: rgba(255,193,7,0.08);
-        color: #ffc107;
+        border: 1px solid rgba(255,255,255,0.55);
+        background: rgba(255,255,255,0.08);
+        color: #ffffff;
         font-weight: 700;
         padding: 6px 14px;
         cursor: pointer;
@@ -1779,9 +1842,9 @@
     }
 
     .prob-var-chip:hover, .prob-var-chip.active {
-        background: rgba(255,193,7,0.22);
-        border-color: #ffc107;
-        color: #fff;
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.85);
+        color: #ffffff;
     }
 
 </style>
@@ -1813,6 +1876,7 @@
 
 <!-- ===== Probability Variable Editor Bottom Sheet ===== -->
 <div id="probVarEditorOverlay" aria-hidden="true"></div>
+<div id="probVarEditorDockParking" style="display:none;"></div>
 <div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
     <div class="ing-sheet-handle"></div>
     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -1824,7 +1888,9 @@
 
     <!-- Ingredient chips -->
     <div id="probVarIngredientArea" class="d-none">
-        <div class="small text-white-50 mb-2">Zutat auswählen:</div>
+        <div class="small text-white-50 mb-2">Artikel + Zutat auswählen:</div>
+        <div id="probVarIngredientArticleChips" class="d-flex flex-wrap gap-2 mb-2"></div>
+        <div class="small text-white-50 mb-2">Zutaten:</div>
         <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
     </div>
 
@@ -2007,21 +2073,57 @@
 
         /* ===== Probability Variable Editor ===== */
         let probVarEditorCallback = null;
+        let probVarEditorAnchor = null;
+        let probVarIngredientArticleValue = '';
 
-        function openProbVarEditor(masterId, varKey, currentVal, onApply) {
+        function renderProbVarIngredientArticleOptions(selectedArticle) {
+            const wrap = $('#probVarIngredientArticleChips');
+            if (!wrap.length) return;
+
+            const options = getEditorArticleOptions(currentLang) || [];
+            const current = (selectedArticle || '').toString().trim().toLowerCase();
+            const noArticleLabelByLang = { de: 'ohne', en: 'none', esp: 'sin', prt: 'sem', nl: 'zonder' };
+            const noArticleLabel = noArticleLabelByLang[resolveLangKey(currentLang)] || 'none';
+
+            const noArticleActive = !current ? ' active' : '';
+            const noArticleBtnClass = noArticleActive ? "btn-light text-dark" : "btn-outline-light";
+            const noArticle = `<button type="button" class="btn btn-sm ${noArticleBtnClass} inline-article-opt js-prob-ingredient-article-chip${noArticleActive}" data-value="">${$('<div>').text(noArticleLabel).html()}</button>`;
+            const chips = options.map(article => {
+                const articleText = (article || '').toString();
+                const isActive = current && current === articleText.toLowerCase();
+                const active = isActive ? ' active' : '';
+                const safe = $('<div>').text(articleText).html();
+                const btnClass = isActive ? "btn-light text-dark" : "btn-outline-light";
+                return `<button type="button" class="btn btn-sm ${btnClass} inline-article-opt js-prob-ingredient-article-chip${active}" data-value="${safe}">${safe}</button>`;
+            }).join('');
+
+            wrap.html(noArticle + chips);
+        }
+
+        function openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement) {
             probVarEditorCallback = onApply;
+            probVarEditorAnchor = anchorElement ? $(anchorElement).closest('.probability-template-wrap') : null;
             const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
             $('#probVarEditorTitle').text(cleanKey || 'Wert');
             $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea').addClass('d-none');
+            $('#probVarIngredientArticleChips').empty();
             $('#probVarApplyRow').addClass('d-none');
 
             const varType = typeof getPlaceholderType === 'function' ? getPlaceholderType(varKey) : '';
 
             if (varType === 'ingredient') {
+                const parsed = splitLeadingArticle(currentVal || '', currentLang);
+                probVarIngredientArticleValue = (parsed.article || '').toString().trim();
+                renderProbVarIngredientArticleOptions(probVarIngredientArticleValue);
+
+                const currentNoun = (parsed.noun || '').toString().trim().toLowerCase();
                 const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
                 const chips = ings.map(ing => {
-                    const safe = $('<div>').text(ing.name || '').html();
-                    return `<button type="button" class="btn btn-sm prob-var-chip js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
+                    const name = (ing.name || '').toString();
+                    const safe = $('<div>').text(name).html();
+                    const isActive = currentNoun && currentNoun === name.toLowerCase();
+                    const btnClass = isActive ? 'btn-light text-dark active' : 'btn-outline-light';
+                    return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
                 }).join('');
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
                 $('#probVarIngredientArea').removeClass('d-none');
@@ -2072,13 +2174,29 @@
                 }
             }
 
-            $('#probVarEditorOverlay').addClass('ing-active').attr('aria-hidden', 'false');
-            setTimeout(function () { $('#probVarEditorDock').addClass('ing-active'); }, 10);
+            const dock = $('#probVarEditorDock');
+            const overlay = $('#probVarEditorOverlay');
+            dock.removeClass('prob-inline-mode');
+
+            if (probVarEditorAnchor && probVarEditorAnchor.length) {
+                overlay.removeClass('ing-active').attr('aria-hidden', 'true');
+                probVarEditorAnchor.append(dock);
+                setTimeout(function () { dock.addClass('ing-active prob-inline-mode'); }, 10);
+                return;
+            }
+
+            $('#probVarEditorDockParking').append(dock);
+            overlay.addClass('ing-active').attr('aria-hidden', 'false');
+            setTimeout(function () { dock.addClass('ing-active'); }, 10);
         }
 
         function closeProbVarEditor() {
             probVarEditorCallback = null;
-            $('#probVarEditorDock').removeClass('ing-active');
+            probVarEditorAnchor = null;
+            probVarIngredientArticleValue = '';
+            const dock = $('#probVarEditorDock');
+            dock.removeClass('ing-active prob-inline-mode');
+            $('#probVarEditorDockParking').append(dock);
             $('#probVarEditorOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
         }
 
@@ -3920,7 +4038,7 @@
                 });
                 return suggestions;
             },
-            openProbVarEditor: (masterId, varKey, currentVal, onApply) => openProbVarEditor(masterId, varKey, currentVal, onApply)
+            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement)
         });
 
         async function refreshIngredientProbabilityHints() {
@@ -4338,7 +4456,6 @@
                 renderTemplateCards();
                 updatePreviewText();
                 showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
-                document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
 
             // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
@@ -4878,9 +4995,18 @@
                 if (e.target === this) closeProbVarEditor();
             });
 
+            // Article chip for ingredient editor
+            $(document).on('click', '.js-prob-ingredient-article-chip', function () {
+                const value = ($(this).data('value') || '').toString().trim();
+                probVarIngredientArticleValue = value;
+                $('.js-prob-ingredient-article-chip').removeClass('active');
+                $(this).addClass('active');
+            });
+
             // Ingredient chip → auto-apply and close
             $(document).on('click', '.js-prob-ingredient-chip', function () {
-                const value = ($(this).data('value') || $(this).text()).toString();
+                const noun = ($(this).data('value') || $(this).text()).toString();
+                const value = composeArticleAndNoun(probVarIngredientArticleValue, noun);
                 if (probVarEditorCallback) probVarEditorCallback(value);
                 closeProbVarEditor();
             });
