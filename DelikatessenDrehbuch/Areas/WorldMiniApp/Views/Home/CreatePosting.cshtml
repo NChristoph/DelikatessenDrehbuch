@@ -581,12 +581,12 @@
                             <div id="sc2MasterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                             <div id="sc2DurationEditor" class="duration-editor d-none mt-2">
                                 <div class="small text-muted mb-1">Zeit einsetzen</div>
-                                <div class="d-flex gap-2 align-items-center">
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
                                     <input type="number" min="1" step="1" id="sc2DurationValueInput" class="form-control form-control-sm" style="max-width:110px" value="10" />
-                                    <select id="sc2DurationUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                        <option value="minute">Minuten</option>
-                                        <option value="hour">Stunden</option>
-                                    </select>
+                                    <div class="d-flex gap-1" id="sc2DurationUnitButtons">
+                                        <button type="button" class="btn btn-sm btn-light text-dark sc2-duration-unit-btn" data-value="minute">Min</button>
+                                        <button type="button" class="btn btn-sm btn-outline-light sc2-duration-unit-btn" data-value="hour">Std</button>
+                                    </div>
                                     <button type="button" id="sc2BtnApplyDuration" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                 </div>
                             </div>
@@ -599,12 +599,12 @@
                             </div>
                             <div id="sc2TemperatureEditor" class="duration-editor d-none mt-2">
                                 <div class="small text-muted mb-1">Temperatur einsetzen</div>
-                                <div class="d-flex gap-2 align-items-center">
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
                                     <input type="number" min="0" max="500" step="5" id="sc2TemperatureValueInput" class="form-control form-control-sm" style="max-width:110px" value="180" />
-                                    <select id="sc2TemperatureUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                        <option value="celsius">°C</option>
-                                        <option value="fahrenheit">°F</option>
-                                    </select>
+                                    <div class="d-flex gap-1" id="sc2TemperatureUnitButtons">
+                                        <button type="button" class="btn btn-sm btn-light text-dark sc2-temp-unit-btn" data-value="celsius">°C</button>
+                                        <button type="button" class="btn btn-sm btn-outline-light sc2-temp-unit-btn" data-value="fahrenheit">°F</button>
+                                    </div>
                                     <button type="button" id="sc2BtnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
                                 </div>
                             </div>
@@ -4711,9 +4711,11 @@
             const parsed = currentText.match(/^(\d+)\s+/);
             if (parsed) creatorState.durationValue = parseInt(parsed[1], 10);
             $('#sc2DurationValueInput').val(creatorState.durationValue || 10);
-            $('#sc2DurationUnitSelect option[value="minute"]').text(getDurationUnitLabel('minute', currentLang));
-            $('#sc2DurationUnitSelect option[value="hour"]').text(getDurationUnitLabel('hour', currentLang));
-            $('#sc2DurationUnitSelect').val(creatorState.durationUnit || 'minute');
+            const currentUnit = creatorState.durationUnit || 'minute';
+            $('#sc2DurationEditor .sc2-duration-unit-btn').each(function () {
+                const isActive = $(this).data('value') === currentUnit;
+                $(this).toggleClass('btn-light text-dark', isActive).toggleClass('btn-outline-light', !isActive);
+            });
             $('#sc2DurationEditor').removeClass('d-none');
         }
         function openSc2CountEditorForToken(tokenId) {
@@ -4735,7 +4737,11 @@
                 creatorState.temperatureUnit = currentText.includes('°F') ? 'fahrenheit' : 'celsius';
             }
             $('#sc2TemperatureValueInput').val(creatorState.temperatureValue || 180);
-            $('#sc2TemperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
+            const currentTempUnit = creatorState.temperatureUnit || 'celsius';
+            $('#sc2TemperatureEditor .sc2-temp-unit-btn').each(function () {
+                const isActive = $(this).data('value') === currentTempUnit;
+                $(this).toggleClass('btn-light text-dark', isActive).toggleClass('btn-outline-light', !isActive);
+            });
             $('#sc2TemperatureEditor').removeClass('d-none');
         }
         function openSc2HeatEditorForToken(tokenId) {
@@ -4757,21 +4763,73 @@
             renderInlineChoiceButtons('#sc2InlinePronounOptions', 'inline-pronoun-opt', getPronounSuggestionsForLang(currentLang), creatorState.pronounValue || creatorState.computedPronoun || '');
             $('#sc2PronounEditor').removeClass('d-none');
         }
+        // SC2 render helpers for article-based editors
+        function renderSc2InlineEquipmentOptions() {
+            renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
+            const options = getNounOptions(getEquipmentOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const safe = $('<div>').text(x).html();
+                const isActive = currentVal === x.toLowerCase();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-equipment-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineEquipmentOptions').html(html);
+        }
+        function renderSc2InlineToolOptions() {
+            renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
+            const options = getNounOptions(getToolOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const safe = $('<div>').text(x).html();
+                const isActive = currentVal === x.toLowerCase();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-tool-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineToolOptions').html(html);
+        }
+        function renderSc2InlineBaseOptions() {
+            renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
+            const options = getNounOptions(getBaseOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const safe = $('<div>').text(x).html();
+                const isActive = currentVal === x.toLowerCase();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-base-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineBaseOptions').html(html);
+        }
+        function renderSc2InlineItemOptions() {
+            renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
+            const options = getNounOptions(getItemOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.itemValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const safe = $('<div>').text(x).html();
+                const isActive = currentVal === x.toLowerCase();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-item-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineItemOptions').html(html);
+        }
+        function renderSc2InlineBalanceOptions() {
+            renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
+            const options = getNounOptions(getBalanceOptions(), currentLang);
+            const currentVal = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const safe = $('<div>').text(x).html();
+                const isActive = currentVal === x.toLowerCase();
+                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-balance-opt" data-value="${safe}">${safe}</button>`;
+            }).join('');
+            $('#sc2InlineBalanceOptions').html(html);
+        }
+
         function openSc2EquipmentEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
+            const options = getEquipmentOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die Pfanne';
+            const parts = splitLeadingArticle(selected, currentLang);
             creatorState.equipmentArticleValue = parts.article;
-            creatorState.equipmentValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getEquipmentOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-equipment-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineEquipmentOptions').html(chips);
+            creatorState.equipmentValue = selected;
+            renderSc2InlineEquipmentOptions();
             $('#sc2EquipmentEditor').removeClass('d-none');
         }
         function openSc2StateEditorForToken(tokenId) {
@@ -4784,17 +4842,12 @@
             if (!tokenId) return;
             creatorState.activeToolTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
+            const options = getToolOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'das Messer';
+            const parts = splitLeadingArticle(selected, currentLang);
             creatorState.toolArticleValue = parts.article;
-            creatorState.toolValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getToolOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-tool-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineToolOptions').html(chips);
+            creatorState.toolValue = selected;
+            renderSc2InlineToolOptions();
             $('#sc2ToolEditor').removeClass('d-none');
         }
         function openSc2GrindSizeEditorForToken(tokenId) {
@@ -4813,51 +4866,36 @@
             if (!tokenId) return;
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
+            const options = getBaseOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            const parts = splitLeadingArticle(selected, currentLang);
             creatorState.baseArticleValue = parts.article;
-            creatorState.baseValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getBaseOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-base-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineBaseOptions').html(chips);
+            creatorState.baseValue = selected;
+            renderSc2InlineBaseOptions();
             $('#sc2BaseEditor').removeClass('d-none');
         }
         function openSc2ItemEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeItemTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
+            const options = getItemOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
+            const parts = splitLeadingArticle(selected, currentLang);
             creatorState.itemArticleValue = parts.article;
-            creatorState.itemValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getItemOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-item-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineItemOptions').html(chips);
+            creatorState.itemValue = selected;
+            renderSc2InlineItemOptions();
             $('#sc2ItemEditor').removeClass('d-none');
         }
         function openSc2BalanceEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeBalanceTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
+            const options = getBalanceOptions();
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die Säure';
+            const parts = splitLeadingArticle(selected, currentLang);
             creatorState.balanceArticleValue = parts.article;
-            creatorState.balanceValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getBalanceOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-balance-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineBalanceOptions').html(chips);
+            creatorState.balanceValue = selected;
+            renderSc2InlineBalanceOptions();
             $('#sc2BalanceEditor').removeClass('d-none');
         }
         function openSc2SeasoningsEditorForToken(tokenId) {
@@ -5644,8 +5682,11 @@
                 const value = parseInt($(this).val(), 10);
                 creatorState.durationValue = Number.isFinite(value) && value > 0 ? value : 1;
             });
-            $('#sc2DurationUnitSelect').on('change', function () {
-                creatorState.durationUnit = ($(this).val() || 'minute').toString();
+            $('#sc2DurationEditor').on('click', '.sc2-duration-unit-btn', function () {
+                const val = ($(this).data('value') || 'minute').toString();
+                creatorState.durationUnit = val;
+                $('#sc2DurationEditor .sc2-duration-unit-btn').removeClass('btn-light text-dark').addClass('btn-outline-light');
+                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark');
             });
             $('#sc2BtnApplyDuration').on('click', function () {
                 const tokenId = creatorState.activeDurationTokenId;
@@ -5675,8 +5716,11 @@
                 const value = parseInt($(this).val(), 10);
                 creatorState.temperatureValue = Number.isFinite(value) && value > 0 ? value : 180;
             });
-            $('#sc2TemperatureUnitSelect').on('change', function () {
-                creatorState.temperatureUnit = ($(this).val() || 'celsius').toString();
+            $('#sc2TemperatureEditor').on('click', '.sc2-temp-unit-btn', function () {
+                const val = ($(this).data('value') || 'celsius').toString();
+                creatorState.temperatureUnit = val;
+                $('#sc2TemperatureEditor .sc2-temp-unit-btn').removeClass('btn-light text-dark').addClass('btn-outline-light');
+                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark');
             });
             $('#sc2BtnApplyTemperature').on('click', function () {
                 const tokenId = creatorState.activeTemperatureTokenId;
@@ -5739,19 +5783,21 @@
 
             // SC2 Equipment
             $('#sc2InlineEquipmentArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.equipmentArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.equipmentArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun;
+                creatorState.equipmentValue = composeArticleAndNoun(val, noun);
+                renderSc2InlineEquipmentOptions();
             });
             $('#sc2InlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.equipmentValue = val;
-                $('#sc2InlineEquipmentOptions .inline-equipment-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
+                creatorState.equipmentValue = composeArticleAndNoun(creatorState.equipmentArticleValue, val);
+                renderSc2InlineEquipmentOptions();
             });
             $('#sc2BtnApplyEquipment').on('click', function () {
                 const tokenId = creatorState.activeEquipmentTokenId;
                 if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.equipmentArticleValue, creatorState.equipmentValue);
+                creatorState.placeholderAssignments[tokenId] = creatorState.equipmentValue;
                 closeSc2EquipmentEditor();
                 showSc2CreatorToast('Tool eingesetzt');
                 renderTemplateCards();
@@ -5775,19 +5821,21 @@
 
             // SC2 Tool
             $('#sc2InlineToolArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.toolArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.toolArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun;
+                creatorState.toolValue = composeArticleAndNoun(val, noun);
+                renderSc2InlineToolOptions();
             });
             $('#sc2InlineToolOptions').on('click', '.inline-tool-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.toolValue = val;
-                $('#sc2InlineToolOptions .inline-tool-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
+                creatorState.toolValue = composeArticleAndNoun(creatorState.toolArticleValue, val);
+                renderSc2InlineToolOptions();
             });
             $('#sc2BtnApplyTool').on('click', function () {
                 const tokenId = creatorState.activeToolTokenId;
                 if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.toolArticleValue, creatorState.toolValue);
+                creatorState.placeholderAssignments[tokenId] = creatorState.toolValue;
                 closeSc2ToolEditor();
                 showSc2CreatorToast('Werkzeug eingesetzt');
                 renderTemplateCards();
@@ -5827,19 +5875,21 @@
 
             // SC2 Base
             $('#sc2InlineBaseArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.baseArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.baseArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun;
+                creatorState.baseValue = composeArticleAndNoun(val, noun);
+                renderSc2InlineBaseOptions();
             });
             $('#sc2InlineBaseOptions').on('click', '.inline-base-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.baseValue = val;
-                $('#sc2InlineBaseOptions .inline-base-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
+                creatorState.baseValue = composeArticleAndNoun(creatorState.baseArticleValue, val);
+                renderSc2InlineBaseOptions();
             });
             $('#sc2BtnApplyBase').on('click', function () {
                 const tokenId = creatorState.activeBaseTokenId;
                 if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.baseArticleValue, creatorState.baseValue);
+                creatorState.placeholderAssignments[tokenId] = creatorState.baseValue;
                 closeSc2BaseEditor();
                 showSc2CreatorToast('Basis eingesetzt');
                 renderTemplateCards();
@@ -5847,19 +5897,21 @@
 
             // SC2 Item
             $('#sc2InlineItemArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.itemArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.itemArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.itemValue || '', currentLang).noun;
+                creatorState.itemValue = composeArticleAndNoun(val, noun);
+                renderSc2InlineItemOptions();
             });
             $('#sc2InlineItemOptions').on('click', '.inline-item-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.itemValue = val;
-                $('#sc2InlineItemOptions .inline-item-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
+                creatorState.itemValue = composeArticleAndNoun(creatorState.itemArticleValue, val);
+                renderSc2InlineItemOptions();
             });
             $('#sc2BtnApplyItem').on('click', function () {
                 const tokenId = creatorState.activeItemTokenId;
                 if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.itemArticleValue, creatorState.itemValue);
+                creatorState.placeholderAssignments[tokenId] = creatorState.itemValue;
                 closeSc2ItemEditor();
                 showSc2CreatorToast('Item eingesetzt');
                 renderTemplateCards();
@@ -5867,19 +5919,21 @@
 
             // SC2 Balance
             $('#sc2InlineBalanceArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.balanceArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
+                const val = ($(this).data('value') || '').toString().trim();
+                creatorState.balanceArticleValue = val;
+                const noun = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun;
+                creatorState.balanceValue = composeArticleAndNoun(val, noun);
+                renderSc2InlineBalanceOptions();
             });
             $('#sc2InlineBalanceOptions').on('click', '.inline-balance-opt', function () {
                 const val = ($(this).data('value') || '').toString().trim();
-                creatorState.balanceValue = val;
-                $('#sc2InlineBalanceOptions .inline-balance-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
+                creatorState.balanceValue = composeArticleAndNoun(creatorState.balanceArticleValue, val);
+                renderSc2InlineBalanceOptions();
             });
             $('#sc2BtnApplyBalance').on('click', function () {
                 const tokenId = creatorState.activeBalanceTokenId;
                 if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.balanceArticleValue, creatorState.balanceValue);
+                creatorState.placeholderAssignments[tokenId] = creatorState.balanceValue;
                 closeSc2BalanceEditor();
                 showSc2CreatorToast('Balance eingesetzt');
                 renderTemplateCards();
