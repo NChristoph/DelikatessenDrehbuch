@@ -42,7 +42,7 @@
             const safeKey = escapeHtml(varKey);
             const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
             const safeValue = escapeHtml(nextValue || varKey);
-            return `<span class="btn btn-sm btn-warning text-dark fw-bold js-probability-var" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span>`;
+            return `<span class="probability-var-inline-wrap"><span class="js-probability-var probability-var-inline-token" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span><button type="button" class="probability-var-reset-btn js-probability-var-reset" data-var-key="${safeKey}" title="Variable zurücksetzen" aria-label="Variable zurücksetzen">↺</button></span>`;
         });
     }
 
@@ -162,6 +162,13 @@
             const overrides = state.inlineOverrides[masterId] || {};
             return { ...base, ...overrides };
         }
+        function rerenderInlineText(masterId, wrap) {
+            const merged = getMergedVars(masterId);
+            const template = deps.findTemplate(masterId);
+            const nextHtml = buildInlineTemplateText(template, getLang(), merged);
+            const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
+            wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
+        }
         function bindInlineEvents() {
 
             $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
@@ -181,24 +188,35 @@
                         if (newVal == null) return;
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
-                        const merged = getMergedVars(masterId);
-                        const template = deps.findTemplate(masterId);
-                        const nextHtml = buildInlineTemplateText(template, getLang(), merged);
-                        const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
-                        wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
+                        rerenderInlineText(masterId, wrap);
                     }, chip);
                 } else {
                     const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;
-                    const merged = getMergedVars(masterId);
-                    const template = deps.findTemplate(masterId);
-                    const nextHtml = buildInlineTemplateText(template, getLang(), merged);
-                    const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
-                    wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
+                    rerenderInlineText(masterId, wrap);
                 }
             });
+
+            $(document).off('click.probabilityInlineVarReset').on('click.probabilityInlineVarReset', '.js-probability-var-reset', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const btn = $(this);
+                const wrap = btn.closest('.probability-template-wrap');
+                const masterId = (wrap.data('master-id') || '').toString();
+                const varKey = (btn.data('var-key') || '').toString();
+                if (!masterId || !varKey) return;
+
+                if (state.inlineOverrides[masterId]) {
+                    delete state.inlineOverrides[masterId][varKey];
+                    if (!Object.keys(state.inlineOverrides[masterId]).length) {
+                        delete state.inlineOverrides[masterId];
+                    }
+                }
+                rerenderInlineText(masterId, wrap);
+            });
+
         }
 
         async function refresh() {

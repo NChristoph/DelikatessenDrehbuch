@@ -1049,20 +1049,42 @@
         color: #fff;
     }
 
-    .probability-template-inline-vars {
-        display: flex;
-        flex-wrap: wrap;
+    .probability-var-inline-wrap {
+        display: inline-flex;
+        align-items: center;
         gap: 6px;
-        margin-top: 10px;
+        margin-right: 2px;
     }
 
-    .probability-template-inline-vars .js-probability-var,
-    .probability-inline-editor .js-probability-var {
-        color: #111827;
-        background-color: #facc15;
-        border-color: #facc15;
+    .probability-var-inline-token {
+        color: #facc15;
         text-decoration: underline;
         text-underline-offset: 2px;
+        font-weight: 800;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .probability-var-reset-btn {
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.45);
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        font-size: .72rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .probability-var-reset-btn:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.65);
     }
     .common-unit-chips {
         display: flex;
@@ -1834,9 +1856,9 @@
 
     .prob-var-chip {
         border-radius: 999px;
-        border: 1px solid rgba(255,193,7,0.5);
-        background: rgba(255,193,7,0.08);
-        color: #ffc107;
+        border: 1px solid rgba(255,255,255,0.55);
+        background: rgba(255,255,255,0.08);
+        color: #ffffff;
         font-weight: 700;
         padding: 6px 14px;
         cursor: pointer;
@@ -1844,9 +1866,9 @@
     }
 
     .prob-var-chip:hover, .prob-var-chip.active {
-        background: rgba(255,193,7,0.22);
-        border-color: #ffc107;
-        color: #fff;
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.85);
+        color: #ffffff;
     }
 
 </style>
