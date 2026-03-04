@@ -181,10 +181,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> Upload(string userHash)
         {
             userHash = ResolveUserHash(userHash);
-            if (!await IsCreatorAllowedAsync(userHash))
-            {
-                return RedirectToAction("Index");
-            }
+            //if (!await IsCreatorAllowedAsync(userHash))
+            //{
+            //    return RedirectToAction("Index");
+            //}
 
             var model = new WorldUserPosting()
             {
