@@ -4090,7 +4090,6 @@
                 updateStepIndices();
             } catch (error) {
                 console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
-                showMasterStepCreatorError(error, 'addRenderedMasterStep');
 
                 const fallbackId = createFallbackStepId();
                 getAllStepRows().push({
