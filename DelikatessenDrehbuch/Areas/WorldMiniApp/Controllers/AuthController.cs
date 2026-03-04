@@ -24,14 +24,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AuthController> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService, ApplicationDbContext context, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, IUserManager userManager, IWorldAppMealPlanService worldAppMealPlanService, ApplicationDbContext context, ILogger<AuthController> logger, IWebHostEnvironment env)
         {
             _authService = authService;
             _userManager = userManager;
             _worldAppMealPlanService = worldAppMealPlanService;
             _context = context;
             _logger = logger;
+            _env = env;
         }
 
         [HttpGet]
@@ -176,6 +178,45 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { status = user.IsVerified, rememberLogin = user.RememberLogin });
+        }
+
+        /// <summary>
+        /// Nur im Development-Modus verfügbar. Setzt eine Test-Session ohne Worldcoin-Verifizierung.
+        /// level=orb (Standard) gibt vollen Creator-Zugriff, level=device gibt eingeschränkten Zugriff.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> LocalTestLogin(string level = "orb")
+        {
+            if (!_env.IsDevelopment())
+                return NotFound();
+
+            const string testUserHash = "local-dev-test-user";
+
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == testUserHash);
+            if (user == null)
+            {
+                user = new WorldAppUser
+                {
+                    UserHash = testUserHash,
+                    IsVerified = level,
+                    Lastlogin = DateTime.Now,
+                    UserName = "LocalTestUser",
+                    RememberLogin = false
+                };
+                _context.WorldAppUser.Add(user);
+            }
+            else
+            {
+                user.Lastlogin = DateTime.Now;
+                user.IsVerified = level;
+            }
+
+            await _context.SaveChangesAsync();
+            HttpContext.Session.SetString(SessionUserHashKey, testUserHash);
+
+            _logger.LogWarning("DEV-ONLY: LocalTestLogin verwendet. UserHash={UserHash}, Level={Level}", testUserHash, level);
+
+            return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
         }
 
         public IActionResult Index()
