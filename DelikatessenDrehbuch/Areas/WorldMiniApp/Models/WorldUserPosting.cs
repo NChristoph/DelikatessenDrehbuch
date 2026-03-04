@@ -20,13 +20,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
        
         [NotMapped]
         public List<IngredientsAndNutrients> ToSelectIngredientsAndNutrients { get; set; }
-        [NotMapped]
-        public List<RecipePreperationSteps> ToSelectRecipePreperationSteps { get; set; }
+      
+       
 
         [NotMapped]
         public List<IngredientMeasureQuantity> IngredientMeasureQuantity { get; set; }
-        [NotMapped]
-        public List<RecipeJoyinPreperationSteps> RecipePreperationSteps { get; set; }
+ 
 
         [NotMapped]
         public IFormFile Content { get; set; }
@@ -35,8 +34,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public List<Keyword> ToSelectKeywords { get; set; }
 
 
-        [NotMapped]
-        public List<JoinIngredientPreperationStep> IngredientStepJoins { get; set; } = new();
+       
 
         [NotMapped]
         public List<int> SelectedKeywordIds { get; set; }

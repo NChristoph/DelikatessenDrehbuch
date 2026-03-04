@@ -6,24 +6,6 @@
 
 @{
    
-    var stepIngredientBindings = Model.IngredientStepJoins
-        .Where(x => x.Preperation != null && x.Ingredient != null)
-        .GroupBy(x => x.Preperation.Id)
-        .ToDictionary(
-            group => group.Key,
-            group => group.Select(x => x.Ingredient.Id).Distinct().ToList());
-
-    var stepCatalogJson = System.Text.Json.JsonSerializer.Serialize(
-        Model.ToSelectRecipePreperationSteps?.Select(step => new
-        {
-            id = step.Id,
-            de = step.Step_DE,
-            en = step.Step_EN,
-            esp = step.Step_ESP,
-            prt = step.Step_PRT,
-            phase = step.Phase,
-            equipment = step.Equipment
-        }) ?? Enumerable.Empty<object>());
 
     ViewData["Title"] = "Rezept Erstellen";
     Layout = "_MiniAppLayout";
@@ -550,7 +532,7 @@
                 <div class="sheet-head creator-top-head">
                     <div>
                         <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                        <div class="sheet-sub label-lang" data-de="Sortiere &amp; bearbeite wie ein Script" data-en="Order &amp; edit like a script" data-esp="Ordena y edita como guion" data-prt="Ordena e edita como roteiro">Sortiere &amp; bearbeite wie ein Script</div>
+                        <div class="sheet-sub label-lang" data-de="Sortiere" data-en="Order &amp; edit like a script" data-esp="Ordena y edita como guion" data-prt="Ordena e edita como roteiro">Sortiere &amp; bearbeite wie ein Script</div>
                     </div>
                     <span class="badge rounded-pill bg-transparent border border-light text-light">4/5</span>
                 </div>
@@ -579,6 +561,7 @@
                                 <button type="button" id="sc2BtnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
                             </div>
                             <div id="sc2MasterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
+                            <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                             <div id="sc2DurationEditor" class="duration-editor d-none mt-2">
                                 <div class="small text-muted mb-1">Zeit einsetzen</div>
                                 <div class="d-flex gap-2 align-items-center">
@@ -700,9 +683,13 @@
                             </div>
                         </div>
 
+                    
+
+
                         <div class="template-selection-wrap">
                             <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
-                            <div class="template-library template-library-fixed" id="sc2MasterTemplateCards"></div>
+                            <div id="insertContainer" class="preview-step-text template-library-fixed p-2"></div>
+                          @* <div class="template-library template-library-fixed" id="sc2MasterTemplateCards"></div> *@
                         </div>
                         <div id="sc2TemplateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
                         <div id="sc2CreatorToast" class="creator-toast" aria-live="polite"></div>
@@ -763,7 +750,7 @@
             </section>
 
             <!-- Bottom Action Bar (Feed Style) -->
-            <div class="fixed-bottom creator-bottom p-3">
+            <div class=" creator-bottom p-3">
                 <div class="creator-bottom-inner">
                     <div class="d-flex align-items-center gap-2">
                         <div class="bottom-hint">
@@ -2120,6 +2107,7 @@
     <script src="~/js/master-step-renderer.js"></script>
     <script src="~/js/recipe-step-suggest.js"></script>
     <script src="~/js/create-posting-probability.js"></script>
+    <script src="~/js/CreatePostingSmartStepCreator.js"></script>
     <script>
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
@@ -2127,15 +2115,23 @@
         };
     </script>
     <script>
-        const stepCatalog = @Html.Raw(stepCatalogJson);
-         const stepIngredientBindings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stepIngredientBindings));
-         var dbUnits = @Html.Raw(JsonConvert.SerializeObject((Model.Measure ?? new List<DelikatessenDrehbuch.Models.Measure>()).Select(x => new { de = (x.Metriks_DE ?? string.Empty).Trim(), en = (x.Metriks_EN ?? x.Metriks_DE ?? string.Empty).Trim(), esp = (x.Metriks_ESP ?? x.Metriks_DE ?? string.Empty).Trim(), prt = (x.Metriks_PRT ?? x.Metriks_DE ?? string.Empty).Trim(), id = (x.Metriks_ID ?? x.Metriks_DE ?? string.Empty).Trim(), ms = (x.Metriks_MS ?? x.Metriks_DE ?? string.Empty).Trim(), nl = (x.Metriks_NL ?? x.Metriks_DE ?? string.Empty).Trim(), sv = (x.Metriks_SE ?? x.Metriks_DE ?? string.Empty).Trim(), da = (x.Metriks_DK ?? x.Metriks_DE ?? string.Empty).Trim(), no = (x.Metriks_NO ?? x.Metriks_DE ?? string.Empty).Trim() }).Where(x => !string.IsNullOrWhiteSpace(x.de)).ToList()));
-         if (!Array.isArray(dbUnits) || !dbUnits.length) {
-             dbUnits = ($('.js-db-unit option').map(function () {
-                 const de = ($(this).val() || $(this).text() || '').toString().trim();
-                 return de ? { de, en: de, esp: de, prt: de, id: de, ms: de, nl: de, sv: de, da: de, no: de } : null;
-             }).get()).filter(Boolean);
-         }
+        const json = @Html.Raw(System.IO.File.ReadAllText(
+                     System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/data/master_steps.json")
+        ));
+        //TODO:Noch Auf alle sprachen umstellen mache 
+        // const lang = 'de';
+        // const doc = JSON.parse(JSON.stringify(json));
+        // var steps = doc.master_steps || [];
+        // const templates = steps.map(step => step.templates?.[lang]).filter(Boolean);
+
+       
+
+        //  const variablseTypes = ['duration', 'temperature', 'count', 'article', 'equipment', 
+        //                           'tool', 'base', 'item', 'balance', 'seasoning','ingredient','ingredients'];
+
+        
+        
+
 
          function getCookieValue(name) {
              const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -2450,20 +2446,10 @@
         }
 
 
-
-
-
-
-
         // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
         function getStepBoundIngredientIds(stepId) {
             return (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
         }
-
-
-
-
-
 
 
         function getSelectedIngredientIds() {
