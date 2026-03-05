@@ -556,131 +556,15 @@
                         </div>
 
                         <div class="preview-step-card" id="sc2MasterPreviewCard">
-                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            @* <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                 <div class="preview-step-title mb-0">Aktueller Step</div>
                                 <button type="button" id="sc2BtnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
-                            </div>
-                            <div id="sc2MasterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
-                            <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
-                            <div id="sc2DurationEditor" class="duration-editor d-none mt-2">
-                                <div class="small text-muted mb-1">Zeit einsetzen</div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <input type="number" min="1" step="1" id="sc2DurationValueInput" class="form-control form-control-sm" style="max-width:110px" value="10" />
-                                    <select id="sc2DurationUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                        <option value="minute">Minuten</option>
-                                        <option value="hour">Stunden</option>
-                                    </select>
-                                    <button type="button" id="sc2BtnApplyDuration" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2CountEditor" class="duration-editor d-none mt-2">
-                                <div class="small text-muted mb-1">Anzahl einsetzen</div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <input type="number" min="1" step="1" id="sc2CountValueInput" class="form-control form-control-sm" style="max-width:110px" value="2" />
-                                    <button type="button" id="sc2BtnApplyCount" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2TemperatureEditor" class="duration-editor d-none mt-2">
-                                <div class="small text-muted mb-1">Temperatur einsetzen</div>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <input type="number" min="0" max="500" step="5" id="sc2TemperatureValueInput" class="form-control form-control-sm" style="max-width:110px" value="180" />
-                                    <select id="sc2TemperatureUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                        <option value="celsius">°C</option>
-                                        <option value="fahrenheit">°F</option>
-                                    </select>
-                                    <button type="button" id="sc2BtnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2PronounEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Pronomen einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlinePronounOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyPronoun" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2ToolEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Werkzeug einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineToolArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineToolOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyTool" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2GrindSizeEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineGrindSizeOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2ShapeEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Schnittform einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineShapeOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2BaseEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Basis einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineBaseArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineBaseOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyBase" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2ItemEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Item einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineItemArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineItemOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2BalanceEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Balance einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineBalanceArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineBalanceOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyBalance" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2SeasoningsEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1">Seasonings einsetzen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineSeasoningsOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplySeasonings" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <!-- SC2 bottom-sheet-style editors for heat, mode, equipment, state (inline) -->
-                            <div id="sc2HeatEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang" data-de="Hitze-Stufe wählen" data-en="Choose heat level">Hitze-Stufe wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineHeatOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyHeat" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2ModeEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang" data-de="Ofenmodus wählen" data-en="Choose oven mode">Ofenmodus wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineModeOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyMode" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2EquipmentEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang" data-de="Tool / Gerät wählen" data-en="Choose tool / equipment">Tool / Gerät wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineEquipmentArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineEquipmentOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyEquipment" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
-                            <div id="sc2StateEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang" data-de="Zielzustand wählen" data-en="Choose target state">Zielzustand wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="sc2InlineStateOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="sc2BtnApplyState" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                </div>
-                            </div>
+                            </div> *@
+@*                             <div id="sc2MasterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
+ *@                            <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
+                         
+                          
+                          
                         </div>
 
                     
@@ -689,7 +573,6 @@
                         <div class="template-selection-wrap">
                             <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
                             <div id="insertContainer" class="preview-step-text template-library-fixed p-2"></div>
-                          @* <div class="template-library template-library-fixed" id="sc2MasterTemplateCards"></div> *@
                         </div>
                         <div id="sc2TemplateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
                         <div id="sc2CreatorToast" class="creator-toast" aria-live="polite"></div>
