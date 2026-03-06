@@ -141,7 +141,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 },
                 Querys = posting.Recipe.Preferences,
                 IngredientMeasureQuantity = posting.IngredientMeasureQuantity,
-                RecipeJoyinPreperationSteps = posting.RecipePreperationSteps,
+                
 
             };
             await _saveNewRecipeService.SaveNewAsync(recipeModel, true);
@@ -181,19 +181,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> Upload(string userHash)
         {
             userHash = ResolveUserHash(userHash);
-            if (!await IsCreatorAllowedAsync(userHash))
-            {
-                return RedirectToAction("Index");
-            }
+            //if (!await IsCreatorAllowedAsync(userHash))
+            //{
+            //    return RedirectToAction("Index");
+            //}
 
             var model = new WorldUserPosting()
             {
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
-                ToSelectRecipePreperationSteps = await _context.RecipePreperationSteps.ToListAsync(),
-                IngredientStepJoins = await _context.JoinIngredientPreperationStep
-                    .Include(x => x.Preperation)
-                    .Include(x => x.Ingredient)
-                    .ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
                 ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };
