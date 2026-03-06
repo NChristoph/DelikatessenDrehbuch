@@ -247,30 +247,63 @@
         const name = resolveNameFromRow(row);
         const { qty, unit } = resolveQtyUnitFromRow(row);
 
-        const meta = (qty || unit) ? `${qty || "0"} ${unit || ""}`.trim() : "";
-
         const el = document.createElement("div");
-        el.className = "dock-item";
         el.setAttribute("data-ingredient-id", id);
 
-        el.innerHTML = `
+        if (mode === "selected") {
+            el.className = "dock-item dock-item-selected";
+
+            // Clone unit options from the stashed catalog row's select
+            const unitSelect = row.querySelector(".js-db-unit");
+            let unitOptionsHtml = "";
+            if (unitSelect) {
+                unitOptionsHtml = Array.from(unitSelect.options).map(opt => {
+                    const isSelected = opt.value.toLowerCase() === (unit || "").toLowerCase();
+                    return `<option value="${escapeHtml(opt.value)}"${isSelected ? " selected" : ""}>${escapeHtml(opt.text)}</option>`;
+                }).join("");
+            } else {
+                unitOptionsHtml = `<option value="${escapeHtml(unit)}">${escapeHtml(unit)}</option>`;
+            }
+
+            el.innerHTML = `
+      <div class="dock-row-name">${escapeHtml(name)}</div>
+      <div class="dock-row-controls">
+        <input type="text" inputmode="decimal"
+               class="dock-qty-input"
+               data-ingredient-id="${escapeHtml(id)}"
+               value="${escapeHtml(qty || "0")}"
+               placeholder="0"
+               aria-label="Menge" />
+        <select class="dock-unit-select"
+                data-ingredient-id="${escapeHtml(id)}"
+                aria-label="Einheit">
+          ${unitOptionsHtml}
+        </select>
+        <button type="button"
+                class="dock-remove-btn js-remove-selected"
+                data-ingredient-id="${escapeHtml(id)}"
+                title="Entfernen"
+                aria-label="Zutat entfernen">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </div>
+    `;
+        } else {
+            el.className = "dock-item dock-item-remaining";
+
+            const meta = (qty || unit) ? `${qty || "0"} ${unit || ""}`.trim() : "";
+            el.innerHTML = `
       <div class="flex-grow-1">
         <div class="dock-name">${escapeHtml(name)}</div>
         ${meta ? `<div class="dock-meta">${escapeHtml(meta)}</div>` : ``}
       </div>
-
       <div class="dock-actions">
-        ${mode === "selected"
-                ? `
-              <button type="button" class="btn btn-sm btn-glass btn-glass-danger js-remove-selected" data-ingredient-id="${escapeHtml(id)}" title="Entfernen">✕</button>
-              <button type="button" class="btn btn-sm btn-glass js-edit-selected" data-ingredient-id="${escapeHtml(id)}" title="Bearbeiten">✎</button>
-            `
-                : `
-              <button type="button" class="btn btn-sm btn-glass js-add-from-remaining" data-ingredient-id="${escapeHtml(id)}" title="Hinzufügen">＋</button>
-            `
-            }
+        <button type="button" class="btn btn-sm btn-glass js-add-from-remaining" data-ingredient-id="${escapeHtml(id)}" title="Hinzufügen">
+          <i class="bi bi-plus-lg"></i>
+        </button>
       </div>
     `;
+        }
 
         return el;
     }
@@ -389,31 +422,22 @@
             removeIngredient(btn.dataset.ingredientId);
         });
 
-        // Optional: Edit (scroll back to row, open details)
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest(".js-edit-selected");
-            if (!btn) return;
-            e.preventDefault();
-
-            const id = btn.dataset.ingredientId;
-            // bring row back temporarily to edit? oder open via popup?
-            // Quick solution: return to catalog and auto-open details
+        // Inline qty edit in selected dock row
+        document.addEventListener("input", (e) => {
+            const inp = e.target.closest(".dock-qty-input");
+            if (!inp) return;
+            const id = (inp.dataset.ingredientId || "").toString().trim();
             const row = getCatalogRowById(id);
-            if (!row) return;
+            if (row) row.setAttribute("data-selected-qty", inp.value);
+        });
 
-            // zurück in Katalog zum Bearbeiten
-            showRowBackToCatalog(row);
-
-            // Details öffnen
-            const details = row.querySelector(".ingredient-db-details");
-            if (details) {
-                details.classList.remove("d-none");
-            }
-
-            // Scroll
-            row.scrollIntoView({ behavior: "smooth", block: "center" });
-
-            // (optional) Nach Bearbeiten wieder "hinzufügen" klicken.
+        // Inline unit edit in selected dock row
+        document.addEventListener("change", (e) => {
+            const sel = e.target.closest(".dock-unit-select");
+            if (!sel) return;
+            const id = (sel.dataset.ingredientId || "").toString().trim();
+            const row = getCatalogRowById(id);
+            if (row) row.setAttribute("data-selected-unit", sel.value);
         });
     }
 
