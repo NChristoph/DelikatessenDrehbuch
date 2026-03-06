@@ -263,10 +263,11 @@
         const el = document.createElement("div");
         el.className = "dock-item";
         el.setAttribute("data-ingredient-id", id);
+        el.setAttribute("data-mode", mode);
 
         if (mode === "selected") {
             el.innerHTML = `
-          <button type="button" class="btn btn-sm btn-glass dock-main-action js-edit-selected" data-ingredient-id="${escapeHtml(id)}" title="Bearbeiten">
+          <button type="button" class="btn btn-sm btn-glass dock-main-action w-100 js-edit-selected" data-ingredient-id="${escapeHtml(id)}" title="Bearbeiten">
             <div class="dock-name">${escapeHtml(name)}</div>
             ${meta ? `<div class="dock-meta">${escapeHtml(meta)}</div>` : ``}
           </button>
@@ -401,6 +402,20 @@
             if (!btn) return;
             e.preventDefault();
             removeIngredient(btn.dataset.ingredientId);
+        });
+
+        // Whole selected list row is clickable (except remove button)
+        document.addEventListener("click", (e) => {
+            if (e.target.closest(".js-edit-selected")) return;
+            if (e.target.closest(".js-remove-selected")) return;
+
+            const item = e.target.closest('.dock-item[data-mode="selected"]');
+            if (!item) return;
+
+            const editBtn = item.querySelector('.js-edit-selected');
+            if (!editBtn) return;
+            e.preventDefault();
+            editBtn.click();
         });
 
         // Edit selected item directly via same popup logic as ingredient selection
