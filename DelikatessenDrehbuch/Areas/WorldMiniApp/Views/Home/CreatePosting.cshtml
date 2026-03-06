@@ -118,7 +118,7 @@
                             <input asp-for="Title"
                                    class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
                                    placeholder="Titel"
-                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título"
+                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título" data-ph-id="Judul" data-ph-nl="Titel" data-ph-sv="Titel" data-ph-da="Titel" data-ph-no="Tittel" data-ph-ms="Tajuk"
                                    required />
                         </div>
                     </div>
@@ -188,7 +188,7 @@
                                        type="number"
                                        class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
                                        placeholder="Personen"
-                                       data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" />
+                                       data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" data-ph-id="Orang" data-ph-nl="Personen" data-ph-sv="Personer" data-ph-da="Personer" data-ph-no="Personer" data-ph-ms="Orang" />
                             </div>
                         </div>
 
@@ -205,7 +205,7 @@
                                        type="number"
                                        class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
                                        placeholder="Minuten"
-                                       data-ph-de="Minuten" data-ph-en="Minutes" data-ph-esp="Minutos" data-ph-prt="Minutos" />
+                                       data-ph-de="Minuten" data-ph-en="Minutes" data-ph-esp="Minutos" data-ph-prt="Minutos" data-ph-id="Menit" data-ph-nl="Minuten" data-ph-sv="Minuter" data-ph-da="Minutter" data-ph-no="Minutter" data-ph-ms="Minit" />
                             </div>
                         </div>
                     </div>
@@ -280,8 +280,12 @@
                     <div class="mb-4">
                         <div class="input-pill" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18);">
                             <i class="bi bi-search text-white-50"></i>
-                            <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none" placeholder="Zutat suchen..." />
+                            <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none lang-ph" placeholder="Zutat suchen..."
+                                   data-ph-de="Zutat suchen..." data-ph-en="Search ingredient..." data-ph-esp="Buscar ingrediente..." data-ph-prt="Buscar ingrediente..."
+                                   data-ph-id="Cari bahan..." data-ph-nl="Ingrediënt zoeken..." data-ph-sv="Sök ingrediens..." data-ph-da="Søg ingrediens..."
+                                   data-ph-no="Søk ingrediens..." data-ph-ms="Cari bahan..." />
                         </div>
+                        <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
                     </div>
 
                     <div class="template-library ingredient-catalog-scroll" id="ingredientsCatalog">
@@ -299,12 +303,10 @@
 
                                     <div class="d-flex align-items-start gap-2 mb-1 ingredient-card-head">
                                         <div class="preview-step-text display-name mb-0 flex-grow-1">@item.Name_DE</div>
-                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)">
-                                            Hinzufügen <i class="bi bi-plus-lg ms-1"></i>
+                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" aria-label="Zutat hinzufügen">
+                                            <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>
-
-                                    <div class="small text-white-50 text-center label-lang" data-de="Tippen für Menge & Maßeinheit" data-en="Tap for quantity & unit" data-esp="Toca para cantidad y unidad" data-prt="Toque para quantidade e unidade">Tippen für Menge & Maßeinheit</div>
 
                                     <div class="duration-editor mt-2 ingredient-db-details d-none">
                                         <div class="d-flex gap-2 align-items-center">
@@ -340,7 +342,9 @@
 
                     <div class="ingredient-top-strip mt-4">
                         <div class="ingredient-top-title">Ausgewählte Zutaten</div>
+                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar" data-id="Ketuk untuk mengedit" data-nl="Tik om te bewerken" data-sv="Tryck för att redigera" data-da="Tryk for at redigere" data-no="Trykk for å redigere" data-ms="Ketik untuk edit">Zum Bearbeiten antippen</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
+                        <div id="selectedIngredientsSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
                     <div class="preview-step-card mt-2" id="ingredientProbabilityBox">
@@ -779,7 +783,7 @@
 
     #card-ingredients {
         border-color: var(--creator-border);
-        background: rgba(2,6,23,0.9);
+        background: var(--creator-bg);
         box-shadow: none;
     }
 
@@ -952,6 +956,25 @@
         max-height: 56vh;
         overflow-y: auto;
         padding-right: 5px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        align-content: start;
+    }
+
+    #ingredientsCatalog .ingredient-db-row {
+        margin-bottom: 0;
+        padding: 10px 12px;
+    }
+
+    #ingredientsCatalog .ingredient-db-row .display-name {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    #ingredientsCatalog .ingredient-db-row .btn.creator-cta-primary {
+        padding: 2px 8px;
+        font-size: 0.8rem;
     }
 
 
@@ -988,6 +1011,13 @@
         border-radius: 14px;
         padding: 10px 12px;
         margin-bottom: 8px;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .probability-template-card:hover,
+    .probability-template-card:focus {
+        color: #fff;
     }
     .common-unit-chips {
         display: flex;
@@ -1012,12 +1042,15 @@
     }
     .ingredient-catalog-card {
         margin-top: 2px;
-        border-radius: 18px;
+        border-radius: 14px;
         border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.12);
+        background: rgba(15,23,42,0.92);
         backdrop-filter: blur(12px);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
-        padding: 14px 16px;
+        box-shadow: none;
+        padding: 8px 10px;
+        width: 92%;
+        margin-left: auto;
+        margin-right: auto;
         transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
 
@@ -1060,6 +1093,12 @@
     .ingredient-row-meta {
         font-size: .78rem;
         color: var(--creator-sub);
+    }
+
+    .ingredient-row-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .ingredient-config-overlay {
@@ -1648,9 +1687,78 @@
         100% { opacity: 0; transform: translate(0,-120px) scale(1.04); }
     }
 
+    /* === Ingredient Edit Bottom Sheet === */
+    #ingredientConfigOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1050;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
 
+    #ingredientConfigOverlay.ing-active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #ingredientConfigDock {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: min(480px, 100%);
+        z-index: 1051;
+        background: #1a1a2e;
+        border-radius: 20px 20px 0 0;
+        padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+        border-top: 1px solid rgba(255,255,255,0.15);
+        border-left: 1px solid rgba(255,255,255,0.08);
+        border-right: 1px solid rgba(255,255,255,0.08);
+        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+        pointer-events: none;
+    }
+
+    #ingredientConfigDock.ing-active {
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+    }
+
+    #ingredientConfigDock .ing-sheet-handle {
+        width: 40px;
+        height: 4px;
+        background: rgba(255,255,255,0.25);
+        border-radius: 999px;
+        margin: 0 auto 16px;
+    }
 
 </style>
+
+<!-- ===== Ingredient Edit Bottom Sheet ===== -->
+<div id="ingredientConfigOverlay" aria-hidden="true"></div>
+<div id="ingredientConfigDock" role="dialog" aria-modal="true" aria-labelledby="ingredientConfigTitle">
+    <div class="ing-sheet-handle"></div>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="fw-bold text-white fs-6" id="ingredientConfigTitle">Zutat bearbeiten</div>
+        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm btn-outline-secondary rounded-circle p-0" style="width:30px;height:30px;line-height:1;" aria-label="Schließen">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="d-flex gap-2 align-items-center mb-3">
+        <input type="text" inputmode="decimal" id="ingredientConfigQty"
+               class="form-control form-control-sm candy-purple-input" style="max-width:90px;" placeholder="0" />
+        <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input" style="flex:1;"></select>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary flex-grow-1">
+            <i class="bi bi-check-lg me-1"></i><span class="label-lang" data-de="Übernehmen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Übernehmen</span>
+        </button>
+        <button type="button" id="btnCancelIngredientConfig" class="btn btn-sm btn-outline-secondary">
+            <span class="label-lang" data-de="Abbrechen" data-en="Cancel" data-esp="Cancelar" data-prt="Cancelar">Abbrechen</span>
+        </button>
+    </div>
+</div>
 
 
 
@@ -1728,15 +1836,9 @@
             const overlay = $('#ingredientConfigOverlay');
             const dock = $('#ingredientConfigDock');
             if (!overlay.length || !dock.length) return;
-            dock.removeClass('d-none');
-            overlay.removeClass('d-none');
-            if (anchorElement && anchorElement.length) {
-                if (anchorElement.hasClass('ingredient-db-row')) {
-                    anchorElement.find('td').first().append(dock);
-                } else {
-                    anchorElement.after(dock);
-                }
-            }
+            overlay.addClass('ing-active').attr('aria-hidden', 'false');
+            setTimeout(function () { dock.addClass('ing-active'); }, 10);
+            $('#ingredientConfigQty').focus();
         }
 
         function openIngredientConfigPopup(row) {
@@ -1754,9 +1856,8 @@
 
         function closeIngredientConfigPopup() {
             activeIngredientConfigRow = null;
-            $('#ingredientConfigOverlay').addClass('d-none');
-            $('#ingredientConfigDock').addClass('d-none');
-            $('#card-ingredients .creator-card-body').append($('#ingredientConfigDock'));
+            $('#ingredientConfigDock').removeClass('ing-active');
+            $('#ingredientConfigOverlay').removeClass('ing-active').attr('aria-hidden', 'true');
         }
 
         function applyIngredientConfigPopup() {
@@ -3049,24 +3150,85 @@
             return '';
         }
 
-        function resolveDefaultVariableValue(key) {
+        function getSelectedIngredientValueForLanguage(langKey) {
+            const names = getSelectedIngredientNamesWithArticle(langKey);
+            return names.length ? names.join(', ') : '';
+        }
+
+        function resolveDefaultVariableValueForLanguage(key, langKey) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
             const placeholderType = getPlaceholderType(key);
-            if (key === 'pronoun') return creatorState.computedPronoun;
-            if (key === 'article') return creatorState.computedArticle;
-            if (placeholderType === 'duration' || key.includes('duration')) return getDurationInsertText();
+            if (key === 'ingredient' || key === 'ingredients' || key === 'liquid') {
+                const ingredientValue = getSelectedIngredientValueForLanguage(lang);
+                return ingredientValue || getLocalizedFallbackForVariable('ingredient', lang) || key;
+            }
+            if (key === 'pronoun') {
+                const selectedIngredient = getSelectedIngredientForCreator();
+                const grammar = resolveGrammarForIngredient(selectedIngredient?.name || '', selectedIngredient?.genusByLang || {}, lang);
+                return creatorState.advancedPronounOverride || creatorState.pronounValue || grammar.pronoun || getLocalizedFallbackForVariable('pronoun', lang) || 'it';
+            }
+            if (key === 'article') {
+                const selectedIngredient = getSelectedIngredientForCreator();
+                const grammar = resolveGrammarForIngredient(selectedIngredient?.name || '', selectedIngredient?.genusByLang || {}, lang);
+                return creatorState.advancedArticleOverride || grammar.article || getLocalizedFallbackForVariable('article', lang) || '';
+            }
+            if (placeholderType === 'duration' || key.includes('duration')) {
+                const unit = getDurationUnitLabel(creatorState.durationUnit, lang);
+                return `${creatorState.durationValue || 10} ${unit}`;
+            }
             if (placeholderType === 'count') return getCountInsertText();
             if (placeholderType === 'temperature') return getTemperatureInsertText();
-            if (placeholderType === 'heat' || key.includes('heat')) return creatorState.heatValue || 'mittlerer';
-            if (placeholderType === 'mode') return creatorState.modeValue || getModeOptions()[2] || 'Ober- und Unterhitze';
-            if (placeholderType === 'tool' || key.includes('tool')) return getToolOptions()[0] || 'Messer';
-            if (placeholderType === 'grindSize' || key.includes('grind')) return creatorState.grindSizeValue || getGrindSizeOptions()[0] || 'feine';
-            if (placeholderType === 'item') return creatorState.itemValue || getItemOptions()[0] || 'den Teig';
-            if (placeholderType === 'balance') return creatorState.balanceValue || getBalanceOptions()[0] || 'die Säure';
-            if (placeholderType === 'seasonings') return creatorState.seasoningsValue || getSeasoningsOptions()[2] || 'Salz und Pfeffer';
-            if (placeholderType === 'shape' || key.includes('shape')) return 'feine Stücke';
-            if (placeholderType === 'base') return creatorState.baseValue || getLocalizedFallbackForVariable('base', currentLang) || 'den Teig';
-            const localizedFallback = getLocalizedFallbackForVariable(key, currentLang);
+            if (placeholderType === 'heat' || key.includes('heat')) return creatorState.heatValue || getLocalizedFallbackForVariable('heat', lang) || 'medium';
+            if (placeholderType === 'mode') return creatorState.modeValue || (modeOptionsByLang[lang] || modeOptionsByLang.de || [])[0] || '';
+            if (placeholderType === 'tool' || key.includes('tool')) return creatorState.toolValue || getToolOptions()[0] || getLocalizedFallbackForVariable('tool', lang) || 'knife';
+            if (placeholderType === 'grindSize' || key.includes('grind')) return creatorState.grindSizeValue || getGrindSizeOptions()[0] || getLocalizedFallbackForVariable('grind_size', lang) || '';
+            if (placeholderType === 'item') return creatorState.itemValue || getItemOptions()[0] || getLocalizedFallbackForVariable('item', lang) || '';
+            if (placeholderType === 'balance') return creatorState.balanceValue || getBalanceOptions()[0] || getLocalizedFallbackForVariable('balance', lang) || '';
+            if (placeholderType === 'seasonings') return creatorState.seasoningsValue || getSeasoningsOptions()[2] || getSeasoningsOptions()[0] || getLocalizedFallbackForVariable('seasonings', lang) || '';
+            if (placeholderType === 'shape' || key.includes('shape')) return getLocalizedFallbackForVariable('shape', lang) || 'pieces';
+            if (placeholderType === 'base') return creatorState.baseValue || getLocalizedFallbackForVariable('base', lang) || '';
+            const localizedFallback = getLocalizedFallbackForVariable(key, lang);
             return localizedFallback || key;
+        }
+
+        function resolveDefaultVariableValue(key) {
+            return resolveDefaultVariableValueForLanguage(key, currentLang);
+        }
+
+        function prefillTemplatePlaceholdersInText(text, langKey) {
+            const source = (text || '').toString();
+            if (!source.includes('{{')) return source;
+            return source.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+                const value = resolveDefaultVariableValueForLanguage(String(key || '').trim(), langKey);
+                return (value || String(key || '')).toString();
+            }).replace(/\s{2,}/g, ' ').trim();
+        }
+
+        function prefillUneditedStepPlaceholders() {
+            $('#selectedSteps .step-row').each(function () {
+                const row = $(this);
+                if (row.data('step-edited') === true || row.attr('data-step-edited') === 'true') {
+                    return;
+                }
+
+                const mappings = [
+                    { selector: '.step-hidden-de', lang: 'de' },
+                    { selector: '.step-hidden-en', lang: 'en' },
+                    { selector: '.step-hidden-esp', lang: 'esp' },
+                    { selector: '.step-hidden-prt', lang: 'prt' }
+                ];
+
+                mappings.forEach(function (entry) {
+                    const input = row.find(entry.selector);
+                    if (!input.length) return;
+                    input.val(prefillTemplatePlaceholdersInText(input.val(), entry.lang));
+                });
+
+                const currentInput = row.find(`.step-hidden-${currentLang}`);
+                const fallbackInput = row.find('.step-hidden-de');
+                const visibleText = (currentInput.val() || fallbackInput.val() || '').toString();
+                row.find('.step-text-content').text(visibleText);
+            });
         }
 
         function buildVariablesForTemplate(templateId) {
@@ -3512,7 +3674,32 @@
             buildVariablesForTemplate,
             detectRecipeTypes: (ingredientIds) => window.RecipeStepSuggest.detectRecipeTypes(ingredientIds) || [],
             loadMapping: () => window.RecipeStepSuggest.loadMapping(),
-            getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || []
+            getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || [],
+            /**
+             * Returns typical ingredients for a category that aren't yet selected,
+             * augmented with their localized name from the catalog.
+             */
+            getTypicalIngredientSuggestions: (typeId) => {
+                if (!window.RecipeStepSuggest || !window.RecipeStepSuggest.getCategoryById) return [];
+                const cat = window.RecipeStepSuggest.getCategoryById(typeId);
+                if (!cat || !Array.isArray(cat.typical_ingredients)) return [];
+
+                const alreadySelected = new Set(
+                    $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]')
+                        .map(function () { return parseInt($(this).val(), 10); })
+                        .get().filter(v => !isNaN(v))
+                );
+
+                const suggestions = [];
+                cat.typical_ingredients.forEach(ingId => {
+                    if (alreadySelected.has(ingId)) return;
+                    const catalogRow = $(`.ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
+                    if (!catalogRow.length) return; // not in this creator's catalog
+                    const name = catalogRow.data('name-' + (currentLang || 'de')) || catalogRow.data('name-de') || String(ingId);
+                    suggestions.push({ id: ingId, name: name });
+                });
+                return suggestions;
+            }
         });
 
         async function refreshIngredientProbabilityHints() {
@@ -3604,7 +3791,7 @@
 
         function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName }) {
             return `
-            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" ${buildIngredientDataAttributes(localizedData)}>
+            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" ${buildIngredientDataAttributes(localizedData)}>
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metriks_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
@@ -3614,9 +3801,14 @@
                     <div class="ingredient-row-meta">${escapeAttr(selectedQuantity)} ${escapeAttr(selectedUnitLabel)}</div>
                 </div>
 
-                <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)">
-                    <i class="bi bi-trash3"></i>
-                </button>
+                <div class="ingredient-row-actions">
+                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" onclick="event.stopPropagation(); openIngredientConfigPopup(this.closest('.ingredient-row'))" title="Zutat bearbeiten" aria-label="Zutat bearbeiten">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)" title="Zutat entfernen" aria-label="Zutat entfernen">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
             </div>`;
         }
 
@@ -3684,6 +3876,7 @@
             }
 
             row.attr('data-ingredient-name', newName);
+            row.attr('data-step-edited', 'true').data('step-edited', true);
             creatorState.activeStepIngredientRow = null;
             clearSelectedIngredientChips();
             renderIngredientChips();
@@ -3776,7 +3969,7 @@
                 ? `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(this)" title="Zutat per Chip ändern">🥣</button>`
                 : '';
 
-            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
+            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
@@ -3844,6 +4037,7 @@
         }
 
         function prepareBinding() {
+            prefillUneditedStepPlaceholders();
             updateStepIndices();
             $('.ingredient-row').each(function (i) {
                 $(this).find('input, select').each(function () {
@@ -3915,6 +4109,27 @@
                 updatePreviewText();
                 showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
                 document.getElementById('masterPreviewCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
+            $(document).on('click', '.js-typical-ingredient-chip', function () {
+                const ingId = ($(this).data('ingredient-id') || '').toString();
+                if (!ingId) return;
+
+                const catalogRow = $(`.ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
+                if (!catalogRow.length) {
+                    showCreatorToast('Zutat nicht im Katalog gefunden');
+                    return;
+                }
+
+                addIngredient(ingId, catalogRow[0]);
+                showCreatorToast(`Zutat hinzugefügt`);
+
+                // Chip deaktivieren nach dem Hinzufügen
+                $(this).prop('disabled', true).addClass('opacity-50');
+
+                // Kurz zum Katalog scrollen, damit der User die Zutat sehen kann
+                catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
             refreshDurationUnitControls();
             loadIngredientArticleRules().finally(() => {
@@ -4441,6 +4656,11 @@
 
             $('#btnApplyStepIngredient').on('click', function () { applyChipToStep(); });
             $('#btnCancelStepIngredient').on('click', function () { cancelStepIngredientEdit(); });
+
+            $('#selectedIngredients').on('click', '.ingredient-row', function (e) {
+                if ($(e.target).closest('button, input, select, label').length) return;
+                openIngredientConfigPopup(this);
+            });
 
             $('#selectedSteps').on('dragstart', '.step-row', function (e) {
                 draggedStepRow = this;
