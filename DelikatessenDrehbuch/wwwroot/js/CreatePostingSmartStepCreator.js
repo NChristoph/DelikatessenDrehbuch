@@ -261,6 +261,70 @@
         if (host) host.innerHTML = "";
     }
 
+    function isIngredientVariable(varName) {
+        const key = (varName || "").toString().trim().toLowerCase();
+        return key === "ingredient" || key === "ingredients" || key === "liquid" || key === "fat";
+    }
+
+    function isGrindSizeVariable(varName) {
+        const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
+        return key === "grindsize" || key.includes("grindsize");
+    }
+
+    function getSelectedIngredientNamesFromPage() {
+        const rows = Array.from(document.querySelectorAll("#selectedIngredients .ingredient-row .display-name-selected"));
+        return rows
+            .map(x => (x?.textContent || "").toString().trim())
+            .filter(Boolean);
+    }
+
+    
+    function getIngredientEmoji(name) {
+        const text = (name || "").toString().toLowerCase();
+        if (text.includes("basil")) return "🌿";
+        if (text.includes("tomat")) return "🍅";
+        if (text.includes("zwiebel")) return "🧅";
+        if (text.includes("knoblauch")) return "🧄";
+        if (text.includes("reis")) return "🍚";
+        if (text.includes("salat")) return "🥗";
+        return "🥣";
+    }
+    function parseSelectedIngredientValues(rawValue, options) {
+        const list = (options || []).map(x => (x || "").toString().trim()).filter(Boolean);
+        const byLower = new Map(list.map(x => [x.toLowerCase(), x]));
+        const tokens = (rawValue || "")
+            .toString()
+            .replace(/\s+und\s+/gi, ",")
+            .replace(/\s+and\s+/gi, ",")
+            .replace(/\s+y\s+/gi, ",")
+            .replace(/\s+e\s+/gi, ",")
+            .split(",")
+            .map(x => x.trim())
+            .filter(Boolean);
+
+        const selected = [];
+        tokens.forEach(token => {
+            const key = token.toLowerCase();
+            if (byLower.has(key) && !selected.includes(byLower.get(key))) {
+                selected.push(byLower.get(key));
+            }
+        });
+        return selected;
+    }
+
+    function formatSelectedIngredientList(names, langKey) {
+        if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.formatIngredientList === "function") {
+            return window.MasterStepCreatorHelpers.formatIngredientList(names || [], langKey || currentLang);
+        }
+        const list = (names || []).map(x => (x || "").toString().trim()).filter(Boolean);
+        if (!list.length) return "";
+        if (list.length === 1) return list[0];
+        if (list.length === 2) return `${list[0]} und ${list[1]}`;
+        const head = list.slice(0, -1).join(", ");
+        const tail = list[list.length - 1];
+        return `${head}, und ${tail}`;
+    }
+
     function openInlineEditor(varName, tokenId) {
         if (!activeStep) return;
 
@@ -270,14 +334,20 @@
         if (!host) return;
 
         const currentVal = activeStep.values[varName] ?? "";
+        const ingredientVar = isIngredientVariable(varName);
+        const noArticleVar = isGrindSizeVariable(varName);
 
-        // Für "ingredient" willst du Artikel + Werte (wie Screenshot)
-        // -> wir rendern Artikel-Buttons IMMER oben (du wolltest das so)
-        const articleButtons = renderPillButtons(getArticleOptions(), "article", null);
-
-        // Werte-Buttons aus variable_options[varName][lang]
-        const options = getVarOptions(varName);
-        const valueButtons = renderPillButtons(options, "value", currentVal);
+        const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
+        const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
+        const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
+        const valueButtons = ingredientVar
+            ? options.map(name => {
+                const value = (name || "").toString().trim();
+                const active = selectedIngredientValues.includes(value) ? " active" : "";
+                const safe = escapeHtml(value);
+                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${getIngredientEmoji(value)} ${safe}</button>`;
+            }).join("")
+            : renderPillButtons(options, "value", currentVal);
 
         // Spezial UI für duration/temp
         const specialBlock = renderSpecialEditor(varName, currentVal);
@@ -288,14 +358,18 @@
 
         ${specialBlock}
 
+        ${(ingredientVar || noArticleVar) ? "" : `
         <div class="small text-muted mt-2 mb-1">Artikel</div>
         <div class="d-flex flex-wrap gap-2 mb-2" id="ArticleBtnRow">
           ${articleButtons}
         </div>
+        `}
 
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
-          ${valueButtons || `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`}
+          ${valueButtons || (ingredientVar
+            ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
+            : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
         <div class="d-flex gap-2 align-items-center mt-3">
@@ -308,9 +382,7 @@
         // preset selected article/value state
         host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
         host.dataset.selectedValue = "";   // gewählter Wert
-
-        // falls currentVal schon gesetzt ist, versuch ihn in value zu markieren
-        // (optional)
+        host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
 
     function renderPillButtons(list, mode, currentVal) {
@@ -432,9 +504,18 @@
             return;
         }
 
-        // Normalfall: Artikel + Wert (wie Screenshot)
+        // Normalfall: Artikel + Wert
         const article = host.dataset.selectedArticle ?? "";
         let value = host.dataset.selectedValue ?? "";
+        const noArticleVar = isGrindSizeVariable(varName);
+
+        if (isIngredientVariable(varName)) {
+            const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
+            if (!Array.isArray(selectedValues) || !selectedValues.length) return;
+            activeStep.values[varName] = formatSelectedIngredientList(selectedValues, currentLang);
+            rerenderAfterValueSet();
+            return;
+        }
 
         // fallback: free text
         if (!value) {
@@ -444,7 +525,7 @@
         let composed = value;
 
         // Artikel nur wenn nicht "ohne"
-        if (article && article !== "ohne") {
+        if (!noArticleVar && article && article !== "ohne") {
             composed = `${article} ${value}`.trim();
         }
 
@@ -461,6 +542,68 @@
 
         // Editor schließen
         closeInlineEditor();
+    }
+
+    function getRenderedTextForLang(step, lang) {
+        const langKey = (lang || DEFAULT_LANG).toLowerCase();
+        const templateRaw = step?.templates?.[langKey] ?? step?.templates?.[DEFAULT_LANG] ?? activeStep?.templateRaw ?? "";
+        const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", activeStep?.values || {});
+        const temp = document.createElement("div");
+        temp.innerHTML = rendered || "";
+        return (temp.textContent || temp.innerText || "").replace(/\s+/g, " ").trim();
+    }
+
+    function resolveAcceptedIngredientName() {
+        const fromValues =
+            activeStep?.values?.ingredient ||
+            activeStep?.values?.ingredients ||
+            activeStep?.values?.liquid ||
+            activeStep?.values?.fat ||
+            "";
+        const text = (fromValues || "").toString().trim();
+        if (text) return text;
+        return formatSelectedIngredientList(getSelectedIngredientNamesFromPage(), currentLang);
+    }
+
+    function acceptActiveStep() {
+        if (!activeStep) return;
+
+        const step = steps.find(s => (s?.master_id || "") === (activeStep.master_id || ""));
+        const payload = {
+            de: getRenderedTextForLang(step, "de"),
+            en: getRenderedTextForLang(step, "en"),
+            esp: getRenderedTextForLang(step, "esp"),
+            prt: getRenderedTextForLang(step, "prt"),
+            phase: parseInt(step?.phase ?? 0, 10) || 0,
+            equipment: parseInt(step?.equipment ?? 0, 10) || 0
+        };
+        const textCurrent = payload[currentLang] || payload.de || payload.en || "";
+        const ingredientName = resolveAcceptedIngredientName();
+
+        if (typeof window.addStep === "function") {
+            const generatedId =
+                typeof window.createFallbackStepId === "function"
+                    ? window.createFallbackStepId()
+                    : uid("smart_step");
+            window.addStep(String(generatedId), null, textCurrent || `Schritt ${generatedId}`, {
+                skipRender: true,
+                ingredientName,
+                stepData: payload
+            });
+            if (typeof window.updateStepIndices === "function") {
+                window.updateStepIndices();
+            } else if (typeof window.updateStoryProgress === "function") {
+                window.updateStoryProgress();
+            }
+            return;
+        }
+
+        const selected = document.querySelector("#selectedSteps");
+        if (!selected) return;
+        selected.insertAdjacentHTML(
+            "beforeend",
+            `<div class="dynamic-item d-flex align-items-center step-row"><div class="small flex-grow-1"><span class="step-text-content">${escapeHtml(textCurrent || "Schritt")}</span></div></div>`
+        );
     }
 
     // -----------------------------
@@ -513,15 +656,17 @@
             // Reset button near token
             const reset = e.target.closest(".placeholder-reset");
             if (reset && activeStep) {
-                // finde varName aus tokenId (STEP_var_0)
-                const tokenId = reset.dataset.tokenId || "";
-                const parts = tokenId.split("_");
-                if (parts.length >= 3) {
-                    const varName = parts.slice(1, parts.length - 1).join("_"); // falls var enthält _
+                const varName = (reset.dataset.var || "").toString().trim();
+                if (varName) {
                     delete activeStep.values[varName];
                     renderMasterText();
                     closeInlineEditor();
                 }
+                return;
+            }
+
+            if (e.target.id === "btnAcceptStep") {
+                acceptActiveStep();
                 return;
             }
 
@@ -545,6 +690,22 @@
 
                 const mode = pickBtn.dataset.pickMode;
                 const val = pickBtn.dataset.pickValue ?? "";
+
+                if (mode === "ingredient-value") {
+                    const selected = JSON.parse(host.dataset.selectedIngredientValues || "[]");
+                    const list = Array.isArray(selected) ? selected : [];
+                    const idx = list.indexOf(val);
+                    if (idx >= 0) {
+                        list.splice(idx, 1);
+                        pickBtn.classList.remove("active");
+                    } else {
+                        list.push(val);
+                        pickBtn.classList.add("active");
+                    }
+                    host.dataset.selectedIngredientValues = JSON.stringify(list);
+                    host.dataset.selectedValue = list[0] || "";
+                    return;
+                }
 
                 // toggle active style
                 const row = mode === "article" ? $("#ArticleBtnRow") : $("#ValueBtnRow");
@@ -693,6 +854,17 @@
         return `${head} ${conj} ${tail}`;
     }
 
+    function getIngredientEmojiForHelper(name) {
+        const text = (name || "").toString().toLowerCase();
+        if (text.includes("basil")) return "🌿";
+        if (text.includes("tomat")) return "🍅";
+        if (text.includes("zwiebel")) return "🧅";
+        if (text.includes("knoblauch")) return "🧄";
+        if (text.includes("reis")) return "🍚";
+        if (text.includes("salat")) return "🥗";
+        return "🥣";
+    }
+
     function buildIngredientChipsHtml(ingredients, selectedIds) {
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
@@ -707,7 +879,7 @@
             const btnClass = isActive ? "btn-light text-dark active" : "btn-outline-light";
             const safe = escapeHtml(name);
             const safeId = escapeHtml(ingId);
-            return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}" data-id="${safeId}">${safe}</button>`;
+            const emoji = getIngredientEmojiForHelper(name); return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}" data-id="${safeId}">${emoji} ${safe}</button>`;
         }).join("");
     }
 
@@ -722,3 +894,7 @@
         resolveIngredientInsertValue
     };
 })();
+
+
+
+
