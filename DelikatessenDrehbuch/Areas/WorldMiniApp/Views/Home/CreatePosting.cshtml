@@ -1175,15 +1175,28 @@
         font-weight: 700;
     }
 
+    .ingredient-row-main {
+        min-width: 0;
+        flex: 1;
+    }
+
     .ingredient-row-meta {
-        font-size: .78rem;
-        color: var(--creator-sub);
+        font-size: .92rem;
+        color: #fff;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .ingredient-row-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .ingredient-row-actions {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
     }
 
     .ingredient-config-overlay {
@@ -4179,18 +4192,17 @@
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metriks_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
 
-                <div>
+                <div class="ingredient-row-main">
                     <div class="fw-bold display-name-selected">${escapeAttr(displayName)}</div>
-                    <div class="ingredient-row-meta">${escapeAttr(selectedQuantity)} ${escapeAttr(selectedUnitLabel)}</div>
                 </div>
 
-                <div class="ingredient-row-actions">
-                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" onclick="event.stopPropagation(); openIngredientConfigPopup(this.closest('.ingredient-row'))" title="Zutat bearbeiten" aria-label="Zutat bearbeiten">
-                        <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)" title="Zutat entfernen" aria-label="Zutat entfernen">
-                        <i class="bi bi-trash3"></i>
-                    </button>
+                <div class="ingredient-row-right">
+                    <div class="ingredient-row-meta">${escapeAttr(selectedQuantity)} ${escapeAttr(selectedUnitLabel)}</div>
+                    <div class="ingredient-row-actions">
+                        <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)" title="Zutat entfernen" aria-label="Zutat entfernen">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
                 </div>
             </div>`;
         }
