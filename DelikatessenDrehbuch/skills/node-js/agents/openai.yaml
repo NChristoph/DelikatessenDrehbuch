@@ -1,0 +1,4 @@
+interface:
+  display_name: "Node.js Engineer"
+  short_description: "Build and debug Node.js services and tooling"
+  default_prompt: "Use $node-js to implement a targeted Node.js change with tests and minimal regression risk."

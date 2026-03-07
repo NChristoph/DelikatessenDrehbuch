@@ -1916,6 +1916,7 @@
     </div>
     <div class="d-flex gap-2 align-items-center mb-2">
         <input type="text" inputmode="decimal" id="ingredientConfigQty"
+               pattern="[0-9]*[.,]?[0-9]*"
                class="form-control form-control-sm candy-purple-input" style="max-width:80px;" placeholder="0" />
         <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input" style="flex:1;"></select>
         <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3" aria-label="Übernehmen">
@@ -2003,6 +2004,7 @@
     <script src="~/js/master-step-renderer.js"></script>
     <script src="~/js/recipe-step-suggest.js"></script>
     <script src="~/js/create-posting-probability.js"></script>
+    <script src="~/js/ingredientmanager.js"></script>
     <script src="~/js/CreatePostingSmartStepCreator.js"></script>
     <script>
         window.onerror = function(msg, url, line, col, error) {
@@ -2048,6 +2050,51 @@
         let ingredientArticleRules = null;
         let activeIngredientConfigRow = null;
 
+        const fallbackUnitsLocal = [
+            { de: 'Stk.', en: 'pcs.', esp: 'uds.', prt: 'un.' },
+            { de: 'EL.', en: 'tbsp.', esp: 'cda.', prt: 'colh. sopa' },
+            { de: 'TL.', en: 'tsp.', esp: 'cdta.', prt: 'colh. cha' },
+            { de: 'Pkg.', en: 'pack', esp: 'paq.', prt: 'pac.' },
+            { de: 'Prise', en: 'pinch', esp: 'pizca', prt: 'pitada' },
+            { de: 'g.', en: 'g.', esp: 'g.', prt: 'g.' },
+            { de: 'Kg', en: 'kg', esp: 'kg', prt: 'kg' },
+            { de: 'Bund', en: 'bunch', esp: 'manojo', prt: 'molho' },
+            { de: 'Dose', en: 'can', esp: 'lata', prt: 'lata' },
+            { de: 'etwas', en: 'some', esp: 'algo', prt: 'um pouco' },
+            { de: 'spritzer', en: 'dash', esp: 'chorrito', prt: 'golpe' },
+            { de: 'Becher', en: 'cup', esp: 'taza', prt: 'copo' },
+            { de: 'Scheiben', en: 'slices', esp: 'rebanadas', prt: 'fatias' },
+            { de: 'Blatt', en: 'leaf', esp: 'hoja', prt: 'folha' },
+            { de: 'Blätter', en: 'leaves', esp: 'hojas', prt: 'folhas' },
+            { de: 'Handvoll', en: 'handful', esp: 'puñado', prt: 'punhado' },
+            { de: 'cm', en: 'cm', esp: 'cm', prt: 'cm' },
+            { de: 'Zweig', en: 'sprig', esp: 'rama', prt: 'ramo' },
+            { de: 'ml', en: 'ml', esp: 'ml', prt: 'ml' },
+            { de: 'Gekocht', en: 'cooked', esp: 'cocido', prt: 'cozido' },
+            { de: 'Portionen', en: 'portions', esp: 'porciones', prt: 'porcoes' },
+            { de: 'l', en: 'l', esp: 'l', prt: 'l' },
+            { de: 'Glas', en: 'glass', esp: 'vaso', prt: 'copo' },
+            { de: 'kcal', en: 'kcal', esp: 'kcal', prt: 'kcal' },
+            { de: 'mg', en: 'mg', esp: 'mg', prt: 'mg' },
+            { de: 'µg', en: 'ug', esp: 'ug', prt: 'ug' }
+        ];
+
+        function getAvailableUnits() {
+            if (window.IngredientManager && typeof window.IngredientManager.getUnits === 'function') {
+                const units = window.IngredientManager.getUnits();
+                if (Array.isArray(units) && units.length) return units;
+            }
+            return fallbackUnitsLocal;
+        }
+
+        function findUnitByDe(unitDe) {
+            const normalized = (unitDe || '').toString().trim().toLowerCase();
+            if (!normalized) return null;
+
+            const units = getAvailableUnits();
+            return units.find(u => (u?.de || '').toString().trim().toLowerCase() === normalized) || null;
+        }
+
         function getUnitLabel(unitObj, langKey = currentLang) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
             if (!unitObj || typeof unitObj !== 'object') return '';
@@ -2067,12 +2114,21 @@
         }
 
         function buildUnitOptionsHtml(selectedDe) {
+            if (window.IngredientManager && typeof window.IngredientManager.buildUnitOptionsHtml === 'function') {
+                return window.IngredientManager.buildUnitOptionsHtml(selectedDe, currentLang);
+            }
+
             const selected = (selectedDe || '').toString().trim().toLowerCase();
-            return (dbUnits || []).map(u => {
+            const units = [...getAvailableUnits()];
+            if (selected && !units.some(u => (u?.de || '').toString().trim().toLowerCase() === selected)) {
+                units.push({ de: selectedDe, en: selectedDe, esp: selectedDe, prt: selectedDe });
+            }
+
+            return units.map(u => {
                 const de = (u?.de || '').toString();
                 const label = getUnitLabel(u, currentLang) || de;
                 const isSelected = de.toLowerCase() === selected;
-                return `<option value="${$('<div>').text(de).html()}" ${isSelected ? 'selected' : ''}>${$('<div>').text(label).html()}</option>`;
+                return `<option value="${$("<div>").text(de).html()}" ${isSelected ? 'selected' : ''}>${$("<div>").text(label).html()}</option>`;
             }).join('');
         }
 
@@ -2113,7 +2169,7 @@
         function applyIngredientConfigPopup() {
             const qty = normalizeDecimalInputValue($('#ingredientConfigQty').val()) || '0';
             const unitDe = ($('#ingredientConfigUnit').val() || '').toString();
-            const unitObj = (dbUnits || []).find(u => (u?.de || '').toString().toLowerCase() === unitDe.toLowerCase());
+            const unitObj = findUnitByDe(unitDe);
             const unitLabel = getUnitLabel(unitObj, currentLang) || unitDe;
 
             if (activeIngredientConfigRow && activeIngredientConfigRow.length) {
@@ -4120,7 +4176,7 @@
                 row.find('.display-name-selected').text(n);
                 const qty = (row.find('.ingredient-qty-hidden').val() || '').toString();
                 const unitDe = (row.find('.ingredient-unit-hidden').val() || '').toString();
-                const unitObj = (dbUnits || []).find(u => (u?.de || '').toString().toLowerCase() === unitDe.toLowerCase());
+                const unitObj = findUnitByDe(unitDe);
                 const unitLabel = getUnitLabel(unitObj, langKey) || unitDe;
                 row.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
             });
@@ -4164,6 +4220,24 @@
             if (!value) return value;
             return value.toString().trim().replace(/\s/g, '').replace(',', '.');
         }
+
+        function sanitizeQuantityInputValue(value) {
+            const raw = (value || '').toString();
+            let out = '';
+            let hasSeparator = false;
+            for (const ch of raw) {
+                if (ch >= '0' && ch <= '9') {
+                    out += ch;
+                    continue;
+                }
+                if (!hasSeparator && (ch === '.' || ch === ',')) {
+                    out += ch;
+                    hasSeparator = true;
+                }
+            }
+            return out;
+        }
+
 
         function escapeAttr(value) {
             return $('<div>').text((value ?? '').toString()).html();
@@ -4218,8 +4292,11 @@
             const displayName = row.data('name-' + currentLang) || row.data('name-de');
             const localizedData = getLocalizedIngredientData(row, displayName);
             const selectedQuantity = normalizeDecimalInputValue(row.attr('data-selected-qty')) || '0';
-            const selectedUnit = (row.attr('data-selected-unit') || (dbUnits?.[0]?.de ?? 'g.')).toString();
-            const selectedUnitObj = (dbUnits || []).find(x => (x?.de || '').toString().toLowerCase() === selectedUnit.toLowerCase());
+            const fallbackUnit = (window.IngredientManager && typeof window.IngredientManager.getDefaultUnitDe === 'function')
+                ? window.IngredientManager.getDefaultUnitDe()
+                : 'g.';
+            const selectedUnit = (row.attr('data-selected-unit') || fallbackUnit).toString();
+            const selectedUnitObj = findUnitByDe(selectedUnit);
             const selectedUnitLabel = getUnitLabel(selectedUnitObj, currentLang) || selectedUnit;
 
             const newIngredient = buildIngredientRowHtml({
@@ -4794,6 +4871,13 @@
             });
             refreshIngredientProbabilityHints();
 
+            $(document).on('input', '#ingredientConfigQty, .js-db-qty', function () {
+                const sanitized = sanitizeQuantityInputValue(this.value);
+                if (this.value !== sanitized) {
+                    this.value = sanitized;
+                }
+            });
+
             $(document).on('click', '.js-common-unit-chip', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -4810,9 +4894,21 @@
             $(document).on('click', '.js-config-unit-chip', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                const unitValue = resolveSelectUnitValueByKey($('#ingredientConfigUnit')[0], $(this).data('unit-key'));
+                const select = $('#ingredientConfigUnit');
+                if (!select.length) return;
+
+                let unitValue = resolveSelectUnitValueByKey(select[0], $(this).data('unit-key'));
+                if (!unitValue) {
+                    const key = ($(this).data('unit-key') || '').toString().toLowerCase();
+                    const fallbackMap = { g: 'g.', ml: 'ml', piece: 'Stk.' };
+                    const fallbackValue = fallbackMap[key] || '';
+                    if (fallbackValue && !select.find(`option[value="${fallbackValue}"]`).length) {
+                        select.append(`<option value="${fallbackValue}">${fallbackValue}</option>`);
+                    }
+                    unitValue = fallbackValue;
+                }
                 if (!unitValue) return;
-                $('#ingredientConfigUnit').val(unitValue);
+                select.val(unitValue);
             });
 
             $(document).on('click', '.js-probability-type', async function () {
