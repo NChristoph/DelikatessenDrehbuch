@@ -679,6 +679,11 @@
         const lang = resolveLangKey(langKey);
         const conjunctions = { de: "und", en: "and", esp: "y", prt: "e", nl: "en" };
         const conj = conjunctions[lang] || "and";
+
+        if (list.length === 2) {
+            return `${list[0]} ${conj} ${list[1]}`;
+        }
+
         const head = list.slice(0, -1).join(", ");
         const tail = list[list.length - 1];
 
