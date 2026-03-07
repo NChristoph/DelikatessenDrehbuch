@@ -651,3 +651,69 @@
 
     document.addEventListener("DOMContentLoaded", init);
 })();
+(() => {
+    function resolveLangKey(value) {
+        const normalized = (value || "de").toString().toLowerCase();
+        if (normalized === "es") return "esp";
+        if (normalized === "pt") return "prt";
+        if (normalized === "se") return "sv";
+        if (normalized === "dk") return "da";
+        return normalized;
+    }
+
+    function escapeHtml(value) {
+        return (value ?? "")
+            .toString()
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function formatIngredientList(names, langKey = "de") {
+        const list = (names || []).map(x => (x || "").toString().trim()).filter(Boolean);
+        if (!list.length) return "";
+        if (list.length === 1) return list[0];
+
+        const lang = resolveLangKey(langKey);
+        const conjunctions = { de: "und", en: "and", esp: "y", prt: "e", nl: "en" };
+        const conj = conjunctions[lang] || "and";
+        const head = list.slice(0, -1).join(", ");
+        const tail = list[list.length - 1];
+
+        if (lang === "de") {
+            return `${head}, ${conj} ${tail}`;
+        }
+        return `${head} ${conj} ${tail}`;
+    }
+
+    function buildIngredientChipsHtml(ingredients, selectedIds) {
+        const selected = (selectedIds || []).map(x => (x || "").toString());
+        const list = Array.isArray(ingredients) ? ingredients : [];
+        if (!list.length) {
+            return '<span class="small text-white-50">Keine Zutaten ausgewählt</span>';
+        }
+
+        return list.map(ing => {
+            const name = (ing?.name || "").toString();
+            const ingId = (ing?.id || "").toString();
+            const isActive = selected.includes(ingId);
+            const btnClass = isActive ? "btn-light text-dark active" : "btn-outline-light";
+            const safe = escapeHtml(name);
+            const safeId = escapeHtml(ingId);
+            return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}" data-id="${safeId}">${safe}</button>`;
+        }).join("");
+    }
+
+    function resolveIngredientInsertValue(selectedNames, langKey, fallbackValue) {
+        const fromSelection = formatIngredientList(selectedNames || [], langKey);
+        return fromSelection || (fallbackValue || "").toString();
+    }
+
+    window.MasterStepCreatorHelpers = {
+        formatIngredientList,
+        buildIngredientChipsHtml,
+        resolveIngredientInsertValue
+    };
+})();

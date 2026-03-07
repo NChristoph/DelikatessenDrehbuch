@@ -1944,9 +1944,7 @@
 
     <!-- Ingredient chips -->
     <div id="probVarIngredientArea" class="d-none">
-        <div class="small text-white-50 mb-2">Artikel + Zutat auswählen:</div>
-        <div id="probVarIngredientArticleChips" class="d-flex flex-wrap gap-2 mb-2"></div>
-        <div class="small text-white-50 mb-2">Zutaten:</div>
+        <div class="small text-white-50 mb-2">Zutaten einsetzen:</div>
         <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
     </div>
 
@@ -2232,19 +2230,14 @@
             const varType = typeof getPlaceholderType === 'function' ? getPlaceholderType(varKey) : '';
 
             if (varType === 'ingredient') {
-                const parsed = splitLeadingArticle(currentVal || '', currentLang);
-                probVarIngredientArticleValue = (parsed.article || '').toString().trim();
-                renderProbVarIngredientArticleOptions(probVarIngredientArticleValue);
+                probVarIngredientArticleValue = '';
+                $('#probVarIngredientArticleChips').empty();
 
-                const currentNoun = (parsed.noun || '').toString().trim().toLowerCase();
+                const selectedIds = (creatorState.selectedIngredientIds || []).map(x => x.toString());
                 const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
-                const chips = ings.map(ing => {
-                    const name = (ing.name || '').toString();
-                    const safe = $('<div>').text(name).html();
-                    const isActive = currentNoun && currentNoun === name.toLowerCase();
-                    const btnClass = isActive ? 'btn-light text-dark active' : 'btn-outline-light';
-                    return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}">${safe}</button>`;
-                }).join('');
+                const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
+                    ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, selectedIds)
+                    : '';
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
                 $('#probVarIngredientArea').removeClass('d-none');
 
@@ -2611,8 +2604,11 @@
         }
 
         function getSelectedIngredientValueForInsert() {
-            const names = getSelectedIngredientNamesWithArticle(currentLang);
-            return names.length ? names.join(', ') : '';
+            const names = getSelectedIngredientNames();
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.resolveIngredientInsertValue === 'function') {
+                return window.MasterStepCreatorHelpers.resolveIngredientInsertValue(names, currentLang, '');
+            }
+            return (names || []).join(', ');
         }
 
         function syncGrammarAssignmentsForSelectedIngredient() {
@@ -3599,8 +3595,11 @@
         }
 
         function getSelectedIngredientValueForLanguage(langKey) {
-            const names = getSelectedIngredientNamesWithArticle(langKey);
-            return names.length ? names.join(', ') : '';
+            const names = getSelectedIngredientNames();
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.resolveIngredientInsertValue === 'function') {
+                return window.MasterStepCreatorHelpers.resolveIngredientInsertValue(names, langKey, '');
+            }
+            return (names || []).join(', ');
         }
 
         function resolveDefaultVariableValueForLanguage(key, langKey) {
@@ -5468,18 +5467,13 @@
                 if (e.target === this) closeProbVarEditor();
             });
 
-            // Article chip for ingredient editor
-            $(document).on('click', '.js-prob-ingredient-article-chip', function () {
-                const value = ($(this).data('value') || '').toString().trim();
-                probVarIngredientArticleValue = value;
-                $('.js-prob-ingredient-article-chip').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            // Ingredient chip → auto-apply and close
+            // Ingredient chip → apply selected ingredient list and close
             $(document).on('click', '.js-prob-ingredient-chip', function () {
-                const noun = ($(this).data('value') || $(this).text()).toString();
-                const value = composeArticleAndNoun(probVarIngredientArticleValue, noun);
+                const selectedNames = getSelectedIngredientNames();
+                const fallback = ($(this).data('value') || $(this).text() || '').toString();
+                const value = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.resolveIngredientInsertValue === 'function')
+                    ? window.MasterStepCreatorHelpers.resolveIngredientInsertValue(selectedNames, currentLang, fallback)
+                    : (getSelectedIngredientValueForInsert() || fallback);
                 if (probVarEditorCallback) probVarEditorCallback(value);
                 closeProbVarEditor();
             });
