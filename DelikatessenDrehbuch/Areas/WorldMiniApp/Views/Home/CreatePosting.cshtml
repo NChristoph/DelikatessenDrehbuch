@@ -736,6 +736,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 10px;
+        width: 100%;
         padding: 10px 10px;
         border-radius: 16px;
         background: rgba(0,0,0,0.22);
@@ -757,6 +758,14 @@
     .dock-actions {
         display: flex;
         gap: 8px;
+    }
+
+    .dock-main-action {
+        flex: 1;
+        width: 100%;
+        text-align: left;
+        min-width: 0;
+        cursor: pointer;
     }
 
     .btn-glass {
@@ -2297,6 +2306,30 @@
                 dockIngredientConfigUnder(target);
             }
 
+            window.openIngredientConfigPopupByIngredientId = function (ingredientId, anchorElement) {
+                const id = (ingredientId || '').toString().trim();
+                if (!id) return false;
+
+                const row = $('.ingredient-db-row').filter(function () {
+                    return ($(this).data('ingredient-id') || '').toString() === id;
+                }).first();
+
+                if (!row.length) return false;
+
+                activeIngredientConfigRow = row;
+                const name = (row.data('name-' + currentLang) || row.data('name-de') || row.find('.display-name').text() || '').toString().trim();
+                const qty = (row.attr('data-selected-qty') || '0').toString();
+                const unitDe = (row.attr('data-selected-unit') || '').toString();
+
+                $('#ingredientConfigTitle').text(name || 'Zutat');
+                $('#ingredientConfigQty').val(qty);
+                $('#ingredientConfigUnit').html(buildUnitOptionsHtml(unitDe));
+
+                const anchor = anchorElement ? $(anchorElement).first() : row;
+                dockIngredientConfigUnder(anchor.length ? anchor : row);
+                return true;
+            }
+
             function closeIngredientConfigPopup() {
                 activeIngredientConfigRow = null;
                 $('#ingredientConfigDock').removeClass('ing-active');
@@ -2324,6 +2357,14 @@
                             sourceRow.attr('data-selected-unit', unitDe);
                         }
                     }
+                    document.dispatchEvent(new CustomEvent('creator:ingredient-config-applied', {
+                        detail: {
+                            ingredientId: ingredientId,
+                            quantity: qty,
+                            unit: unitDe,
+                            unitLabel: unitLabel
+                        }
+                    }));
                     closeIngredientConfigPopup();
                     return;
                 }

@@ -37,6 +37,17 @@
         return { qty, unit };
     }
 
+    function resolveUnitLabelFromRow(row, unitValue) {
+        const normalized = (unitValue || "").toString().trim().toLowerCase();
+        if (!normalized) return "";
+
+        const select = row ? row.querySelector('.js-db-unit') : null;
+        if (!select) return unitValue || "";
+
+        const option = Array.from(select.options || []).find(o => (o.value || "").toString().trim().toLowerCase() === normalized);
+        return (option?.textContent || unitValue || "").toString().trim();
+    }
+
     function upsertSelectedFromRow(row) {
         const id = (row.getAttribute("data-ingredient-id") || "").toString().trim();
         if (!id) return;
@@ -246,31 +257,35 @@
         const id = (row.getAttribute("data-ingredient-id") || "").toString().trim();
         const name = resolveNameFromRow(row);
         const { qty, unit } = resolveQtyUnitFromRow(row);
-
-        const meta = (qty || unit) ? `${qty || "0"} ${unit || ""}`.trim() : "";
+        const unitLabel = resolveUnitLabelFromRow(row, unit);
+        const meta = (qty || unit) ? `${qty || "0"} ${unitLabel || unit || ""}`.trim() : "";
 
         const el = document.createElement("div");
         el.className = "dock-item";
         el.setAttribute("data-ingredient-id", id);
+        el.setAttribute("data-mode", mode);
 
-        el.innerHTML = `
-      <div class="flex-grow-1">
-        <div class="dock-name">${escapeHtml(name)}</div>
-        ${meta ? `<div class="dock-meta">${escapeHtml(meta)}</div>` : ``}
-      </div>
-
-      <div class="dock-actions">
-        ${mode === "selected"
-                ? `
-              <button type="button" class="btn btn-sm btn-glass btn-glass-danger js-remove-selected" data-ingredient-id="${escapeHtml(id)}" title="Entfernen">✕</button>
-              <button type="button" class="btn btn-sm btn-glass js-edit-selected" data-ingredient-id="${escapeHtml(id)}" title="Bearbeiten">✎</button>
-            `
-                : `
-              <button type="button" class="btn btn-sm btn-glass js-add-from-remaining" data-ingredient-id="${escapeHtml(id)}" title="Hinzufügen">＋</button>
-            `
-            }
-      </div>
-    `;
+        if (mode === "selected") {
+            el.innerHTML = `
+          <button type="button" class="btn btn-sm btn-glass dock-main-action w-100 js-edit-selected" data-ingredient-id="${escapeHtml(id)}" title="Bearbeiten">
+            <div class="dock-name">${escapeHtml(name)}</div>
+            ${meta ? `<div class="dock-meta">${escapeHtml(meta)}</div>` : ``}
+          </button>
+          <div class="dock-actions">
+            <button type="button" class="btn btn-sm btn-glass btn-glass-danger js-remove-selected" data-ingredient-id="${escapeHtml(id)}" title="Entfernen">✕</button>
+          </div>
+        `;
+        } else {
+            el.innerHTML = `
+          <div class="flex-grow-1">
+            <div class="dock-name">${escapeHtml(name)}</div>
+            ${meta ? `<div class="dock-meta">${escapeHtml(meta)}</div>` : ``}
+          </div>
+          <div class="dock-actions">
+            <button type="button" class="btn btn-sm btn-glass js-add-from-remaining" data-ingredient-id="${escapeHtml(id)}" title="Hinzufügen">＋</button>
+          </div>
+        `;
+        }
 
         return el;
     }
@@ -389,31 +404,43 @@
             removeIngredient(btn.dataset.ingredientId);
         });
 
-        // Optional: Edit (scroll back to row, open details)
+        // Whole selected list row is clickable (except remove button)
+        document.addEventListener("click", (e) => {
+            if (e.target.closest(".js-edit-selected")) return;
+            if (e.target.closest(".js-remove-selected")) return;
+
+            const item = e.target.closest('.dock-item[data-mode="selected"]');
+            if (!item) return;
+
+            const editBtn = item.querySelector('.js-edit-selected');
+            if (!editBtn) return;
+            e.preventDefault();
+            editBtn.click();
+        });
+
+        // Edit selected item directly via same popup logic as ingredient selection
         document.addEventListener("click", (e) => {
             const btn = e.target.closest(".js-edit-selected");
             if (!btn) return;
             e.preventDefault();
 
-            const id = btn.dataset.ingredientId;
-            // bring row back temporarily to edit? oder open via popup?
-            // Quick solution: return to catalog and auto-open details
-            const row = getCatalogRowById(id);
-            if (!row) return;
+            const id = (btn.dataset.ingredientId || "").toString().trim();
+            if (!id) return;
 
-            // zurück in Katalog zum Bearbeiten
-            showRowBackToCatalog(row);
-
-            // Details öffnen
-            const details = row.querySelector(".ingredient-db-details");
-            if (details) {
-                details.classList.remove("d-none");
+            if (typeof window.openIngredientConfigPopupByIngredientId === "function") {
+                const opened = window.openIngredientConfigPopupByIngredientId(id, btn.closest('.dock-item'));
+                if (opened) return;
             }
 
-            // Scroll
+            // fallback
+            const row = getCatalogRowById(id);
+            if (!row) return;
+            showRowBackToCatalog(row);
             row.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
 
-            // (optional) Nach Bearbeiten wieder "hinzufügen" klicken.
+        document.addEventListener('creator:ingredient-config-applied', () => {
+            renderDocks();
         });
     }
 
