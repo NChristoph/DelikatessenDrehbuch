@@ -1,4 +1,4 @@
-ï»¿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
 @using System.Text.Json
 @using System.Linq
 @using Newtonsoft.Json
@@ -10,8 +10,6 @@
     ViewData["Title"] = "Rezept Erstellen";
     Layout = "_MiniAppLayout";
 }
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 
 <div class="creator-bg min-vh-100 position-relative">
     <!-- Loading Overlay -->
@@ -27,17 +25,17 @@
 
     <!-- Topbar (Social Creator) -->
     <div class="creator-topbar px-3 py-3" style="visibility:hidden">
-        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="ZurÃ¼ck">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
             <i class="bi bi-chevron-left"></i>
         </a>
 
         <div class="topbar-title">
             <div class="fw-bold text-truncate">Creator Studio</div>
-            <div class="small text-muted text-truncate">Neuer Upload Â· Rezeptpost</div>
+            <div class="small text-muted text-truncate">Neuer Upload · Rezeptpost</div>
         </div>
 
         <!-- Optional: Quick Publish -->
-        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="VerÃ¶ffentlichen">
+        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="Veröffentlichen">
             <i class="bi bi-send-fill"></i>
         </button>
     </div>
@@ -78,8 +76,8 @@
                     <div class="d-flex align-items-center gap-2">
                         <div class="card-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="BÃ¡sico" data-prt="Base">Basis</div>
-                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="TÃ­tulo, categorÃ­a, personas, tiempo" data-prt="TÃ­tulo, categoria, pessoas, tempo">
+                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
+                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
                                 Titel, Kategorie, Personen, Dauer
                             </div>
                         </div>
@@ -92,15 +90,15 @@
                         <label class="form-label small text-muted mb-2 label-lang"
                                data-de="Titel"
                                data-en="Title"
-                               data-esp="TÃ­tulo"
-                               data-prt="TÃ­tulo">Titel</label>
+                               data-esp="Título"
+                               data-prt="Título">Titel</label>
 
                         <div class="input-pill">
                             <i class="bi bi-fonts text-muted"></i>
                             <input asp-for="Title"
                                    class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
                                    placeholder="Titel"
-                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="TÃ­tulo" data-ph-prt="TÃ­tulo" data-ph-id="Judul" data-ph-nl="Titel" data-ph-sv="Titel" data-ph-da="Titel" data-ph-no="Tittel" data-ph-ms="Tajuk"
+                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título" data-ph-id="Judul" data-ph-nl="Titel" data-ph-sv="Titel" data-ph-da="Titel" data-ph-no="Tittel" data-ph-ms="Tajuk"
                                    required />
                         </div>
                     </div>
@@ -110,7 +108,7 @@
                             <label class="form-label small text-muted mb-2 label-lang"
                                    data-de="Kategorie"
                                    data-en="Category"
-                                   data-esp="CategorÃ­a"
+                                   data-esp="Categoría"
                                    data-prt="Categoria">Kategorie</label>
 
                             <div class="select-pill">
@@ -119,7 +117,7 @@
                                     <option value="" selected disabled class="lang-opt"
                                             data-txt-de="Kategorie"
                                             data-txt-en="Category"
-                                            data-txt-esp="CategorÃ­a"
+                                            data-txt-esp="Categoría"
                                             data-txt-prt="Categoria">Kategorie</option>
 
                                     <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer" data-txt-esp="Entrada" data-txt-prt="Entrada">Vorspeise</option>
@@ -131,19 +129,19 @@
 
                         <div class="col-6">
                             <label class="form-label small text-muted mb-2 label-lang"
-                                   data-de="PrÃ¤ferenz"
+                                   data-de="Präferenz"
                                    data-en="Preference"
                                    data-esp="Preferencia"
-                                   data-prt="PreferÃªncia">PrÃ¤ferenz</label>
+                                   data-prt="Preferência">Präferenz</label>
 
                             <div class="select-pill">
                                 <i class="bi bi-heart text-muted"></i>
                                 <select asp-for="Recipe.Preferences" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
                                     <option value="" selected disabled class="lang-opt"
-                                            data-txt-de="PrÃ¤ferenz"
+                                            data-txt-de="Präferenz"
                                             data-txt-en="Preference"
                                             data-txt-esp="Preferencia"
-                                            data-txt-prt="PreferÃªncia">PrÃ¤ferenz</option>
+                                            data-txt-prt="Preferência">Präferenz</option>
 
                                     <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan" data-txt-esp="Vegano" data-txt-prt="Vegano">Vegan</option>
                                     <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian" data-txt-esp="Vegetariano" data-txt-prt="Vegetariano">Vegetarisch</option>
@@ -200,9 +198,9 @@
                     <div class="d-flex align-items-center gap-2">
                         <div class="card-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="MÃ­dia">Media</div>
-                            <div class="creator-card-sub label-lang" data-de="Video oder Bild fÃ¼r den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="VÃ­deo ou imagem para o feed">
-                                Video oder Bild fÃ¼r den Feed
+                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
+                            <div class="creator-card-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
+                                Video oder Bild für den Feed
                             </div>
                         </div>
                     </div>
@@ -233,11 +231,11 @@
                         </div>
 
                         <div class="small text-muted label-lang"
-                             data-de="WÃ¤hle ein Video oder Bild (Feed-Style)."
+                             data-de="Wähle ein Video oder Bild (Feed-Style)."
                              data-en="Choose a video or image (feed style)."
                              data-esp="Elige un video o imagen (estilo feed)."
-                             data-prt="Escolha um vÃ­deo ou imagem (estilo feed).">
-                            WÃ¤hle ein Video oder Bild (Feed-Style).
+                             data-prt="Escolha um vídeo ou imagem (estilo feed).">
+                            Wähle ein Video oder Bild (Feed-Style).
                         </div>
 
                         <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
@@ -264,8 +262,8 @@
                             <i class="bi bi-search text-white-50"></i>
                             <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none lang-ph" placeholder="Zutat suchen..."
                                    data-ph-de="Zutat suchen..." data-ph-en="Search ingredient..." data-ph-esp="Buscar ingrediente..." data-ph-prt="Buscar ingrediente..."
-                                   data-ph-id="Cari bahan..." data-ph-nl="IngrediÃ«nt zoeken..." data-ph-sv="SÃ¶k ingrediens..." data-ph-da="SÃ¸g ingrediens..."
-                                   data-ph-no="SÃ¸k ingrediens..." data-ph-ms="Cari bahan..." />
+                                   data-ph-id="Cari bahan..." data-ph-nl="Ingrediënt zoeken..." data-ph-sv="Sök ingrediens..." data-ph-da="Søg ingrediens..."
+                                   data-ph-no="Søk ingrediens..." data-ph-ms="Cari bahan..." />
                         </div>
                         <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
                     </div>
@@ -285,7 +283,7 @@
 
                                     <div class="d-flex align-items-center gap-2 mb-1 ingredient-card-head" style="min-height:max-content">
                                         <div class="preview-step-text display-name mb-0 flex-grow-1" style="min-height:max-content">@item.Name_DE</div>
-                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufÃ¼gen" aria-label="Zutat hinzufÃ¼gen">
+                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" aria-label="Zutat hinzufügen">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>
@@ -323,8 +321,8 @@
                     <div id="ingredientFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
 
                     <div class="ingredient-top-strip mt-4">
-                        <div class="ingredient-top-title">AusgewÃ¤hlte Zutaten</div>
-                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar" data-id="Ketuk untuk mengedit" data-nl="Tik om te bewerken" data-sv="Tryck fÃ¶r att redigera" data-da="Tryk for at redigere" data-no="Trykk for Ã¥ redigere" data-ms="Ketik untuk edit">Zum Bearbeiten antippen</div>
+                        <div class="ingredient-top-title">Ausgewählte Zutaten</div>
+                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar" data-id="Ketuk untuk mengedit" data-nl="Tik om te bewerken" data-sv="Tryck för att redigera" data-da="Tryk for at redigere" data-no="Trykk for å redigere" data-ms="Ketik untuk edit">Zum Bearbeiten antippen</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
                         <div id="selectedIngredientsSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
@@ -332,204 +330,32 @@
                 </div>
             </section>
 
-            <!-- "Was kÃ¶nnte es sein?" â€“ eigene Karte -->
+            <!-- "Was könnte es sein?" – eigene Karte -->
             <section class="smart-step-creator mb-3" data-theme="dark" id="card-probability">
                 <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon" style="background:linear-gradient(135deg,#8d63ff,#5b6df9);border-radius:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div class="card-icon candy-black">
                             <i class="bi bi-graph-up-arrow text-white"></i>
                         </div>
                         <div>
                             <div class="sheet-title label-lang"
-                                 data-de="Was kÃ¶nnte es sein?"
+                                 data-de="Was könnte es sein?"
                                  data-en="What could it be?"
-                                 data-esp="Â¿QuÃ© podrÃ­a ser?"
-                                 data-prt="O que poderia ser?">Was kÃ¶nnte es sein?</div>
+                                 data-esp="¿Qué podría ser?"
+                                 data-prt="O que poderia ser?">Was könnte es sein?</div>
                             <div class="sheet-sub label-lang"
-                                 data-de="Rezepttyp-Erkennung & Step-VorschlÃ¤ge"
+                                 data-de="Rezepttyp-Erkennung & Step-Vorschläge"
                                  data-en="Recipe type detection & step suggestions"
-                                 data-esp="DetecciÃ³n de tipo & sugerencias de pasos"
-                                 data-prt="DetecÃ§Ã£o de tipo & sugestÃµes de etapas">Rezepttyp-Erkennung & Step-VorschlÃ¤ge</div>
+                                 data-esp="Detección de tipo & sugerencias de pasos"
+                                 data-prt="Detecção de tipo & sugestões de etapas">Rezepttyp-Erkennung & Step-Vorschläge</div>
                         </div>
                     </div>
                 </div>
                 <div class="creator-preview-canvas">
-                    <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">WÃ¤hle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
+                    <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
                     <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
                 </div>
             </section>
-
-                    <div class="smart-step-creator mt-3 mb-4 d-none" data-theme="dark" id="card-step-sandbox" aria-hidden="true">
-                        <div class="sheet-head creator-top-head">
-                            <div>
-                                <div class="sheet-title">Smart Step Creator</div>
-                                <div class="sheet-sub">WÃ¤hle Zutat + Template wie im Creator Flow</div>
-                                <div class="small text-muted mt-1"><span id="storyStepCount">Schritte: 0</span></div>
-                            </div>
-                            <button type="button" id="btnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">
-                                âš™ï¸Ž
-                            </button>
-                        </div>
-
-                        <div class="creator-preview-canvas" id="masterPreviewCanvas">
-                            <div class="ingredient-top-strip mb-2 d-none" aria-hidden="true">
-                                <div class="ingredient-top-title">Zutaten zur Auswahl</div>
-                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
-                            </div>
-                            <div class="preview-step-card" id="masterPreviewCard">
-                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                <div class="preview-step-title mb-0">Aktueller Step</div>
-                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
-                            </div>
-                                <div id="masterPreviewText" class="preview-step-text">WÃ¤hle eine Zutat und ein Template.</div>
-                                <div class="ingredient-top-strip mt-3 mb-2">
-                                    <div class="ingredient-top-title">Zutaten fÃ¼r aktuellen Step</div>
-                                    <div class="ingredient-swiper ingredient-swiper-top" id="currentStepIngredientButtons"></div>
-                                </div>
-                                <div id="durationEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Zeit einsetzen</div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="number" min="1" step="1" id="durationValueInput" class="form-control form-control-sm" style="max-width:110px" value="10" />
-                                        <select id="durationUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                            <option value="minute">Minuten</option>
-                                            <option value="hour">Stunden</option>
-                                        </select>
-                                        <button type="button" id="btnApplyDuration" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="countEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Anzahl einsetzen</div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="number" min="1" step="1" id="countValueInput" class="form-control form-control-sm" style="max-width:110px" value="2" />
-                                        <button type="button" id="btnApplyCount" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="temperatureEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Temperatur einsetzen</div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="number" min="0" max="500" step="5" id="temperatureValueInput" class="form-control form-control-sm" style="max-width:110px" value="180" />
-                                        <select id="temperatureUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                            <option value="celsius">Â°C</option>
-                                            <option value="fahrenheit">Â°F</option>
-                                        </select>
-                                        <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="pronounEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Pronomen einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="toolEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Werkzeug einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyTool" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="grindSizeEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">SchnittgrÃ¶ÃŸe einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="shapeEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Schnittform einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="baseEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Basis einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyBase" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="itemEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Item einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="balanceEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Balance einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyBalance" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="seasoningsEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Seasonings einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineSeasoningsOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplySeasonings" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="template-selection-wrap">
-                                <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
-                                <div class="template-library template-library-fixed" id="masterTemplateCards"></div>
-                            </div>
-                            <div id="templateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
-                            <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
-                        </div>
-
-                        <div class="creator-bottom-sheet" id="creatorBottomSheet">
-                            <!-- Inline editors for State / Heat / Equipment â€“ visible at bottom -->
-                            <div id="heatEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Hitze-Stufe wÃ¤hlen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nÃ­vel de calor">Hitze-Stufe wÃ¤hlen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyHeat" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div id="modeEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Ofenmodus wÃ¤hlen" data-en="Choose oven mode" data-esp="Elegir modo del horno" data-prt="Escolher modo do forno">Ofenmodus wÃ¤hlen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineModeOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyMode" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div id="equipmentEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Tool / GerÃ¤t wÃ¤hlen" data-en="Choose tool / equipment" data-esp="Elegir herramienta / equipo" data-prt="Escolher ferramenta / equipamento">Tool / GerÃ¤t wÃ¤hlen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div id="stateEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Zielzustand wÃ¤hlen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wÃ¤hlen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyState" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
 
             <!-- 4) STEPS + SANDBOX -->
             <section class="smart-step-creator mt-3 mb-4" data-theme="dark" id="card-steps" style="min-height:auto">
@@ -548,10 +374,10 @@
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
                                 <div class="sheet-title" style="font-size:14px;">Smart Step Creator</div>
-                                <div class="sheet-sub" style="font-size:12px;">WÃ¤hle Zutat + Template wie im Creator Flow</div>
+                                <div class="sheet-sub" style="font-size:12px;">Wähle Zutat + Template wie im Creator Flow</div>
                                 <div class="small text-muted mt-1"><span id="sc2StoryStepCount">Schritte: 0</span></div>
                             </div>
-                            <button type="button" id="sc2BtnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">âš™ï¸Ž</button>
+                            <button type="button" id="sc2BtnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">??</button>
                         </div>
 
                             <div class="ingredient-top-strip mb-2 d-none" aria-hidden="true">
@@ -564,8 +390,7 @@
                                 <div class="preview-step-title mb-0">Aktueller Step</div>
                                 <button type="button" id="sc2BtnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
                             </div> *@
-@*                             <div id="sc2MasterPreviewText" class="preview-step-text">WÃ¤hle eine Zutat und ein Template.</div>
- *@                            <div id="MasterText" class="preview-step-text">WÃ¤hle eine Zutat und ein Template.</div>
+                            <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                          
                           
                           
@@ -583,9 +408,9 @@
                     </div>
                     <!-- Ende SC2 -->
 
-                    <!-- Chip-Strip: erscheint wenn Zutat in einem Schritt geÃ¤ndert wird -->
+                    <!-- Chip-Strip: erscheint wenn Zutat in einem Schritt geändert wird -->
                     <div id="stepsChipStrip" class="ingredient-top-strip mb-3 d-none">
-                        <div class="ingredient-top-title">Zutat fÃ¼r Schritt wÃ¤hlen</div>
+                        <div class="ingredient-top-title">Zutat für Schritt wählen</div>
                         <div class="ingredient-swiper ingredient-swiper-top mb-2" id="stepsIngredientButtons"></div>
                         <div class="d-flex gap-2 mt-1">
                             <button type="button" id="btnApplyStepIngredient" class="btn btn-sm creator-cta-primary">Einsetzen</button>
@@ -604,7 +429,7 @@
                         <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
                         <div>
                             <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
-                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y bÃºsqueda" data-prt="Ajuda no feed e busca">
+                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
                                 Hilft beim Feed & bei Suche
                             </div>
                         </div>
@@ -642,11 +467,11 @@
                     <div class="d-flex align-items-center gap-2">
                         <div class="bottom-hint">
                             <div class="fw-bold">Bereit zum Posten?</div>
-                            <div class="small text-muted">Alles fÃ¼hlt sich wie ein Feed-Upload an.</div>
+                            <div class="small text-muted">Alles fühlt sich wie ein Feed-Upload an.</div>
                         </div>
 
                         <button type="submit" class="btn publish-btn w-100">
-                            <span class="label-lang" data-de="VerÃ¶ffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">VerÃ¶ffentlichen</span>
+                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
                             <i class="bi bi-send-fill ms-2"></i>
                         </button>
                     </div>
@@ -715,7 +540,7 @@
         justify-content: center;
         border: 1px solid rgba(0,0,0,0.10);
         background: #fff;
-        color: #111;
+        color: #f8fafc;
         text-decoration: none;
     }
 
@@ -819,7 +644,7 @@
 
     .creator-card-sub {
         font-size: .84rem;
-        color: rgba(17,24,39,.60);
+        color: rgba(226,232,240,.70);
         margin-top: 2px;
     }
 
@@ -903,8 +728,8 @@
         gap: 8px;
         padding: 12px 14px;
         border-radius: 18px;
-        border: 1px solid rgba(0,0,0,0.08);
-        background: rgba(255,255,255,0.90);
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.06);
     }
 
         .input-pill .form-control,
@@ -916,7 +741,7 @@
     .form-control:focus, .form-select:focus {
         box-shadow: none;
         border-color: transparent;
-    }
+    }`r`n`r`n    .creator-bg .form-control,`r`n    .creator-bg .form-select,`r`n    .creator-bg .input-pill i,`r`n    .creator-bg .select-pill i,`r`n    .creator-bg .text-muted {`r`n        color: rgba(241,245,249,.84) !important;`r`n    }`r`n`r`n    .creator-bg .form-control::placeholder {`r`n        color: rgba(226,232,240,.65);`r`n    }
 
     .cursor-pointer {
         cursor: pointer;
@@ -1149,7 +974,7 @@
         box-shadow: 0 18px 36px rgba(0,0,0,0.24);
     }
 
-    /* Der Bereich, in dem die ausgewÃ¤hlten Zutaten landen */
+    /* Der Bereich, in dem die ausgewählten Zutaten landen */
     #selectedIngredients {
         display: flex !important;
         flex-direction: column !important;
@@ -1159,20 +984,7 @@
         padding: 5px;
     }
 
-    .ingredient-row.dynamic-item {
-        display: flex !important;
-        align-items: center;
-        justify-content: space-between;
-        width: 100% !important;
-        background: rgba(15,23,42,0.92);
-        border-radius: 14px;
-        padding: 12px 14px;
-        border: 1px solid var(--creator-border);
-        color: var(--creator-text);
-        box-shadow: none;
-        margin: 0 !important;
-        cursor: pointer;
-    }
+    .ingredient-row.dynamic-item {`r`n        background: rgba(15,23,42,0.92);`r`n        border-radius: 18px;`r`n        padding: 12px;`r`n        margin-bottom: 10px;`r`n        border: 1px solid rgba(255,255,255,0.14);`r`n        box-shadow: 0 10px 20px rgba(0,0,0,0.25);`r`n    }
 
     .display-name-selected {
         color: var(--creator-text) !important;
@@ -1219,27 +1031,14 @@
         padding: 14px;
     }
 
-    /* Design-Anpassung fÃ¼r die Inputs innerhalb der Karte */
-    .candy-purple-input {
-        border: none !important;
-        background-color: rgba(139, 92, 246, 0.08) !important;
-        color: #7c3aed !important;
-        font-weight: bold;
-        border-radius: 10px !important;
-    }
+    /* Design-Anpassung für die Inputs innerhalb der Karte */
+    .candy-purple-input {`r`n        border: 1px solid rgba(255,255,255,0.16) !important;`r`n        background-color: rgba(255,255,255,0.08) !important;`r`n        color: #f8fafc !important;`r`n        font-weight: 700;`r`n        border-radius: 10px !important;`r`n    }
 
     .selected-zone {
         padding-top: 6px;
     }
 
-    .dynamic-item {
-        background: rgba(255,255,255,0.92);
-        border-radius: 18px;
-        padding: 12px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-    }
+    .dynamic-item {`r`n        background: rgba(15,23,42,0.92);`r`n        border-radius: 18px;`r`n        padding: 12px;`r`n        margin-bottom: 10px;`r`n        border: 1px solid rgba(255,255,255,0.14);`r`n        box-shadow: 0 10px 20px rgba(0,0,0,0.25);`r`n    }
 
     #selectedSteps .step-row {
         border: 1px solid var(--creator-border);
@@ -1272,7 +1071,7 @@
     }
 
     .keyword-btn {
-        border-color: rgba(255,255,255,0.55);
+        border-color: rgba(255,255,255,0.30);
         color: #111827;
         background: #ffffff;
     }
@@ -1293,8 +1092,8 @@
 
     #card-keywords {
         border-radius: 24px;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: radial-gradient(120% 120% at 10% 0%, #2f2f5f 0%, #17172a 45%, #0f1119 100%);
+        border: 1px solid rgba(255,255,255,0.12);`r`n        background: rgba(255,255,255,0.06);`r`n        color: #f8fafc;
+        background: radial-gradient(120% 120% at 10% 0%, #1d2430 0%, #0e131d 45%, #080b12 100%);
         color: #f8f9ff;
         box-shadow: 0 18px 40px rgba(16,20,40,0.26);
         overflow: hidden;
@@ -1345,7 +1144,7 @@
         border-radius: 999px;
         background: rgba(255,255,255,0.92);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
         box-shadow: 0 14px 36px rgba(0,0,0,0.10);
         padding: 10px;
     }
@@ -1404,10 +1203,10 @@
         #ingredientsDbTable tbody tr, #stepsDbTable tbody tr {
             display: block;
             margin-bottom: 12px;
-            background: rgba(255,255,255,0.95);
+            background: rgba(15,23,42,0.92);
             border-radius: 18px;
             padding: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
         }
 
         #ingredientsDbTable tbody td, #stepsDbTable tbody td {
@@ -1906,6 +1705,112 @@
         color: #ffffff;
     }
 
+
+    /* ===== Unified Black Glass Override ===== */
+    .creator-bg {
+        background: radial-gradient(1100px 560px at 20% -10%, rgba(255,255,255,.06), transparent 62%), radial-gradient(900px 520px at 85% 5%, rgba(148,163,184,.08), transparent 65%), #06080d !important;
+        color: #f8fafc;
+    }
+
+    .creator-loading {
+        background: rgba(2,6,12,0.72) !important;
+    }
+
+    .creator-loading-card,
+    .creator-topbar,
+    .creator-hero,
+    .creator-card,
+    .creator-bottom-inner,
+    #card-keywords,
+    .smart-step-creator {
+        background: rgba(15,23,42,0.58) !important;
+        border: 1px solid rgba(255,255,255,0.14) !important;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.30) !important;
+        backdrop-filter: blur(16px) !important;
+    }
+
+    .creator-card-head,
+    #card-keywords .creator-card-head,
+    .creator-top-head {
+        border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+        background: rgba(8,12,20,0.62) !important;
+    }
+
+    .topbar-btn,
+    .card-icon,
+    .candy-blue,
+    .candy-green,
+    .candy-pink,
+    .candy-purple,
+    .candy-black {
+        background: rgba(255,255,255,0.06) !important;
+        color: #f8fafc !important;
+        border: 1px solid rgba(255,255,255,0.14) !important;
+    }
+
+    .topbar-primary,
+    .creator-cta-primary,
+    .publish-btn,
+    .keyword-btn.btn-secondary,
+    .keyword-btn.active {
+        background: linear-gradient(160deg, rgba(255,255,255,.18) 0%, rgba(148,163,184,.28) 100%) !important;
+        border: 1px solid rgba(255,255,255,0.28) !important;
+        color: #fff !important;
+    }
+
+    .creator-card-title,
+    .creator-hero-title,
+    .creator-card-sub,
+    .creator-hero-sub,
+    .sheet-title,
+    .sheet-sub,
+    .topbar-title,
+    .bottom-hint,
+    .keyword-pill,
+    .keyword-btn,
+    .text-muted {
+        color: rgba(241,245,249,.88) !important;
+    }
+
+    .input-pill,
+    .select-pill,
+    .upload-drop,
+    .dynamic-item,
+    .ingredient-row.dynamic-item,
+    .preview-step-card,
+    .template-card,
+    .probability-template-card,
+    .prob-var-chip,
+    .common-unit-chip,
+    #selectedSteps .step-row {
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.16) !important;
+        color: #f8fafc !important;
+    }
+
+    .upload-drop {
+        border-style: dashed !important;
+    }
+
+    .candy-purple-input,
+    .form-control,
+    .form-select {
+        background-color: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.16) !important;
+        color: #f8fafc !important;
+    }
+
+    .form-control::placeholder {
+        color: rgba(226,232,240,.65) !important;
+    }
+
+    .dot {
+        background: rgba(255,255,255,0.16) !important;
+    }
+
+    .dot.active {
+        background: #f8fafc !important;
+    }
 </style>
 
 <!-- ===== Ingredient Edit Bottom Sheet ===== -->
@@ -1914,7 +1819,7 @@
 <div id="ingredientConfigDock" role="dialog" aria-labelledby="ingredientConfigTitle">
     <div class="d-flex align-items-center gap-2 mb-2">
         <div class="fw-bold text-white small" id="ingredientConfigTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50" style="flex-shrink:0;" aria-label="SchlieÃŸen">
+        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50" style="flex-shrink:0;" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
@@ -1923,7 +1828,7 @@
                pattern="[0-9]*[.,]?[0-9]*"
                class="form-control form-control-sm candy-purple-input" style="max-width:80px;" placeholder="0" />
         <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input" style="flex:1;"></select>
-        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3" aria-label="Ãœbernehmen">
+        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3" aria-label="Übernehmen">
             <i class="bi bi-check-lg"></i>
         </button>
     </div>
@@ -1940,8 +1845,8 @@
 <div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
     <div class="ing-sheet-handle"></div>
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="fw-bold text-white" id="probVarEditorTitle">Variable auswÃ¤hlen</div>
-        <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" style="font-size:1.1rem;" aria-label="SchlieÃŸen">
+        <div class="fw-bold text-white" id="probVarEditorTitle">Variable auswählen</div>
+        <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" style="font-size:1.1rem;" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
@@ -1973,8 +1878,8 @@
         <div class="d-flex gap-2 align-items-center">
             <input type="number" id="probVarTempVal" class="form-control form-control-sm candy-purple-input" style="max-width:90px" value="180" min="0" max="500" step="5" />
             <select id="probVarTempUnit" class="form-select form-select-sm candy-purple-input" style="max-width:80px">
-                <option value="celsius">Â°C</option>
-                <option value="fahrenheit">Â°F</option>
+                <option value="celsius">°C</option>
+                <option value="fahrenheit">°F</option>
             </select>
         </div>
     </div>
@@ -1992,7 +1897,7 @@
     <!-- Buttons (only needed for non-chip areas) -->
     <div class="d-flex gap-2 mt-3" id="probVarApplyRow">
         <button type="button" id="btnApplyProbVar" class="btn btn-sm creator-cta-primary flex-grow-1">
-            <i class="bi bi-check-lg me-1"></i>Ãœbernehmen
+            <i class="bi bi-check-lg me-1"></i>Übernehmen
         </button>
         <button type="button" id="btnCancelProbVar" class="btn btn-sm btn-outline-secondary">Abbrechen</button>
     </div>
@@ -2002,11 +1907,6 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script>window.MasterStepRendererConfig = { dataUrl: "@Url.Content("~/data/master_steps.json")" };</script>
-    <script src="~/js/master-step-renderer.js"></script>
-    <script src="~/js/recipe-step-suggest.js"></script>
-    <script src="~/js/create-posting-probability.js"></script>
-    <script src="~/js/ingredientmanager.js"></script>
     <script src="~/js/CreatePostingSmartStepCreator.js"></script>
     <script>
         window.CreatePostingPageConfig = {
@@ -2015,4 +1915,7 @@
     </script>
     <script src="~/js/CreatePostingPage.js"></script>
 }
+
+
+
 

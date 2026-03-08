@@ -550,6 +550,7 @@
         const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", activeStep?.values || {});
         const temp = document.createElement("div");
         temp.innerHTML = rendered || "";
+        temp.querySelectorAll(".placeholder-reset").forEach(btn => btn.remove());
         return (temp.textContent || temp.innerText || "").replace(/\s+/g, " ").trim();
     }
 
@@ -894,6 +895,8 @@
         resolveIngredientInsertValue
     };
 })();
+
+
 
 
 
