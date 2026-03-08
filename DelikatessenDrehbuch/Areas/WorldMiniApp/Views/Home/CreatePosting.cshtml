@@ -11,8 +11,6 @@
     Layout = "_MiniAppLayout";
 }
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
-
 <div class="creator-bg min-vh-100 position-relative">
     <!-- Loading Overlay -->
     <div id="datatableLoadingOverlay" class="creator-loading">
@@ -359,178 +357,6 @@
                 </div>
             </section>
 
-                    <div class="smart-step-creator mt-3 mb-4 d-none" data-theme="dark" id="card-step-sandbox" aria-hidden="true">
-                        <div class="sheet-head creator-top-head">
-                            <div>
-                                <div class="sheet-title">Smart Step Creator</div>
-                                <div class="sheet-sub">Wähle Zutat + Template wie im Creator Flow</div>
-                                <div class="small text-muted mt-1"><span id="storyStepCount">Schritte: 0</span></div>
-                            </div>
-                            <button type="button" id="btnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">
-                                ⚙︎
-                            </button>
-                        </div>
-
-                        <div class="creator-preview-canvas" id="masterPreviewCanvas">
-                            <div class="ingredient-top-strip mb-2 d-none" aria-hidden="true">
-                                <div class="ingredient-top-title">Zutaten zur Auswahl</div>
-                                <div class="ingredient-swiper ingredient-swiper-top" id="masterIngredientButtons"></div>
-                            </div>
-                            <div class="preview-step-card" id="masterPreviewCard">
-                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                <div class="preview-step-title mb-0">Aktueller Step</div>
-                                <button type="button" id="btnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
-                            </div>
-                                <div id="masterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
-                                <div class="ingredient-top-strip mt-3 mb-2">
-                                    <div class="ingredient-top-title">Zutaten für aktuellen Step</div>
-                                    <div class="ingredient-swiper ingredient-swiper-top" id="currentStepIngredientButtons"></div>
-                                </div>
-                                <div id="durationEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Zeit einsetzen</div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="number" min="1" step="1" id="durationValueInput" class="form-control form-control-sm" style="max-width:110px" value="10" />
-                                        <select id="durationUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                            <option value="minute">Minuten</option>
-                                            <option value="hour">Stunden</option>
-                                        </select>
-                                        <button type="button" id="btnApplyDuration" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="countEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Anzahl einsetzen</div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="number" min="1" step="1" id="countValueInput" class="form-control form-control-sm" style="max-width:110px" value="2" />
-                                        <button type="button" id="btnApplyCount" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="temperatureEditor" class="duration-editor d-none mt-2">
-                                    <div class="small text-muted mb-1">Temperatur einsetzen</div>
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <input type="number" min="0" max="500" step="5" id="temperatureValueInput" class="form-control form-control-sm" style="max-width:110px" value="180" />
-                                        <select id="temperatureUnitSelect" class="form-select form-select-sm" style="max-width:160px">
-                                            <option value="celsius">°C</option>
-                                            <option value="fahrenheit">°F</option>
-                                        </select>
-                                        <button type="button" id="btnApplyTemperature" class="btn btn-sm btn-outline-light">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="pronounEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Pronomen einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlinePronounOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyPronoun" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="toolEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Werkzeug einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineToolOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyTool" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="grindSizeEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Schnittgröße einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineGrindSizeOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyGrindSize" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="shapeEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Schnittform einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineShapeOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyShape" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="baseEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Basis einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBaseOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyBase" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="itemEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Item einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineItemOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyItem" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="balanceEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Balance einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceArticleOptions"></div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineBalanceOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplyBalance" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                                <div id="seasoningsEditor" class="bottom-sheet-editor d-none">
-                                    <div class="small text-muted mb-1">Seasonings einsetzen</div>
-                                    <div class="d-flex flex-wrap gap-2 mb-2" id="inlineSeasoningsOptions"></div>
-                                    <div class="d-flex justify-content-end align-items-center">
-                                        <button type="button" id="btnApplySeasonings" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="template-selection-wrap">
-                                <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
-                                <div class="template-library template-library-fixed" id="masterTemplateCards"></div>
-                            </div>
-                            <div id="templateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
-                            <div id="creatorToast" class="creator-toast" aria-live="polite"></div>
-                        </div>
-
-                        <div class="creator-bottom-sheet" id="creatorBottomSheet">
-                            <!-- Inline editors for State / Heat / Equipment – visible at bottom -->
-                            <div id="heatEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Hitze-Stufe wählen" data-en="Choose heat level" data-esp="Elegir nivel de calor" data-prt="Escolher nível de calor">Hitze-Stufe wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineHeatOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyHeat" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div id="modeEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Ofenmodus wählen" data-en="Choose oven mode" data-esp="Elegir modo del horno" data-prt="Escolher modo do forno">Ofenmodus wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineModeOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyMode" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div id="equipmentEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Tool / Gerät wählen" data-en="Choose tool / equipment" data-esp="Elegir herramienta / equipo" data-prt="Escolher ferramenta / equipamento">Tool / Gerät wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentArticleOptions"></div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineEquipmentOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyEquipment" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-
-                            <div id="stateEditor" class="bottom-sheet-editor d-none">
-                                <div class="small text-muted mb-1 label-lang"
-                                     data-de="Zielzustand wählen" data-en="Choose target state" data-esp="Elegir estado objetivo" data-prt="Escolher estado alvo">Zielzustand wählen</div>
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="inlineStateOptions"></div>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <button type="button" id="btnApplyState" class="btn btn-sm creator-cta-primary label-lang"
-                                            data-de="Einsetzen" data-en="Apply" data-esp="Aplicar" data-prt="Aplicar">Einsetzen</button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-
             <!-- 4) STEPS + SANDBOX -->
             <section class="smart-step-creator mt-3 mb-4" data-theme="dark" id="card-steps" style="min-height:auto">
                 <div class="sheet-head creator-top-head">
@@ -564,8 +390,7 @@
                                 <div class="preview-step-title mb-0">Aktueller Step</div>
                                 <button type="button" id="sc2BtnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
                             </div> *@
-@*                             <div id="sc2MasterPreviewText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
- *@                            <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
+                            <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
                          
                           
                           
@@ -2002,11 +1827,6 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script>window.MasterStepRendererConfig = { dataUrl: "@Url.Content("~/data/master_steps.json")" };</script>
-    <script src="~/js/master-step-renderer.js"></script>
-    <script src="~/js/recipe-step-suggest.js"></script>
-    <script src="~/js/create-posting-probability.js"></script>
-    <script src="~/js/ingredientmanager.js"></script>
     <script src="~/js/CreatePostingSmartStepCreator.js"></script>
     <script>
         window.CreatePostingPageConfig = {

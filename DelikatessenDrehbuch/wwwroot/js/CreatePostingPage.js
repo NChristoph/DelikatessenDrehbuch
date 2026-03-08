@@ -364,7 +364,10 @@
         }
 
         function getAllStepRows() {
-            return Array.isArray(stepCatalog) ? stepCatalog : [];
+            if (!Array.isArray(window.stepCatalog)) {
+                window.stepCatalog = [];
+            }
+            return window.stepCatalog;
         }
 
         function getPhaseLabel(phase) {
@@ -382,7 +385,8 @@
 
         // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
         function getStepBoundIngredientIds(stepId) {
-            return (stepIngredientBindings[stepId] ?? stepIngredientBindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
+            const bindings = window.stepIngredientBindings || {};
+            return (bindings[stepId] ?? bindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
         }
 
 
@@ -435,6 +439,7 @@
             selectedIngredientIds: [],
             selectedTemplateId: '',
             activeStepIngredientRow: null,
+            isStepIngredientEditMode: false,
             computedPronoun: 'ihn',
             computedArticle: 'den',
             previewText: '',
@@ -1804,7 +1809,11 @@
 
             creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
             if (!creatorState.selectedIngredientIds.length) {
-                creatorState.selectedIngredientIds = ingredients.map(x => x.id).filter(Boolean);
+                if (creatorState.isStepIngredientEditMode) {
+                    creatorState.selectedIngredientIds = [];
+                } else {
+                    creatorState.selectedIngredientIds = ingredients.map(x => x.id).filter(Boolean);
+                }
             }
 
             ingredients.forEach(item => {
@@ -2319,13 +2328,96 @@
             refreshIngredientProbabilityHints();
         }
 
-        function startStepIngredientEdit(btn) {
+        function indexOfIgnoreCase(source, search) {
+            const src = (source || '').toString();
+            const find = (search || '').toString();
+            if (!src || !find) return -1;
+            return src.toLowerCase().indexOf(find.toLowerCase());
+        }
+
+        const STEP_INGREDIENT_TOKEN = '__STEP_INGREDIENT_TOKEN__';
+
+        function buildIngredientTokenTemplate(sourceText, ingredientName) {
+            const source = (sourceText || '').toString();
+            const ingredient = (ingredientName || '').toString().trim();
+
+            if (!source.trim()) {
+                return STEP_INGREDIENT_TOKEN;
+            }
+
+            if (ingredient) {
+                const idx = indexOfIgnoreCase(source, ingredient);
+                if (idx >= 0) {
+                    return `${source.substring(0, idx)}${STEP_INGREDIENT_TOKEN}${source.substring(idx + ingredient.length)}`;
+                }
+            }
+
+            const placeholderReplaced = source.replace(/\{\{\s*(ingredient|ingredients|liquid|fat)\s*\}\}/i, STEP_INGREDIENT_TOKEN);
+            if (placeholderReplaced !== source) return placeholderReplaced;
+
+            return source;
+        }
+
+        function materializeStepTextFromTemplate(templateText, ingredientName) {
+            const template = (templateText || '').toString();
+            const ingredient = (ingredientName || '').toString();
+            return template.includes(STEP_INGREDIENT_TOKEN)
+                ? template.replace(STEP_INGREDIENT_TOKEN, ingredient)
+                : template;
+        }
+
+        function renderStepTextWithIngredientToken(templateText, ingredientName) {
+            const template = (templateText || '').toString();
+            const ingredient = (ingredientName || '').toString().trim();
+
+            if (!template.includes(STEP_INGREDIENT_TOKEN)) {
+                return $('<div>').text(materializeStepTextFromTemplate(template, ingredient)).html();
+            }
+
+            // No empty anchor span for missing ingredient.
+            if (!ingredient) {
+                const plain = template.replace(STEP_INGREDIENT_TOKEN, '').replace(/\s{2,}/g, ' ').trim();
+                return $('<div>').text(plain).html();
+            }
+
+            const idx = template.indexOf(STEP_INGREDIENT_TOKEN);
+            const before = template.substring(0, idx);
+            const after = template.substring(idx + STEP_INGREDIENT_TOKEN.length);
+            const safeBefore = $('<div>').text(before).html();
+            const safeAfter = $('<div>').text(after).html();
+            const safeIngredient = $('<div>').text(ingredient).html();
+            return `${safeBefore}<span class="step-ingredient-anchor" data-step-ingredient-anchor="1">${safeIngredient}</span>${safeAfter}`;
+        }
+
+        function ensureStepLanguageTemplate(row, langKey, oldName) {
+            const templateInput = row.find(`.step-template-${langKey}`);
+            const sourceInput = row.find(`.step-hidden-${langKey}`);
+            if (!sourceInput.length) return '';
+
+            let templateValue = templateInput.length ? (templateInput.val() || '').toString() : '';
+            if (!templateValue) {
+                templateValue = buildIngredientTokenTemplate(sourceInput.val(), oldName);
+                if (templateInput.length) {
+                    templateInput.val(templateValue);
+                } else {
+                    row.append(`<input type="hidden" class="step-template-${langKey}" value="${$('<div>').text(templateValue).html()}" />`);
+                }
+            }
+
+            return templateValue;
+        }
+
+        function startStepIngredientEdit(event, btn) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             const row = $(btn).closest('.step-row');
             creatorState.activeStepIngredientRow = row;
-            clearSelectedIngredientChips();
+            creatorState.isStepIngredientEditMode = true;
+            creatorState.selectedIngredientIds = [];
             renderIngredientChips();
             $('#stepsChipStrip').removeClass('d-none');
-            $('#card-steps')[0]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             showCreatorToast('Chip auswählen – dann Einsetzen tippen');
         }
 
@@ -2336,30 +2428,44 @@
             const selectedNames = getSelectedIngredientNames();
             if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswählen'); return; }
 
-            const newName = selectedNames.join(', ');
-            const oldName = (row.data('ingredient-name') || '').toString().trim();
+            const newName = (typeof getSelectedIngredientValueForInsert === 'function' ? getSelectedIngredientValueForInsert() : selectedNames.join(', '));
+            const oldName = (row.data('ingredient-name') || row.find('.step-ingredient-anchor').first().text() || '').toString().trim();
+            const langKeys = ['de', 'en', 'esp', 'prt'];
+            let changed = false;
 
-            if (oldName) {
-                const oldRx = new RegExp(oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                ['step-hidden-de', 'step-hidden-en', 'step-hidden-esp', 'step-hidden-prt'].forEach(cls => {
-                    const input = row.find('.' + cls);
-                    if (input.length) input.val((input.val() || '').replace(oldRx, newName));
-                });
-                const textSpan = row.find('.step-text-content');
-                textSpan.text((textSpan.text() || '').replace(oldRx, newName));
+            langKeys.forEach(langKey => {
+                const hiddenInput = row.find(`.step-hidden-${langKey}`);
+                if (!hiddenInput.length) return;
+
+                const template = ensureStepLanguageTemplate(row, langKey, oldName);
+                const before = (hiddenInput.val() || '').toString();
+                const after = materializeStepTextFromTemplate(template, newName);
+                if (after !== before) changed = true;
+                hiddenInput.val(after);
+            });
+
+            const currentTemplate = ensureStepLanguageTemplate(row, currentLang, oldName) || ensureStepLanguageTemplate(row, 'de', oldName);
+            const textSpan = row.find('.step-text-content');
+            if (textSpan.length) {
+                const beforeVisible = (textSpan.text() || '').toString();
+                const afterVisible = materializeStepTextFromTemplate(currentTemplate, newName);
+                if (afterVisible !== beforeVisible) changed = true;
+                textSpan.html(renderStepTextWithIngredientToken(currentTemplate, newName));
             }
 
             row.attr('data-ingredient-name', newName);
             row.attr('data-step-edited', 'true').data('step-edited', true);
             creatorState.activeStepIngredientRow = null;
+            creatorState.isStepIngredientEditMode = false;
             clearSelectedIngredientChips();
             renderIngredientChips();
             $('#stepsChipStrip').addClass('d-none');
-            showCreatorToast('Zutat im Schritt ersetzt');
+            showCreatorToast(changed ? 'Zutat im Schritt ersetzt' : 'Keine ersetzbare Zutat im Step gefunden');
         }
 
         function cancelStepIngredientEdit() {
             creatorState.activeStepIngredientRow = null;
+            creatorState.isStepIngredientEditMode = false;
             clearSelectedIngredientChips();
             renderIngredientChips();
             $('#stepsChipStrip').addClass('d-none');
@@ -2439,23 +2545,30 @@
             const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
             const phaseBadge = getPhaseLabel(normalizedStepData.phase);
             const stepIngredientName = (options?.ingredientName || '').toString().trim();
-            const chipBtnHtml = stepIngredientName
-                ? `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(this)" title="Zutat per Chip ändern">🥣</button>`
-                : '';
+            const chipBtnHtml = `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(event, this)" title="Zutat per Chip ändern">🥣</button>`;
+            const templateDe = buildIngredientTokenTemplate(normalizedStepData.de, stepIngredientName);
+            const templateEn = buildIngredientTokenTemplate(normalizedStepData.en, stepIngredientName);
+            const templateEsp = buildIngredientTokenTemplate(normalizedStepData.esp, stepIngredientName);
+            const templatePrt = buildIngredientTokenTemplate(normalizedStepData.prt, stepIngredientName);
+            const visibleTemplate = ({ de: templateDe, en: templateEn, esp: templateEsp, prt: templatePrt })[currentLang] || templateDe;
 
             $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
-                <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStepData.de).html()}" />
-                <input type="hidden" class="step-hidden-en" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStepData.en).html()}" />
-                <input type="hidden" class="step-hidden-esp" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStepData.esp).html()}" />
-                <input type="hidden" class="step-hidden-prt" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStepData.prt).html()}" />
+                <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(materializeStepTextFromTemplate(templateDe, stepIngredientName)).html()}" />
+                <input type="hidden" class="step-hidden-en" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(materializeStepTextFromTemplate(templateEn, stepIngredientName)).html()}" />
+                <input type="hidden" class="step-hidden-esp" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(materializeStepTextFromTemplate(templateEsp, stepIngredientName)).html()}" />
+                <input type="hidden" class="step-hidden-prt" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(materializeStepTextFromTemplate(templatePrt, stepIngredientName)).html()}" />
+                <input type="hidden" class="step-template-de" value="${$('<div>').text(templateDe).html()}" />
+                <input type="hidden" class="step-template-en" value="${$('<div>').text(templateEn).html()}" />
+                <input type="hidden" class="step-template-esp" value="${$('<div>').text(templateEsp).html()}" />
+                <input type="hidden" class="step-template-prt" value="${$('<div>').text(templatePrt).html()}" />
                 <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
                 <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
-                    <span class="step-text-content">${text}</span>
+                    <span class="step-text-content">${renderStepTextWithIngredientToken(visibleTemplate, stepIngredientName)}</span>
                     <div class="step-row-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
@@ -2954,14 +3067,25 @@
             });
             refreshDurationUnitControls();
             loadIngredientArticleRules().finally(() => {
-            MasterStepRenderer.load().then((result) => {
-                if (!result) {
-                    const loadError = typeof MasterStepRenderer.getLastLoadError === 'function' ? MasterStepRenderer.getLastLoadError() : 'Template-Datei konnte nicht geladen werden.';
-                    setMasterTemplateError(`Template-Fehler: ${loadError}`);
+                const renderer = window.MasterStepRenderer;
+                if (!renderer || typeof renderer.load !== 'function') {
+                    setMasterTemplateError('Template-Fehler: MasterStepRenderer ist nicht geladen.');
                     return;
                 }
-                refreshMasterTemplateBuilder();
-            });
+
+                renderer.load().then((result) => {
+                    if (!result) {
+                        const loadError = typeof renderer.getLastLoadError === 'function'
+                            ? renderer.getLastLoadError()
+                            : 'Template-Datei konnte nicht geladen werden.';
+                        setMasterTemplateError(`Template-Fehler: ${loadError}`);
+                        return;
+                    }
+                    refreshMasterTemplateBuilder();
+                }).catch((error) => {
+                    const msg = error && error.message ? error.message : 'Unbekannter Fehler beim Laden.';
+                    setMasterTemplateError(`Template-Fehler: ${msg}`);
+                });
             });
 
             $("#currentStepIngredientButtons").on('click', '.ingredient-chip', function () {

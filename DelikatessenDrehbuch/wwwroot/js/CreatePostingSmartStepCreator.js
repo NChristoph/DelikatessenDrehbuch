@@ -69,19 +69,41 @@
     function getVarOptions(varName) {
         if (!doc) return [];
 
+        const key = (varName || "").toString().trim();
+        const normalizedKey = key.toLowerCase().replace(/[_\-\s]+/g, "");
+
         // 1) variable_options[varName][lang]
-        const vo = doc.variable_options?.[varName];
+        let vo = doc.variable_options?.[key];
+
+        // 1b) robust: case/underscore/hyphen-insensitive lookup
+        if ((!vo || typeof vo !== "object") && doc.variable_options && typeof doc.variable_options === "object") {
+            const entries = Object.entries(doc.variable_options);
+            const match = entries.find(([k]) => (k || "").toString().toLowerCase().replace(/[_\-\s]+/g, "") === normalizedKey);
+            vo = match ? match[1] : null;
+        }
+
         if (vo && typeof vo === "object") {
             const list = vo[currentLang] ?? vo[currentLang.toLowerCase()] ?? vo[DEFAULT_LANG] ?? vo.de;
             if (Array.isArray(list)) return list.filter(x => x !== null && x !== undefined);
         }
 
         // 2) Spezialfall: equipment oben in doc.equipment (id->name)
-        //    (falls du das als IDs verwendest)
-        if (varName === "equipment" && doc.equipment) {
-            // wenn doc.variable_options.equipment existiert, nimmt er die eh schon (oben)
-            // ansonsten fallback aus doc.equipment map:
+        if (key === "equipment" && doc.equipment) {
             return Object.values(doc.equipment);
+        }
+
+        // 3) Fallback für Pronomen (wenn keine variable_options.pronoun existiert)
+        if (normalizedKey === "pronoun") {
+            const pronounByLang = {
+                de: ["es", "sie", "ihn"],
+                en: ["it", "them"],
+                esp: ["lo", "la", "los", "las"],
+                prt: ["o", "a", "os", "as"],
+                id: ["nya"],
+                nl: ["hem", "haar", "het"]
+            };
+            const lang = (currentLang || DEFAULT_LANG).toLowerCase();
+            return pronounByLang[lang] || pronounByLang[DEFAULT_LANG] || [];
         }
 
         return [];
@@ -271,6 +293,18 @@
         return key === "grindsize" || key.includes("grindsize");
     }
 
+    function isNoArticleVariable(varName) {
+        const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
+        return key === "state" || key === "duration" || isGrindSizeVariable(varName);
+    }
+
+    
+
+    function isCompactSpecialVariable(varName) {
+        const key = (varName || '').toString().trim().toLowerCase();
+        return key === 'duration' || key === 'temp';
+    }
+
     function getSelectedIngredientNamesFromPage() {
         const rows = Array.from(document.querySelectorAll("#selectedIngredients .ingredient-row .display-name-selected"));
         return rows
@@ -334,8 +368,22 @@
         if (!host) return;
 
         const currentVal = activeStep.values[varName] ?? "";
+        const compactSpecialVar = isCompactSpecialVariable(varName);
+        if (compactSpecialVar) {
+            const specialBlockCompact = renderSpecialEditor(varName, currentVal);
+            host.innerHTML = `
+      <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
+        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+        ${specialBlockCompact}
+      </div>
+    `;
+            host.dataset.selectedArticle = "";
+            host.dataset.selectedValue = "";
+            host.dataset.selectedIngredientValues = "[]";
+            return;
+        }
         const ingredientVar = isIngredientVariable(varName);
-        const noArticleVar = isGrindSizeVariable(varName);
+        const noArticleVar = isNoArticleVariable(varName);
 
         const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
         const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
@@ -411,7 +459,7 @@
         <button type="button"
                 class="btn btn-sm btn-outline-light pill-like"
                 data-duration-unit="${escapeHtml(u.key)}">
-          ${escapeHtml(u.key)}
+          ${escapeHtml(u.label)}
         </button>
       `).join("");
 
@@ -427,11 +475,6 @@
 
         <div class="d-flex flex-wrap gap-2 mt-2">
           ${unitBtns}
-        </div>
-
-        <div class="d-flex gap-2 align-items-center mt-3">
-          <input type="text" class="form-control form-control-sm" id="DurationPreview"
-                 placeholder="z.B. 10 Minuten" value="${escapeHtml(currentVal)}" />
         </div>
       `;
         }
@@ -452,11 +495,6 @@
 
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
-        </div>
-
-        <div class="d-flex gap-2 align-items-center mt-3">
-          <input type="text" class="form-control form-control-sm" id="TempPreview"
-                 placeholder="z.B. 180 °C" value="${escapeHtml(currentVal)}" />
         </div>
       `;
         }
@@ -507,7 +545,7 @@
         // Normalfall: Artikel + Wert
         const article = host.dataset.selectedArticle ?? "";
         let value = host.dataset.selectedValue ?? "";
-        const noArticleVar = isGrindSizeVariable(varName);
+        const noArticleVar = isNoArticleVariable(varName);
 
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
@@ -550,6 +588,7 @@
         const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", activeStep?.values || {});
         const temp = document.createElement("div");
         temp.innerHTML = rendered || "";
+        temp.querySelectorAll(".placeholder-reset").forEach(btn => btn.remove());
         return (temp.textContent || temp.innerText || "").replace(/\s+/g, " ").trim();
     }
 
@@ -729,14 +768,6 @@
                 // aktiv markieren
                 du.parentElement?.querySelectorAll("button[data-duration-unit]")?.forEach(b => b.classList.remove("active"));
                 du.classList.add("active");
-
-                // preview
-                const n = $("#DurationValueInput")?.value?.trim() || "";
-                const labels = getDurationUnits();
-                const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
-                const composed = n ? `${n} ${unitLabel}` : "";
-                const prev = $("#DurationPreview");
-                if (prev) prev.value = composed;
                 return;
             }
 
@@ -749,8 +780,6 @@
                 const labels = getDurationUnits();
                 const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
                 const composed = n ? `${n} ${unitLabel}` : "";
-                const prev = $("#DurationPreview");
-                if (prev) prev.value = composed;
 
                 // direkt übernehmen:
                 activeStep.values["duration"] = composed;
@@ -763,8 +792,6 @@
                 const n = $("#TempValueInput")?.value?.trim() || "";
                 const u = $("#TempUnitSelect")?.value || "°C";
                 const composed = n ? `${n} ${u}` : "";
-                const prev = $("#TempPreview");
-                if (prev) prev.value = composed;
 
                 activeStep.values["temp"] = composed;
                 rerenderAfterValueSet();
@@ -894,7 +921,4 @@
         resolveIngredientInsertValue
     };
 })();
-
-
-
 

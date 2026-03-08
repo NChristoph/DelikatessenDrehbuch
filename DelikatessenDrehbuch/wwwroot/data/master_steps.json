@@ -411,7 +411,7 @@
       "equipment": 9,
       "description": "Flüssiges verrühren/aufschlagen (Ei, Milch, Sauce-Basis)",
       "templates": {
-        "de": "Verrühre {{ingredients}} mit einem {{tool}}, bis {{state}}.",
+        "de": "Verrühre {{ingredients}} mit einem {{tool}}, bis {{state}} ist.",
         "en": "Whisk {{ingredients}} with a {{tool}} until {{state}}.",
         "esp": "Bate {{ingredients}} con un {{tool}} hasta que {{state}}.",
         "prt": "Bata {{ingredients}} com um {{tool}} até {{state}}.",
@@ -471,7 +471,7 @@
       "equipment": 2,
       "description": "Anbraten/Dünsten von Basis-Zutaten",
       "templates": {
-        "de": "Erhitze {{fat}} in {{equipment}} und dünste {{ingredient}} darin {{duration}}, bis {{state}}.",
+        "de": "Erhitze {{fat}} in {{equipment}} und dünste {{ingredient}} darin {{duration}}, bis {{state}} ist.",
         "en": "Heat {{fat}} in {{equipment}} and sauté {{ingredient}} for {{duration}} until {{state}}.",
         "esp": "Calienta {{fat}} en {{equipment}} y sofríe {{ingredient}} durante {{duration}} hasta que {{state}}.",
         "prt": "Aqueça {{fat}} em {{equipment}} e refogue {{ingredient}} por {{duration}} até que {{state}}.",
@@ -511,7 +511,7 @@
       "equipment": 3,
       "description": "Frittieren in heißem Öl",
       "templates": {
-        "de": "Erhitze {{fat}} auf {{temp}} und frittiere {{ingredient}} portionsweise {{duration}}, bis {{state}}. Auf Küchenpapier abtropfen lassen.",
+        "de": "Erhitze {{fat}} auf {{temp}} und frittiere {{ingredient}} portionsweise {{duration}}, bis {{state}} ist. Auf Küchenpapier abtropfen lassen.",
         "en": "Heat {{fat}} to {{temp}} and deep-fry {{ingredient}} in batches for {{duration}} until {{state}}. Drain on paper towels.",
         "esp": "Calienta {{fat}} a {{temp}} y fríe {{ingredient}} en tandas durante {{duration}} hasta que {{state}}. Escurre sobre papel absorbente.",
         "prt": "Aqueça {{fat}} a {{temp}} e frite {{ingredient}} em porções por {{duration}} até que {{state}}. Escorra em papel toalha.",
@@ -531,7 +531,7 @@
       "equipment": 3,
       "description": "Kochen in sprudelndem Wasser (Nudeln, Kartoffeln, Eier)",
       "templates": {
-        "de": "Bringe {{liquid}} in einem Topf zum Kochen, gib {{ingredient}} hinein und koche {{pronoun}} {{duration}}, bis {{state}}.",
+        "de": "Bringe {{liquid}} in einem Topf zum Kochen, gib {{ingredient}} hinein und koche {{pronoun}} {{duration}}, bis {{state}} ist.",
         "en": "Bring {{liquid}} to a boil in a pot, add {{ingredient}} and cook for {{duration}} until {{state}}.",
         "esp": "Lleva {{liquid}} a ebullición en una olla, añade {{ingredient}} y cocina durante {{duration}} hasta que {{state}}.",
         "prt": "Leve {{liquid}} à fervura numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}.",
@@ -571,7 +571,7 @@
       "equipment": 8,
       "description": "Dämpfen von Gemüse, Fisch, Dim Sum",
       "templates": {
-        "de": "Dämpfe {{ingredient}} über kochendem Wasser in einem {{equipment}} für {{duration}}, bis {{state}}.",
+        "de": "Dämpfe {{ingredient}} über kochendem Wasser in einem {{equipment}} für {{duration}}, bis {{state}} ist.",
         "en": "Steam {{ingredient}} over boiling water in a {{equipment}} for {{duration}} until {{state}}.",
         "esp": "Cocina {{ingredient}} al vapor sobre agua hirviendo en {{equipment}} durante {{duration}} hasta que {{state}}.",
         "prt": "Cozinhe {{ingredient}} no vapor sobre água fervente em {{equipment}} por {{duration}} até que {{state}}.",
@@ -591,7 +591,7 @@
       "equipment": 1,
       "description": "Backen im Ofen (Aufläufe, Kuchen, Brot)",
       "templates": {
-        "de": "Gib {{base}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}} ({{mode}}) für {{duration}}, bis {{state}}.",
+        "de": "Gib {{base}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}} ({{mode}}) für {{duration}}, bis {{state}} ist.",
         "en": "Place {{base}} in the preheated oven and bake at {{temp}} ({{mode}}) for {{duration}} until {{state}}.",
         "esp": "Coloca {{base}} en el horno precalentado y hornea a {{temp}} ({{mode}}) durante {{duration}} hasta que {{state}}.",
         "prt": "Coloque {{base}} no forno pré-aquecido e asse a {{temp}} ({{mode}}) por {{duration}} até que {{state}}.",
@@ -631,7 +631,7 @@
       "equipment": 7,
       "description": "Grillen auf dem Rost oder in der Grillpfanne",
       "templates": {
-        "de": "Grille {{ingredient}} auf dem {{equipment}} bei {{heat}} Hitze {{duration}} pro Seite, bis {{state}}.",
+        "de": "Grille {{ingredient}} auf dem {{equipment}} bei {{heat}} Hitze {{duration}} pro Seite, bis {{state}} ist.",
         "en": "Grill {{ingredient}} on the {{equipment}} over {{heat}} heat for {{duration}} per side until {{state}}.",
         "esp": "Asa {{ingredient}} en {{equipment}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
         "prt": "Grelhe {{ingredient}} na {{equipment}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
@@ -691,7 +691,7 @@
       "equipment": 3,
       "description": "Flüssigkeit einkochen/reduzieren",
       "templates": {
-        "de": "Lasse {{liquid}} offen {{duration}} einkochen, bis {{state}}.",
+        "de": "Lasse {{liquid}} offen {{duration}} einkochen, bis {{state}} ist.",
         "en": "Let {{liquid}} reduce uncovered for {{duration}} until {{state}}.",
         "esp": "Reduce {{liquid}} sin tapar durante {{duration}} hasta que {{state}}.",
         "prt": "Reduza {{liquid}} sem tampa por {{duration}} até {{state}}.",
@@ -711,7 +711,7 @@
       "equipment": 3,
       "description": "Sauce/Suppe binden (Mehlschwitze, Stärke etc.)",
       "templates": {
-        "de": "Binde {{base}} mit {{thickener}} und rühre, bis {{state}}.",
+        "de": "Binde {{base}} mit {{thickener}} und rühre, bis {{state}} ist.",
         "en": "Thicken {{base}} with {{thickener}} and stir until {{state}}.",
         "esp": "Espesa {{base}} con {{thickener}} y remueve hasta que {{state}}.",
         "prt": "Engrosse {{base}} com {{thickener}} e mexa até {{state}}.",
@@ -811,7 +811,7 @@
       "equipment": 6,
       "description": "Pürieren/Mixen (Suppen, Saucen, Smoothies)",
       "templates": {
-        "de": "Püriere {{base}} mit einem {{equipment}}, bis {{state}}.",
+        "de": "Püriere {{base}} mit einem {{equipment}}, bis {{state}} ist.",
         "en": "Blend {{base}} with a {{equipment}} until {{state}}.",
         "esp": "Tritura {{base}} con {{equipment}} hasta que {{state}}.",
         "prt": "Triture {{base}} com {{equipment}} até {{state}}.",
@@ -851,7 +851,7 @@
       "equipment": 4,
       "description": "Schmoren im Bräter (Braten, Ragouts)",
       "templates": {
-        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmore {{duration}}, bis {{state}}.",
+        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmore {{duration}}, bis {{state}} ist.",
         "en": "Add {{liquid}} to {{ingredient}} in the {{equipment}}, cover and braise for {{duration}} until {{state}}.",
         "esp": "Añade {{liquid}} a {{ingredient}} en {{equipment}}, tapa y guisa durante {{duration}} hasta que {{state}}.",
         "prt": "Adicione {{liquid}} a {{ingredient}} no {{equipment}}, tampe e cozinhe por {{duration}} até {{state}}.",
@@ -891,7 +891,7 @@
       "equipment": 1,
       "description": "Kurz unter starker Oberhitze gratinieren/überbacken",
       "templates": {
-        "de": "Stelle {{base}} {{position}} unter die Grillfunktion und gratiniere {{pronoun}} {{duration}}, bis {{state}}.",
+        "de": "Stelle {{base}} {{position}} unter die Grillfunktion und gratiniere {{pronoun}} {{duration}}, bis {{state}} ist.",
         "en": "Place {{base}} {{position}} under the broiler and broil for {{duration}} until {{state}}.",
         "esp": "Coloca {{base}} {{position}} bajo el grill y gratina durante {{duration}} hasta que {{state}}.",
         "prt": "Coloque {{base}} {{position}} sob o grill e gratine por {{duration}} até {{state}}.",
@@ -932,7 +932,7 @@
       "equipment": 0,
       "description": "Abkühlen lassen (Desserts, Kuchen)",
       "templates": {
-        "de": "Lasse {{base}} {{duration}} abkühlen, bis {{state}}.",
+        "de": "Lasse {{base}} {{duration}} abkühlen, bis {{state}} ist.",
         "en": "Let {{base}} cool for {{duration}} until {{state}}.",
         "esp": "Deja que {{base}} se enfríe durante {{duration}} hasta que {{state}}.",
         "prt": "Deixe {{base}} esfriar por {{duration}} até {{state}}.",
@@ -1181,6 +1181,200 @@
       "ms": [ "kuali", "periuk", "ketuhar", "bekas pembakar", "dapur", "pengisar", "gril", "pengukus", "mangkuk", "penapis" ]
     }
   },
+  "marinade": {
+    "de": [ "Olivenöl und Gewürzen", "Joghurt und Gewürzen", "Sojasauce, Knoblauch und Ingwer", "Zitronensaft, Öl und Kräutern" ],
+    "en": [ "olive oil and spices", "yogurt and spices", "soy sauce, garlic and ginger", "lemon juice, oil and herbs" ],
+    "esp": [ "aceite de oliva y especias", "yogur y especias", "salsa de soja, ajo y jengibre", "zumo de limón, aceite y hierbas" ],
+    "prt": [ "azeite e especiarias", "iogurte e especiarias", "molho de soja, alho e gengibre", "sumo de limão, azeite e ervas" ],
+    "id": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kecap asin, bawang putih, dan jahe", "jus lemon, minyak, dan herba" ],
+    "nl": [ "olijfolie en kruiden", "yoghurt en kruiden", "sojasaus, knoflook en gember", "citroensap, olie en kruiden" ],
+    "sv": [ "olivolja och kryddor", "yoghurt och kryddor", "soja, vitlök och ingefära", "citronsaft, olja och örter" ],
+    "da": [ "olivenolie og krydderier", "yoghurt og krydderier", "soja, hvidløg og ingefær", "citronsaft, olie og urter" ],
+    "no": [ "olivenolje og krydder", "yoghurt og krydder", "soyasaus, hvitløk og ingefær", "sitronsaft, olje og urter" ],
+    "ms": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kicap soya, bawang putih dan halia", "jus lemon, minyak dan herba" ]
+  },
+  "method": {
+    "de": [ "vorsichtig unter", "gleichmäßig einrühren", "kurz vermengen", "gründlich vermischen" ],
+    "en": [ "fold in gently", "stir in evenly", "mix briefly", "combine thoroughly" ],
+    "esp": [ "incorpora suavemente", "remueve de forma uniforme", "mezcla brevemente", "mezcla bien" ],
+    "prt": [ "incorpore delicadamente", "misture de forma uniforme", "misture rapidamente", "misture bem" ],
+    "id": [ "aduk perlahan", "aduk rata", "campur sebentar", "campur hingga rata" ],
+    "nl": [ "voorzichtig erdoor spatelen", "gelijkmatig erdoor roeren", "kort mengen", "grondig mengen" ],
+    "sv": [ "vänd ner försiktigt", "rör i jämnt", "blanda kort", "blanda ordentligt" ],
+    "da": [ "vend forsigtigt i", "rør jævnt i", "bland kort", "bland grundigt" ],
+    "no": [ "vend forsiktig inn", "rør jevnt inn", "bland kort", "bland godt" ],
+    "ms": [ "gaul perlahan", "kacau rata", "gaul sebentar", "gaul sebati" ]
+  },
+  "mode": {
+    "de": [ "Ober-/Unterhitze", "Umluft", "Grillfunktion" ],
+    "en": [ "top/bottom heat", "fan-assisted", "broil mode" ],
+    "esp": [ "calor arriba y abajo", "aire caliente", "función grill" ],
+    "prt": [ "calor superior/inferior", "ventilado", "função grill" ],
+    "id": [ "api atas-bawah", "kipas konveksi", "mode grill" ],
+    "nl": [ "boven-/onderwarmte", "hetelucht", "grillstand" ],
+    "sv": [ "över-/undervärme", "varmluft", "grilläge" ],
+    "da": [ "over-/undervarme", "varmluft", "grillfunktion" ],
+    "no": [ "over-/undervarme", "varmluft", "grillfunksjon" ],
+    "ms": [ "haba atas/bawah", "kipas perolakan", "mod gril" ]
+  },
+  "position": {
+    "de": [ "mittig", "auf oberer Schiene", "nah unter dem Grill" ],
+    "en": [ "in the middle", "on the top rack", "close to the broiler" ],
+    "esp": [ "en el centro", "en la bandeja superior", "cerca del grill" ],
+    "prt": [ "ao centro", "na prateleira superior", "perto do grill" ],
+    "id": [ "di tengah", "di rak atas", "dekat pemanggang" ],
+    "nl": [ "in het midden", "op het bovenste rooster", "dicht onder de grill" ],
+    "sv": [ "i mitten", "på översta falsen", "nära grillelementet" ],
+    "da": [ "i midten", "på øverste rille", "tæt under grillen" ],
+    "no": [ "i midten", "på øverste rille", "nært grillelementet" ],
+    "ms": [ "di tengah", "di rak atas", "dekat gril" ]
+  },
+  "keep": {
+    "de": [ "das Kochwasser", "die Brühe", "die Sauce", "den Sud" ],
+    "en": [ "the cooking water", "the broth", "the sauce", "the liquid" ],
+    "esp": [ "el agua de cocción", "el caldo", "la salsa", "el líquido" ],
+    "prt": [ "a água da cozedura", "o caldo", "o molho", "o líquido" ],
+    "id": [ "air rebusan", "kaldu", "saus", "cairan rebusan" ],
+    "nl": [ "het kookwater", "de bouillon", "de saus", "het vocht" ],
+    "sv": [ "kokvattnet", "buljongen", "såsen", "vätskan" ],
+    "da": [ "kogevandet", "bouillonen", "saucen", "væsken" ],
+    "no": [ "kokevannet", "kraften", "sausen", "væsken" ],
+    "ms": [ "air rebusan", "stok", "sos", "cecair" ]
+  },
+  "surface": {
+    "de": [ "einer bemehlten Arbeitsfläche", "Backpapier", "einer Silikonmatte", "der Arbeitsfläche" ],
+    "en": [ "a floured work surface", "parchment paper", "a silicone mat", "the work surface" ],
+    "esp": [ "una superficie enharinada", "papel de horno", "una esterilla de silicona", "la superficie de trabajo" ],
+    "prt": [ "uma superfície enfarinhada", "papel vegetal", "um tapete de silicone", "a superfície de trabalho" ],
+    "id": [ "permukaan bertabur tepung", "kertas roti", "alas silikon", "permukaan kerja" ],
+    "nl": [ "een bebloemd werkblad", "bakpapier", "een siliconenmat", "het werkblad" ],
+    "sv": [ "en mjölad arbetsyta", "bakplåtspapper", "en silikonmatta", "arbetsytan" ],
+    "da": [ "et meldrysset bord", "bagepapir", "en silikonemåtte", "arbejdsfladen" ],
+    "no": [ "en melet arbeidsflate", "bakepapir", "en silikonmatte", "arbeidsflaten" ],
+    "ms": [ "permukaan bertabur tepung", "kertas pembakar", "alas silikon", "permukaan kerja" ]
+  },
+  "thickener": {
+    "de": [ "Speisestärke", "Mehl", "angerührter Stärke", "einer Mehlschwitze" ],
+    "en": [ "cornstarch", "flour", "slurry", "a roux" ],
+    "esp": [ "maicena", "harina", "fécula disuelta", "un roux" ],
+    "prt": [ "amido de milho", "farinha", "amido dissolvido", "um roux" ],
+    "id": [ "tepung maizena", "tepung", "larutan pati", "roux" ],
+    "nl": [ "maïzena", "bloem", "zetmeelpapje", "een roux" ],
+    "sv": [ "majsstärkelse", "mjöl", "redning", "en roux" ],
+    "da": [ "majsstivelse", "mel", "jævning", "en roux" ],
+    "no": [ "maisstivelse", "mel", "jevning", "en roux" ],
+    "ms": [ "tepung jagung", "tepung", "bancuhan kanji", "roux" ]
+  },
+  "components": {
+    "de": [ "Gemüse und Sauce", "Kartoffeln und Gemüse", "Nudeln und Sauce", "Schichten aus Teig und Füllung" ],
+    "en": [ "vegetables and sauce", "potatoes and vegetables", "pasta and sauce", "layers of dough and filling" ],
+    "esp": [ "verduras y salsa", "patatas y verduras", "pasta y salsa", "capas de masa y relleno" ],
+    "prt": [ "legumes e molho", "batatas e legumes", "massa e molho", "camadas de massa e recheio" ],
+    "id": [ "sayur dan saus", "kentang dan sayur", "pasta dan saus", "lapisan adonan dan isian" ],
+    "nl": [ "groenten en saus", "aardappelen en groenten", "pasta en saus", "lagen deeg en vulling" ],
+    "sv": [ "grönsaker och sås", "potatis och grönsaker", "pasta och sås", "lager av deg och fyllning" ],
+    "da": [ "grøntsager og sauce", "kartofler og grøntsager", "pasta og sauce", "lag af dej og fyld" ],
+    "no": [ "grønnsaker og saus", "poteter og grønnsaker", "pasta og saus", "lag av deig og fyll" ],
+    "ms": [ "sayur dan sos", "kentang dan sayur", "pasta dan sos", "lapisan doh dan inti" ]
+  },
+  "finish": {
+    "de": [ "geriebenem Käse", "frischen Kräutern", "Semmelbröseln", "einem Schuss Olivenöl" ],
+    "en": [ "grated cheese", "fresh herbs", "breadcrumbs", "a drizzle of olive oil" ],
+    "esp": [ "queso rallado", "hierbas frescas", "pan rallado", "un chorrito de aceite de oliva" ],
+    "prt": [ "queijo ralado", "ervas frescas", "pão ralado", "um fio de azeite" ],
+    "id": [ "keju parut", "herba segar", "tepung roti", "sedikit minyak zaitun" ],
+    "nl": [ "geraspte kaas", "verse kruiden", "paneermeel", "een scheutje olijfolie" ],
+    "sv": [ "riven ost", "färska örter", "ströbröd", "en skvätt olivolja" ],
+    "da": [ "revet ost", "friske urter", "rasp", "en smule olivenolie" ],
+    "no": [ "revet ost", "friske urter", "brødrasp", "en skvett olivenolje" ],
+    "ms": [ "keju parut", "herba segar", "serbuk roti", "sedikit minyak zaitun" ]
+  },
+  "extra": {
+    "de": [ "mit frischen Kräutern", "mit einem Dip", "mit Zitronenspalten", "sofort heiß" ],
+    "en": [ "with fresh herbs", "with a dip", "with lemon wedges", "serve immediately while hot" ],
+    "esp": [ "con hierbas frescas", "con una salsa", "con gajos de limón", "servir caliente de inmediato" ],
+    "prt": [ "com ervas frescas", "com um molho", "com gomos de limão", "servir de imediato bem quente" ],
+    "id": [ "dengan herba segar", "dengan cecah", "dengan irisan lemon", "sajikan segera saat panas" ],
+    "nl": [ "met verse kruiden", "met een dip", "met partjes citroen", "meteen heet serveren" ],
+    "sv": [ "med färska örter", "med en dip", "med citronklyftor", "servera direkt varm" ],
+    "da": [ "med friske urter", "med en dip", "med citronbåde", "servér straks varm" ],
+    "no": [ "med friske urter", "med en dip", "med sitronbåter", "server straks varm" ],
+    "ms": [ "dengan herba segar", "dengan sos pencicah", "dengan hirisan lemon", "hidang segera semasa panas" ]
+  },
+  "reason": {
+    "de": [ "sich die Aromen verbinden", "die Masse stabil bleibt", "der Saft sich verteilt", "die Kruste knusprig bleibt" ],
+    "en": [ "the flavors can meld", "the mixture stays stable", "the juices can redistribute", "the crust stays crispy" ],
+    "esp": [ "se integren los sabores", "la mezcla se mantenga estable", "los jugos se redistribuyan", "la costra quede crujiente" ],
+    "prt": [ "os sabores se integrem", "a mistura se mantenha estável", "os sucos se redistribuam", "a crosta fique crocante" ],
+    "id": [ "rasa menyatu", "adonan tetap stabil", "sari merata kembali", "kerak tetap renyah" ],
+    "nl": [ "de smaken zich verbinden", "het mengsel stabiel blijft", "de sappen zich verdelen", "de korst knapperig blijft" ],
+    "sv": [ "smakerna hinner sätta sig", "blandningen håller sig stabil", "saften fördelas igen", "skorpan håller sig krispig" ],
+    "da": [ "smagene samler sig", "massen holder sig stabil", "saften fordeler sig", "skorpen forbliver sprød" ],
+    "no": [ "smakene setter seg", "blandingen holder seg stabil", "saften fordeler seg", "skorpen holder seg sprø" ],
+    "ms": [ "rasa sebati", "adunan kekal stabil", "jus kembali sekata", "kerak kekal rangup" ]
+  },
+  "goal": {
+    "de": [ "die Masse luftig bleibt", "keine Luft entweicht", "alles gleichmäßig verteilt ist", "die Struktur erhalten bleibt" ],
+    "en": [ "the mixture stays airy", "no air is lost", "everything is evenly distributed", "the structure is preserved" ],
+    "esp": [ "la mezcla quede aireada", "no se pierda aire", "todo quede repartido de forma uniforme", "se conserve la estructura" ],
+    "prt": [ "a mistura fique aerada", "não se perca ar", "tudo fique distribuído de forma uniforme", "a estrutura seja preservada" ],
+    "id": [ "adonan tetap ringan", "udara tidak hilang", "semua tersebar merata", "strukturnya terjaga" ],
+    "nl": [ "het mengsel luchtig blijft", "er geen lucht verloren gaat", "alles gelijkmatig verdeeld is", "de structuur behouden blijft" ],
+    "sv": [ "smeten håller sig luftig", "ingen luft går förlorad", "allt fördelas jämnt", "strukturen bevaras" ],
+    "da": [ "massen forbliver luftig", "ingen luft går tabt", "alt fordeles jævnt", "strukturen bevares" ],
+    "no": [ "blandingen holder seg luftig", "ingen luft går tapt", "alt fordeles jevnt", "strukturen bevares" ],
+    "ms": [ "adunan kekal ringan", "udara tidak hilang", "semua tersebar sekata", "struktur kekal terpelihara" ]
+  },
+  "step1": {
+    "de": [ "Mehl", "Stärke", "Pankomehl" ],
+    "en": [ "flour", "starch", "panko breadcrumbs" ],
+    "esp": [ "harina", "fécula", "panko" ],
+    "prt": [ "farinha", "amido", "panko" ],
+    "id": [ "tepung", "pati", "tepung roti panko" ],
+    "nl": [ "bloem", "zetmeel", "panko" ],
+    "sv": [ "mjöl", "stärkelse", "panko" ],
+    "da": [ "mel", "stivelse", "panko" ],
+    "no": [ "mel", "stivelse", "panko" ],
+    "ms": [ "tepung", "kanji", "panko" ]
+  },
+  "step2": {
+    "de": [ "verquirltem Ei", "Buttermilch", "pflanzlicher Milch" ],
+    "en": [ "beaten egg", "buttermilk", "plant-based milk" ],
+    "esp": [ "huevo batido", "suero de leche", "leche vegetal" ],
+    "prt": [ "ovo batido", "leitelho", "bebida vegetal" ],
+    "id": [ "telur kocok", "buttermilk", "susu nabati" ],
+    "nl": [ "losgeklopt ei", "karnemelk", "plantaardige melk" ],
+    "sv": [ "uppvispat ägg", "kärnmjölk", "växtbaserad mjölk" ],
+    "da": [ "sammenpisket æg", "kærnemælk", "plantebaseret mælk" ],
+    "no": [ "sammenvispet egg", "kjernemelk", "plantebasert melk" ],
+    "ms": [ "telur pukul", "susu mentega", "susu berasaskan tumbuhan" ]
+  },
+  "step3": {
+    "de": [ "Semmelbröseln", "Panko", "zerdrückten Cornflakes" ],
+    "en": [ "breadcrumbs", "panko", "crushed cornflakes" ],
+    "esp": [ "pan rallado", "panko", "copos de maíz triturados" ],
+    "prt": [ "pão ralado", "panko", "cornflakes triturados" ],
+    "id": [ "tepung roti", "panko", "cornflakes hancur" ],
+    "nl": [ "paneermeel", "panko", "geplette cornflakes" ],
+    "sv": [ "ströbröd", "panko", "krossade cornflakes" ],
+    "da": [ "rasp", "panko", "knuste cornflakes" ],
+    "no": [ "brødrasp", "panko", "knuste cornflakes" ],
+    "ms": [ "serbuk roti", "panko", "cornflakes hancur" ]
+  },
+ 
+  "dough": {
+    "de": [ "Teig", "Pizzateig", "Mürbeteig", "Hefeteig" ],
+    "en": [ "dough", "pizza dough", "shortcrust pastry", "yeast dough" ],
+    "esp": [ "masa", "masa de pizza", "masa quebrada", "masa con levadura" ],
+    "prt": [ "massa", "massa de pizza", "massa quebrada", "massa levedada" ],
+    "id": [ "adonan", "adonan pizza", "adonan pastry", "adonan ragi" ],
+    "nl": [ "deeg", "pizzadeeg", "zanddeeg", "gistdeeg" ],
+    "sv": [ "deg", "pizzadeg", "mördeg", "jästdeg" ],
+    "da": [ "dej", "pizzadej", "mørdej", "gærdej" ],
+    "no": [ "deig", "pizzadeig", "mørdeig", "gjærdeig" ],
+    "ms": [ "doh", "doh piza", "doh pastri", "doh yis" ]
+  },
+
 
   "duration_units": {
     "minute": {
