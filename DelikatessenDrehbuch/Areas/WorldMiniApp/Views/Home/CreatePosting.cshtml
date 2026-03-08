@@ -334,7 +334,7 @@
             <section class="smart-step-creator mb-3" data-theme="dark" id="card-probability">
                 <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-black">
+                        <div class="card-icon candy-purple">
                             <i class="bi bi-graph-up-arrow text-white"></i>
                         </div>
                         <div>
@@ -540,7 +540,7 @@
         justify-content: center;
         border: 1px solid rgba(0,0,0,0.10);
         background: #fff;
-        color: #f8fafc;
+        color: #111;
         text-decoration: none;
     }
 
@@ -644,7 +644,7 @@
 
     .creator-card-sub {
         font-size: .84rem;
-        color: rgba(226,232,240,.70);
+        color: rgba(17,24,39,.60);
         margin-top: 2px;
     }
 
@@ -741,7 +741,7 @@
     .form-control:focus, .form-select:focus {
         box-shadow: none;
         border-color: transparent;
-    }`r`n`r`n    .creator-bg .form-control,`r`n    .creator-bg .form-select,`r`n    .creator-bg .input-pill i,`r`n    .creator-bg .select-pill i,`r`n    .creator-bg .text-muted {`r`n        color: rgba(241,245,249,.84) !important;`r`n    }`r`n`r`n    .creator-bg .form-control::placeholder {`r`n        color: rgba(226,232,240,.65);`r`n    }
+    }
 
     .cursor-pointer {
         cursor: pointer;
@@ -943,7 +943,7 @@
         border-radius: 999px;
         border: 1px solid rgba(255,255,255,0.25);
         background: rgba(255,255,255,0.06);
-        color: #f8fafc;
+        color: #111;
         font-weight: 700;
         padding: 2px 10px;
         line-height: 1.5;
@@ -984,7 +984,14 @@
         padding: 5px;
     }
 
-    .ingredient-row.dynamic-item {`r`n        background: rgba(15,23,42,0.92);`r`n        border-radius: 18px;`r`n        padding: 12px;`r`n        margin-bottom: 10px;`r`n        border: 1px solid rgba(255,255,255,0.14);`r`n        box-shadow: 0 10px 20px rgba(0,0,0,0.25);`r`n    }
+    .ingredient-row.dynamic-item {
+        background: rgba(255,255,255,0.92);
+        border-radius: 18px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
 
     .display-name-selected {
         color: var(--creator-text) !important;
@@ -1032,13 +1039,26 @@
     }
 
     /* Design-Anpassung für die Inputs innerhalb der Karte */
-    .candy-purple-input {`r`n        border: 1px solid rgba(255,255,255,0.16) !important;`r`n        background-color: rgba(255,255,255,0.08) !important;`r`n        color: #f8fafc !important;`r`n        font-weight: 700;`r`n        border-radius: 10px !important;`r`n    }
+    .candy-purple-input {
+        border: none !important;
+        background-color: rgba(139, 92, 246, 0.08) !important;
+        color: #7c3aed !important;
+        font-weight: bold;
+        border-radius: 10px !important;
+    }
 
     .selected-zone {
         padding-top: 6px;
     }
 
-    .dynamic-item {`r`n        background: rgba(15,23,42,0.92);`r`n        border-radius: 18px;`r`n        padding: 12px;`r`n        margin-bottom: 10px;`r`n        border: 1px solid rgba(255,255,255,0.14);`r`n        box-shadow: 0 10px 20px rgba(0,0,0,0.25);`r`n    }
+    .dynamic-item {
+        background: rgba(255,255,255,0.92);
+        border-radius: 18px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
 
     #selectedSteps .step-row {
         border: 1px solid var(--creator-border);
@@ -1092,7 +1112,9 @@
 
     #card-keywords {
         border-radius: 24px;
-        border: 1px solid rgba(255,255,255,0.12);`r`n        background: rgba(255,255,255,0.06);`r`n        color: #f8fafc;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.06);
+        color: #111;
         background: radial-gradient(120% 120% at 10% 0%, #1d2430 0%, #0e131d 45%, #080b12 100%);
         color: #f8f9ff;
         box-shadow: 0 18px 40px rgba(16,20,40,0.26);
@@ -1703,113 +1725,6 @@
         background: rgba(255,255,255,0.2);
         border-color: rgba(255,255,255,0.85);
         color: #ffffff;
-    }
-
-
-    /* ===== Unified Black Glass Override ===== */
-    .creator-bg {
-        background: radial-gradient(1100px 560px at 20% -10%, rgba(255,255,255,.06), transparent 62%), radial-gradient(900px 520px at 85% 5%, rgba(148,163,184,.08), transparent 65%), #06080d !important;
-        color: #f8fafc;
-    }
-
-    .creator-loading {
-        background: rgba(2,6,12,0.72) !important;
-    }
-
-    .creator-loading-card,
-    .creator-topbar,
-    .creator-hero,
-    .creator-card,
-    .creator-bottom-inner,
-    #card-keywords,
-    .smart-step-creator {
-        background: rgba(15,23,42,0.58) !important;
-        border: 1px solid rgba(255,255,255,0.14) !important;
-        box-shadow: 0 14px 36px rgba(0,0,0,0.30) !important;
-        backdrop-filter: blur(16px) !important;
-    }
-
-    .creator-card-head,
-    #card-keywords .creator-card-head,
-    .creator-top-head {
-        border-bottom: 1px solid rgba(255,255,255,0.10) !important;
-        background: rgba(8,12,20,0.62) !important;
-    }
-
-    .topbar-btn,
-    .card-icon,
-    .candy-blue,
-    .candy-green,
-    .candy-pink,
-    .candy-purple,
-    .candy-black {
-        background: rgba(255,255,255,0.06) !important;
-        color: #f8fafc !important;
-        border: 1px solid rgba(255,255,255,0.14) !important;
-    }
-
-    .topbar-primary,
-    .creator-cta-primary,
-    .publish-btn,
-    .keyword-btn.btn-secondary,
-    .keyword-btn.active {
-        background: linear-gradient(160deg, rgba(255,255,255,.18) 0%, rgba(148,163,184,.28) 100%) !important;
-        border: 1px solid rgba(255,255,255,0.28) !important;
-        color: #fff !important;
-    }
-
-    .creator-card-title,
-    .creator-hero-title,
-    .creator-card-sub,
-    .creator-hero-sub,
-    .sheet-title,
-    .sheet-sub,
-    .topbar-title,
-    .bottom-hint,
-    .keyword-pill,
-    .keyword-btn,
-    .text-muted {
-        color: rgba(241,245,249,.88) !important;
-    }
-
-    .input-pill,
-    .select-pill,
-    .upload-drop,
-    .dynamic-item,
-    .ingredient-row.dynamic-item,
-    .preview-step-card,
-    .template-card,
-    .probability-template-card,
-    .prob-var-chip,
-    .common-unit-chip,
-    #selectedSteps .step-row {
-        background: rgba(255,255,255,0.06) !important;
-        border: 1px solid rgba(255,255,255,0.16) !important;
-        color: #f8fafc !important;
-    }
-
-    .upload-drop {
-        border-style: dashed !important;
-    }
-
-    .candy-purple-input,
-    .form-control,
-    .form-select {
-        background-color: rgba(255,255,255,0.08) !important;
-        border: 1px solid rgba(255,255,255,0.16) !important;
-        color: #f8fafc !important;
-    }
-
-    .form-control::placeholder {
-        color: rgba(226,232,240,.65) !important;
-    }
-
-    .dot {
-        background: rgba(255,255,255,0.16) !important;
-    }
-
-    .dot.active {
-        background: #f8fafc !important;
     }
 </style>
 
