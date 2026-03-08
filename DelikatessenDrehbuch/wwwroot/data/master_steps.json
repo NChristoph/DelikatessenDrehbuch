@@ -1,4 +1,4 @@
-{
+﻿{
   "_meta": {
     "version": "1.4.5",
     "created_at": "2026-02-17",
@@ -1004,7 +1004,27 @@
         "ms": "Hidangkan {{base}} {{extra}}."
       },
       "variables": [ "base", "extra" ]
+    },
+    {
+      "master_id": "PREP_MARINADE_MAKE_01",
+      "phase": 1,
+      "equipment": 0,
+      "description": "Marinade aus Zutaten herstellen",
+      "templates": {
+        "de": "Stelle aus {{ingredients}} eine Marinade her.",
+        "en": "Make a marinade from {{ingredients}}.",
+        "esp": "Prepara una marinada con {{ingredients}}.",
+        "prt": "Faça uma marinada com {{ingredients}}.",
+        "id": "Buat marinade dari {{ingredients}}.",
+        "nl": "Maak een marinade van {{ingredients}}.",
+        "sv": "Gör en marinad av {{ingredients}}.",
+        "da": "Lav en marinade af {{ingredients}}.",
+        "no": "Lag en marinade av {{ingredients}}.",
+        "ms": "Sediakan perapan daripada {{ingredients}}."
+      },
+      "variables": [ "ingredients" ]
     }
+
   ],
 
   "variable_hints": {
@@ -1059,6 +1079,18 @@
       "da": [ "" ],
       "no": [ "" ],
       "ms": [ "" ]
+    },
+    "pronoun": {
+      "de": [ "es", "sie", "ihn" ],
+      "en": [ "it", "them" ],
+      "esp": [ "lo", "la", "los", "las" ],
+      "prt": [ "o", "a", "os", "as" ],
+      "id": [ "nya" ],
+      "nl": [ "hem", "haar", "het" ],
+      "sv": [ "den", "det" ],
+      "da": [ "den", "det" ],
+      "no": [ "den", "det" ],
+      "ms": [ "nya" ]
     },
     "heat": {
       "de": [ "niedriger", "mittlerer", "hoher" ],
@@ -1181,16 +1213,16 @@
       "ms": [ "kuali", "periuk", "ketuhar", "bekas pembakar", "dapur", "pengisar", "gril", "pengukus", "mangkuk", "penapis" ]
     },
     "marinade": {
-      "de": [ "Olivenöl und Gewürzen", "Joghurt und Gewürzen", "Sojasauce, Knoblauch und Ingwer", "Zitronensaft, Öl und Kräutern" ],
-      "en": [ "olive oil and spices", "yogurt and spices", "soy sauce, garlic and ginger", "lemon juice, oil and herbs" ],
-      "esp": [ "aceite de oliva y especias", "yogur y especias", "salsa de soja, ajo y jengibre", "zumo de limón, aceite y hierbas" ],
-      "prt": [ "azeite e especiarias", "iogurte e especiarias", "molho de soja, alho e gengibre", "sumo de limão, azeite e ervas" ],
-      "id": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kecap asin, bawang putih, dan jahe", "jus lemon, minyak, dan herba" ],
-      "nl": [ "olijfolie en kruiden", "yoghurt en kruiden", "sojasaus, knoflook en gember", "citroensap, olie en kruiden" ],
-      "sv": [ "olivolja och kryddor", "yoghurt och kryddor", "soja, vitlök och ingefära", "citronsaft, olja och örter" ],
-      "da": [ "olivenolie og krydderier", "yoghurt og krydderier", "soja, hvidløg og ingefær", "citronsaft, olie og urter" ],
-      "no": [ "olivenolje og krydder", "yoghurt og krydder", "soyasaus, hvitløk og ingefær", "sitronsaft, olje og urter" ],
-      "ms": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kicap soya, bawang putih dan halia", "jus lemon, minyak dan herba" ]
+      "de": [ "Olivenöl und Gewürzen", "Joghurt und Gewürzen", "Sojasauce, Knoblauch und Ingwer", "Zitronensaft, Öl und Kräutern", "die Marinade" ],
+      "en": [ "olive oil and spices", "yogurt and spices", "soy sauce, garlic and ginger", "lemon juice, oil and herbs", "the marinade" ],
+      "esp": [ "aceite de oliva y especias", "yogur y especias", "salsa de soja, ajo y jengibre", "zumo de limón, aceite y hierbas", "la marinada" ],
+      "prt": [ "azeite e especiarias", "iogurte e especiarias", "molho de soja, alho e gengibre", "sumo de limão, azeite e ervas", "a marinada" ],
+      "id": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kecap asin, bawang putih, dan jahe", "jus lemon, minyak, dan herba", "marinade" ],
+      "nl": [ "olijfolie en kruiden", "yoghurt en kruiden", "sojasaus, knoflook en gember", "citroensap, olie en kruiden", "de marinade" ],
+      "sv": [ "olivolja och kryddor", "yoghurt och kryddor", "sojasås, vitlök och ingefära", "citronsaft, olja och örter", "marinaden" ],
+      "da": [ "olivenolie og krydderier", "yoghurt og krydderier", "sojasauce, hvidløg og ingefær", "citronsaft, olie og urter", "marinaden" ],
+      "no": [ "olivenolje og krydder", "yoghurt og krydder", "soyasaus, hvitløk og ingefær", "sitronsaft, olje og urter", "marinaden" ],
+      "ms": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kicap soya, bawang putih dan halia", "jus lemon, minyak dan herba", "perapan" ]
     },
     "method": {
       "de": [ "vorsichtig unter", "gleichmäßig einrühren", "kurz vermengen", "gründlich vermischen" ],
@@ -1265,28 +1297,28 @@
       "ms": [ "tepung jagung", "tepung", "bancuhan kanji", "roux" ]
     },
     "components": {
-      "de": [ "Gemüse und Sauce", "Kartoffeln und Gemüse", "Nudeln und Sauce", "Schichten aus Teig und Füllung" ],
-      "en": [ "vegetables and sauce", "potatoes and vegetables", "pasta and sauce", "layers of dough and filling" ],
-      "esp": [ "verduras y salsa", "patatas y verduras", "pasta y salsa", "capas de masa y relleno" ],
-      "prt": [ "legumes e molho", "batatas e legumes", "massa e molho", "camadas de massa e recheio" ],
-      "id": [ "sayur dan saus", "kentang dan sayur", "pasta dan saus", "lapisan adonan dan isian" ],
-      "nl": [ "groenten en saus", "aardappelen en groenten", "pasta en saus", "lagen deeg en vulling" ],
-      "sv": [ "grönsaker och sås", "potatis och grönsaker", "pasta och sås", "lager av deg och fyllning" ],
-      "da": [ "grøntsager og sauce", "kartofler og grøntsager", "pasta og sauce", "lag af dej og fyld" ],
-      "no": [ "grønnsaker og saus", "poteter og grønnsaker", "pasta og saus", "lag av deig og fyll" ],
-      "ms": [ "sayur dan sos", "kentang dan sayur", "pasta dan sos", "lapisan doh dan inti" ]
+      "de": [ "Gemüse und Sauce", "Kartoffeln und Gemüse", "Nudeln und Sauce", "Schichten aus Teig und Füllung", "die Zutaten" ],
+      "en": [ "vegetables and sauce", "potatoes and vegetables", "pasta and sauce", "layers of dough and filling", "the ingredients" ],
+      "esp": [ "verduras y salsa", "patatas y verduras", "pasta y salsa", "capas de masa y relleno", "los ingredientes" ],
+      "prt": [ "legumes e molho", "batatas e legumes", "massa e molho", "camadas de massa e recheio", "os ingredientes" ],
+      "id": [ "sayur dan saus", "kentang dan sayur", "pasta dan saus", "lapisan adonan dan isian", "bahan-bahan" ],
+      "nl": [ "groenten en saus", "aardappelen en groenten", "pasta en saus", "lagen deeg en vulling", "de ingredienten" ],
+      "sv": [ "grönsaker och sås", "potatis och grönsaker", "pasta och sås", "lager av deg och fyllning", "ingredienserna" ],
+      "da": [ "grøntsager og sauce", "kartofler og grøntsager", "pasta og sauce", "lag af dej og fyld", "ingredienserne" ],
+      "no": [ "grønnsaker og saus", "poteter og grønnsaker", "pasta og saus", "lag av deig og fyll", "ingrediensene" ],
+      "ms": [ "sayur dan sos", "kentang dan sayur", "pasta dan sos", "lapisan doh dan inti", "bahan-bahan" ]
     },
     "finish": {
-      "de": [ "geriebenem Käse", "frischen Kräutern", "Semmelbröseln", "einem Schuss Olivenöl" ],
-      "en": [ "grated cheese", "fresh herbs", "breadcrumbs", "a drizzle of olive oil" ],
-      "esp": [ "queso rallado", "hierbas frescas", "pan rallado", "un chorrito de aceite de oliva" ],
-      "prt": [ "queijo ralado", "ervas frescas", "pão ralado", "um fio de azeite" ],
-      "id": [ "keju parut", "herba segar", "tepung roti", "sedikit minyak zaitun" ],
-      "nl": [ "geraspte kaas", "verse kruiden", "paneermeel", "een scheutje olijfolie" ],
-      "sv": [ "riven ost", "färska örter", "ströbröd", "en skvätt olivolja" ],
-      "da": [ "revet ost", "friske urter", "rasp", "en smule olivenolie" ],
-      "no": [ "revet ost", "friske urter", "brødrasp", "en skvett olivenolje" ],
-      "ms": [ "keju parut", "herba segar", "serbuk roti", "sedikit minyak zaitun" ]
+      "de": [ "geriebenem Käse", "frischen Kräutern", "Semmelbröseln", "einem Schuss Olivenöl", "Bechamelsauce" ],
+      "en": [ "grated cheese", "fresh herbs", "breadcrumbs", "a drizzle of olive oil", "bechamel sauce" ],
+      "esp": [ "queso rallado", "hierbas frescas", "pan rallado", "un chorrito de aceite de oliva", "salsa bechamel" ],
+      "prt": [ "queijo ralado", "ervas frescas", "pão ralado", "um fio de azeite", "molho bechamel" ],
+      "id": [ "keju parut", "herba segar", "tepung roti", "sedikit minyak zaitun", "saus bechamel" ],
+      "nl": [ "geraspte kaas", "verse kruiden", "paneermeel", "een scheutje olijfolie", "bechamelsaus" ],
+      "sv": [ "riven ost", "färska örter", "ströbröd", "en skvätt olivolja", "bechamelsas" ],
+      "da": [ "revet ost", "friske urter", "rasp", "en smule olivenolie", "bechamelsauce" ],
+      "no": [ "revet ost", "friske urter", "brødrasp", "en skvett olivenolje", "bechamelsaus" ],
+      "ms": [ "keju parut", "herba segar", "serbuk roti", "sedikit minyak zaitun", "sos bechamel" ]
     },
     "extra": {
       "de": [ "mit frischen Kräutern", "mit einem Dip", "mit Zitronenspalten", "sofort heiß" ],
