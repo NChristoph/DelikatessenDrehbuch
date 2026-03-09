@@ -1893,6 +1893,7 @@
                 renderIngredientChips();
                 renderTemplateCards();
                 updateStoryProgress();
+                renderAcceptedRecipeTextCard();
             } catch (error) {
                 showMasterStepCreatorError(error, 'refreshMasterTemplateBuilder');
             }
@@ -1977,17 +1978,20 @@
             return tempStepIdCounter.toString();
         }
 
-        async function addRenderedMasterStep() {
-            const templateId = getEffectiveTemplateId();
+        async function addRenderedMasterStep(templateIdOverride = null, varsOverride = null) {
+            const templateId = templateIdOverride || getEffectiveTemplateId();
             if (!templateId || !window.MasterStepRenderer) return;
 
             const template = MasterStepRenderer.findTemplate(templateId);
             if (!template) return;
 
-            const rawVars = collectMasterVariables();
+            const rawVars = (varsOverride && typeof varsOverride === 'object') ? varsOverride : collectMasterVariables();
             const vars = normalizeVariablesForPersist(template, rawVars);
             const rendered = buildRenderedPayloadFromTemplate(template, vars);
-            const ingredientName = (vars.ingredient || vars.ingredients || vars.liquid || vars.fat || '').toString().trim();
+            let ingredientName = (vars.ingredient || vars.ingredients || vars.liquid || vars.fat || '').toString().trim();
+            if (!ingredientName && typeof getSelectedIngredientValueForInsert === 'function') {
+                ingredientName = (getSelectedIngredientValueForInsert() || '').toString().trim();
+            }
             const payload = {
                 de: rendered.de,
                 en: rendered.en,
@@ -2030,7 +2034,7 @@
                     });
                 }
 
-                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true, ingredientName });
+                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true, ingredientName, masterTemplateId: templateId });
                 updateStepIndices();
             } catch (error) {
                 console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
@@ -2049,6 +2053,7 @@
                 addStep(fallbackId, null, rendered[currentLang] || rendered.de || 'Neuer Schritt', {
                     skipRender: true,
                     ingredientName,
+                    masterTemplateId: templateId,
                     stepData: {
                         de: rendered.de,
                         en: rendered.en,
@@ -2162,7 +2167,23 @@
                 });
                 return suggestions;
             },
-            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement)
+            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement),
+            onAcceptTemplateStep: async (masterId, probabilityVars = null) => {
+                creatorState.selectedTemplateId = masterId;
+                const beforeCount = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`).length;
+                await addRenderedMasterStep(masterId, probabilityVars);
+
+                const rows = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`);
+                const targetRow = rows.last();
+                if (targetRow.length) {
+                    targetRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetRow.addClass('preview-animate');
+                    setTimeout(() => targetRow.removeClass('preview-animate'), 350);
+                }
+
+                const afterCount = rows.length;
+                showCreatorToast(afterCount > beforeCount ? 'Step akzeptiert' : 'Step bereits vorhanden');
+            }
         });
 
         async function refreshIngredientProbabilityHints() {
@@ -2196,6 +2217,7 @@
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
             refreshDurationUnitControls();
             updateCommonUnitChipLabels();
+            renderAcceptedRecipeTextCard();
             refreshMasterTemplateBuilder();
             refreshIngredientProbabilityHints();
         }
@@ -2366,7 +2388,7 @@
                 : template;
         }
 
-        function renderStepTextWithIngredientToken(templateText, ingredientName) {
+        function renderStepTextWithIngredientToken(templateText, ingredientName, tokenId = 'STEP_INGREDIENT_TOKEN') {
             const template = (templateText || '').toString();
             const ingredient = (ingredientName || '').toString().trim();
 
@@ -2386,7 +2408,8 @@
             const safeBefore = $('<div>').text(before).html();
             const safeAfter = $('<div>').text(after).html();
             const safeIngredient = $('<div>').text(ingredient).html();
-            return `${safeBefore}<span class="step-ingredient-anchor" data-step-ingredient-anchor="1">${safeIngredient}</span>${safeAfter}`;
+            const safeTokenId = $("<div>").text(tokenId).html();
+            return `${safeBefore}<span class="token-highlight placeholder-token template-var step-ingredient-anchor" draggable="false" data-var="ingredient" data-token-id="${safeTokenId}" data-has-value="1" data-step-ingredient-anchor="1">${safeIngredient}</span>${safeAfter}`;
         }
 
         function ensureStepLanguageTemplate(row, langKey, oldName) {
@@ -2429,7 +2452,7 @@
             if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswählen'); return; }
 
             const newName = (typeof getSelectedIngredientValueForInsert === 'function' ? getSelectedIngredientValueForInsert() : selectedNames.join(', '));
-            const oldName = (row.data('ingredient-name') || row.find('.step-ingredient-anchor').first().text() || '').toString().trim();
+            const oldName = (row.data('ingredient-name') || row.find('.template-var[data-var="ingredient"], .step-ingredient-anchor').first().text() || '').toString().trim();
             const langKeys = ['de', 'en', 'esp', 'prt'];
             let changed = false;
 
@@ -2450,7 +2473,7 @@
                 const beforeVisible = (textSpan.text() || '').toString();
                 const afterVisible = materializeStepTextFromTemplate(currentTemplate, newName);
                 if (afterVisible !== beforeVisible) changed = true;
-                textSpan.html(renderStepTextWithIngredientToken(currentTemplate, newName));
+                textSpan.html(renderStepTextWithIngredientToken(currentTemplate, newName, `step_${row.data('step-id') || 'manual'}_ingredient_0`));
             }
 
             row.attr('data-ingredient-name', newName);
@@ -2552,7 +2575,7 @@
             const templatePrt = buildIngredientTokenTemplate(normalizedStepData.prt, stepIngredientName);
             const visibleTemplate = ({ de: templateDe, en: templateEn, esp: templateEsp, prt: templatePrt })[currentLang] || templateDe;
 
-            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
+            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-master-template-id="${$('<div>').text((options?.masterTemplateId || '')).html()}" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(materializeStepTextFromTemplate(templateDe, stepIngredientName)).html()}" />
@@ -2568,7 +2591,7 @@
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
-                    <span class="step-text-content">${renderStepTextWithIngredientToken(visibleTemplate, stepIngredientName)}</span>
+                    <span class="step-text-content">${renderStepTextWithIngredientToken(visibleTemplate, stepIngredientName, `step_${id}_ingredient_0`)}</span>
                     <div class="step-row-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, -1)"><i class="bi bi-arrow-up"></i></button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveStepRow(this, 1)"><i class="bi bi-arrow-down"></i></button>
@@ -2586,6 +2609,22 @@
             $(btn).closest('.step-row').remove();
             updateStepIndices();
         }
+
+        function removeStepsByMasterTemplateId(masterId) {
+            const key = (masterId || '').toString();
+            if (!key) return;
+
+            const rows = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(key)}"]`);
+            if (!rows.length) {
+                showCreatorToast('Kein Step zum Template gefunden');
+                return;
+            }
+
+            rows.remove();
+            updateStepIndices();
+            showCreatorToast('Step(s) entfernt');
+        }
+
 
         function toggleKeyword(id, btn) {
             const container = $('#selectedKeywords');
@@ -2615,12 +2654,45 @@
             $(`.keyword-btn[data-keyword-id="${id}"]`).removeClass('btn-secondary').addClass('btn-outline-secondary');
         }
 
+        function renderAcceptedRecipeTextCard() {
+            const card = $("#acceptedStepsRecipeCard");
+            const box = $("#acceptedStepsRecipeText");
+            if (!card.length || !box.length) return;
+
+            const langKey = resolveLangKey(currentLang);
+            const rows = $("#selectedSteps .step-row");
+            if (!rows.length) {
+                box.html('<div class="accepted-step-line"><span class="accepted-step-no">-</span><span class="accepted-step-content">Noch keine akzeptierten Steps.</span></div>');
+                card.removeClass("d-none");
+                return;
+            }
+
+            const lines = [];
+            rows.each(function (i) {
+                const row = $(this);
+                const raw = (row.find(`.step-hidden-${langKey}`).val() || row.find(".step-text-content").text() || "").toString().replace(/\s+/g, " ").trim();
+                if (!raw) return;
+                const safe = $("<div>").text(raw).html();
+                lines.push(`<div class="accepted-step-line"><span class="accepted-step-no">${i + 1}.</span><span class="accepted-step-content">${safe}</span></div>`);
+            });
+
+            if (!lines.length) {
+                box.html('<div class="accepted-step-line"><span class="accepted-step-no">-</span><span class="accepted-step-content">Noch keine akzeptierten Steps.</span></div>');
+                card.removeClass("d-none");
+                return;
+            }
+
+            box.html(lines.join(""));
+            card.removeClass("d-none");
+        }
+
         function updateStepIndices() {
             $('#selectedSteps .step-row').each(function (i) {
                 $(this).find('.step-badge').text(i + 1);
                 $(this).find('.step-index-input').val(i + 1);
             });
             updateStoryProgress();
+            renderAcceptedRecipeTextCard();
         }
 
         function prepareBinding() {
@@ -3033,6 +3105,9 @@
             });
 
             $(document).on('click', '.js-probability-template', function () {
+                const wrap = $(this).closest('.probability-template-wrap');
+                const swipeTs = parseInt(wrap.data('swipeJustHandled') || 0, 10);
+                if (swipeTs && (Date.now() - swipeTs) < 350) return;
                 const masterId = ($(this).data('master-id') || '').toString();
                 if (!masterId) return;
 
@@ -3622,6 +3697,7 @@
             $('#btnAddRenderedStep').on('click', async function () {
                 await addRenderedMasterStep();
                 updateStoryProgress();
+                renderAcceptedRecipeTextCard();
                 showCreatorToast('Step akzeptiert');
             });
 
@@ -3731,6 +3807,7 @@
             $('#sc2BtnAddRenderedStep').on('click', async function () {
                 await addRenderedMasterStep();
                 updateStoryProgress();
+                renderAcceptedRecipeTextCard();
                 showSc2CreatorToast('Step akzeptiert');
             });
 

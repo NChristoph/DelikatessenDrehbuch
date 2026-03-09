@@ -1,16 +1,18 @@
 (function (window, $) {
     'use strict';
 
+    const SWIPE_THRESHOLD = 70;
+
     const UI_TEXT = {
-        selectIngredients: 'Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
-        moduleMissing: 'Analyse-Modul nicht verfügbar.',
+        selectIngredients: 'Waehle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
+        moduleMissing: 'Analyse-Modul nicht verfuegbar.',
         noTrend: 'Noch keine klare Tendenz erkannt.',
-        analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.',
-        templatesUnavailable: 'Template-Vorschläge sind aktuell nicht verfügbar.',
-        selectIngredientsFirst: 'Bitte zuerst Zutaten auswählen.',
+        analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfuegbar.',
+        templatesUnavailable: 'Template-Vorschlaege sind aktuell nicht verfuegbar.',
+        selectIngredientsFirst: 'Bitte zuerst Zutaten auswaehlen.',
         noTemplates: 'Keine passenden Templates gefunden.',
         suggestedIngredients: 'Vorgeschlagene Zutaten',
-        suggestedIngredientsHint: 'Tippen zum Hinzufügen'
+        suggestedIngredientsHint: 'Tippen zum Hinzufuegen'
     };
 
     function escapeHtml(value) {
@@ -33,29 +35,34 @@
         return [];
     }
 
-    function buildInlineTemplateText(template, lang, vars) {
+    function buildInlineTemplateText(masterId, template, lang, vars) {
         const templateText = (template?.templates?.[lang] || template?.templates?.de || '').toString();
         if (!templateText) return '';
 
-        return templateText.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+        let tokenIndex = 0;
+        return templateText.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_m, key) {
             const varKey = String(key || '').trim();
             const safeKey = escapeHtml(varKey);
             const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
             const safeValue = escapeHtml(nextValue || varKey);
-            return `<span class="probability-var-inline-wrap"><span class="js-probability-var probability-var-inline-token" data-var-key="${safeKey}" role="button" tabindex="0">${safeValue}</span></span>`;
+            const tokenId = `${(masterId || 'template').toString()}_${varKey}_${tokenIndex++}`;
+            const safeTokenId = escapeHtml(tokenId);
+
+            return `<span class="probability-var-inline-wrap"><span class="token-highlight placeholder-token template-var js-probability-var probability-var-inline-token" draggable="false" data-var="${safeKey}" data-var-key="${safeKey}" data-token-id="${safeTokenId}" data-has-value="${nextValue ? '1' : '0'}" role="button" tabindex="0">${safeValue}</span></span>`;
         });
     }
 
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        const inlineText = buildInlineTemplateText(template, lang, vars);
+        const inlineText = buildInlineTemplateText(masterId, template, lang, vars);
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <div class="probability-template-card w-100 text-start">
+  <div class="probability-template-card w-100 text-start" style="touch-action: pan-y;">
     <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
       <span class="probability-template-text">${inlineText || safeText}</span>
     </div>
+    <div class="small text-white-50 mt-2">&larr; Akzeptieren · Loeschen &rarr;</div>
   </div>
 </div>`;
     }
@@ -68,11 +75,6 @@
         }).join('');
     }
 
-    /**
-     * Builds HTML for the "suggested ingredients" strip beneath the template cards.
-     * Calls deps.getTypicalIngredientSuggestions(typeId) to retrieve unselected typical ingredients.
-     * Each chip has data-ingredient-id so the view can handle the click (highlight/add).
-     */
     function buildIngredientSuggestionHtml(typeId, deps, options) {
         options = options || {};
         const withHeader = options.withHeader !== false;
@@ -161,15 +163,16 @@
             const overrides = state.inlineOverrides[masterId] || {};
             return { ...base, ...overrides };
         }
+
         function rerenderInlineText(masterId, wrap) {
             const merged = getMergedVars(masterId);
             const template = deps.findTemplate(masterId);
-            const nextHtml = buildInlineTemplateText(template, getLang(), merged);
+            const nextHtml = buildInlineTemplateText(masterId, template, getLang(), merged);
             const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
             wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
         }
-        function bindInlineEvents() {
 
+        function bindInlineEvents() {
             $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -190,7 +193,7 @@
                         rerenderInlineText(masterId, wrap);
                     }, chip);
                 } else {
-                    const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
+                    const nextVal = window.prompt(`Wert fuer ${varKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;
@@ -198,6 +201,53 @@
                 }
             });
 
+            $(document).off('pointerdown.probabilitySwipe').on('pointerdown.probabilitySwipe', '.probability-template-card', function (event) {
+                if ($(event.target).closest('.js-probability-var').length) return;
+                const card = $(this);
+                card.data('swipe', { pointerId: event.pointerId, startX: event.clientX, moved: false });
+                card.css('transition', 'none');
+            });
+
+            $(document).off('pointermove.probabilitySwipe').on('pointermove.probabilitySwipe', '.probability-template-card', function (event) {
+                const card = $(this);
+                const swipe = card.data('swipe');
+                if (!swipe || swipe.pointerId !== event.pointerId) return;
+
+                const dx = event.clientX - swipe.startX;
+                if (Math.abs(dx) > 6) swipe.moved = true;
+                if (!swipe.moved) return;
+
+                const clamped = Math.max(-96, Math.min(96, dx));
+                card.css('transform', `translateX(${clamped}px)`);
+            });
+
+            $(document).off('pointerup.probabilitySwipe pointercancel.probabilitySwipe').on('pointerup.probabilitySwipe pointercancel.probabilitySwipe', '.probability-template-card', async function (event) {
+                const card = $(this);
+                const swipe = card.data('swipe');
+                if (!swipe || swipe.pointerId !== event.pointerId) return;
+
+                const dx = event.clientX - swipe.startX;
+                const wrap = card.closest('.probability-template-wrap');
+                const masterId = (wrap.data('master-id') || '').toString();
+
+                card.css('transition', 'transform .18s ease');
+                card.css('transform', 'translateX(0)');
+                setTimeout(() => card.css('transition', ''), 200);
+                card.removeData('swipe');
+
+                if (!masterId || !swipe.moved) return;
+
+                if (dx <= -SWIPE_THRESHOLD && deps.onAcceptTemplateStep) {
+                    wrap.data('swipeJustHandled', Date.now());
+                    await deps.onAcceptTemplateStep(masterId, getMergedVars(masterId));
+                    return;
+                }
+
+                if (dx >= SWIPE_THRESHOLD) {
+                    wrap.data('swipeJustHandled', Date.now());
+                    wrap.slideUp(140, function () { $(this).remove(); });
+                }
+            });
         }
 
         async function refresh() {
@@ -229,12 +279,12 @@
                 }
 
                 container.html(renderProbabilityTypeButtons(recipeTypes));
-            } catch (err) {
+            } catch (_err) {
                 setStatus(container, UI_TEXT.analysisUnavailable);
             }
         }
 
-        async function showSuggestions(typeId, typeName, score) {
+        async function showSuggestions(typeId) {
             const box = $('#ingredientProbabilityTemplates');
             const selectedIngredientSuggestionBox = $('#selectedIngredientsSuggestions');
             if (!box.length) return;

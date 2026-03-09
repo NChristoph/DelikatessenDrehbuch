@@ -1081,17 +1081,18 @@
       "ms": [ "" ]
     },
     "pronoun": {
-      "de": [ "es", "sie", "ihn" ],
-      "en": [ "it", "them" ],
-      "esp": [ "lo", "la", "los", "las" ],
-      "prt": [ "o", "a", "os", "as" ],
-      "id": [ "nya" ],
-      "nl": [ "hem", "haar", "het" ],
-      "sv": [ "den", "det" ],
-      "da": [ "den", "det" ],
-      "no": [ "den", "det" ],
-      "ms": [ "nya" ]
+      "de": [ "er", "sie", "es", "ihn" ],
+      "en": [ "he", "she", "it", "them" ],
+      "esp": [ "él", "ella", "ello", "los", "las" ],
+      "prt": [ "ele", "ela", "isso", "os", "as" ],
+      "id": [ "dia", "ia", "nya" ],
+      "nl": [ "hij", "zij", "het", "hem", "haar" ],
+      "sv": [ "han", "hon", "den", "det" ],
+      "da": [ "han", "hun", "den", "det" ],
+      "no": [ "han", "hun", "den", "det" ],
+      "ms": [ "dia", "ia", "nya" ]
     },
+
     "heat": {
       "de": [ "niedriger", "mittlerer", "hoher" ],
       "en": [ "low", "medium", "high" ],

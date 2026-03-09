@@ -1,4 +1,4 @@
-﻿// master-steps-ui.js
+// master-steps-ui.js
 // Erwartet:
 // - /data/master_steps.json (wwwroot/data/master_steps.json)
 // - <div id="insertContainer"></div>  (Liste der Step-Buttons)
@@ -70,13 +70,17 @@
         if (!doc) return [];
 
         const key = (varName || "").toString().trim();
-        const normalizedKey = key.toLowerCase().replace(/[_\-\s]+/g, "");
+        const normalizedKey = key.toLowerCase().replace(/[_\\-\\s]+/g, "");
+        const aliasMap = { pronomen: "pronoun" };
+        const alias = aliasMap[normalizedKey] || null;
+        const effectiveKey = alias || key;
+        const effectiveNormalizedKey = (alias || normalizedKey).toLowerCase().replace(/[_\\-\\s]+/g, "");
 
         // variable_options[varName][lang] (robust gegen _/-/Case)
-        let vo = doc.variable_options?.[key];
+        let vo = doc.variable_options?.[effectiveKey];
         if (!vo && doc.variable_options && typeof doc.variable_options === "object") {
             const match = Object.entries(doc.variable_options)
-                .find(([k]) => (k || "").toString().toLowerCase().replace(/[_\-\s]+/g, "") === normalizedKey);
+                .find(([k]) => (k || "").toString().toLowerCase().replace(/[_\-\s]+/g, "") === effectiveNormalizedKey);
             vo = match ? match[1] : null;
         }
         if (vo && typeof vo === "object") {
@@ -279,14 +283,18 @@
 
     function isNoArticleVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
-        return key === "state" || key === "duration" || isGrindSizeVariable(varName);
+        return key === "state" || key === "duration" || key === "count" || key === "item" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronomen" || isGrindSizeVariable(varName);
+    }
+    function isStateVariable(varName) {
+        const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
+        return key === "state";
     }
 
     
 
     function isCompactSpecialVariable(varName) {
         const key = (varName || '').toString().trim().toLowerCase();
-        return key === 'duration' || key === 'temp';
+        return key === 'duration' || key === 'temp' || key === 'count';
     }
 
     function getSelectedIngredientNamesFromPage() {
@@ -362,14 +370,17 @@
       </div>
     `;
             host.dataset.selectedArticle = "";
+            host.dataset.selectedPronoun = "";
             host.dataset.selectedValue = "";
             host.dataset.selectedIngredientValues = "[]";
             return;
         }
         const ingredientVar = isIngredientVariable(varName);
         const noArticleVar = isNoArticleVariable(varName);
+        const stateVar = isStateVariable(varName);
 
         const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
+        const pronounButtons = stateVar ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
         const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
@@ -397,6 +408,13 @@
         </div>
         `}
 
+        ${stateVar ? `
+        <div class="small text-muted mt-2 mb-1">Pronomen</div>
+        <div class="d-flex flex-wrap gap-2 mb-2" id="PronounBtnRow">
+          ${pronounButtons}
+        </div>
+        ` : ""}
+
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
@@ -413,6 +431,7 @@
 
         // preset selected article/value state
         host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
+        host.dataset.selectedPronoun = "";
         host.dataset.selectedValue = "";   // gewählter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
@@ -483,6 +502,19 @@
       `;
         }
 
+
+        if (varName === "count") {
+            return `
+        <div class="d-flex gap-2 align-items-center">
+          <input type="number" min="1" step="1" id="CountValueInput"
+                 class="form-control form-control-sm"
+                 style="max-width:110px"
+                 value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
+          <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+        </div>
+      `;
+        }
         // default: einfache Textbox (falls keine options existieren)
         return `
    
@@ -526,10 +558,20 @@
             return;
         }
 
+
+        if (varName === "count") {
+            const n = $("#CountValueInput")?.value?.trim() || "1";
+            const normalized = /^\d+$/.test(n) ? n : "1";
+            activeStep.values[varName] = normalized;
+            rerenderAfterValueSet();
+            return;
+        }
         // Normalfall: Artikel + Wert
         const article = host.dataset.selectedArticle ?? "";
+        const pronoun = host.dataset.selectedPronoun ?? "";
         let value = host.dataset.selectedValue ?? "";
         const noArticleVar = isNoArticleVariable(varName);
+        const stateVar = isStateVariable(varName);
 
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
@@ -539,16 +581,15 @@
             return;
         }
 
-        // fallback: free text
-        if (!value) {
-            value = $("#FreeTextValueInput")?.value?.trim() || "";
-        }
-
         let composed = value;
 
         // Artikel nur wenn nicht "ohne"
         if (!noArticleVar && article && article !== "ohne") {
             composed = `${article} ${value}`.trim();
+        }
+
+        if (stateVar && pronoun && value) {
+            composed = `${pronoun} ${value}`.trim();
         }
 
         // wenn nur artikel geklickt aber kein value -> nix setzen
@@ -731,13 +772,14 @@
                 }
 
                 // toggle active style
-                const row = mode === "article" ? $("#ArticleBtnRow") : $("#ValueBtnRow");
+                const row = mode === "article" ? $("#ArticleBtnRow") : (mode === "pronoun" ? $("#PronounBtnRow") : $("#ValueBtnRow"));
                 if (row) row.querySelectorAll("button[data-pick-mode]").forEach(b => {
                     if (b.dataset.pickMode === mode) b.classList.remove("active");
                 });
                 pickBtn.classList.add("active");
 
                 if (mode === "article") host.dataset.selectedArticle = val;
+                if (mode === "pronoun") host.dataset.selectedPronoun = val;
                 if (mode === "value") host.dataset.selectedValue = val;
                 return;
             }
@@ -771,6 +813,13 @@
                 return;
             }
 
+            if (e.target.id === "BtnPickCountQuick") {
+                const n = $("#CountValueInput")?.value?.trim() || "1";
+                const normalized = /^\d+$/.test(n) ? n : "1";
+                activeStep.values["count"] = normalized;
+                rerenderAfterValueSet();
+                return;
+            }
             // quick temp apply
             if (e.target.id === "BtnPickTempQuick") {
                 const n = $("#TempValueInput")?.value?.trim() || "";
