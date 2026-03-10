@@ -427,7 +427,101 @@
             return [];
         }
 
-        const currentThema = 'gold';
+        const createPostingThemeStorageKey = 'createPostingTheme';
+        const availableCreatePostingThemes = ['navy', 'rosa', 'gold'];
+        const currentThema = (() => {
+            const domTheme = (document.querySelector('.feed-shell')?.getAttribute('data-theme') || '').toString().trim().toLowerCase();
+            const normalizedDomTheme = domTheme === 'dark' ? 'navy' : domTheme;
+            return availableCreatePostingThemes.includes(normalizedDomTheme) ? normalizedDomTheme : 'gold';
+        })();
+
+        function normalizeCreatePostingTheme(theme) {
+            const normalized = (theme || '').toString().trim().toLowerCase();
+            if (normalized === 'dark') return 'navy';
+            return availableCreatePostingThemes.includes(normalized) ? normalized : currentThema;
+        }
+
+        function readStoredCreatePostingTheme() {
+            try {
+                return normalizeCreatePostingTheme(localStorage.getItem(createPostingThemeStorageKey));
+            } catch (error) {
+                return currentThema;
+            }
+        }
+
+        window.CreatePostingCurrentTheme = readStoredCreatePostingTheme();
+
+        window.getCreatePostingTheme = function () {
+            return normalizeCreatePostingTheme(window.CreatePostingCurrentTheme || currentThema || 'gold');
+        };
+
+        window.getThemeMutedTextClass = function () {
+            return window.getCreatePostingTheme() === 'rosa' ? 'text-dark' : 'text-white-50';
+        };
+
+        function syncCreatePostingThemeToggleState() {
+            const theme = window.getCreatePostingTheme();
+            $('[data-create-posting-theme]').each(function () {
+                const btn = $(this);
+                const isActive = normalizeCreatePostingTheme(btn.data('create-posting-theme')) === theme;
+                btn.toggleClass('is-active', isActive);
+                btn.attr('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function applyCurrentThemeAttributes() {
+            const theme = window.getCreatePostingTheme();
+            const selectors = [
+                '.creator-topbar',
+                '.feed-shell',
+                '.creator-hero',
+                '.creator-card',
+                '.smart-step-creator',
+                '.upload-drop',
+                '.input-pill',
+                '.select-pill',
+                '.preview-step-card',
+                '.template-card',
+                '.ingredient-db-row'
+            ];
+            $(selectors.join(', ')).attr('data-theme', theme);
+            syncCreatePostingThemeToggleState();
+        }
+
+        window.setCreatePostingTheme = function (theme, options) {
+            const settings = options || {};
+            const nextTheme = normalizeCreatePostingTheme(theme);
+            window.CreatePostingCurrentTheme = nextTheme;
+
+            if (settings.persist !== false) {
+                try {
+                    localStorage.setItem(createPostingThemeStorageKey, nextTheme);
+                } catch (error) {
+                }
+            }
+
+            applyCurrentThemeAttributes();
+
+            if (settings.refresh === false) {
+                return nextTheme;
+            }
+
+            if (typeof refreshMasterTemplateBuilder === 'function') {
+                refreshMasterTemplateBuilder();
+            }
+            if (typeof refreshIngredientProbabilityHints === 'function') {
+                refreshIngredientProbabilityHints();
+            }
+            if (typeof renderSc2TemplateCards === 'function') {
+                renderSc2TemplateCards();
+            }
+            if (typeof updateLanguageLabels === 'function') {
+                updateLanguageLabels();
+            }
+
+            return nextTheme;
+        };
+
         const creatorState = {
             selectedIngredientIds: [],
             selectedTemplateId: '',
@@ -487,13 +581,13 @@
 
         function getIngredientEmoji(name) {
             const text = (name || '').toLowerCase();
-            if (text.includes('basil')) return '🌿';
-            if (text.includes('tomat')) return '🍅';
-            if (text.includes('zwiebel')) return '🧅';
-            if (text.includes('knoblauch')) return '🧄';
-            if (text.includes('reis')) return '🍚';
-            if (text.includes('salat')) return '🥗';
-            return '🥣';
+            if (text.includes('basil')) return '&#127807;';
+            if (text.includes('tomat')) return '&#127813;';
+            if (text.includes('zwiebel')) return '&#129477;';
+            if (text.includes('knoblauch')) return '&#129476;';
+            if (text.includes('reis')) return '&#127834;';
+            if (text.includes('salat')) return '&#129367;';
+            return '&#127860;';
         }
 
         function resolveGrammarForIngredient(ingredientName, genusByLang = {}, langKey = 'de') {
@@ -1744,7 +1838,7 @@
                 const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
                 return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
                     <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">↺</button>
+                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
                 </span>`;
             });
 
@@ -1787,14 +1881,15 @@
 
         function renderIngredientChips() {
             const wrap = $("#currentStepIngredientButtons");
-            const stepsWrap = $('#stepsIngredientButtons');
+            const stepsWrap = $("#stepsIngredientButtons");
+            const mutedTextClass = window.getThemeMutedTextClass();
             const ingredients = getSelectedIngredientsForSandbox();
             wrap.empty();
             stepsWrap.empty();
 
             if (!ingredients.length) {
-                wrap.append('<div class="small text-white-50">Keine Zutaten vorhanden.</div>');
-                stepsWrap.append('<div class="small text-white-50">Keine Zutaten vorhanden.</div>');
+                wrap.append(`<div class="small ${mutedTextClass}">Keine Zutaten vorhanden.</div>`);
+                stepsWrap.append(`<div class="small ${mutedTextClass}">Keine Zutaten vorhanden.</div>`);
                 creatorState.selectedIngredientIds = [];
                 updatePreviewText();
                 return;
@@ -1827,7 +1922,7 @@
             box.empty();
 
             if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
-                box.append('<div class="small text-white-50">Templates werden geladen ...</div>');
+                box.append(`<div class="small ${window.getThemeMutedTextClass()}">Templates werden geladen ...</div>`);
                 return;
             }
 
@@ -1851,12 +1946,12 @@
 
             templates.forEach((step, index) => {
                 const active = step.master_id === creatorState.selectedTemplateId ? 'active' : '';
-                const icon = step.categoryIcon || (index % 3 === 0 ? '✨' : index % 3 === 1 ? '🔥' : '🔪');
+                const icon = step.categoryIcon || (index % 3 === 0 ? '&#128293;' : index % 3 === 1 ? '&#128298;' : '&#129532;');
                 const vars = buildVariablesForTemplate(step.master_id);
                 const snippet = MasterStepRenderer.render(step.master_id, vars, currentLang) || step.master_id;
                 const title = (step.description || '').toString().trim() || `Template ${index + 1}`;
 
-                box.append(`<button type="button" class="template-card ${active}" data-id="${step.master_id}" data-title="${title}">
+                box.append(`<button type="button" class="template-card ${active}" data-theme="${window.getCreatePostingTheme()}" data-id="${step.master_id}" data-title="${title}">
                     <div class="template-title">${icon} ${title}</div>
                     <div class="template-snippet">${snippet}</div>
                 </button>`);
@@ -1874,23 +1969,24 @@
         }
 
         function setMasterTemplateError(message) {
-            const box = $('#masterTemplateCards');
+            const box = $("#masterTemplateCards");
             if (!box.length) return;
             box.html(`<div class="small text-warning">${message}</div>`);
         }
 
         function refreshMasterTemplateBuilder() {
             try {
-                const creator = $('.smart-step-creator');
-                creator.attr('data-theme',currentThema);
+                applyCurrentThemeAttributes();
                 renderIngredientChips();
                 renderTemplateCards();
+                applyCurrentThemeAttributes();
                 updateStoryProgress();
                 renderAcceptedRecipeTextCard();
             } catch (error) {
                 showMasterStepCreatorError(error, 'refreshMasterTemplateBuilder');
             }
         }
+
 
         function collectMasterVariables() {
             const templateId = getEffectiveTemplateId();
@@ -2561,7 +2657,7 @@
             const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
             const phaseBadge = getPhaseLabel(normalizedStepData.phase);
             const stepIngredientName = (options?.ingredientName || '').toString().trim();
-            const chipBtnHtml = `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(event, this)" title="Zutat per Chip ändern">🥣</button>`;
+            const chipBtnHtml = `<button type="button" class="btn btn-sm btn-outline-light opacity-75" onclick="startStepIngredientEdit(event, this)" title="Zutat per Chip aendern">&#9998;</button>`;
             const templateDe = buildIngredientTokenTemplate(normalizedStepData.de, stepIngredientName);
             const templateEn = buildIngredientTokenTemplate(normalizedStepData.en, stepIngredientName);
             const templateEsp = buildIngredientTokenTemplate(normalizedStepData.esp, stepIngredientName);
@@ -2749,7 +2845,7 @@
                 const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
                 return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
                     <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">↺</button>
+                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
                 </span>`;
             });
             $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
@@ -2782,20 +2878,20 @@
             if (!box.length) return;
             box.empty();
             if (!window.MasterStepRenderer || typeof MasterStepRenderer.getAllTemplates !== 'function') {
-                box.append('<div class="small text-white-50">Templates werden geladen ...</div>');
+                box.append(`<div class="small ${window.getThemeMutedTextClass()}">Templates werden geladen ...</div>`);
                 return;
             }
             const loadError = typeof MasterStepRenderer.getLastLoadError === 'function' ? MasterStepRenderer.getLastLoadError() : '';
             if (loadError) { box.html(`<div class="small text-warning">Template-Fehler: ${loadError}</div>`); return; }
             const templates = MasterStepRenderer.getAllTemplates();
-            if (!templates.length) { box.html('<div class="small text-white-50">Keine Templates gefunden.</div>'); return; }
+            if (!templates.length) { box.html(`<div class="small ${window.getThemeMutedTextClass()}">Keine Templates gefunden.</div>`); return; }
             templates.forEach((step, index) => {
                 const active = step.master_id === creatorState.selectedTemplateId ? 'active' : '';
-                const icon = step.categoryIcon || (index % 3 === 0 ? '✨' : index % 3 === 1 ? '🔥' : '🔪');
+                const icon = step.categoryIcon || (index % 3 === 0 ? '&#128293;' : index % 3 === 1 ? '&#128298;' : '&#129532;');
                 const vars = buildVariablesForTemplate(step.master_id);
                 const snippet = MasterStepRenderer.render(step.master_id, vars, currentLang) || step.master_id;
                 const title = (step.description || '').toString().trim() || `Template ${index + 1}`;
-                box.append(`<button type="button" class="template-card ${active}" data-id="${step.master_id}" data-title="${title}">
+                box.append(`<button type="button" class="template-card ${active}" data-theme="${window.getCreatePostingTheme()}" data-id="${step.master_id}" data-title="${title}">
                     <div class="template-title">${icon} ${title}</div>
                     <div class="template-snippet">${snippet}</div>
                 </button>`);
@@ -3045,6 +3141,13 @@
             const token = sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken');
             if (token) $('#hiddenUserTokenField').val(token);
 
+
+            window.setCreatePostingTheme(window.getCreatePostingTheme(), { persist: false, refresh: false });
+
+            $(document).on('click', '[data-create-posting-theme]', function () {
+                const nextTheme = ($(this).data('create-posting-theme') || '').toString();
+                window.setCreatePostingTheme(nextTheme);
+            });
             $('#ingredientSearch').on('input', function () {
                 syncIngredientSourceVisibility();
             });
@@ -3680,7 +3783,7 @@
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
             });
 
-            // Option chip → auto-apply and close
+            // Option chip ? auto-apply and close
             $(document).on('click', '.js-prob-option-chip', function () {
                 const value = ($(this).data('value') || $(this).text()).toString();
                 if (probVarEditorCallback) probVarEditorCallback(value);
@@ -4078,4 +4181,16 @@
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
+
+
+
+
+
+
+
+
+
+
+
+
 

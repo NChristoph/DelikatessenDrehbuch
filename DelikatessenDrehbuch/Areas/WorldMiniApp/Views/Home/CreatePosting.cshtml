@@ -24,7 +24,7 @@
     </div>
 
     <!-- Topbar (Social Creator) -->
-    <div class="creator-topbar px-3 py-3" style="visibility:hidden">
+    <div class="creator-topbar px-3 py-3" style="visibility:hidden" data-theme="gold">
         <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
             <i class="bi bi-chevron-left"></i>
         </a>
@@ -32,6 +32,12 @@
         <div class="topbar-title">
             <div class="fw-bold text-truncate">Creator Studio</div>
             <div class="small text-muted text-truncate">Neuer Upload · Rezeptpost</div>
+        </div>
+
+        <div class="theme-switcher" role="group" aria-label="Theme wechseln">
+            <button type="button" class="theme-switch-btn" data-create-posting-theme="navy" aria-pressed="false">Navy</button>
+            <button type="button" class="theme-switch-btn" data-create-posting-theme="rosa" aria-pressed="false">Rosa</button>
+            <button type="button" class="theme-switch-btn" data-create-posting-theme="gold" aria-pressed="false">Gold</button>
         </div>
 
         <!-- Optional: Quick Publish -->
@@ -382,7 +388,7 @@
                                 <div class="sheet-sub" style="font-size:12px;">Wähle Zutat + Template wie im Creator Flow</div>
                                 <div class="small text-muted mt-1"><span id="sc2StoryStepCount">Schritte: 0</span></div>
                             </div>
-                            <button type="button" id="sc2BtnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">⚙︎</button>
+                            <button type="button" id="sc2BtnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">&#9881;</button>
                         </div>
 
                         <div class="ingredient-top-strip mb-2 d-none" aria-hidden="true">
@@ -500,7 +506,8 @@
         padding: 12px 12px 120px 12px; /* space for bottom bar */
     }
 
-        .feed-shell[data-theme="dark"] {
+        .feed-shell[data-theme="dark"],
+        .feed-shell[data-theme="navy"] {
         max-width: 720px;
         padding: 12px 12px 120px 12px;
         background: linear-gradient( 180deg, rgba(28, 38, 78, 0.35), rgba(16, 22, 46, 0.45) );
@@ -559,14 +566,22 @@
     .topbar-btn {
         width: 42px;
         height: 42px;
+        padding: 0;
         border-radius: 999px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        align-self: center;
         border: 1px solid rgba(0,0,0,0.10);
         background: #fff;
         color: #111;
         text-decoration: none;
+        flex: 0 0 auto;
+    }
+
+    .topbar-btn i {
+        display: block;
+        line-height: 1;
     }
 
     .topbar-primary {
@@ -580,6 +595,80 @@
         min-width: 0;
         line-height: 1.15;
     }
+
+    .theme-switcher {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(10px);
+    }
+
+    .theme-switch-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: .75rem;
+        font-weight: 800;
+        letter-spacing: .02em;
+        background: transparent;
+        color: inherit;
+        opacity: .78;
+        transition: transform .18s ease, background .18s ease, color .18s ease, opacity .18s ease;
+    }
+
+    .theme-switch-btn.is-active {
+        opacity: 1;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.16);
+    }
+
+    .creator-topbar[data-theme="gold"] .theme-switcher {
+        background: rgba(42,55,86,0.22);
+        border-color: rgba(255,255,255,0.18);
+    }
+
+    .creator-topbar[data-theme="gold"] .theme-switch-btn {
+        color: #fff;
+    }
+
+    .creator-topbar[data-theme="gold"] .theme-switch-btn.is-active[data-create-posting-theme="gold"] {
+        background: linear-gradient(135deg, #fce08a 0%, #d19a1f 100%);
+        color: #2d1c00;
+    }
+
+    .creator-topbar[data-theme="rosa"] .theme-switcher {
+        background: rgba(255,255,255,0.18);
+        border-color: rgba(0,0,0,0.12);
+    }
+
+    .creator-topbar[data-theme="rosa"] .theme-switch-btn {
+        color: #fff;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+    }
+
+    .creator-topbar[data-theme="rosa"] .theme-switch-btn.is-active[data-create-posting-theme="rosa"] {
+        background: linear-gradient(135deg, #ffb1df 0%, #ff72c1 100%);
+        color: #fff;
+    }
+
+    .creator-topbar[data-theme="navy"] .theme-switcher {
+        background: rgba(6,16,40,0.28);
+        border-color: rgba(164,193,255,0.22);
+    }
+
+    .creator-topbar[data-theme="navy"] .theme-switch-btn {
+        color: #eef4ff;
+    }
+
+    .creator-topbar[data-theme="navy"] .theme-switch-btn.is-active[data-create-posting-theme="navy"] {
+        background: linear-gradient(135deg, #7fb3ff 0%, #3c67c8 100%);
+        color: #fff;
+    }
+
 
     /* ---------- Hero ---------- */
     .creator-hero {
@@ -1129,11 +1218,9 @@
 
     /* ---------- Bottom Bar ---------- */
     .creator-bottom {
-        left: 50% !important;
-        transform: translateX(-50%);
+       
         width: min(720px, 100%);
         z-index: 1600;
-        background: linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.55) 60%, transparent 100%);
         pointer-events: none;
     }
 
@@ -1220,6 +1307,101 @@
             }
     }
 
+ /* thema Navy */
+
+    .smart-step-creator[data-theme="navy"],
+    .creator-card[data-theme="navy"],
+    .creator-hero[data-theme="navy"] {
+        --creator-sheet: linear-gradient(to right, #0f234d, #18366f, #1f4d92);
+        --creator-border: rgba(173, 207, 255, 0.30);
+        --creator-text: #f7fbff;
+        --creator-sub: rgba(237, 245, 255, 0.88);
+        --creator-accent: #79aaff;
+        --creator-bg: radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(163, 199, 255, 0.20);
+        background: var(--creator-bg);
+        color: var(--creator-text);
+        position: relative;
+        box-shadow: 0 18px 40px rgba(4, 10, 26, 0.45);
+    }
+
+    .smart-step-creator[data-theme="navy"]::before,
+    .creator-card[data-theme="navy"]::before,
+    .creator-hero[data-theme="navy"]::before {
+        content: "";
+        position: absolute;
+        inset: -20%;
+        background: radial-gradient(circle at 20% 20%, rgba(118,168,255,.25), transparent 60%);
+        filter: blur(40px);
+        pointer-events: none;
+    }
+
+    .upload-drop[data-theme="navy"],
+    .preview-step-card[data-theme="navy"],
+    .input-pill[data-theme="navy"],
+    .select-pill[data-theme="navy"],
+    .template-card[data-theme="navy"],
+    .ingredient-db-row[data-theme="navy"] {
+        background: rgba(7, 20, 46, 0.76);
+        border-color: rgba(164, 193, 255, 0.18);
+        color: #fff !important;
+    }
+
+    .creator-topbar[data-theme="navy"] .topbar-title,
+    .creator-topbar[data-theme="navy"] .topbar-title .fw-bold,
+    .creator-topbar[data-theme="navy"] .topbar-title .small,
+    .feed-shell[data-theme="navy"],
+    .feed-shell[data-theme="navy"] .text-muted,
+    .feed-shell[data-theme="navy"] .small,
+    .feed-shell[data-theme="navy"] .form-label,
+    .feed-shell[data-theme="navy"] .form-control,
+    .feed-shell[data-theme="navy"] .form-select,
+    .feed-shell[data-theme="navy"] .badge,
+    .feed-shell[data-theme="navy"] .creator-hero-badge,
+    .feed-shell[data-theme="navy"] .creator-hero-badge span,
+    .feed-shell[data-theme="navy"] .creator-hero-badge i,
+    .feed-shell[data-theme="navy"] .input-pill i,
+    .feed-shell[data-theme="navy"] .select-pill i,
+    .feed-shell[data-theme="navy"] .upload-drop,
+    .feed-shell[data-theme="navy"] .upload-drop .small,
+    .feed-shell[data-theme="navy"] .upload-drop .fw-bold,
+    .feed-shell[data-theme="navy"] .topbar-title,
+    .feed-shell[data-theme="navy"] .topbar-title .fw-bold,
+    .feed-shell[data-theme="navy"] .topbar-title .small,
+    .feed-shell[data-theme="navy"] .sheet-title,
+    .feed-shell[data-theme="navy"] .sheet-sub,
+    .feed-shell[data-theme="navy"] .ingredient-top-title,
+    .feed-shell[data-theme="navy"] .preview-step-text,
+    .feed-shell[data-theme="navy"] .template-snippet,
+    .feed-shell[data-theme="navy"] .story-meta,
+    .feed-shell[data-theme="navy"] .phase-badge,
+    .feed-shell[data-theme="navy"] .phase-badge-1,
+    .feed-shell[data-theme="navy"] .phase-badge-2,
+    .feed-shell[data-theme="navy"] .phase-badge-3,
+    .feed-shell[data-theme="navy"] .phase-badge-4 {
+        color: #fff !important;
+    }
+
+    #card-basics[data-theme="navy"] .input-pill .form-control,
+    #card-basics[data-theme="navy"] .select-pill .form-select,
+    #card-basics[data-theme="navy"] .input-pill input,
+    #card-basics[data-theme="navy"] .select-pill select {
+        color: #fff !important;
+        -webkit-text-fill-color: #fff;
+    }
+
+    #card-basics[data-theme="navy"] .input-pill .form-control::placeholder,
+    #card-basics[data-theme="navy"] .input-pill input::placeholder {
+        color: rgba(255,255,255,0.82) !important;
+        -webkit-text-fill-color: rgba(255,255,255,0.82);
+    }
+
+    #card-basics[data-theme="navy"] .select-pill .form-select option,
+    #card-basics[data-theme="navy"] .select-pill select option {
+        color: #111;
+    }
  /* thema Gold */
 
     .feed-shell[data-theme="gold"] {
@@ -1288,14 +1470,155 @@
        
     }
 
+    .creator-topbar[data-theme="gold"] .topbar-title,
+    .creator-topbar[data-theme="gold"] .topbar-title .fw-bold,
+    .creator-topbar[data-theme="gold"] .topbar-title .small,
+    .feed-shell[data-theme="gold"],
+    .feed-shell[data-theme="gold"] .text-muted,
+    .feed-shell[data-theme="gold"] .small,
+    .feed-shell[data-theme="gold"] .form-label,
+    .feed-shell[data-theme="gold"] .form-control,
+    .feed-shell[data-theme="gold"] .form-select,
+    .feed-shell[data-theme="gold"] .badge,
+    .feed-shell[data-theme="gold"] .creator-hero-badge,
+    .feed-shell[data-theme="gold"] .creator-hero-badge span,
+    .feed-shell[data-theme="gold"] .creator-hero-badge i,
+    .feed-shell[data-theme="gold"] .input-pill i,
+    .feed-shell[data-theme="gold"] .select-pill i,
+    .feed-shell[data-theme="gold"] .upload-drop,
+    .feed-shell[data-theme="gold"] .upload-drop .small,
+    .feed-shell[data-theme="gold"] .upload-drop .fw-bold,
+    .feed-shell[data-theme="gold"] .topbar-title,
+    .feed-shell[data-theme="gold"] .topbar-title .fw-bold,
+    .feed-shell[data-theme="gold"] .topbar-title .small,
+    .feed-shell[data-theme="gold"] .sheet-title,
+    .feed-shell[data-theme="gold"] .sheet-sub,
+    .feed-shell[data-theme="gold"] .ingredient-top-title,
+    .feed-shell[data-theme="gold"] .preview-step-text,
+    .feed-shell[data-theme="gold"] .template-snippet,
+    .feed-shell[data-theme="gold"] .story-meta,
+    .feed-shell[data-theme="gold"] .phase-badge,
+    .feed-shell[data-theme="gold"] .phase-badge-1,
+    .feed-shell[data-theme="gold"] .phase-badge-2,
+    .feed-shell[data-theme="gold"] .phase-badge-3,
+    .feed-shell[data-theme="gold"] .phase-badge-4 {
+        color: #fff !important;
+    }
+
+    #card-basics[data-theme="gold"] .input-pill .form-control,
+    #card-basics[data-theme="gold"] .select-pill .form-select,
+    #card-basics[data-theme="gold"] .input-pill input,
+    #card-basics[data-theme="gold"] .select-pill select {
+        color: #fff !important;
+        -webkit-text-fill-color: #fff;
+    }
+
+    #card-basics[data-theme="gold"] .input-pill .form-control::placeholder,
+    #card-basics[data-theme="gold"] .input-pill input::placeholder {
+        color: rgba(255, 255, 255, 0.8) !important;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.8);
+    }
+
+    #card-basics[data-theme="gold"] .select-pill .form-select option,
+    #card-basics[data-theme="gold"] .select-pill select option {
+        color: #111;
+    }
+
+
+
    
+    .creator-topbar[data-theme="rosa"] .topbar-title,
+    .creator-topbar[data-theme="rosa"] .topbar-title .fw-bold,
+    .creator-topbar[data-theme="rosa"] .topbar-title .small,
+    .feed-shell[data-theme="rosa"],
+    .feed-shell[data-theme="rosa"] .text-muted,
+    .feed-shell[data-theme="rosa"] .small,
+    .feed-shell[data-theme="rosa"] .form-label,
+    .feed-shell[data-theme="rosa"] .form-control,
+    .feed-shell[data-theme="rosa"] .form-select,
+    .feed-shell[data-theme="rosa"] .badge,
+    .feed-shell[data-theme="rosa"] .creator-hero-badge,
+    .feed-shell[data-theme="rosa"] .creator-hero-badge span,
+    .feed-shell[data-theme="rosa"] .creator-hero-badge i,
+    .feed-shell[data-theme="rosa"] .input-pill i,
+    .feed-shell[data-theme="rosa"] .select-pill i,
+    .feed-shell[data-theme="rosa"] .upload-drop,
+    .feed-shell[data-theme="rosa"] .upload-drop .small,
+    .feed-shell[data-theme="rosa"] .upload-drop .fw-bold,
+    .feed-shell[data-theme="rosa"] .topbar-title,
+    .feed-shell[data-theme="rosa"] .topbar-title .fw-bold,
+    .feed-shell[data-theme="rosa"] .topbar-title .small,
+    .feed-shell[data-theme="rosa"] .sheet-title,
+    .feed-shell[data-theme="rosa"] .sheet-sub,
+    .feed-shell[data-theme="rosa"] .ingredient-top-title,
+    .feed-shell[data-theme="rosa"] .preview-step-text,
+    .feed-shell[data-theme="rosa"] .template-snippet,
+    .feed-shell[data-theme="rosa"] .story-meta,
+    .feed-shell[data-theme="rosa"] .phase-badge,
+    .feed-shell[data-theme="rosa"] .phase-badge-1,
+    .feed-shell[data-theme="rosa"] .phase-badge-2,
+    .feed-shell[data-theme="rosa"] .phase-badge-3,
+    .feed-shell[data-theme="rosa"] .phase-badge-4 {
+        color: #111 !important;
+    }
+    .creator-card[data-theme="rosa"],
+    .creator-hero[data-theme="rosa"] {
+        --creator-sheet: rgba(68, 22, 56, 0.62);
+        --creator-border: rgba(255, 170, 220, 0.22);
+        --creator-text: #111111;
+        --creator-sub: rgba(17, 17, 17, 0.72);
+        --creator-accent: #ff7fcf;
+        --creator-bg: radial-gradient(120% 120% at 10% 0%, #ff9adf 0%, #8a3f75 45%, #ff9adf 100%);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: var(--creator-bg);
+        color: var(--creator-text);
+        position: relative;
+        box-shadow: 0 18px 40px rgba(40,10,30,0.30);
+    }
+    .creator-card[data-theme="rosa"]::before,
+    .creator-hero[data-theme="rosa"]::before {
+        content: "";
+        position: absolute;
+        inset: -20%;
+        background: radial-gradient(circle at 20% 20%, rgba(255,160,220,.25), transparent 60%);
+        filter: blur(40px);
+        pointer-events: none;
+    }
+    .upload-drop[data-theme="rosa"],
+    .preview-step-card[data-theme="rosa"],
+    .input-pill[data-theme="rosa"],
+    .select-pill[data-theme="rosa"],
+    .template-card[data-theme="rosa"],
+    .ingredient-db-row[data-theme="rosa"] {
+        background: rgba(255, 235, 245, 0.88);
+        border-color: rgba(122, 36, 96, 0.25);
+        color: #111 !important;
+    }
+    #card-basics[data-theme="rosa"] .input-pill .form-control,
+    #card-basics[data-theme="rosa"] .select-pill .form-select,
+    #card-basics[data-theme="rosa"] .input-pill input,
+    #card-basics[data-theme="rosa"] .select-pill select {
+        color: #111 !important;
+        -webkit-text-fill-color: #111;
+    }
+    #card-basics[data-theme="rosa"] .input-pill .form-control::placeholder,
+    #card-basics[data-theme="rosa"] .input-pill input::placeholder {
+        color: rgba(17, 17, 17, 0.65) !important;
+        -webkit-text-fill-color: rgba(17, 17, 17, 0.65);
+    }
+    #card-basics[data-theme="rosa"] .select-pill .form-select option,
+    #card-basics[data-theme="rosa"] .select-pill select option {
+        color: #111;
+    }
     .smart-step-creator[data-theme="rosa"] {
         --creator-sheet: rgba(68, 22, 56, 0.62);
         --creator-border: rgba(255, 170, 220, 0.22);
-        --creator-text: #fff6fb;
-        --creator-sub: rgba(255, 220, 240, 0.75);
+        --creator-text: #111111;
+        --creator-sub: rgba(17, 17, 17, 0.72);
         --creator-accent: #ff7fcf;
-        --creator-bg: radial-gradient( 120% 120% at 10% 0%, #ff9adf 0%, #8a3f75 45%, #4a203f 100% );
+        --creator-bg: radial-gradient( 120% 120% at 10% 0%, #ff9adf 0%, #8a3f75 45%, #ff9adf 100% );
         border-radius: 24px;
         overflow: hidden;
         border: 1px solid rgba(255,255,255,0.12);
@@ -1315,7 +1638,202 @@
             pointer-events: none;
         }
 
+    .smart-step-creator[data-theme="rosa"],
+    .smart-step-creator[data-theme="rosa"] .text-white,
+    .smart-step-creator[data-theme="rosa"] .text-white-50,
+    .smart-step-creator[data-theme="rosa"] .text-light,
+    .smart-step-creator[data-theme="rosa"] .small,
+    .smart-step-creator[data-theme="rosa"] .badge,
+    .smart-step-creator[data-theme="rosa"] .form-control,
+    .smart-step-creator[data-theme="rosa"] .form-select,
+    .smart-step-creator[data-theme="rosa"] .sheet-title,
+    .smart-step-creator[data-theme="rosa"] .sheet-sub,
+    .smart-step-creator[data-theme="rosa"] .preview-step-text,
+    .smart-step-creator[data-theme="rosa"] .ingredient-top-title,
+    .smart-step-creator[data-theme="rosa"] #ingredientSearch,
+    .smart-step-creator[data-theme="rosa"] #ingredientSearch::placeholder,
+    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges,
+    .smart-step-creator[data-theme="rosa"] .creator-top-head,
+    .smart-step-creator[data-theme="rosa"] .creator-preview-canvas {
+        color: #111 !important;
+    }
 
+    .creator-card[data-theme="rosa"],
+    .creator-hero[data-theme="rosa"],
+    .smart-step-creator[data-theme="rosa"] {
+        --creator-text: #ffffff;
+        --creator-sub: rgba(255, 255, 255, 0.92);
+    }
+
+    .creator-topbar[data-theme="rosa"] .topbar-title,
+    .creator-topbar[data-theme="rosa"] .topbar-title .fw-bold,
+    .creator-topbar[data-theme="rosa"] .topbar-title .small,
+    .feed-shell[data-theme="rosa"],
+    .feed-shell[data-theme="rosa"] .text-muted,
+    .feed-shell[data-theme="rosa"] .small,
+    .feed-shell[data-theme="rosa"] .form-label,
+    .feed-shell[data-theme="rosa"] .form-control,
+    .feed-shell[data-theme="rosa"] .form-select,
+    .feed-shell[data-theme="rosa"] .badge,
+    .feed-shell[data-theme="rosa"] .creator-hero-badge,
+    .feed-shell[data-theme="rosa"] .creator-hero-badge span,
+    .feed-shell[data-theme="rosa"] .creator-hero-badge i,
+    .feed-shell[data-theme="rosa"] .input-pill i,
+    .feed-shell[data-theme="rosa"] .select-pill i,
+    .feed-shell[data-theme="rosa"] .upload-drop,
+    .feed-shell[data-theme="rosa"] .upload-drop .small,
+    .feed-shell[data-theme="rosa"] .upload-drop .fw-bold,
+    .feed-shell[data-theme="rosa"] .topbar-title,
+    .feed-shell[data-theme="rosa"] .topbar-title .fw-bold,
+    .feed-shell[data-theme="rosa"] .topbar-title .small,
+    .feed-shell[data-theme="rosa"] .sheet-title,
+    .feed-shell[data-theme="rosa"] .sheet-sub,
+    .feed-shell[data-theme="rosa"] .ingredient-top-title,
+    .feed-shell[data-theme="rosa"] .preview-step-text,
+    .feed-shell[data-theme="rosa"] .template-snippet,
+    .feed-shell[data-theme="rosa"] .story-meta,
+    .feed-shell[data-theme="rosa"] .phase-badge,
+    .feed-shell[data-theme="rosa"] .phase-badge-1,
+    .feed-shell[data-theme="rosa"] .phase-badge-2,
+    .feed-shell[data-theme="rosa"] .phase-badge-3,
+    .feed-shell[data-theme="rosa"] .phase-badge-4,
+    .feed-shell[data-theme="rosa"] .creator-card-title,
+    .feed-shell[data-theme="rosa"] .creator-card-sub,
+    .feed-shell[data-theme="rosa"] .creator-hero-title,
+    .feed-shell[data-theme="rosa"] .creator-hero-sub {
+        color: #fff !important;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+    }
+
+    #card-basics[data-theme="rosa"] .input-pill .form-control,
+    #card-basics[data-theme="rosa"] .select-pill .form-select,
+    #card-basics[data-theme="rosa"] .input-pill input,
+    #card-basics[data-theme="rosa"] .select-pill select,
+    .feed-shell[data-theme="rosa"] .input-pill .form-control,
+    .feed-shell[data-theme="rosa"] .select-pill .form-select {
+        color: #fff !important;
+        -webkit-text-fill-color: #fff;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+    }
+
+
+    .feed-shell[data-theme="rosa"] .select-pill .form-select,
+    .feed-shell[data-theme="rosa"] .select-pill select,
+    #card-basics[data-theme="rosa"] .select-pill .form-select,
+    #card-basics[data-theme="rosa"] .select-pill select {
+        color: #111 !important;
+        -webkit-text-fill-color: #111;
+        text-shadow: none !important;
+    }
+
+    .feed-shell[data-theme="rosa"] .select-pill .form-select option,
+    .feed-shell[data-theme="rosa"] .select-pill select option,
+    #card-basics[data-theme="rosa"] .select-pill .form-select option,
+    #card-basics[data-theme="rosa"] .select-pill select option {
+        color: #111 !important;
+        background: #fff3f8;
+        text-shadow: none !important;
+    }
+    #card-basics[data-theme="rosa"] .input-pill .form-control::placeholder,
+    #card-basics[data-theme="rosa"] .input-pill input::placeholder,
+    .feed-shell[data-theme="rosa"] .input-pill .form-control::placeholder,
+    .feed-shell[data-theme="rosa"] .input-pill input::placeholder {
+        color: rgba(255, 255, 255, 0.9) !important;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.9);
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+    }
+
+
+    .creator-card[data-theme="rosa"] .creator-card-head *,
+    .creator-card[data-theme="rosa"] .creator-card-body *,
+    .creator-hero[data-theme="rosa"] *,
+    .smart-step-creator[data-theme="rosa"] .sheet-head *,
+    .smart-step-creator[data-theme="rosa"] .creator-preview-canvas *,
+    .smart-step-creator[data-theme="rosa"] .template-selection-wrap *,
+    .smart-step-creator[data-theme="rosa"] .ingredient-top-strip *,
+    .smart-step-creator[data-theme="rosa"] .display-name,
+    .smart-step-creator[data-theme="rosa"] .display-name-selected,
+    .smart-step-creator[data-theme="rosa"] .ingredient-row-meta,
+    .smart-step-creator[data-theme="rosa"] .template-title,
+    .smart-step-creator[data-theme="rosa"] .probability-template-card,
+    .smart-step-creator[data-theme="rosa"] .probability-template-card *,
+    .smart-step-creator[data-theme="rosa"] .ingredient-db-row .display-name,
+    .smart-step-creator[data-theme="rosa"] .ingredient-card-head .display-name,
+    .smart-step-creator[data-theme="rosa"] #sc2StoryStepCount,
+    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges,
+    .smart-step-creator[data-theme="rosa"] #insertContainer,
+    .smart-step-creator[data-theme="rosa"] #MasterText,
+    .smart-step-creator[data-theme="rosa"] #acceptedStepsRecipeText {
+        color: #fff !important;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+    }
+
+    .smart-step-creator[data-theme="rosa"] option,
+    .creator-card[data-theme="rosa"] option,
+    .creator-hero[data-theme="rosa"] option {
+        color: #111 !important;
+        text-shadow: none !important;
+    }
+
+    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges,
+    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges *,
+    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityTemplates,
+    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityTemplates *,
+    .smart-step-creator[data-theme="rosa"] #probVarIngredientChips,
+    .smart-step-creator[data-theme="rosa"] #probVarIngredientChips *,
+    .smart-step-creator[data-theme="rosa"] #masterTemplateCards,
+    .smart-step-creator[data-theme="rosa"] #masterTemplateCards *,
+    .smart-step-creator[data-theme="rosa"] #sc2MasterTemplateCards,
+    .smart-step-creator[data-theme="rosa"] #sc2MasterTemplateCards *,
+    .smart-step-creator[data-theme="rosa"] #currentStepIngredientButtons,
+    .smart-step-creator[data-theme="rosa"] #currentStepIngredientButtons *,
+    .smart-step-creator[data-theme="rosa"] #stepsIngredientButtons,
+    .smart-step-creator[data-theme="rosa"] #stepsIngredientButtons * {
+        color: #fff !important;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+    }
+
+    .smart-step-creator[data-theme="rosa"] .token-highlight,
+    .smart-step-creator[data-theme="rosa"] .placeholder-token,
+    .creator-card[data-theme="rosa"] .token-highlight,
+    .creator-card[data-theme="rosa"] .placeholder-token,
+    .creator-hero[data-theme="rosa"] .token-highlight,
+    .creator-hero[data-theme="rosa"] .placeholder-token {
+        color: #ffe08a !important;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000, 0 0 16px rgba(255,208,95,.35) !important;
+        border-bottom: 1px dashed rgba(255,224,138,.75);
+    }
+
+    .smart-step-creator[data-theme="rosa"] .placeholder-token.token-active,
+    .creator-card[data-theme="rosa"] .placeholder-token.token-active,
+    .creator-hero[data-theme="rosa"] .placeholder-token.token-active {
+        background: rgba(255,224,138,.2) !important;
+        border-radius: 8px;
+        padding: 0 4px;
+    }
+
+    .smart-step-creator[data-theme="rosa"] .placeholder-reset,
+    .creator-card[data-theme="rosa"] .placeholder-reset,
+    .creator-hero[data-theme="rosa"] .placeholder-reset {
+        border: 0;
+        background: rgba(255,255,255,0.18) !important;
+        color: #fff !important;
+        text-shadow: none !important;
+        border-radius: 999px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        font-size: .62rem;
+        padding: 0;
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0,0,0,.25);
+    }
+
+    .smart-step-creator[data-theme="rosa"] .placeholder-reset:hover,
+    .creator-card[data-theme="rosa"] .placeholder-reset:hover,
+    .creator-hero[data-theme="rosa"] .placeholder-reset:hover {
+        background: rgba(255,255,255,0.28) !important;
+    }
     .smart-step-creator {
         --creator-sheet: rgba(22, 32, 68, 0.62);
         --creator-border: rgba(170, 190, 255, 0.20);
@@ -1978,11 +2496,28 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="~/js/CreatePostingSmartStepCreator.js"></script>
+    <script src="~/js/master-step-renderer.js"></script>
+    <script src="~/js/recipe-step-suggest.js"></script>
     <script>
         window.CreatePostingPageConfig = {
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })"
         };
     </script>
+    <script src="~/js/create-posting-probability.js"></script>
     <script src="~/js/CreatePostingPage.js"></script>
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
