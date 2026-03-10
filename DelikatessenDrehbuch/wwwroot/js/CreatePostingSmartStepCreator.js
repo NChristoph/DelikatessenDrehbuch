@@ -215,6 +215,7 @@
                     container.insertAdjacentHTML("beforeend", `
                                              <button type="button"
                                                      class="template-card w-100 mb-2"
+                                                     data-theme="gold"
                                                      data-step-id="${escapeHtml(step.master_id ?? "")}"
                                                      data-title="${escapeHtml(title)}"
                                                      data-template-raw="${encodeAttr(templateRaw)}">

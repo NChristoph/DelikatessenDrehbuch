@@ -7,13 +7,6 @@
 
        
 
-        //  const variablseTypes = ['duration', 'temperature', 'count', 'article', 'equipment', 
-        //                           'tool', 'base', 'item', 'balance', 'seasoning','ingredient','ingredients'];
-
-        
-        
-
-
          function getCookieValue(name) {
              const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
              return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
@@ -434,7 +427,7 @@
             return [];
         }
 
-        const isDarkTheme = true;
+        const currentThema = 'gold';
         const creatorState = {
             selectedIngredientIds: [],
             selectedTemplateId: '',
@@ -1889,7 +1882,7 @@
         function refreshMasterTemplateBuilder() {
             try {
                 const creator = $('.smart-step-creator');
-                creator.attr('data-theme', isDarkTheme ? 'dark' : 'light');
+                creator.attr('data-theme',currentThema);
                 renderIngredientChips();
                 renderTemplateCards();
                 updateStoryProgress();
