@@ -95,6 +95,75 @@
                 </div>
             </section>
 
+            <section class="content-card mb-4" aria-label="Watch Analytics">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 class="section-title mb-0">Watch Analytics</h2>
+                    <span class="section-meta">Nur qualifizierte Views ab 8 Sekunden</span>
+                </div>
+
+                <div class="stats-grid mb-4">
+                    <article class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-play-btn-fill"></i></div>
+                        <p class="metric-label mb-1">Qualifizierte Views</p>
+                        <p class="stat-value mb-0">@Model.WatchAnalytics.QualifiedViewCount</p>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                        <p class="metric-label mb-1">Echte Viewer</p>
+                        <p class="stat-value mb-0">@Model.WatchAnalytics.UniqueQualifiedViewerCount</p>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                        <p class="metric-label mb-1">Watch-Minuten</p>
+                        <p class="stat-value mb-0">@Model.WatchAnalytics.TotalQualifiedWatchMinutes.ToString("0.##")</p>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-stopwatch-fill"></i></div>
+                        <p class="metric-label mb-1">Ø Watch-Sekunden</p>
+                        <p class="stat-value mb-0">@Model.WatchAnalytics.AverageQualifiedWatchSeconds.ToString("0.##")</p>
+                    </article>
+                </div>
+
+                <div class="hero-sub-grid mt-0 mb-4">
+                    <div class="hero-sub-card">
+                        <p class="metric-label mb-1">Von dir angesehen</p>
+                        <p class="metric-value mb-0">@Model.WatchAnalytics.ViewerQualifiedClipCount Clips</p>
+                    </div>
+                    <div class="hero-sub-card">
+                        <p class="metric-label mb-1">Deine Watch-Time</p>
+                        <p class="metric-value mb-0">@Model.WatchAnalytics.ViewerQualifiedWatchMinutes.ToString("0.##") Minuten</p>
+                    </div>
+                </div>
+
+                @if (!Model.WatchAnalytics.TopClips.Any())
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <p class="mb-1">Noch keine qualifizierten Watch-Daten</p>
+                        <small>Ein Clip zählt erst, wenn er mindestens 8 Sekunden aktiv angesehen wurde.</small>
+                    </div>
+                }
+                else
+                {
+                    <div class="activity-feed">
+                        @foreach (var clip in Model.WatchAnalytics.TopClips)
+                        {
+                            <article class="activity-card compact">
+                                <div class="activity-head align-items-center">
+                                    <div class="activity-status neutral" aria-hidden="true"><i class="bi bi-camera-reels-fill"></i></div>
+                                    <div class="flex-grow-1">
+                                        <h3 class="activity-title mb-1">@clip.RecipeTitle</h3>
+                                        <p class="activity-amount mb-0">@clip.QualifiedViews Views &middot; @clip.TotalWatchMinutes.ToString("0.##") Minuten</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="activity-time">Ø @clip.AverageWatchSeconds.ToString("0.##")s</div>
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
             <section class="content-card mb-4" aria-label="Sales Activity Feed">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2 class="section-title mb-0">Sales Activity</h2>
@@ -209,3 +278,5 @@
         })();
     </script>
 }
+
+

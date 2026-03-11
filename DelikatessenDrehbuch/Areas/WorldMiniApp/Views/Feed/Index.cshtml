@@ -1,4 +1,4 @@
-Ôªø@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @model List<WorldUserPosting>
 @using System.Globalization
 @{
@@ -1024,7 +1024,7 @@
             bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
             string thumbOrSource = !string.IsNullOrEmpty(item.ThumbnailUrl) ? item.ThumbnailUrl : item.Source;
 
-            <div class="feed-item" data-id="@item.Recipe.Id" data-creator-id="@item.CreatorId" data-creator-name="@item.CreatorName">
+            <div class="feed-item" data-id="@item.Recipe.Id" data-posting-id="@item.Id" data-creator-id="@item.CreatorId" data-creator-name="@item.CreatorName">
                 @if (isVideo)
                 {
                     <video class="feed-media" playsinline loop muted preload="metadata" poster="@thumbOrSource">
@@ -1045,7 +1045,7 @@
 
                 <div class="info-container">
                     <div class="chef-badge">
-                        <span class="chef-icon">ü•ë</span>
+                        <span class="chef-icon">&#x1F951;</span>
                         <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
                         <div class="separator"></div>
                         <button class="follow-btn" onclick="toggleFollow(event, this, '@item?.CreatorId')">
@@ -1054,7 +1054,7 @@
                     </div>
 
                     <h2 class="recipe-title">@item.Recipe.Title</h2>
-                    <div class="recipe-meta">‚è±Ô∏è @item.Recipe.PreperationTime Min</div>
+                    <div class="recipe-meta">&#x23F1;&#xFE0F; @item.Recipe.PreperationTime Min</div>
                 </div>
 
                 <div class="action-bar">
@@ -1091,14 +1091,14 @@
                     {
                         <div class="marketplace-empty">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "A√∫n no hay ofertas.", "Ainda sem ofertas.")</div>
+                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "A˙n no hay ofertas.", "Ainda sem ofertas.")</div>
                         </div>
                     }
                     else
                     {
                         <div id="marketplaceFilteredEmpty" class="marketplace-empty" style="display:none;">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador n√£o tem ofertas no momento.")</div>
+                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador n„o tem ofertas no momento.")</div>
                         </div>
                         @foreach (var card in creatorShopCards)
                         {
@@ -1146,7 +1146,7 @@
                         <div id="pendingRecipeCard" class="pending-recipe">
                             <div class="pending-media" id="pendingRecipeMedia"></div>
                             <div class="pending-info">
-                                <div class="pending-label">Wird hinzugef√ºgt</div>
+                                <div class="pending-label">Wird hinzugef¸gt</div>
                                 <div class="pending-title" id="pendingRecipeTitle"></div>
                             </div>
                         </div>
@@ -1154,7 +1154,7 @@
                             <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>N√§hrwerte gesamt</span>
+                                    <span>N‰hrwerte gesamt</span>
                                 </span>
                                 <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
                             </button>
@@ -1162,42 +1162,42 @@
                                 <div class="plan-nutrition-grid">
                                     <div class="plan-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCalories">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionCalories">ó</div>
                                         <div class="plan-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="plan-nutrition-value" id="planNutritionProtein">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionProtein">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFat">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionFat">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCarbs">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionCarbs">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSugar">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionSugar">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFiber">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionFiber">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
-                                        <span>Ges√§ttigt</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">‚Äî</div>
+                                        <span>Ges‰ttigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSalt">‚Äî</div>
+                                        <div class="plan-nutrition-value" id="planNutritionSalt">ó</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                 </div>
@@ -1236,11 +1236,11 @@
                     </div>
 
                     <div id="addingModeHeader" style="display:none;">
-                        <div class="plan-text-muted small text-center mb-2">Tippe auf einen Slot üëá</div>
+                        <div class="plan-text-muted small text-center mb-2">Tippe auf einen Slot &#x1F447;</div>
                     </div>
 
                     <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
-                        Dein aktueller Plan f√ºr die Woche
+                        Dein aktueller Plan f¸r die Woche
                     </div>
 
                     <div id="planContainer"></div>
@@ -1287,15 +1287,15 @@
                         <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
                         <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
                         <div class="mb-3">
-                            <label class="form-label">@T("Suchbegriff", "Search term", "T√©rmino de b√∫squeda", "Termo de pesquisa")</label>
+                            <label class="form-label">@T("Suchbegriff", "Search term", "TÈrmino de b˙squeda", "Termo de pesquisa")</label>
                             <input type="text" name="searchTerm" class="form-control"
                                    placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">@T("Kategorie", "Category", "Categor√≠a", "Categoria")</label>
+                            <label class="form-label">@T("Kategorie", "Category", "CategorÌa", "Categoria")</label>
                             <select name="category" class="form-select">
-                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categor√≠as", "Todas as categorias")</option>
+                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorÌas", "Todas as categorias")</option>
                                 <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
                                 <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
                                 <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
@@ -1622,7 +1622,7 @@
                             <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>Tages-N√§hrwerte</span>
+                                    <span>Tages-N‰hrwerte</span>
                                 </span>
                                 <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
                             </button>
@@ -1630,42 +1630,42 @@
                                 <div class="day-nutrition-grid">
                                     <div class="day-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
-                                        <span>Ges√§ttigt</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">‚Äî</div>
+                                        <span>Ges‰ttigt</span>
+                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">‚Äî</div>
+                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">ó</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                 </div>
@@ -1696,7 +1696,7 @@
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) modalInstance.hide();
-            alert('W√§hle jetzt im Feed ein Rezept zum Ersetzen.');
+            alert('W‰hle jetzt im Feed ein Rezept zum Ersetzen.');
         }
 
         function buildMealPlanPayload() {
@@ -1733,7 +1733,7 @@
             if (!userHash) { alert("Bitte erst einloggen!"); return; }
 
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { alert("Bitte mindestens ein Rezept ausw√§hlen."); return; }
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept ausw‰hlen."); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -1745,7 +1745,7 @@
 
         async function shareWeeklyPlan() {
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { alert("Bitte mindestens ein Rezept ausw√§hlen."); return; }
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept ausw‰hlen."); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -1784,7 +1784,7 @@
                     if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
                     else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); alert("Link kopiert!"); }
                 } catch (shareError) {
-                    console.warn("Teilen nicht verf√ºgbar:", shareError);
+                    console.warn("Teilen nicht verf¸gbar:", shareError);
                 }
             } catch (error) {
                 console.error("Teilen fehlgeschlagen:", error);
@@ -1880,7 +1880,7 @@
         async function prepareShoppingList() {
             const payload = buildMealPlanPayload();
             const recipeIds = getPlanRecipeIds(payload);
-            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept ausw√§hlen."); return; }
+            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept ausw‰hlen."); return; }
 
             const personCountInput = document.getElementById('planPersonCount');
             const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
@@ -1926,7 +1926,7 @@
         }
 
         function formatNutritionValue(value, decimals) {
-            if (!Number.isFinite(value)) return '‚Äî';
+            if (!Number.isFinite(value)) return 'ó';
             return value.toLocaleString('de-DE', {
                 minimumFractionDigits: decimals,
                 maximumFractionDigits: decimals
@@ -2038,7 +2038,7 @@
                     return;
                 }
 
-                if (statusEl) statusEl.textContent = 'L√§dt...';
+                if (statusEl) statusEl.textContent = 'L‰dt...';
 
                 const params = new URLSearchParams(paramsBase);
                 recipeIds.forEach(id => params.append('recipeIds', id));
@@ -2050,7 +2050,7 @@
                     setDayNutritionTotals(dayIndex, data);
                     if (statusEl) statusEl.textContent = 'Aktuell';
                 } catch (error) {
-                    console.error("Tagesn√§hrwerte konnten nicht geladen werden.", error);
+                    console.error("Tagesn‰hrwerte konnten nicht geladen werden.", error);
                     setDayNutritionTotals(dayIndex, null);
                     if (statusEl) statusEl.textContent = 'Fehler';
                 }
@@ -2069,7 +2069,7 @@
                 return;
             }
 
-            if (statusEl) statusEl.textContent = 'L√§dt...';
+            if (statusEl) statusEl.textContent = 'L‰dt...';
 
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
@@ -2082,7 +2082,7 @@
                 setNutritionTotals(data);
                 if (statusEl) statusEl.textContent = 'Aktuell';
             } catch (error) {
-                console.error("N√§hrwerte konnten nicht geladen werden.", error);
+                console.error("N‰hrwerte konnten nicht geladen werden.", error);
                 setNutritionTotals(null);
                 if (statusEl) statusEl.textContent = 'Fehler';
             }
@@ -2090,7 +2090,7 @@
 
         function generateShareLink() {
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
-            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einf√ºgen."); return; }
+            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einf¸gen."); return; }
 
             const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
             document.getElementById('shoppingShareLink').value = shareLink;
@@ -2134,6 +2134,9 @@
         // ----------------- FEED: Autoplay + Sound + DoubleTap Like -----------------
         let isGlobalMuted = true;
         let hasUserInteracted = false;
+        const qualifiedWatchThresholdMs = 8000;
+        const clipWatchStates = new Map();
+        const watchTrackingEndpoint = '/WorldMiniApp/WatchAnalytics/TrackClipWatch';
 
         function updateSoundIcon(container, isMuted) {
             const icon = container?.querySelector('.sound-toggle i');
@@ -2145,6 +2148,89 @@
                 icon.classList.remove('bi-volume-mute-fill');
                 icon.classList.add('bi-volume-up-fill');
             }
+        }
+
+        function getClipWatchState(container) {
+            const key = container?.dataset?.postingId;
+            if (!key) return null;
+
+            if (!clipWatchStates.has(key)) {
+                clipWatchStates.set(key, {
+                    accumulatedMs: 0,
+                    activeSinceMs: null,
+                    sessionStartedAtMs: null
+                });
+            }
+
+            return clipWatchStates.get(key);
+        }
+
+        function startClipWatch(container) {
+            const state = getClipWatchState(container);
+            if (!state || state.activeSinceMs !== null) return;
+
+            const now = Date.now();
+            state.activeSinceMs = now;
+            state.sessionStartedAtMs ??= now;
+        }
+
+        function stopClipWatch(container) {
+            const state = getClipWatchState(container);
+            if (!state || state.activeSinceMs === null) return;
+
+            state.accumulatedMs += Math.max(0, Date.now() - state.activeSinceMs);
+            state.activeSinceMs = null;
+        }
+
+        function resetClipWatchState(state) {
+            state.accumulatedMs = 0;
+            state.activeSinceMs = null;
+            state.sessionStartedAtMs = null;
+        }
+
+        function buildClipWatchFormData(container, state) {
+            const postingId = container?.dataset?.postingId;
+            if (!postingId) return null;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const formData = new FormData();
+            formData.append('postingId', postingId);
+            formData.append('watchedSeconds', (state.accumulatedMs / 1000).toFixed(2));
+            if (state.sessionStartedAtMs) {
+                formData.append('sessionStartedAtUtc', new Date(state.sessionStartedAtMs).toISOString());
+            }
+            formData.append('sessionEndedAtUtc', new Date().toISOString());
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+            return formData;
+        }
+
+        function flushClipWatch(container, useBeacon = false) {
+            stopClipWatch(container);
+
+            const state = getClipWatchState(container);
+            if (!state || state.accumulatedMs < qualifiedWatchThresholdMs) {
+                return;
+            }
+
+            const formData = buildClipWatchFormData(container, state);
+            if (!formData) {
+                return;
+            }
+
+            resetClipWatchState(state);
+
+            if (useBeacon && navigator.sendBeacon) {
+                navigator.sendBeacon(watchTrackingEndpoint, formData);
+                return;
+            }
+
+            fetch(watchTrackingEndpoint, {
+                method: 'POST',
+                body: formData,
+                keepalive: true
+            }).catch(error => console.error('Watch tracking failed', error));
         }
 
         function unlockAudio() {
@@ -2185,6 +2271,15 @@
             }
         });
 
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) return;
+            document.querySelectorAll('.feed-item').forEach(item => flushClipWatch(item, true));
+        });
+
+        window.addEventListener('pagehide', () => {
+            document.querySelectorAll('.feed-item').forEach(item => flushClipWatch(item, true));
+        });
+
         function toggleGlobalSound(btn) {
             hasUserInteracted = true;
             isGlobalMuted = !isGlobalMuted;
@@ -2200,14 +2295,20 @@
             entries.forEach(entry => {
                 const container = entry.target;
                 const video = container.querySelector('video');
-                if (!video) return;
 
                 if (entry.isIntersecting) {
-                    video.muted = isGlobalMuted;
-                    updateSoundIcon(container, isGlobalMuted);
-                    video.play().then(() => container.classList.remove('paused')).catch(() => {});
+                    if (video) {
+                        video.muted = isGlobalMuted;
+                        updateSoundIcon(container, isGlobalMuted);
+                        video.play().then(() => container.classList.remove('paused')).catch(() => {});
+                    } else {
+                        startClipWatch(container);
+                    }
                 } else {
-                    video.pause();
+                    if (video) {
+                        video.pause();
+                    }
+                    flushClipWatch(container);
                 }
             });
         }, { threshold: 0.6 });
@@ -2255,6 +2356,16 @@
 
         function attachFeedHandlers() {
             document.querySelectorAll('.feed-item').forEach(item => observer.observe(item));
+
+            document.querySelectorAll('.feed-item video').forEach(video => {
+                const container = video.closest('.feed-item');
+                if (!container) return;
+
+                video.addEventListener('play', () => startClipWatch(container));
+                video.addEventListener('pause', () => stopClipWatch(container));
+                video.addEventListener('ended', () => flushClipWatch(container));
+                video.addEventListener('waiting', () => stopClipWatch(container));
+            });
 
             document.querySelectorAll('.feed-item').forEach(item => {
                 let lastTap = 0;
@@ -2418,7 +2529,7 @@
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
             if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
-            if (!sellerWallet) { alert('Verk√§ufer-Wallet fehlt.'); return; }
+            if (!sellerWallet) { alert('Verk‰ufer-Wallet fehlt.'); return; }
             const token = feedSelectedPaymentToken;
             const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
             if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
@@ -2437,7 +2548,7 @@
                     alert(data.error || 'Kauf konnte nicht finalisiert werden.');
                     return;
                 }
-                alert('Kein Zahlungsweg verf√ºgbar.');
+                alert('Kein Zahlungsweg verf¸gbar.');
             } catch (e) {
                 alert(e?.message || 'Kauf fehlgeschlagen.');
             }
@@ -2455,24 +2566,24 @@
             try {
                 const resp = await fetch(`/WorldMiniApp/Marketplace/GetListingPreview?listingId=${listingId}`);
                 const data = await resp.json();
-                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verf√ºgbar.</p>'; return; }
+                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verf¸gbar.</p>'; return; }
                 if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
                 let html = '';
                 if (data.description) {
                     html += `<p class="small mb-2">${data.description}</p>`;
                 }
                 if (data.nutrition) {
-                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} ¬∑ Protein: ${data.nutrition.protein}g ¬∑ Fett: ${data.nutrition.fat}g ¬∑ KH: ${data.nutrition.carbs}g</p>`;
+                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} ∑ Protein: ${data.nutrition.protein}g ∑ Fett: ${data.nutrition.fat}g ∑ KH: ${data.nutrition.carbs}g</p>`;
                 }
                 if (data.days?.length) {
                     data.days.forEach(day => {
                         html += `<div class="fw-bold mt-2">Tag ${day.day}</div>`;
                         (day.recipes || []).forEach(r => {
-                            html += `<div class="small opacity-75">‚Ä¢ ${r.title}</div>`;
+                            html += `<div class="small opacity-75">ï ${r.title}</div>`;
                         });
                     });
                 }
-                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verf√ºgbar.</p>';
+                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verf¸gbar.</p>';
             } catch (e) {
                 bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
             }
@@ -2494,3 +2605,6 @@
 
 </body>
 </html>
+
+
+

@@ -1,4 +1,4 @@
-﻿using DelikatessenDrehbuch.Models;
+using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +35,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeJoyinPreperationSteps> RecipeJoinPreperationSteps { get; set; }
         public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
         public DbSet<RecipePreperationSteps> RecipePreperationSteps { get; set; }
-       
+
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
@@ -43,13 +43,13 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldSharedMealPlan> WorldSharedMealPlan { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
+        public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
         public DbSet<JoinIngredientPreperationStep> JoinIngredientPreperationStep { get; set; }
         public DbSet<MealPlanListing> MealPlanListings { get; set; }
         public DbSet<WildCoinTransaction> WildCoinTransactions { get; set; }
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
-
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -73,6 +73,21 @@ namespace DelikatessenDrehbuch.Data
                 .WithMany(keyword => keyword.RecipeLinks)
                 .HasForeignKey(link => link.KeywordId);
 
+            builder.Entity<WorldClipWatchSession>()
+                .HasOne(x => x.Posting)
+                .WithMany()
+                .HasForeignKey(x => x.WorldUserPostingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<WorldClipWatchSession>()
+                .HasIndex(x => new { x.CreatorUserHash, x.IsQualifiedView, x.CreatedAtUtc });
+
+            builder.Entity<WorldClipWatchSession>()
+                .HasIndex(x => new { x.ViewerUserHash, x.CreatedAtUtc });
+
+            builder.Entity<WorldClipWatchSession>()
+                .Property(x => x.WatchedSeconds)
+                .HasColumnType("decimal(10,2)");
 
             // Legacy/production table name mapping (typo kept for compatibility):
             // Model MealPlanPurchase -> dbo.WorldMealplanPurcase
@@ -80,3 +95,4 @@ namespace DelikatessenDrehbuch.Data
         }
     }
 }
+

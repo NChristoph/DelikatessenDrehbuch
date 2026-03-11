@@ -75,6 +75,7 @@ builder.Services.AddScoped<IBlobUploadService, BlobUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<IWildCoinService, WildCoinService>();
+builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 
 
 builder.Services.AddHttpContextAccessor();
@@ -253,5 +254,6 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
 
 
