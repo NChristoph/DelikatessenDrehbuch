@@ -1,4 +1,4 @@
-﻿// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
+// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
             return false;
@@ -2621,6 +2621,62 @@
             });
         }
 
+        function slugifyStableStepKey(value) {
+            return (value || '')
+                .toString()
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+        }
+
+        function normalizeStableKeyArray(value) {
+            if (Array.isArray(value)) {
+                return value.map(x => (x || '').toString().trim()).filter(Boolean);
+            }
+            const single = (value || '').toString().trim();
+            return single ? [single] : [];
+        }
+
+        function sanitizeStableReferenceMetadata(stepData, options) {
+            const masterTemplateId = (options?.masterTemplateId || stepData?.masterTemplateId || '').toString().trim();
+            const stableReference = stepData?.stableReference && typeof stepData.stableReference === 'object'
+                ? stepData.stableReference
+                : {};
+
+            const taxonomy = stableReference.taxonomy || {};
+            const variables = stableReference.variables || {};
+            const sanitizedVariables = {};
+            Object.keys(variables).forEach(function (key) {
+                const item = variables[key] || {};
+                sanitizedVariables[key] = {
+                    type_key: (item.type_key || '').toString(),
+                    display_value: (item.display_value || '').toString(),
+                    reference_key: item.reference_key ? item.reference_key.toString() : null,
+                    reference_source: (item.reference_source || 'display_only').toString()
+                };
+            });
+
+            return {
+                schema_version: (stableReference.schema_version || '2.0.0').toString(),
+                master_step_key: (stableReference.master_step_key || masterTemplateId).toString(),
+                action_key: (stableReference.action_key || '').toString(),
+                step_intent_key: (stableReference.step_intent_key || '').toString(),
+                phase_key: (stableReference.phase_key || stepData?.phase || 0).toString(),
+                equipment_key: (stableReference.equipment_key || stepData?.equipment || 0).toString(),
+                taxonomy: {
+                    category_keys: normalizeStableKeyArray(taxonomy.category_keys),
+                    diet_keys: normalizeStableKeyArray(taxonomy.diet_keys),
+                    ingredient_family_keys: normalizeStableKeyArray(taxonomy.ingredient_family_keys),
+                    keyword_keys: normalizeStableKeyArray(taxonomy.keyword_keys),
+                    quality_rule_keys: normalizeStableKeyArray(taxonomy.quality_rule_keys)
+                },
+                variables: sanitizedVariables
+            };
+        }
+
         function addStep(id, btn, manualText = null, options = {}) {
             if (isStepAlreadySelected(id)) return;
 
@@ -2638,7 +2694,9 @@
                 esp: (stepData.esp || '').toString(),
                 prt: (stepData.prt || '').toString(),
                 phase: parseInt(stepData.phase ?? 0, 10) || 0,
-                equipment: parseInt(stepData.equipment ?? 0, 10) || 0
+                equipment: parseInt(stepData.equipment ?? 0, 10) || 0,
+                masterTemplateId: (options?.masterTemplateId || stepData.masterTemplateId || '').toString(),
+                stableReference: sanitizeStableReferenceMetadata(stepData, options)
             };
 
             let text = manualText;
@@ -2653,6 +2711,8 @@
             if (!normalizedStepData.de) normalizedStepData.de = normalizedStepData.en || text;
             if (!normalizedStepData.en) normalizedStepData.en = normalizedStepData.de || text;
 
+            const stepReferenceJson = JSON.stringify(normalizedStepData.stableReference || {});
+            const stepReferenceEncoded = $("<div>").text(stepReferenceJson).html();
             const stepIdAsInt = parseInt(id, 10);
             const postedStepId = Number.isNaN(stepIdAsInt) || stepIdAsInt < 1 ? 0 : stepIdAsInt;
             const phaseBadge = getPhaseLabel(normalizedStepData.phase);
@@ -2664,7 +2724,7 @@
             const templatePrt = buildIngredientTokenTemplate(normalizedStepData.prt, stepIngredientName);
             const visibleTemplate = ({ de: templateDe, en: templateEn, esp: templateEsp, prt: templatePrt })[currentLang] || templateDe;
 
-            $('#selectedSteps').append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-master-template-id="${$('<div>').text((options?.masterTemplateId || '')).html()}" data-ingredient-name="${$('<div>').text(stepIngredientName).html()}">
+            $("#selectedSteps").append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-master-template-id="${$("<div>").text((normalizedStepData.masterTemplateId || options?.masterTemplateId || "")).html()}" data-step-reference-json="${stepReferenceEncoded}" data-ingredient-name="${$("<div>").text(stepIngredientName).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(materializeStepTextFromTemplate(templateDe, stepIngredientName)).html()}" />
@@ -2677,6 +2737,8 @@
                 <input type="hidden" class="step-template-prt" value="${$('<div>').text(templatePrt).html()}" />
                 <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
                 <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
+                <input type="hidden" class="step-hidden-master-template-id" name="SmartStepReferences[INDEX].MasterStepKey" value="${$("<div>").text(normalizedStepData.stableReference?.master_step_key || normalizedStepData.masterTemplateId || "").html()}" />
+                <input type="hidden" class="step-hidden-reference-json" name="SmartStepReferences[INDEX].MetadataJson" value="${stepReferenceEncoded}" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}

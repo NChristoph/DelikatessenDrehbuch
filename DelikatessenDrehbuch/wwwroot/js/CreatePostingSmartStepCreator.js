@@ -1,4 +1,4 @@
-﻿// master-steps-ui.js
+// master-steps-ui.js
 // Erwartet:
 // - /data/master_steps.json (wwwroot/data/master_steps.json)
 // - <div id="insertContainer"></div>  (Liste der Step-Buttons)
@@ -630,6 +630,100 @@
         return formatSelectedIngredientList(getSelectedIngredientNamesFromPage(), currentLang);
     }
 
+    function slugifyStableKey(value) {
+        return (value || "")
+            .toString()
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+    }
+
+    function normalizeToArray(value) {
+        if (Array.isArray(value)) return value.filter(Boolean).map(x => x.toString());
+        if (value == null) return [];
+        const single = value.toString().trim();
+        return single ? [single] : [];
+    }
+
+    function getStableOptionReference(varName, rawValue) {
+        const value = (rawValue || "").toString().trim();
+        if (!value) return null;
+
+        const options = getVarOptions(varName);
+        if (Array.isArray(options) && options.length) {
+            const index = options.findIndex(x => (x || "").toString().trim().toLowerCase() === value.toLowerCase());
+            if (index >= 0) {
+                return {
+                    source: "json_option",
+                    key: `${slugifyStableKey(varName)}:${index}`
+                };
+            }
+        }
+
+        if (varName === "pronoun" || varName === "articles") {
+            return {
+                source: "grammar",
+                key: `${slugifyStableKey(varName)}:${slugifyStableKey(value)}`
+            };
+        }
+
+        if (varName === "count") {
+            return {
+                source: "numeric",
+                key: `count:${value}`
+            };
+        }
+
+        if (varName === "duration" || varName === "temp") {
+            return {
+                source: "normalized_scalar",
+                key: `${slugifyStableKey(varName)}:${slugifyStableKey(value)}`
+            };
+        }
+
+        return null;
+    }
+
+    function buildStableStepReference(step) {
+        const stableTaxonomy = step?.stable_taxonomy_keys || {};
+        const reference = {
+            schema_version: "2.0.0",
+            master_step_key: (step?.master_id || activeStep?.master_id || "").toString(),
+            action_key: (step?.action || "").toString(),
+            step_intent_key: (step?.step_intent || "").toString(),
+            phase_key: (step?.phase ?? 0).toString(),
+            equipment_key: (step?.equipment ?? 0).toString(),
+            taxonomy: {
+                category_keys: normalizeToArray(stableTaxonomy.category_keys),
+                diet_keys: normalizeToArray(stableTaxonomy.diet_keys),
+                ingredient_family_keys: normalizeToArray(stableTaxonomy.ingredient_family_keys),
+                keyword_keys: normalizeToArray(stableTaxonomy.keyword_keys),
+                quality_rule_keys: normalizeToArray(step?.quality_rule_keys)
+            },
+            variables: {}
+        };
+
+        const variableTypes = step?.variable_types || {};
+        const values = activeStep?.values || {};
+        Object.keys(values).forEach(function (varName) {
+            const displayValue = (values[varName] || "").toString().trim();
+            if (!displayValue) return;
+
+            const stableOption = getStableOptionReference(varName, displayValue);
+            reference.variables[varName] = {
+                type_key: (variableTypes[varName] || "").toString(),
+                display_value: displayValue,
+                reference_key: stableOption?.key || null,
+                reference_source: stableOption?.source || "display_only"
+            };
+        });
+
+        return reference;
+    }
+
     function acceptActiveStep() {
         if (!activeStep) return;
 
@@ -640,7 +734,9 @@
             esp: getRenderedTextForLang(step, "esp"),
             prt: getRenderedTextForLang(step, "prt"),
             phase: parseInt(step?.phase ?? 0, 10) || 0,
-            equipment: parseInt(step?.equipment ?? 0, 10) || 0
+            equipment: parseInt(step?.equipment ?? 0, 10) || 0,
+            masterTemplateId: (step?.master_id || activeStep.master_id || "").toString(),
+            stableReference: buildStableStepReference(step)
         };
         const textCurrent = payload[currentLang] || payload.de || payload.en || "";
         const ingredientName = resolveAcceptedIngredientName();
@@ -653,6 +749,7 @@
             window.addStep(String(generatedId), null, textCurrent || `Schritt ${generatedId}`, {
                 skipRender: true,
                 ingredientName,
+                masterTemplateId: payload.masterTemplateId,
                 stepData: payload
             });
             if (typeof window.updateStepIndices === "function") {
