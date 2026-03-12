@@ -2,6 +2,9 @@
     Layout = "_MiniAppLayout";
     ViewData["Title"] = "Start";
     var language = Context.Request.Cookies["deli-lang"] ?? "de";
+    var isLocalRequest = string.Equals(Context.Request.Host.Host, "localhost", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Context.Request.Host.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
+    const string devTestHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
     string T(string de, string en, string es, string pt) => language switch
     {
         "en" => en,
@@ -156,6 +159,15 @@
             <i class="bi bi-box-arrow-in-right me-1"></i>
             @T("Jetzt einloggen", "Log in now", "Iniciar sesión ahora", "Entrar agora")
         </button>
+        @if (isLocalRequest)
+        {
+            <div class="mb-3">
+                <button type="button" id="devTestLoginButton" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                    <i class="bi bi-wrench-adjustable-circle me-1"></i>
+                    @T("Mit Test-Hash anmelden", "Sign in with test hash", "Iniciar con hash de prueba", "Entrar com hash de teste")
+                </button>
+            </div>
+        }
         <p class="text-muted opacity-50" style="font-size: 0.75rem;">
             @Html.Raw(T("Gemacht mit <i class='bi bi-heart-fill text-danger mx-1'></i> für die World App", "Made with <i class='bi bi-heart-fill text-danger mx-1'></i> for World App", "Hecho con <i class='bi bi-heart-fill text-danger mx-1'></i> para World App", "Feito com <i class='bi bi-heart-fill text-danger mx-1'></i> para World App"))
         </p>
@@ -234,6 +246,7 @@
     <script type="module" src="~/js/minikitt.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            const devTestHash = '@devTestHash';
             const rememberToggle = document.getElementById('rememberLoginToggle');
             if (rememberToggle) {
                 rememberToggle.checked = localStorage.getItem("remember_login") === "true";
@@ -258,6 +271,38 @@
                 manualLoginButton.addEventListener('click', function () {
                     if (window.retryVerification) {
                         window.retryVerification();
+                    }
+                });
+            }
+
+            const devTestLoginButton = document.getElementById('devTestLoginButton');
+            if (devTestLoginButton) {
+                devTestLoginButton.addEventListener('click', async function () {
+                    devTestLoginButton.disabled = true;
+
+                    try {
+                        const response = await fetch('/WorldMiniApp/Auth/SetTestHash', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                userHash: devTestHash,
+                                rememberLogin: true
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Test-Login fehlgeschlagen.');
+                        }
+
+                        localStorage.setItem('UserToken', devTestHash);
+                        sessionStorage.setItem('UserToken', devTestHash);
+                        window.location.reload();
+                    } catch (error) {
+                        console.error(error);
+                        alert('Test-Login fehlgeschlagen.');
+                        devTestLoginButton.disabled = false;
                     }
                 });
             }

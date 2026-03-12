@@ -2195,7 +2195,7 @@
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             const formData = new FormData();
             formData.append('postingId', postingId);
-            formData.append('watchedSeconds', (state.accumulatedMs / 1000).toFixed(2));
+            formData.append('watchedSeconds', (state.accumulatedMs / 1000).toFixed(2).replace('.', ','));
             if (state.sessionStartedAtMs) {
                 formData.append('sessionStartedAtUtc', new Date(state.sessionStartedAtMs).toISOString());
             }
@@ -2300,7 +2300,10 @@
                     if (video) {
                         video.muted = isGlobalMuted;
                         updateSoundIcon(container, isGlobalMuted);
-                        video.play().then(() => container.classList.remove('paused')).catch(() => {});
+                        video.play().then(() => {
+                            container.classList.remove('paused');
+                            startClipWatch(container);
+                        }).catch(() => {});
                     } else {
                         startClipWatch(container);
                     }
@@ -2605,6 +2608,8 @@
 
 </body>
 </html>
+
+
 
 
 

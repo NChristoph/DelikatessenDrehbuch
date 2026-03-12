@@ -18,12 +18,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 return string.Empty;
             }
 
+            var testCookieHash = httpContext.Request.Cookies[TestUserHashCookieKey];
             var resolvedHash = FirstNonEmpty(
                 httpContext.Session.GetString(SessionUserHashKey),
                 httpContext.Session.GetString(LegacySessionUserHashKey),
                 explicitUserHash,
                 httpContext.Request.Cookies[UserHashCookieKey],
-                httpContext.Request.Cookies[TestUserHashCookieKey],
+                testCookieHash,
                 httpContext.Request.Headers[UserHashHeaderKey].ToString(),
                 httpContext.Request.Query[UserHashQueryKey].ToString());
 
@@ -36,7 +37,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             if (persistResolvedHash)
             {
-                Persist(httpContext, resolvedHash, isTestHash: false);
+                var isTestHash = !string.IsNullOrWhiteSpace(testCookieHash)
+                    && string.Equals(testCookieHash.Trim(), resolvedHash, StringComparison.OrdinalIgnoreCase);
+                Persist(httpContext, resolvedHash, isTestHash);
             }
 
             return resolvedHash;

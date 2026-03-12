@@ -8,25 +8,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     public class WorldClipWatchService : IWorldClipWatchService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<WorldClipWatchService> _logger;
 
-        public WorldClipWatchService(ApplicationDbContext context)
+        public WorldClipWatchService(ApplicationDbContext context, ILogger<WorldClipWatchService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public decimal MinimumQualifiedWatchSeconds => 8m;
 
-        public async Task<bool> TrackWatchAsync(string viewerUserHash, TrackClipWatchRequest request)
+        public async Task<TrackClipWatchResult> TrackWatchAsync(string viewerUserHash, TrackClipWatchRequest request, bool allowCreatorSelfWatch = false)
         {
-            if (string.IsNullOrWhiteSpace(viewerUserHash) || request.PostingId <= 0)
+            if (string.IsNullOrWhiteSpace(viewerUserHash))
             {
-                return false;
+                return Reject("missing-viewer-hash");
+            }
+
+            if (request == null || request.PostingId <= 0)
+            {
+                return Reject("invalid-posting-id");
             }
 
             var watchedSeconds = decimal.Round(request.WatchedSeconds, 2, MidpointRounding.AwayFromZero);
             if (watchedSeconds < MinimumQualifiedWatchSeconds)
             {
-                return false;
+                return Reject($"below-threshold:{watchedSeconds}");
             }
 
             var posting = await _context.WorldUserPosting
@@ -34,14 +41,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 .Include(x => x.Recipe)
                 .FirstOrDefaultAsync(x => x.Id == request.PostingId);
 
-            if (posting == null || string.IsNullOrWhiteSpace(posting.CreatorId) || posting.Recipe == null)
+            if (posting == null)
             {
-                return false;
+                return Reject("posting-not-found");
             }
 
-            if (string.Equals(posting.CreatorId, viewerUserHash, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(posting.CreatorId) || posting.Recipe == null)
             {
-                return false;
+                return Reject("posting-missing-creator-or-recipe");
+            }
+
+            if (!allowCreatorSelfWatch && string.Equals(posting.CreatorId, viewerUserHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Reject("self-watch-blocked");
             }
 
             var startedAt = request.SessionStartedAtUtc?.ToUniversalTime() ?? DateTime.UtcNow.AddSeconds(-(double)watchedSeconds);
@@ -66,7 +78,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             await _context.WorldClipWatchSessions.AddAsync(session);
             await _context.SaveChangesAsync();
-            return true;
+
+            _logger.LogInformation(
+                "TrackClipWatch persisted session {SessionId} for posting {PostingId}, viewer {ViewerUserHash}, creator {CreatorUserHash}, watchedSeconds {WatchedSeconds}.",
+                session.Id,
+                session.WorldUserPostingId,
+                session.ViewerUserHash,
+                session.CreatorUserHash,
+                session.WatchedSeconds);
+
+            return new TrackClipWatchResult
+            {
+                Tracked = true,
+                Reason = "tracked"
+            };
         }
 
         public async Task<CreatorWatchAnalyticsViewModel> BuildDashboardAnalyticsAsync(string userHash)
@@ -144,6 +169,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                         AverageWatchSeconds = decimal.Round(x.AverageWatchSeconds, 2, MidpointRounding.AwayFromZero)
                     };
                 }).ToList()
+            };
+        }
+
+        private TrackClipWatchResult Reject(string reason)
+        {
+            _logger.LogInformation("TrackClipWatch rejected: {Reason}.", reason);
+            return new TrackClipWatchResult
+            {
+                Tracked = false,
+                Reason = reason
             };
         }
     }
