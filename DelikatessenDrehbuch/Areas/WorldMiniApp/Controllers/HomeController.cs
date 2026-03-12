@@ -1,4 +1,5 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
@@ -24,8 +25,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class HomeController : Controller
     {
-        private const string SessionUserHashKey = "WorldMiniAppUserHash";
-        private const string SuperUserHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+                private const string SuperUserHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
         private readonly IBlobUploadService _blobUpload;
@@ -34,11 +34,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<HomeController> _logger;
         private readonly IWorldClipWatchService _worldClipWatchService;
+        private readonly IWorldAdPreferenceService _worldAdPreferenceService;
         private const int UploadRateLimit = 5;
         private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
 
 
-        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IMemoryCache memoryCache, ILogger<HomeController> logger, IWorldClipWatchService worldClipWatchService)
+        public HomeController(IRecipesService recipesService, IWorldAppMealPlanService worldUserMealPlanService, IBlobUploadService blobUpload, ApplicationDbContext context, ISaveNewRecipeService saveNewRecipeService, IMemoryCache memoryCache, ILogger<HomeController> logger, IWorldClipWatchService worldClipWatchService, IWorldAdPreferenceService worldAdPreferenceService)
         {
             _recipesService = recipesService;
             _worldAppMealPlanService = worldUserMealPlanService;
@@ -48,9 +49,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _memoryCache = memoryCache;
             _logger = logger;
             _worldClipWatchService = worldClipWatchService;
+            _worldAdPreferenceService = worldAdPreferenceService;
         }
 
-        // Die Startseite (Das Menü von oben)
+        // Die Startseite (Das Menï¿½ von oben)
         public IActionResult Index()
         {
             return View();
@@ -58,7 +60,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         public async Task<IActionResult> UserDashboard()
         {
-            var userHash = HttpContext.Session.GetString(SessionUserHashKey) ?? string.Empty;
+            var userHash = WorldMiniAppUserHashHelper.Resolve(HttpContext);
 
             if (string.IsNullOrWhiteSpace(userHash))
             {
@@ -92,6 +94,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Sum(x => x.CreatorAmount);
 
             var watchAnalytics = await _worldClipWatchService.BuildDashboardAnalyticsAsync(userHash);
+            var preferredLanguage = Request.Cookies["deli-lang"] ?? "de";
+            var adPreferences = await _worldAdPreferenceService.GetDashboardProfileAsync(userHash, preferredLanguage);
 
             var model = new UserDashboardViewModel
             {
@@ -102,6 +106,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 OpenWldAmount = openWldAmount,
                 OpenUsdcAmount = openUsdcAmount,
                 WatchAnalytics = watchAnalytics,
+                AdPreferences = adPreferences,
                 SalesHistory = sales,
                 WildCoinHistory = transactionHistory
             };
@@ -130,7 +135,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
                 }
-                return StatusCode(StatusCodes.Status429TooManyRequests, "Upload-Limit erreicht. Bitte später erneut versuchen.");
+                return StatusCode(StatusCodes.Status429TooManyRequests, "Upload-Limit erreicht. Bitte spï¿½ter erneut versuchen.");
             }
 
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -298,7 +303,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (request == null || string.IsNullOrWhiteSpace(request.De) || string.IsNullOrWhiteSpace(request.En))
             {
-                return BadRequest(new { message = "Ungültige Step-Daten." });
+                return BadRequest(new { message = "Ungï¿½ltige Step-Daten." });
             }
 
             var de = request.De.Trim();
@@ -387,9 +392,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (existingJoinEntries.Any())
             {
-                // WICHTIG: Nur die Join-Entities löschen.
-                // Die IngredientMeasureQuantity-Entities können (historisch) auch von anderen Rezepten referenziert werden.
-                // Ein direktes Löschen erzeugt sonst FK-Konflikte.
+                // WICHTIG: Nur die Join-Entities lï¿½schen.
+                // Die IngredientMeasureQuantity-Entities kï¿½nnen (historisch) auch von anderen Rezepten referenziert werden.
+                // Ein direktes Lï¿½schen erzeugt sonst FK-Konflikte.
                 _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
                 await _context.SaveChangesAsync();
             }
@@ -603,7 +608,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return user?.IsVerified == "orb";
         }
 
-        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufsliste teilen
+        //TODO:Beim andern der rezepte noch auf die preferenz rï¿½cksicht nehmen und link zur einkaufsliste teilen
         //lagere das in einen eigenen controller aus
 
         private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)
@@ -893,8 +898,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         // TODO: Zutaten-Seeding entfernt (vormals harte Seed-Daten).
 
-        // 1. ZUFALLS-REZEPT (Würfeln)
-        // Gibt nur das HTML für die eine Karte zurück
+        // 1. ZUFALLS-REZEPT (Wï¿½rfeln)
+        // Gibt nur das HTML fï¿½r die eine Karte zurï¿½ck
         public async Task<IActionResult> GetRandomRecipeCard(string category, int dayIndex, string namePrefix)
         {
 
@@ -902,14 +907,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var recipe = await GetRandomRecipesByCategory(category, 1); // Methode musst du evtl. in deinem Service haben
 
           
-            // Wir bauen das Model für die Partial View
+            // Wir bauen das Model fï¿½r die Partial View
             var model = new MealPlanerModel
             {
                 Index = dayIndex,
                 Recipes = recipe.First()
             };
             model.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
-            // Daten für die View durchreichen
+            // Daten fï¿½r die View durchreichen
             ViewData["DayIndex"] = dayIndex;
             ViewData["Category"] = category;
             ViewData["NamePrefix"] = namePrefix;
@@ -918,7 +923,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         // 2. SUCHE (Ersetzen durch...)
-        // Gibt eine Liste von Rezepten zurück, die wir ins Offcanvas laden
+        // Gibt eine Liste von Rezepten zurï¿½ck, die wir ins Offcanvas laden
         public async Task<IActionResult> GetSearchList(string category, int dayIndex, string namePrefix)
         {
             var recipes = await GetRandomRecipesByCategory(category, 20);
@@ -945,7 +950,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             };
 
             model.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
-            // Daten für die View durchreichen
+            // Daten fï¿½r die View durchreichen
             ViewData["DayIndex"] = dayIndex;
             ViewData["Category"] = category;
             ViewData["NamePrefix"] = namePrefix;
@@ -957,7 +962,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public class MealPlanHelperMobile
         {
             public int DayIndex { get; set; }      // Der Tag (1, 2, 3...)
-            public int RecipeId { get; set; }   // Die ID des gewählten Rezepts
+            public int RecipeId { get; set; }   // Die ID des gewï¿½hlten Rezepts
             public int SlotIndex { get; set; }   // Slot (0=Vorspeise, 1=Hauptspeise, 2=Dessert)
 
         }
@@ -1182,17 +1187,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash(string userHash)
         {
-            // Security: Nur aus der authentifizierten Session lesen.
-            // Der userHash-Parameter wird ignoriert um Session-Hijacking zu verhindern.
-            var sessionHash = HttpContext.Session.GetString(SessionUserHashKey)
-                ?? HttpContext.Session.GetString("UserHash");
-
-            if (string.IsNullOrWhiteSpace(sessionHash))
-            {
-                return string.Empty;
-            }
-
-            return sessionHash;
+            return WorldMiniAppUserHashHelper.Resolve(HttpContext, userHash);
         }
 
         private bool TryConsumeUploadSlot(string userHash, out TimeSpan? retryAfter)
@@ -1375,7 +1370,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var grams = (decimal)quantity;
 
                     if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(unit, "Stück", StringComparison.OrdinalIgnoreCase))
+                        || string.Equals(unit, "Stï¿½ck", StringComparison.OrdinalIgnoreCase))
                     {
                         var weightPerPiece = nutrient.Weight_per_piece > 0 ? nutrient.Weight_per_piece : 0;
                         grams = (decimal)weightPerPiece * (decimal)quantity;
@@ -1495,6 +1490,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
     }
 }
+
+
 
 
 

@@ -151,7 +151,7 @@
               class="placeholder-reset"
               data-token-id="${escapeHtml(tokenId)}"
               data-var="${escapeHtml(varName)}"
-              title="Zuruecksetzen">&#8630;</button>
+              title="ZurÃ¼cksetzen">â†º</button>
     `;
         });
     }
@@ -167,7 +167,7 @@
             meta?.label?.[DEFAULT_LANG] ??
             (typeof meta === "string" ? meta : p);
 
-        const icon = meta?.icon ?? "&#10024;";
+        const icon = meta?.icon ?? "âœ¨";
         return { label, icon };
     }
 
@@ -240,7 +240,7 @@
         if (!target) return;
 
         if (!activeStep) {
-            target.innerHTML = "Waehle eine Zutat und ein Template.";
+            target.innerHTML = "WÃ¤hle eine Zutat und ein Template.";
             return;
         }
 
@@ -419,13 +419,13 @@
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
-            ? `<div class="text-muted small">Keine Zutaten ausgewaehlt.</div>`
+            ? `<div class="text-muted small">Keine Zutaten ausgewÃ¤hlt.</div>`
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schliessen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">SchlieÃŸen</button>
         </div>
       </div>
     `;
@@ -474,7 +474,7 @@
                  style="max-width:110px"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "10")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schliessen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃŸen</button>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-2">
@@ -493,12 +493,12 @@
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "180")}" />
 
           <select id="TempUnitSelect" class="form-select form-select-sm" style="max-width:140px">
-            <option value="C">C</option>
-            <option value="F">F</option>
+            <option value="Â°C">Â°C</option>
+            <option value="Â°F">Â°F</option>
           </select>
 
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schliessen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃŸen</button>
         </div>
       `;
         }
@@ -512,7 +512,7 @@
                  style="max-width:110px"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schliessen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃŸen</button>
         </div>
       `;
         }
@@ -552,7 +552,7 @@
 
         if (varName === "temp") {
             const n = $("#TempValueInput")?.value?.trim() || "";
-            const u = $("#TempUnitSelect")?.value || "C";
+            const u = $("#TempUnitSelect")?.value || "Â°C";
             const composed = n ? `${n} ${u}` : "";
             if (composed) activeStep.values[varName] = composed;
             rerenderAfterValueSet();
@@ -824,7 +824,7 @@
             // quick temp apply
             if (e.target.id === "BtnPickTempQuick") {
                 const n = $("#TempValueInput")?.value?.trim() || "";
-                const u = $("#TempUnitSelect")?.value || "C";
+                const u = $("#TempUnitSelect")?.value || "Â°C";
                 const composed = n ? `${n} ${u}` : "";
 
                 activeStep.values["temp"] = composed;
@@ -917,20 +917,20 @@
 
     function getIngredientEmojiForHelper(name) {
         const text = (name || "").toString().toLowerCase();
-        if (text.includes("basil")) return "&#127807;";
-        if (text.includes("tomat")) return "&#127813;";
-        if (text.includes("zwiebel")) return "&#129477;";
-        if (text.includes("knoblauch")) return "&#129476;";
-        if (text.includes("reis")) return "&#127834;";
-        if (text.includes("salat")) return "&#129367;";
-        return "&#127860;";
+        if (text.includes("basil")) return "ðŸŒ¿";
+        if (text.includes("tomat")) return "ðŸ…";
+        if (text.includes("zwiebel")) return "ðŸ§…";
+        if (text.includes("knoblauch")) return "ðŸ§„";
+        if (text.includes("reis")) return "ðŸš";
+        if (text.includes("salat")) return "ðŸ¥—";
+        return "ðŸ¥£";
     }
 
     function buildIngredientChipsHtml(ingredients, selectedIds) {
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
         if (!list.length) {
-            return '<span class="small text-white-50">Keine Zutaten ausgewaehlt</span>';
+            return '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>';
         }
 
         return list.map(ing => {
@@ -955,7 +955,6 @@
         resolveIngredientInsertValue
     };
 })();
-
 
 
 

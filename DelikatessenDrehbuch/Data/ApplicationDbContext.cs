@@ -44,6 +44,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
         public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
+        public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }
+        public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
         public DbSet<JoinIngredientPreperationStep> JoinIngredientPreperationStep { get; set; }
@@ -86,7 +88,46 @@ namespace DelikatessenDrehbuch.Data
                 .HasIndex(x => new { x.ViewerUserHash, x.CreatedAtUtc });
 
             builder.Entity<WorldClipWatchSession>()
+                .Property(x => x.CreatorUserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldClipWatchSession>()
+                .Property(x => x.ViewerUserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldClipWatchSession>()
                 .Property(x => x.WatchedSeconds)
+                .HasColumnType("decimal(10,2)");
+
+            builder.Entity<WorldAdPreferenceProfile>()
+                .HasIndex(x => x.UserHash)
+                .IsUnique();
+
+            builder.Entity<WorldAdPreferenceProfile>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldAdPreferenceInterest>()
+                .HasIndex(x => new { x.UserHash, x.InterestType, x.Score });
+
+            builder.Entity<WorldAdPreferenceInterest>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldAdPreferenceInterest>()
+                .Property(x => x.InterestType)
+                .HasMaxLength(64);
+
+            builder.Entity<WorldAdPreferenceInterest>()
+                .Property(x => x.InterestKey)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldAdPreferenceInterest>()
+                .Property(x => x.DisplayLabel)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldAdPreferenceInterest>()
+                .Property(x => x.Score)
                 .HasColumnType("decimal(10,2)");
 
             // Legacy/production table name mapping (typo kept for compatibility):
@@ -95,4 +136,3 @@ namespace DelikatessenDrehbuch.Data
         }
     }
 }
-

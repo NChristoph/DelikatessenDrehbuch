@@ -13,8 +13,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class MarketplaceController : Controller
     {
-        private const string SessionUserHashKey = "WorldMiniAppUserHash";
-        private const string SessionWalletWLD = "WorldWallet_WLD";
+                private const string SessionWalletWLD = "WorldWallet_WLD";
         private const string SessionWalletUSDT = "WorldWallet_USDT";
         private static readonly HashSet<string> AllowedWalletTokens = new(StringComparer.OrdinalIgnoreCase) { "WLD", "USDT", "USDCE" };
         private readonly IWildCoinService _coinService;
@@ -54,7 +53,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         /// </summary>
         private string? GetUserHash()
         {
-            return HttpContext.Session.GetString(SessionUserHashKey);
+            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
         }
 
         // GET: Marketplace overview
@@ -692,3 +691,4 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
     }
 }
+

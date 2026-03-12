@@ -128,7 +128,8 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.Property<string>("CreatorUserHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
@@ -150,7 +151,8 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.Property<string>("ViewerUserHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("WorldUserPostingId")
                         .HasColumnType("int");

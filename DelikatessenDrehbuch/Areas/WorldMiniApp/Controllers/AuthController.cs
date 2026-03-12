@@ -1,4 +1,5 @@
-﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Http;
@@ -83,7 +84,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 await _userManager.CreateOrUpdateWalletUser(verifyResult.Address, request.RememberLogin);
 
                 var normalizedWallet = verifyResult.Address.ToLowerInvariant();
-                HttpContext.Session.SetString(SessionUserHashKey, normalizedWallet);
+                WorldMiniAppUserHashHelper.Persist(HttpContext, normalizedWallet, isTestHash: false);
 
                 return Ok(new { status = "success", isValid = true, walletAddress = normalizedWallet });
             }
@@ -110,13 +111,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 if (isValid.Success)
                 {
                     await _userManager.CreateNewUser(request);
-                    HttpContext.Session.SetString(SessionUserHashKey, request.Payload.NullifierHash);
+                    WorldMiniAppUserHashHelper.Persist(HttpContext, request.Payload.NullifierHash, isTestHash: false);
 
                     return Ok(new { status = 200, message = "Erfolg!" });
                 }
                 else
                 {
-                    return BadRequest("Verifizierung fehlgeschlagen (False zurückgegeben).");
+                    return BadRequest("Verifizierung fehlgeschlagen (False zur�ckgegeben).");
                 }
             }
             catch (Exception ex)
@@ -127,11 +128,34 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
 
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> SetTestHash([FromBody] RefreshLoginRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.UserHash))
+            {
+                return BadRequest(new { status = "error", message = "UserHash missing." });
+            }
+
+            var userHash = request.UserHash.Trim();
+            await _userManager.CreateOrUpdateTestUser(userHash, request.RememberLogin ?? true);
+            WorldMiniAppUserHashHelper.Persist(HttpContext, userHash, isTestHash: true);
+
+            return Ok(new
+            {
+                status = "success",
+                isValid = true,
+                userHash,
+                isTestHash = true
+            });
+        }
+
         [HttpGet]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> SessionStatus()
         {
-            var userHash = HttpContext.Session.GetString(SessionUserHashKey);
+            var userHash = WorldMiniAppUserHashHelper.Resolve(HttpContext);
             if (string.IsNullOrWhiteSpace(userHash))
             {
                 return Ok(new { isLoggedIn = false });
@@ -295,3 +319,5 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
     }
 }
+
+

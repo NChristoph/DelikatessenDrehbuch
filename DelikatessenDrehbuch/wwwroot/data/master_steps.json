@@ -1,8 +1,8 @@
-﻿{
+{
   "_meta": {
-    "version": "1.4.5",
+    "version": "2.0.0",
     "created_at": "2026-02-17",
-    "updated_at": "2026-03-01",
+    "updated_at": "2026-03-12",
     "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
     "usage": {
       "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
@@ -11,7 +11,34 @@
       "algorithm": "1) Rezepttyp & Zutaten analysieren → passende master_steps auswählen. 2) Variablen aus Rezeptdaten befüllen. 3) Nach Phase sortieren. 4) Templates rendern.",
       "ingredient_articles": "Die Variable {{ingredient}} enthält in allen Sprachen den Artikel. de: 'die Tomaten / den Knoblauch', en: 'the tomatoes / the garlic', esp: 'los tomates / el ajo', prt: 'os tomates / o alho', id/ms: kein Artikel erforderlich, nl: 'de tomaten / de knoflook', sv/da/no: Artikel als Suffix im Wort ('tomater' → 'tomaterna/tomaterne')."
     },
+    "supported_languages": [
+      "de",
+      "en",
+      "esp",
+      "prt",
+      "id",
+      "nl",
+      "sv",
+      "da",
+      "no",
+      "ms"
+    ],
+    "stable_key_policy": {
+      "de": "Speichere nur stabile semantische Schluessel aus dieser JSON, niemals DB-IDs oder freie User-Eingaben als Referenz.",
+      "en": "Store only stable semantic keys from this JSON, never DB ids or free-form user input as a reference.",
+      "esp": "Guarda solo claves semanticas estables de este JSON, nunca ids de base de datos ni entradas libres del usuario como referencia.",
+      "prt": "Armazene apenas chaves semanticas estaveis deste JSON, nunca IDs do banco de dados nem entradas livres do usuario como referencia.",
+      "id": "Simpan hanya kunci semantik stabil dari JSON ini, jangan pernah menyimpan id basis data atau input bebas pengguna sebagai referensi.",
+      "nl": "Sla alleen stabiele semantische sleutels uit deze JSON op, nooit database-id's of vrije gebruikersinvoer als referentie.",
+      "sv": "Spara endast stabila semantiska nycklar fran denna JSON, aldrig databas-id:n eller fri anvandarinmatning som referens.",
+      "da": "Gem kun stabile semantiske noegler fra denne JSON, aldrig database-id'er eller fri brugerinput som reference.",
+      "no": "Lagre kun stabile semantiske nokler fra denne JSON-en, aldri database-id-er eller fri brukerinput som referanse.",
+      "ms": "Simpan hanya kunci semantik stabil daripada JSON ini, jangan sekali-kali simpan id pangkalan data atau input bebas pengguna sebagai rujukan."
+    },
     "changes": [
+      "Promoted schema to v2.0.0 with multilingual taxonomies and stable semantic key references.",
+      "Added supported_languages and stable_key_policy to ensure no DB IDs or free-form user IDs are stored as references.",
+      "Added multilingual variable type, step intent, category, diet, ingredient family, and quality rule definitions.",
       "Removed languages: pl, sk, ro.",
       "Added languages: id (Indonesian), nl (Dutch), sv (Swedish), da (Danish), no (Norwegian), ms (Malay) to all templates.",
       "Restored original premium blocks: variable_hints, example_render.",
@@ -31,7 +58,6 @@
       "Fixed PREP_SOAK_01 de: removed anglicism 'für' in time expression ('weiche ... ein' now uses 'für' correctly -- kept as natural German)."
     ]
   },
-
   "phases": {
     "0": {
       "label": {
@@ -109,7 +135,6 @@
       "icon": "🍽️"
     }
   },
-
   "equipment": {
     "0": "Keins",
     "1": "Backofen",
@@ -122,6 +147,630 @@
     "8": "Dampfgarer",
     "9": "Schüssel",
     "10": "Sieb"
+  },
+  "variable_type_definitions": {
+    "ingredient": {
+      "label": {
+        "de": "Zutat",
+        "en": "Ingredient",
+        "esp": "Ingrediente",
+        "prt": "Ingrediente",
+        "id": "Bahan",
+        "nl": "Ingredient",
+        "sv": "Ingrediens",
+        "da": "Ingrediens",
+        "no": "Ingrediens",
+        "ms": "Bahan"
+      },
+      "description": {
+        "de": "Eine konkrete Zutat oder Gerichtskomponente.",
+        "en": "A concrete ingredient or dish component.",
+        "esp": "A concrete ingredient or dish component.",
+        "prt": "A concrete ingredient or dish component.",
+        "id": "A concrete ingredient or dish component.",
+        "nl": "A concrete ingredient or dish component.",
+        "sv": "A concrete ingredient or dish component.",
+        "da": "A concrete ingredient or dish component.",
+        "no": "A concrete ingredient or dish component.",
+        "ms": "A concrete ingredient or dish component."
+      }
+    },
+    "ingredient_list": {
+      "label": {
+        "de": "Zutatenliste",
+        "en": "Ingredient list",
+        "esp": "Lista de ingredientes",
+        "prt": "Lista de ingredientes",
+        "id": "Senarai bahan",
+        "nl": "Ingredientlijst",
+        "sv": "Ingredienslista",
+        "da": "Ingrediensliste",
+        "no": "Ingrediensliste",
+        "ms": "Senarai bahan"
+      },
+      "description": {
+        "de": "Mehrere Zutaten in stabiler Reihenfolge.",
+        "en": "Multiple ingredients in a stable order.",
+        "esp": "Multiple ingredients in a stable order.",
+        "prt": "Multiple ingredients in a stable order.",
+        "id": "Multiple ingredients in a stable order.",
+        "nl": "Multiple ingredients in a stable order.",
+        "sv": "Multiple ingredients in a stable order.",
+        "da": "Multiple ingredients in a stable order.",
+        "no": "Multiple ingredients in a stable order.",
+        "ms": "Multiple ingredients in a stable order."
+      }
+    },
+    "dish_component": {
+      "label": {
+        "de": "Gerichtskomponente",
+        "en": "Dish component",
+        "esp": "Componente del plato",
+        "prt": "Componente do prato",
+        "id": "Komponen hidangan",
+        "nl": "Gerechtscomponent",
+        "sv": "Rattkomponent",
+        "da": "Retkomponent",
+        "no": "Rettkomponent",
+        "ms": "Komponen hidangan"
+      },
+      "description": {
+        "de": "Ein Teil des Gerichts wie Teig, Sauce oder Fuellung.",
+        "en": "A part of the dish such as dough, sauce, or filling.",
+        "esp": "A part of the dish such as dough, sauce, or filling.",
+        "prt": "A part of the dish such as dough, sauce, or filling.",
+        "id": "A part of the dish such as dough, sauce, or filling.",
+        "nl": "A part of the dish such as dough, sauce, or filling.",
+        "sv": "A part of the dish such as dough, sauce, or filling.",
+        "da": "A part of the dish such as dough, sauce, or filling.",
+        "no": "A part of the dish such as dough, sauce, or filling.",
+        "ms": "A part of the dish such as dough, sauce, or filling."
+      }
+    },
+    "duration": {
+      "label": {
+        "de": "Dauer",
+        "en": "Duration",
+        "esp": "Duracion",
+        "prt": "Duracao",
+        "id": "Tempoh",
+        "nl": "Duur",
+        "sv": "Tid",
+        "da": "Varighed",
+        "no": "Varighet",
+        "ms": "Tempoh"
+      },
+      "description": {
+        "de": "Zeitspanne fuer den Schritt.",
+        "en": "Time span for the step.",
+        "esp": "Time span for the step.",
+        "prt": "Time span for the step.",
+        "id": "Time span for the step.",
+        "nl": "Time span for the step.",
+        "sv": "Time span for the step.",
+        "da": "Time span for the step.",
+        "no": "Time span for the step.",
+        "ms": "Time span for the step."
+      }
+    },
+    "temperature": {
+      "label": {
+        "de": "Temperatur",
+        "en": "Temperature",
+        "esp": "Temperatura",
+        "prt": "Temperatura",
+        "id": "Suhu",
+        "nl": "Temperatuur",
+        "sv": "Temperatur",
+        "da": "Temperatur",
+        "no": "Temperatur",
+        "ms": "Suhu"
+      },
+      "description": {
+        "de": "Back- oder Gartemperatur.",
+        "en": "Cooking or baking temperature.",
+        "esp": "Cooking or baking temperature.",
+        "prt": "Cooking or baking temperature.",
+        "id": "Cooking or baking temperature.",
+        "nl": "Cooking or baking temperature.",
+        "sv": "Cooking or baking temperature.",
+        "da": "Cooking or baking temperature.",
+        "no": "Cooking or baking temperature.",
+        "ms": "Cooking or baking temperature."
+      }
+    },
+    "state_descriptor": {
+      "label": {
+        "de": "Zustand",
+        "en": "State",
+        "esp": "Estado",
+        "prt": "Estado",
+        "id": "Keadaan",
+        "nl": "Toestand",
+        "sv": "Tillstand",
+        "da": "Tilstand",
+        "no": "Tilstand",
+        "ms": "Keadaan"
+      },
+      "description": {
+        "de": "Beschreibt Form, Gargrad oder Zielzustand.",
+        "en": "Describes shape, doneness, or target state.",
+        "esp": "Describes shape, doneness, or target state.",
+        "prt": "Describes shape, doneness, or target state.",
+        "id": "Describes shape, doneness, or target state.",
+        "nl": "Describes shape, doneness, or target state.",
+        "sv": "Describes shape, doneness, or target state.",
+        "da": "Describes shape, doneness, or target state.",
+        "no": "Describes shape, doneness, or target state.",
+        "ms": "Describes shape, doneness, or target state."
+      }
+    },
+    "tool": {
+      "label": {
+        "de": "Werkzeug",
+        "en": "Tool",
+        "esp": "Herramienta",
+        "prt": "Ferramenta",
+        "id": "Alat",
+        "nl": "Gereedschap",
+        "sv": "Verktyg",
+        "da": "Redskab",
+        "no": "Verktoy",
+        "ms": "Alat"
+      },
+      "description": {
+        "de": "Genutztes Werkzeug oder Geraetlabel.",
+        "en": "Used tool or equipment label.",
+        "esp": "Used tool or equipment label.",
+        "prt": "Used tool or equipment label.",
+        "id": "Used tool or equipment label.",
+        "nl": "Used tool or equipment label.",
+        "sv": "Used tool or equipment label.",
+        "da": "Used tool or equipment label.",
+        "no": "Used tool or equipment label.",
+        "ms": "Used tool or equipment label."
+      }
+    },
+    "count": {
+      "label": {
+        "de": "Anzahl",
+        "en": "Count",
+        "esp": "Cantidad",
+        "prt": "Quantidade",
+        "id": "Bilangan",
+        "nl": "Aantal",
+        "sv": "Antal",
+        "da": "Antal",
+        "no": "Antall",
+        "ms": "Bilangan"
+      },
+      "description": {
+        "de": "Diskrete Anzahl oder Wiederholungen.",
+        "en": "Discrete count or repetitions.",
+        "esp": "Discrete count or repetitions.",
+        "prt": "Discrete count or repetitions.",
+        "id": "Discrete count or repetitions.",
+        "nl": "Discrete count or repetitions.",
+        "sv": "Discrete count or repetitions.",
+        "da": "Discrete count or repetitions.",
+        "no": "Discrete count or repetitions.",
+        "ms": "Discrete count or repetitions."
+      }
+    },
+    "seasoning": {
+      "label": {
+        "de": "Wuerzung",
+        "en": "Seasoning",
+        "esp": "Sazonado",
+        "prt": "Tempero",
+        "id": "Perasa",
+        "nl": "Kruiding",
+        "sv": "Kryddning",
+        "da": "Krydring",
+        "no": "Krydring",
+        "ms": "Perasa"
+      },
+      "description": {
+        "de": "Gewuerze oder Geschmacksgeber.",
+        "en": "Spices or flavor components.",
+        "esp": "Spices or flavor components.",
+        "prt": "Spices or flavor components.",
+        "id": "Spices or flavor components.",
+        "nl": "Spices or flavor components.",
+        "sv": "Spices or flavor components.",
+        "da": "Spices or flavor components.",
+        "no": "Spices or flavor components.",
+        "ms": "Spices or flavor components."
+      }
+    },
+    "grammar_token": {
+      "label": {
+        "de": "Grammatik-Token",
+        "en": "Grammar token",
+        "esp": "Token gramatical",
+        "prt": "Token gramatical",
+        "id": "Token tatabahasa",
+        "nl": "Grammaticatoken",
+        "sv": "Grammatiktoken",
+        "da": "Grammatik-token",
+        "no": "Grammatikk-token",
+        "ms": "Token tatabahasa"
+      },
+      "description": {
+        "de": "Sprachspezifischer Platzhalter wie ein Pronomen.",
+        "en": "Language-specific placeholder such as a pronoun.",
+        "esp": "Language-specific placeholder such as a pronoun.",
+        "prt": "Language-specific placeholder such as a pronoun.",
+        "id": "Language-specific placeholder such as a pronoun.",
+        "nl": "Language-specific placeholder such as a pronoun.",
+        "sv": "Language-specific placeholder such as a pronoun.",
+        "da": "Language-specific placeholder such as a pronoun.",
+        "no": "Language-specific placeholder such as a pronoun.",
+        "ms": "Language-specific placeholder such as a pronoun."
+      }
+    },
+    "text_token": {
+      "label": {
+        "de": "Textbaustein",
+        "en": "Text token",
+        "esp": "Token de texto",
+        "prt": "Token de texto",
+        "id": "Token teks",
+        "nl": "Teksttoken",
+        "sv": "Texttoken",
+        "da": "Teksttoken",
+        "no": "Teksttoken",
+        "ms": "Token teks"
+      },
+      "description": {
+        "de": "Kontrollierter Textbaustein aus Presets oder Mappings.",
+        "en": "Controlled text token from presets or mappings.",
+        "esp": "Controlled text token from presets or mappings.",
+        "prt": "Controlled text token from presets or mappings.",
+        "id": "Controlled text token from presets or mappings.",
+        "nl": "Controlled text token from presets or mappings.",
+        "sv": "Controlled text token from presets or mappings.",
+        "da": "Controlled text token from presets or mappings.",
+        "no": "Controlled text token from presets or mappings.",
+        "ms": "Controlled text token from presets or mappings."
+      }
+    }
+  },
+  "step_intent_definitions": {
+    "prep_core": {
+      "label": {
+        "de": "Vorbereitung",
+        "en": "Preparation",
+        "esp": "Preparacion",
+        "prt": "Preparacao",
+        "id": "Persediaan",
+        "nl": "Voorbereiding",
+        "sv": "Forberedelse",
+        "da": "Forberedelse",
+        "no": "Forberedelse",
+        "ms": "Persediaan"
+      },
+      "description": {
+        "de": "Vorbereitender Kernschritt.",
+        "en": "Preparatory core step.",
+        "esp": "Preparatory core step.",
+        "prt": "Preparatory core step.",
+        "id": "Preparatory core step.",
+        "nl": "Preparatory core step.",
+        "sv": "Preparatory core step.",
+        "da": "Preparatory core step.",
+        "no": "Preparatory core step.",
+        "ms": "Preparatory core step."
+      }
+    },
+    "assemble": {
+      "label": {
+        "de": "Zusammenbauen",
+        "en": "Assemble",
+        "esp": "Montaje",
+        "prt": "Montagem",
+        "id": "Penyusunan",
+        "nl": "Samenstellen",
+        "sv": "Montering",
+        "da": "Samling",
+        "no": "Montering",
+        "ms": "Susunan"
+      },
+      "description": {
+        "de": "Kombiniert Gerichtskomponenten.",
+        "en": "Combines dish components.",
+        "esp": "Combines dish components.",
+        "prt": "Combines dish components.",
+        "id": "Combines dish components.",
+        "nl": "Combines dish components.",
+        "sv": "Combines dish components.",
+        "da": "Combines dish components.",
+        "no": "Combines dish components.",
+        "ms": "Combines dish components."
+      }
+    },
+    "cook_core": {
+      "label": {
+        "de": "Garen",
+        "en": "Cook",
+        "esp": "Coccion",
+        "prt": "Coccao",
+        "id": "Memasak",
+        "nl": "Bereiden",
+        "sv": "Tillagning",
+        "da": "Tilberedning",
+        "no": "Tilberedning",
+        "ms": "Memasak"
+      },
+      "description": {
+        "de": "Zentraler Gar- oder Kochschritt.",
+        "en": "Core cooking step.",
+        "esp": "Core cooking step.",
+        "prt": "Core cooking step.",
+        "id": "Core cooking step.",
+        "nl": "Core cooking step.",
+        "sv": "Core cooking step.",
+        "da": "Core cooking step.",
+        "no": "Core cooking step.",
+        "ms": "Core cooking step."
+      }
+    },
+    "finish": {
+      "label": {
+        "de": "Finishing",
+        "en": "Finish",
+        "esp": "Finalizado",
+        "prt": "Finalizacao",
+        "id": "Kemasan",
+        "nl": "Afwerking",
+        "sv": "Finish",
+        "da": "Afslutning",
+        "no": "Finish",
+        "ms": "Kemasan"
+      },
+      "description": {
+        "de": "Abschliessen und final verfeinern.",
+        "en": "Finalize and refine the dish.",
+        "esp": "Finalize and refine the dish.",
+        "prt": "Finalize and refine the dish.",
+        "id": "Finalize and refine the dish.",
+        "nl": "Finalize and refine the dish.",
+        "sv": "Finalize and refine the dish.",
+        "da": "Finalize and refine the dish.",
+        "no": "Finalize and refine the dish.",
+        "ms": "Finalize and refine the dish."
+      }
+    },
+    "serve": {
+      "label": {
+        "de": "Servieren",
+        "en": "Serve",
+        "esp": "Servir",
+        "prt": "Servir",
+        "id": "Hidang",
+        "nl": "Serveren",
+        "sv": "Servera",
+        "da": "Servering",
+        "no": "Servering",
+        "ms": "Hidang"
+      },
+      "description": {
+        "de": "Schritt fuer Anrichten und Ausgabe.",
+        "en": "Plating and serving step.",
+        "esp": "Plating and serving step.",
+        "prt": "Plating and serving step.",
+        "id": "Plating and serving step.",
+        "nl": "Plating and serving step.",
+        "sv": "Plating and serving step.",
+        "da": "Plating and serving step.",
+        "no": "Plating and serving step.",
+        "ms": "Plating and serving step."
+      }
+    }
+  },
+  "category_taxonomy": {
+    "main": {
+      "label": {
+        "de": "Hauptgericht",
+        "en": "Main dish",
+        "esp": "Plato principal",
+        "prt": "Prato principal",
+        "id": "Hidangan utama",
+        "nl": "Hoofdgerecht",
+        "sv": "Huvudratt",
+        "da": "Hovedret",
+        "no": "Hovedrett",
+        "ms": "Hidangan utama"
+      }
+    },
+    "baked": {
+      "label": {
+        "de": "Ofengericht",
+        "en": "Baked dish",
+        "esp": "Plato al horno",
+        "prt": "Prato de forno",
+        "id": "Hidangan bakar",
+        "nl": "Ovengerecht",
+        "sv": "Ugnsratt",
+        "da": "Ovnbagt ret",
+        "no": "Ovnsrett",
+        "ms": "Hidangan bakar"
+      }
+    },
+    "soup": {
+      "label": {
+        "de": "Suppe",
+        "en": "Soup",
+        "esp": "Sopa",
+        "prt": "Sopa",
+        "id": "Sup",
+        "nl": "Soep",
+        "sv": "Soppa",
+        "da": "Suppe",
+        "no": "Suppe",
+        "ms": "Sup"
+      }
+    },
+    "serve": {
+      "label": {
+        "de": "Servieren",
+        "en": "Serving",
+        "esp": "Servicio",
+        "prt": "Servico",
+        "id": "Hidangan",
+        "nl": "Serveren",
+        "sv": "Servering",
+        "da": "Servering",
+        "no": "Servering",
+        "ms": "Hidangan"
+      }
+    }
+  },
+  "diet_taxonomy": {
+    "all": {
+      "label": {
+        "de": "Alle",
+        "en": "All",
+        "esp": "Todos",
+        "prt": "Todos",
+        "id": "Semua",
+        "nl": "Alles",
+        "sv": "Alla",
+        "da": "Alle",
+        "no": "Alle",
+        "ms": "Semua"
+      }
+    },
+    "vegetarian": {
+      "label": {
+        "de": "Vegetarisch",
+        "en": "Vegetarian",
+        "esp": "Vegetariano",
+        "prt": "Vegetariano",
+        "id": "Vegetarian",
+        "nl": "Vegetarisch",
+        "sv": "Vegetarisk",
+        "da": "Vegetarisk",
+        "no": "Vegetarisk",
+        "ms": "Vegetarian"
+      }
+    },
+    "vegan": {
+      "label": {
+        "de": "Vegan",
+        "en": "Vegan",
+        "esp": "Vegano",
+        "prt": "Vegano",
+        "id": "Vegan",
+        "nl": "Vegan",
+        "sv": "Vegansk",
+        "da": "Vegansk",
+        "no": "Vegansk",
+        "ms": "Vegan"
+      }
+    }
+  },
+  "ingredient_family_definitions": {
+    "vegetable": {
+      "label": {
+        "de": "Gemuese",
+        "en": "Vegetable",
+        "esp": "Verdura",
+        "prt": "Vegetal",
+        "id": "Sayur",
+        "nl": "Groente",
+        "sv": "Gronsak",
+        "da": "Groentsag",
+        "no": "Gronnsak",
+        "ms": "Sayur"
+      }
+    },
+    "dough": {
+      "label": {
+        "de": "Teig",
+        "en": "Dough",
+        "esp": "Masa",
+        "prt": "Massa",
+        "id": "Doh",
+        "nl": "Deeg",
+        "sv": "Deg",
+        "da": "Dej",
+        "no": "Deig",
+        "ms": "Doh"
+      }
+    },
+    "liquid": {
+      "label": {
+        "de": "Fluessigkeit",
+        "en": "Liquid",
+        "esp": "Liquido",
+        "prt": "Liquido",
+        "id": "Cecair",
+        "nl": "Vloeistof",
+        "sv": "Vatska",
+        "da": "Vaeske",
+        "no": "Vaeske",
+        "ms": "Cecair"
+      }
+    },
+    "fat": {
+      "label": {
+        "de": "Fett",
+        "en": "Fat",
+        "esp": "Grasa",
+        "prt": "Gordura",
+        "id": "Lemak",
+        "nl": "Vet",
+        "sv": "Fett",
+        "da": "Fedt",
+        "no": "Fett",
+        "ms": "Lemak"
+      }
+    },
+    "seasoning": {
+      "label": {
+        "de": "Wuerzung",
+        "en": "Seasoning",
+        "esp": "Condimento",
+        "prt": "Tempero",
+        "id": "Perasa",
+        "nl": "Kruiding",
+        "sv": "Krydda",
+        "da": "Krydring",
+        "no": "Krydder",
+        "ms": "Perasa"
+      }
+    }
+  },
+  "quality_rule_definitions": {
+    "requires_previous_phase": {
+      "label": {
+        "de": "Vorherige Phase erforderlich",
+        "en": "Previous phase required",
+        "esp": "Requiere fase previa",
+        "prt": "Requer fase previa",
+        "id": "Perlu fasa sebelumnya",
+        "nl": "Vereist vorige fase",
+        "sv": "Kraever foregaende fas",
+        "da": "Kraever forrige fase",
+        "no": "Krever forrige fase",
+        "ms": "Perlu fasa sebelumnya"
+      }
+    },
+    "best_with_visible_result": {
+      "label": {
+        "de": "Mit sichtbarem Ergebnis bevorzugt",
+        "en": "Best with visible result",
+        "esp": "Mejor con resultado visible",
+        "prt": "Melhor com resultado visivel",
+        "id": "Terbaik dengan hasil yang jelas",
+        "nl": "Best met zichtbaar resultaat",
+        "sv": "Bast med synligt resultat",
+        "da": "Bedst med synligt resultat",
+        "no": "Best med synlig resultatendring",
+        "ms": "Terbaik dengan hasil yang jelas"
+      }
+    }
   },
   "master_steps": [
     {
@@ -142,7 +791,20 @@
         "no": "Vask {{ingredient}} grundig og tørk {{pronoun}} tørr.",
         "ms": "Basuh {{ingredient}} hingga bersih dan lap kering."
       },
-      "variables": [ "ingredient", "pronoun" ]
+      "variables": [
+        "ingredient",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "pronoun"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      }
     },
     {
       "master_id": "PREP_PEEL_01",
@@ -162,7 +824,20 @@
         "no": "Skrell {{ingredient}} med en {{tool}}.",
         "ms": "Kupas {{ingredient}} menggunakan {{tool}}."
       },
-      "variables": [ "ingredient", "tool" ]
+      "variables": [
+        "ingredient",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      }
     },
     {
       "master_id": "PREP_CUT_01",
@@ -182,7 +857,22 @@
         "no": "Skjær {{ingredient}} i {{grind_size}} {{shape}}.",
         "ms": "Potong {{ingredient}} kepada {{grind_size}} {{shape}}."
       },
-      "variables": [ "ingredient", "grind_size", "shape" ]
+      "variables": [
+        "ingredient",
+        "grind_size",
+        "shape"
+      ],
+      "required_variables": [
+        "ingredient",
+        "grind_size",
+        "shape"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      }
     },
     {
       "master_id": "PREP_GRATE_01",
@@ -202,7 +892,22 @@
         "no": "Riv {{ingredient}} {{grind_size}} med en {{tool}}.",
         "ms": "Parut {{ingredient}} {{grind_size}} menggunakan {{tool}}."
       },
-      "variables": [ "ingredient", "grind_size", "tool" ]
+      "variables": [
+        "ingredient",
+        "grind_size",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient",
+        "grind_size",
+        "tool"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "quality_rule_keys": "best_with_visible_result"
     },
     {
       "master_id": "PREP_MINCE_01",
@@ -222,7 +927,18 @@
         "no": "Finhakk {{ingredient}} med en kniv.",
         "ms": "Cincang {{ingredient}} halus menggunakan pisau."
       },
-      "variables": [ "ingredient" ]
+      "variables": [
+        "ingredient"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      }
     },
     {
       "master_id": "PREP_MARINATE_01",
@@ -242,7 +958,23 @@
         "no": "Mariner {{ingredient}} i en blanding av {{marinade}} i minst {{duration}}.",
         "ms": "Perap {{ingredient}} dalam campuran {{marinade}} sekurang-kurangnya {{duration}}."
       },
-      "variables": [ "ingredient", "marinade", "pronoun", "duration" ]
+      "variables": [
+        "ingredient",
+        "marinade",
+        "pronoun",
+        "duration"
+      ],
+      "required_variables": [
+        "ingredient",
+        "marinade",
+        "pronoun",
+        "duration"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_SOAK_01",
@@ -262,7 +994,21 @@
         "no": "Legg {{ingredient}} i bløt i {{liquid}} i {{duration}}.",
         "ms": "Rendam {{ingredient}} dalam {{liquid}} selama {{duration}}."
       },
-      "variables": [ "ingredient", "liquid", "duration" ]
+      "variables": [
+        "ingredient",
+        "liquid",
+        "duration"
+      ],
+      "required_variables": [
+        "ingredient",
+        "liquid",
+        "duration"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_MIX_DRY_01",
@@ -282,7 +1028,17 @@
         "no": "Bland {{ingredients}} i en bolle.",
         "ms": "Gaulkan {{ingredients}} dalam mangkuk."
       },
-      "variables": [ "ingredients" ]
+      "variables": [
+        "ingredients"
+      ],
+      "required_variables": [
+        "ingredients"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_KNEAD_01",
@@ -302,7 +1058,24 @@
         "no": "Elt {{dough}} i {{duration}} til {{pronoun}} er {{state}}.",
         "ms": "Uli {{dough}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "dough", "duration", "state", "pronoun" ]
+      "variables": [
+        "dough",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "required_variables": [
+        "dough",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "dough"
+      }
     },
     {
       "master_id": "PREP_DOUGH_RISE_01",
@@ -322,7 +1095,21 @@
         "no": "La {{dough}} heve på et varmt sted i {{duration}} til volumet har {{state}}.",
         "ms": "Biarkan {{dough}} naik di tempat suam selama {{duration}} sehingga isipadu {{state}}."
       },
-      "variables": [ "dough", "duration", "state" ]
+      "variables": [
+        "dough",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "dough",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_REST_01",
@@ -342,7 +1129,23 @@
         "no": "Dekk til {{item}} og la {{pronoun}} hvile i {{duration}} til {{state}}.",
         "ms": "Tutup {{item}} dan biarkan {{pronoun}} rehat selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "item", "pronoun", "duration", "state" ]
+      "variables": [
+        "item",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "item",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_PORTION_01",
@@ -362,7 +1165,19 @@
         "no": "Del {{item}} i {{count}} like store porsjoner.",
         "ms": "Bahagikan {{item}} kepada {{count}} bahagian yang sama."
       },
-      "variables": [ "item", "count" ]
+      "variables": [
+        "item",
+        "count"
+      ],
+      "required_variables": [
+        "item",
+        "count"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_ROLL_OUT_01",
@@ -382,7 +1197,24 @@
         "no": "Kjevle {{dough}} ut på {{surface}} til {{grind_size}} {{shape}}.",
         "ms": "Canai {{dough}} di atas {{surface}} hingga menjadi {{grind_size}} {{shape}}."
       },
-      "variables": [ "dough", "surface", "grind_size", "shape" ]
+      "variables": [
+        "dough",
+        "surface",
+        "grind_size",
+        "shape"
+      ],
+      "required_variables": [
+        "dough",
+        "surface",
+        "grind_size",
+        "shape"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "dough"
+      }
     },
     {
       "master_id": "PREP_BREAD_3STEP_01",
@@ -402,7 +1234,24 @@
         "no": "Paner {{ingredient}}: vend først i {{step1}}, deretter i {{step2}} og til slutt i {{step3}}.",
         "ms": "Salutkan {{ingredient}}: gaul dahulu dalam {{step1}}, kemudian {{step2}}, dan akhir sekali {{step3}}."
       },
-      "variables": [ "ingredient", "step1", "step2", "step3" ]
+      "variables": [
+        "ingredient",
+        "step1",
+        "step2",
+        "step3"
+      ],
+      "required_variables": [
+        "ingredient",
+        "step1",
+        "step2",
+        "step3"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      }
     },
     {
       "master_id": "PREP_WHISK_01",
@@ -422,7 +1271,21 @@
         "no": "Visp {{ingredients}} med en {{tool}} til {{state}}.",
         "ms": "Pukul {{ingredients}} dengan {{tool}} sehingga {{state}}."
       },
-      "variables": [ "ingredients", "tool", "state" ]
+      "variables": [
+        "ingredients",
+        "tool",
+        "state"
+      ],
+      "required_variables": [
+        "ingredients",
+        "tool",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_FOLD_IN_01",
@@ -442,7 +1305,21 @@
         "no": "Vend forsiktig {{ingredient}} inn i {{base}} slik at {{goal}}.",
         "ms": "Gaul lipat {{ingredient}} perlahan ke dalam {{base}} supaya {{goal}}."
       },
-      "variables": [ "ingredient", "base", "goal" ]
+      "variables": [
+        "ingredient",
+        "base",
+        "goal"
+      ],
+      "required_variables": [
+        "ingredient",
+        "base",
+        "goal"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_HEAT_01",
@@ -462,7 +1339,21 @@
         "no": "Forvarm {{equipment}} til {{temp}} ({{mode}}).",
         "ms": "Panaskan {{equipment}} terlebih dahulu kepada {{temp}} ({{mode}})."
       },
-      "variables": [ "equipment", "temp", "mode" ]
+      "variables": [
+        "equipment",
+        "temp",
+        "mode"
+      ],
+      "required_variables": [
+        "equipment",
+        "temp",
+        "mode"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "COOK_SAUTE_01",
@@ -482,7 +1373,26 @@
         "no": "Varm {{fat}} i {{equipment}} og fres {{ingredient}} i {{duration}} til {{state}}.",
         "ms": "Panaskan {{fat}} dalam {{equipment}} dan tumis {{ingredient}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "fat", "equipment", "ingredient", "duration", "state" ]
+      "variables": [
+        "fat",
+        "equipment",
+        "ingredient",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "fat",
+        "equipment",
+        "ingredient",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_FRY_01",
@@ -502,7 +1412,27 @@
         "no": "Stek {{ingredient}} i {{fat}} på {{heat}} varme i {{duration}} per side til {{state}}.",
         "ms": "Goreng {{ingredient}} dalam {{fat}} pada api {{heat}} selama {{duration}} setiap sisi sehingga {{state}}."
       },
-      "variables": [ "ingredient", "fat", "heat", "duration", "pronoun", "state" ]
+      "variables": [
+        "ingredient",
+        "fat",
+        "heat",
+        "duration",
+        "pronoun",
+        "state"
+      ],
+      "required_variables": [
+        "ingredient",
+        "fat",
+        "heat",
+        "duration",
+        "pronoun",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "pan"
+      }
     },
     {
       "master_id": "COOK_DEEPFRY_01",
@@ -522,7 +1452,26 @@
         "no": "Varm {{fat}} til {{temp}} og frityrstek {{ingredient}} i porsjoner i {{duration}} til {{state}}. La renne av på kjøkkenpapir.",
         "ms": "Panaskan {{fat}} hingga {{temp}} dan goreng celur {{ingredient}} secara berperingkat selama {{duration}} sehingga {{state}}. Toskan di atas tisu dapur."
       },
-      "variables": [ "fat", "temp", "ingredient", "duration", "state" ]
+      "variables": [
+        "fat",
+        "temp",
+        "ingredient",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "fat",
+        "temp",
+        "ingredient",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_BOIL_01",
@@ -542,7 +1491,25 @@
         "no": "Kok opp {{liquid}} i en kjele, tilsett {{ingredient}} og kok i {{duration}} til {{state}}.",
         "ms": "Didihkan {{liquid}} dalam periuk, masukkan {{ingredient}} dan rebus selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "liquid", "ingredient", "pronoun", "duration", "state" ]
+      "variables": [
+        "liquid",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "liquid",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      }
     },
     {
       "master_id": "COOK_SIMMER_01",
@@ -562,7 +1529,23 @@
         "no": "Skru ned varmen og la {{base}} småkoke på lav varme i {{duration}} til {{state}}.",
         "ms": "Rendahkan api dan biarkan {{base}} mereneh pada api kecil selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "base", "duration", "state", "pronoun" ]
+      "variables": [
+        "base",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      }
     },
     {
       "master_id": "COOK_STEAM_01",
@@ -582,7 +1565,24 @@
         "no": "Damp {{ingredient}} over kokende vann i en {{equipment}} i {{duration}} til {{state}}.",
         "ms": "Kukus {{ingredient}} di atas air mendidih dalam {{equipment}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "ingredient", "equipment", "duration", "state" ]
+      "variables": [
+        "ingredient",
+        "equipment",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_BAKE_01",
@@ -602,7 +1602,27 @@
         "no": "Sett {{base}} i forvarmet ovn og stek ved {{temp}} ({{mode}}) i {{duration}} til {{state}}.",
         "ms": "Masukkan {{base}} ke dalam ketuhar yang telah dipanaskan dan bakar pada {{temp}} ({{mode}}) selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "base", "pronoun", "temp", "mode", "duration", "state" ]
+      "variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "mode",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "mode",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "baked"
+      }
     },
     {
       "master_id": "COOK_ROAST_01",
@@ -622,7 +1642,28 @@
         "no": "Fordel {{ingredient}} på et stekebrett, drypp over {{fat}} og stek i ovnen på {{temp}} i {{duration}} til {{state}}.",
         "ms": "Susun {{ingredient}} di atas dulang pembakar, renjiskan {{fat}} dan panggang pada {{temp}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "ingredient", "fat", "temp", "duration", "state", "pronoun" ]
+      "variables": [
+        "ingredient",
+        "fat",
+        "temp",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "fat",
+        "temp",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "baked",
+        "diet_keys": "all"
+      }
     },
     {
       "master_id": "COOK_GRILL_01",
@@ -642,7 +1683,25 @@
         "no": "Grill {{ingredient}} på {{equipment}} på {{heat}} varme i {{duration}} per side til {{state}}.",
         "ms": "Panggang {{ingredient}} di {{equipment}} pada haba {{heat}} selama {{duration}} setiap sisi sehingga {{state}}."
       },
-      "variables": [ "ingredient", "equipment", "heat", "duration", "state" ]
+      "variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "diet_keys": "all"
+      }
     },
     {
       "master_id": "COOK_DEGLAZE_01",
@@ -662,7 +1721,20 @@
         "no": "Hell i {{liquid}} og skrap bunnen av {{equipment}} slik at stekerestene løsner.",
         "ms": "Tuang {{liquid}} untuk deglaze dan kikis sisa hangus di dasar {{equipment}}."
       },
-      "variables": [ "liquid", "equipment" ]
+      "variables": [
+        "liquid",
+        "equipment"
+      ],
+      "required_variables": [
+        "liquid",
+        "equipment"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "liquid"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_DEGLAZE_02",
@@ -682,7 +1754,18 @@
         "no": "Hell {{liquid}} over {{ingredient}} og skrap løs stekerestene.",
         "ms": "Tuang {{liquid}} ke {{ingredient}} dan kikis sisa hangusnya."
       },
-      "variables": [ "ingredient", "liquid" ]
+      "variables": [
+        "ingredient",
+        "liquid"
+      ],
+      "required_variables": [
+        "ingredient",
+        "liquid"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_REDUCE_01",
@@ -702,7 +1785,22 @@
         "no": "La {{liquid}} koke inn uten lokk i {{duration}} til {{state}}.",
         "ms": "Renehkan {{liquid}} tanpa penutup selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "liquid", "duration", "state" ]
+      "variables": [
+        "liquid",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "liquid",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "liquid"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_THICKEN_01",
@@ -722,7 +1820,20 @@
         "no": "Jevn {{base}} med {{thickener}} og rør til {{state}}.",
         "ms": "Pekatkan {{base}} dengan {{thickener}} sambil kacau sehingga {{state}}."
       },
-      "variables": [ "base", "thickener", "state" ]
+      "variables": [
+        "base",
+        "thickener",
+        "state"
+      ],
+      "required_variables": [
+        "base",
+        "thickener",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_STIR_01",
@@ -742,7 +1853,23 @@
         "no": "Rør {{ingredient}} {{method}} inn i {{base}}.",
         "ms": "Kacau {{ingredient}} {{method}} ke dalam {{base}}."
       },
-      "variables": [ "ingredient", "method", "base" ]
+      "variables": [
+        "ingredient",
+        "method",
+        "base"
+      ],
+      "required_variables": [
+        "ingredient",
+        "method",
+        "base"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "pan",
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_DRAIN_01",
@@ -762,7 +1889,22 @@
         "no": "Hell av {{ingredient}} i et {{equipment}} og la {{pronoun}} dampe av et øyeblikk.",
         "ms": "Toskan {{ingredient}} menggunakan {{equipment}} dan biarkan mengeluarkan wap seketika."
       },
-      "variables": [ "ingredient", "equipment", "pronoun" ]
+      "variables": [
+        "ingredient",
+        "equipment",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "pronoun"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_STRAIN_01",
@@ -782,7 +1924,22 @@
         "no": "Sil {{ingredient}} gjennom en {{equipment}} og ta vare på {{keep}}.",
         "ms": "Tapis {{ingredient}} menggunakan {{equipment}} dan simpan {{keep}}."
       },
-      "variables": [ "ingredient", "equipment", "keep" ]
+      "variables": [
+        "ingredient",
+        "equipment",
+        "keep"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "keep"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_COVER_01",
@@ -802,7 +1959,22 @@
         "no": "Legg på lokk på {{equipment}} og la alt koke på {{heat}} varme i {{duration}}.",
         "ms": "Tutup {{equipment}} dan masak semuanya pada haba {{heat}} selama {{duration}}."
       },
-      "variables": [ "equipment", "heat", "duration" ]
+      "variables": [
+        "equipment",
+        "heat",
+        "duration"
+      ],
+      "required_variables": [
+        "equipment",
+        "heat",
+        "duration"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_BLEND_01",
@@ -822,7 +1994,22 @@
         "no": "Kjør {{base}} med en {{equipment}} til {{state}}.",
         "ms": "Kisar {{base}} menggunakan {{equipment}} sehingga {{state}}."
       },
-      "variables": [ "base", "equipment", "state" ]
+      "variables": [
+        "base",
+        "equipment",
+        "state"
+      ],
+      "required_variables": [
+        "base",
+        "equipment",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_ADD_01",
@@ -842,7 +2029,20 @@
         "no": "Tilsett {{ingredient}} og {{method}}.",
         "ms": "Masukkan {{ingredient}} dan {{method}}."
       },
-      "variables": [ "ingredient", "method" ]
+      "variables": [
+        "ingredient",
+        "method"
+      ],
+      "required_variables": [
+        "ingredient",
+        "method"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "COOK_BRAISE_01",
@@ -862,7 +2062,25 @@
         "no": "Tilsett {{liquid}} til {{ingredient}} i {{equipment}}, legg på lokk og braiser i {{duration}} til {{state}}.",
         "ms": "Tuang {{liquid}} ke atas {{ingredient}} dalam {{equipment}}, tutup dan renehkan selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "liquid", "ingredient", "equipment", "duration", "state" ]
+      "variables": [
+        "liquid",
+        "ingredient",
+        "equipment",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "liquid",
+        "ingredient",
+        "equipment",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "diet_keys": "all"
+      }
     },
     {
       "master_id": "PREP_LAYER_01",
@@ -882,7 +2100,21 @@
         "no": "Legg {{components}} lagvis i {{equipment}} og avslutt med {{finish}}.",
         "ms": "Susun {{components}} berlapis dalam {{equipment}} dan akhiri dengan {{finish}}."
       },
-      "variables": [ "components", "equipment", "finish" ]
+      "variables": [
+        "components",
+        "equipment",
+        "finish"
+      ],
+      "required_variables": [
+        "components",
+        "equipment",
+        "finish"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "COOK_GRATINATE_01",
@@ -902,7 +2134,24 @@
         "no": "Sett {{base}} {{position}} under grillelementet og gratiner {{pronoun}} i {{duration}} til {{state}}.",
         "ms": "Letakkan {{base}} {{position}} di bawah fungsi grill dan gratin selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "base", "position", "duration", "state", "pronoun" ]
+      "variables": [
+        "base",
+        "position",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "required_variables": [
+        "base",
+        "position",
+        "duration",
+        "state",
+        "pronoun"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "SEASON_ADJUST_01",
@@ -922,8 +2171,27 @@
         "no": "Smak til {{base}} med {{seasonings}} og juster {{balance}}.",
         "ms": "Rasa {{base}} dan laraskan dengan {{seasonings}} untuk seimbangkan {{balance}}."
       },
-      "variables": [ "base", "seasonings", "balance" ],
-      "aliases": { "spices": "seasonings" }
+      "variables": [
+        "base",
+        "seasonings",
+        "balance"
+      ],
+      "aliases": {
+        "spices": "seasonings"
+      },
+      "required_variables": [
+        "base",
+        "seasonings",
+        "balance"
+      ],
+      "optional_variables": [
+        "seasonings"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "seasoning"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "FINISH_COOL_01",
@@ -943,7 +2211,20 @@
         "no": "La {{base}} avkjøles i {{duration}} til {{state}}.",
         "ms": "Biarkan {{base}} sejuk selama {{duration}} sehingga {{state}}."
       },
-      "variables": [ "base", "duration", "state" ]
+      "variables": [
+        "base",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "FINISH_REST_01",
@@ -963,7 +2244,20 @@
         "no": "La {{base}} hvile i {{duration}} slik at {{reason}}.",
         "ms": "Biarkan {{base}} rehat selama {{duration}} supaya {{reason}}."
       },
-      "variables": [ "base", "duration", "reason" ]
+      "variables": [
+        "base",
+        "duration",
+        "reason"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "reason"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "FINISH_PORTION_01",
@@ -983,7 +2277,20 @@
         "no": "Porsjoner {{base}} i {{servings}} porsjoner.",
         "ms": "Bahagikan {{base}} kepada {{servings}} hidangan."
       },
-      "variables": [ "base", "servings" ]
+      "variables": [
+        "base",
+        "servings"
+      ],
+      "required_variables": [
+        "base",
+        "servings"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "quality_rule_keys": "requires_previous_phase"
     },
     {
       "master_id": "FINISH_SERVE_01",
@@ -1003,7 +2310,19 @@
         "no": "Server {{base}} {{extra}}.",
         "ms": "Hidangkan {{base}} {{extra}}."
       },
-      "variables": [ "base", "extra" ]
+      "variables": [
+        "base",
+        "extra"
+      ],
+      "required_variables": [
+        "base",
+        "extra"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      }
     },
     {
       "master_id": "PREP_MARINADE_MAKE_01",
@@ -1022,11 +2341,20 @@
         "no": "Lag en marinade av {{ingredients}}.",
         "ms": "Sediakan perapan daripada {{ingredients}}."
       },
-      "variables": [ "ingredients" ]
+      "variables": [
+        "ingredients"
+      ],
+      "required_variables": [
+        "ingredients"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      }
     }
-
   ],
-
   "variable_hints": {
     "ingredient": "Zutat MIT Artikel, sprachspezifisch. de: 'die Tomaten / den Knoblauch / das Hähnchen'. en: 'the tomatoes / the garlic / the chicken'. esp: 'los tomates / el ajo / el pollo'. prt: 'os tomates / o alho / o frango'. id/ms: kein Artikel erforderlich. nl: 'de tomaten / de knoflook / de kip'. sv/da/no: bestimmter Artikel als Wort-Suffix ('tomaterna / tomaterne / tomatene').",
     "ingredients": "Mehrere Zutaten als Aufzählung, MIT Artikel, z.B. de: 'Mehl, Backpulver und Salz' / esp: 'la harina, el polvo de hornear y la sal'.",
@@ -1064,347 +2392,2160 @@
     "servings": "Portionenanzahl als Zahl, z.B. '2' oder '4'.",
     "extra": "Servierhinweis, z.B. de: 'mit frischen Kräutern / sofort heiß'. esp: 'con hierbas frescas / inmediatamente caliente'.",
     "keep": "Aufzufangender Anteil, z.B. de: 'das Kochwasser / die Brühe'. esp: 'el agua de cocción / el caldo'."
-
   },
-
   "variable_options": {
     "articles": {
-      "de": [ "der", "die", "das", "den", "dem", "einen", "einem" ],
-      "en": [ "the" ],
-      "esp": [ "el", "la", "los", "las" ],
-      "prt": [ "o", "a", "os", "as" ],
-      "id": [ "" ],
-      "nl": [ "de", "het" ],
-      "sv": [ "" ],
-      "da": [ "" ],
-      "no": [ "" ],
-      "ms": [ "" ]
+      "de": [
+        "der",
+        "die",
+        "das",
+        "den",
+        "dem",
+        "einen",
+        "einem"
+      ],
+      "en": [
+        "the"
+      ],
+      "esp": [
+        "el",
+        "la",
+        "los",
+        "las"
+      ],
+      "prt": [
+        "o",
+        "a",
+        "os",
+        "as"
+      ],
+      "id": [
+        ""
+      ],
+      "nl": [
+        "de",
+        "het"
+      ],
+      "sv": [
+        ""
+      ],
+      "da": [
+        ""
+      ],
+      "no": [
+        ""
+      ],
+      "ms": [
+        ""
+      ]
     },
     "pronoun": {
-      "de": [ "er", "sie", "es", "ihn" ],
-      "en": [ "he", "she", "it", "them" ],
-      "esp": [ "él", "ella", "ello", "los", "las" ],
-      "prt": [ "ele", "ela", "isso", "os", "as" ],
-      "id": [ "dia", "ia", "nya" ],
-      "nl": [ "hij", "zij", "het", "hem", "haar" ],
-      "sv": [ "han", "hon", "den", "det" ],
-      "da": [ "han", "hun", "den", "det" ],
-      "no": [ "han", "hun", "den", "det" ],
-      "ms": [ "dia", "ia", "nya" ]
+      "de": [
+        "er",
+        "sie",
+        "es",
+        "ihn"
+      ],
+      "en": [
+        "he",
+        "she",
+        "it",
+        "them"
+      ],
+      "esp": [
+        "él",
+        "ella",
+        "ello",
+        "los",
+        "las"
+      ],
+      "prt": [
+        "ele",
+        "ela",
+        "isso",
+        "os",
+        "as"
+      ],
+      "id": [
+        "dia",
+        "ia",
+        "nya"
+      ],
+      "nl": [
+        "hij",
+        "zij",
+        "het",
+        "hem",
+        "haar"
+      ],
+      "sv": [
+        "han",
+        "hon",
+        "den",
+        "det"
+      ],
+      "da": [
+        "han",
+        "hun",
+        "den",
+        "det"
+      ],
+      "no": [
+        "han",
+        "hun",
+        "den",
+        "det"
+      ],
+      "ms": [
+        "dia",
+        "ia",
+        "nya"
+      ]
     },
-
     "heat": {
-      "de": [ "niedriger", "mittlerer", "hoher" ],
-      "en": [ "low", "medium", "high" ],
-      "esp": [ "bajo", "medio", "alto" ],
-      "prt": [ "baixo", "médio", "alto" ],
-      "id": [ "rendah", "sedang", "tinggi" ],
-      "nl": [ "laag", "middelhoog", "hoog" ],
-      "sv": [ "låg", "medelhög", "hög" ],
-      "da": [ "lav", "middel", "høj" ],
-      "no": [ "lav", "middels", "høy" ],
-      "ms": [ "rendah", "sederhana", "tinggi" ]
+      "de": [
+        "niedriger",
+        "mittlerer",
+        "hoher"
+      ],
+      "en": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "esp": [
+        "bajo",
+        "medio",
+        "alto"
+      ],
+      "prt": [
+        "baixo",
+        "médio",
+        "alto"
+      ],
+      "id": [
+        "rendah",
+        "sedang",
+        "tinggi"
+      ],
+      "nl": [
+        "laag",
+        "middelhoog",
+        "hoog"
+      ],
+      "sv": [
+        "låg",
+        "medelhög",
+        "hög"
+      ],
+      "da": [
+        "lav",
+        "middel",
+        "høj"
+      ],
+      "no": [
+        "lav",
+        "middels",
+        "høy"
+      ],
+      "ms": [
+        "rendah",
+        "sederhana",
+        "tinggi"
+      ]
     },
     "tool": {
-      "de": [ "Messer", "Schneebesen", "Kochlöffel", "Pfannenwender", "Reibe", "Sparschäler", "Messbecher", "Kelle", "Zange", "Schere", "Teigschaber", "Mörser" ],
-      "en": [ "knife", "whisk", "wooden spoon", "spatula", "grater", "peeler", "measuring cup", "ladle", "tongs", "kitchen scissors", "dough scraper", "mortar" ],
-      "esp": [ "cuchillo", "batidor", "cuchara de madera", "espátula", "rallador", "pelador", "vaso medidor", "cucharón", "pinzas", "tijeras de cocina", "rasqueta", "mortero" ],
-      "prt": [ "faca", "batedor", "colher de pau", "espátula", "ralador", "descascador", "copo medidor", "concha", "pinça", "tesoura de cozinha", "raspador de massa", "almofariz" ],
-      "id": [ "pisau", "pengocok", "sendok kayu", "spatula", "parutan", "pengupas", "gelas ukur", "sendok sayur", "penjepit", "gunting dapur", "scraper adonan", "cobek" ],
-      "nl": [ "mes", "garde", "houten lepel", "spatel", "rasp", "dunschiller", "maatbeker", "pollepel", "tang", "keukenschaar", "deegschraper", "vijzel" ],
-      "sv": [ "kniv", "visp", "träsked", "stekspade", "rivjärn", "skalare", "måttbägare", "slev", "tång", "köksax", "degskrapa", "mortel" ],
-      "da": [ "kniv", "piskeris", "træske", "paletkniv", "rivejern", "skræller", "målebæger", "øse", "tang", "køkkensaks", "dejskraber", "morter" ],
-      "no": [ "kniv", "visp", "tresleiv", "stekespade", "rivjern", "skreller", "målebeger", "øse", "tang", "kjøkkensaks", "deigskrape", "morter" ],
-      "ms": [ "pisau", "pemukul", "sudu kayu", "spatula", "parut", "pengupas", "cawan penyukat", "senduk", "penyepit", "gunting dapur", "pengikis doh", "lesung" ]
+      "de": [
+        "Messer",
+        "Schneebesen",
+        "Kochlöffel",
+        "Pfannenwender",
+        "Reibe",
+        "Sparschäler",
+        "Messbecher",
+        "Kelle",
+        "Zange",
+        "Schere",
+        "Teigschaber",
+        "Mörser"
+      ],
+      "en": [
+        "knife",
+        "whisk",
+        "wooden spoon",
+        "spatula",
+        "grater",
+        "peeler",
+        "measuring cup",
+        "ladle",
+        "tongs",
+        "kitchen scissors",
+        "dough scraper",
+        "mortar"
+      ],
+      "esp": [
+        "cuchillo",
+        "batidor",
+        "cuchara de madera",
+        "espátula",
+        "rallador",
+        "pelador",
+        "vaso medidor",
+        "cucharón",
+        "pinzas",
+        "tijeras de cocina",
+        "rasqueta",
+        "mortero"
+      ],
+      "prt": [
+        "faca",
+        "batedor",
+        "colher de pau",
+        "espátula",
+        "ralador",
+        "descascador",
+        "copo medidor",
+        "concha",
+        "pinça",
+        "tesoura de cozinha",
+        "raspador de massa",
+        "almofariz"
+      ],
+      "id": [
+        "pisau",
+        "pengocok",
+        "sendok kayu",
+        "spatula",
+        "parutan",
+        "pengupas",
+        "gelas ukur",
+        "sendok sayur",
+        "penjepit",
+        "gunting dapur",
+        "scraper adonan",
+        "cobek"
+      ],
+      "nl": [
+        "mes",
+        "garde",
+        "houten lepel",
+        "spatel",
+        "rasp",
+        "dunschiller",
+        "maatbeker",
+        "pollepel",
+        "tang",
+        "keukenschaar",
+        "deegschraper",
+        "vijzel"
+      ],
+      "sv": [
+        "kniv",
+        "visp",
+        "träsked",
+        "stekspade",
+        "rivjärn",
+        "skalare",
+        "måttbägare",
+        "slev",
+        "tång",
+        "köksax",
+        "degskrapa",
+        "mortel"
+      ],
+      "da": [
+        "kniv",
+        "piskeris",
+        "træske",
+        "paletkniv",
+        "rivejern",
+        "skræller",
+        "målebæger",
+        "øse",
+        "tang",
+        "køkkensaks",
+        "dejskraber",
+        "morter"
+      ],
+      "no": [
+        "kniv",
+        "visp",
+        "tresleiv",
+        "stekespade",
+        "rivjern",
+        "skreller",
+        "målebeger",
+        "øse",
+        "tang",
+        "kjøkkensaks",
+        "deigskrape",
+        "morter"
+      ],
+      "ms": [
+        "pisau",
+        "pemukul",
+        "sudu kayu",
+        "spatula",
+        "parut",
+        "pengupas",
+        "cawan penyukat",
+        "senduk",
+        "penyepit",
+        "gunting dapur",
+        "pengikis doh",
+        "lesung"
+      ]
     },
     "shape": {
-      "de": [ "Würfel", "Scheiben", "Streifen", "Spalten", "Ringe", "Julienne", "Stifte", "grob gehackt", "fein gehackt" ],
-      "en": [ "cubes", "slices", "strips", "wedges", "rings", "julienne", "batons", "roughly chopped", "finely chopped" ],
-      "esp": [ "dados", "rodajas", "tiras", "gajos", "aros", "juliana", "bastones", "picado grueso", "picado fino" ],
-      "prt": [ "cubos", "fatias", "tiras", "gomos", "anéis", "juliana", "palitos", "picado grosso", "picado fino" ],
-      "id": [ "dadu", "irisan", "potongan memanjang", "belahan", "cincin", "julienne", "baton", "cincang kasar", "cincang halus" ],
-      "nl": [ "blokjes", "plakjes", "reepjes", "partjes", "ringen", "julienne", "staafjes", "grof gehakt", "fijngehakt" ],
-      "sv": [ "tärningar", "skivor", "strimlor", "klyftor", "ringar", "julienne", "stavar", "grovt hackat", "finhackat" ],
-      "da": [ "tern", "skiver", "strimler", "både", "ringe", "julienne", "stave", "groft hakket", "finthakket" ],
-      "no": [ "terninger", "skiver", "strimler", "båter", "ringer", "julienne", "staver", "grovt hakket", "finhakket" ],
-      "ms": [ "dadu", "hirisan", "jalur", "baji", "cincin", "julienne", "baton", "cincang kasar", "cincang halus" ]
+      "de": [
+        "Würfel",
+        "Scheiben",
+        "Streifen",
+        "Spalten",
+        "Ringe",
+        "Julienne",
+        "Stifte",
+        "grob gehackt",
+        "fein gehackt"
+      ],
+      "en": [
+        "cubes",
+        "slices",
+        "strips",
+        "wedges",
+        "rings",
+        "julienne",
+        "batons",
+        "roughly chopped",
+        "finely chopped"
+      ],
+      "esp": [
+        "dados",
+        "rodajas",
+        "tiras",
+        "gajos",
+        "aros",
+        "juliana",
+        "bastones",
+        "picado grueso",
+        "picado fino"
+      ],
+      "prt": [
+        "cubos",
+        "fatias",
+        "tiras",
+        "gomos",
+        "anéis",
+        "juliana",
+        "palitos",
+        "picado grosso",
+        "picado fino"
+      ],
+      "id": [
+        "dadu",
+        "irisan",
+        "potongan memanjang",
+        "belahan",
+        "cincin",
+        "julienne",
+        "baton",
+        "cincang kasar",
+        "cincang halus"
+      ],
+      "nl": [
+        "blokjes",
+        "plakjes",
+        "reepjes",
+        "partjes",
+        "ringen",
+        "julienne",
+        "staafjes",
+        "grof gehakt",
+        "fijngehakt"
+      ],
+      "sv": [
+        "tärningar",
+        "skivor",
+        "strimlor",
+        "klyftor",
+        "ringar",
+        "julienne",
+        "stavar",
+        "grovt hackat",
+        "finhackat"
+      ],
+      "da": [
+        "tern",
+        "skiver",
+        "strimler",
+        "både",
+        "ringe",
+        "julienne",
+        "stave",
+        "groft hakket",
+        "finthakket"
+      ],
+      "no": [
+        "terninger",
+        "skiver",
+        "strimler",
+        "båter",
+        "ringer",
+        "julienne",
+        "staver",
+        "grovt hakket",
+        "finhakket"
+      ],
+      "ms": [
+        "dadu",
+        "hirisan",
+        "jalur",
+        "baji",
+        "cincin",
+        "julienne",
+        "baton",
+        "cincang kasar",
+        "cincang halus"
+      ]
     },
     "state": {
-      "de": [ "goldbraun", "weich", "glasig", "gar", "knusprig", "cremig", "bissfest", "eingedickt", "sprudelnd", "verdoppelt", "zart", "angeröstet", "geschmolzen", "schaumig", "reduziert (eingekocht)", "abgekühlt", "lauwarm", "fest", "fluffig", "karamellisiert", "geschmeidig" ],
-      "en": [ "golden brown", "soft", "translucent", "cooked through", "crispy", "creamy", "al dente", "thickened", "bubbling", "doubled", "tender", "toasted", "melted", "foamy", "reduced", "cooled", "lukewarm", "firm", "fluffy", "caramelized", "smooth" ],
-      "esp": [ "dorado", "blando", "translúcido", "cocido", "crujiente", "cremoso", "al dente", "espeso", "hirviendo suavemente", "duplicado", "tierno", "tostado", "derretido", "espumoso", "reducido", "enfriado", "tibio", "firme", "esponjoso", "caramelizado", "sedoso" ],
-      "prt": [ "dourado", "macio", "translúcido", "cozido", "crocante", "cremoso", "al dente", "encorpado", "borbulhando", "dobrado", "tenro", "tostado", "derretido", "espumoso", "reduzido", "arrefecido", "morno", "firme", "fofo", "caramelizado", "sedoso" ],
-      "id": [ "keemasan", "lembut", "bening", "matang", "renyah", "kremi", "al dente", "mengental", "mendidih perlahan", "dua kali lipat", "empuk", "terpanggang", "meleleh", "berbusa", "tereduksi", "dingin", "suam-suam kuku", "padat", "mengembang", "terkaramelisasi", "halus" ],
-      "nl": [ "goudbruin", "zacht", "glazig", "gaar", "knapperig", "romig", "beetgaar", "ingedikt", "zacht borrelend", "verdubbeld", "mals", "geroosterd", "gesmolten", "schuimig", "gereduceerd", "afgekoeld", "lauw", "stevig", "luchtig", "gekaramelliseerd", "glad" ],
-      "sv": [ "gyllenbrun", "mjuk", "glansig", "genomstekt", "krispig", "krämig", "al dente", "förtjockad", "sjudande", "fördubblad", "mör", "rostad", "smält", "skummig", "reducerad", "avsvalnad", "ljummen", "fast", "fluffig", "karamelliserad", "smidig" ],
-      "da": [ "gyldenbrun", "blød", "klar", "gennemtilberedt", "sprød", "cremet", "al dente", "indkogt", "småkogene", "fordoblet", "mør", "ristet", "smeltet", "skummende", "reduceret", "afkølet", "lunken", "fast", "luftig", "karamelliseret", "smidig" ],
-      "no": [ "gyllenbrun", "myk", "blank", "gjennomkokt", "sprø", "kremet", "al dente", "innkokt", "småkoker", "doblet", "mør", "ristet", "smeltet", "skummende", "redusert", "avkjølt", "lunken", "fast", "luftig", "karamellisert", "smidig" ],
-      "ms": [ "perang keemasan", "lembut", "jernih", "masak", "rangup", "berkrim", "al dente", "pekat", "merenih", "berganda", "lembut", "terpanggang", "cair", "berbuih", "terkurang", "disejukkan", "suam", "pejal", "gebu", "terkaramel", "licin" ]
+      "de": [
+        "goldbraun",
+        "weich",
+        "glasig",
+        "gar",
+        "knusprig",
+        "cremig",
+        "bissfest",
+        "eingedickt",
+        "sprudelnd",
+        "verdoppelt",
+        "zart",
+        "angeröstet",
+        "geschmolzen",
+        "schaumig",
+        "reduziert (eingekocht)",
+        "abgekühlt",
+        "lauwarm",
+        "fest",
+        "fluffig",
+        "karamellisiert",
+        "geschmeidig"
+      ],
+      "en": [
+        "golden brown",
+        "soft",
+        "translucent",
+        "cooked through",
+        "crispy",
+        "creamy",
+        "al dente",
+        "thickened",
+        "bubbling",
+        "doubled",
+        "tender",
+        "toasted",
+        "melted",
+        "foamy",
+        "reduced",
+        "cooled",
+        "lukewarm",
+        "firm",
+        "fluffy",
+        "caramelized",
+        "smooth"
+      ],
+      "esp": [
+        "dorado",
+        "blando",
+        "translúcido",
+        "cocido",
+        "crujiente",
+        "cremoso",
+        "al dente",
+        "espeso",
+        "hirviendo suavemente",
+        "duplicado",
+        "tierno",
+        "tostado",
+        "derretido",
+        "espumoso",
+        "reducido",
+        "enfriado",
+        "tibio",
+        "firme",
+        "esponjoso",
+        "caramelizado",
+        "sedoso"
+      ],
+      "prt": [
+        "dourado",
+        "macio",
+        "translúcido",
+        "cozido",
+        "crocante",
+        "cremoso",
+        "al dente",
+        "encorpado",
+        "borbulhando",
+        "dobrado",
+        "tenro",
+        "tostado",
+        "derretido",
+        "espumoso",
+        "reduzido",
+        "arrefecido",
+        "morno",
+        "firme",
+        "fofo",
+        "caramelizado",
+        "sedoso"
+      ],
+      "id": [
+        "keemasan",
+        "lembut",
+        "bening",
+        "matang",
+        "renyah",
+        "kremi",
+        "al dente",
+        "mengental",
+        "mendidih perlahan",
+        "dua kali lipat",
+        "empuk",
+        "terpanggang",
+        "meleleh",
+        "berbusa",
+        "tereduksi",
+        "dingin",
+        "suam-suam kuku",
+        "padat",
+        "mengembang",
+        "terkaramelisasi",
+        "halus"
+      ],
+      "nl": [
+        "goudbruin",
+        "zacht",
+        "glazig",
+        "gaar",
+        "knapperig",
+        "romig",
+        "beetgaar",
+        "ingedikt",
+        "zacht borrelend",
+        "verdubbeld",
+        "mals",
+        "geroosterd",
+        "gesmolten",
+        "schuimig",
+        "gereduceerd",
+        "afgekoeld",
+        "lauw",
+        "stevig",
+        "luchtig",
+        "gekaramelliseerd",
+        "glad"
+      ],
+      "sv": [
+        "gyllenbrun",
+        "mjuk",
+        "glansig",
+        "genomstekt",
+        "krispig",
+        "krämig",
+        "al dente",
+        "förtjockad",
+        "sjudande",
+        "fördubblad",
+        "mör",
+        "rostad",
+        "smält",
+        "skummig",
+        "reducerad",
+        "avsvalnad",
+        "ljummen",
+        "fast",
+        "fluffig",
+        "karamelliserad",
+        "smidig"
+      ],
+      "da": [
+        "gyldenbrun",
+        "blød",
+        "klar",
+        "gennemtilberedt",
+        "sprød",
+        "cremet",
+        "al dente",
+        "indkogt",
+        "småkogene",
+        "fordoblet",
+        "mør",
+        "ristet",
+        "smeltet",
+        "skummende",
+        "reduceret",
+        "afkølet",
+        "lunken",
+        "fast",
+        "luftig",
+        "karamelliseret",
+        "smidig"
+      ],
+      "no": [
+        "gyllenbrun",
+        "myk",
+        "blank",
+        "gjennomkokt",
+        "sprø",
+        "kremet",
+        "al dente",
+        "innkokt",
+        "småkoker",
+        "doblet",
+        "mør",
+        "ristet",
+        "smeltet",
+        "skummende",
+        "redusert",
+        "avkjølt",
+        "lunken",
+        "fast",
+        "luftig",
+        "karamellisert",
+        "smidig"
+      ],
+      "ms": [
+        "perang keemasan",
+        "lembut",
+        "jernih",
+        "masak",
+        "rangup",
+        "berkrim",
+        "al dente",
+        "pekat",
+        "merenih",
+        "berganda",
+        "lembut",
+        "terpanggang",
+        "cair",
+        "berbuih",
+        "terkurang",
+        "disejukkan",
+        "suam",
+        "pejal",
+        "gebu",
+        "terkaramel",
+        "licin"
+      ]
     },
     "base": {
-      "de": [ "Eischnee", "Masse", "Teig", "Creme", "Sauce", "Glasur", "Füllung", "Marinade", "Emulsion", "Schaum" ],
-      "en": [ "egg white foam", "mixture", "dough", "cream", "sauce", "glaze", "filling", "marinade", "emulsion", "foam" ],
-      "esp": [ "las claras montadas", "la mezcla", "la masa", "la crema", "la salsa", "el glaseado", "el relleno", "la marinada", "la emulsión", "la espuma" ],
-      "prt": [ "as claras em neve", "a mistura", "a massa", "o creme", "o molho", "a cobertura", "o recheio", "a marinada", "a emulsão", "a espuma" ],
-      "id": [ "putih telur kocok", "adonan", "adonan dasar", "krim", "saus", "glasir", "isian", "marinade", "emulsi", "busa" ],
-      "nl": [ "het eiwitschuim", "de massa", "het deeg", "de crème", "de saus", "het glazuur", "de vulling", "de marinade", "de emulsie", "het schuim" ],
-      "sv": [ "äggvitan", "massan", "degen", "krämen", "såsen", "glasyren", "fyllningen", "marinaden", "emulsionen", "skummet" ],
-      "da": [ "æggehviderne", "massen", "dejen", "cremen", "saucen", "glasuren", "fyldet", "marinaden", "emulsionen", "skummet" ],
-      "no": [ "eggehviten", "massen", "deigen", "kremen", "sausen", "glasuren", "fyllet", "marinaden", "emulsjonen", "skummet" ],
-      "ms": [ "putih telur kembang", "adunan", "doh", "krim", "sos", "glasur", "inti", "perapan", "emulsi", "buih" ]
+      "de": [
+        "Eischnee",
+        "Masse",
+        "Teig",
+        "Creme",
+        "Sauce",
+        "Glasur",
+        "Füllung",
+        "Marinade",
+        "Emulsion",
+        "Schaum"
+      ],
+      "en": [
+        "egg white foam",
+        "mixture",
+        "dough",
+        "cream",
+        "sauce",
+        "glaze",
+        "filling",
+        "marinade",
+        "emulsion",
+        "foam"
+      ],
+      "esp": [
+        "las claras montadas",
+        "la mezcla",
+        "la masa",
+        "la crema",
+        "la salsa",
+        "el glaseado",
+        "el relleno",
+        "la marinada",
+        "la emulsión",
+        "la espuma"
+      ],
+      "prt": [
+        "as claras em neve",
+        "a mistura",
+        "a massa",
+        "o creme",
+        "o molho",
+        "a cobertura",
+        "o recheio",
+        "a marinada",
+        "a emulsão",
+        "a espuma"
+      ],
+      "id": [
+        "putih telur kocok",
+        "adonan",
+        "adonan dasar",
+        "krim",
+        "saus",
+        "glasir",
+        "isian",
+        "marinade",
+        "emulsi",
+        "busa"
+      ],
+      "nl": [
+        "het eiwitschuim",
+        "de massa",
+        "het deeg",
+        "de crème",
+        "de saus",
+        "het glazuur",
+        "de vulling",
+        "de marinade",
+        "de emulsie",
+        "het schuim"
+      ],
+      "sv": [
+        "äggvitan",
+        "massan",
+        "degen",
+        "krämen",
+        "såsen",
+        "glasyren",
+        "fyllningen",
+        "marinaden",
+        "emulsionen",
+        "skummet"
+      ],
+      "da": [
+        "æggehviderne",
+        "massen",
+        "dejen",
+        "cremen",
+        "saucen",
+        "glasuren",
+        "fyldet",
+        "marinaden",
+        "emulsionen",
+        "skummet"
+      ],
+      "no": [
+        "eggehviten",
+        "massen",
+        "deigen",
+        "kremen",
+        "sausen",
+        "glasuren",
+        "fyllet",
+        "marinaden",
+        "emulsjonen",
+        "skummet"
+      ],
+      "ms": [
+        "putih telur kembang",
+        "adunan",
+        "doh",
+        "krim",
+        "sos",
+        "glasur",
+        "inti",
+        "perapan",
+        "emulsi",
+        "buih"
+      ]
     },
     "seasonings": {
-      "de": [ "Salz", "Pfeffer", "Salz und Pfeffer", "Kräuter", "Gewürzen" ],
-      "en": [ "salt", "pepper", "salt and pepper", "herbs", "spices" ],
-      "esp": [ "sal", "pimienta", "sal y pimienta", "hierbas", "especias" ],
-      "prt": [ "sal", "pimenta", "sal e pimenta", "ervas", "especiarias" ],
-      "id": [ "garam", "lada", "garam dan lada", "herba", "rempah" ],
-      "nl": [ "zout", "peper", "zout en peper", "kruiden", "specerijen" ],
-      "sv": [ "salt", "peppar", "salt och peppar", "örter", "kryddor" ],
-      "da": [ "salt", "peber", "salt og peber", "urter", "krydderier" ],
-      "no": [ "salt", "pepper", "salt og pepper", "urter", "krydder" ],
-      "ms": [ "garam", "lada", "garam dan lada", "herba", "rempah" ]
+      "de": [
+        "Salz",
+        "Pfeffer",
+        "Salz und Pfeffer",
+        "Kräuter",
+        "Gewürzen"
+      ],
+      "en": [
+        "salt",
+        "pepper",
+        "salt and pepper",
+        "herbs",
+        "spices"
+      ],
+      "esp": [
+        "sal",
+        "pimienta",
+        "sal y pimienta",
+        "hierbas",
+        "especias"
+      ],
+      "prt": [
+        "sal",
+        "pimenta",
+        "sal e pimenta",
+        "ervas",
+        "especiarias"
+      ],
+      "id": [
+        "garam",
+        "lada",
+        "garam dan lada",
+        "herba",
+        "rempah"
+      ],
+      "nl": [
+        "zout",
+        "peper",
+        "zout en peper",
+        "kruiden",
+        "specerijen"
+      ],
+      "sv": [
+        "salt",
+        "peppar",
+        "salt och peppar",
+        "örter",
+        "kryddor"
+      ],
+      "da": [
+        "salt",
+        "peber",
+        "salt og peber",
+        "urter",
+        "krydderier"
+      ],
+      "no": [
+        "salt",
+        "pepper",
+        "salt og pepper",
+        "urter",
+        "krydder"
+      ],
+      "ms": [
+        "garam",
+        "lada",
+        "garam dan lada",
+        "herba",
+        "rempah"
+      ]
     },
     "balance": {
-      "de": [ "die Säure", "die Süße", "die Schärfe" ],
-      "en": [ "the acidity", "the sweetness", "the spiciness" ],
-      "esp": [ "la acidez", "la dulzura", "el picante" ],
-      "prt": [ "a acidez", "a doçura", "o picante" ],
-      "id": [ "keasaman", "kemanisan", "kepedasan" ],
-      "nl": [ "de zuurgraad", "de zoetheid", "de pittigheid" ],
-      "sv": [ "syran", "sötman", "hettan" ],
-      "da": [ "syren", "sødmen", "styrken" ],
-      "no": [ "syren", "sødmen", "styrken" ],
-      "ms": [ "keasidan", "kemanisan", "kepedasan" ]
+      "de": [
+        "die Säure",
+        "die Süße",
+        "die Schärfe"
+      ],
+      "en": [
+        "the acidity",
+        "the sweetness",
+        "the spiciness"
+      ],
+      "esp": [
+        "la acidez",
+        "la dulzura",
+        "el picante"
+      ],
+      "prt": [
+        "a acidez",
+        "a doçura",
+        "o picante"
+      ],
+      "id": [
+        "keasaman",
+        "kemanisan",
+        "kepedasan"
+      ],
+      "nl": [
+        "de zuurgraad",
+        "de zoetheid",
+        "de pittigheid"
+      ],
+      "sv": [
+        "syran",
+        "sötman",
+        "hettan"
+      ],
+      "da": [
+        "syren",
+        "sødmen",
+        "styrken"
+      ],
+      "no": [
+        "syren",
+        "sødmen",
+        "styrken"
+      ],
+      "ms": [
+        "keasidan",
+        "kemanisan",
+        "kepedasan"
+      ]
     },
     "grind_size": {
-      "de": [ "fein", "feine", "mittel", "mittlere", "grob", "grobe", "dünn", "dünne", "breit", "breite", "klein", "kleine", "groß", "große", "ca. 1 cm groß", "ca. 1 cm große", "ca. 0,5 mm groß", "ca. 0,5 mm große" ],
-      "en": [ "fine", "medium", "coarse", "thin", "wide", "small", "large", "about 3/8-inch", "about 0.02-inch" ],
-      "esp": [ "finas", "medianas", "gruesas", "delgadas", "anchas", "pequeñas", "grandes" ],
-      "prt": [ "finas", "médias", "grossas", "finas", "largas", "pequenas", "grandes" ],
-      "id": [ "halus", "sedang", "kasar", "tipis", "tebal", "kecil", "besar" ],
-      "nl": [ "fijne", "middelgrote", "grove", "dunne", "brede", "kleine", "grote" ],
-      "sv": [ "fina", "medelgrova", "grova", "tunna", "breda", "små", "stora" ],
-      "da": [ "fine", "mellemstore", "grove", "tynde", "brede", "små", "store" ],
-      "no": [ "fine", "middels", "grove", "tynne", "brede", "små", "store" ],
-      "ms": [ "halus", "sederhana", "kasar", "nipis", "lebar", "kecil", "besar" ]
+      "de": [
+        "fein",
+        "feine",
+        "mittel",
+        "mittlere",
+        "grob",
+        "grobe",
+        "dünn",
+        "dünne",
+        "breit",
+        "breite",
+        "klein",
+        "kleine",
+        "groß",
+        "große",
+        "ca. 1 cm groß",
+        "ca. 1 cm große",
+        "ca. 0,5 mm groß",
+        "ca. 0,5 mm große"
+      ],
+      "en": [
+        "fine",
+        "medium",
+        "coarse",
+        "thin",
+        "wide",
+        "small",
+        "large",
+        "about 3/8-inch",
+        "about 0.02-inch"
+      ],
+      "esp": [
+        "finas",
+        "medianas",
+        "gruesas",
+        "delgadas",
+        "anchas",
+        "pequeñas",
+        "grandes"
+      ],
+      "prt": [
+        "finas",
+        "médias",
+        "grossas",
+        "finas",
+        "largas",
+        "pequenas",
+        "grandes"
+      ],
+      "id": [
+        "halus",
+        "sedang",
+        "kasar",
+        "tipis",
+        "tebal",
+        "kecil",
+        "besar"
+      ],
+      "nl": [
+        "fijne",
+        "middelgrote",
+        "grove",
+        "dunne",
+        "brede",
+        "kleine",
+        "grote"
+      ],
+      "sv": [
+        "fina",
+        "medelgrova",
+        "grova",
+        "tunna",
+        "breda",
+        "små",
+        "stora"
+      ],
+      "da": [
+        "fine",
+        "mellemstore",
+        "grove",
+        "tynde",
+        "brede",
+        "små",
+        "store"
+      ],
+      "no": [
+        "fine",
+        "middels",
+        "grove",
+        "tynne",
+        "brede",
+        "små",
+        "store"
+      ],
+      "ms": [
+        "halus",
+        "sederhana",
+        "kasar",
+        "nipis",
+        "lebar",
+        "kecil",
+        "besar"
+      ]
     },
     "item": {
-      "de": [ "den Teig", "die Masse", "die Mischung", "das Gericht" ],
-      "en": [ "dough", "batter", "mixture", "dish" ],
-      "esp": [ "masa", "mezcla", "preparación", "plato" ],
-      "prt": [ "massa", "mistura", "preparação", "prato" ],
-      "id": [ "adonan", "campuran", "olahan", "hidangan" ],
-      "nl": [ "deeg", "mengsel", "mix", "gerecht" ],
-      "sv": [ "deg", "smet", "blandning", "rätt" ],
-      "da": [ "dej", "masse", "blanding", "ret" ],
-      "no": [ "deig", "røre", "blanding", "rett" ],
-      "ms": [ "doh", "adunan", "campuran", "hidangan" ]
+      "de": [
+        "den Teig",
+        "die Masse",
+        "die Mischung",
+        "das Gericht"
+      ],
+      "en": [
+        "dough",
+        "batter",
+        "mixture",
+        "dish"
+      ],
+      "esp": [
+        "masa",
+        "mezcla",
+        "preparación",
+        "plato"
+      ],
+      "prt": [
+        "massa",
+        "mistura",
+        "preparação",
+        "prato"
+      ],
+      "id": [
+        "adonan",
+        "campuran",
+        "olahan",
+        "hidangan"
+      ],
+      "nl": [
+        "deeg",
+        "mengsel",
+        "mix",
+        "gerecht"
+      ],
+      "sv": [
+        "deg",
+        "smet",
+        "blandning",
+        "rätt"
+      ],
+      "da": [
+        "dej",
+        "masse",
+        "blanding",
+        "ret"
+      ],
+      "no": [
+        "deig",
+        "røre",
+        "blanding",
+        "rett"
+      ],
+      "ms": [
+        "doh",
+        "adunan",
+        "campuran",
+        "hidangan"
+      ]
     },
     "equipment": {
-      "de": [ "Pfanne", "Topf", "Backofen", "Bräter", "Kochfeld", "Mixer", "Grill", "Dampfgarer", "Schüssel", "Sieb" ],
-      "en": [ "pan", "pot", "oven", "roasting pan", "stovetop", "blender", "grill", "steamer", "bowl", "strainer" ],
-      "esp": [ "la sartén", "la olla", "el horno", "la asadera", "la placa de cocción", "la batidora", "la parrilla", "la vaporera", "el bol", "el colador" ],
-      "prt": [ "a frigideira", "a panela", "o forno", "a assadeira", "o fogão", "o liquidificador", "a grelha", "o cozedor a vapor", "a tigela", "a peneira" ],
-      "id": [ "wajan", "panci", "oven", "loyang", "kompor", "blender", "pemanggang", "pengukus", "mangkuk", "saringan" ],
-      "nl": [ "de pan", "de kookpot", "de oven", "de braadslede", "de kookplaat", "de blender", "de grill", "de stomer", "de kom", "de zeef" ],
-      "sv": [ "stekpannan", "kastrullen", "ugnen", "stekgrytan", "spishällen", "mixern", "grillen", "ångkokaren", "skålen", "silen" ],
-      "da": [ "panden", "gryden", "ovnen", "bradepanden", "kogepladen", "blenderen", "grillen", "dampkogeren", "skålen", "sien" ],
-      "no": [ "stekepannen", "gryta", "ovnen", "den ildfaste formen", "koketoppen", "blenderen", "grillen", "dampkokeren", "bollen", "silen" ],
-      "ms": [ "kuali", "periuk", "ketuhar", "bekas pembakar", "dapur", "pengisar", "gril", "pengukus", "mangkuk", "penapis" ]
+      "de": [
+        "Pfanne",
+        "Topf",
+        "Backofen",
+        "Bräter",
+        "Kochfeld",
+        "Mixer",
+        "Grill",
+        "Dampfgarer",
+        "Schüssel",
+        "Sieb"
+      ],
+      "en": [
+        "pan",
+        "pot",
+        "oven",
+        "roasting pan",
+        "stovetop",
+        "blender",
+        "grill",
+        "steamer",
+        "bowl",
+        "strainer"
+      ],
+      "esp": [
+        "la sartén",
+        "la olla",
+        "el horno",
+        "la asadera",
+        "la placa de cocción",
+        "la batidora",
+        "la parrilla",
+        "la vaporera",
+        "el bol",
+        "el colador"
+      ],
+      "prt": [
+        "a frigideira",
+        "a panela",
+        "o forno",
+        "a assadeira",
+        "o fogão",
+        "o liquidificador",
+        "a grelha",
+        "o cozedor a vapor",
+        "a tigela",
+        "a peneira"
+      ],
+      "id": [
+        "wajan",
+        "panci",
+        "oven",
+        "loyang",
+        "kompor",
+        "blender",
+        "pemanggang",
+        "pengukus",
+        "mangkuk",
+        "saringan"
+      ],
+      "nl": [
+        "de pan",
+        "de kookpot",
+        "de oven",
+        "de braadslede",
+        "de kookplaat",
+        "de blender",
+        "de grill",
+        "de stomer",
+        "de kom",
+        "de zeef"
+      ],
+      "sv": [
+        "stekpannan",
+        "kastrullen",
+        "ugnen",
+        "stekgrytan",
+        "spishällen",
+        "mixern",
+        "grillen",
+        "ångkokaren",
+        "skålen",
+        "silen"
+      ],
+      "da": [
+        "panden",
+        "gryden",
+        "ovnen",
+        "bradepanden",
+        "kogepladen",
+        "blenderen",
+        "grillen",
+        "dampkogeren",
+        "skålen",
+        "sien"
+      ],
+      "no": [
+        "stekepannen",
+        "gryta",
+        "ovnen",
+        "den ildfaste formen",
+        "koketoppen",
+        "blenderen",
+        "grillen",
+        "dampkokeren",
+        "bollen",
+        "silen"
+      ],
+      "ms": [
+        "kuali",
+        "periuk",
+        "ketuhar",
+        "bekas pembakar",
+        "dapur",
+        "pengisar",
+        "gril",
+        "pengukus",
+        "mangkuk",
+        "penapis"
+      ]
     },
     "marinade": {
-      "de": [ "Olivenöl und Gewürzen", "Joghurt und Gewürzen", "Sojasauce, Knoblauch und Ingwer", "Zitronensaft, Öl und Kräutern", "die Marinade" ],
-      "en": [ "olive oil and spices", "yogurt and spices", "soy sauce, garlic and ginger", "lemon juice, oil and herbs", "the marinade" ],
-      "esp": [ "aceite de oliva y especias", "yogur y especias", "salsa de soja, ajo y jengibre", "zumo de limón, aceite y hierbas", "la marinada" ],
-      "prt": [ "azeite e especiarias", "iogurte e especiarias", "molho de soja, alho e gengibre", "sumo de limão, azeite e ervas", "a marinada" ],
-      "id": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kecap asin, bawang putih, dan jahe", "jus lemon, minyak, dan herba", "marinade" ],
-      "nl": [ "olijfolie en kruiden", "yoghurt en kruiden", "sojasaus, knoflook en gember", "citroensap, olie en kruiden", "de marinade" ],
-      "sv": [ "olivolja och kryddor", "yoghurt och kryddor", "sojasås, vitlök och ingefära", "citronsaft, olja och örter", "marinaden" ],
-      "da": [ "olivenolie og krydderier", "yoghurt og krydderier", "sojasauce, hvidløg og ingefær", "citronsaft, olie og urter", "marinaden" ],
-      "no": [ "olivenolje og krydder", "yoghurt og krydder", "soyasaus, hvitløk og ingefær", "sitronsaft, olje og urter", "marinaden" ],
-      "ms": [ "minyak zaitun dan rempah", "yogurt dan rempah", "kicap soya, bawang putih dan halia", "jus lemon, minyak dan herba", "perapan" ]
+      "de": [
+        "Olivenöl und Gewürzen",
+        "Joghurt und Gewürzen",
+        "Sojasauce, Knoblauch und Ingwer",
+        "Zitronensaft, Öl und Kräutern",
+        "die Marinade"
+      ],
+      "en": [
+        "olive oil and spices",
+        "yogurt and spices",
+        "soy sauce, garlic and ginger",
+        "lemon juice, oil and herbs",
+        "the marinade"
+      ],
+      "esp": [
+        "aceite de oliva y especias",
+        "yogur y especias",
+        "salsa de soja, ajo y jengibre",
+        "zumo de limón, aceite y hierbas",
+        "la marinada"
+      ],
+      "prt": [
+        "azeite e especiarias",
+        "iogurte e especiarias",
+        "molho de soja, alho e gengibre",
+        "sumo de limão, azeite e ervas",
+        "a marinada"
+      ],
+      "id": [
+        "minyak zaitun dan rempah",
+        "yogurt dan rempah",
+        "kecap asin, bawang putih, dan jahe",
+        "jus lemon, minyak, dan herba",
+        "marinade"
+      ],
+      "nl": [
+        "olijfolie en kruiden",
+        "yoghurt en kruiden",
+        "sojasaus, knoflook en gember",
+        "citroensap, olie en kruiden",
+        "de marinade"
+      ],
+      "sv": [
+        "olivolja och kryddor",
+        "yoghurt och kryddor",
+        "sojasås, vitlök och ingefära",
+        "citronsaft, olja och örter",
+        "marinaden"
+      ],
+      "da": [
+        "olivenolie og krydderier",
+        "yoghurt og krydderier",
+        "sojasauce, hvidløg og ingefær",
+        "citronsaft, olie og urter",
+        "marinaden"
+      ],
+      "no": [
+        "olivenolje og krydder",
+        "yoghurt og krydder",
+        "soyasaus, hvitløk og ingefær",
+        "sitronsaft, olje og urter",
+        "marinaden"
+      ],
+      "ms": [
+        "minyak zaitun dan rempah",
+        "yogurt dan rempah",
+        "kicap soya, bawang putih dan halia",
+        "jus lemon, minyak dan herba",
+        "perapan"
+      ]
     },
     "method": {
-      "de": [ "vorsichtig unter", "gleichmäßig einrühren", "kurz vermengen", "gründlich vermischen" ],
-      "en": [ "fold in gently", "stir in evenly", "mix briefly", "combine thoroughly" ],
-      "esp": [ "incorpora suavemente", "remueve de forma uniforme", "mezcla brevemente", "mezcla bien" ],
-      "prt": [ "incorpore delicadamente", "misture de forma uniforme", "misture rapidamente", "misture bem" ],
-      "id": [ "aduk perlahan", "aduk rata", "campur sebentar", "campur hingga rata" ],
-      "nl": [ "voorzichtig erdoor spatelen", "gelijkmatig erdoor roeren", "kort mengen", "grondig mengen" ],
-      "sv": [ "vänd ner försiktigt", "rör i jämnt", "blanda kort", "blanda ordentligt" ],
-      "da": [ "vend forsigtigt i", "rør jævnt i", "bland kort", "bland grundigt" ],
-      "no": [ "vend forsiktig inn", "rør jevnt inn", "bland kort", "bland godt" ],
-      "ms": [ "gaul perlahan", "kacau rata", "gaul sebentar", "gaul sebati" ]
+      "de": [
+        "vorsichtig unter",
+        "gleichmäßig einrühren",
+        "kurz vermengen",
+        "gründlich vermischen"
+      ],
+      "en": [
+        "fold in gently",
+        "stir in evenly",
+        "mix briefly",
+        "combine thoroughly"
+      ],
+      "esp": [
+        "incorpora suavemente",
+        "remueve de forma uniforme",
+        "mezcla brevemente",
+        "mezcla bien"
+      ],
+      "prt": [
+        "incorpore delicadamente",
+        "misture de forma uniforme",
+        "misture rapidamente",
+        "misture bem"
+      ],
+      "id": [
+        "aduk perlahan",
+        "aduk rata",
+        "campur sebentar",
+        "campur hingga rata"
+      ],
+      "nl": [
+        "voorzichtig erdoor spatelen",
+        "gelijkmatig erdoor roeren",
+        "kort mengen",
+        "grondig mengen"
+      ],
+      "sv": [
+        "vänd ner försiktigt",
+        "rör i jämnt",
+        "blanda kort",
+        "blanda ordentligt"
+      ],
+      "da": [
+        "vend forsigtigt i",
+        "rør jævnt i",
+        "bland kort",
+        "bland grundigt"
+      ],
+      "no": [
+        "vend forsiktig inn",
+        "rør jevnt inn",
+        "bland kort",
+        "bland godt"
+      ],
+      "ms": [
+        "gaul perlahan",
+        "kacau rata",
+        "gaul sebentar",
+        "gaul sebati"
+      ]
     },
     "mode": {
-      "de": [ "Ober-/Unterhitze", "Umluft", "Grillfunktion" ],
-      "en": [ "top/bottom heat", "fan-assisted", "broil mode" ],
-      "esp": [ "calor arriba y abajo", "aire caliente", "función grill" ],
-      "prt": [ "calor superior/inferior", "ventilado", "função grill" ],
-      "id": [ "api atas-bawah", "kipas konveksi", "mode grill" ],
-      "nl": [ "boven-/onderwarmte", "hetelucht", "grillstand" ],
-      "sv": [ "över-/undervärme", "varmluft", "grilläge" ],
-      "da": [ "over-/undervarme", "varmluft", "grillfunktion" ],
-      "no": [ "over-/undervarme", "varmluft", "grillfunksjon" ],
-      "ms": [ "haba atas/bawah", "kipas perolakan", "mod gril" ]
+      "de": [
+        "Ober-/Unterhitze",
+        "Umluft",
+        "Grillfunktion"
+      ],
+      "en": [
+        "top/bottom heat",
+        "fan-assisted",
+        "broil mode"
+      ],
+      "esp": [
+        "calor arriba y abajo",
+        "aire caliente",
+        "función grill"
+      ],
+      "prt": [
+        "calor superior/inferior",
+        "ventilado",
+        "função grill"
+      ],
+      "id": [
+        "api atas-bawah",
+        "kipas konveksi",
+        "mode grill"
+      ],
+      "nl": [
+        "boven-/onderwarmte",
+        "hetelucht",
+        "grillstand"
+      ],
+      "sv": [
+        "över-/undervärme",
+        "varmluft",
+        "grilläge"
+      ],
+      "da": [
+        "over-/undervarme",
+        "varmluft",
+        "grillfunktion"
+      ],
+      "no": [
+        "over-/undervarme",
+        "varmluft",
+        "grillfunksjon"
+      ],
+      "ms": [
+        "haba atas/bawah",
+        "kipas perolakan",
+        "mod gril"
+      ]
     },
     "position": {
-      "de": [ "mittig", "auf oberer Schiene", "nah unter dem Grill" ],
-      "en": [ "in the middle", "on the top rack", "close to the broiler" ],
-      "esp": [ "en el centro", "en la bandeja superior", "cerca del grill" ],
-      "prt": [ "ao centro", "na prateleira superior", "perto do grill" ],
-      "id": [ "di tengah", "di rak atas", "dekat pemanggang" ],
-      "nl": [ "in het midden", "op het bovenste rooster", "dicht onder de grill" ],
-      "sv": [ "i mitten", "på översta falsen", "nära grillelementet" ],
-      "da": [ "i midten", "på øverste rille", "tæt under grillen" ],
-      "no": [ "i midten", "på øverste rille", "nært grillelementet" ],
-      "ms": [ "di tengah", "di rak atas", "dekat gril" ]
+      "de": [
+        "mittig",
+        "auf oberer Schiene",
+        "nah unter dem Grill"
+      ],
+      "en": [
+        "in the middle",
+        "on the top rack",
+        "close to the broiler"
+      ],
+      "esp": [
+        "en el centro",
+        "en la bandeja superior",
+        "cerca del grill"
+      ],
+      "prt": [
+        "ao centro",
+        "na prateleira superior",
+        "perto do grill"
+      ],
+      "id": [
+        "di tengah",
+        "di rak atas",
+        "dekat pemanggang"
+      ],
+      "nl": [
+        "in het midden",
+        "op het bovenste rooster",
+        "dicht onder de grill"
+      ],
+      "sv": [
+        "i mitten",
+        "på översta falsen",
+        "nära grillelementet"
+      ],
+      "da": [
+        "i midten",
+        "på øverste rille",
+        "tæt under grillen"
+      ],
+      "no": [
+        "i midten",
+        "på øverste rille",
+        "nært grillelementet"
+      ],
+      "ms": [
+        "di tengah",
+        "di rak atas",
+        "dekat gril"
+      ]
     },
     "keep": {
-      "de": [ "das Kochwasser", "die Brühe", "die Sauce", "den Sud" ],
-      "en": [ "the cooking water", "the broth", "the sauce", "the liquid" ],
-      "esp": [ "el agua de cocción", "el caldo", "la salsa", "el líquido" ],
-      "prt": [ "a água da cozedura", "o caldo", "o molho", "o líquido" ],
-      "id": [ "air rebusan", "kaldu", "saus", "cairan rebusan" ],
-      "nl": [ "het kookwater", "de bouillon", "de saus", "het vocht" ],
-      "sv": [ "kokvattnet", "buljongen", "såsen", "vätskan" ],
-      "da": [ "kogevandet", "bouillonen", "saucen", "væsken" ],
-      "no": [ "kokevannet", "kraften", "sausen", "væsken" ],
-      "ms": [ "air rebusan", "stok", "sos", "cecair" ]
+      "de": [
+        "das Kochwasser",
+        "die Brühe",
+        "die Sauce",
+        "den Sud"
+      ],
+      "en": [
+        "the cooking water",
+        "the broth",
+        "the sauce",
+        "the liquid"
+      ],
+      "esp": [
+        "el agua de cocción",
+        "el caldo",
+        "la salsa",
+        "el líquido"
+      ],
+      "prt": [
+        "a água da cozedura",
+        "o caldo",
+        "o molho",
+        "o líquido"
+      ],
+      "id": [
+        "air rebusan",
+        "kaldu",
+        "saus",
+        "cairan rebusan"
+      ],
+      "nl": [
+        "het kookwater",
+        "de bouillon",
+        "de saus",
+        "het vocht"
+      ],
+      "sv": [
+        "kokvattnet",
+        "buljongen",
+        "såsen",
+        "vätskan"
+      ],
+      "da": [
+        "kogevandet",
+        "bouillonen",
+        "saucen",
+        "væsken"
+      ],
+      "no": [
+        "kokevannet",
+        "kraften",
+        "sausen",
+        "væsken"
+      ],
+      "ms": [
+        "air rebusan",
+        "stok",
+        "sos",
+        "cecair"
+      ]
     },
     "surface": {
-      "de": [ "einer bemehlten Arbeitsfläche", "Backpapier", "einer Silikonmatte", "der Arbeitsfläche" ],
-      "en": [ "a floured work surface", "parchment paper", "a silicone mat", "the work surface" ],
-      "esp": [ "una superficie enharinada", "papel de horno", "una esterilla de silicona", "la superficie de trabajo" ],
-      "prt": [ "uma superfície enfarinhada", "papel vegetal", "um tapete de silicone", "a superfície de trabalho" ],
-      "id": [ "permukaan bertabur tepung", "kertas roti", "alas silikon", "permukaan kerja" ],
-      "nl": [ "een bebloemd werkblad", "bakpapier", "een siliconenmat", "het werkblad" ],
-      "sv": [ "en mjölad arbetsyta", "bakplåtspapper", "en silikonmatta", "arbetsytan" ],
-      "da": [ "et meldrysset bord", "bagepapir", "en silikonemåtte", "arbejdsfladen" ],
-      "no": [ "en melet arbeidsflate", "bakepapir", "en silikonmatte", "arbeidsflaten" ],
-      "ms": [ "permukaan bertabur tepung", "kertas pembakar", "alas silikon", "permukaan kerja" ]
+      "de": [
+        "einer bemehlten Arbeitsfläche",
+        "Backpapier",
+        "einer Silikonmatte",
+        "der Arbeitsfläche"
+      ],
+      "en": [
+        "a floured work surface",
+        "parchment paper",
+        "a silicone mat",
+        "the work surface"
+      ],
+      "esp": [
+        "una superficie enharinada",
+        "papel de horno",
+        "una esterilla de silicona",
+        "la superficie de trabajo"
+      ],
+      "prt": [
+        "uma superfície enfarinhada",
+        "papel vegetal",
+        "um tapete de silicone",
+        "a superfície de trabalho"
+      ],
+      "id": [
+        "permukaan bertabur tepung",
+        "kertas roti",
+        "alas silikon",
+        "permukaan kerja"
+      ],
+      "nl": [
+        "een bebloemd werkblad",
+        "bakpapier",
+        "een siliconenmat",
+        "het werkblad"
+      ],
+      "sv": [
+        "en mjölad arbetsyta",
+        "bakplåtspapper",
+        "en silikonmatta",
+        "arbetsytan"
+      ],
+      "da": [
+        "et meldrysset bord",
+        "bagepapir",
+        "en silikonemåtte",
+        "arbejdsfladen"
+      ],
+      "no": [
+        "en melet arbeidsflate",
+        "bakepapir",
+        "en silikonmatte",
+        "arbeidsflaten"
+      ],
+      "ms": [
+        "permukaan bertabur tepung",
+        "kertas pembakar",
+        "alas silikon",
+        "permukaan kerja"
+      ]
     },
     "thickener": {
-      "de": [ "Speisestärke", "Mehl", "angerührter Stärke", "einer Mehlschwitze" ],
-      "en": [ "cornstarch", "flour", "slurry", "a roux" ],
-      "esp": [ "maicena", "harina", "fécula disuelta", "un roux" ],
-      "prt": [ "amido de milho", "farinha", "amido dissolvido", "um roux" ],
-      "id": [ "tepung maizena", "tepung", "larutan pati", "roux" ],
-      "nl": [ "maïzena", "bloem", "zetmeelpapje", "een roux" ],
-      "sv": [ "majsstärkelse", "mjöl", "redning", "en roux" ],
-      "da": [ "majsstivelse", "mel", "jævning", "en roux" ],
-      "no": [ "maisstivelse", "mel", "jevning", "en roux" ],
-      "ms": [ "tepung jagung", "tepung", "bancuhan kanji", "roux" ]
+      "de": [
+        "Speisestärke",
+        "Mehl",
+        "angerührter Stärke",
+        "einer Mehlschwitze"
+      ],
+      "en": [
+        "cornstarch",
+        "flour",
+        "slurry",
+        "a roux"
+      ],
+      "esp": [
+        "maicena",
+        "harina",
+        "fécula disuelta",
+        "un roux"
+      ],
+      "prt": [
+        "amido de milho",
+        "farinha",
+        "amido dissolvido",
+        "um roux"
+      ],
+      "id": [
+        "tepung maizena",
+        "tepung",
+        "larutan pati",
+        "roux"
+      ],
+      "nl": [
+        "maïzena",
+        "bloem",
+        "zetmeelpapje",
+        "een roux"
+      ],
+      "sv": [
+        "majsstärkelse",
+        "mjöl",
+        "redning",
+        "en roux"
+      ],
+      "da": [
+        "majsstivelse",
+        "mel",
+        "jævning",
+        "en roux"
+      ],
+      "no": [
+        "maisstivelse",
+        "mel",
+        "jevning",
+        "en roux"
+      ],
+      "ms": [
+        "tepung jagung",
+        "tepung",
+        "bancuhan kanji",
+        "roux"
+      ]
     },
     "components": {
-      "de": [ "Gemüse und Sauce", "Kartoffeln und Gemüse", "Nudeln und Sauce", "Schichten aus Teig und Füllung", "die Zutaten" ],
-      "en": [ "vegetables and sauce", "potatoes and vegetables", "pasta and sauce", "layers of dough and filling", "the ingredients" ],
-      "esp": [ "verduras y salsa", "patatas y verduras", "pasta y salsa", "capas de masa y relleno", "los ingredientes" ],
-      "prt": [ "legumes e molho", "batatas e legumes", "massa e molho", "camadas de massa e recheio", "os ingredientes" ],
-      "id": [ "sayur dan saus", "kentang dan sayur", "pasta dan saus", "lapisan adonan dan isian", "bahan-bahan" ],
-      "nl": [ "groenten en saus", "aardappelen en groenten", "pasta en saus", "lagen deeg en vulling", "de ingredienten" ],
-      "sv": [ "grönsaker och sås", "potatis och grönsaker", "pasta och sås", "lager av deg och fyllning", "ingredienserna" ],
-      "da": [ "grøntsager og sauce", "kartofler og grøntsager", "pasta og sauce", "lag af dej og fyld", "ingredienserne" ],
-      "no": [ "grønnsaker og saus", "poteter og grønnsaker", "pasta og saus", "lag av deig og fyll", "ingrediensene" ],
-      "ms": [ "sayur dan sos", "kentang dan sayur", "pasta dan sos", "lapisan doh dan inti", "bahan-bahan" ]
+      "de": [
+        "Gemüse und Sauce",
+        "Kartoffeln und Gemüse",
+        "Nudeln und Sauce",
+        "Schichten aus Teig und Füllung",
+        "die Zutaten"
+      ],
+      "en": [
+        "vegetables and sauce",
+        "potatoes and vegetables",
+        "pasta and sauce",
+        "layers of dough and filling",
+        "the ingredients"
+      ],
+      "esp": [
+        "verduras y salsa",
+        "patatas y verduras",
+        "pasta y salsa",
+        "capas de masa y relleno",
+        "los ingredientes"
+      ],
+      "prt": [
+        "legumes e molho",
+        "batatas e legumes",
+        "massa e molho",
+        "camadas de massa e recheio",
+        "os ingredientes"
+      ],
+      "id": [
+        "sayur dan saus",
+        "kentang dan sayur",
+        "pasta dan saus",
+        "lapisan adonan dan isian",
+        "bahan-bahan"
+      ],
+      "nl": [
+        "groenten en saus",
+        "aardappelen en groenten",
+        "pasta en saus",
+        "lagen deeg en vulling",
+        "de ingredienten"
+      ],
+      "sv": [
+        "grönsaker och sås",
+        "potatis och grönsaker",
+        "pasta och sås",
+        "lager av deg och fyllning",
+        "ingredienserna"
+      ],
+      "da": [
+        "grøntsager og sauce",
+        "kartofler og grøntsager",
+        "pasta og sauce",
+        "lag af dej og fyld",
+        "ingredienserne"
+      ],
+      "no": [
+        "grønnsaker og saus",
+        "poteter og grønnsaker",
+        "pasta og saus",
+        "lag av deig og fyll",
+        "ingrediensene"
+      ],
+      "ms": [
+        "sayur dan sos",
+        "kentang dan sayur",
+        "pasta dan sos",
+        "lapisan doh dan inti",
+        "bahan-bahan"
+      ]
     },
     "finish": {
-      "de": [ "geriebenem Käse", "frischen Kräutern", "Semmelbröseln", "einem Schuss Olivenöl", "Bechamelsauce" ],
-      "en": [ "grated cheese", "fresh herbs", "breadcrumbs", "a drizzle of olive oil", "bechamel sauce" ],
-      "esp": [ "queso rallado", "hierbas frescas", "pan rallado", "un chorrito de aceite de oliva", "salsa bechamel" ],
-      "prt": [ "queijo ralado", "ervas frescas", "pão ralado", "um fio de azeite", "molho bechamel" ],
-      "id": [ "keju parut", "herba segar", "tepung roti", "sedikit minyak zaitun", "saus bechamel" ],
-      "nl": [ "geraspte kaas", "verse kruiden", "paneermeel", "een scheutje olijfolie", "bechamelsaus" ],
-      "sv": [ "riven ost", "färska örter", "ströbröd", "en skvätt olivolja", "bechamelsas" ],
-      "da": [ "revet ost", "friske urter", "rasp", "en smule olivenolie", "bechamelsauce" ],
-      "no": [ "revet ost", "friske urter", "brødrasp", "en skvett olivenolje", "bechamelsaus" ],
-      "ms": [ "keju parut", "herba segar", "serbuk roti", "sedikit minyak zaitun", "sos bechamel" ]
+      "de": [
+        "geriebenem Käse",
+        "frischen Kräutern",
+        "Semmelbröseln",
+        "einem Schuss Olivenöl",
+        "Bechamelsauce"
+      ],
+      "en": [
+        "grated cheese",
+        "fresh herbs",
+        "breadcrumbs",
+        "a drizzle of olive oil",
+        "bechamel sauce"
+      ],
+      "esp": [
+        "queso rallado",
+        "hierbas frescas",
+        "pan rallado",
+        "un chorrito de aceite de oliva",
+        "salsa bechamel"
+      ],
+      "prt": [
+        "queijo ralado",
+        "ervas frescas",
+        "pão ralado",
+        "um fio de azeite",
+        "molho bechamel"
+      ],
+      "id": [
+        "keju parut",
+        "herba segar",
+        "tepung roti",
+        "sedikit minyak zaitun",
+        "saus bechamel"
+      ],
+      "nl": [
+        "geraspte kaas",
+        "verse kruiden",
+        "paneermeel",
+        "een scheutje olijfolie",
+        "bechamelsaus"
+      ],
+      "sv": [
+        "riven ost",
+        "färska örter",
+        "ströbröd",
+        "en skvätt olivolja",
+        "bechamelsas"
+      ],
+      "da": [
+        "revet ost",
+        "friske urter",
+        "rasp",
+        "en smule olivenolie",
+        "bechamelsauce"
+      ],
+      "no": [
+        "revet ost",
+        "friske urter",
+        "brødrasp",
+        "en skvett olivenolje",
+        "bechamelsaus"
+      ],
+      "ms": [
+        "keju parut",
+        "herba segar",
+        "serbuk roti",
+        "sedikit minyak zaitun",
+        "sos bechamel"
+      ]
     },
     "extra": {
-      "de": [ "mit frischen Kräutern", "mit einem Dip", "mit Zitronenspalten", "sofort heiß" ],
-      "en": [ "with fresh herbs", "with a dip", "with lemon wedges", "serve immediately while hot" ],
-      "esp": [ "con hierbas frescas", "con una salsa", "con gajos de limón", "servir caliente de inmediato" ],
-      "prt": [ "com ervas frescas", "com um molho", "com gomos de limão", "servir de imediato bem quente" ],
-      "id": [ "dengan herba segar", "dengan cecah", "dengan irisan lemon", "sajikan segera saat panas" ],
-      "nl": [ "met verse kruiden", "met een dip", "met partjes citroen", "meteen heet serveren" ],
-      "sv": [ "med färska örter", "med en dip", "med citronklyftor", "servera direkt varm" ],
-      "da": [ "med friske urter", "med en dip", "med citronbåde", "servér straks varm" ],
-      "no": [ "med friske urter", "med en dip", "med sitronbåter", "server straks varm" ],
-      "ms": [ "dengan herba segar", "dengan sos pencicah", "dengan hirisan lemon", "hidang segera semasa panas" ]
+      "de": [
+        "mit frischen Kräutern",
+        "mit einem Dip",
+        "mit Zitronenspalten",
+        "sofort heiß"
+      ],
+      "en": [
+        "with fresh herbs",
+        "with a dip",
+        "with lemon wedges",
+        "serve immediately while hot"
+      ],
+      "esp": [
+        "con hierbas frescas",
+        "con una salsa",
+        "con gajos de limón",
+        "servir caliente de inmediato"
+      ],
+      "prt": [
+        "com ervas frescas",
+        "com um molho",
+        "com gomos de limão",
+        "servir de imediato bem quente"
+      ],
+      "id": [
+        "dengan herba segar",
+        "dengan cecah",
+        "dengan irisan lemon",
+        "sajikan segera saat panas"
+      ],
+      "nl": [
+        "met verse kruiden",
+        "met een dip",
+        "met partjes citroen",
+        "meteen heet serveren"
+      ],
+      "sv": [
+        "med färska örter",
+        "med en dip",
+        "med citronklyftor",
+        "servera direkt varm"
+      ],
+      "da": [
+        "med friske urter",
+        "med en dip",
+        "med citronbåde",
+        "servér straks varm"
+      ],
+      "no": [
+        "med friske urter",
+        "med en dip",
+        "med sitronbåter",
+        "server straks varm"
+      ],
+      "ms": [
+        "dengan herba segar",
+        "dengan sos pencicah",
+        "dengan hirisan lemon",
+        "hidang segera semasa panas"
+      ]
     },
     "reason": {
-      "de": [ "sich die Aromen verbinden", "die Masse stabil bleibt", "der Saft sich verteilt", "die Kruste knusprig bleibt" ],
-      "en": [ "the flavors can meld", "the mixture stays stable", "the juices can redistribute", "the crust stays crispy" ],
-      "esp": [ "se integren los sabores", "la mezcla se mantenga estable", "los jugos se redistribuyan", "la costra quede crujiente" ],
-      "prt": [ "os sabores se integrem", "a mistura se mantenha estável", "os sucos se redistribuam", "a crosta fique crocante" ],
-      "id": [ "rasa menyatu", "adonan tetap stabil", "sari merata kembali", "kerak tetap renyah" ],
-      "nl": [ "de smaken zich verbinden", "het mengsel stabiel blijft", "de sappen zich verdelen", "de korst knapperig blijft" ],
-      "sv": [ "smakerna hinner sätta sig", "blandningen håller sig stabil", "saften fördelas igen", "skorpan håller sig krispig" ],
-      "da": [ "smagene samler sig", "massen holder sig stabil", "saften fordeler sig", "skorpen forbliver sprød" ],
-      "no": [ "smakene setter seg", "blandingen holder seg stabil", "saften fordeler seg", "skorpen holder seg sprø" ],
-      "ms": [ "rasa sebati", "adunan kekal stabil", "jus kembali sekata", "kerak kekal rangup" ]
+      "de": [
+        "sich die Aromen verbinden",
+        "die Masse stabil bleibt",
+        "der Saft sich verteilt",
+        "die Kruste knusprig bleibt"
+      ],
+      "en": [
+        "the flavors can meld",
+        "the mixture stays stable",
+        "the juices can redistribute",
+        "the crust stays crispy"
+      ],
+      "esp": [
+        "se integren los sabores",
+        "la mezcla se mantenga estable",
+        "los jugos se redistribuyan",
+        "la costra quede crujiente"
+      ],
+      "prt": [
+        "os sabores se integrem",
+        "a mistura se mantenha estável",
+        "os sucos se redistribuam",
+        "a crosta fique crocante"
+      ],
+      "id": [
+        "rasa menyatu",
+        "adonan tetap stabil",
+        "sari merata kembali",
+        "kerak tetap renyah"
+      ],
+      "nl": [
+        "de smaken zich verbinden",
+        "het mengsel stabiel blijft",
+        "de sappen zich verdelen",
+        "de korst knapperig blijft"
+      ],
+      "sv": [
+        "smakerna hinner sätta sig",
+        "blandningen håller sig stabil",
+        "saften fördelas igen",
+        "skorpan håller sig krispig"
+      ],
+      "da": [
+        "smagene samler sig",
+        "massen holder sig stabil",
+        "saften fordeler sig",
+        "skorpen forbliver sprød"
+      ],
+      "no": [
+        "smakene setter seg",
+        "blandingen holder seg stabil",
+        "saften fordeler seg",
+        "skorpen holder seg sprø"
+      ],
+      "ms": [
+        "rasa sebati",
+        "adunan kekal stabil",
+        "jus kembali sekata",
+        "kerak kekal rangup"
+      ]
     },
     "goal": {
-      "de": [ "die Masse luftig bleibt", "keine Luft entweicht", "alles gleichmäßig verteilt ist", "die Struktur erhalten bleibt" ],
-      "en": [ "the mixture stays airy", "no air is lost", "everything is evenly distributed", "the structure is preserved" ],
-      "esp": [ "la mezcla quede aireada", "no se pierda aire", "todo quede repartido de forma uniforme", "se conserve la estructura" ],
-      "prt": [ "a mistura fique aerada", "não se perca ar", "tudo fique distribuído de forma uniforme", "a estrutura seja preservada" ],
-      "id": [ "adonan tetap ringan", "udara tidak hilang", "semua tersebar merata", "strukturnya terjaga" ],
-      "nl": [ "het mengsel luchtig blijft", "er geen lucht verloren gaat", "alles gelijkmatig verdeeld is", "de structuur behouden blijft" ],
-      "sv": [ "smeten håller sig luftig", "ingen luft går förlorad", "allt fördelas jämnt", "strukturen bevaras" ],
-      "da": [ "massen forbliver luftig", "ingen luft går tabt", "alt fordeles jævnt", "strukturen bevares" ],
-      "no": [ "blandingen holder seg luftig", "ingen luft går tapt", "alt fordeles jevnt", "strukturen bevares" ],
-      "ms": [ "adunan kekal ringan", "udara tidak hilang", "semua tersebar sekata", "struktur kekal terpelihara" ]
+      "de": [
+        "die Masse luftig bleibt",
+        "keine Luft entweicht",
+        "alles gleichmäßig verteilt ist",
+        "die Struktur erhalten bleibt"
+      ],
+      "en": [
+        "the mixture stays airy",
+        "no air is lost",
+        "everything is evenly distributed",
+        "the structure is preserved"
+      ],
+      "esp": [
+        "la mezcla quede aireada",
+        "no se pierda aire",
+        "todo quede repartido de forma uniforme",
+        "se conserve la estructura"
+      ],
+      "prt": [
+        "a mistura fique aerada",
+        "não se perca ar",
+        "tudo fique distribuído de forma uniforme",
+        "a estrutura seja preservada"
+      ],
+      "id": [
+        "adonan tetap ringan",
+        "udara tidak hilang",
+        "semua tersebar merata",
+        "strukturnya terjaga"
+      ],
+      "nl": [
+        "het mengsel luchtig blijft",
+        "er geen lucht verloren gaat",
+        "alles gelijkmatig verdeeld is",
+        "de structuur behouden blijft"
+      ],
+      "sv": [
+        "smeten håller sig luftig",
+        "ingen luft går förlorad",
+        "allt fördelas jämnt",
+        "strukturen bevaras"
+      ],
+      "da": [
+        "massen forbliver luftig",
+        "ingen luft går tabt",
+        "alt fordeles jævnt",
+        "strukturen bevares"
+      ],
+      "no": [
+        "blandingen holder seg luftig",
+        "ingen luft går tapt",
+        "alt fordeles jevnt",
+        "strukturen bevares"
+      ],
+      "ms": [
+        "adunan kekal ringan",
+        "udara tidak hilang",
+        "semua tersebar sekata",
+        "struktur kekal terpelihara"
+      ]
     },
     "step1": {
-      "de": [ "Mehl", "Stärke", "Pankomehl" ],
-      "en": [ "flour", "starch", "panko breadcrumbs" ],
-      "esp": [ "harina", "fécula", "panko" ],
-      "prt": [ "farinha", "amido", "panko" ],
-      "id": [ "tepung", "pati", "tepung roti panko" ],
-      "nl": [ "bloem", "zetmeel", "panko" ],
-      "sv": [ "mjöl", "stärkelse", "panko" ],
-      "da": [ "mel", "stivelse", "panko" ],
-      "no": [ "mel", "stivelse", "panko" ],
-      "ms": [ "tepung", "kanji", "panko" ]
+      "de": [
+        "Mehl",
+        "Stärke",
+        "Pankomehl"
+      ],
+      "en": [
+        "flour",
+        "starch",
+        "panko breadcrumbs"
+      ],
+      "esp": [
+        "harina",
+        "fécula",
+        "panko"
+      ],
+      "prt": [
+        "farinha",
+        "amido",
+        "panko"
+      ],
+      "id": [
+        "tepung",
+        "pati",
+        "tepung roti panko"
+      ],
+      "nl": [
+        "bloem",
+        "zetmeel",
+        "panko"
+      ],
+      "sv": [
+        "mjöl",
+        "stärkelse",
+        "panko"
+      ],
+      "da": [
+        "mel",
+        "stivelse",
+        "panko"
+      ],
+      "no": [
+        "mel",
+        "stivelse",
+        "panko"
+      ],
+      "ms": [
+        "tepung",
+        "kanji",
+        "panko"
+      ]
     },
     "step2": {
-      "de": [ "verquirltem Ei", "Buttermilch", "pflanzlicher Milch" ],
-      "en": [ "beaten egg", "buttermilk", "plant-based milk" ],
-      "esp": [ "huevo batido", "suero de leche", "leche vegetal" ],
-      "prt": [ "ovo batido", "leitelho", "bebida vegetal" ],
-      "id": [ "telur kocok", "buttermilk", "susu nabati" ],
-      "nl": [ "losgeklopt ei", "karnemelk", "plantaardige melk" ],
-      "sv": [ "uppvispat ägg", "kärnmjölk", "växtbaserad mjölk" ],
-      "da": [ "sammenpisket æg", "kærnemælk", "plantebaseret mælk" ],
-      "no": [ "sammenvispet egg", "kjernemelk", "plantebasert melk" ],
-      "ms": [ "telur pukul", "susu mentega", "susu berasaskan tumbuhan" ]
+      "de": [
+        "verquirltem Ei",
+        "Buttermilch",
+        "pflanzlicher Milch"
+      ],
+      "en": [
+        "beaten egg",
+        "buttermilk",
+        "plant-based milk"
+      ],
+      "esp": [
+        "huevo batido",
+        "suero de leche",
+        "leche vegetal"
+      ],
+      "prt": [
+        "ovo batido",
+        "leitelho",
+        "bebida vegetal"
+      ],
+      "id": [
+        "telur kocok",
+        "buttermilk",
+        "susu nabati"
+      ],
+      "nl": [
+        "losgeklopt ei",
+        "karnemelk",
+        "plantaardige melk"
+      ],
+      "sv": [
+        "uppvispat ägg",
+        "kärnmjölk",
+        "växtbaserad mjölk"
+      ],
+      "da": [
+        "sammenpisket æg",
+        "kærnemælk",
+        "plantebaseret mælk"
+      ],
+      "no": [
+        "sammenvispet egg",
+        "kjernemelk",
+        "plantebasert melk"
+      ],
+      "ms": [
+        "telur pukul",
+        "susu mentega",
+        "susu berasaskan tumbuhan"
+      ]
     },
     "step3": {
-      "de": [ "Semmelbröseln", "Panko", "zerdrückten Cornflakes" ],
-      "en": [ "breadcrumbs", "panko", "crushed cornflakes" ],
-      "esp": [ "pan rallado", "panko", "copos de maíz triturados" ],
-      "prt": [ "pão ralado", "panko", "cornflakes triturados" ],
-      "id": [ "tepung roti", "panko", "cornflakes hancur" ],
-      "nl": [ "paneermeel", "panko", "geplette cornflakes" ],
-      "sv": [ "ströbröd", "panko", "krossade cornflakes" ],
-      "da": [ "rasp", "panko", "knuste cornflakes" ],
-      "no": [ "brødrasp", "panko", "knuste cornflakes" ],
-      "ms": [ "serbuk roti", "panko", "cornflakes hancur" ]
+      "de": [
+        "Semmelbröseln",
+        "Panko",
+        "zerdrückten Cornflakes"
+      ],
+      "en": [
+        "breadcrumbs",
+        "panko",
+        "crushed cornflakes"
+      ],
+      "esp": [
+        "pan rallado",
+        "panko",
+        "copos de maíz triturados"
+      ],
+      "prt": [
+        "pão ralado",
+        "panko",
+        "cornflakes triturados"
+      ],
+      "id": [
+        "tepung roti",
+        "panko",
+        "cornflakes hancur"
+      ],
+      "nl": [
+        "paneermeel",
+        "panko",
+        "geplette cornflakes"
+      ],
+      "sv": [
+        "ströbröd",
+        "panko",
+        "krossade cornflakes"
+      ],
+      "da": [
+        "rasp",
+        "panko",
+        "knuste cornflakes"
+      ],
+      "no": [
+        "brødrasp",
+        "panko",
+        "knuste cornflakes"
+      ],
+      "ms": [
+        "serbuk roti",
+        "panko",
+        "cornflakes hancur"
+      ]
     },
-
     "dough": {
-      "de": [ "Teig", "Pizzateig", "Mürbeteig", "Hefeteig" ],
-      "en": [ "dough", "pizza dough", "shortcrust pastry", "yeast dough" ],
-      "esp": [ "masa", "masa de pizza", "masa quebrada", "masa con levadura" ],
-      "prt": [ "massa", "massa de pizza", "massa quebrada", "massa levedada" ],
-      "id": [ "adonan", "adonan pizza", "adonan pastry", "adonan ragi" ],
-      "nl": [ "deeg", "pizzadeeg", "zanddeeg", "gistdeeg" ],
-      "sv": [ "deg", "pizzadeg", "mördeg", "jästdeg" ],
-      "da": [ "dej", "pizzadej", "mørdej", "gærdej" ],
-      "no": [ "deig", "pizzadeig", "mørdeig", "gjærdeig" ],
-      "ms": [ "doh", "doh piza", "doh pastri", "doh yis" ]
+      "de": [
+        "Teig",
+        "Pizzateig",
+        "Mürbeteig",
+        "Hefeteig"
+      ],
+      "en": [
+        "dough",
+        "pizza dough",
+        "shortcrust pastry",
+        "yeast dough"
+      ],
+      "esp": [
+        "masa",
+        "masa de pizza",
+        "masa quebrada",
+        "masa con levadura"
+      ],
+      "prt": [
+        "massa",
+        "massa de pizza",
+        "massa quebrada",
+        "massa levedada"
+      ],
+      "id": [
+        "adonan",
+        "adonan pizza",
+        "adonan pastry",
+        "adonan ragi"
+      ],
+      "nl": [
+        "deeg",
+        "pizzadeeg",
+        "zanddeeg",
+        "gistdeeg"
+      ],
+      "sv": [
+        "deg",
+        "pizzadeg",
+        "mördeg",
+        "jästdeg"
+      ],
+      "da": [
+        "dej",
+        "pizzadej",
+        "mørdej",
+        "gærdej"
+      ],
+      "no": [
+        "deig",
+        "pizzadeig",
+        "mørdeig",
+        "gjærdeig"
+      ],
+      "ms": [
+        "doh",
+        "doh piza",
+        "doh pastri",
+        "doh yis"
+      ]
     }
   },
   "duration_units": {
@@ -1433,7 +4574,6 @@
       "ms": "jam"
     }
   },
-
   "example_render": {
     "_comment": "Beispiel: COOK_SAUTE_01 mit konkreten Werten. {{ingredient}} enthält den Artikel.",
     "master_id": "COOK_SAUTE_01",
