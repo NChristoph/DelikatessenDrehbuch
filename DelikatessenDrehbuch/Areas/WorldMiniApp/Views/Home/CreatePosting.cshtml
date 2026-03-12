@@ -1,18 +1,14 @@
-@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
 @using System.Text.Json
 @using System.Linq
 @using Newtonsoft.Json
 
-
 @{
-
-
     ViewData["Title"] = "Rezept Erstellen";
     Layout = "_MiniAppLayout";
 }
 
 <div class="creator-bg min-vh-100 position-relative">
-    <!-- Loading Overlay -->
     <div id="datatableLoadingOverlay" class="creator-loading">
         <div class="creator-loading-card">
             <div class="spinner-border text-primary" role="status">
@@ -23,15 +19,14 @@
         </div>
     </div>
 
-    <!-- Topbar (Social Creator) -->
     <div class="creator-topbar px-3 py-3" style="visibility:hidden" data-theme="gold">
         <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
             <i class="bi bi-chevron-left"></i>
         </a>
 
         <div class="topbar-title">
-            <div class="fw-bold text-truncate">Creator Studio</div>
-            <div class="small text-muted text-truncate">Neuer Upload · Rezeptpost</div>
+            <div class="fw-bold text-truncate" id="creatorTopbarProgress" style="color:#172033 !important; text-shadow:none;">0/5 bereit</div>
+            <div class="small text-muted text-truncate">Create Posting</div>
         </div>
 
         <div class="theme-switcher" role="group" aria-label="Theme wechseln">
@@ -40,7 +35,6 @@
             <button type="button" class="theme-switch-btn" data-create-posting-theme="gold" aria-pressed="false">Gold</button>
         </div>
 
-        <!-- Optional: Quick Publish -->
         <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="Veröffentlichen">
             <i class="bi bi-send-fill"></i>
         </button>
@@ -50,33 +44,6 @@
         <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
 
-            <!-- HERO CARD -->
-            <div class="creator-hero  mb-3" data-theme="gold">
-                <div class="creator-hero-left">
-                    <div class="creator-hero-badge">
-                        <i class="bi bi-stars me-2"></i>
-                        <span class="label-lang" data-de="Upload ready" data-en="Upload ready" data-esp="Listo para subir" data-prt="nto para envio">Upload ready</span>
-                    </div>
-
-                    <h1 class="creator-hero-title mb-1">Neuen Content erstellen</h1>
-                    <p class="creator-hero-sub mb-0">
-                        Erstelle einen Social-Post wie im Feed: Media + Zutaten + Schritte + Keywords.
-                    </p>
-                </div>
-
-                <div class="creator-hero-right">
-                    <div class="progress-dots" aria-hidden="true">
-                        <span class="dot active"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                    <div class="small text-muted mt-2">5 Schritte</div>
-                </div>
-            </div>
-
-            <!-- 1) BASICS -->
             <section class="creator-card mb-3" data-theme="gold" id="card-basics">
                 <div class="creator-card-head">
                     <div class="d-flex align-items-center gap-2">
@@ -198,7 +165,6 @@
                 </div>
             </section>
 
-            <!-- 2) MEDIA -->
             <section class="creator-card mb-3" data-theme="gold" id="card-media">
                 <div class="creator-card-head">
                     <div class="d-flex align-items-center gap-2">
@@ -240,7 +206,7 @@
                              data-de="Wähle ein Video oder Bild (Feed-Style)."
                              data-en="Choose a video or image (feed style)."
                              data-esp="Elige un video o imagen (estilo feed)."
-                             data-prt="Escolha um vídeo ou imagem (estilo feed).">
+                             data-prt="Escolha um vídeo oder imagem (estilo feed).">
                             Wähle ein Video oder Bild (Feed-Style).
                         </div>
 
@@ -249,14 +215,13 @@
                 </div>
             </section>
 
-            <!-- 3) INGREDIENTS -->
             <section class="smart-step-creator mb-3" id="card-ingredients" data-theme="rosa">
                 <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
                         <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
                         <div>
                             <div class="sheet-title label-lang" data-de="Zutaten Auswahl" data-en="Ingredients Selection">Zutaten Auswahl</div>
-                            <div class="sheet-sub label-lang" data-de="Suche & konfiguriere deine Zutaten">Suche & konfiguriere deine Zutaten</div>
+                            <div class="sheet-sub label-lang" data-de="Suche & konfiguriere deine Zutaten" data-en="Search & configure your ingredients">Suche & konfiguriere deine Zutaten</div>
                         </div>
                     </div>
                     <span class="badge rounded-pill bg-transparent border border-light text-light">3/5</span>
@@ -269,7 +234,7 @@
                             <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none lang-ph" placeholder="Zutat suchen..."
                                    data-ph-de="Zutat suchen..." data-ph-en="Search ingredient..." data-ph-esp="Buscar ingrediente..." data-ph-prt="Buscar ingrediente..."
                                    data-ph-id="Cari bahan..." data-ph-nl="Ingrediënt zoeken..." data-ph-sv="Sök ingrediens..." data-ph-da="Søg ingrediens..."
-                                   data-ph-no="Søk ingrediens..." data-ph-ms="Cari bahan..." />
+                                   data-ph-no="Søg ingrediens..." data-ph-ms="Cari bahan..." />
                         </div>
                         <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
                     </div>
@@ -315,9 +280,9 @@
                                             </select>
                                         </div>
                                         <div class="common-unit-chips mt-2" role="group" aria-label="Schnelle Einheiten">
-                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g" data-label-de="g." data-label-en="g." data-label-esp="g." data-label-prt="g." data-label-id="g." data-label-nl="g." data-label-sv="g." data-label-da="g." data-label-no="g." data-label-ms="g.">g.</button>
-                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml" data-label-de="ml." data-label-en="ml." data-label-esp="ml." data-label-prt="ml." data-label-id="ml." data-label-nl="ml." data-label-sv="ml." data-label-da="ml." data-label-no="ml." data-label-ms="ml.">ml.</button>
-                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece" data-label-de="Stk." data-label-en="pcs." data-label-esp="uds." data-label-prt="un." data-label-id="pcs." data-label-nl="st." data-label-sv="st." data-label-da="stk." data-label-no="stk." data-label-ms="unit">Stk.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g">g.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml">ml.</button>
+                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece">Stk.</button>
                                         </div>
                                     </div>
                                 </div>
@@ -329,15 +294,13 @@
 
                     <div class="ingredient-top-strip mt-4">
                         <div class="ingredient-top-title">Ausgewählte Zutaten</div>
-                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar" data-id="Ketuk untuk mengedit" data-nl="Tik om te bewerken" data-sv="Tryck för att redigera" data-da="Tryk for at redigere" data-no="Trykk for å redigere" data-ms="Ketik untuk edit">Zum Bearbeiten antippen</div>
+                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit">Zum Bearbeiten antippen</div>
                         <div id="selectedIngredients" class="selected-zone mt-2"></div>
                         <div id="selectedIngredientsSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- "Was könnte es sein?" – eigene Karte -->
             <section class="smart-step-creator mb-3" data-theme="dark" id="card-probability">
                 <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
@@ -345,18 +308,10 @@
                             <i class="bi bi-graph-up-arrow text-white"></i>
                         </div>
                         <div>
-                            <div class="sheet-title label-lang"
-                                 data-de="Was könnte es sein?"
-                                 data-en="What could it be?"
-                                 data-esp="¿Qué podría ser?"
-                                 data-prt="O que poderia ser?">
+                            <div class="sheet-title label-lang" data-de="Was könnte es sein?" data-en="What could it be?">
                                 Was könnte es sein?
                             </div>
-                            <div class="sheet-sub label-lang"
-                                 data-de="Rezepttyp-Erkennung & Step-Vorschläge"
-                                 data-en="Recipe type detection & step suggestions"
-                                 data-esp="Detección de tipo & sugerencias de pasos"
-                                 data-prt="Detecção de tipo & sugestões de etapas">
+                            <div class="sheet-sub label-lang" data-de="Rezepttyp-Erkennung & Step-Vorschläge" data-en="Recipe type detection & step suggestions">
                                 Rezepttyp-Erkennung & Step-Vorschläge
                             </div>
                         </div>
@@ -368,19 +323,16 @@
                 </div>
             </section>
 
-            <!-- 4) STEPS + SANDBOX -->
             <section class="smart-step-creator mt-3 mb-4" data-theme="rosa" id="card-steps" style="min-height:auto">
                 <div class="sheet-head creator-top-head">
                     <div>
-                        <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps" data-esp="Pasos" data-prt="Passos">Arbeitsschritte</div>
-                        <div class="sheet-sub label-lang" data-de="Sortiere" data-en="Order &amp; edit like a script" data-esp="Ordena y edita como guion" data-prt="Ordena e edita como roteiro">Sortiere &amp; bearbeite wie ein Script</div>
+                        <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps">Arbeitsschritte</div>
+                        <div class="sheet-sub label-lang" data-de="Sortiere & bearbeite wie ein Script" data-en="Order & edit like a script">Sortiere & bearbeite wie ein Script</div>
                     </div>
                     <span class="badge rounded-pill bg-transparent border border-light text-light">4/5</span>
                 </div>
 
                 <div class="creator-preview-canvas" style="min-height:auto; padding:14px 16px;">
-
-                    <!-- SC2: Eingebetteter Smart Step Creator im Steps-Bereich -->
                     <div id="sc2MasterPreviewCanvas" style="border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:16px;margin-bottom:16px;">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
@@ -388,37 +340,19 @@
                                 <div class="sheet-sub" style="font-size:12px;">Wähle Zutat + Template wie im Creator Flow</div>
                                 <div class="small text-muted mt-1"><span id="sc2StoryStepCount">Schritte: 0</span></div>
                             </div>
-                            <button type="button" id="sc2BtnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">&#9881;</button>
+                            <button type="button" id="sc2BtnOpenAdvancedSettings" class="btn btn-sm btn-outline-light advanced-gear" title="Pronomen anpassen">⚙</button>
                         </div>
 
-                        <div class="ingredient-top-strip mb-2 d-none" aria-hidden="true">
-                            <div class="ingredient-top-title">Zutaten zur Auswahl</div>
-                            <div class="ingredient-swiper ingredient-swiper-top" id="sc2MasterIngredientButtons"></div>
-                        </div>
-
-                        <div class="preview-step-card" data-theme="gold" id="sc2MasterPreviewCard">
-                            @* <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                <div class="preview-step-title mb-0">Aktueller Step</div>
-                                <button type="button" id="sc2BtnAddRenderedStep" class="btn btn-sm creator-cta-primary">Step akzeptieren</button>
-                            </div> *@
+                        <div id="sc2MasterPreviewCard" class="preview-step-card" data-theme="gold">
                             <div id="MasterText" class="preview-step-text">Wähle eine Zutat und ein Template.</div>
-
-
-
                         </div>
-
-
-
 
                         <div class="template-selection-wrap">
                             <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
                             <div id="insertContainer" class="preview-step-text template-library-fixed p-2"></div>
                         </div>
-                        <div id="sc2TemplateFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
-                        <div id="sc2CreatorToast" class="creator-toast" aria-live="polite"></div>
                     </div>
-                    <!-- Ende SC2 -->
-                    <!-- Chip-Strip: erscheint wenn Zutat in einem Schritt geändert wird -->
+
                     <div id="stepsChipStrip" class="ingredient-top-strip mb-3 d-none">
                         <div class="ingredient-top-title">Zutat für Schritt wählen</div>
                         <div class="ingredient-swiper ingredient-swiper-top mb-2" id="stepsIngredientButtons"></div>
@@ -432,14 +366,13 @@
                 </div>
             </section>
 
-            <!-- 5) KEYWORDS -->
             <section class="creator-card mb-4" data-theme="gold" id="card-keywords">
                 <div class="creator-card-head">
                     <div class="d-flex align-items-center gap-2">
                         <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
                         <div>
-                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords" data-esp="Palabras clave" data-prt="Palavras-chave">Keywords</div>
-                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search" data-esp="Ayuda al feed y búsqueda" data-prt="Ajuda no feed e busca">
+                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords">Keywords</div>
+                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search">
                                 Hilft beim Feed & bei Suche
                             </div>
                         </div>
@@ -458,21 +391,17 @@
                                         data-keyword-id="@keyword.Id"
                                         data-word-de="@keyword.Word_DE"
                                         data-word-en="@keyword.Word_EN"
-                                        data-word-esp="@keyword.Word_ESP"
-                                        data-word-prt="@keyword.Word_PRT"
                                         onclick="toggleKeyword('@keyword.Id', this)">
                                     @keyword.Word_DE
                                 </button>
                             }
                         }
                     </div>
-
                     <div id="selectedKeywords" class="mt-3 selected-zone"></div>
                 </div>
             </section>
 
-            <!-- Bottom Action Bar (Feed Style) -->
-            <div class=" creator-bottom p-3">
+            <div class="creator-bottom p-3">
                 <div class="creator-bottom-inner">
                     <div class="d-flex align-items-center gap-2">
                         <div class="bottom-hint">
@@ -481,7 +410,7 @@
                         </div>
 
                         <button type="submit" class="btn publish-btn w-100">
-                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish" data-esp="Publicar" data-prt="Publicar">Veröffentlichen</span>
+                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish">Veröffentlichen</span>
                             <i class="bi bi-send-fill ms-2"></i>
                         </button>
                     </div>
@@ -497,8 +426,9 @@
     .creator-bg {
         background: radial-gradient(900px 420px at 20% 0%, rgba(255, 153, 102, .18), transparent 60%), radial-gradient(900px 520px at 80% 10%, rgba(139, 92, 246, .16), transparent 65%), #ffffff;
     }
-    .text-muted{
-        color:var(--creator-text) !important;
+
+    .text-muted {
+        color: var(--creator-text) !important;
     }
 
     .feed-shell {
@@ -508,22 +438,22 @@
 
         .feed-shell[data-theme="dark"],
         .feed-shell[data-theme="navy"] {
-        max-width: 720px;
-        padding: 12px 12px 120px 12px;
-        background: linear-gradient( 180deg, rgba(28, 38, 78, 0.35), rgba(16, 22, 46, 0.45) );
-        border-radius: 22px;
-        backdrop-filter: blur(10px);
-    }
+            max-width: 720px;
+            padding: 12px 12px 120px 12px;
+            background: linear-gradient( 180deg, rgba(28, 38, 78, 0.35), rgba(16, 22, 46, 0.45) );
+            border-radius: 22px;
+            backdrop-filter: blur(10px);
+        }
 
         .feed-shell[data-theme="rosa"] {
-        max-width: 720px;
-        padding: 12px 12px 120px 12px;
-        background: linear-gradient( 180deg, rgba(120, 40, 100, 0.35), rgba(40, 16, 36, 0.45) );
-        border-radius: 22px;
-        backdrop-filter: blur(10px);
-    }
+            max-width: 720px;
+            padding: 12px 12px 120px 12px;
+            background: linear-gradient( 180deg, rgba(120, 40, 100, 0.35), rgba(40, 16, 36, 0.45) );
+            border-radius: 22px;
+            backdrop-filter: blur(10px);
+        }
 
-        
+
 
     /* ---------- Loading Overlay ---------- */
     .creator-loading {
@@ -579,10 +509,10 @@
         flex: 0 0 auto;
     }
 
-    .topbar-btn i {
-        display: block;
-        line-height: 1;
-    }
+        .topbar-btn i {
+            display: block;
+            line-height: 1;
+        }
 
     .topbar-primary {
         border: none;
@@ -620,11 +550,11 @@
         transition: transform .18s ease, background .18s ease, color .18s ease, opacity .18s ease;
     }
 
-    .theme-switch-btn.is-active {
-        opacity: 1;
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(0,0,0,0.16);
-    }
+        .theme-switch-btn.is-active {
+            opacity: 1;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.16);
+        }
 
     .creator-topbar[data-theme="gold"] .theme-switcher {
         background: rgba(42,55,86,0.22);
@@ -635,10 +565,10 @@
         color: #fff;
     }
 
-    .creator-topbar[data-theme="gold"] .theme-switch-btn.is-active[data-create-posting-theme="gold"] {
-        background: linear-gradient(135deg, #fce08a 0%, #d19a1f 100%);
-        color: #2d1c00;
-    }
+        .creator-topbar[data-theme="gold"] .theme-switch-btn.is-active[data-create-posting-theme="gold"] {
+            background: linear-gradient(135deg, #fce08a 0%, #d19a1f 100%);
+            color: #2d1c00;
+        }
 
     .creator-topbar[data-theme="rosa"] .theme-switcher {
         background: rgba(255,255,255,0.18);
@@ -650,10 +580,10 @@
         text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
     }
 
-    .creator-topbar[data-theme="rosa"] .theme-switch-btn.is-active[data-create-posting-theme="rosa"] {
-        background: linear-gradient(135deg, #ffb1df 0%, #ff72c1 100%);
-        color: #fff;
-    }
+        .creator-topbar[data-theme="rosa"] .theme-switch-btn.is-active[data-create-posting-theme="rosa"] {
+            background: linear-gradient(135deg, #ffb1df 0%, #ff72c1 100%);
+            color: #fff;
+        }
 
     .creator-topbar[data-theme="navy"] .theme-switcher {
         background: rgba(6,16,40,0.28);
@@ -664,10 +594,10 @@
         color: #eef4ff;
     }
 
-    .creator-topbar[data-theme="navy"] .theme-switch-btn.is-active[data-create-posting-theme="navy"] {
-        background: linear-gradient(135deg, #7fb3ff 0%, #3c67c8 100%);
-        color: #fff;
-    }
+        .creator-topbar[data-theme="navy"] .theme-switch-btn.is-active[data-create-posting-theme="navy"] {
+            background: linear-gradient(135deg, #7fb3ff 0%, #3c67c8 100%);
+            color: #fff;
+        }
 
 
     /* ---------- Hero ---------- */
@@ -813,7 +743,7 @@
         border: 1px solid rgba(0,0,0,0.06);
     }
 
-    
+
 
     /* ---------- Inputs ---------- */
     .input-pill, .select-pill {
@@ -1070,7 +1000,7 @@
         box-shadow: 0 18px 36px rgba(0,0,0,0.24);
     }
 
-    /* Der Bereich, in dem die ausgewählten Zutaten landen */
+    /* Der Bereich, in dem die ausgew&auml;hlten Zutaten landen */
     #selectedIngredients {
         display: flex !important;
         flex-direction: column !important;
@@ -1140,7 +1070,7 @@
         padding: 14px;
     }
 
- 
+
     .selected-zone {
         padding-top: 6px;
     }
@@ -1204,11 +1134,11 @@
         padding: 8px 12px;
     }
 
-   
-        .smart-step-creator .btn.btn-sm:not(.advanced-gear),
-        #card-keywords .btn.btn-sm {
-            border-radius: 999px;
-        }
+
+    .smart-step-creator .btn.btn-sm:not(.advanced-gear),
+    #card-keywords .btn.btn-sm {
+        border-radius: 999px;
+    }
 
     #ingredientsDbTable .ingredient-inline-inputs .form-control,
     #ingredientsDbTable .ingredient-inline-inputs .form-select {
@@ -1218,7 +1148,6 @@
 
     /* ---------- Bottom Bar ---------- */
     .creator-bottom {
-       
         width: min(720px, 100%);
         z-index: 1600;
         pointer-events: none;
@@ -1307,7 +1236,7 @@
             }
     }
 
- /* thema Navy */
+    /* thema Navy */
 
     .smart-step-creator[data-theme="navy"],
     .creator-card[data-theme="navy"],
@@ -1327,16 +1256,16 @@
         box-shadow: 0 18px 40px rgba(4, 10, 26, 0.45);
     }
 
-    .smart-step-creator[data-theme="navy"]::before,
-    .creator-card[data-theme="navy"]::before,
-    .creator-hero[data-theme="navy"]::before {
-        content: "";
-        position: absolute;
-        inset: -20%;
-        background: radial-gradient(circle at 20% 20%, rgba(118,168,255,.25), transparent 60%);
-        filter: blur(40px);
-        pointer-events: none;
-    }
+        .smart-step-creator[data-theme="navy"]::before,
+        .creator-card[data-theme="navy"]::before,
+        .creator-hero[data-theme="navy"]::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            background: radial-gradient(circle at 20% 20%, rgba(118,168,255,.25), transparent 60%);
+            filter: blur(40px);
+            pointer-events: none;
+        }
 
     .upload-drop[data-theme="navy"],
     .preview-step-card[data-theme="navy"],
@@ -1392,17 +1321,17 @@
         -webkit-text-fill-color: #fff;
     }
 
-    #card-basics[data-theme="navy"] .input-pill .form-control::placeholder,
-    #card-basics[data-theme="navy"] .input-pill input::placeholder {
-        color: rgba(255,255,255,0.82) !important;
-        -webkit-text-fill-color: rgba(255,255,255,0.82);
-    }
+        #card-basics[data-theme="navy"] .input-pill .form-control::placeholder,
+        #card-basics[data-theme="navy"] .input-pill input::placeholder {
+            color: rgba(255,255,255,0.82) !important;
+            -webkit-text-fill-color: rgba(255,255,255,0.82);
+        }
 
-    #card-basics[data-theme="navy"] .select-pill .form-select option,
-    #card-basics[data-theme="navy"] .select-pill select option {
-        color: #111;
-    }
- /* thema Gold */
+        #card-basics[data-theme="navy"] .select-pill .form-select option,
+        #card-basics[data-theme="navy"] .select-pill select option {
+            color: #111;
+        }
+    /* thema Gold */
 
     .feed-shell[data-theme="gold"] {
         max-width: 720px;
@@ -1412,13 +1341,13 @@
         backdrop-filter: blur(10px);
     }
 
-    .smart-step-creator[data-theme="gold"], 
+    .smart-step-creator[data-theme="gold"],
     .creator-card[data-theme="gold"],
-    .creator-hero[data-theme="gold"]{
+    .creator-hero[data-theme="gold"] {
         --creator-sheet: linear-gradient(to right, #FDEB9E, #C68F18, #D39903);
         --creator-border: white;
         --creator-text: white;
-        --creator-sub: white ;
+        --creator-sub: white;
         --creator-accent: #e7b95a;
         --creator-bg: radial-gradient( 120% 120% at 10% 0%, #f0c97a 0%, #9a6b24 45%, #FDE383 100% );
         border-radius: 24px;
@@ -1426,7 +1355,6 @@
         border: 1px solid rgba(255, 220, 140, 0.25);
         background: var(--creator-bg);
         color: var(--creator-text);
-        
         position: relative;
         box-shadow: 0 18px 40px rgba(30,20,0,0.35);
     }
@@ -1444,12 +1372,13 @@
     .upload-drop[data-theme="gold"] {
         background: #2a3756;
     }
-    .preview-step-card[data-theme="gold"] {  
+
+    .preview-step-card[data-theme="gold"] {
         background: #2a3756;
     }
-   
 
-    .input-pill[data-theme="gold"], .select-pill[data-theme="gold"]{
+
+    .input-pill[data-theme="gold"], .select-pill[data-theme="gold"] {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -1465,9 +1394,7 @@
     }
 
     .template-card[data-theme="gold"] {
-      
         background: #2a3756;
-       
     }
 
     .creator-topbar[data-theme="gold"] .topbar-title,
@@ -1513,20 +1440,20 @@
         -webkit-text-fill-color: #fff;
     }
 
-    #card-basics[data-theme="gold"] .input-pill .form-control::placeholder,
-    #card-basics[data-theme="gold"] .input-pill input::placeholder {
-        color: rgba(255, 255, 255, 0.8) !important;
-        -webkit-text-fill-color: rgba(255, 255, 255, 0.8);
-    }
+        #card-basics[data-theme="gold"] .input-pill .form-control::placeholder,
+        #card-basics[data-theme="gold"] .input-pill input::placeholder {
+            color: rgba(255, 255, 255, 0.8) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.8);
+        }
 
-    #card-basics[data-theme="gold"] .select-pill .form-select option,
-    #card-basics[data-theme="gold"] .select-pill select option {
-        color: #111;
-    }
+        #card-basics[data-theme="gold"] .select-pill .form-select option,
+        #card-basics[data-theme="gold"] .select-pill select option {
+            color: #111;
+        }
 
 
 
-   
+
     .creator-topbar[data-theme="rosa"] .topbar-title,
     .creator-topbar[data-theme="rosa"] .topbar-title .fw-bold,
     .creator-topbar[data-theme="rosa"] .topbar-title .small,
@@ -1561,6 +1488,7 @@
     .feed-shell[data-theme="rosa"] .phase-badge-4 {
         color: #111 !important;
     }
+
     .creator-card[data-theme="rosa"],
     .creator-hero[data-theme="rosa"] {
         --creator-sheet: rgba(68, 22, 56, 0.62);
@@ -1577,15 +1505,17 @@
         position: relative;
         box-shadow: 0 18px 40px rgba(40,10,30,0.30);
     }
-    .creator-card[data-theme="rosa"]::before,
-    .creator-hero[data-theme="rosa"]::before {
-        content: "";
-        position: absolute;
-        inset: -20%;
-        background: radial-gradient(circle at 20% 20%, rgba(255,160,220,.25), transparent 60%);
-        filter: blur(40px);
-        pointer-events: none;
-    }
+
+        .creator-card[data-theme="rosa"]::before,
+        .creator-hero[data-theme="rosa"]::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            background: radial-gradient(circle at 20% 20%, rgba(255,160,220,.25), transparent 60%);
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
     .upload-drop[data-theme="rosa"],
     .preview-step-card[data-theme="rosa"],
     .input-pill[data-theme="rosa"],
@@ -1596,6 +1526,7 @@
         border-color: rgba(122, 36, 96, 0.25);
         color: #111 !important;
     }
+
     #card-basics[data-theme="rosa"] .input-pill .form-control,
     #card-basics[data-theme="rosa"] .select-pill .form-select,
     #card-basics[data-theme="rosa"] .input-pill input,
@@ -1603,15 +1534,18 @@
         color: #111 !important;
         -webkit-text-fill-color: #111;
     }
-    #card-basics[data-theme="rosa"] .input-pill .form-control::placeholder,
-    #card-basics[data-theme="rosa"] .input-pill input::placeholder {
-        color: rgba(17, 17, 17, 0.65) !important;
-        -webkit-text-fill-color: rgba(17, 17, 17, 0.65);
-    }
-    #card-basics[data-theme="rosa"] .select-pill .form-select option,
-    #card-basics[data-theme="rosa"] .select-pill select option {
-        color: #111;
-    }
+
+        #card-basics[data-theme="rosa"] .input-pill .form-control::placeholder,
+        #card-basics[data-theme="rosa"] .input-pill input::placeholder {
+            color: rgba(17, 17, 17, 0.65) !important;
+            -webkit-text-fill-color: rgba(17, 17, 17, 0.65);
+        }
+
+        #card-basics[data-theme="rosa"] .select-pill .form-select option,
+        #card-basics[data-theme="rosa"] .select-pill select option {
+            color: #111;
+        }
+
     .smart-step-creator[data-theme="rosa"] {
         --creator-sheet: rgba(68, 22, 56, 0.62);
         --creator-border: rgba(255, 170, 220, 0.22);
@@ -1630,13 +1564,13 @@
     }
 
     .smart-step-creator::before[data-theme="rosa"] {
-            content: "";
-            position: absolute;
-            inset: -20%;
-            background: radial-gradient(circle at 20% 20%, rgba(255,160,220,.25), transparent 60%);
-            filter: blur(40px);
-            pointer-events: none;
-        }
+        content: "";
+        position: absolute;
+        inset: -20%;
+        background: radial-gradient(circle at 20% 20%, rgba(255,160,220,.25), transparent 60%);
+        filter: blur(40px);
+        pointer-events: none;
+    }
 
     .smart-step-creator[data-theme="rosa"],
     .smart-step-creator[data-theme="rosa"] .text-white,
@@ -1705,43 +1639,44 @@
         text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
     }
 
-    #card-basics[data-theme="rosa"] .input-pill .form-control,
-    #card-basics[data-theme="rosa"] .select-pill .form-select,
-    #card-basics[data-theme="rosa"] .input-pill input,
-    #card-basics[data-theme="rosa"] .select-pill select,
-    .feed-shell[data-theme="rosa"] .input-pill .form-control,
-    .feed-shell[data-theme="rosa"] .select-pill .form-select {
-        color: #fff !important;
-        -webkit-text-fill-color: #fff;
-        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-    }
+        #card-basics[data-theme="rosa"] .input-pill .form-control,
+        #card-basics[data-theme="rosa"] .select-pill .form-select,
+        #card-basics[data-theme="rosa"] .input-pill input,
+        #card-basics[data-theme="rosa"] .select-pill select,
+        .feed-shell[data-theme="rosa"] .input-pill .form-control,
+        .feed-shell[data-theme="rosa"] .select-pill .form-select {
+            color: #fff !important;
+            -webkit-text-fill-color: #fff;
+            text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+        }
 
 
-    .feed-shell[data-theme="rosa"] .select-pill .form-select,
-    .feed-shell[data-theme="rosa"] .select-pill select,
-    #card-basics[data-theme="rosa"] .select-pill .form-select,
-    #card-basics[data-theme="rosa"] .select-pill select {
-        color: #111 !important;
-        -webkit-text-fill-color: #111;
-        text-shadow: none !important;
-    }
+        .feed-shell[data-theme="rosa"] .select-pill .form-select,
+        .feed-shell[data-theme="rosa"] .select-pill select,
+        #card-basics[data-theme="rosa"] .select-pill .form-select,
+        #card-basics[data-theme="rosa"] .select-pill select {
+            color: #111 !important;
+            -webkit-text-fill-color: #111;
+            text-shadow: none !important;
+        }
 
-    .feed-shell[data-theme="rosa"] .select-pill .form-select option,
-    .feed-shell[data-theme="rosa"] .select-pill select option,
-    #card-basics[data-theme="rosa"] .select-pill .form-select option,
-    #card-basics[data-theme="rosa"] .select-pill select option {
-        color: #111 !important;
-        background: #fff3f8;
-        text-shadow: none !important;
-    }
-    #card-basics[data-theme="rosa"] .input-pill .form-control::placeholder,
-    #card-basics[data-theme="rosa"] .input-pill input::placeholder,
-    .feed-shell[data-theme="rosa"] .input-pill .form-control::placeholder,
-    .feed-shell[data-theme="rosa"] .input-pill input::placeholder {
-        color: rgba(255, 255, 255, 0.9) !important;
-        -webkit-text-fill-color: rgba(255, 255, 255, 0.9);
-        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-    }
+            .feed-shell[data-theme="rosa"] .select-pill .form-select option,
+            .feed-shell[data-theme="rosa"] .select-pill select option,
+            #card-basics[data-theme="rosa"] .select-pill .form-select option,
+            #card-basics[data-theme="rosa"] .select-pill select option {
+                color: #111 !important;
+                background: #fff3f8;
+                text-shadow: none !important;
+            }
+
+        #card-basics[data-theme="rosa"] .input-pill .form-control::placeholder,
+        #card-basics[data-theme="rosa"] .input-pill input::placeholder,
+        .feed-shell[data-theme="rosa"] .input-pill .form-control::placeholder,
+        .feed-shell[data-theme="rosa"] .input-pill input::placeholder {
+            color: rgba(255, 255, 255, 0.9) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.9);
+            text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+        }
 
 
     .creator-card[data-theme="rosa"] .creator-card-head *,
@@ -1804,13 +1739,13 @@
         border-bottom: 1px dashed rgba(255,224,138,.75);
     }
 
-    .smart-step-creator[data-theme="rosa"] .placeholder-token.token-active,
-    .creator-card[data-theme="rosa"] .placeholder-token.token-active,
-    .creator-hero[data-theme="rosa"] .placeholder-token.token-active {
-        background: rgba(255,224,138,.2) !important;
-        border-radius: 8px;
-        padding: 0 4px;
-    }
+        .smart-step-creator[data-theme="rosa"] .placeholder-token.token-active,
+        .creator-card[data-theme="rosa"] .placeholder-token.token-active,
+        .creator-hero[data-theme="rosa"] .placeholder-token.token-active {
+            background: rgba(255,224,138,.2) !important;
+            border-radius: 8px;
+            padding: 0 4px;
+        }
 
     .smart-step-creator[data-theme="rosa"] .placeholder-reset,
     .creator-card[data-theme="rosa"] .placeholder-reset,
@@ -1829,11 +1764,12 @@
         box-shadow: 0 1px 4px rgba(0,0,0,.25);
     }
 
-    .smart-step-creator[data-theme="rosa"] .placeholder-reset:hover,
-    .creator-card[data-theme="rosa"] .placeholder-reset:hover,
-    .creator-hero[data-theme="rosa"] .placeholder-reset:hover {
-        background: rgba(255,255,255,0.28) !important;
-    }
+        .smart-step-creator[data-theme="rosa"] .placeholder-reset:hover,
+        .creator-card[data-theme="rosa"] .placeholder-reset:hover,
+        .creator-hero[data-theme="rosa"] .placeholder-reset:hover {
+            background: rgba(255,255,255,0.28) !important;
+        }
+
     .smart-step-creator {
         --creator-sheet: rgba(22, 32, 68, 0.62);
         --creator-border: rgba(170, 190, 255, 0.20);
@@ -2401,97 +2337,42 @@
 
 </style>
 
-<!-- ===== Ingredient Edit Bottom Sheet ===== -->
+
 <div id="ingredientConfigOverlay" aria-hidden="true"></div>
-<div id="ingredientConfigDockParking" style="display:none;"></div>
 <div id="ingredientConfigDock" role="dialog" aria-labelledby="ingredientConfigTitle">
     <div class="d-flex align-items-center gap-2 mb-2">
-        <div class="fw-bold text-white small" id="ingredientConfigTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50" style="flex-shrink:0;" aria-label="Schließen">
+        <div class="fw-bold text-white small" id="ingredientConfigTitle"></div>
+        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
     <div class="d-flex gap-2 align-items-center mb-2">
-        <input type="text" inputmode="decimal" id="ingredientConfigQty"
-               pattern="[0-9]*[.,]?[0-9]*"
-               class="form-control form-control-sm candy-purple-input" style="max-width:80px;" placeholder="0" />
-        <select id="ingredientConfigUnit" class="form-select form-select-sm candy-purple-input" style="flex:1;"></select>
-        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3" aria-label="Übernehmen">
+        <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm" placeholder="0" />
+        <select id="ingredientConfigUnit" class="form-select form-select-sm"></select>
+        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3">
             <i class="bi bi-check-lg"></i>
         </button>
     </div>
-    <div class="common-unit-chips">
-        <button type="button" class="btn btn-sm common-unit-chip js-config-unit-chip" data-unit-key="g">g.</button>
-        <button type="button" class="btn btn-sm common-unit-chip js-config-unit-chip" data-unit-key="ml">ml.</button>
-        <button type="button" class="btn btn-sm common-unit-chip js-config-unit-chip" data-unit-key="piece">Stk.</button>
-    </div>
 </div>
 
-<!-- ===== Probability Variable Editor Bottom Sheet ===== -->
 <div id="probVarEditorOverlay" aria-hidden="true"></div>
-<div id="probVarEditorDockParking" style="display:none;"></div>
 <div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
     <div class="ing-sheet-handle"></div>
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div class="fw-bold text-white" id="probVarEditorTitle">Variable auswählen</div>
-        <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" style="font-size:1.1rem;" aria-label="Schließen">
+        <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
-
-    <!-- Ingredient chips -->
-    <div id="probVarIngredientArea" class="d-none">
-        <div class="small text-white-50 mb-2">Zutaten einsetzen:</div>
-        <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
-    </div>
-
-    <!-- Duration -->
-    <div id="probVarDurationArea" class="d-none">
-        <div class="d-flex gap-2 align-items-center">
-            <input type="number" id="probVarDurationVal" class="form-control form-control-sm candy-purple-input" style="max-width:90px" value="5" min="1" />
-            <select id="probVarDurationUnit" class="form-select form-select-sm candy-purple-input" style="flex:1">
-                <option value="minute">Minuten</option>
-                <option value="hour">Stunden</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Count -->
-    <div id="probVarCountArea" class="d-none">
-        <input type="number" id="probVarCountVal" class="form-control form-control-sm candy-purple-input" style="max-width:120px" value="1" min="1" />
-    </div>
-
-    <!-- Temperature -->
-    <div id="probVarTempArea" class="d-none">
-        <div class="d-flex gap-2 align-items-center">
-            <input type="number" id="probVarTempVal" class="form-control form-control-sm candy-purple-input" style="max-width:90px" value="180" min="0" max="500" step="5" />
-            <select id="probVarTempUnit" class="form-select form-select-sm candy-purple-input" style="max-width:80px">
-                <option value="celsius">°C</option>
-                <option value="fahrenheit">°F</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Option chips (heat, mode, tool, etc.) -->
     <div id="probVarOptionsArea" class="d-none">
         <div id="probVarOptionChips" class="d-flex flex-wrap gap-2"></div>
     </div>
-
-    <!-- Text fallback -->
-    <div id="probVarTextArea" class="d-none">
-        <input type="text" id="probVarTextVal" class="form-control form-control-sm candy-purple-input" placeholder="Wert eingeben..." />
-    </div>
-
-    <!-- Buttons (only needed for non-chip areas) -->
     <div class="d-flex gap-2 mt-3" id="probVarApplyRow">
         <button type="button" id="btnApplyProbVar" class="btn btn-sm creator-cta-primary flex-grow-1">
             <i class="bi bi-check-lg me-1"></i>Übernehmen
         </button>
-        <button type="button" id="btnCancelProbVar" class="btn btn-sm btn-outline-secondary">Abbrechen</button>
     </div>
 </div>
-
-
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -2507,18 +2388,3 @@
     <script src="~/js/CreatePostingPage.js"></script>
     <script src="~/js/create-posting-publish-checklist.js"></script>
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

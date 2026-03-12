@@ -10,6 +10,8 @@
         style.id = STYLE_ID;
         style.textContent = `
             .creator-checklist-toolbar {
+                color: #172033;
+
                 position: sticky;
                 top: 74px;
                 z-index: 1450;
@@ -22,22 +24,24 @@
 
             .creator-checklist {
                 display: flex;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 gap: 8px;
                 align-items: center;
-                margin-bottom: 10px;
+                overflow-x: auto;
+                scrollbar-width: none;
             }
 
-            .creator-check-item,
-            .creator-check-progress {
+            .creator-checklist::-webkit-scrollbar {
+                display: none;
+            }
+
+            .creator-check-item {
+                flex: 0 0 auto;
                 border-radius: 999px;
                 padding: 7px 11px;
                 font-size: 0.78rem;
                 font-weight: 800;
                 line-height: 1;
-            }
-
-            .creator-check-item {
                 cursor: pointer;
                 border: 1px solid rgba(15, 23, 42, 0.09);
                 background: rgba(255, 255, 255, 0.88);
@@ -59,28 +63,6 @@
                 border-color: rgba(255, 94, 98, 0.45);
                 box-shadow: 0 10px 20px rgba(255, 94, 98, 0.18);
                 transform: translateY(-1px);
-            }
-
-            .creator-check-progress {
-                margin-left: auto;
-                background: rgba(15, 23, 42, 0.06);
-                color: #223044;
-                transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
-            }
-
-            .creator-check-progress.is-ready {
-                color: #fff;
-                background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
-                box-shadow: 0 10px 20px rgba(34, 197, 94, 0.20);
-                transform: translateY(-1px);
-            }
-
-            @media (max-width: 576px) {
-                .creator-check-progress {
-                    width: 100%;
-                    margin-left: 0;
-                    text-align: center;
-                }
             }
         `;
 
@@ -111,8 +93,9 @@
         const form = document.getElementById("recipeForm");
         const topbar = document.querySelector(".creator-topbar");
         const shell = document.querySelector(".feed-shell");
+        const topbarProgress = document.getElementById("creatorTopbarProgress");
 
-        if (!form || !topbar || !shell || document.querySelector(".creator-checklist-toolbar")) {
+        if (!form || !topbar || !shell || !topbarProgress || document.querySelector(".creator-checklist-toolbar")) {
             return;
         }
 
@@ -129,8 +112,7 @@
             '<span class="creator-check-item" data-check-key="media">Media</span>',
             '<span class="creator-check-item" data-check-key="ingredients">Zutaten</span>',
             '<span class="creator-check-item" data-check-key="steps">Steps</span>',
-            '<span class="creator-check-item" data-check-key="keywords">Keywords</span>',
-            '<span class="creator-check-progress" id="creatorChecklistStatus">0/5 bereit</span>'
+            '<span class="creator-check-item" data-check-key="keywords">Keywords</span>'
         ].join("");
 
         toolbar.appendChild(checklist);
@@ -144,7 +126,6 @@
         const selectedIngredients = document.getElementById("selectedIngredients");
         const selectedSteps = document.getElementById("selectedSteps");
         const selectedKeywords = document.getElementById("selectedKeywords");
-        const checklistStatus = document.getElementById("creatorChecklistStatus");
         const sectionMap = {
             basics: "card-basics",
             media: "card-media",
@@ -177,7 +158,7 @@
             const topbarHeight = topbar ? topbar.offsetHeight : 0;
             const toolbarHeight = toolbar ? toolbar.offsetHeight : 0;
             const top = target.getBoundingClientRect().top + window.scrollY - topbarHeight - toolbarHeight - 16;
-            window.scrollTo({ top, behavior: "smooth" });
+            window.scrollTo({ top, behavior: "auto" });
         }
 
         function centerChecklistItem(item) {
@@ -186,7 +167,7 @@
             }
 
             item.scrollIntoView({
-                behavior: "smooth",
+                behavior: "auto",
                 inline: "center",
                 block: "nearest"
             });
@@ -227,17 +208,14 @@
         function updateChecklist() {
             const state = buildChecklistState();
             const completedCount = Object.values(state).filter(Boolean).length;
+            const isReady = completedCount === 5;
 
             checklistItems.forEach(item => {
                 const key = item.dataset.checkKey;
                 item.classList.toggle("is-done", !!state[key]);
             });
 
-            if (checklistStatus) {
-                const isReady = completedCount === 5;
-                checklistStatus.textContent = isReady ? "Ready to publish" : `${completedCount}/5 bereit`;
-                checklistStatus.classList.toggle("is-ready", isReady);
-            }
+            topbarProgress.innerHTML = isReady ? "Ready to publish" : `${completedCount}/5 bereit`;
         }
 
         checklistItems.forEach(item => {
