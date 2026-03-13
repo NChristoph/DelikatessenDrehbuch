@@ -453,13 +453,6 @@
             return availableCreatePostingThemes.includes(normalized) ? normalized : currentThema;
         }
 
-        const createPostingThemeMap = {
-            gruen: 'gruen',
-            black: 'navy',
-            rose: 'rosa',
-            color: 'gold'
-        };
-
         function getVisualCreatePostingTheme(theme) {
             const normalized = normalizeCreatePostingTheme(theme);
             return createPostingThemeMap[normalized] || createPostingThemeMap.color;
