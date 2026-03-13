@@ -428,11 +428,11 @@
         }
 
         const createPostingThemeStorageKey = 'createPostingTheme';
-        const availableCreatePostingThemes = ['navy', 'rosa', 'gold'];
+        const availableCreatePostingThemes = ['gruen', 'navy', 'rosa', 'gold'];
         const currentThema = (() => {
             const domTheme = (document.querySelector('.feed-shell')?.getAttribute('data-theme') || '').toString().trim().toLowerCase();
             const normalizedDomTheme = domTheme === 'dark' ? 'navy' : domTheme;
-            return availableCreatePostingThemes.includes(normalizedDomTheme) ? normalizedDomTheme : 'gold';
+            return availableCreatePostingThemes.includes(normalizedDomTheme) ? normalizedDomTheme : 'gruen';
         })();
 
         function normalizeCreatePostingTheme(theme) {
@@ -452,7 +452,7 @@
         window.CreatePostingCurrentTheme = readStoredCreatePostingTheme();
 
         window.getCreatePostingTheme = function () {
-            return normalizeCreatePostingTheme(window.CreatePostingCurrentTheme || currentThema || 'gold');
+            return normalizeCreatePostingTheme(window.CreatePostingCurrentTheme || currentThema || 'gruen');
         };
 
         window.getThemeMutedTextClass = function () {

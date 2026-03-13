@@ -99,7 +99,7 @@
             <section class="content-card mb-4" aria-label="Ad Preferences">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2 class="section-title mb-0">Ad Preferences</h2>
-                    <span class="section-meta">Consent-first Profil fuer personalisierte Werbung</span>
+                    <span class="section-meta">Consent-first Profil f√ºr personalisierte Werbung</span>
                 </div>
 
                 <form method="post" action="@Url.Action("UpdateSettings", "AdPreferences", new { area = "WorldMiniApp" })" class="mb-4">
@@ -108,7 +108,7 @@
                         <label class="activity-card compact d-flex align-items-center justify-content-between gap-3">
                             <div>
                                 <div class="activity-title">Personalisierte Werbung aktivieren</div>
-                                <div class="section-meta">Nur mit Einwilligung werden gespeicherte Vorlieben fuer Werbung genutzt.</div>
+                                <div class="section-meta">Nur mit Einwilligung werden gespeicherte Vorlieben f√ºr Werbung genutzt.</div>
                             </div>
                             <input type="checkbox" name="AllowPersonalizedAds" value="true" @(Model.AdPreferences.AllowPersonalizedAds ? "checked" : null) />
                         </label>
@@ -176,7 +176,7 @@
                     <div class="empty-state">
                         <i class="bi bi-shield-lock"></i>
                         <p class="mb-1">Personalisierte Werbung ist aktuell deaktiviert</p>
-                        <small>Aktiviere das Opt-in oben, dann werden Interessen fuer Werbeausspielung gespeichert und laufend aktualisiert.</small>
+                        <small>Aktiviere das Opt-in oben, dann werden Interessen f√ºr Werbeausspielung gespeichert und laufend aktualisiert.</small>
                     </div>
                 }
                 else
@@ -226,7 +226,7 @@
                                         <div class="activity-status neutral" aria-hidden="true"><i class="bi bi-bullseye"></i></div>
                                         <div class="flex-grow-1">
                                             <h3 class="activity-title mb-1">@interest.DisplayLabel</h3>
-                                            <p class="activity-amount mb-0">@interest.InterestType ∑ Score @interest.Score.ToString("0.##")</p>
+                                            <p class="activity-amount mb-0">@interest.InterestType ¬∑ Score @interest.Score.ToString("0.##")</p>
                                         </div>
                                         <time class="activity-time" datetime="@interest.LastSignalAtUtc.ToString("o")">@interest.LastSignalAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</time>
                                     </div>
@@ -264,7 +264,7 @@
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-stopwatch-fill"></i></div>
-                        <p class="metric-label mb-1">ÿ Watch-Sekunden</p>
+                        <p class="metric-label mb-1">√ò Watch-Sekunden</p>
                         <p class="stat-value mb-0">@Model.WatchAnalytics.AverageQualifiedWatchSeconds.ToString("0.##")</p>
                     </article>
                 </div>
@@ -285,7 +285,7 @@
                     <div class="empty-state">
                         <i class="bi bi-bar-chart-line"></i>
                         <p class="mb-1">Noch keine qualifizierten Watch-Daten</p>
-                        <small>Ein Clip z‰hlt erst, wenn er mindestens 8 Sekunden aktiv angesehen wurde.</small>
+                        <small>Ein Clip z√§hlt erst, wenn er mindestens 8 Sekunden aktiv angesehen wurde.</small>
                     </div>
                 }
                 else
@@ -301,7 +301,7 @@
                                         <p class="activity-amount mb-0">@clip.QualifiedViews Views &middot; @clip.TotalWatchMinutes.ToString("0.##") Minuten</p>
                                     </div>
                                     <div class="text-end">
-                                        <div class="activity-time">ÿ @clip.AverageWatchSeconds.ToString("0.##")s</div>
+                                        <div class="activity-time">√ò @clip.AverageWatchSeconds.ToString("0.##")s</div>
                                     </div>
                                 </div>
                             </article>

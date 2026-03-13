@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    <div class="creator-topbar px-3 py-3" style="visibility:hidden" data-theme="gold">
+    <div class="creator-topbar px-3 py-3" style="visibility:hidden" data-theme="gruen">
         <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
             <i class="bi bi-chevron-left"></i>
         </a>
@@ -30,6 +30,7 @@
         </div>
 
         <div class="theme-switcher" role="group" aria-label="Theme wechseln">
+            <button type="button" class="theme-switch-btn" data-create-posting-theme="gruen" aria-pressed="false">Grün</button>
             <button type="button" class="theme-switch-btn" data-create-posting-theme="navy" aria-pressed="false">Navy</button>
             <button type="button" class="theme-switch-btn" data-create-posting-theme="rosa" aria-pressed="false">Rosa</button>
             <button type="button" class="theme-switch-btn" data-create-posting-theme="gold" aria-pressed="false">Gold</button>
@@ -40,7 +41,7 @@
         </button>
     </div>
 
-    <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="gold">
+    <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="gruen">
         <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
 
@@ -1234,6 +1235,145 @@
                 margin-top: 10px;
                 text-align: right !important;
             }
+    }
+
+    /* thema Grün */
+
+    .feed-shell[data-theme="gruen"] {
+        max-width: 720px;
+        padding: 12px 12px 120px 12px;
+        background: linear-gradient( 180deg, rgba(20, 55, 10, 0.35), rgba(10, 30, 5, 0.45) );
+        border-radius: 22px;
+        backdrop-filter: blur(10px);
+    }
+
+    .smart-step-creator[data-theme="gruen"],
+    .creator-card[data-theme="gruen"],
+    .creator-hero[data-theme="gruen"] {
+        --creator-sheet: linear-gradient(to right, #1a3a0a, #2D4F1E, #3a6a28);
+        --creator-border: rgba(130, 210, 90, 0.30);
+        --creator-text: #f0fff0;
+        --creator-sub: rgba(210, 245, 200, 0.88);
+        --creator-accent: #7dca50;
+        --creator-bg: radial-gradient(120% 120% at 10% 0%, #2D4F1E 0%, #1a3a0a 48%, #0a1c04 100%);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(100, 190, 60, 0.20);
+        background: var(--creator-bg);
+        color: var(--creator-text);
+        position: relative;
+        box-shadow: 0 18px 40px rgba(5, 20, 2, 0.45);
+    }
+
+        .smart-step-creator[data-theme="gruen"]::before,
+        .creator-card[data-theme="gruen"]::before,
+        .creator-hero[data-theme="gruen"]::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            background: radial-gradient(circle at 20% 20%, rgba(90, 180, 50, .25), transparent 60%);
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+    .upload-drop[data-theme="gruen"],
+    .preview-step-card[data-theme="gruen"],
+    .input-pill[data-theme="gruen"],
+    .select-pill[data-theme="gruen"],
+    .template-card[data-theme="gruen"],
+    .ingredient-db-row[data-theme="gruen"] {
+        background: rgba(5, 20, 2, 0.76);
+        border-color: rgba(120, 200, 70, 0.18);
+        color: #fff !important;
+    }
+
+    .creator-topbar[data-theme="gruen"] .theme-switcher {
+        background: rgba(5, 20, 2, 0.28);
+        border-color: rgba(120, 200, 70, 0.22);
+    }
+
+    .creator-topbar[data-theme="gruen"] .theme-switch-btn {
+        color: #d0f0b0;
+    }
+
+        .creator-topbar[data-theme="gruen"] .theme-switch-btn.is-active[data-create-posting-theme="gruen"] {
+            background: linear-gradient(135deg, #7dca50 0%, #2D4F1E 100%);
+            color: #fff;
+        }
+
+    .creator-topbar[data-theme="gruen"] .topbar-title,
+    .creator-topbar[data-theme="gruen"] .topbar-title .fw-bold,
+    .creator-topbar[data-theme="gruen"] .topbar-title .small,
+    .feed-shell[data-theme="gruen"],
+    .feed-shell[data-theme="gruen"] .text-muted,
+    .feed-shell[data-theme="gruen"] .small,
+    .feed-shell[data-theme="gruen"] .form-label,
+    .feed-shell[data-theme="gruen"] .form-control,
+    .feed-shell[data-theme="gruen"] .form-select,
+    .feed-shell[data-theme="gruen"] .badge,
+    .feed-shell[data-theme="gruen"] .creator-hero-badge,
+    .feed-shell[data-theme="gruen"] .creator-hero-badge span,
+    .feed-shell[data-theme="gruen"] .creator-hero-badge i,
+    .feed-shell[data-theme="gruen"] .input-pill i,
+    .feed-shell[data-theme="gruen"] .select-pill i,
+    .feed-shell[data-theme="gruen"] .upload-drop,
+    .feed-shell[data-theme="gruen"] .upload-drop .small,
+    .feed-shell[data-theme="gruen"] .upload-drop .fw-bold,
+    .feed-shell[data-theme="gruen"] .topbar-title,
+    .feed-shell[data-theme="gruen"] .topbar-title .fw-bold,
+    .feed-shell[data-theme="gruen"] .topbar-title .small,
+    .feed-shell[data-theme="gruen"] .sheet-title,
+    .feed-shell[data-theme="gruen"] .sheet-sub,
+    .feed-shell[data-theme="gruen"] .ingredient-top-title,
+    .feed-shell[data-theme="gruen"] .preview-step-text,
+    .feed-shell[data-theme="gruen"] .template-snippet,
+    .feed-shell[data-theme="gruen"] .story-meta,
+    .feed-shell[data-theme="gruen"] .phase-badge,
+    .feed-shell[data-theme="gruen"] .phase-badge-1,
+    .feed-shell[data-theme="gruen"] .phase-badge-2,
+    .feed-shell[data-theme="gruen"] .phase-badge-3,
+    .feed-shell[data-theme="gruen"] .phase-badge-4 {
+        color: #fff !important;
+    }
+
+    #card-basics[data-theme="gruen"] .input-pill .form-control,
+    #card-basics[data-theme="gruen"] .select-pill .form-select,
+    #card-basics[data-theme="gruen"] .input-pill input,
+    #card-basics[data-theme="gruen"] .select-pill select {
+        color: #fff !important;
+        -webkit-text-fill-color: #fff;
+    }
+
+        #card-basics[data-theme="gruen"] .input-pill .form-control::placeholder,
+        #card-basics[data-theme="gruen"] .input-pill input::placeholder {
+            color: rgba(200, 255, 180, 0.82) !important;
+            -webkit-text-fill-color: rgba(200, 255, 180, 0.82);
+        }
+
+        #card-basics[data-theme="gruen"] .select-pill .form-select option,
+        #card-basics[data-theme="gruen"] .select-pill select option {
+            color: #111;
+        }
+
+    .creator-card[data-theme="gruen"] .creator-card-head *,
+    .creator-card[data-theme="gruen"] .creator-card-body *,
+    .creator-hero[data-theme="gruen"] *,
+    .smart-step-creator[data-theme="gruen"] .sheet-head *,
+    .smart-step-creator[data-theme="gruen"] .creator-preview-canvas *,
+    .smart-step-creator[data-theme="gruen"] .template-selection-wrap *,
+    .smart-step-creator[data-theme="gruen"] .ingredient-top-strip *,
+    .smart-step-creator[data-theme="gruen"] .display-name,
+    .smart-step-creator[data-theme="gruen"] .display-name-selected,
+    .smart-step-creator[data-theme="gruen"] .ingredient-row-meta,
+    .smart-step-creator[data-theme="gruen"] .template-title,
+    .smart-step-creator[data-theme="gruen"] .probability-template-card,
+    .smart-step-creator[data-theme="gruen"] .probability-template-card *,
+    .smart-step-creator[data-theme="gruen"] .ingredient-db-row .display-name,
+    .smart-step-creator[data-theme="gruen"] .ingredient-card-head .display-name,
+    .smart-step-creator[data-theme="gruen"] #sc2StoryStepCount,
+    .smart-step-creator[data-theme="gruen"] #ingredientProbabilityBadges,
+    .smart-step-creator[data-theme="gruen"] #insertContainer {
+        color: #fff !important;
     }
 
     /* thema Navy */
