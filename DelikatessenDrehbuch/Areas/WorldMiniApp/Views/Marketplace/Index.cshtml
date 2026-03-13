@@ -301,7 +301,7 @@
         </a>
         <div class="flex-grow-1">
             <h5 class="fw-bold mb-0">Marketplace</h5>
-            <p class="text-muted small mb-0">Essensplaene kaufen & verkaufen</p>
+            <p class="text-muted small mb-0">Essenspläne kaufen & verkaufen</p>
         </div>
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
            class="btn btn-dark btn-sm rounded-pill px-3">
@@ -534,7 +534,7 @@
             const resp = await fetch(`@Url.Action("GetListingPreview", "Marketplace", new { area = "WorldMiniApp" })?listingId=${listingId}`);
             const data = await resp.json();
             if (!data.success) {
-                bodyEl.innerHTML = `<p class="text-danger small">${data.error || 'Vorschau nicht verfuegbar.'}</p>`;
+                bodyEl.innerHTML = `<p class="text-danger small">${data.error || 'Vorschau nicht verfügbar.'}</p>`;
                 return;
             }
 
@@ -575,7 +575,7 @@
                         <div class="nutrition-label">Rezepte</div>
                     </div>
                 </div>`;
-                html += `<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Naehrwerte fuer den gesamten Plan (alle Tage)</p>`;
+                html += `<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Nährwerte für den gesamten Plan (alle Tage)</p>`;
             }
 
             // Days + recipes
@@ -604,7 +604,7 @@
                 }
             }
 
-            bodyEl.innerHTML = html || '<p class="text-muted">Keine Vorschau verfuegbar.</p>';
+            bodyEl.innerHTML = html || '<p class="text-muted">Keine Vorschau verfügbar.</p>';
         } catch (e) {
             console.error('[Marketplace] Preview error:', e);
             bodyEl.innerHTML = '<p class="text-danger small">Vorschau konnte nicht geladen werden.</p>';
@@ -696,7 +696,7 @@
             data = JSON.parse(rawText);
         } catch {
             const compact = (rawText || '').replace(/\s+/g, ' ').trim().slice(0, 200);
-            throw new Error(`Ungueltige JSON-Antwort vom Server (HTTP ${resp.status}): ${compact || 'leer'}`);
+            throw new Error(`Ungültige JSON-Antwort vom Server (HTTP ${resp.status}): ${compact || 'leer'}`);
         }
 
         if (!resp.ok) {
@@ -730,10 +730,10 @@
 
         const buyBtn = document.getElementById(`buyBtn-${listingId}`);
         const sellerWallet = sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '';
-        if (!sellerWallet) { alert('Verkaeufer hat keine Wallet hinterlegt. Kauf nicht moeglich.'); return; }
+        if (!sellerWallet) { alert('Verkäufer hat keine Wallet hinterlegt. Kauf nicht möglich.'); return; }
 
         const actualPrice = getActualPrice(priceWld, token);
-        if (token === 'USDCE' && !wldPriceUsd) { alert('WLD/USD Kurs nicht verfuegbar. Bitte Seite neu laden.'); return; }
+        if (token === 'USDCE' && !wldPriceUsd) { alert('WLD/USD Kurs nicht verfügbar. Bitte Seite neu laden.'); return; }
 
         setBuyButtonLoading(listingId, true);
 
@@ -782,7 +782,7 @@
                 }
             }
 
-            alert('Kein Zahlungsweg verfuegbar. Bitte oeffne die App in der World App.');
+            alert('Kein Zahlungsweg verfügbar. Bitte öffne die App in der World App.');
             setBuyButtonLoading(listingId, false);
         } catch (error) {
             alert(error?.message || 'Kauf fehlgeschlagen.');
