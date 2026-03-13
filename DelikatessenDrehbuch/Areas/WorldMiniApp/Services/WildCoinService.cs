@@ -112,22 +112,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var mealPlan = await _context.WorldUserMealPlan.FirstOrDefaultAsync(m => m.Id == mealPlanId && m.UserHash == sellerHash);
             if (mealPlan == null) throw new InvalidOperationException("Essensplan nicht gefunden oder gehört nicht dir.");
 
-            // Rezeptanzahl und Tage aus dem MealPlan JSON berechnen
-            int dayCount = 0;
-            int recipeCount = 0;
-            if (!string.IsNullOrEmpty(mealPlan.MealPlan))
+            var mealPlanDays = ExtractMealPlanDays(mealPlan.MealPlan);
+            var recipeIds = mealPlanDays
+                .Values
+                .SelectMany(v => v)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (recipeIds.Count > 0)
             {
-                try
+                var ownedRecipeIds = await _context.WorldUserPosting
+                    .Where(p => p.CreatorId == sellerHash && p.Recipe != null && recipeIds.Contains(p.Recipe.Id))
+                    .Select(p => p.Recipe.Id)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (recipeIds.Except(ownedRecipeIds).Any())
                 {
-                    var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, List<int>>>(mealPlan.MealPlan);
-                    if (dict != null)
-                    {
-                        dayCount = dict.Count;
-                        recipeCount = dict.Values.Sum(v => v.Count);
-                    }
+                    throw new InvalidOperationException("Du kannst nur Essenspläne verkaufen, die ausschließlich deine eigenen Rezepte enthalten.");
                 }
-                catch { }
             }
+
+            // Rezeptanzahl und Tage aus dem MealPlan JSON berechnen
+            int dayCount = mealPlanDays.Count;
+            int recipeCount = recipeIds.Count;
 
             var listing = new MealPlanListing
             {
@@ -147,6 +156,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             await _context.MealPlanListings.AddAsync(listing);
             await _context.SaveChangesAsync();
             return listing;
+        }
+
+        private static Dictionary<int, List<int>> ExtractMealPlanDays(string? mealPlanJson)
+        {
+            if (string.IsNullOrWhiteSpace(mealPlanJson))
+            {
+                return new Dictionary<int, List<int>>();
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<int, List<int>>>(mealPlanJson) ?? new Dictionary<int, List<int>>();
+            }
+            catch
+            {
+                return new Dictionary<int, List<int>>();
+            }
         }
 
         public async Task<List<MealPlanListing>> GetActiveListings(int skip = 0, int take = 20)
@@ -363,3 +389,4 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
     }
 }
+

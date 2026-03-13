@@ -399,6 +399,30 @@
         margin-top: 10px;
     }
 
+    .quick-link-dashboard {
+        width: 100%;
+        margin-top: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+    }
+
+    .dashboard-embed-shell {
+        margin-top: 12px;
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+    }
+
+    .dashboard-embed-frame {
+        width: 100%;
+        min-height: 980px;
+        border: 0;
+        display: block;
+        background: #fff;
+    }
     .quick-link {
         display: inline-flex;
         align-items: center;
@@ -427,7 +451,7 @@
     <a class="back-to-feed"
        href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
         <i class="bi bi-arrow-left"></i>
-        @T("ZurÃ¼ck zum Feed", "Back to feed", "Volver al feed", "Voltar ao feed")
+        @Html.Raw(T("Zur&uuml;ck zum Feed", "Back to feed", "Volver al feed", "Voltar ao feed"))
     </a>
 
     <div class="profile-card">
@@ -513,6 +537,24 @@
                 <i class="bi bi-bag-check"></i> @T("Meine Angebote", "My listings", "Mis ofertas", "Minhas ofertas")
             </a>
         </div>
+
+        <button class="btn quick-link quick-link-dashboard"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#dashboardEmbedCollapse"
+                aria-expanded="false"
+                aria-controls="dashboardEmbedCollapse">
+            <i class="bi bi-speedometer2"></i> Creator Deschbort
+        </button>
+
+        <div class="collapse" id="dashboardEmbedCollapse">
+            <div class="dashboard-embed-shell">
+                <iframe class="dashboard-embed-frame"
+                        src="@Url.Action("UserDashboard", "Home", new { area = "WorldMiniApp" })"
+                        loading="lazy"
+                        title="Creator Deschbort"></iframe>
+            </div>
+        </div>
     </div>
 
     <!-- Tabs -->
@@ -529,12 +571,12 @@
         </li>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-plans">
-                <i class="bi bi-calendar2-week-fill fs-5"></i><span>@T("PLÃ„NE", "PLANS", "PLANES", "PLANOS")</span>
+                <i class="bi bi-calendar2-week-fill fs-5"></i><span>@T("ERSTELLT", "CREATED", "CREADOS", "CRIADOS")</span>
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-purchases">
-                <i class="bi bi-bag-check-fill fs-5"></i><span>@T("KÃ„UFE", "BOUGHT", "COMPRAS", "COMPRAS")</span>
+                <i class="bi bi-bag-check-fill fs-5"></i><span>@T("GEKAUFT", "BOUGHT", "COMPRADOS", "COMPRADOS")</span>
             </button>
         </li>
         @if (isOrb)
@@ -576,30 +618,40 @@
         </div>
 
         <div class="tab-pane fade" id="tab-plans">
-            @foreach (var plan in Model.MealPlans)
+            @if (!Model.CreatedMealPlans.Any())
             {
-                <div class="plan-card p-3 mb-2 d-flex justify-content-between align-items-center shadow-sm">
-                    <div>
-                        <div class="fw-bold">@plan.Title</div>
-                        <div class="small opacity-50">@plan.CreationTime.ToShortDateString()</div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
-                           class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
-
-                        <form method="post"
-                              action="@Url.Action("DeletePlanAsync", "Home", new { area = "WorldMiniApp" })"
-                              onsubmit="return confirm('@DeleteConfirmText(plan.Title)');">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@plan.Id" />
-                            <input type="hidden" name="userHash" value="" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                    title="@T("LÃ¶schen", "Delete", "Eliminar", "Apagar")">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
+                <div class="text-center py-5 opacity-50">
+                    <i class="bi bi-calendar2-x fs-1"></i>
+                    <p class="mt-3 fw-bold">@T("Noch keine erstellten Pläne", "No created plans yet", "Aún no hay planes creados", "Ainda não há planos criados")</p>
                 </div>
+            }
+            else
+            {
+                @foreach (var plan in Model.CreatedMealPlans)
+                {
+                    <div class="plan-card p-3 mb-2 d-flex justify-content-between align-items-center shadow-sm">
+                        <div>
+                            <div class="fw-bold">@plan.Title</div>
+                            <div class="small opacity-50">@plan.CreationTime.ToShortDateString()</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
+                               class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
+
+                            <form method="post"
+                                  action="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp" })"
+                                  onsubmit="return confirm('@DeleteConfirmText(plan.Title)');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@plan.Id" />
+                                <input type="hidden" name="userHash" value="@Model.User.UserHash" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                        title="@T("LÃ¶schen", "Delete", "Eliminar", "Apagar")">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
             }
         </div>
 
@@ -608,7 +660,7 @@
             {
                 <div class="text-center py-5 opacity-50">
                     <i class="bi bi-bag-x fs-1"></i>
-                    <p class="mt-3 fw-bold">@T("Noch keine KÃ¤ufe", "No purchases yet", "AÃºn sin compras", "Sem compras ainda")</p>
+                    <p class="mt-3 fw-bold">@T("Noch keine gekauften Pläne", "No purchased plans yet", "Aún no hay planes comprados", "Ainda não há planos comprados")</p>
                     <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })"
                        class="btn btn-dark rounded-pill px-4 mt-2">
                         @T("Zum Marktplatz", "Go to Marketplace", "Ir al mercado", "Ir ao mercado")
@@ -727,3 +779,8 @@
         });
     </script>
 }
+
+
+
+
+

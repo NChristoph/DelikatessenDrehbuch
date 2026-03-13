@@ -194,11 +194,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Where(m => m.UserHash == userHash)
                 .ToListAsync();
 
+            var planChecks = await Task.WhenAll(mealPlans.Select(async plan => new
+            {
+                Plan = plan,
+                CanSell = await CanSellMealPlanAsync(userHash, plan)
+            }));
+
+            var sellableMealPlans = planChecks
+                .Where(x => x.CanSell)
+                .Select(x => x.Plan)
+                .ToList();
+
+            ViewData["BlockedMealPlanCount"] = planChecks.Count(x => !x.CanSell);
             ViewData["UserHash"] = userHash;
             ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
             ViewData["WalletUSDT"] = HttpContext.Session.GetString(SessionWalletUSDT) ?? "";
             SetWorldChainConfig();
-            return View(mealPlans);
+            return View(sellableMealPlans);
         }
 
         // POST: Wallet-Adresse pro Coin in Session speichern (nach Wallet Auth)
@@ -490,6 +502,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     fiber = nutrition.Fiber
                 }
             });
+        }
+
+        private async Task<bool> CanSellMealPlanAsync(string userHash, WorldUserMealPlan mealPlan)
+        {
+            var recipeIds = ExtractRecipeIdsFromMealPlanJson(mealPlan.MealPlan)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (!recipeIds.Any())
+            {
+                return true;
+            }
+
+            var ownedRecipeIds = await _context.WorldUserPosting
+                .AsNoTracking()
+                .Where(p => p.CreatorId == userHash && p.Recipe != null && recipeIds.Contains(p.Recipe.Id))
+                .Select(p => p.Recipe.Id)
+                .Distinct()
+                .ToListAsync();
+
+            return recipeIds.All(ownedRecipeIds.Contains);
         }
 
         private static List<int> ExtractRecipeIdsFromMealPlanJson(string? mealPlanJson)

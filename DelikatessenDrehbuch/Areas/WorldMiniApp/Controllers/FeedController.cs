@@ -509,6 +509,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             var purchases = await _coinService.GetPurchasesByBuyer(userHash);
+            var purchasedMealPlanIds = purchases
+                .Select(p => p.CreatedMealPlanId)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToHashSet();
+
+            var createdMealPlans = mealPlans
+                .Where(p => !purchasedMealPlanIds.Contains(p.Id))
+                .ToList();
+
+            var purchasedMealPlans = mealPlans
+                .Where(p => purchasedMealPlanIds.Contains(p.Id))
+                .ToList();
 
             var model = new UserProfileViewModel
             {
@@ -516,6 +529,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 LikedRecipes = likedRecipes,
                 Following = following,
                 MealPlans = mealPlans,
+                CreatedMealPlans = createdMealPlans,
+                PurchasedMealPlans = purchasedMealPlans,
                 Purchases = purchases,
                 MyVideos = myVideos,
                 FollowerCount = followerCount
@@ -557,5 +572,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
     }
 }
+
 
 

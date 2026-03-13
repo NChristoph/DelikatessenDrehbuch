@@ -1,4 +1,4 @@
-﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.EntityFrameworkCore;
@@ -35,10 +35,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             int counter = 1;
             string newTitle = title;
 
-            // Prüfe: "Test 1", "Test 2", "Test 3"...
+            // PrÃ¼fe: "Test 1", "Test 2", "Test 3"...
             while (existingTitles.Contains(newTitle))
             {
-                newTitle = $"{title} {counter}"; // Fügt Leerzeichen und Zahl an
+                newTitle = $"{title} {counter}"; // FÃ¼gt Leerzeichen und Zahl an
                 counter++;
             }
 
@@ -147,6 +147,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             var mealPlan = _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id && x.UserHash == userHash);
             if (mealPlan == null)
                 throw new Exception("Essensplan nicht gefunden oder keine Berechtigung.");
+
+            var purchases = _contex.MealPlanPurchases
+                .Where(x => x.CreatedMealPlanId == id && x.BuyerHash == userHash)
+                .ToList();
+
+            if (purchases.Any())
+            {
+                _contex.MealPlanPurchases.RemoveRange(purchases);
+            }
 
             _contex.WorldUserMealPlan.Remove(mealPlan);
             _contex.SaveChanges();

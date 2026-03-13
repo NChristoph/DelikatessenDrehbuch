@@ -830,9 +830,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> PersonalityAsync(string userHash)
         {
             userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var model = await BuildMyAreaViewModelAsync(userHash);
             ViewData["UserHash"] = userHash;
-            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
-            return View(mealPlans);
+            return View(model);
         }
 
         // TODO: Zutaten-Seeding entfernt (vormals harte Seed-Daten).
@@ -874,6 +879,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ActionName("DeletePlan")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePlanAsync(string userHash, int id)
         {
@@ -884,10 +890,36 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             _worldAppMealPlanService.DeleteMealPlan(id, userHash);
-            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
-            return View("Personality", mealPlans);
+            var model = await BuildMyAreaViewModelAsync(userHash);
+            ViewData["UserHash"] = userHash;
+            return View("Personality", model);
         }
 
+        private async Task<MyAreaViewModel> BuildMyAreaViewModelAsync(string userHash)
+        {
+            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
+            var purchases = await _context.MealPlanPurchases
+                .Include(x => x.Listing)
+                .Where(x => x.BuyerHash == userHash)
+                .OrderByDescending(x => x.PurchasedAt)
+                .ToListAsync();
+
+            var purchasedMealPlanIds = purchases
+                .Select(x => x.CreatedMealPlanId)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToHashSet();
+
+            return new MyAreaViewModel
+            {
+                UserHash = userHash,
+                CreatedMealPlans = mealPlans
+                    .Where(x => !purchasedMealPlanIds.Contains(x.Id))
+                    .OrderByDescending(x => x.CreationTime)
+                    .ToList(),
+                Purchases = purchases
+            };
+        }
         private async Task<List<Recipes>> GetRandomRecipesByCategory(string category, int count)
         {
             var categoryRecipeIds = StaticData.GetRecipesByCategory(category);
@@ -1490,6 +1522,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
     }
 }
+
+
 
 
 

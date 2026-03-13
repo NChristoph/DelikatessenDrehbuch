@@ -1,7 +1,7 @@
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.UserDashboardViewModel
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = "Creator Dashboard";
+    ViewData["Title"] = "Creator Deschbort";
 
     var fullUserHash = Model.UserHash ?? string.Empty;
     var shortUserHash = fullUserHash;
@@ -20,7 +20,7 @@
         <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
             <div>
                 <p class="dashboard-eyebrow mb-1">Premium Creator Area</p>
-                <h1 class="dashboard-title mb-2">Creator Dashboard</h1>
+                <h1 class="dashboard-title mb-2">Creator Deschbort</h1>
                 @if (Model.IsLoggedInWithWorldMiniApp)
                 {
                     <div class="creator-hash-wrap" aria-live="polite">
@@ -96,150 +96,6 @@
             </section>
 
 
-            <section class="content-card mb-4" aria-label="Ad Preferences">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h2 class="section-title mb-0">Ad Preferences</h2>
-                    <span class="section-meta">Consent-first Profil fuer personalisierte Werbung</span>
-                </div>
-
-                <form method="post" action="@Url.Action("UpdateSettings", "AdPreferences", new { area = "WorldMiniApp" })" class="mb-4">
-                    @Html.AntiForgeryToken()
-                    <div class="activity-feed">
-                        <label class="activity-card compact d-flex align-items-center justify-content-between gap-3">
-                            <div>
-                                <div class="activity-title">Personalisierte Werbung aktivieren</div>
-                                <div class="section-meta">Nur mit Einwilligung werden gespeicherte Vorlieben fuer Werbung genutzt.</div>
-                            </div>
-                            <input type="checkbox" name="AllowPersonalizedAds" value="true" @(Model.AdPreferences.AllowPersonalizedAds ? "checked" : null) />
-                        </label>
-                        <label class="activity-card compact d-flex align-items-center justify-content-between gap-3">
-                            <div>
-                                <div class="activity-title">Kategorie-Targeting</div>
-                                <div class="section-meta">z. B. Dessert, Hauptspeise, Vorspeise</div>
-                            </div>
-                            <input type="checkbox" name="AllowCategoryTargeting" value="true" @(Model.AdPreferences.AllowCategoryTargeting ? "checked" : null) />
-                        </label>
-                        <label class="activity-card compact d-flex align-items-center justify-content-between gap-3">
-                            <div>
-                                <div class="activity-title">Keyword-Targeting</div>
-                                <div class="section-meta">z. B. vegan, proteinreich, schnell, pasta</div>
-                            </div>
-                            <input type="checkbox" name="AllowKeywordTargeting" value="true" @(Model.AdPreferences.AllowKeywordTargeting ? "checked" : null) />
-                        </label>
-                        <label class="activity-card compact d-flex align-items-center justify-content-between gap-3">
-                            <div>
-                                <div class="activity-title">Creator-Targeting</div>
-                                <div class="section-meta">Nutzt gefolgte und intensiv angesehene Creator als Signal</div>
-                            </div>
-                            <input type="checkbox" name="AllowCreatorTargeting" value="true" @(Model.AdPreferences.AllowCreatorTargeting ? "checked" : null) />
-                        </label>
-                    </div>
-                    <input type="hidden" name="AllowPersonalizedAds" value="false" />
-                    <input type="hidden" name="AllowCategoryTargeting" value="false" />
-                    <input type="hidden" name="AllowKeywordTargeting" value="false" />
-                    <input type="hidden" name="AllowCreatorTargeting" value="false" />
-                    <div class="quick-actions-bar mt-3">
-                        <button type="submit" class="btn creator-btn-primary flex-grow-1">
-                            <i class="bi bi-sliders me-2"></i>Einstellungen speichern
-                        </button>
-                        <button type="submit" formaction="@Url.Action("RefreshProfile", "AdPreferences", new { area = "WorldMiniApp" })" class="btn creator-btn-secondary">
-                            <i class="bi bi-arrow-repeat me-2"></i>Profil neu berechnen
-                        </button>
-                    </div>
-                </form>
-
-                <div class="stats-grid mb-4">
-                    <article class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-badge-ad-fill"></i></div>
-                        <p class="metric-label mb-1">Status</p>
-                        <p class="stat-value mb-0">@(Model.AdPreferences.AllowPersonalizedAds ? "Aktiv" : "Aus")</p>
-                    </article>
-                    <article class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-translate"></i></div>
-                        <p class="metric-label mb-1">Sprache</p>
-                        <p class="stat-value mb-0">@Model.AdPreferences.PreferredLanguage.ToUpperInvariant()</p>
-                    </article>
-                    <article class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-heart-fill"></i></div>
-                        <p class="metric-label mb-1">Likes im Profil</p>
-                        <p class="stat-value mb-0">@Model.AdPreferences.LikedRecipeCount</p>
-                    </article>
-                    <article class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-person-heart"></i></div>
-                        <p class="metric-label mb-1">Creator-Signale</p>
-                        <p class="stat-value mb-0">@Model.AdPreferences.FollowedCreatorCount</p>
-                    </article>
-                </div>
-
-                @if (!Model.AdPreferences.AllowPersonalizedAds)
-                {
-                    <div class="empty-state">
-                        <i class="bi bi-shield-lock"></i>
-                        <p class="mb-1">Personalisierte Werbung ist aktuell deaktiviert</p>
-                        <small>Aktiviere das Opt-in oben, dann werden Interessen fuer Werbeausspielung gespeichert und laufend aktualisiert.</small>
-                    </div>
-                }
-                else
-                {
-                    <div class="hero-sub-grid mt-0 mb-4">
-                        <div class="hero-sub-card">
-                            <p class="metric-label mb-1">Top Kategorien</p>
-                            <p class="metric-value mb-0">@(Model.AdPreferences.TopCategories.Any() ? string.Join(", ", Model.AdPreferences.TopCategories) : "Noch leer")</p>
-                        </div>
-                        <div class="hero-sub-card">
-                            <p class="metric-label mb-1">Top Keywords</p>
-                            <p class="metric-value mb-0">@(Model.AdPreferences.TopKeywords.Any() ? string.Join(", ", Model.AdPreferences.TopKeywords.Take(5)) : "Noch leer")</p>
-                        </div>
-                    </div>
-
-                    <div class="hero-sub-grid mt-0 mb-4">
-                        <div class="hero-sub-card">
-                            <p class="metric-label mb-1">Top Creator</p>
-                            <p class="metric-value mb-0">@(Model.AdPreferences.TopCreators.Any() ? string.Join(", ", Model.AdPreferences.TopCreators) : "Noch leer")</p>
-                        </div>
-                        <div class="hero-sub-card">
-                            <p class="metric-label mb-1">Segmente</p>
-                            <p class="metric-value mb-0">@(Model.AdPreferences.SegmentLabels.Any() ? string.Join(", ", Model.AdPreferences.SegmentLabels) : "Noch leer")</p>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h3 class="section-title mb-0">Gespeicherte Interessen</h3>
-                        <span class="section-meta">Stand: @(Model.AdPreferences.LastProfileRefreshUtc?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "noch nie")</span>
-                    </div>
-
-                    @if (!Model.AdPreferences.TopInterests.Any())
-                    {
-                        <div class="empty-state">
-                            <i class="bi bi-collection"></i>
-                            <p class="mb-1">Noch keine Interessen gespeichert</p>
-                            <small>Nach Likes, Watch-Time und Follows wird das Profil automatisch mit Scores aufgebaut.</small>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="activity-feed muted-feed">
-                            @foreach (var interest in Model.AdPreferences.TopInterests)
-                            {
-                                <article class="activity-card compact">
-                                    <div class="activity-head">
-                                        <div class="activity-status neutral" aria-hidden="true"><i class="bi bi-bullseye"></i></div>
-                                        <div class="flex-grow-1">
-                                            <h3 class="activity-title mb-1">@interest.DisplayLabel</h3>
-                                            <p class="activity-amount mb-0">@interest.InterestType · Score @interest.Score.ToString("0.##")</p>
-                                        </div>
-                                        <time class="activity-time" datetime="@interest.LastSignalAtUtc.ToString("o")">@interest.LastSignalAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</time>
-                                    </div>
-                                    <div class="activity-details-grid mt-2">
-                                        <div><span>Signale</span><strong>@interest.SignalCount</strong></div>
-                                        <div><span>Typ</span><strong>@interest.InterestType</strong></div>
-                                    </div>
-                                </article>
-                            }
-                        </div>
-                    }
-                }
-            </section>
             <section class="content-card mb-4" aria-label="Watch Analytics">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2 class="section-title mb-0">Watch Analytics</h2>
@@ -392,6 +248,19 @@
 @section Scripts {
     <script>
         (function () {
+            const theme = localStorage.getItem('profile_theme') || 'color';
+            document.body.classList.remove(
+                'profile-theme-black',
+                'profile-theme-white',
+                'profile-theme-color',
+                'profile-theme-rose',
+                'profile-theme-lavender'
+            );
+            document.body.classList.add(`profile-theme-${theme}`);
+        })();
+    </script>
+    <script>
+        (function () {
             const copyButton = document.getElementById('copyHashBtn');
             const toast = document.getElementById('copyToast');
 
@@ -423,6 +292,7 @@
         })();
     </script>
 }
+
 
 
 

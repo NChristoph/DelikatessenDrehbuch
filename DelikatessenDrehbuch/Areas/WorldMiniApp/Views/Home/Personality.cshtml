@@ -1,13 +1,20 @@
-Ôªø@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
-@model List<WorldUserMealPlan>
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@model MyAreaViewModel
 
 @{
     Layout = "_MiniAppLayout";
     ViewData["Title"] = "Mein Bereich";
-    var userHash = ViewData["UserHash"] as string;
+    var userHash = Model.UserHash ?? ViewData["UserHash"] as string ?? string.Empty;
+
+    string T(string de, string en)
+    {
+        var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+        return language == "en" ? en : de;
+    }
+
     string DeleteConfirmText(string title)
     {
-        var text = T($"M√∂chtest du den Plan \"{title}\" wirklich l√∂schen?", $"Do you really want to delete the plan \"{title}\"?");
+        var text = T($"Mˆchtest du den Plan \"{title}\" wirklich lˆschen?", $"Do you really want to delete the plan \"{title}\"?");
         return text.Replace("'", "\\'");
     }
 }
@@ -15,13 +22,13 @@
 <div class="profile-header px-4 pt-4 pb-3 text-center position-relative">
     <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })"
        class="text-decoration-none text-muted mb-3 d-inline-flex align-items-center small opacity-75 position-absolute start-0 top-0 mt-3 ms-3">
-        <i class="bi bi-arrow-left"></i> @T("Zur√ºck", "Back")
+        <i class="bi bi-arrow-left"></i> @T("Zur¸ck", "Back")
     </a>
     <div class="profile-avatar shadow-sm">
-        <img src="https://ui-avatars.com/api/?name=@(userHash ?? "DD")&background=random" alt="Profile" />
+        <img src="https://ui-avatars.com/api/?name=@(string.IsNullOrWhiteSpace(userHash) ? "DD" : userHash)&background=random" alt="Profile" />
     </div>
-    <h2 class="fw-bold mb-1 text-dark">@T("Mein Bereich", "My profile")</h2>
-    <p class="text-muted small mb-3">@T("Dein Social Space in der World App", "Your social space in the World App")</p>
+    <h2 class="fw-bold mb-1 text-dark">@T("Mein Bereich", "My area")</h2>
+    <p class="text-muted small mb-3">@T("Deine Pl‰ne klar getrennt nach erstellt und gekauft", "Your plans clearly separated into created and purchased")</p>
     <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = userHash })"
        class="btn btn-dark rounded-pill px-4">
         <i class="bi bi-person-badge me-2"></i>@T("Profil ansehen", "View profile")
@@ -31,72 +38,132 @@
 <div class="container px-4 pb-5">
     <div class="section-title d-flex align-items-center justify-content-between mb-3">
         <div>
-            <h4 class="fw-bold text-dark mb-0">@T("Essenspl√§ne", "Meal plans")</h4>
-            <small class="text-muted">@T("Deine gespeicherten Wochenpl√§ne", "Your saved weekly plans")</small>
+            <h4 class="fw-bold text-dark mb-0">@T("Essenspl‰ne", "Meal plans")</h4>
+            <small class="text-muted">@T("Per Tabs getrennt", "Separated by tabs")</small>
         </div>
-        <span class="badge rounded-pill bg-light text-dark">@Model?.Count() ?? 0</span>
+        <span class="badge rounded-pill bg-light text-dark">@(Model.CreatedMealPlans.Count + Model.Purchases.Count)</span>
     </div>
 
-    @if (Model == null || !Model.Any())
-    {
-        <div class="text-center py-5 opacity-50">
-            <i class="bi bi-journal-x fs-1 mb-3 d-block"></i>
-            <p>@T("Noch keine Pl√§ne erstellt.", "No plans created yet.")</p>
-        </div>
-    }
-    else
-    {
-        <div class="d-grid gap-3">
-            @foreach (var plan in Model)
+    <ul class="nav area-tabs mb-3" id="myAreaTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="created-tab" data-bs-toggle="tab" data-bs-target="#created-pane" type="button" role="tab">
+                <i class="bi bi-calendar2-week me-2"></i>@T("Erstellt", "Created")
+                <span class="tab-count">@Model.CreatedMealPlans.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="purchased-tab" data-bs-toggle="tab" data-bs-target="#purchased-pane" type="button" role="tab">
+                <i class="bi bi-bag-check me-2"></i>@T("Gekauft", "Purchased")
+                <span class="tab-count">@Model.Purchases.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="created-pane" role="tabpanel" aria-labelledby="created-tab">
+            @if (!Model.CreatedMealPlans.Any())
             {
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden plan-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h5 class="fw-bold text-dark mb-1">@plan.Title</h5>
-                                <div class="text-muted small">
-                                    <i class="bi bi-calendar3 me-1"></i> @plan.CreationTime.ToString("dd. MMM yyyy")
+                <div class="empty-state text-center py-5 opacity-50">
+                    <i class="bi bi-calendar2-x fs-1 mb-3 d-block"></i>
+                    <p class="mb-0">@T("Noch keine erstellten Pl‰ne.", "No created plans yet.")</p>
+                </div>
+            }
+            else
+            {
+                <div class="d-grid gap-3">
+                    @foreach (var plan in Model.CreatedMealPlans)
+                    {
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden plan-card">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-1">@plan.Title</h5>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-calendar3 me-1"></i> @plan.CreationTime.ToString("dd. MMM yyyy")
+                                        </div>
+                                    </div>
+                                    <div class="icon-box rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="icon-box rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <span class="fs-5">üìù</span>
+
+                            <div class="card-footer bg-white border-0 p-2 d-flex gap-2">
+                                <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
+                                   class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
+                                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px;">
+                                    <i class="bi bi-eye-fill me-2"></i> @T("Anzeigen", "View")
+                                </a>
+
+                                <form method="post"
+                                      action="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp" })"
+                                      onsubmit="return confirm('@DeleteConfirmText(plan.Title ?? "Essensplan")');"
+                                      class="d-flex">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@plan.Id" />
+                                    <input type="hidden" name="userHash" value="@userHash" />
+                                    <button type="submit"
+                                            class="btn border-0 rounded-4 d-flex align-items-center justify-content-center btn-hover-scale"
+                                            style="background: #ffebee; color: #ef5350; width: 50px;"
+                                            title="@T("Lˆschen", "Delete")">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="card-footer bg-white border-0 p-2 d-flex gap-2">
-
-                        <a href="@Url.Action("ViewPlan", new { id = plan.Id })"
-                           class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
-                           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px;">
-                            <i class="bi bi-eye-fill me-2"></i> @T("Anzeigen", "View")
-                        </a>
-
-                        <a href="@Url.Action("EditPlan", new { id = plan.Id })"
-                           class="btn border-0 rounded-4 d-flex align-items-center justify-content-center btn-hover-scale"
-                           style="background: #fff3e0; color: #ff9800; width: 50px;"
-                           title="@T("Bearbeiten", "Edit")">
-                            <i class="bi bi-pencil-fill"></i>
-                        </a>
-
-                        <a href="@Url.Action("DeletePlan", new { userHash=plan.UserHash,id = plan.Id })"
-                           onclick="return confirm('@DeleteConfirmText(plan.Title)');"
-                           class="btn border-0 rounded-4 d-flex align-items-center justify-content-center btn-hover-scale"
-                           style="background: #ffebee; color: #ef5350; width: 50px;"
-                           title="@T("L√∂schen", "Delete")">
-                            <i class="bi bi-trash-fill"></i>
-                        </a>
-
-                    </div>
+                    }
                 </div>
             }
         </div>
-    }
+
+        <div class="tab-pane fade" id="purchased-pane" role="tabpanel" aria-labelledby="purchased-tab">
+            @if (!Model.Purchases.Any())
+            {
+                <div class="empty-state text-center py-5 opacity-50">
+                    <i class="bi bi-bag-x fs-1 mb-3 d-block"></i>
+                    <p class="mb-0">@T("Noch keine gekauften Pl‰ne.", "No purchased plans yet.")</p>
+                </div>
+            }
+            else
+            {
+                <div class="d-grid gap-3">
+                    @foreach (var purchase in Model.Purchases)
+                    {
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden plan-card">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-1">@(purchase.Listing?.Title ?? "Essensplan")</h5>
+                                        <div class="text-muted small mb-1">
+                                            <i class="bi bi-calendar-check me-1"></i> @purchase.PurchasedAt.ToString("dd. MMM yyyy HH:mm")
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-cash-coin me-1"></i> @purchase.PricePaid.ToString("0.##") @purchase.PaymentToken
+                                        </div>
+                                    </div>
+                                    <div class="icon-box rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-bag-check"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer bg-white border-0 p-2 d-flex gap-2">
+                                <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
+                                   class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
+                                   style="background: linear-gradient(135deg, #1d976c 0%, #49c58b 100%); padding: 12px;">
+                                    <i class="bi bi-eye-fill me-2"></i> @T("Plan ˆffnen", "Open plan")
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 <style>
     body {
-        /* Hintergrund passend zu den anderen Seiten */
         background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);
         min-height: 100vh;
     }
@@ -117,14 +184,64 @@
         background: white;
     }
 
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
     .section-title {
         padding-top: 12px;
+    }
+
+    .area-tabs {
+        display: flex;
+        gap: 10px;
+        border: none;
+        background: rgba(255,255,255,0.75);
+        border-radius: 22px;
+        padding: 8px;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+    }
+
+    .area-tabs .nav-item {
+        flex: 1;
+    }
+
+    .area-tabs .nav-link {
+        width: 100%;
+        border: none;
+        border-radius: 16px;
+        color: #5f6368;
+        font-weight: 800;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: transparent;
+    }
+
+    .area-tabs .nav-link.active {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        color: #fff;
+        box-shadow: 0 10px 24px rgba(17,24,39,0.24);
+    }
+
+    .tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: rgba(255,255,255,0.2);
+    }
+
+    .area-tabs .nav-link:not(.active) .tab-count {
+        background: rgba(0,0,0,0.08);
     }
 
     .plan-card {
@@ -137,7 +254,14 @@
         transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-        .btn-hover-scale:active {
-            transform: scale(0.9);
-        }
+    .btn-hover-scale:active {
+        transform: scale(0.96);
+    }
+
+    .empty-state {
+        background: rgba(255,255,255,0.65);
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+    }
 </style>
+
