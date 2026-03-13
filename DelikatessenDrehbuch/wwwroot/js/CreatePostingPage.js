@@ -1,4 +1,4 @@
-﻿// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
+// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
             return false;
@@ -42,8 +42,8 @@
             { de: 'Becher', en: 'cup', esp: 'taza', prt: 'copo' },
             { de: 'Scheiben', en: 'slices', esp: 'rebanadas', prt: 'fatias' },
             { de: 'Blatt', en: 'leaf', esp: 'hoja', prt: 'folha' },
-            { de: 'BlÃ¤tter', en: 'leaves', esp: 'hojas', prt: 'folhas' },
-            { de: 'Handvoll', en: 'handful', esp: 'puÃ±ado', prt: 'punhado' },
+            { de: 'Blätter', en: 'leaves', esp: 'hojas', prt: 'folhas' },
+            { de: 'Handvoll', en: 'handful', esp: 'puñado', prt: 'punhado' },
             { de: 'cm', en: 'cm', esp: 'cm', prt: 'cm' },
             { de: 'Zweig', en: 'sprig', esp: 'rama', prt: 'ramo' },
             { de: 'ml', en: 'ml', esp: 'ml', prt: 'ml' },
@@ -53,7 +53,7 @@
             { de: 'Glas', en: 'glass', esp: 'vaso', prt: 'copo' },
             { de: 'kcal', en: 'kcal', esp: 'kcal', prt: 'kcal' },
             { de: 'mg', en: 'mg', esp: 'mg', prt: 'mg' },
-            { de: 'Âµg', en: 'ug', esp: 'ug', prt: 'ug' }
+            { de: 'µg', en: 'ug', esp: 'ug', prt: 'ug' }
         ];
 
         function getAvailableUnits() {
@@ -217,7 +217,7 @@
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, selectedIds)
                     : '';
-                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
                 $('#probVarIngredientArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
 
@@ -236,14 +236,14 @@
 
             } else if (varType === 'temperature') {
                 const tempNum = parseInt(currentVal, 10) || 180;
-                const isFahr = (currentVal || '').includes('Â°F') || (currentVal || '').includes('F');
+                const isFahr = (currentVal || '').includes('°F') || (currentVal || '').includes('F');
                 $('#probVarTempVal').val(tempNum);
                 $('#probVarTempUnit').val(isFahr ? 'fahrenheit' : 'celsius');
                 $('#probVarTempArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
 
             } else {
-                // Options or text fallback â€” try to get presets from MasterStepRenderer
+                // Options or text fallback — try to get presets from MasterStepRenderer
                 let options = [];
                 if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
                     options = MasterStepRenderer.getVariablePresets(varKey, currentLang || 'de') || [];
@@ -306,7 +306,7 @@
                 value = (parseInt($('#probVarCountVal').val(), 10) || 1).toString();
             } else if (!$('#probVarTempArea').hasClass('d-none')) {
                 const num = $('#probVarTempVal').val() || '180';
-                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? 'Â°F' : 'Â°C';
+                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? '°F' : '°C';
                 value = `${num} ${unit}`;
             } else if (!$('#probVarTextArea').hasClass('d-none')) {
                 value = ($('#probVarTextVal').val() || '').toString().trim();
@@ -368,7 +368,7 @@
             const map = {
                 1: { text: 'Vorb.', cls: 'phase-badge-1' },
                 2: { text: 'Kochen', cls: 'phase-badge-2' },
-                3: { text: 'WÃ¼rzen', cls: 'phase-badge-3' },
+                3: { text: 'Würzen', cls: 'phase-badge-3' },
                 4: { text: 'Finish', cls: 'phase-badge-4' }
             };
             const info = map[phase];
@@ -377,7 +377,7 @@
         }
 
 
-        // Hilfsfunktion: Gibt die Zutat-IDs zurÃ¼ck, an die ein Step gebunden ist
+        // Hilfsfunktion: Gibt die Zutat-IDs zurück, an die ein Step gebunden ist
         function getStepBoundIngredientIds(stepId) {
             const bindings = window.stepIngredientBindings || {};
             return (bindings[stepId] ?? bindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
@@ -429,6 +429,7 @@
         }
 
         const createPostingThemeStorageKey = 'createPostingTheme';
+        const profileThemeStorageKey = 'profile_theme';
         const availableCreatePostingThemes = ['gruen', 'navy', 'rosa', 'gold'];
         const currentThema = (() => {
             const domTheme = (document.querySelector('.feed-shell')?.getAttribute('data-theme') || '').toString().trim().toLowerCase();
@@ -620,14 +621,14 @@
             activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
             grindSizeValue: 'feine',
-            shapeValue: 'WÃ¼rfel',
+            shapeValue: 'Würfel',
             activeItemTokenId: '',
             itemValue: 'den Teig',
             itemArticleValue: 'den',
             baseValue: 'den Teig',
             baseArticleValue: 'den',
             activeBalanceTokenId: '',
-            balanceValue: 'die SÃ¤ure',
+            balanceValue: 'die Säure',
             balanceArticleValue: 'die',
             activeSeasoningsTokenId: '',
             seasoningsValue: 'Salz und Pfeffer'
@@ -668,8 +669,8 @@
             if (lang === 'de') {
                 const known = {
                     m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
-                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soÃŸe', 'sauce'],
-                    n: ['salz', 'Ã¶l', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
+                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soße', 'sauce'],
+                    n: ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
                 };
                 if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };
                 if (hasAny(['n', 'neu', 'neut', 'das'])) return { pronoun: 'es', article: 'das' };
@@ -812,19 +813,19 @@
         const placeholderEditorDispatch = {
             duration: { open: openDurationEditorForToken, toast: 'Zeit setzen' },
             count: { open: openCountEditorForToken, toast: 'Anzahl setzen' },
-            pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
+            pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wählen', keepTokenActive: true },
             temperature: { open: openTemperatureEditorForToken, toast: 'Temperatur setzen' },
-            heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wÃ¤hlen' },
-            mode: { open: openModeEditorForToken, toast: 'Ofenmodus wÃ¤hlen' },
-            equipment: { open: openEquipmentEditorForToken, toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            state: { open: openStateEditorForToken, toast: 'Zustand wÃ¤hlen' },
-            tool: { open: openToolEditorForToken, toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            grindSize: { open: openGrindSizeEditorForToken, toast: 'SchnittgrÃ¶ÃŸe wÃ¤hlen' },
-            shape: { open: openShapeEditorForToken, toast: 'Schnittform wÃ¤hlen' },
-            base: { open: openBaseEditorForToken, toast: 'Basis wÃ¤hlen' },
-            item: { open: openItemEditorForToken, toast: 'Item wÃ¤hlen' },
-            balance: { open: openBalanceEditorForToken, toast: 'Balance wÃ¤hlen' },
-            seasonings: { open: openSeasoningsEditorForToken, toast: 'Seasonings wÃ¤hlen' }
+            heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wählen' },
+            mode: { open: openModeEditorForToken, toast: 'Ofenmodus wählen' },
+            equipment: { open: openEquipmentEditorForToken, toast: 'Tool / Gerät wählen' },
+            state: { open: openStateEditorForToken, toast: 'Zustand wählen' },
+            tool: { open: openToolEditorForToken, toast: 'Tool / Gerät wählen' },
+            grindSize: { open: openGrindSizeEditorForToken, toast: 'Schnittgröße wählen' },
+            shape: { open: openShapeEditorForToken, toast: 'Schnittform wählen' },
+            base: { open: openBaseEditorForToken, toast: 'Basis wählen' },
+            item: { open: openItemEditorForToken, toast: 'Item wählen' },
+            balance: { open: openBalanceEditorForToken, toast: 'Balance wählen' },
+            seasonings: { open: openSeasoningsEditorForToken, toast: 'Seasonings wählen' }
         };
 
         const supportedLanguages = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
@@ -835,11 +836,11 @@
         const modeOptionsByLang = {
             de: ['Oberhitze', 'Unterhitze', 'Ober- und Unterhitze', 'Umluft'],
             en: ['top heat', 'bottom heat', 'top and bottom heat', 'convection'],
-            esp: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecciÃ³n'],
-            prt: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecÃ§Ã£o'],
+            esp: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convección'],
+            prt: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecção'],
             id: ['panas atas', 'panas bawah', 'panas atas dan bawah', 'konveksi'],
             nl: ['bovenwarmte', 'onderwarmte', 'boven- en onderwarmte', 'hetelucht'],
-            sv: ['Ã¶vervÃ¤rme', 'undervÃ¤rme', 'Ã¶ver- och undervÃ¤rme', 'varmluft'],
+            sv: ['övervärme', 'undervärme', 'över- och undervärme', 'varmluft'],
             da: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
             no: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
             ms: ['haba atas', 'haba bawah', 'haba atas dan bawah', 'peredaran udara']
@@ -947,7 +948,7 @@
         function getTemperatureInsertText() {
             const value = parseInt(creatorState.temperatureValue, 10);
             const safeValue = Number.isFinite(value) && value > 0 ? value : 180;
-            const unit = creatorState.temperatureUnit === 'fahrenheit' ? 'Â°F' : 'Â°C';
+            const unit = creatorState.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
             return `${safeValue}${unit}`;
         }
 
@@ -955,7 +956,7 @@
             if (!tokenId) return;
             creatorState.activeTemperatureTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            const parsed = currentText.match(/^(\d+)\s*Â°?\s*(C|F)?/i);
+            const parsed = currentText.match(/^(\d+)\s*°?\s*(C|F)?/i);
             if (parsed) {
                 creatorState.temperatureValue = parseInt(parsed[1], 10);
                 if (parsed[2] && parsed[2].toUpperCase() === 'F') {
@@ -1074,9 +1075,9 @@
                 de: {
                     'backofen': 'den',
                     'pfanne': 'die',
-                    'brÃ¤ter': 'den',
+                    'bräter': 'den',
                     'topf': 'den',
-                    'kÃ¼chenmaschine': 'die',
+                    'küchenmaschine': 'die',
                     'auflaufform': 'die'
                 },
                 en: {
@@ -1089,7 +1090,7 @@
                 },
                 esp: {
                     'horno': 'el',
-                    'sartÃ©n': 'la',
+                    'sartén': 'la',
                     'asador': 'el',
                     'olla': 'la',
                     'procesador de alimentos': 'el',
@@ -1191,15 +1192,15 @@
         function getEquipmentOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
             const fallbackByLang = {
-                de: ['Pfanne', 'Topf', 'Backofen', 'RÃ¼hrschÃ¼ssel', 'Sieb', 'Mixer', 'PÃ¼rierstab', 'KÃ¼chenmaschine', 'BrÃ¤ter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform', 'Zange', 'Schneidebrett'],
+                de: ['Pfanne', 'Topf', 'Backofen', 'Rührschüssel', 'Sieb', 'Mixer', 'Pürierstab', 'Küchenmaschine', 'Bräter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform', 'Zange', 'Schneidebrett'],
                 en: ['pan', 'pot', 'oven', 'mixing bowl', 'strainer', 'blender', 'immersion blender', 'food processor', 'roaster', 'wok', 'grill', 'steamer', 'baking dish', 'tongs', 'cutting board'],
-                esp: ['sartÃ©n', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno', 'pinzas', 'tabla de cortar'],
-                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mÃ£o', 'processador de alimentos', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno', 'pinÃ§a', 'tÃ¡bua de corte'],
+                esp: ['sartén', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno', 'pinzas', 'tabla de cortar'],
+                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mão', 'processador de alimentos', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno', 'pinça', 'tábua de corte'],
                 id: ['wajan', 'panci', 'oven', 'mangkuk adonan', 'saringan', 'blender', 'blender tangan', 'food processor', 'loyang panggang', 'wok', 'pemanggang', 'kukusan', 'pinggan oven', 'penjepit', 'talenan'],
                 nl: ['pan', 'kookpot', 'oven', 'mengkom', 'zeef', 'blender', 'staafmixer', 'keukenmachine', 'braadslede', 'wok', 'grill', 'stoomkoker', 'ovenschaal', 'tang', 'snijplank'],
-                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskÃ¥l', 'sil', 'mixer', 'stavmixer', 'matberedare', 'stekgryta', 'wok', 'grill', 'Ã¥ngkokare', 'ugnsform', 'tÃ¥ng', 'skÃ¤rbrÃ¤da'],
-                da: ['pande', 'gryde', 'ovn', 'rÃ¸reskÃ¥l', 'si', 'blender', 'stavblender', 'foodprocessor', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad', 'tang', 'skÃ¦rebrÃ¦t'],
-                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjÃ¸kkenmaskin', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form', 'klype', 'skjÃ¦refjÃ¸l'],
+                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskål', 'sil', 'mixer', 'stavmixer', 'matberedare', 'stekgryta', 'wok', 'grill', 'ångkokare', 'ugnsform', 'tång', 'skärbräda'],
+                da: ['pande', 'gryde', 'ovn', 'røreskål', 'si', 'blender', 'stavblender', 'foodprocessor', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad', 'tang', 'skærebræt'],
+                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjøkkenmaskin', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form', 'klype', 'skjærefjøl'],
                 ms: ['kuali', 'periuk', 'ketuhar', 'mangkuk adunan', 'penapis', 'pengisar', 'pengisar tangan', 'pemproses makanan', 'dulang pembakar', 'wok', 'pemanggang', 'pengukus', 'bekas pembakar', 'penyepit', 'papan pemotong']
             };
 
@@ -1291,15 +1292,15 @@
         function getToolOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
             const fallbackByLang = {
-                de: ['Messer', 'SparschÃ¤ler', 'Reibe', 'Schneebesen', 'Spatel', 'HolzlÃ¶ffel', 'Suppenkelle', 'Messbecher', 'Nudelholz', 'Teigschaber'],
+                de: ['Messer', 'Sparschäler', 'Reibe', 'Schneebesen', 'Spatel', 'Holzlöffel', 'Suppenkelle', 'Messbecher', 'Nudelholz', 'Teigschaber'],
                 en: ['knife', 'peeler', 'grater', 'whisk', 'spatula', 'wooden spoon', 'ladle', 'measuring cup', 'rolling pin', 'dough scraper'],
-                esp: ['cuchillo', 'pelador', 'rallador', 'batidor', 'espÃ¡tula', 'cuchara de madera', 'cucharÃ³n', 'vaso medidor', 'rodillo', 'rasqueta de masa'],
-                prt: ['faca', 'descascador', 'ralador', 'batedor', 'espÃ¡tula', 'colher de pau', 'concha', 'copo medidor', 'rolo de massa', 'raspador de massa'],
+                esp: ['cuchillo', 'pelador', 'rallador', 'batidor', 'espátula', 'cuchara de madera', 'cucharón', 'vaso medidor', 'rodillo', 'rasqueta de masa'],
+                prt: ['faca', 'descascador', 'ralador', 'batedor', 'espátula', 'colher de pau', 'concha', 'copo medidor', 'rolo de massa', 'raspador de massa'],
                 id: ['pisau', 'pengupas', 'parutan', 'pengocok', 'spatula', 'sendok kayu', 'sendok sayur', 'gelas ukur', 'rolling pin', 'scraper adonan'],
                 nl: ['mes', 'dunschiller', 'rasp', 'garde', 'spatel', 'houten lepel', 'soeplepel', 'maatbeker', 'deegroller', 'deegschraper'],
-                sv: ['kniv', 'potatisskalare', 'rivjÃ¤rn', 'visp', 'stekspade', 'trÃ¤slev', 'slev', 'mÃ¥ttkopp', 'kavel', 'degskrapa'],
-                da: ['kniv', 'skrÃ¦ller', 'rivejern', 'piskeris', 'spatel', 'trÃ¦ske', 'suppeske', 'mÃ¥lebÃ¦ger', 'kagerulle', 'dejskraber'],
-                no: ['kniv', 'skreller', 'rivjern', 'visp', 'stekespade', 'tresleiv', 'Ã¸se', 'mÃ¥lebeger', 'kjevle', 'deigskrape'],
+                sv: ['kniv', 'potatisskalare', 'rivjärn', 'visp', 'stekspade', 'träslev', 'slev', 'måttkopp', 'kavel', 'degskrapa'],
+                da: ['kniv', 'skræller', 'rivejern', 'piskeris', 'spatel', 'træske', 'suppeske', 'målebæger', 'kagerulle', 'dejskraber'],
+                no: ['kniv', 'skreller', 'rivjern', 'visp', 'stekespade', 'tresleiv', 'øse', 'målebeger', 'kjevle', 'deigskrape'],
                 ms: ['pisau', 'pengupas', 'parut', 'pemukul', 'spatula', 'sudu kayu', 'senduk', 'cawan penyukat', 'penggelek doh', 'pengikis doh']
             };
 
@@ -1355,15 +1356,15 @@
                 }
             }
             const fallback = {
-                de: ['fein', 'feine', 'mittel', 'mittlere', 'grob', 'grobe', 'dÃ¼nn', 'dÃ¼nne', 'breit', 'breite', 'klein', 'kleine', 'groÃŸ', 'groÃŸe', 'ca. 1 cm groÃŸ', 'ca. 1 cm groÃŸe', 'ca. 0,5 mm groÃŸ', 'ca. 0,5 mm groÃŸe'],
+                de: ['fein', 'feine', 'mittel', 'mittlere', 'grob', 'grobe', 'dünn', 'dünne', 'breit', 'breite', 'klein', 'kleine', 'groß', 'große', 'ca. 1 cm groß', 'ca. 1 cm große', 'ca. 0,5 mm groß', 'ca. 0,5 mm große'],
                 en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large', 'about 3/8-inch', 'about 0.02-inch'],
-                esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeÃ±as', 'grandes'],
-                prt: ['finas', 'mÃ©dias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
+                esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeñas', 'grandes'],
+                prt: ['finas', 'médias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
                 id: ['halus', 'sedang', 'kasar', 'tipis', 'tebal', 'kecil', 'besar'],
                 nl: ['fijne', 'middelgrote', 'grove', 'dunne', 'brede', 'kleine', 'grote'],
-                sv: ['fina', 'medelgrova', 'grova', 'tunna', 'breda', 'smÃ¥', 'stora'],
-                da: ['fine', 'mellemstore', 'grove', 'tynde', 'brede', 'smÃ¥', 'store'],
-                no: ['fine', 'middels', 'grove', 'tynne', 'brede', 'smÃ¥', 'store'],
+                sv: ['fina', 'medelgrova', 'grova', 'tunna', 'breda', 'små', 'stora'],
+                da: ['fine', 'mellemstore', 'grove', 'tynde', 'brede', 'små', 'store'],
+                no: ['fine', 'middels', 'grove', 'tynne', 'brede', 'små', 'store'],
                 ms: ['halus', 'sederhana', 'kasar', 'nipis', 'lebar', 'kecil', 'besar']
             };
             return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
@@ -1400,14 +1401,14 @@
         }
 
         function getShapeOptions() {
-            return ['WÃ¼rfel', 'Scheiben', 'Streifen', 'Spalten', 'grobe StÃ¼cke', 'Ringe', 'Julienne', 'Stifte'];
+            return ['Würfel', 'Scheiben', 'Streifen', 'Spalten', 'grobe Stücke', 'Ringe', 'Julienne', 'Stifte'];
         }
 
         function openShapeEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeShapeTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.shapeValue || '').toString().trim();
-            creatorState.shapeValue = currentText || 'WÃ¼rfel';
+            creatorState.shapeValue = currentText || 'Würfel';
             renderInlineShapeOptions();
             placeEditorLikeTemperature('#shapeEditor');
             $('#shapeEditor').removeClass('d-none');
@@ -1534,7 +1535,7 @@
                     return options;
                 }
             }
-            return ['die SÃ¤ure', 'die SÃ¼ÃŸe', 'die SchÃ¤rfe'];
+            return ['die Säure', 'die Süße', 'die Schärfe'];
         }
 
         function openBalanceEditorForToken(tokenId) {
@@ -1542,7 +1543,7 @@
             creatorState.activeBalanceTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
             const options = getBalanceOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die SÃ¤ure';
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die Säure';
             const parts = splitLeadingArticle(selected, currentLang);
             creatorState.balanceArticleValue = parts.article;
             creatorState.balanceValue = selected;
@@ -1578,7 +1579,7 @@
                     return options;
                 }
             }
-            return ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'KrÃ¤uter', 'GewÃ¼rze'];
+            return ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze'];
         }
 
         function openSeasoningsEditorForToken(tokenId) {
@@ -1691,21 +1692,21 @@
 
             if (keyNorm === 'step1') {
                 const map = {
-                    de: 'Mehl', en: 'flour', esp: 'harina', prt: 'farinha', id: 'tepung', nl: 'bloem', sv: 'mjÃ¶l', da: 'mel', no: 'mel', ms: 'tepung'
+                    de: 'Mehl', en: 'flour', esp: 'harina', prt: 'farinha', id: 'tepung', nl: 'bloem', sv: 'mjöl', da: 'mel', no: 'mel', ms: 'tepung'
                 };
                 return map[lang] || map.de;
             }
 
             if (keyNorm === 'step2') {
                 const map = {
-                    de: 'Ei', en: 'egg', esp: 'huevo', prt: 'ovo', id: 'telur', nl: 'ei', sv: 'Ã¤gg', da: 'Ã¦g', no: 'egg', ms: 'telur'
+                    de: 'Ei', en: 'egg', esp: 'huevo', prt: 'ovo', id: 'telur', nl: 'ei', sv: 'ägg', da: 'æg', no: 'egg', ms: 'telur'
                 };
                 return map[lang] || map.de;
             }
 
             if (keyNorm === 'step3') {
                 const map = {
-                    de: 'BrÃ¶sel', en: 'breadcrumbs', esp: 'pan rallado', prt: 'farinha de rosca', id: 'tepung roti', nl: 'paneermeel', sv: 'strÃ¶brÃ¶d', da: 'rasp', no: 'brÃ¸dsmuler', ms: 'serbuk roti'
+                    de: 'Brösel', en: 'breadcrumbs', esp: 'pan rallado', prt: 'farinha de rosca', id: 'tepung roti', nl: 'paneermeel', sv: 'ströbröd', da: 'rasp', no: 'brødsmuler', ms: 'serbuk roti'
                 };
                 return map[lang] || map.de;
             }
@@ -1727,7 +1728,7 @@
             }
 
             if (keyNorm === 'balance') {
-                return getBalanceOptions()[0] || 'die SÃ¤ure';
+                return getBalanceOptions()[0] || 'die Säure';
             }
 
             if (keyNorm === 'seasonings' || keyNorm === 'spices') {
@@ -1872,7 +1873,7 @@
         function updatePreviewText() {
             const templateId = getEffectiveTemplateId();
             if (!templateId || !window.MasterStepRenderer) {
-                creatorState.previewText = 'WÃ¤hle eine Zutat und ein Template.';
+                creatorState.previewText = 'Wähle eine Zutat und ein Template.';
                 $('#masterPreviewText').text(creatorState.previewText);
                 return;
             }
@@ -1894,12 +1895,12 @@
                 const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
                 return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
                     <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="ZurÃ¼cksetzen">&#8630;</button>
+                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
                 </span>`;
             });
 
-            $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfÃ¼gbar.');
-            creatorState.previewText = $('#masterPreviewText').text().trim() || 'Keine Vorschau verfÃ¼gbar.';
+            $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
+            creatorState.previewText = $('#masterPreviewText').text().trim() || 'Keine Vorschau verfügbar.';
 
             if (!creatorState.ingredientReplaceArmed) { $('#masterPreviewCard').removeClass('token-replace-active'); }
             animatePreview();
@@ -1990,7 +1991,7 @@
 
             const templates = MasterStepRenderer.getAllTemplates();
             if (!templates.length) {
-                setMasterTemplateError('Keine Templates gefunden. PrÃ¼fe /data/master_steps.json.');
+                setMasterTemplateError('Keine Templates gefunden. Prüfe /data/master_steps.json.');
                 creatorState.selectedTemplateId = '';
                 updatePreviewText();
                 return;
@@ -2182,7 +2183,7 @@
                 addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true, ingredientName, masterTemplateId: templateId });
                 updateStepIndices();
             } catch (error) {
-                console.warn('Master-Step Upsert nicht mÃ¶glich, nutze lokalen Fallback-Step', error);
+                console.warn('Master-Step Upsert nicht möglich, nutze lokalen Fallback-Step', error);
 
                 const fallbackId = createFallbackStepId();
                 getAllStepRows().push({
@@ -2272,7 +2273,7 @@
             const aliases = {
                 g: ['g', 'gr', 'gramm', 'gram'],
                 ml: ['ml', 'milliliter', 'millilitre'],
-                piece: ['stk', 'stk.', 'stueck', 'stÃ¼ck', 'piece', 'pieces', 'pcs', 'pcs.', 'unit', 'units', 'uds', 'un']
+                piece: ['stk', 'stk.', 'stueck', 'stück', 'piece', 'pieces', 'pcs', 'pcs.', 'unit', 'units', 'uds', 'un']
             };
             const accepted = aliases[key] || [key];
             const match = options.find(opt => accepted.includes(normalize(opt.value)) || accepted.includes(normalize(opt.text)));
@@ -2598,7 +2599,7 @@
             creatorState.selectedIngredientIds = [];
             renderIngredientChips();
             $('#stepsChipStrip').removeClass('d-none');
-            showCreatorToast('Chip auswÃ¤hlen â€“ dann Einsetzen tippen');
+            showCreatorToast('Chip auswählen – dann Einsetzen tippen');
         }
 
         function applyChipToStep() {
@@ -2606,7 +2607,7 @@
             if (!row) { cancelStepIngredientEdit(); return; }
 
             const selectedNames = getSelectedIngredientNames();
-            if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswÃ¤hlen'); return; }
+            if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswählen'); return; }
 
             const newName = (typeof getSelectedIngredientValueForInsert === 'function' ? getSelectedIngredientValueForInsert() : selectedNames.join(', '));
             const oldName = (row.data('ingredient-name') || row.find('.template-var[data-var="ingredient"], .step-ingredient-anchor').first().text() || '').toString().trim();
@@ -2658,7 +2659,7 @@
             refreshIngredientProbabilityHints();
         }
 
-        // Entfernt alle Steps die fÃ¼r dieselben Zutaten+Phase gebunden sind wie der neue Step
+        // Entfernt alle Steps die für dieselben Zutaten+Phase gebunden sind wie der neue Step
         function removeConflictingSteps(newStepId) {
             const newStep = getAllStepRows().find(x => x && x.id?.toString() === newStepId.toString());
             if (!newStep) return;
@@ -2680,7 +2681,7 @@
                 const rowPhase = parseInt(rowStep.phase ?? 0, 10);
                 if (rowPhase !== newStepPhase) return;
 
-                // PrÃ¼fe ob der bestehende Step mindestens eine gemeinsame Zutat hat
+                // Prüfe ob der bestehende Step mindestens eine gemeinsame Zutat hat
                 const rowBoundIds = getStepBoundIngredientIds(rowStepId).map(x => x.toString());
                 const hasOverlap = rowBoundIds.some(id => newStepBoundIds.includes(id));
                 if (hasOverlap) {
@@ -2949,14 +2950,14 @@
 
 
         // =========================================================
-        // SC2 â€“ Eingebetteter Smart Step Creator im Steps-Bereich
+        // SC2 – Eingebetteter Smart Step Creator im Steps-Bereich
         // Shares creatorState with the main creator; separate DOM
         // =========================================================
 
         function updateSc2PreviewText() {
             const templateId = getEffectiveTemplateId();
             if (!templateId || !window.MasterStepRenderer) {
-                $('#sc2MasterPreviewText').text('WÃ¤hle eine Zutat und ein Template.');
+                $('#sc2MasterPreviewText').text('Wähle eine Zutat und ein Template.');
                 return;
             }
             const template = MasterStepRenderer.findTemplate(templateId);
@@ -2975,10 +2976,10 @@
                 const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
                 return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
                     <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="ZurÃ¼cksetzen">&#8630;</button>
+                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
                 </span>`;
             });
-            $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfÃ¼gbar.');
+            $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
             if (!creatorState.ingredientReplaceArmed) { $('#sc2MasterPreviewCard').removeClass('token-replace-active'); }
             const sc2Card = $('#sc2MasterPreviewCard');
             sc2Card.addClass('preview-animate');
@@ -2991,7 +2992,7 @@
             const ingredients = getSelectedIngredientsForSandbox();
             wrap.empty();
             if (!ingredients.length) {
-                wrap.append('<div class="small text-white-50">WÃ¤hle zuerst Zutaten aus.</div>');
+                wrap.append('<div class="small text-white-50">Wähle zuerst Zutaten aus.</div>');
                 return;
             }
             creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
@@ -3089,7 +3090,7 @@
             const parsed = currentText.match(/^(\d+)/);
             if (parsed) {
                 creatorState.temperatureValue = parseInt(parsed[1], 10);
-                creatorState.temperatureUnit = currentText.includes('Â°F') ? 'fahrenheit' : 'celsius';
+                creatorState.temperatureUnit = currentText.includes('°F') ? 'fahrenheit' : 'celsius';
             }
             $('#sc2TemperatureValueInput').val(creatorState.temperatureValue || 180);
             $('#sc2TemperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
@@ -3227,19 +3228,19 @@
         const sc2EditorDispatch = {
             duration:    { open: openSc2DurationEditorForToken,    toast: 'Zeit setzen' },
             count:       { open: openSc2CountEditorForToken,       toast: 'Anzahl setzen' },
-            pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
+            pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wählen', keepTokenActive: true },
             temperature: { open: openSc2TemperatureEditorForToken, toast: 'Temperatur setzen' },
-            heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wÃ¤hlen' },
-            mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wÃ¤hlen' },
-            equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wÃ¤hlen' },
-            tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'SchnittgrÃ¶ÃŸe wÃ¤hlen' },
-            shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wÃ¤hlen' },
-            base:        { open: openSc2BaseEditorForToken,        toast: 'Basis wÃ¤hlen' },
-            item:        { open: openSc2ItemEditorForToken,        toast: 'Item wÃ¤hlen' },
-            balance:     { open: openSc2BalanceEditorForToken,     toast: 'Balance wÃ¤hlen' },
-            seasonings:  { open: openSc2SeasoningsEditorForToken,  toast: 'Seasonings wÃ¤hlen' }
+            heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wählen' },
+            mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wählen' },
+            equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / Gerät wählen' },
+            state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wählen' },
+            tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / Gerät wählen' },
+            grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'Schnittgröße wählen' },
+            shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wählen' },
+            base:        { open: openSc2BaseEditorForToken,        toast: 'Basis wählen' },
+            item:        { open: openSc2ItemEditorForToken,        toast: 'Item wählen' },
+            balance:     { open: openSc2BalanceEditorForToken,     toast: 'Balance wählen' },
+            seasonings:  { open: openSc2SeasoningsEditorForToken,  toast: 'Seasonings wählen' }
         };
 
         function openSc2EditorForPlaceholderToken(key, tokenId) {
@@ -3253,7 +3254,7 @@
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
                     $('#sc2MasterPreviewCard').addClass('token-replace-active');
-                    showSc2CreatorToast('Zutat auswÃ¤hlen');
+                    showSc2CreatorToast('Zutat auswählen');
                 } else if (sc2EditorDispatch[placeholderType]) {
                     creatorState.activePlaceholderTokenId = sc2EditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
                     sc2EditorDispatch[placeholderType].open(tokenId);
@@ -3343,10 +3344,10 @@
                 closeAllEditors();
                 renderTemplateCards();
                 updatePreviewText();
-                showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewÃ¤hlt');
+                showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewählt');
             });
 
-            // Vorgeschlagene Zutat hinzufÃ¼gen: findet die Zeile im Katalog und ruft addIngredient auf
+            // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
             $(document).on('click', '.js-typical-ingredient-chip', function () {
                 const ingId = ($(this).data('ingredient-id') || '').toString();
                 if (!ingId) return;
@@ -3358,9 +3359,9 @@
                 }
 
                 addIngredient(ingId, catalogRow[0]);
-                showCreatorToast(`Zutat hinzugefÃ¼gt`);
+                showCreatorToast(`Zutat hinzugefügt`);
 
-                // Chip deaktivieren nach dem HinzufÃ¼gen
+                // Chip deaktivieren nach dem Hinzufügen
                 $(this).prop('disabled', true).addClass('opacity-50');
 
                 // Kurz zum Katalog scrollen, damit der User die Zutat sehen kann
@@ -3432,7 +3433,7 @@
                 setTimeout(() => $(this).removeClass('template-tap'), 180);
                 animateTemplateToPreview($(this).data('title'));
                 updatePreviewText();
-                showCreatorToast('Template gewÃ¤hlt');
+                showCreatorToast('Template gewählt');
             });
 
             function handleIngredientPlaceholderSelection(tokenId) {
@@ -3443,7 +3444,7 @@
                 const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
                 if (hasExistingAssignment) {
                     clearSelectedIngredientChips();
-                    showCreatorToast('Neue Zutat auswÃ¤hlen zum Ersetzen');
+                    showCreatorToast('Neue Zutat auswählen zum Ersetzen');
                     return;
                 }
 
@@ -3458,7 +3459,7 @@
                     return;
                 }
 
-                showCreatorToast('Erst Zutaten auswÃ¤hlen');
+                showCreatorToast('Erst Zutaten auswählen');
             }
 
             function openEditorForPlaceholderToken(key, tokenId) {
@@ -3528,7 +3529,7 @@
                 const dropped = e.originalEvent.dataTransfer.getData('text/plain') || creatorState.dragIngredientName || '';
                 if (!tokenId || !dropped) return;
                 if (getPlaceholderType(key) !== 'ingredient') {
-                    showCreatorToast('Drag & Drop nur fÃ¼r ingredient/ingredients');
+                    showCreatorToast('Drag & Drop nur für ingredient/ingredients');
                     return;
                 }
                 creatorState.activePlaceholderTokenId = tokenId;
@@ -3559,7 +3560,7 @@
                     $('#masterPreviewCard').removeClass('token-replace-active');
                 }
                 closeAllEditors();
-                showCreatorToast('Platzhalter zurÃ¼ckgesetzt');
+                showCreatorToast('Platzhalter zurückgesetzt');
                 renderIngredientChips();
                 renderTemplateCards();
             });
@@ -3743,7 +3744,7 @@
                 creatorState.equipmentValue = val;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeEquipmentEditor();
-                showCreatorToast('Tool / GerÃ¤t eingesetzt');
+                showCreatorToast('Tool / Gerät eingesetzt');
                 renderTemplateCards();
             });
 
@@ -3782,7 +3783,7 @@
                 applyButton: '#btnApplyGrindSize',
                 activeTokenKey: 'activeGrindSizeTokenId',
                 closeEditor: closeGrindSizeEditor,
-                toast: 'SchnittgrÃ¶ÃŸe eingesetzt'
+                toast: 'Schnittgröße eingesetzt'
             });
 
             bindSimpleEditorOptionHandlers({
@@ -3910,7 +3911,7 @@
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
                     : '';
-                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
             });
 
             // Option chip ? auto-apply and close
@@ -3986,7 +3987,7 @@
                 void ghost[0]?.offsetWidth;
                 ghost.addClass('fly');
                 updatePreviewText();
-                showSc2CreatorToast('Template gewÃ¤hlt');
+                showSc2CreatorToast('Template gewählt');
             });
 
             $('#sc2MasterIngredientButtons').on('click', '.ingredient-chip', function () {
@@ -4025,7 +4026,7 @@
                     $('#sc2MasterPreviewCard').removeClass('token-replace-active');
                 }
                 closeSc2AllEditors();
-                showSc2CreatorToast('Platzhalter zurÃ¼ckgesetzt');
+                showSc2CreatorToast('Platzhalter zurückgesetzt');
                 renderIngredientChips();
                 renderTemplateCards();
             });
@@ -4207,7 +4208,7 @@
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeSc2GrindSizeEditor();
-                showSc2CreatorToast('SchnittgrÃ¶ÃŸe eingesetzt');
+                showSc2CreatorToast('Schnittgröße eingesetzt');
                 renderTemplateCards();
             });
 
@@ -4307,7 +4308,7 @@
             updateLanguageLabels();
             syncIngredientSourceVisibility();
 
-            // Page fully ready â€” hide overlay, show content
+            // Page fully ready — hide overlay, show content
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
