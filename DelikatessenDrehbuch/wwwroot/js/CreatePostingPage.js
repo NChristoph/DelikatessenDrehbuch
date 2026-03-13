@@ -429,24 +429,11 @@
         }
 
         const createPostingThemeStorageKey = 'createPostingTheme';
-        const profileThemeStorageKey = 'profile_theme';
-        const availableCreatePostingThemes = ['color', 'black', 'white', 'rose', 'lavender'];
-        const createPostingThemeMap = {
-            color: 'gold',
-            black: 'navy',
-            white: 'gold',
-            rose: 'rosa',
-            lavender: 'navy'
-        };
+        const availableCreatePostingThemes = ['gruen', 'navy', 'rosa', 'gold'];
         const currentThema = (() => {
             const domTheme = (document.querySelector('.feed-shell')?.getAttribute('data-theme') || '').toString().trim().toLowerCase();
-            if (availableCreatePostingThemes.includes(domTheme)) return domTheme;
-
-            const mappedProfileTheme = Object.keys(createPostingThemeMap).find(function (key) {
-                return createPostingThemeMap[key] === domTheme;
-            });
-
-            return mappedProfileTheme || 'color';
+            const normalizedDomTheme = domTheme === 'dark' ? 'navy' : domTheme;
+            return availableCreatePostingThemes.includes(normalizedDomTheme) ? normalizedDomTheme : 'gold';
         })();
 
         function getStoredProfileTheme() {
@@ -499,7 +486,7 @@
         })();
 
         window.getCreatePostingTheme = function () {
-            return normalizeCreatePostingTheme(window.CreatePostingCurrentTheme || currentThema || 'color');
+            return normalizeCreatePostingTheme(window.CreatePostingCurrentTheme || currentThema || 'gold');
         };
 
         window.getCreatePostingVisualTheme = function () {
