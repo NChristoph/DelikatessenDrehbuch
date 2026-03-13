@@ -52,7 +52,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _worldAdPreferenceService = worldAdPreferenceService;
         }
 
-        // Die Startseite (Das Men� von oben)
+        // Die Startseite (Das Menü von oben)
         public IActionResult Index()
         {
             return View();
@@ -120,8 +120,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(new MiniAppSetupModel());
         }
 
-        //TODO:Splitte das auf hole dir die Creator id un den Namen des posters 
+        //TODO:Splitte das auf hole dir die Creator id un den Namen des posters
 
+        [HttpPost]
         public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
             userHash = ResolveUserHash(userHash);
@@ -135,7 +136,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
                 }
-                return StatusCode(StatusCodes.Status429TooManyRequests, "Upload-Limit erreicht. Bitte sp�ter erneut versuchen.");
+                return StatusCode(StatusCodes.Status429TooManyRequests, "Upload-Limit erreicht. Bitte später erneut versuchen.");
             }
 
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -303,7 +304,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (request == null || string.IsNullOrWhiteSpace(request.De) || string.IsNullOrWhiteSpace(request.En))
             {
-                return BadRequest(new { message = "Ung�ltige Step-Daten." });
+                return BadRequest(new { message = "Ungültige Step-Daten." });
             }
 
             var de = request.De.Trim();
@@ -392,9 +393,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (existingJoinEntries.Any())
             {
-                // WICHTIG: Nur die Join-Entities l�schen.
-                // Die IngredientMeasureQuantity-Entities k�nnen (historisch) auch von anderen Rezepten referenziert werden.
-                // Ein direktes L�schen erzeugt sonst FK-Konflikte.
+                // WICHTIG: Nur die Join-Entities löschen.
+                // Die IngredientMeasureQuantity-Entities können (historisch) auch von anderen Rezepten referenziert werden.
+                // Ein direktes Löschen erzeugt sonst FK-Konflikte.
                 _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
                 await _context.SaveChangesAsync();
             }
@@ -608,7 +609,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return user?.IsVerified == "orb";
         }
 
-        //TODO:Beim andern der rezepte noch auf die preferenz r�cksicht nehmen und link zur einkaufsliste teilen
+        //TODO:Beim andern der rezepte noch auf die preferenz rücksicht nehmen und link zur einkaufsliste teilen
         //lagere das in einen eigenen controller aus
 
         private async Task<List<Recipes>> GetFiltredRecipes(MiniAppSetupModel model)
@@ -930,8 +931,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         // TODO: Zutaten-Seeding entfernt (vormals harte Seed-Daten).
 
-        // 1. ZUFALLS-REZEPT (W�rfeln)
-        // Gibt nur das HTML f�r die eine Karte zur�ck
+        // 1. ZUFALLS-REZEPT (Würfeln)
+        // Gibt nur das HTML für die eine Karte zurück
         public async Task<IActionResult> GetRandomRecipeCard(string category, int dayIndex, string namePrefix)
         {
 
@@ -939,14 +940,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var recipe = await GetRandomRecipesByCategory(category, 1); // Methode musst du evtl. in deinem Service haben
 
           
-            // Wir bauen das Model f�r die Partial View
+            // Wir bauen das Model für die Partial View
             var model = new MealPlanerModel
             {
                 Index = dayIndex,
                 Recipes = recipe.First()
             };
             model.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
-            // Daten f�r die View durchreichen
+            // Daten für die View durchreichen
             ViewData["DayIndex"] = dayIndex;
             ViewData["Category"] = category;
             ViewData["NamePrefix"] = namePrefix;
@@ -955,7 +956,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         // 2. SUCHE (Ersetzen durch...)
-        // Gibt eine Liste von Rezepten zur�ck, die wir ins Offcanvas laden
+        // Gibt eine Liste von Rezepten zurück, die wir ins Offcanvas laden
         public async Task<IActionResult> GetSearchList(string category, int dayIndex, string namePrefix)
         {
             var recipes = await GetRandomRecipesByCategory(category, 20);
@@ -982,7 +983,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             };
 
             model.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
-            // Daten f�r die View durchreichen
+            // Daten für die View durchreichen
             ViewData["DayIndex"] = dayIndex;
             ViewData["Category"] = category;
             ViewData["NamePrefix"] = namePrefix;
@@ -994,7 +995,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public class MealPlanHelperMobile
         {
             public int DayIndex { get; set; }      // Der Tag (1, 2, 3...)
-            public int RecipeId { get; set; }   // Die ID des gew�hlten Rezepts
+            public int RecipeId { get; set; }   // Die ID des gewählten Rezepts
             public int SlotIndex { get; set; }   // Slot (0=Vorspeise, 1=Hauptspeise, 2=Dessert)
 
         }
@@ -1402,7 +1403,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var grams = (decimal)quantity;
 
                     if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(unit, "St�ck", StringComparison.OrdinalIgnoreCase))
+                        || string.Equals(unit, "Stück", StringComparison.OrdinalIgnoreCase))
                     {
                         var weightPerPiece = nutrient.Weight_per_piece > 0 ? nutrient.Weight_per_piece : 0;
                         grams = (decimal)weightPerPiece * (decimal)quantity;

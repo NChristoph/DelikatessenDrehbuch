@@ -1,39 +1,16 @@
 @model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanListing>
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @{
     ViewData["Title"] = "Meine Angebote";
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var cards = ViewData["MyListingCards"] as List<PlanCardViewModel> ?? new List<PlanCardViewModel>();
+    var listingMap = Model.ToDictionary(l => l.Id);
 }
 
-<style>
-    .listing-card {
-        background: #fff;
-        border: none;
-        border-radius: 1rem;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06);
-        padding: 1rem;
-    }
-    .coin-badge {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #fff;
-        font-weight: 700;
-        border-radius: .6rem;
-        padding: .2rem .5rem;
-        font-size: .8rem;
-    }
-    .status-active { color: #15803d; }
-    .status-inactive { color: #9ca3af; }
-    .stat-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: .75rem;
-        background: rgba(0,0,0,.04);
-        border-radius: 1rem;
-        padding: 2px 8px;
-        color: #6b7280;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/creator-shop-cards.css" asp-append-version="true" />
+}
 
 <div class="container py-4" style="max-width:720px;">
     <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
@@ -43,6 +20,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h4 class="fw-bold mb-0">Meine Angebote</h4>
+            <small class="text-muted">@Model.Count Angebote</small>
         </div>
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
            class="btn btn-dark btn-sm rounded-pill">
@@ -59,69 +37,222 @@
     }
     else
     {
-        <div class="d-flex flex-column gap-3">
-            @foreach (var listing in Model)
+        <div class="d-flex flex-column gap-4">
+            @foreach (var card in cards)
             {
-                <div class="listing-card">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="fw-bold">@listing.Title</div>
-                            @if (!string.IsNullOrWhiteSpace(listing.Description))
-                            {
-                                <p class="small text-muted mb-1">@listing.Description</p>
-                            }
-                            <div class="mt-1">
-                                <span class="stat-pill"><i class="bi bi-calendar3"></i> @listing.DayCount Tage</span>
-                                <span class="stat-pill"><i class="bi bi-journal-text"></i> @listing.RecipeCount Rezepte</span>
-                                <span class="stat-pill"><i class="bi bi-bag-check"></i> @listing.SoldCount verkauft</span>
+                var listing = listingMap.ContainsKey(card.ListingId) ? listingMap[card.ListingId] : null;
+                var isActive = listing?.IsActive ?? false;
+                var carouselId = $"ml-carousel-{card.ListingId}";
+                var heroSlides = (card.HeroSlides ?? new List<PlanCardHeroSlideViewModel>()).Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
+                var hasMacroData = card.CaloriesKcal.HasValue || card.ProteinGrams.HasValue || card.FatGrams.HasValue || card.CarbsGrams.HasValue;
+                var totalSlides = heroSlides.Count + (hasMacroData ? 1 : 0);
+
+                <article class="cs-card @(isActive ? "" : "ml-card-inactive")" data-listing-id="@card.ListingId">
+                    <div class="cs-hero">
+                        @if (heroSlides.Any())
+                        {
+                            <div id="@carouselId" class="carousel slide cs-carousel" data-bs-ride="carousel">
+                                <div class="carousel-indicators cs-indicators">
+                                    @for (var i = 0; i < totalSlides; i++)
+                                    {
+                                        <button type="button"
+                                                data-bs-target="#@carouselId"
+                                                data-bs-slide-to="@i"
+                                                class="@(i == 0 ? "active" : "")"
+                                                aria-current="@(i == 0 ? "true" : "false")"
+                                                aria-label="Slide @(i + 1)"></button>
+                                    }
+                                </div>
+
+                                <div class="carousel-inner">
+                                    @for (var i = 0; i < heroSlides.Count; i++)
+                                    {
+                                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                                            <img src="@heroSlides[i].ImageUrl" alt="@($"Rezeptbild {i + 1} für {card.Title}")" class="cs-hero-img" loading="lazy" />
+                                            <div class="cs-recipe-caption">@heroSlides[i].RecipeTitle</div>
+                                        </div>
+                                    }
+
+                                    @if (hasMacroData)
+                                    {
+                                        <div class="carousel-item @(heroSlides.Count == 0 ? "active" : "")">
+                                            <div class="cs-hero-macro-slide" aria-label="Gesamtmakros dieses Plans">
+                                                <div class="cs-macro-title">Gesamt-Makros</div>
+                                                <div class="cs-macro-grid">
+                                                    <span>kcal: @(card.CaloriesKcal.HasValue ? Math.Round(card.CaloriesKcal.Value).ToString() : "-")</span>
+                                                    <span>Protein: @(card.ProteinGrams.HasValue ? $"{Math.Round(card.ProteinGrams.Value, 1)}g" : "-")</span>
+                                                    <span>Fett: @(card.FatGrams.HasValue ? $"{Math.Round(card.FatGrams.Value, 1)}g" : "-")</span>
+                                                    <span>KH: @(card.CarbsGrams.HasValue ? $"{Math.Round(card.CarbsGrams.Value, 1)}g" : "-")</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
-                            <div class="small text-muted mt-2">
-                                <div><strong>WLD:</strong> @(string.IsNullOrWhiteSpace(listing.SellerWalletAddress) ? "-" : listing.SellerWalletAddress)</div>
-                                <div><strong>USDT/USDC:</strong> @(string.IsNullOrWhiteSpace(listing.SellerUsdtWalletAddress) ? "-" : listing.SellerUsdtWalletAddress)</div>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="coin-badge mb-1">@listing.Price.ToString("0.##") WLD</div>
-                            @if (listing.IsActive)
-                            {
-                                <div class="small status-active fw-semibold"><i class="bi bi-check-circle"></i> Aktiv</div>
-                                <button class="btn btn-outline-danger btn-sm rounded-pill mt-1"
-                                        onclick="deactivate(@listing.Id)">
-                                    <i class="bi bi-x-circle me-1"></i>Deaktivieren
-                                </button>
-                            }
-                            else
-                            {
-                                <div class="small status-inactive"><i class="bi bi-pause-circle"></i> Inaktiv</div>
-                            }
+                        }
+                        else
+                        {
+                            <div class="cs-hero-fallback" aria-hidden="true"></div>
+                        }
+
+                        <div class="cs-overlay"></div>
+
+                        @if (isActive)
+                        {
+                            <span class="cs-premium-pill" style="background: linear-gradient(135deg, #15803d, #22c55e);">
+                                <i class="bi bi-check-circle-fill me-1"></i>Aktiv
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="cs-premium-pill" style="background: linear-gradient(135deg, #6b7280, #9ca3af);">
+                                <i class="bi bi-pause-circle-fill me-1"></i>Inaktiv
+                            </span>
+                        }
+
+                        <div class="cs-hero-text">
+                            <h3 class="cs-title">@card.Title</h3>
+                            <p class="cs-subline mb-0">@card.DayCount Tage · @card.RecipeCount Rezepte · @card.CreatedDateLabel</p>
                         </div>
                     </div>
-                </div>
+
+                    <div class="cs-body">
+                        <div class="cs-creator-label">@card.PriceWld.ToString("0.##") WLD</div>
+
+                        <div class="cs-macro-row" role="list" aria-label="Makros und Tags">
+                            @if (card.CaloriesKcal.HasValue)
+                            {
+                                <span class="cs-chip" role="listitem">@Math.Round(card.CaloriesKcal.Value) kcal</span>
+                            }
+                            @if (card.ProteinGrams.HasValue)
+                            {
+                                <span class="cs-chip" role="listitem">@Math.Round(card.ProteinGrams.Value, 1)g Protein</span>
+                            }
+                            @if (card.IsLowCarb)
+                            {
+                                <span class="cs-chip cs-chip-tag" role="listitem">Low Carb</span>
+                            }
+                            @if (card.IsDietFriendly)
+                            {
+                                <span class="cs-chip cs-chip-tag" role="listitem">Diät</span>
+                            }
+                        </div>
+
+                        <div class="cs-social-row" aria-label="Statistiken">
+                            <span><i class="bi bi-star-fill text-warning me-1"></i>@card.Rating.ToString("0.0")</span>
+                            <span><i class="bi bi-bag-check-fill me-1"></i>@card.SoldCount verkauft</span>
+                            <span><i class="bi bi-people-fill me-1"></i>@card.ActivePlannerCount planen aktuell</span>
+                        </div>
+
+                        <div class="cs-cta-row">
+                            <button type="button"
+                                    class="cs-btn cs-btn-secondary"
+                                    aria-label="@($"Vorschau für {card.Title} öffnen")"
+                                    onclick="showFeedPreview(@card.ListingId)">
+                                Vorschau
+                            </button>
+
+                            <div class="cs-buy-wrap">
+                                <div class="ml-sold-badge">
+                                    <i class="bi bi-bag-check-fill"></i> @card.SoldCount
+                                </div>
+                                @if (isActive)
+                                {
+                                    <button type="button"
+                                            class="cs-btn ml-btn-deactivate"
+                                            onclick="toggleListing(@card.ListingId, false)">
+                                        <i class="bi bi-pause-circle me-1"></i>Deaktivieren
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="cs-btn ml-btn-activate"
+                                            onclick="toggleListing(@card.ListingId, true)">
+                                        <i class="bi bi-play-circle me-1"></i>Aktivieren
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </article>
             }
         </div>
     }
 </div>
 
+<style>
+    .ml-card-inactive {
+        opacity: 0.65;
+        filter: grayscale(0.3);
+    }
+
+    .ml-sold-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-weight: 700;
+        border-radius: 12px;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+    }
+
+    .ml-btn-deactivate {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        color: #fff !important;
+        font-weight: 700;
+        border: none;
+        border-radius: 14px;
+        padding: 10px 18px;
+        transition: transform 0.2s;
+    }
+
+    .ml-btn-deactivate:hover {
+        transform: scale(1.03);
+    }
+
+    .ml-btn-activate {
+        background: linear-gradient(135deg, #15803d, #22c55e) !important;
+        color: #fff !important;
+        font-weight: 700;
+        border: none;
+        border-radius: 14px;
+        padding: 10px 18px;
+        transition: transform 0.2s;
+    }
+
+    .ml-btn-activate:hover {
+        transform: scale(1.03);
+    }
+</style>
+
 @section Scripts {
 <script>
-    async function deactivate(listingId) {
-        if (!confirm('Angebot wirklich deaktivieren?')) return;
+    async function toggleListing(listingId, activate) {
+        var actionText = activate ? 'aktivieren' : 'deaktivieren';
+        if (!confirm('Angebot wirklich ' + actionText + '?')) return;
 
-        const form = new FormData();
+        var url = activate
+            ? '@Url.Action("ActivateListing", "Marketplace", new { area = "WorldMiniApp" })'
+            : '@Url.Action("DeactivateListing", "Marketplace", new { area = "WorldMiniApp" })';
+
+        var form = new FormData();
         form.append('listingId', listingId);
         form.append('__RequestVerificationToken',
             document.querySelector('input[name="__RequestVerificationToken"]')?.value || '');
 
         try {
-            const resp = await fetch('@Url.Action("DeactivateListing", "Marketplace", new { area = "WorldMiniApp" })', {
+            var resp = await fetch(url, {
                 method: 'POST',
                 body: form
             });
-            const data = await resp.json();
+            var data = await resp.json();
             if (data.success) {
                 location.reload();
             } else {
-                alert('Fehler beim Deaktivieren.');
+                alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
             }
         } catch {
             alert('Netzwerkfehler.');

@@ -188,6 +188,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         public async Task<List<MealPlanListing>> GetMyListings(string userHash)
         {
             return await _context.MealPlanListings
+                .Include(l => l.MealPlan)
                 .Where(l => l.SellerHash == userHash)
                 .OrderByDescending(l => l.CreatedAt)
                 .ToListAsync();
@@ -206,6 +207,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             if (listing == null) return false;
 
             listing.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ActivateListing(string userHash, int listingId)
+        {
+            var listing = await _context.MealPlanListings.FirstOrDefaultAsync(l => l.Id == listingId && l.SellerHash == userHash);
+            if (listing == null) return false;
+
+            listing.IsActive = true;
             await _context.SaveChangesAsync();
             return true;
         }

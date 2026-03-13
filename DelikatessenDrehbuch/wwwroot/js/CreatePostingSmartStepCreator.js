@@ -1,4 +1,4 @@
-// master-steps-ui.js
+ï»¿// master-steps-ui.js
 // Erwartet:
 // - /data/master_steps.json (wwwroot/data/master_steps.json)
 // - <div id="insertContainer"></div>  (Liste der Step-Buttons)
@@ -65,7 +65,7 @@
     // -----------------------------
     // OPTION LOOKUP (NUR JSON!)
     // -----------------------------
-    // liefert Liste von Optionen für eine Variable (Buttons)
+    // liefert Liste von Optionen fÃ¼r eine Variable (Buttons)
     function getVarOptions(varName) {
         if (!doc) return [];
 
@@ -138,7 +138,7 @@
             const display = val.trim().length > 0 ? val : varName;
 
             // Token bleibt IMMER klickbar + gelb highlight
-            // Reset bleibt IMMER daneben (damit man schnell auf Default zurück kann)
+            // Reset bleibt IMMER daneben (damit man schnell auf Default zurÃ¼ck kann)
             return `
       <span class="token-highlight placeholder-token template-var"
             draggable="false"
@@ -151,7 +151,7 @@
               class="placeholder-reset"
               data-token-id="${escapeHtml(tokenId)}"
               data-var="${escapeHtml(varName)}"
-              title="Zurücksetzen">?</button>
+              title="ZurÃ¼cksetzen">?</button>
     `;
         });
     }
@@ -197,7 +197,7 @@
         for (const [phaseKey, phaseSteps] of byPhase.entries()) {
             const meta = getPhaseMeta(phaseKey);
 
-            // Header für Phase
+            // Header fÃ¼r Phase
             container.insertAdjacentHTML("beforeend", `
                                           <div class="phase-header mt-3 mb-2">
                                             <div class="d-flex align-items-center gap-2">
@@ -240,13 +240,13 @@
         if (!target) return;
 
         if (!activeStep) {
-            target.innerHTML = "Wähle eine Zutat und ein Template.";
+            target.innerHTML = "WÃ¤hle eine Template.";
             return;
         }
 
         const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
 
-        // Editor placeholder (wird beim Token-Klick gefüllt)
+        // Editor placeholder (wird beim Token-Klick gefÃ¼llt)
         target.innerHTML = `
       <div class="current-step-wrap">
         <div class="current-step-header d-flex justify-content-between align-items-center">
@@ -366,7 +366,7 @@
             const specialBlockCompact = renderSpecialEditor(varName, currentVal);
             host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1">Wert fÃ¼r <strong>${escapeHtml(varName)}</strong></div>
         ${specialBlockCompact}
       </div>
     `;
@@ -393,12 +393,12 @@
             }).join("")
             : renderPillButtons(options, "value", currentVal);
 
-        // Spezial UI für duration/temp
+        // Spezial UI fÃ¼r duration/temp
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
         host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1">Wert fÃ¼r <strong>${escapeHtml(varName)}</strong></div>
 
         ${specialBlock}
 
@@ -419,13 +419,13 @@
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
-            ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
+            ? `<div class="text-muted small">Keine Zutaten ausgewÃ¤hlt.</div>`
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">SchlieÃŸen</button>
         </div>
       </div>
     `;
@@ -433,7 +433,7 @@
         // preset selected article/value state
         host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
         host.dataset.selectedPronoun = "";
-        host.dataset.selectedValue = "";   // gewählter Wert
+        host.dataset.selectedValue = "";   // gewÃ¤hlter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
 
@@ -443,7 +443,7 @@
         return list.map(val => {
             const v = (val ?? "").toString();
             const isActive = currentVal && v === currentVal;
-            // Style: wie dein "Einsetzen"-Button Look -> machst du über CSS Klasse "pill-like"
+            // Style: wie dein "Einsetzen"-Button Look -> machst du Ã¼ber CSS Klasse "pill-like"
             return `
         <button type="button"
                 class="btn btn-sm btn-outline-light pill-like ${isActive ? "active" : ""}"
@@ -474,7 +474,7 @@
                  style="max-width:110px"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "10")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃŸen</button>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-2">
@@ -483,7 +483,7 @@
       `;
         }
 
-        // temp -> Input + Unit (°C/°F) (du wolltest dropdown)
+        // temp -> Input + Unit (Â°C/Â°F) (du wolltest dropdown)
         if (varName === "temp") {
             return `
         <div class="d-flex gap-2 align-items-center">
@@ -493,12 +493,12 @@
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "180")}" />
 
           <select id="TempUnitSelect" class="form-select form-select-sm" style="max-width:140px">
-            <option value="°C">°C</option>
-            <option value="°F">°F</option>
+            <option value="Â°C">Â°C</option>
+            <option value="Â°F">Â°F</option>
           </select>
 
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃŸen</button>
         </div>
       `;
         }
@@ -512,7 +512,7 @@
                  style="max-width:110px"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃŸen</button>
         </div>
       `;
         }
@@ -538,7 +538,7 @@
 
         const varName = activeToken.varName;
 
-        // Spezialfälle zuerst
+        // SpezialfÃ¤lle zuerst
         if (varName === "duration") {
             const n = $("#DurationValueInput")?.value?.trim() || "";
             const unit = host.dataset.durationUnit || "minute";
@@ -552,7 +552,7 @@
 
         if (varName === "temp") {
             const n = $("#TempValueInput")?.value?.trim() || "";
-            const u = $("#TempUnitSelect")?.value || "°C";
+            const u = $("#TempUnitSelect")?.value || "Â°C";
             const composed = n ? `${n} ${u}` : "";
             if (composed) activeStep.values[varName] = composed;
             rerenderAfterValueSet();
@@ -604,7 +604,7 @@
         // Step-Text neu rendern (Tokens die gesetzt sind werden zu Text)
         renderMasterText();
 
-        // Editor schließen
+        // Editor schlieÃŸen
         closeInlineEditor();
     }
 
@@ -905,7 +905,7 @@
                 const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
                 const composed = n ? `${n} ${unitLabel}` : "";
 
-                // direkt übernehmen:
+                // direkt Ã¼bernehmen:
                 activeStep.values["duration"] = composed;
                 rerenderAfterValueSet();
                 return;
@@ -921,7 +921,7 @@
             // quick temp apply
             if (e.target.id === "BtnPickTempQuick") {
                 const n = $("#TempValueInput")?.value?.trim() || "";
-                const u = $("#TempUnitSelect")?.value || "°C";
+                const u = $("#TempUnitSelect")?.value || "Â°C";
                 const composed = n ? `${n} ${u}` : "";
 
                 activeStep.values["temp"] = composed;
@@ -938,7 +938,7 @@
 
                 renderStepButtons();
 
-                // wenn aktiv, template neu holen, aber values behalten (du kannst später language-values bauen)
+                // wenn aktiv, template neu holen, aber values behalten (du kannst spÃ¤ter language-values bauen)
                 if (activeStep) {
                     const step = steps.find(s => s.master_id === activeStep.master_id);
                     activeStep.templateRaw = step?.templates?.[currentLang] ?? "";
@@ -964,7 +964,7 @@
         } catch (err) {
             console.error(err);
             const target = masterText();
-            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prüfen.";
+            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prÃ¼fen.";
         }
     }
 
@@ -1014,20 +1014,20 @@
 
     function getIngredientEmojiForHelper(name) {
         const text = (name || "").toString().toLowerCase();
-        if (text.includes("basil")) return "Ã°Å¸Å’Â¿";
-        if (text.includes("tomat")) return "Ã°Å¸Ââ€¦";
-        if (text.includes("zwiebel")) return "Ã°Å¸Â§â€¦";
-        if (text.includes("knoblauch")) return "Ã°Å¸Â§â€ž";
-        if (text.includes("reis")) return "Ã°Å¸ÂÅ¡";
-        if (text.includes("salat")) return "Ã°Å¸Â¥â€”";
-        return "Ã°Å¸Â¥Â£";
+        if (text.includes("basil")) return "&#127807;";
+        if (text.includes("tomat")) return "&#127813;";
+        if (text.includes("zwiebel")) return "&#129477;";
+        if (text.includes("knoblauch")) return "&#129476;";
+        if (text.includes("reis")) return "&#127834;";
+        if (text.includes("salat")) return "&#129367;";
+        return "&#127860;";
     }
 
     function buildIngredientChipsHtml(ingredients, selectedIds) {
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
         if (!list.length) {
-            return '<span class="small text-white-50">Keine Zutaten ausgewählt</span>';
+            return '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>';
         }
 
         return list.map(ing => {

@@ -14,7 +14,7 @@
 
     string DeleteConfirmText(string title)
     {
-        var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?", $"Do you really want to delete the plan \"{title}\"?");
+        var text = T($"MÃ¶chtest du den Plan \"{title}\" wirklich lÃ¶schen?", $"Do you really want to delete the plan \"{title}\"?");
         return text.Replace("'", "\\'");
     }
 }
@@ -22,13 +22,13 @@
 <div class="profile-header px-4 pt-4 pb-3 text-center position-relative">
     <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })"
        class="text-decoration-none text-muted mb-3 d-inline-flex align-items-center small opacity-75 position-absolute start-0 top-0 mt-3 ms-3">
-        <i class="bi bi-arrow-left"></i> @T("Zurück", "Back")
+        <i class="bi bi-arrow-left"></i> @T("ZurÃ¼ck", "Back")
     </a>
     <div class="profile-avatar shadow-sm">
         <img src="https://ui-avatars.com/api/?name=@(string.IsNullOrWhiteSpace(userHash) ? "DD" : userHash)&background=random" alt="Profile" />
     </div>
     <h2 class="fw-bold mb-1 text-dark">@T("Mein Bereich", "My area")</h2>
-    <p class="text-muted small mb-3">@T("Deine Pläne klar getrennt nach erstellt und gekauft", "Your plans clearly separated into created and purchased")</p>
+    <p class="text-muted small mb-3">@T("Deine PlÃ¤ne klar getrennt nach erstellt und gekauft", "Your plans clearly separated into created and purchased")</p>
     <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = userHash })"
        class="btn btn-dark rounded-pill px-4">
         <i class="bi bi-person-badge me-2"></i>@T("Profil ansehen", "View profile")
@@ -38,7 +38,7 @@
 <div class="container px-4 pb-5">
     <div class="section-title d-flex align-items-center justify-content-between mb-3">
         <div>
-            <h4 class="fw-bold text-dark mb-0">@T("Essenspläne", "Meal plans")</h4>
+            <h4 class="fw-bold text-dark mb-0">@T("EssensplÃ¤ne", "Meal plans")</h4>
             <small class="text-muted">@T("Per Tabs getrennt", "Separated by tabs")</small>
         </div>
         <span class="badge rounded-pill bg-light text-dark">@(Model.CreatedMealPlans.Count + Model.Purchases.Count)</span>
@@ -65,7 +65,7 @@
             {
                 <div class="empty-state text-center py-5 opacity-50">
                     <i class="bi bi-calendar2-x fs-1 mb-3 d-block"></i>
-                    <p class="mb-0">@T("Noch keine erstellten Pläne.", "No created plans yet.")</p>
+                    <p class="mb-0">@T("Noch keine erstellten PlÃ¤ne.", "No created plans yet.")</p>
                 </div>
             }
             else
@@ -105,7 +105,7 @@
                                     <button type="submit"
                                             class="btn border-0 rounded-4 d-flex align-items-center justify-content-center btn-hover-scale"
                                             style="background: #ffebee; color: #ef5350; width: 50px;"
-                                            title="@T("Löschen", "Delete")">
+                                            title="@T("LÃ¶schen", "Delete")">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </form>
@@ -121,7 +121,7 @@
             {
                 <div class="empty-state text-center py-5 opacity-50">
                     <i class="bi bi-bag-x fs-1 mb-3 d-block"></i>
-                    <p class="mb-0">@T("Noch keine gekauften Pläne.", "No purchased plans yet.")</p>
+                    <p class="mb-0">@T("Noch keine gekauften PlÃ¤ne.", "No purchased plans yet.")</p>
                 </div>
             }
             else
@@ -151,7 +151,7 @@
                                 <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
                                    class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
                                    style="background: linear-gradient(135deg, #1d976c 0%, #49c58b 100%); padding: 12px;">
-                                    <i class="bi bi-eye-fill me-2"></i> @T("Plan öffnen", "Open plan")
+                                    <i class="bi bi-eye-fill me-2"></i> @T("Plan Ã¶ffnen", "Open plan")
                                 </a>
                             </div>
                         </div>
