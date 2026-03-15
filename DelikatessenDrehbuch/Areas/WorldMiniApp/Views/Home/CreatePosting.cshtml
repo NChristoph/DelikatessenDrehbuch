@@ -1,4 +1,4 @@
-﻿@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserPosting
 @using System.Text.Json
 @using System.Linq
 @using Newtonsoft.Json
@@ -249,7 +249,7 @@
                                      data-name-de="@item.Name_DE"
                                      data-name-en="@item.Name_EN"
                                      data-genus-de="@item.Genus_DE"
-                                     data-selected-qty="0"
+                                     data-selected-qty="1"
                                      data-theme="gold"
                                      data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
 
@@ -264,11 +264,11 @@
                                         <div class="d-flex gap-2 align-items-center">
                                             <input type="text" inputmode="decimal"
                                                    class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
-                                                   style="max-width:85px; border-radius: 12px;" placeholder="0"
+                                                   style="max-width:85px; border-radius: 12px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;" placeholder="1"
                                                    oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
 
                                             <select class="form-select form-select-sm js-db-unit candy-purple-input"
-                                                    style="max-width:140px; border-radius: 12px; cursor: pointer;"
+                                                    style="max-width:140px; border-radius: 12px; cursor: pointer; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;"
                                                     onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
                                                 @if (Model.Measure != null)
                                                 {
@@ -2481,6 +2481,28 @@
             color: #ffffff;
         }
 
+    #ingredientConfigDock .form-control,
+    #ingredientConfigDock .form-select {
+        min-height: 40px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.22);
+        color: #fff;
+        border-radius: 12px;
+    }
+        #ingredientConfigDock .form-control::placeholder {
+            color: rgba(255,255,255,0.65);
+        }
+        #ingredientConfigDock .form-control:focus,
+        #ingredientConfigDock .form-select:focus {
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(255,255,255,0.42);
+            color: #fff;
+            box-shadow: 0 0 0 0.15rem rgba(141,99,255,0.2);
+        }
+        #ingredientConfigDock .form-select option {
+            background: #182235;
+            color: #fff;
+        }
 </style>
 
 
@@ -2488,13 +2510,13 @@
 <div id="ingredientConfigDock" role="dialog" aria-labelledby="ingredientConfigTitle">
     <div class="d-flex align-items-center gap-2 mb-2">
         <div class="fw-bold text-white small" id="ingredientConfigTitle"></div>
-        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50" aria-label="Schließen">
+        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50 d-none" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
     <div class="d-flex gap-2 align-items-center mb-2">
-        <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm" placeholder="0" />
-        <select id="ingredientConfigUnit" class="form-select form-select-sm"></select>
+        <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm" placeholder="1" value="1" style="background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;" />
+        <select id="ingredientConfigUnit" class="form-select form-select-sm" style="background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important;"></select>
         <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3">
             <i class="bi bi-check-lg"></i>
         </button>
@@ -2509,6 +2531,40 @@
         <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" aria-label="Schließen">
             <i class="bi bi-x-lg"></i>
         </button>
+    </div>
+    <div id="probVarIngredientArea" class="d-none">
+        <div class="small text-white-50 mb-2">Zutaten</div>
+        <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
+        <div class="small text-white-50 mt-3 mb-2">Artikel</div>
+        <div id="probVarIngredientArticleChips" class="d-flex flex-wrap gap-2"></div>
+    </div>
+    <div id="probVarDurationArea" class="d-none">
+        <div class="small text-white-50 mb-2">Dauer</div>
+        <div class="d-flex gap-2">
+            <input type="number" min="1" step="1" id="probVarDurationVal" class="form-control" value="5" style="background:#fff;color:#212529;" />
+            <select id="probVarDurationUnit" class="form-select" style="background:#fff;color:#212529;">
+                <option value="minute">Minuten</option>
+                <option value="hour">Stunden</option>
+            </select>
+        </div>
+    </div>
+    <div id="probVarCountArea" class="d-none">
+        <div class="small text-white-50 mb-2">Anzahl</div>
+        <input type="number" min="1" step="1" id="probVarCountVal" class="form-control" value="1" style="background:#fff;color:#212529;" />
+    </div>
+    <div id="probVarTempArea" class="d-none">
+        <div class="small text-white-50 mb-2">Temperatur</div>
+        <div class="d-flex gap-2">
+            <input type="number" min="1" step="1" id="probVarTempVal" class="form-control" value="180" style="background:#fff;color:#212529;" />
+            <select id="probVarTempUnit" class="form-select" style="background:#fff;color:#212529;">
+                <option value="celsius">°C</option>
+                <option value="fahrenheit">°F</option>
+            </select>
+        </div>
+    </div>
+    <div id="probVarTextArea" class="d-none">
+        <div class="small text-white-50 mb-2">Wert</div>
+        <input type="text" id="probVarTextVal" class="form-control" style="background:#fff;color:#212529;" />
     </div>
     <div id="probVarOptionsArea" class="d-none">
         <div id="probVarOptionChips" class="d-flex flex-wrap gap-2"></div>
@@ -2530,7 +2586,7 @@
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })"
         };
     </script>
-    <script src="~/js/create-posting-probability.js"></script>
+    <script src="~/js/create-posting-probability.js" asp-append-version="true"></script>
     <script src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-publish-checklist.js"></script>
 }

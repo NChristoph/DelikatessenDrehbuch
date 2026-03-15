@@ -1,4 +1,4 @@
-﻿// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
+// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
             return false;
@@ -2144,78 +2144,52 @@
                 ingredientName = (getSelectedIngredientValueForInsert() || '').toString().trim();
             }
             const payload = {
-                de: rendered.de,
-                en: rendered.en,
-                esp: rendered.esp,
-                prt: rendered.prt,
+                de: rendered.de || rendered.en || '',
+                en: rendered.en || rendered.de || '',
+                esp: rendered.esp || rendered.de || rendered.en || '',
+                prt: rendered.prt || rendered.de || rendered.en || '',
                 phase: parseInt(template.phase || 0, 10),
                 equipment: parseInt(template.equipment || 0, 10)
             };
 
-            try {
-                const userHash = getCurrentUserHashForRequests();
-                const url = userHash ? `${upsertStepUrl}?userHash=${encodeURIComponent(userHash)}` : upsertStepUrl;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+            if (!payload.de || !payload.en) {
+                const fallbackRenderedText = rendered[currentLang] || rendered.de || rendered.en || template?.templates?.de || template?.templates?.en || '';
+                payload.de = payload.de || fallbackRenderedText;
+                payload.en = payload.en || fallbackRenderedText;
+                payload.esp = payload.esp || fallbackRenderedText;
+                payload.prt = payload.prt || fallbackRenderedText;
+            }
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Upsert fehlgeschlagen');
-                }
+            if (!payload.de || !payload.en) {
+                console.warn('Step-Render lieferte keine DE/EN-Texte', { templateId, vars, rendered, payload });
+                return;
+            }
 
-                const result = await response.json();
-                const newId = result?.id;
-                if (!newId) {
-                    throw new Error('Keine Step-ID erhalten');
-                }
+            const localStepId = createFallbackStepId();
+            getAllStepRows().push({
+                id: localStepId,
+                de: payload.de,
+                en: payload.en,
+                esp: payload.esp,
+                prt: payload.prt,
+                phase: payload.phase,
+                equipment: payload.equipment
+            });
 
-                const alreadyExists = getAllStepRows().some(x => x && x.id?.toString() === newId.toString());
-                if (!alreadyExists) {
-                    getAllStepRows().push({
-                        id: newId,
-                        de: rendered.de,
-                        en: rendered.en,
-                        esp: rendered.esp,
-                        prt: rendered.prt,
-                        phase: payload.phase,
-                        equipment: payload.equipment
-                    });
-                }
-
-                addStep(newId.toString(), null, rendered[currentLang] || rendered.de || `Schritt ${newId}`, { skipRender: true, ingredientName, masterTemplateId: templateId });
-                updateStepIndices();
-            } catch (error) {
-                console.warn('Master-Step Upsert nicht mÃ¶glich, nutze lokalen Fallback-Step', error);
-
-                const fallbackId = createFallbackStepId();
-                getAllStepRows().push({
-                    id: fallbackId,
-                    de: rendered.de,
-                    en: rendered.en,
-                    esp: rendered.esp,
-                    prt: rendered.prt,
+            addStep(localStepId, null, rendered[currentLang] || payload.de || 'Neuer Schritt', {
+                skipRender: true,
+                ingredientName,
+                masterTemplateId: templateId,
+                stepData: {
+                    de: payload.de,
+                    en: payload.en,
+                    esp: payload.esp,
+                    prt: payload.prt,
                     phase: payload.phase,
                     equipment: payload.equipment
-                });
-
-                addStep(fallbackId, null, rendered[currentLang] || rendered.de || 'Neuer Schritt', {
-                    skipRender: true,
-                    ingredientName,
-                    masterTemplateId: templateId,
-                    stepData: {
-                        de: rendered.de,
-                        en: rendered.en,
-                        esp: rendered.esp,
-                        prt: rendered.prt,
-                        phase: payload.phase,
-                        equipment: payload.equipment
-                    }
-                });
-                updateStepIndices();
-            }
+                }
+            });
+            updateStepIndices();
         }
 
         function normalizeSearchText(value) {
@@ -2339,7 +2313,6 @@
                 const rows = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`);
                 const targetRow = rows.last();
                 if (targetRow.length) {
-                    targetRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetRow.addClass('preview-animate');
                     setTimeout(() => targetRow.removeClass('preview-animate'), 350);
                 }

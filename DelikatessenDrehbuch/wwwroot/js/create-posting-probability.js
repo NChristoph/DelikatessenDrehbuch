@@ -1,7 +1,6 @@
 (function (window, $) {
     'use strict';
 
-    const SWIPE_THRESHOLD = 70;
 
     const UI_TEXT = {
         selectIngredients: 'Waehle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
@@ -58,11 +57,14 @@
         const inlineText = buildInlineTemplateText(masterId, template, lang, vars);
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <div class="probability-template-card w-100 text-start" style="touch-action: pan-y;">
+  <div class="probability-template-card w-100 text-start">
     <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
       <span class="probability-template-text">${inlineText || safeText}</span>
     </div>
-    <div class="small text-white-50 mt-2">&larr; Akzeptieren · Loeschen &rarr;</div>
+    <div class="probability-template-actions d-flex gap-2 mt-3 align-items-center flex-wrap">
+      <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
+      <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Loeschen</button>
+    </div>
   </div>
 </div>`;
     }
@@ -201,55 +203,24 @@
                 }
             });
 
-            $(document).off('pointerdown.probabilitySwipe').on('pointerdown.probabilitySwipe', '.probability-template-card', function (event) {
-                if ($(event.target).closest('.js-probability-var').length) return;
-                const card = $(this);
-                card.data('swipe', { pointerId: event.pointerId, startX: event.clientX, moved: false });
-                card.css('transition', 'none');
+            $(document).off('click.probabilityAccept').on('click.probabilityAccept', '.js-probability-accept', async function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const button = $(this);
+                const wrap = button.closest('.probability-template-wrap');
+                const masterId = (button.data('master-id') || wrap.data('master-id') || '').toString();
+                if (!masterId || !deps.onAcceptTemplateStep) return;
+                await deps.onAcceptTemplateStep(masterId, getMergedVars(masterId));
             });
 
-            $(document).off('pointermove.probabilitySwipe').on('pointermove.probabilitySwipe', '.probability-template-card', function (event) {
-                const card = $(this);
-                const swipe = card.data('swipe');
-                if (!swipe || swipe.pointerId !== event.pointerId) return;
-
-                const dx = event.clientX - swipe.startX;
-                if (Math.abs(dx) > 6) swipe.moved = true;
-                if (!swipe.moved) return;
-
-                const clamped = Math.max(-96, Math.min(96, dx));
-                card.css('transform', `translateX(${clamped}px)`);
-            });
-
-            $(document).off('pointerup.probabilitySwipe pointercancel.probabilitySwipe').on('pointerup.probabilitySwipe pointercancel.probabilitySwipe', '.probability-template-card', async function (event) {
-                const card = $(this);
-                const swipe = card.data('swipe');
-                if (!swipe || swipe.pointerId !== event.pointerId) return;
-
-                const dx = event.clientX - swipe.startX;
-                const wrap = card.closest('.probability-template-wrap');
-                const masterId = (wrap.data('master-id') || '').toString();
-
-                card.css('transition', 'transform .18s ease');
-                card.css('transform', 'translateX(0)');
-                setTimeout(() => card.css('transition', ''), 200);
-                card.removeData('swipe');
-
-                if (!masterId || !swipe.moved) return;
-
-                if (dx <= -SWIPE_THRESHOLD && deps.onAcceptTemplateStep) {
-                    wrap.data('swipeJustHandled', Date.now());
-                    await deps.onAcceptTemplateStep(masterId, getMergedVars(masterId));
-                    return;
-                }
-
-                if (dx >= SWIPE_THRESHOLD) {
-                    wrap.data('swipeJustHandled', Date.now());
-                    wrap.slideUp(140, function () { $(this).remove(); });
-                }
+            $(document).off('click.probabilityDismiss').on('click.probabilityDismiss', '.js-probability-dismiss', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const wrap = $(this).closest('.probability-template-wrap');
+                if (!wrap.length) return;
+                wrap.slideUp(140, function () { $(this).remove(); });
             });
         }
-
         async function refresh() {
             const container = $('#ingredientProbabilityBadges');
             const templatesBox = $('#ingredientProbabilityTemplates');

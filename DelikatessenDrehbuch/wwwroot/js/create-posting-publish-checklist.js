@@ -94,6 +94,8 @@
         const topbar = document.querySelector(".creator-topbar");
         const shell = document.querySelector(".feed-shell");
         const topbarProgress = document.getElementById("creatorTopbarProgress");
+        const publishButtons = Array.from(document.querySelectorAll('button[type="submit"][form="recipeForm"], #recipeForm button[type="submit"]'));
+        const requiredCompletedSteps = 4;
 
         if (!form || !topbar || !shell || !topbarProgress || document.querySelector(".creator-checklist-toolbar")) {
             return;
@@ -208,11 +210,17 @@
         function updateChecklist() {
             const state = buildChecklistState();
             const completedCount = Object.values(state).filter(Boolean).length;
-            const isReady = completedCount === 5;
+            const isReady = completedCount >= requiredCompletedSteps;
 
             checklistItems.forEach(item => {
                 const key = item.dataset.checkKey;
                 item.classList.toggle("is-done", !!state[key]);
+            });
+
+            publishButtons.forEach(button => {
+                button.disabled = !isReady;
+                button.setAttribute("aria-disabled", isReady ? "false" : "true");
+                button.title = isReady ? "" : `Mindestens ${requiredCompletedSteps} von 5 Schritten abschliessen`;
             });
 
             topbarProgress.innerHTML = isReady ? "Ready to publish" : `${completedCount}/5 bereit`;
@@ -244,6 +252,15 @@
 
         window.addEventListener("scroll", updateActiveSection, { passive: true });
         window.addEventListener("resize", updateActiveSection);
+        form.addEventListener("submit", function (event) {
+            const completedCount = Object.values(buildChecklistState()).filter(Boolean).length;
+            if (completedCount >= requiredCompletedSteps) {
+                return;
+            }
+
+            event.preventDefault();
+            updateChecklist();
+        });
 
         updateActiveSection();
         updateChecklist();

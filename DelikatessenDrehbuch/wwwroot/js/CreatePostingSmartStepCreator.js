@@ -151,7 +151,10 @@
               class="placeholder-reset"
               data-token-id="${escapeHtml(tokenId)}"
               data-var="${escapeHtml(varName)}"
-              title="Zurücksetzen">?</button>
+              title="Zurücksetzen"
+              aria-label="Zurücksetzen">
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+      </button>
     `;
         });
     }
