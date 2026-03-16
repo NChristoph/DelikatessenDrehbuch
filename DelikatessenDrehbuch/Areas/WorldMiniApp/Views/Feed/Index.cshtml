@@ -1091,14 +1091,14 @@
                     {
                         <div class="marketplace-empty">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "Aún no hay ofertas.", "Ainda sem ofertas.")</div>
+                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "AÃºn no hay ofertas.", "Ainda sem ofertas.")</div>
                         </div>
                     }
                     else
                     {
                         <div id="marketplaceFilteredEmpty" class="marketplace-empty" style="display:none;">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador não tem ofertas no momento.")</div>
+                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador nÃ£o tem ofertas no momento.")</div>
                         </div>
                         @foreach (var card in creatorShopCards)
                         {
@@ -1146,7 +1146,7 @@
                         <div id="pendingRecipeCard" class="pending-recipe">
                             <div class="pending-media" id="pendingRecipeMedia"></div>
                             <div class="pending-info">
-                                <div class="pending-label">Wird hinzugefügt</div>
+                                <div class="pending-label">Wird hinzugefÃ¼gt</div>
                                 <div class="pending-title" id="pendingRecipeTitle"></div>
                             </div>
                         </div>
@@ -1154,7 +1154,7 @@
                             <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>Nährwerte gesamt</span>
+                                    <span>NÃ¤hrwerte gesamt</span>
                                 </span>
                                 <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
                             </button>
@@ -1162,42 +1162,42 @@
                                 <div class="plan-nutrition-grid">
                                     <div class="plan-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCalories">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionCalories">â€”</div>
                                         <div class="plan-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="plan-nutrition-value" id="planNutritionProtein">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionProtein">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFat">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCarbs">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionCarbs">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSugar">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionSugar">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFiber">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionFiber">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">—</div>
+                                        <span>GesÃ¤ttigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSalt">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionSalt">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                 </div>
@@ -1240,7 +1240,7 @@
                     </div>
 
                     <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
-                        Dein aktueller Plan für die Woche
+                        Dein aktueller Plan fÃ¼r die Woche
                     </div>
 
                     <div id="planContainer"></div>
@@ -1287,15 +1287,15 @@
                         <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
                         <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
                         <div class="mb-3">
-                            <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
+                            <label class="form-label">@T("Suchbegriff", "Search term", "TÃ©rmino de bÃºsqueda", "Termo de pesquisa")</label>
                             <input type="text" name="searchTerm" class="form-control"
                                    placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
+                            <label class="form-label">@T("Kategorie", "Category", "CategorÃ­a", "Categoria")</label>
                             <select name="category" class="form-select">
-                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
+                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorÃ­as", "Todas as categorias")</option>
                                 <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
                                 <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
                                 <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
@@ -1622,7 +1622,7 @@
                             <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>Tages-Nährwerte</span>
+                                    <span>Tages-NÃ¤hrwerte</span>
                                 </span>
                                 <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
                             </button>
@@ -1630,42 +1630,42 @@
                                 <div class="day-nutrition-grid">
                                     <div class="day-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">—</div>
+                                        <span>GesÃ¤ttigt</span>
+                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                 </div>
@@ -1696,7 +1696,7 @@
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) modalInstance.hide();
-            alert('Wähle jetzt im Feed ein Rezept zum Ersetzen.');
+            alert('WÃ¤hle jetzt im Feed ein Rezept zum Ersetzen.');
         }
 
         function buildMealPlanPayload() {
@@ -1733,7 +1733,7 @@
             if (!userHash) { alert("Bitte erst einloggen!"); return; }
 
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswÃ¤hlen."); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -1745,7 +1745,7 @@
 
         async function shareWeeklyPlan() {
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswÃ¤hlen."); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -1784,7 +1784,7 @@
                     if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
                     else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); alert("Link kopiert!"); }
                 } catch (shareError) {
-                    console.warn("Teilen nicht verfügbar:", shareError);
+                    console.warn("Teilen nicht verfÃ¼gbar:", shareError);
                 }
             } catch (error) {
                 console.error("Teilen fehlgeschlagen:", error);
@@ -1880,7 +1880,7 @@
         async function prepareShoppingList() {
             const payload = buildMealPlanPayload();
             const recipeIds = getPlanRecipeIds(payload);
-            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept auswÃ¤hlen."); return; }
 
             const personCountInput = document.getElementById('planPersonCount');
             const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
@@ -1926,7 +1926,7 @@
         }
 
         function formatNutritionValue(value, decimals) {
-            if (!Number.isFinite(value)) return '—';
+            if (!Number.isFinite(value)) return 'â€”';
             return value.toLocaleString('de-DE', {
                 minimumFractionDigits: decimals,
                 maximumFractionDigits: decimals
@@ -2038,7 +2038,7 @@
                     return;
                 }
 
-                if (statusEl) statusEl.textContent = 'Lädt...';
+                if (statusEl) statusEl.textContent = 'LÃ¤dt...';
 
                 const params = new URLSearchParams(paramsBase);
                 recipeIds.forEach(id => params.append('recipeIds', id));
@@ -2050,7 +2050,7 @@
                     setDayNutritionTotals(dayIndex, data);
                     if (statusEl) statusEl.textContent = 'Aktuell';
                 } catch (error) {
-                    console.error("Tagesnährwerte konnten nicht geladen werden.", error);
+                    console.error("TagesnÃ¤hrwerte konnten nicht geladen werden.", error);
                     setDayNutritionTotals(dayIndex, null);
                     if (statusEl) statusEl.textContent = 'Fehler';
                 }
@@ -2069,7 +2069,7 @@
                 return;
             }
 
-            if (statusEl) statusEl.textContent = 'Lädt...';
+            if (statusEl) statusEl.textContent = 'LÃ¤dt...';
 
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
@@ -2082,7 +2082,7 @@
                 setNutritionTotals(data);
                 if (statusEl) statusEl.textContent = 'Aktuell';
             } catch (error) {
-                console.error("Nährwerte konnten nicht geladen werden.", error);
+                console.error("NÃ¤hrwerte konnten nicht geladen werden.", error);
                 setNutritionTotals(null);
                 if (statusEl) statusEl.textContent = 'Fehler';
             }
@@ -2090,7 +2090,7 @@
 
         function generateShareLink() {
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
-            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einfügen."); return; }
+            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einfÃ¼gen."); return; }
 
             const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
             document.getElementById('shoppingShareLink').value = shareLink;
@@ -2532,7 +2532,7 @@
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
             if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
-            if (!sellerWallet) { alert('Verkäufer-Wallet fehlt.'); return; }
+            if (!sellerWallet) { alert('VerkÃ¤ufer-Wallet fehlt.'); return; }
             const token = feedSelectedPaymentToken;
             const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
             if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
@@ -2551,7 +2551,7 @@
                     alert(data.error || 'Kauf konnte nicht finalisiert werden.');
                     return;
                 }
-                alert('Kein Zahlungsweg verfügbar.');
+                alert('Kein Zahlungsweg verfÃ¼gbar.');
             } catch (e) {
                 alert(e?.message || 'Kauf fehlgeschlagen.');
             }
@@ -2569,24 +2569,24 @@
             try {
                 const resp = await fetch(`/WorldMiniApp/Marketplace/GetListingPreview?listingId=${listingId}`);
                 const data = await resp.json();
-                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfügbar.</p>'; return; }
+                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfÃ¼gbar.</p>'; return; }
                 if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
                 let html = '';
                 if (data.description) {
                     html += `<p class="small mb-2">${data.description}</p>`;
                 }
                 if (data.nutrition) {
-                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} · Protein: ${data.nutrition.protein}g · Fett: ${data.nutrition.fat}g · KH: ${data.nutrition.carbs}g</p>`;
+                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} Â· Protein: ${data.nutrition.protein}g Â· Fett: ${data.nutrition.fat}g Â· KH: ${data.nutrition.carbs}g</p>`;
                 }
                 if (data.days?.length) {
                     data.days.forEach(day => {
                         html += `<div class="fw-bold mt-2">Tag ${day.day}</div>`;
                         (day.recipes || []).forEach(r => {
-                            html += `<div class="small opacity-75">• ${r.title}</div>`;
+                            html += `<div class="small opacity-75">â€¢ ${r.title}</div>`;
                         });
                     });
                 }
-                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfügbar.</p>';
+                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfÃ¼gbar.</p>';
             } catch (e) {
                 bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
             }
