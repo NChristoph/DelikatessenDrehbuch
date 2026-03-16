@@ -1,4 +1,4 @@
-// master-steps-ui.js
+ï»¿// master-steps-ui.js
 // Erwartet:
 // - /data/master_steps.json (wwwroot/data/master_steps.json)
 // - <div id="insertContainer"></div>  (Liste der Step-Buttons)
@@ -65,7 +65,7 @@
     // -----------------------------
     // OPTION LOOKUP (NUR JSON!)
     // -----------------------------
-    // liefert Liste von Optionen für eine Variable (Buttons)
+    // liefert Liste von Optionen fï¿½r eine Variable (Buttons)
     function getVarOptions(varName) {
         if (!doc) return [];
 
@@ -123,22 +123,80 @@
     // -----------------------------
     // TEMPLATE RENDER (klickbare Tokens)
     // -----------------------------
-    function renderTemplate(templateRaw, stepId, values) {
-        if (!templateRaw) return "";
-        values = values || {};
+        function getTemplateVariables(templateFragment) {
+        const found = [];
+        (templateFragment || "").replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
+            const varName = (varRaw ?? "").trim();
+            if (varName && !found.includes(varName)) found.push(varName);
+            return _m;
+        });
+        return found;
+    }
 
+    function resolveOptionalTemplateSegments(templateRaw, values) {
+        let output = (templateRaw || "").toString();
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        let previous = null;
+
+        while (output !== previous) {
+            previous = output;
+            output = output.replace(optionalPattern, (_match, parenInner, bracketInner) => {
+                const inner = (parenInner ?? bracketInner ?? "").toString();
+                const varsInGroup = getTemplateVariables(inner);
+                if (!varsInGroup.length) return inner;
+
+                const hasAnyValue = varsInGroup.some(varName => ((values?.[varName] ?? "").toString().trim().length > 0));
+                return hasAnyValue ? inner : "";
+            });
+        }
+
+        return output;
+    }
+
+    function buildOptionalSegmentButtons(templateRaw, stepId, values) {
+        const source = (templateRaw || "").toString();
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        const seen = new Set();
+        const buttons = [];
+        let match;
+
+        while ((match = optionalPattern.exec(source)) !== null) {
+            const inner = (match[1] ?? match[2] ?? "").toString();
+            const varsInGroup = getTemplateVariables(inner);
+            if (!varsInGroup.length) continue;
+
+            const hasAnyValue = varsInGroup.some(varName => ((values?.[varName] ?? "").toString().trim().length > 0));
+            if (hasAnyValue) continue;
+
+            const firstVar = varsInGroup[0];
+            const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
+            if (seen.has(dedupeKey)) continue;
+            seen.add(dedupeKey);
+
+            const label = varsInGroup.join(" / ");
+            const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
+            buttons.push(`
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary js-optional-var-add"
+                data-optional-var="${escapeHtml(firstVar)}"
+                data-token-id="${escapeHtml(tokenId)}">
+          + ${escapeHtml(label)}
+        </button>
+      `);
+        }
+
+        return buttons.join("");
+    }
+
+    function renderTemplateTokens(templateRaw, stepId, values) {
         let index = 0;
 
-        return templateRaw.replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
+        return (templateRaw || "").replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
             const varName = (varRaw ?? "").trim();
             const tokenId = `${stepId}_${varName}_${index++}`;
             const val = (values[varName] ?? "").toString();
-
-            // Anzeige: wenn gesetzt -> Wert anzeigen, sonst Variablenname
             const display = val.trim().length > 0 ? val : varName;
 
-            // Token bleibt IMMER klickbar + gelb highlight
-            // Reset bleibt IMMER daneben (damit man schnell auf Default zurück kann)
             return `
       <span class="token-highlight placeholder-token template-var"
             draggable="false"
@@ -151,12 +209,19 @@
               class="placeholder-reset"
               data-token-id="${escapeHtml(tokenId)}"
               data-var="${escapeHtml(varName)}"
-              title="Zurücksetzen"
-              aria-label="Zurücksetzen">
+              title="ZurÃ¼cksetzen"
+              aria-label="ZurÃ¼cksetzen">
         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
       </button>
     `;
         });
+    }
+
+    function renderTemplate(templateRaw, stepId, values) {
+        if (!templateRaw) return "";
+        values = values || {};
+        const resolvedTemplate = resolveOptionalTemplateSegments(templateRaw, values);
+        return renderTemplateTokens(resolvedTemplate, stepId, values);
     }
 
     // -----------------------------
@@ -200,7 +265,7 @@
         for (const [phaseKey, phaseSteps] of byPhase.entries()) {
             const meta = getPhaseMeta(phaseKey);
 
-            // Header für Phase
+            // Header fï¿½r Phase
             container.insertAdjacentHTML("beforeend", `
                                           <div class="phase-header mt-3 mb-2">
                                             <div class="d-flex align-items-center gap-2">
@@ -238,18 +303,19 @@
     // -----------------------------
     // RENDER: MasterText (aktueller Step + Editor Slot)
     // -----------------------------
-    function renderMasterText() {
+        function renderMasterText() {
         const target = masterText();
         if (!target) return;
 
         if (!activeStep) {
-            target.innerHTML = "Wähle eine Template.";
+            target.innerHTML = "WÃ¤hle eine Template.";
             return;
         }
 
         const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
+        const optionalButtons = buildOptionalSegmentButtons(activeStep.templateRaw, activeStep.master_id, activeStep.values);
 
-        // Editor placeholder (wird beim Token-Klick gefüllt)
+        // Editor placeholder (wird beim Token-Klick gefÃ¼llt)
         target.innerHTML = `
       <div class="current-step-wrap">
         <div class="current-step-header d-flex justify-content-between align-items-center">
@@ -260,6 +326,8 @@
         <div class="preview-step-text mt-2" id="CurrentStepText">
           ${rendered}
         </div>
+
+        ${optionalButtons ? `<div class="d-flex flex-wrap gap-2 mt-3" id="OptionalVarButtons">${optionalButtons}</div>` : ""}
 
         <div class="mt-3" id="InlineVarEditorHost"></div>
       </div>
@@ -360,7 +428,7 @@
             const specialBlockCompact = renderSpecialEditor(varName, currentVal);
             host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1">Wert fï¿½r <strong>${escapeHtml(varName)}</strong></div>
         ${specialBlockCompact}
       </div>
     `;
@@ -387,12 +455,12 @@
             }).join("")
             : renderPillButtons(options, "value", currentVal);
 
-        // Spezial UI für duration/temp
+        // Spezial UI fï¿½r duration/temp
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
         host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1">Wert fï¿½r <strong>${escapeHtml(varName)}</strong></div>
 
         ${specialBlock}
 
@@ -413,13 +481,13 @@
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
-            ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
+            ? `<div class="text-muted small">Keine Zutaten ausgewï¿½hlt.</div>`
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schlieï¿½en</button>
         </div>
       </div>
     `;
@@ -427,7 +495,7 @@
         // preset selected article/value state
         host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
         host.dataset.selectedPronoun = "";
-        host.dataset.selectedValue = "";   // gewählter Wert
+        host.dataset.selectedValue = "";   // gewï¿½hlter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
 
@@ -437,7 +505,7 @@
         return list.map(val => {
             const v = (val ?? "").toString();
             const isActive = currentVal && v === currentVal;
-            // Style: wie dein "Einsetzen"-Button Look -> machst du über CSS Klasse "pill-like"
+            // Style: wie dein "Einsetzen"-Button Look -> machst du ï¿½ber CSS Klasse "pill-like"
             return `
         <button type="button"
                 class="btn btn-sm btn-outline-light pill-like ${isActive ? "active" : ""}"
@@ -468,7 +536,7 @@
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "10")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schlieï¿½en</button>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-2">
@@ -477,7 +545,7 @@
       `;
         }
 
-        // temp -> Input + Unit (°C/°F) (du wolltest dropdown)
+        // temp -> Input + Unit (ï¿½C/ï¿½F) (du wolltest dropdown)
         if (varName === "temp") {
             return `
         <div class="d-flex gap-2 align-items-center">
@@ -487,12 +555,12 @@
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "180")}" />
 
           <select id="TempUnitSelect" class="form-select form-select-sm" style="max-width:140px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important;">
-            <option value="°C">°C</option>
-            <option value="°F">°F</option>
+            <option value="ï¿½C">ï¿½C</option>
+            <option value="ï¿½F">ï¿½F</option>
           </select>
 
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schlieï¿½en</button>
         </div>
       `;
         }
@@ -506,7 +574,7 @@
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schlieï¿½en</button>
         </div>
       `;
         }
@@ -532,7 +600,7 @@
 
         const varName = activeToken.varName;
 
-        // Spezialfälle zuerst
+        // Spezialfï¿½lle zuerst
         if (varName === "duration") {
             const n = $("#DurationValueInput")?.value?.trim() || "";
             const unit = host.dataset.durationUnit || "minute";
@@ -546,7 +614,7 @@
 
         if (varName === "temp") {
             const n = $("#TempValueInput")?.value?.trim() || "";
-            const u = $("#TempUnitSelect")?.value || "°C";
+            const u = $("#TempUnitSelect")?.value || "ï¿½C";
             const composed = n ? `${n} ${u}` : "";
             if (composed) activeStep.values[varName] = composed;
             rerenderAfterValueSet();
@@ -598,7 +666,7 @@
         // Step-Text neu rendern (Tokens die gesetzt sind werden zu Text)
         renderMasterText();
 
-        // Editor schließen
+        // Editor schlieï¿½en
         closeInlineEditor();
     }
 
@@ -799,12 +867,22 @@
                 return;
             }
 
-            // Token in MasterText
+                        // Token in MasterText
             const token = e.target.closest(".template-var");
             if (token) {
                 if (!activeStep) return;
                 const varName = token.dataset.var || token.dataset.placeholderKey || token.dataset.var;
                 const tokenId = token.dataset.tokenId || token.dataset.placeholderTokenId || token.dataset.tokenId;
+                openInlineEditor(varName, tokenId);
+                return;
+            }
+
+            const optionalAdd = e.target.closest(".js-optional-var-add");
+            if (optionalAdd) {
+                if (!activeStep) return;
+                const varName = (optionalAdd.dataset.optionalVar || "").toString();
+                const tokenId = (optionalAdd.dataset.tokenId || uid("optional")).toString();
+                if (!varName) return;
                 openInlineEditor(varName, tokenId);
                 return;
             }
@@ -899,7 +977,7 @@
                 const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
                 const composed = n ? `${n} ${unitLabel}` : "";
 
-                // direkt übernehmen:
+                // direkt ï¿½bernehmen:
                 activeStep.values["duration"] = composed;
                 rerenderAfterValueSet();
                 return;
@@ -915,7 +993,7 @@
             // quick temp apply
             if (e.target.id === "BtnPickTempQuick") {
                 const n = $("#TempValueInput")?.value?.trim() || "";
-                const u = $("#TempUnitSelect")?.value || "°C";
+                const u = $("#TempUnitSelect")?.value || "ï¿½C";
                 const composed = n ? `${n} ${u}` : "";
 
                 activeStep.values["temp"] = composed;
@@ -932,7 +1010,7 @@
 
                 renderStepButtons();
 
-                // wenn aktiv, template neu holen, aber values behalten (du kannst später language-values bauen)
+                // wenn aktiv, template neu holen, aber values behalten (du kannst spï¿½ter language-values bauen)
                 if (activeStep) {
                     const step = steps.find(s => s.master_id === activeStep.master_id);
                     activeStep.templateRaw = step?.templates?.[currentLang] ?? "";
@@ -958,7 +1036,7 @@
         } catch (err) {
             console.error(err);
             const target = masterText();
-            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prüfen.";
+            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prï¿½fen.";
         }
     }
 
@@ -1011,7 +1089,7 @@
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
         if (!list.length) {
-            return '<span class="small text-white-50">Keine Zutaten ausgewählt</span>';
+            return '<span class="small text-white-50">Keine Zutaten ausgewï¿½hlt</span>';
         }
 
         return list.map(ing => {
@@ -1038,6 +1116,7 @@
         resolveIngredientInsertValue
     };
 })();
+
 
 
 

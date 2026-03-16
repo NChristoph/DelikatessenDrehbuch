@@ -1,4 +1,4 @@
-// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
+﻿// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
             return false;
@@ -2070,18 +2070,43 @@
             return normalized;
         }
 
+                function getTemplateVariablesForPersist(templateText) {
+            const found = [];
+            (templateText || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+                const normalizedKey = String(key || '').trim();
+                if (normalizedKey && !found.includes(normalizedKey)) found.push(normalizedKey);
+                return _;
+            });
+            return found;
+        }
+
+        function resolveOptionalTemplateSegmentsForPersist(templateText, vars) {
+            let output = (templateText || '').toString();
+            const optionalPattern = /\(([^()]*\{\{\s*[^}]+?\s*\}\}[^()]*)\)|\[([^\[\]]*\{\{\s*[^}]+?\s*\}\}[^\[\]]*)\]/g;
+            let previous = null;
+
+            while (output !== previous) {
+                previous = output;
+                output = output.replace(optionalPattern, function (_match, parenInner, bracketInner) {
+                    const inner = String(parenInner || bracketInner || '');
+                    const keys = getTemplateVariablesForPersist(inner);
+                    if (!keys.length) return inner;
+                    const hasAnyValue = keys.some(function (key) {
+                        return ((vars && vars[key] != null ? String(vars[key]) : '').trim().length > 0);
+                    });
+                    return hasAnyValue ? inner : ' ';
+                });
+            }
+
+            return output;
+        }
+
         function renderTemplateForPersist(template, lang, vars) {
             const langKey = (lang || 'de').toLowerCase();
             let tpl = template?.templates?.[langKey] || template?.templates?.de || template?.templates?.en || '';
             if (!tpl) return '';
 
-            Object.keys(vars || {}).forEach(function (key) {
-                const val = (vars[key] || '').toString().trim();
-                if (val) return;
-                const esc = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                tpl = tpl.replace(new RegExp(`\\([^)]*\\{\\{\\s*${esc}\\s*\\}\\}[^)]*\\)`, 'gi'), ' ');
-                tpl = tpl.replace(new RegExp(`\\[[^\\]]*\\{\\{\\s*${esc}\\s*\\}\\}[^\\]]*\\]`, 'gi'), ' ');
-            });
+            tpl = resolveOptionalTemplateSegmentsForPersist(tpl, vars || {});
 
             let rendered = tpl.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
                 const value = vars && vars[key] != null ? String(vars[key]).trim() : '';
@@ -4285,6 +4310,7 @@
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
+
 
 
 
