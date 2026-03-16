@@ -11,7 +11,6 @@
         style.textContent = `
             .creator-checklist-toolbar {
                 color: #172033;
-
                 position: sticky;
                 top: 74px;
                 z-index: 1450;

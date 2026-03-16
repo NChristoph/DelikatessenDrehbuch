@@ -199,7 +199,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var model = new WorldUserPosting()
             {
-                ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
+                ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.Include(x => x.Group).ToListAsync(),
                 Measure = await _context.Metrics.ToListAsync(),
                 ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };

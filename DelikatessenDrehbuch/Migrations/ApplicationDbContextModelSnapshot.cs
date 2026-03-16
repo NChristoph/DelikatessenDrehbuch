@@ -449,6 +449,9 @@ namespace DelikatessenDrehbuch.Migrations
                     b.Property<int?>("GroupId")
                         .HasColumnType("int");
 
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("nvarchar(max)");
                     b.Property<string>("Name_DE")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

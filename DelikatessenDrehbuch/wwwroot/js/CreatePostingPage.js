@@ -127,7 +127,7 @@
             const target = $(row);
             if (!target.length) return;
             activeIngredientConfigRow = target;
-            const name = (target.find('.display-name-selected').first().text() || '').trim();
+            const name = (target.find('.ingredient-name-text').first().text() || '').trim();
             const qty = (target.find('.ingredient-qty-hidden').val() || '0').toString();
             const unitDe = (target.find('.ingredient-unit-hidden').val() || '').toString();
             $('#ingredientConfigTitle').text(name || 'Zutat');
@@ -394,7 +394,7 @@
             const fromSelected = $('#selectedIngredients .ingredient-row').map(function () {
                 const row = $(this);
                 const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
-                const name = row.find('.display-name-selected').text()?.trim() || '';
+                const name = row.find('.ingredient-name-text').text()?.trim() || '';
                 const genusByLang = {
                     de: (row.data('genus-de') || '').toString().trim(),
                     en: (row.data('genus-en') || '').toString().trim(),
@@ -412,7 +412,8 @@
                     name,
                     genusDe: genusByLang.de || '',
                     genusLocalized: genusByLang[currentLang] || '',
-                    genusByLang
+                    genusByLang,
+                    iconHtml: (row.data('group-icon') || '').toString()
                 };
             }).get().filter(x => x.id || x.name);
 
@@ -422,7 +423,8 @@
                     name: x.name || 'Zutat',
                     genusDe: x.genusDe || '',
                     genusLocalized: x.genusLocalized || '',
-                    genusByLang: x.genusByLang || {}
+                    genusByLang: x.genusByLang || {},
+                    iconHtml: x.iconHtml || ''
                 }));
             }
             return [];
@@ -641,16 +643,7 @@
 
         const upsertStepUrl = window.CreatePostingPageConfig?.upsertStepUrl || '/WorldMiniApp/Home/UpsertStep';
 
-        function getIngredientEmoji(name) {
-            const text = (name || '').toLowerCase();
-            if (text.includes('basil')) return '&#127807;';
-            if (text.includes('tomat')) return '&#127813;';
-            if (text.includes('zwiebel')) return '&#129477;';
-            if (text.includes('knoblauch')) return '&#129476;';
-            if (text.includes('reis')) return '&#127834;';
-            if (text.includes('salat')) return '&#129367;';
-            return '&#127860;';
-        }
+
 
         function resolveGrammarForIngredient(ingredientName, genusByLang = {}, langKey = 'de') {
             const lang = resolveLangKey(langKey || currentLang || 'de');
@@ -1968,13 +1961,13 @@
 
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
-                const emoji = getIngredientEmoji(item.name);
                 const displayName = (item.name || '').toString();
-                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${displayName}">${emoji} ${displayName}</button>`;
+                const iconHtml = (item.iconHtml || '').toString();
+                const chipLabel = `${iconHtml ? `${iconHtml} ` : ''}${displayName}`;
+                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`;
                 wrap.append(chipHtml);
                 stepsWrap.append(chipHtml);
             });
-
             updatePreviewText();
             renderSc2IngredientChips();
         }
@@ -2337,11 +2330,11 @@
             $('.label-lang').each(function () { $(this).text($(this).data(langKey)); });
             $('.lang-ph').each(function () { $(this).attr('placeholder', $(this).data('ph-' + langKey)); });
             $('.lang-opt').each(function () { $(this).text($(this).data('txt-' + langKey)); });
-            $('.ingredient-db-row').each(function () { $(this).find('.display-name').text($(this).data('name-' + langKey)); });
+            $('.ingredient-db-row').each(function () { $(this).find('.ingredient-name-text').text($(this).data('name-' + langKey)); });
             $('#selectedIngredients .ingredient-row').each(function () {
                 const row = $(this);
-                const n = row.data('name-' + langKey) || row.data('name-de') || row.find('.display-name-selected').text();
-                row.find('.display-name-selected').text(n);
+                const n = row.data('name-' + langKey) || row.data('name-de') || row.find('.ingredient-name-text').text();
+                row.find('.ingredient-name-text').text(n);
                 const qty = (row.find('.ingredient-qty-hidden').val() || '').toString();
                 const unitDe = (row.find('.ingredient-unit-hidden').val() || '').toString();
                 const unitObj = findUnitByDe(unitDe);
@@ -2428,15 +2421,15 @@
             ).join(' ');
         }
 
-        function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName }) {
+        function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName, iconHtml }) {
             return `
-            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" ${buildIngredientDataAttributes(localizedData)}>
+            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" data-group-icon="${escapeAttr(iconHtml)}" ${buildIngredientDataAttributes(localizedData)}>
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metriks_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
 
                 <div class="ingredient-row-main">
-                    <div class="fw-bold display-name-selected">${escapeAttr(displayName)}</div>
+                    <div class="fw-bold display-name-selected d-flex align-items-center gap-2"><span class="ingredient-group-icon">${iconHtml}</span><span class="ingredient-name-text">${escapeAttr(displayName)}</span></div>
                 </div>
 
                 <div class="ingredient-row-right">
@@ -2460,6 +2453,7 @@
             const row = $(rowElement).closest('.ingredient-db-row');
             const displayName = row.data('name-' + currentLang) || row.data('name-de');
             const localizedData = getLocalizedIngredientData(row, displayName);
+            const iconHtml = (row.data('group-icon') || '').toString();
             const selectedQuantity = normalizeDecimalInputValue(row.attr('data-selected-qty')) || '0';
             const fallbackUnit = (window.IngredientManager && typeof window.IngredientManager.getDefaultUnitDe === 'function')
                 ? window.IngredientManager.getDefaultUnitDe()
@@ -2474,7 +2468,8 @@
                 selectedQuantity,
                 selectedUnit,
                 selectedUnitLabel,
-                displayName
+                displayName,
+                iconHtml
             });
 
             $('#selectedIngredients').append(newIngredient);
@@ -2976,12 +2971,12 @@
             creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
-                const emoji = getIngredientEmoji(item.name);
                 const displayName = (item.name || '').toString();
-                wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${emoji} ${displayName}</button>`);
+                const iconHtml = (item.iconHtml || '').toString();
+                const chipLabel = `${iconHtml ? `${iconHtml} ` : ''}${displayName}`;
+                wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`);
             });
         }
-
         function renderSc2TemplateCards() {
             const box = $('#sc2MasterTemplateCards');
             if (!box.length) return;
@@ -4290,6 +4285,9 @@
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
+
+
+
 
 
 

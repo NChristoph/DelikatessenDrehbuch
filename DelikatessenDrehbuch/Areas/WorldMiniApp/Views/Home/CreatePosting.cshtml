@@ -249,12 +249,13 @@
                                      data-name-de="@item.Name_DE"
                                      data-name-en="@item.Name_EN"
                                      data-genus-de="@item.Genus_DE"
+                                     data-group-icon="@(item.Icon ?? item.Group?.Icon)"
                                      data-selected-qty="1"
                                      data-theme="gold"
                                      data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
 
                                     <div class="d-flex align-items-center gap-2 mb-1 ingredient-card-head" style="min-height:max-content">
-                                        <div class="preview-step-text display-name mb-0 flex-grow-1" style="min-height:max-content">@item.Name_DE</div>
+                                        <div class="preview-step-text display-name mb-0 flex-grow-1 d-flex align-items-center gap-2" style="min-height:max-content"><span class="ingredient-group-icon">@Html.Raw(item.Icon ?? item.Group?.Icon)</span><span class="ingredient-name-text">@item.Name_DE</span></div>
                                         <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" aria-label="Zutat hinzufügen">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
@@ -2590,5 +2591,7 @@
     <script src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-publish-checklist.js"></script>
 }
+
+
 
 

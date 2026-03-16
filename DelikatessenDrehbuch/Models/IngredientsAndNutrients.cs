@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DelikatessenDrehbuch.Models
 {
@@ -16,6 +16,7 @@ namespace DelikatessenDrehbuch.Models
         public string Name_DK { get; set; }
         public string Name_NO { get; set; }
         public string Name_MS { get; set; }
+        public string? Icon { get; set; }
 
         public string Genus_DE { get; set; }
         public string Genus_EN { get; set; }
