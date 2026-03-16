@@ -212,7 +212,7 @@
         function bindInlineEvents() {
             $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopImmediatePropagation(); // verhindert dass js-probability-template-Handler feuert und Editor wieder schliesst
                 const chip = $(this);
                 const wrap = chip.closest('.probability-template-wrap');
                 const masterId = (wrap.data('master-id') || '').toString();
