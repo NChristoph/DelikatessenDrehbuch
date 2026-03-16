@@ -317,6 +317,85 @@
             closeProbVarEditor();
         }
 
+        // Opens the SmartStepCreator-style inline editor inside the probability card.
+        // Replaces the floating dock with an inline editor that looks identical to the
+        // active step editor in SmartStepCreator.
+        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl) {
+            // Close all open inline editors first
+            $('.prob-inline-editor-host').empty().addClass('d-none');
+
+            const helpers = window.MasterStepCreatorHelpers;
+            if (!helpers || typeof helpers.buildInlineEditorHtml !== 'function') {
+                // Fallback to the existing dock editor
+                return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
+            }
+
+            const $anchor = anchorEl ? $(anchorEl).closest('.probability-template-wrap') : null;
+            if (!$anchor || !$anchor.length) {
+                return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
+            }
+
+            const $host = $anchor.find('.prob-inline-editor-host');
+            if (!$host.length) {
+                return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
+            }
+
+            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal);
+            $host.html(editorHtml).removeClass('d-none');
+            const editorEl = $host.find('.prob-inline-editor')[0];
+            if (!editorEl) return;
+
+            function closeEditor() {
+                $host.empty().addClass('d-none');
+            }
+
+            function doApply() {
+                const val = helpers.applyEditorValue(editorEl);
+                if (val != null) onApply(val);
+                closeEditor();
+            }
+
+            $host.off('.probinline')
+                .on('click.probinline', '.js-prob-inline-close', closeEditor)
+                .on('click.probinline', '#BtnCloseVarTop', closeEditor)
+                .on('click.probinline', '.js-prob-inline-apply', doApply)
+                .on('click.probinline', '#BtnPickDurationQuick', doApply)
+                .on('click.probinline', '#BtnPickTempQuick', doApply)
+                .on('click.probinline', '#BtnPickCountQuick', doApply)
+                .on('click.probinline', 'button[data-pick-mode]', function () {
+                    const btn = this;
+                    const mode = btn.dataset.pickMode;
+                    const val = btn.dataset.pickValue || '';
+
+                    if (mode === 'ingredient-value') {
+                        const selected = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+                        const list = Array.isArray(selected) ? selected : [];
+                        const idx = list.indexOf(val);
+                        if (idx >= 0) { list.splice(idx, 1); btn.classList.remove('active'); }
+                        else { list.push(val); btn.classList.add('active'); }
+                        editorEl.dataset.selectedIngredientValues = JSON.stringify(list);
+                        editorEl.dataset.selectedValue = list[0] || '';
+                        return;
+                    }
+
+                    const rowSel = mode === 'article' ? '.js-article-btn-row'
+                        : mode === 'pronoun' ? '.js-pronoun-btn-row' : '.js-value-btn-row';
+                    $host.find(rowSel).find('button[data-pick-mode]').removeClass('active');
+                    btn.classList.add('active');
+
+                    if (mode === 'article') editorEl.dataset.selectedArticle = val;
+                    if (mode === 'pronoun') editorEl.dataset.selectedPronoun = val;
+                    if (mode === 'value') editorEl.dataset.selectedValue = val;
+                })
+                .on('click.probinline', 'button[data-duration-unit]', function () {
+                    const btn = this;
+                    editorEl.dataset.durationUnit = btn.dataset.durationUnit;
+                    btn.parentElement && btn.parentElement.querySelectorAll('button[data-duration-unit]')
+                        .forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+        }
+
         /* ===== End Probability Variable Editor ===== */
 
         async function loadIngredientArticleRules() {
@@ -2322,7 +2401,7 @@
                 });
                 return suggestions;
             },
-            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement),
+            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorElement),
             onAcceptTemplateStep: async (masterId, probabilityVars = null) => {
                 creatorState.selectedTemplateId = masterId;
                 const beforeCount = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`).length;
