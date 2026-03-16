@@ -1119,6 +1119,98 @@
         }
     }
 
+    // ── Inline-editor helpers exposed for the probability area ──────────────────
+    // buildInlineEditorHtml: same logic as openInlineEditor but returns HTML.
+    // Uses class-based rows so multiple host containers don't conflict.
+    function buildInlineEditorHtml(varName, currentVal) {
+        const compactSpecialVar = isCompactSpecialVariable(varName);
+        if (compactSpecialVar) {
+            const specialBlock = renderSpecialEditor(varName, currentVal);
+            return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="[]">
+  <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+  ${specialBlock}
+  <div class="d-flex gap-2 align-items-center mt-3">
+    <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
+  </div>
+</div>`;
+        }
+
+        const ingredientVar = isIngredientVariable(varName);
+        const noArticleVar = isNoArticleVariable(varName);
+        const stateVar = isStateVariable(varName);
+        const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(getArticleOptions(), 'article', null);
+        const pronounButtons = stateVar ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
+        const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
+        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
+        const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
+        const valueButtons = ingredientVar
+            ? ingredientItems.map(({ name, icon }) => {
+                const value = name.trim();
+                const active = selectedIngredientValues.includes(value) ? ' active' : '';
+                const safe = escapeHtml(value);
+                const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : '';
+                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
+            }).join('')
+            : renderPillButtons(options, 'value', currentVal);
+        const specialBlock = renderSpecialEditor(varName, currentVal);
+
+        return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
+  <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
+  ${specialBlock}
+  ${(ingredientVar || noArticleVar) ? '' : `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>`}
+  ${stateVar ? `<div class="small text-muted mt-2 mb-1">Pronomen</div><div class="d-flex flex-wrap gap-2 mb-2 js-pronoun-btn-row">${pronounButtons}</div>` : ''}
+  <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
+  <div class="d-flex flex-wrap gap-2 js-value-btn-row">
+    ${valueButtons || (ingredientVar
+        ? '<div class="text-muted small">Keine Zutaten ausgewählt.</div>'
+        : `<div class="text-muted small">Keine Optionen: ${escapeHtml(varName)}</div>`)}
+  </div>
+  <div class="d-flex gap-2 align-items-center mt-3">
+    <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
+  </div>
+</div>`;
+    }
+
+    // applyEditorValue: reads the prob-inline-editor element and returns the composed value.
+    function applyEditorValue(editorEl) {
+        if (!editorEl) return null;
+        const varName = (editorEl.dataset.editorFor || '').trim();
+
+        if (varName === 'duration') {
+            const n = (editorEl.querySelector('#DurationValueInput') || {}).value?.trim() || '';
+            const unit = editorEl.dataset.durationUnit || 'minute';
+            const units = getDurationUnits();
+            const unitLabel = (units.find(x => x.key === unit) || {}).label || unit;
+            return n ? `${n} ${unitLabel}` : null;
+        }
+        if (varName === 'temp') {
+            const n = (editorEl.querySelector('#TempValueInput') || {}).value?.trim() || '';
+            const u = (editorEl.querySelector('#TempUnitSelect') || {}).value || '°C';
+            return n ? `${n} ${u}` : null;
+        }
+        if (varName === 'count') {
+            const n = ((editorEl.querySelector('#CountValueInput') || {}).value || '1').trim();
+            return /^\d+$/.test(n) ? n : '1';
+        }
+        if (isIngredientVariable(varName)) {
+            const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+            if (!Array.isArray(selectedValues) || !selectedValues.length) return null;
+            return formatSelectedIngredientList(selectedValues, currentLang);
+        }
+        const article = editorEl.dataset.selectedArticle || '';
+        const value = editorEl.dataset.selectedValue || '';
+        if (!value) return null;
+        return (article && article !== 'ohne') ? `${article} ${value}` : value;
+    }
+
+    // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
+    window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
+        buildInlineEditorHtml,
+        applyEditorValue
+    });
+
     document.addEventListener("DOMContentLoaded", init);
 })();
 (() => {
@@ -1189,99 +1281,13 @@
         return fromSelection || (fallbackValue || "").toString();
     }
 
-    // Builds the inline editor HTML for a variable (same logic as openInlineEditor).
-    // Uses class-based rows (js-article-btn-row, js-value-btn-row) so multiple host
-    // containers don't conflict. Apply/Close use js-prob-inline-apply/close selectors.
-    function buildInlineEditorHtml(varName, currentVal) {
-        const compactSpecialVar = isCompactSpecialVariable(varName);
-        if (compactSpecialVar) {
-            const specialBlock = renderSpecialEditor(varName, currentVal);
-            return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="[]">
-  <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
-  ${specialBlock}
-  <div class="d-flex gap-2 align-items-center mt-3">
-    <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
-    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
-  </div>
-</div>`;
-        }
-
-        const ingredientVar = isIngredientVariable(varName);
-        const noArticleVar = isNoArticleVariable(varName);
-        const stateVar = isStateVariable(varName);
-        const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(getArticleOptions(), 'article', null);
-        const pronounButtons = stateVar ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
-        const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
-        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
-        const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
-        const valueButtons = ingredientVar
-            ? ingredientItems.map(({ name, icon }) => {
-                const value = name.trim();
-                const active = selectedIngredientValues.includes(value) ? ' active' : '';
-                const safe = escapeHtml(value);
-                const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : '';
-                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
-            }).join('')
-            : renderPillButtons(options, 'value', currentVal);
-        const specialBlock = renderSpecialEditor(varName, currentVal);
-
-        return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
-  <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
-  ${specialBlock}
-  ${(ingredientVar || noArticleVar) ? '' : `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>`}
-  ${stateVar ? `<div class="small text-muted mt-2 mb-1">Pronomen</div><div class="d-flex flex-wrap gap-2 mb-2 js-pronoun-btn-row">${pronounButtons}</div>` : ''}
-  <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
-  <div class="d-flex flex-wrap gap-2 js-value-btn-row">
-    ${valueButtons || (ingredientVar
-        ? '<div class="text-muted small">Keine Zutaten ausgewählt.</div>'
-        : `<div class="text-muted small">Keine Optionen: ${escapeHtml(varName)}</div>`)}
-  </div>
-  <div class="d-flex gap-2 align-items-center mt-3">
-    <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
-    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
-  </div>
-</div>`;
-    }
-
-    // Reads the current state of a prob-inline-editor element and returns the composed value.
-    function applyEditorValue(editorEl) {
-        if (!editorEl) return null;
-        const varName = (editorEl.dataset.editorFor || '').trim();
-
-        if (varName === 'duration') {
-            const n = (editorEl.querySelector('#DurationValueInput') || {}).value?.trim() || '';
-            const unit = editorEl.dataset.durationUnit || 'minute';
-            const units = getDurationUnits();
-            const unitLabel = (units.find(x => x.key === unit) || {}).label || unit;
-            return n ? `${n} ${unitLabel}` : null;
-        }
-        if (varName === 'temp') {
-            const n = (editorEl.querySelector('#TempValueInput') || {}).value?.trim() || '';
-            const u = (editorEl.querySelector('#TempUnitSelect') || {}).value || '°C';
-            return n ? `${n} ${u}` : null;
-        }
-        if (varName === 'count') {
-            const n = ((editorEl.querySelector('#CountValueInput') || {}).value || '1').trim();
-            return /^\d+$/.test(n) ? n : '1';
-        }
-        if (isIngredientVariable(varName)) {
-            const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
-            if (!Array.isArray(selectedValues) || !selectedValues.length) return null;
-            return formatSelectedIngredientList(selectedValues, currentLang);
-        }
-        const article = editorEl.dataset.selectedArticle || '';
-        const value = editorEl.dataset.selectedValue || '';
-        if (!value) return null;
-        return (article && article !== 'ohne') ? `${article} ${value}` : value;
-    }
-
-    window.MasterStepCreatorHelpers = {
+    // Merge the format/chip helpers into MasterStepCreatorHelpers (buildInlineEditorHtml
+    // and applyEditorValue are already set by the first IIFE above).
+    Object.assign(window.MasterStepCreatorHelpers = window.MasterStepCreatorHelpers || {}, {
         formatIngredientList,
         buildIngredientChipsHtml,
-        resolveIngredientInsertValue,
-        buildInlineEditorHtml,
-        applyEditorValue
-    };
+        resolveIngredientInsertValue
+    });
 })();
 
 
