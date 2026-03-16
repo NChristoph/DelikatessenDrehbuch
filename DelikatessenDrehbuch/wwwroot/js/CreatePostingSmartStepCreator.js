@@ -1126,13 +1126,10 @@
         const compactSpecialVar = isCompactSpecialVariable(varName);
         if (compactSpecialVar) {
             const specialBlock = renderSpecialEditor(varName, currentVal);
+            // renderSpecialEditor already includes BtnPickDurationQuick/BtnCloseVarTop
             return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="[]">
   <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
   ${specialBlock}
-  <div class="d-flex gap-2 align-items-center mt-3">
-    <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
-    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
-  </div>
 </div>`;
         }
 
