@@ -35,10 +35,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             int counter = 1;
             string newTitle = title;
 
-            // PrÃ¼fe: "Test 1", "Test 2", "Test 3"...
+            // Prüfe: "Test 1", "Test 2", "Test 3"...
             while (existingTitles.Contains(newTitle))
             {
-                newTitle = $"{title} {counter}"; // FÃ¼gt Leerzeichen und Zahl an
+                newTitle = $"{title} {counter}"; // Fügt Leerzeichen und Zahl an
                 counter++;
             }
 
