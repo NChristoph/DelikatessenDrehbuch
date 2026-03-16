@@ -246,7 +246,7 @@
 
             const firstVar   = varsInGroup[0];
             const tokenId    = `${stepId}_optional_${varsInGroup.join("_")}`;
-            const label      = varsInGroup.join(" / ");
+            const label      = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
             // Encode as sentinel-delimited marker (safe from {{}} regex)
             return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
         });
@@ -285,7 +285,7 @@
             parts.push(escapeHtml(textBefore));
             const inner  = (match[1] ?? match[2] ?? "").toString();
             const vars   = getTemplateVariables(inner);
-            const label  = vars.length ? vars.join("/") : inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            const label  = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
             parts.push(`<span class="opt-snippet-badge"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i> ${escapeHtml(label)}</span>`);
             lastIndex = match.index + match[0].length;
         }
