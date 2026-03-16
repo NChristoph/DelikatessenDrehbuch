@@ -2063,6 +2063,52 @@
         cursor: pointer;
     }
 
+    /* ── Optionale Parameter: Inline-Pill im aktiven Step-Editor ── */
+    .optional-inline-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 8px 1px 5px;
+        border-radius: 20px;
+        border: 1.5px dashed rgba(255,255,255,0.22);
+        color: rgba(255,255,255,0.32);
+        font-size: 0.80em;
+        cursor: pointer;
+        transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+        user-select: none;
+        vertical-align: middle;
+        margin: 0 2px;
+        line-height: 1.5;
+    }
+    .optional-inline-pill:hover,
+    .optional-inline-pill:focus {
+        color: rgba(255,255,255,0.85);
+        border-color: rgba(141,99,255,0.75);
+        background: rgba(141,99,255,0.14);
+        outline: none;
+    }
+    .optional-inline-pill i {
+        font-size: 0.80em;
+        pointer-events: none;
+    }
+    .optional-pill-label {
+        pointer-events: none;
+    }
+
+    /* ── Optionale Parameter: Kleines Badge in der Template-Karten-Vorschau ── */
+    .opt-snippet-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 0 5px;
+        border-radius: 10px;
+        border: 1px dashed currentColor;
+        opacity: 0.45;
+        font-size: 0.85em;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
     .preview-step-card.token-replace-active {
         box-shadow: 0 0 0 2px rgba(255,224,138,.4), 0 14px 30px rgba(0,0,0,0.2);
     }
