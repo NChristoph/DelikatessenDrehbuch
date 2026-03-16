@@ -217,11 +217,81 @@
         });
     }
 
+    // Renders optional [{{var}}] segments as clickable inline pills (if unfilled)
+    // or as their inner content with tokens (if any var is filled).
+    // Required {{var}} tokens are rendered as the usual token-highlight spans.
     function renderTemplate(templateRaw, stepId, values) {
         if (!templateRaw) return "";
         values = values || {};
-        const resolvedTemplate = resolveOptionalTemplateSegments(templateRaw, values);
-        return renderTemplateTokens(resolvedTemplate, stepId, values);
+
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        const seen = new Set();
+        // Sentinel chars that won't appear in normal template text
+        const PILL_START = "\x01";
+        const PILL_SEP   = "\x02";
+        const PILL_END   = "\x03";
+
+        // Pass 1: replace optional segments
+        let processed = templateRaw.replace(optionalPattern, (fullMatch, parenInner, bracketInner) => {
+            const inner = (parenInner ?? bracketInner ?? "").toString();
+            const varsInGroup = getTemplateVariables(inner);
+            if (!varsInGroup.length) return inner;
+
+            const hasAnyValue = varsInGroup.some(v => ((values?.[v] ?? "").toString().trim().length > 0));
+            if (hasAnyValue) return inner; // filled → render content normally
+
+            const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
+            if (seen.has(dedupeKey)) return "";
+            seen.add(dedupeKey);
+
+            const firstVar   = varsInGroup[0];
+            const tokenId    = `${stepId}_optional_${varsInGroup.join("_")}`;
+            const label      = varsInGroup.join(" / ");
+            // Encode as sentinel-delimited marker (safe from {{}} regex)
+            return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
+        });
+
+        // Pass 2: render regular {{var}} tokens
+        let tokenIndex = 0;
+        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
+            const varName = (varRaw ?? "").trim();
+            const tid     = `${stepId}_${varName}_${tokenIndex++}`;
+            const val     = (values[varName] ?? "").toString();
+            const display = val.trim().length > 0 ? val : varName;
+            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+        });
+
+        // Pass 3: replace pill markers with inline pill HTML
+        processed = processed.replace(
+            new RegExp(`\\x01([^\\x02]*)\\x02([^\\x02]*)\\x02([^\\x03]*)\\x03`, "g"),
+            (_m, firstVar, tokenId, label) =>
+                `<span class="optional-inline-pill js-optional-var-add" role="button" tabindex="0" data-optional-var="${escapeHtml(firstVar)}" data-token-id="${escapeHtml(tokenId)}" title="Optional hinzufügen: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`
+        );
+
+        return processed;
+    }
+
+    // Renders a read-only template preview for the step-card list.
+    // Optional [{{var}}] segments appear as small faded badges instead of raw [brackets].
+    function snippetPreview(templateRaw) {
+        if (!templateRaw) return "";
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+        while ((match = optionalPattern.exec(templateRaw)) !== null) {
+            const textBefore = templateRaw.slice(lastIndex, match.index)
+                .replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            parts.push(escapeHtml(textBefore));
+            const inner  = (match[1] ?? match[2] ?? "").toString();
+            const vars   = getTemplateVariables(inner);
+            const label  = vars.length ? vars.join("/") : inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            parts.push(`<span class="opt-snippet-badge"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i> ${escapeHtml(label)}</span>`);
+            lastIndex = match.index + match[0].length;
+        }
+        const remaining = templateRaw.slice(lastIndex).replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+        parts.push(escapeHtml(remaining));
+        return parts.join("");
     }
 
     // -----------------------------
@@ -292,7 +362,7 @@
                                                  </div>
                                                  <div
                                                      class="template-snippet">
-                                                         ${escapeHtml(templateRaw)}
+                                                         ${snippetPreview(templateRaw)}
                                                  </div>
                                              </button>       
                     `);
@@ -313,7 +383,6 @@
         }
 
         const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
-        const optionalButtons = buildOptionalSegmentButtons(activeStep.templateRaw, activeStep.master_id, activeStep.values);
 
         // Editor placeholder (wird beim Token-Klick gefüllt)
         target.innerHTML = `
@@ -326,8 +395,6 @@
         <div class="preview-step-text mt-2" id="CurrentStepText">
           ${rendered}
         </div>
-
-        ${optionalButtons ? `<div class="d-flex flex-wrap gap-2 mt-3" id="OptionalVarButtons">${optionalButtons}</div>` : ""}
 
         <div class="mt-3" id="InlineVarEditorHost"></div>
       </div>
@@ -676,7 +743,7 @@
         const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", activeStep?.values || {});
         const temp = document.createElement("div");
         temp.innerHTML = rendered || "";
-        temp.querySelectorAll(".placeholder-reset").forEach(btn => btn.remove());
+        temp.querySelectorAll(".placeholder-reset, .optional-inline-pill").forEach(el => el.remove());
         return (temp.textContent || temp.innerText || "").replace(/\s+/g, " ").trim();
     }
 
