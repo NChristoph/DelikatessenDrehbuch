@@ -1,4 +1,4 @@
-﻿// master-steps-ui.js
+// master-steps-ui.js
 // Erwartet:
 // - /data/master_steps.json (wwwroot/data/master_steps.json)
 // - <div id="insertContainer"></div>  (Liste der Step-Buttons)
@@ -65,7 +65,7 @@
     // -----------------------------
     // OPTION LOOKUP (NUR JSON!)
     // -----------------------------
-    // liefert Liste von Optionen f�r eine Variable (Buttons)
+    // liefert Liste von Optionen für eine Variable (Buttons)
     function getVarOptions(varName) {
         if (!doc) return [];
 
@@ -335,7 +335,7 @@
         for (const [phaseKey, phaseSteps] of byPhase.entries()) {
             const meta = getPhaseMeta(phaseKey);
 
-            // Header f�r Phase
+            // Header für Phase
             container.insertAdjacentHTML("beforeend", `
                                           <div class="phase-header mt-3 mb-2">
                                             <div class="d-flex align-items-center gap-2">
@@ -443,6 +443,16 @@
             .filter(Boolean);
     }
 
+    // Wie getSelectedIngredientNamesFromPage, aber mit Icon aus data-group-icon
+    function getSelectedIngredientsFromPage() {
+        const rows = Array.from(document.querySelectorAll("#selectedIngredients .ingredient-row"));
+        return rows.map(row => {
+            const name = (row.querySelector(".ingredient-name-text")?.textContent || "").trim();
+            const icon = (row.dataset.groupIcon || row.querySelector(".ingredient-group-icon")?.innerHTML || "").trim();
+            return { name, icon };
+        }).filter(x => x.name);
+    }
+
     
 
     function parseSelectedIngredientValues(rawValue, options) {
@@ -495,7 +505,7 @@
             const specialBlockCompact = renderSpecialEditor(varName, currentVal);
             host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert f�r <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
         ${specialBlockCompact}
       </div>
     `;
@@ -511,23 +521,25 @@
 
         const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
         const pronounButtons = stateVar ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
-        const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
+        const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
+        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
-            ? options.map(name => {
-                const value = (name || "").toString().trim();
+            ? ingredientItems.map(({ name, icon }) => {
+                const value = name.trim();
                 const active = selectedIngredientValues.includes(value) ? " active" : "";
                 const safe = escapeHtml(value);
-                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${safe}</button>`;
+                const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : "";
+                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
             }).join("")
             : renderPillButtons(options, "value", currentVal);
 
-        // Spezial UI f�r duration/temp
+        // Spezial UI für duration/temp
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
         host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert f�r <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
 
         ${specialBlock}
 
@@ -548,13 +560,13 @@
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
-            ? `<div class="text-muted small">Keine Zutaten ausgew�hlt.</div>`
+            ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schlie�en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schließen</button>
         </div>
       </div>
     `;
@@ -562,7 +574,7 @@
         // preset selected article/value state
         host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
         host.dataset.selectedPronoun = "";
-        host.dataset.selectedValue = "";   // gew�hlter Wert
+        host.dataset.selectedValue = "";   // gewählter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
 
@@ -572,7 +584,7 @@
         return list.map(val => {
             const v = (val ?? "").toString();
             const isActive = currentVal && v === currentVal;
-            // Style: wie dein "Einsetzen"-Button Look -> machst du �ber CSS Klasse "pill-like"
+            // Style: wie dein "Einsetzen"-Button Look -> machst du über CSS Klasse "pill-like"
             return `
         <button type="button"
                 class="btn btn-sm btn-outline-light pill-like ${isActive ? "active" : ""}"
@@ -603,7 +615,7 @@
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "10")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schlie�en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-2">
@@ -612,7 +624,7 @@
       `;
         }
 
-        // temp -> Input + Unit (�C/�F) (du wolltest dropdown)
+        // temp -> Input + Unit (?C/?F) (du wolltest dropdown)
         if (varName === "temp") {
             return `
         <div class="d-flex gap-2 align-items-center">
@@ -622,12 +634,12 @@
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "180")}" />
 
           <select id="TempUnitSelect" class="form-select form-select-sm" style="max-width:140px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important;">
-            <option value="�C">�C</option>
-            <option value="�F">�F</option>
+            <option value="°C">°C</option>
+            <option value="°F">°F</option>
           </select>
 
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schlie�en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -641,7 +653,7 @@
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schlie�en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -667,7 +679,7 @@
 
         const varName = activeToken.varName;
 
-        // Spezialf�lle zuerst
+        // Spezialfälle zuerst
         if (varName === "duration") {
             const n = $("#DurationValueInput")?.value?.trim() || "";
             const unit = host.dataset.durationUnit || "minute";
@@ -681,7 +693,7 @@
 
         if (varName === "temp") {
             const n = $("#TempValueInput")?.value?.trim() || "";
-            const u = $("#TempUnitSelect")?.value || "�C";
+            const u = $("#TempUnitSelect")?.value || "°C";
             const composed = n ? `${n} ${u}` : "";
             if (composed) activeStep.values[varName] = composed;
             rerenderAfterValueSet();
@@ -733,7 +745,7 @@
         // Step-Text neu rendern (Tokens die gesetzt sind werden zu Text)
         renderMasterText();
 
-        // Editor schlie�en
+        // Editor schließen
         closeInlineEditor();
     }
 
@@ -1044,7 +1056,7 @@
                 const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
                 const composed = n ? `${n} ${unitLabel}` : "";
 
-                // direkt �bernehmen:
+                // direkt übernehmen:
                 activeStep.values["duration"] = composed;
                 rerenderAfterValueSet();
                 return;
@@ -1060,7 +1072,7 @@
             // quick temp apply
             if (e.target.id === "BtnPickTempQuick") {
                 const n = $("#TempValueInput")?.value?.trim() || "";
-                const u = $("#TempUnitSelect")?.value || "�C";
+                const u = $("#TempUnitSelect")?.value || "°C";
                 const composed = n ? `${n} ${u}` : "";
 
                 activeStep.values["temp"] = composed;
@@ -1077,7 +1089,7 @@
 
                 renderStepButtons();
 
-                // wenn aktiv, template neu holen, aber values behalten (du kannst sp�ter language-values bauen)
+                // wenn aktiv, template neu holen, aber values behalten (du kannst später language-values bauen)
                 if (activeStep) {
                     const step = steps.find(s => s.master_id === activeStep.master_id);
                     activeStep.templateRaw = step?.templates?.[currentLang] ?? "";
@@ -1103,7 +1115,7 @@
         } catch (err) {
             console.error(err);
             const target = masterText();
-            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console pr�fen.";
+            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prüfen.";
         }
     }
 
@@ -1156,7 +1168,7 @@
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
         if (!list.length) {
-            return '<span class="small text-white-50">Keine Zutaten ausgew�hlt</span>';
+            return '<span class="small text-white-50">Keine Zutaten ausgewählt</span>';
         }
 
         return list.map(ing => {
