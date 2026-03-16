@@ -34,12 +34,14 @@
         return [];
     }
 
-    function buildInlineTemplateText(masterId, template, lang, vars) {
+    // overrideVars: only user-set values (not defaults); used to decide if optional segment is a pill
+    function buildInlineTemplateText(masterId, template, lang, vars, overrideVars) {
         const templateText = (template?.templates?.[lang] || template?.templates?.de || '').toString();
         if (!templateText) return '';
 
         const mid = (masterId || 'template').toString();
         let tokenIndex = 0;
+        const effectiveOverrides = overrideVars || {};
 
         // Helper: extract {{var}} names from a fragment
         function getVarsInFragment(fragment) {
@@ -57,10 +59,11 @@
             const varsInGroup = getVarsInFragment(inner);
             if (!varsInGroup.length) return inner;
 
+            // Only treat as filled if the user explicitly set the value (via inlineOverrides)
             const hasAnyValue = varsInGroup.some(function (v) {
-                return (vars && vars[v] != null ? String(vars[v]).trim() : '').length > 0;
+                return (effectiveOverrides[v] != null ? String(effectiveOverrides[v]).trim() : '').length > 0;
             });
-            if (hasAnyValue) return inner; // filled → render content normally as tokens
+            if (hasAnyValue) return inner; // user filled → render content normally as tokens
 
             // Empty optional → inline pill
             const firstVar = varsInGroup[0];
@@ -89,7 +92,7 @@
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        const inlineText = buildInlineTemplateText(masterId, template, lang, vars);
+        const inlineText = buildInlineTemplateText(masterId, template, lang, vars, {});
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card w-100 text-start">
@@ -98,7 +101,7 @@
     </div>
     <div class="probability-template-actions d-flex gap-2 mt-3 align-items-center flex-wrap">
       <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
-      <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Loeschen</button>
+      <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
     </div>
   </div>
 </div>`;
@@ -203,8 +206,9 @@
 
         function rerenderInlineText(masterId, wrap) {
             const merged = getMergedVars(masterId);
+            const overrides = state.inlineOverrides[masterId] || {};
             const template = deps.findTemplate(masterId);
-            const nextHtml = buildInlineTemplateText(masterId, template, getLang(), merged);
+            const nextHtml = buildInlineTemplateText(masterId, template, getLang(), merged, overrides);
             const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
             wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
         }
