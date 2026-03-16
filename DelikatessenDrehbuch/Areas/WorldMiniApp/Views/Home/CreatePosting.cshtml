@@ -2625,9 +2625,9 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="~/js/CreatePostingSmartStepCreator.js"></script>
-    <script src="~/js/master-step-renderer.js"></script>
-    <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
+    <script src="~/js/master-step-renderer.js" asp-append-version="true"></script>
+    <script src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
     <script>
         window.CreatePostingPageConfig = {
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })"
