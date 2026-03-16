@@ -1,4 +1,4 @@
-﻿// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
+// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
         window.onerror = function(msg, url, line, col, error) {
             alert('GLOBAL JS ERROR: ' + msg + '\nZeile: ' + line + ' Spalte: ' + col + '\nDatei: ' + (url || '') + '\nStack: ' + (error && error.stack ? error.stack.substring(0, 300) : ''));
             return false;
@@ -217,7 +217,7 @@
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, selectedIds)
                     : '';
-                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
                 $('#probVarIngredientArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
 
@@ -236,7 +236,7 @@
 
             } else if (varType === 'temperature') {
                 const tempNum = parseInt(currentVal, 10) || 180;
-                const isFahr = (currentVal || '').includes('Â°F') || (currentVal || '').includes('F');
+                const isFahr = (currentVal || '').includes('°F') || (currentVal || '').includes('F');
                 $('#probVarTempVal').val(tempNum);
                 $('#probVarTempUnit').val(isFahr ? 'fahrenheit' : 'celsius');
                 $('#probVarTempArea').removeClass('d-none');
@@ -306,7 +306,7 @@
                 value = (parseInt($('#probVarCountVal').val(), 10) || 1).toString();
             } else if (!$('#probVarTempArea').hasClass('d-none')) {
                 const num = $('#probVarTempVal').val() || '180';
-                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? 'Â°F' : 'Â°C';
+                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? '°F' : '°C';
                 value = `${num} ${unit}`;
             } else if (!$('#probVarTextArea').hasClass('d-none')) {
                 value = ($('#probVarTextVal').val() || '').toString().trim();
@@ -946,7 +946,7 @@
         function getTemperatureInsertText() {
             const value = parseInt(creatorState.temperatureValue, 10);
             const safeValue = Number.isFinite(value) && value > 0 ? value : 180;
-            const unit = creatorState.temperatureUnit === 'fahrenheit' ? 'Â°F' : 'Â°C';
+            const unit = creatorState.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
             return `${safeValue}${unit}`;
         }
 
@@ -3088,7 +3088,7 @@
             const parsed = currentText.match(/^(\d+)/);
             if (parsed) {
                 creatorState.temperatureValue = parseInt(parsed[1], 10);
-                creatorState.temperatureUnit = currentText.includes('Â°F') ? 'fahrenheit' : 'celsius';
+                creatorState.temperatureUnit = currentText.includes('°F') ? 'fahrenheit' : 'celsius';
             }
             $('#sc2TemperatureValueInput').val(creatorState.temperatureValue || 180);
             $('#sc2TemperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
@@ -3909,7 +3909,7 @@
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
                     : '';
-                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
             });
 
             // Option chip ? auto-apply and close
