@@ -321,8 +321,9 @@
         // Replaces the floating dock with an inline editor that looks identical to the
         // active step editor in SmartStepCreator.
         function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl) {
-            // Close all open inline editors first
-            $('.prob-inline-editor-host').empty().addClass('d-none');
+            // Close all open inline editors first and restore their action buttons
+            $('.prob-inline-editor-host').empty().addClass('d-none')
+                .closest('.probability-template-card').find('.probability-template-actions').removeClass('d-none');
 
             const helpers = window.MasterStepCreatorHelpers;
             if (!helpers || typeof helpers.buildInlineEditorHtml !== 'function') {
@@ -340,13 +341,16 @@
                 return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
             }
 
+            const $actions = $anchor.find('.probability-template-actions');
             const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal);
             $host.html(editorHtml).removeClass('d-none');
+            $actions.addClass('d-none');
             const editorEl = $host.find('.prob-inline-editor')[0];
             if (!editorEl) return;
 
             function closeEditor() {
                 $host.empty().addClass('d-none');
+                $actions.removeClass('d-none');
             }
 
             function doApply() {
