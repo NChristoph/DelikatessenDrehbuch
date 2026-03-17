@@ -973,6 +973,14 @@
                 if (!activeStep) return;
                 const varName = token.dataset.var || token.dataset.placeholderKey || token.dataset.var;
                 const tokenId = token.dataset.tokenId || token.dataset.placeholderTokenId || token.dataset.tokenId;
+                // Sequential editing: {state} clicked with separate unfilled {pronoun} → open pronoun first
+                if (isStateVariable(varName) && /\{\{\s*pronoun\s*\}\}/i.test(activeStep.templateRaw || "")) {
+                    const pronounToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='pronoun']");
+                    if (pronounToken && !((activeStep.values["pronoun"] || "").toString().trim())) {
+                        openInlineEditor("pronoun", pronounToken.dataset.tokenId);
+                        return;
+                    }
+                }
                 openInlineEditor(varName, tokenId);
                 return;
             }
