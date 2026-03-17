@@ -738,6 +738,10 @@
         if (!value) return;
 
         activeStep.values[varName] = composed;
+        // Auch {pronoun}-Token setzen falls im Template vorhanden
+        if (stateVar && pronoun) {
+            activeStep.values["pronoun"] = pronoun;
+        }
         rerenderAfterValueSet();
     }
 
@@ -1202,10 +1206,21 @@
         return (article && article !== 'ohne') ? `${article} ${value}` : value;
     }
 
+    // applyEditorExtras: returns companion variable values (e.g. pronoun for state vars).
+    // Use alongside applyEditorValue when the template may have both {state} and {pronoun} tokens.
+    function applyEditorExtras(editorEl) {
+        if (!editorEl) return null;
+        const varName = (editorEl.dataset.editorFor || '').trim();
+        if (!isStateVariable(varName)) return null;
+        const pronoun = (editorEl.dataset.selectedPronoun || '').trim();
+        return pronoun ? { pronoun } : null;
+    }
+
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
         buildInlineEditorHtml,
-        applyEditorValue
+        applyEditorValue,
+        applyEditorExtras
     });
 
     document.addEventListener("DOMContentLoaded", init);
