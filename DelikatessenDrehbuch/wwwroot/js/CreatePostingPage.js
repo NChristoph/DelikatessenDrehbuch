@@ -358,12 +358,11 @@
 
             function doApply() {
                 const val = helpers.applyEditorValue(editorEl);
+                const extras = (onApplyExtras && typeof helpers.applyEditorExtras === 'function')
+                    ? helpers.applyEditorExtras(editorEl) : null;
+                closeEditor(); // close first → callback may immediately reopen for next token
                 if (val != null) onApply(val);
-                if (onApplyExtras && typeof helpers.applyEditorExtras === 'function') {
-                    const extras = helpers.applyEditorExtras(editorEl);
-                    if (extras) onApplyExtras(extras);
-                }
-                closeEditor();
+                if (extras) onApplyExtras(extras);
             }
 
             $host.off('.probinline')

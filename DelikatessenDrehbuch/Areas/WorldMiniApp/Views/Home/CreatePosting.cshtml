@@ -302,6 +302,28 @@
                 </div>
             </section>
 
+            <section class="smart-step-creator mb-3" data-theme="dark" id="card-probability">
+                <div class="creator-top-head sheet-head">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="card-icon" style="background:linear-gradient(135deg,#8d63ff,#5b6df9);border-radius:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="bi bi-graph-up-arrow text-white"></i>
+                        </div>
+                        <div>
+                            <div class="sheet-title label-lang" data-de="Was könnte es sein?" data-en="What could it be?">
+                                Was könnte es sein?
+                            </div>
+                            <div class="sheet-sub label-lang" data-de="Rezepttyp-Erkennung & Step-Vorschläge" data-en="Recipe type detection & step suggestions">
+                                Rezepttyp-Erkennung & Step-Vorschläge
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="creator-preview-canvas">
+                    <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
+                    <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
+                </div>
+            </section>
+
             <section class="smart-step-creator mt-3 mb-4" data-theme="rosa" id="card-steps" style="min-height:auto">
                 <div class="sheet-head creator-top-head">
                     <div>
@@ -312,21 +334,6 @@
                 </div>
 
                 <div class="creator-preview-canvas" style="min-height:auto; padding:14px 16px;">
-
-                    <div id="card-probability" style="border-bottom:1px solid rgba(0,0,0,0.12);padding-bottom:16px;margin-bottom:16px;">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div class="card-icon" style="background:linear-gradient(135deg,#8d63ff,#5b6df9);border-radius:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <i class="bi bi-graph-up-arrow text-white"></i>
-                            </div>
-                            <div>
-                                <div class="sheet-title label-lang" style="font-size:14px;" data-de="Was könnte es sein?" data-en="What could it be?">Was könnte es sein?</div>
-                                <div class="sheet-sub label-lang" style="font-size:12px;" data-de="Rezepttyp-Erkennung & Step-Vorschläge" data-en="Recipe type detection & step suggestions">Rezepttyp-Erkennung & Step-Vorschläge</div>
-                            </div>
-                        </div>
-                        <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
-                        <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
-                    </div>
-
                     <div id="sc2MasterPreviewCanvas" style="border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:16px;margin-bottom:16px;">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
@@ -699,39 +706,13 @@
         box-shadow: none;
     }
 
-    /* probability sub-section now lives inside #card-steps */
-    .smart-step-creator[data-theme="rosa"] .probability-template-card {
-        background: rgba(0,0,0,0.10);
-        border-color: rgba(0,0,0,0.18);
-        color: #111 !important;
+    #card-probability {
+        min-height: auto;
     }
-    .smart-step-creator[data-theme="rosa"] .probability-template-card:hover,
-    .smart-step-creator[data-theme="rosa"] .probability-template-card:focus {
-        color: #111 !important;
-        background: rgba(0,0,0,0.16);
-    }
-    .smart-step-creator[data-theme="rosa"] .probability-template-text .probability-var-inline-token,
-    .smart-step-creator[data-theme="rosa"] .probability-template-text .js-probability-var {
-        color: #7a1f5a;
-        border-bottom-color: rgba(122,31,90,0.65);
-        text-shadow: none;
-    }
-    .smart-step-creator[data-theme="rosa"] .prob-inline-editor-host .duration-editor {
-        border-top-color: rgba(0,0,0,0.15);
-        color: #111;
-    }
-    .smart-step-creator[data-theme="rosa"] .prob-inline-editor-host .text-muted {
-        color: rgba(17,17,17,0.55) !important;
-    }
-    .smart-step-creator[data-theme="rosa"] .prob-inline-editor-host .pill-like {
-        border-color: rgba(0,0,0,0.35);
-        color: #111;
-    }
-    .smart-step-creator[data-theme="rosa"] .prob-inline-editor-host .pill-like:hover,
-    .smart-step-creator[data-theme="rosa"] .prob-inline-editor-host .pill-like.active {
-        background: rgba(0,0,0,0.14);
-        border-color: rgba(0,0,0,0.60);
-        color: #111;
+
+    #card-probability .creator-preview-canvas {
+        min-height: auto;
+        padding: 14px 16px;
     }
 
     #card-ingredients .creator-card-head {
@@ -934,15 +915,28 @@
         }
 
     .probability-template-card {
-        border: 1px solid rgba(255,255,255,0.18);
-        background: rgba(255,255,255,0.06);
-        border-radius: 14px;
-        padding: 12px 14px;
-        margin-bottom: 8px;
-        color: #fff !important;
-        font-weight: 800 !important;
-        font-size: 1.08rem !important;
-        line-height: 1.5 !important;
+        border: 1px solid var(--creator-border);
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
+        border-radius: 22px;
+        padding: 16px;
+        margin-bottom: 10px;
+        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+    }
+
+    /* header row inside each probability step card */
+    .probability-template-card .prob-step-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .probability-template-card .prob-step-label {
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--creator-sub);
     }
 
     .probability-template-text {
@@ -962,11 +956,6 @@
         text-align: left;
         padding: 0;
         margin: 0;
-    }
-
-    .probability-template-card:hover,
-    .probability-template-card:focus {
-        color: #fff;
     }
 
     .probability-template-text .probability-var-inline-wrap {
