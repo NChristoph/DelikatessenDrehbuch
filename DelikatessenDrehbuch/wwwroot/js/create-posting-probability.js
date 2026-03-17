@@ -3,15 +3,15 @@
 
 
     const UI_TEXT = {
-        selectIngredients: 'Waehle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
-        moduleMissing: 'Analyse-Modul nicht verfuegbar.',
+        selectIngredients: 'Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
+        moduleMissing: 'Analyse-Modul nicht verfügbar.',
         noTrend: 'Noch keine klare Tendenz erkannt.',
-        analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfuegbar.',
-        templatesUnavailable: 'Template-Vorschlaege sind aktuell nicht verfuegbar.',
-        selectIngredientsFirst: 'Bitte zuerst Zutaten auswaehlen.',
+        analysisUnavailable: 'Wahrscheinlichkeitsanalyse aktuell nicht verfügbar.',
+        templatesUnavailable: 'Template-Vorschläge sind aktuell nicht verfügbar.',
+        selectIngredientsFirst: 'Bitte zuerst Zutaten auswählen.',
         noTemplates: 'Keine passenden Templates gefunden.',
         suggestedIngredients: 'Vorgeschlagene Zutaten',
-        suggestedIngredientsHint: 'Tippen zum Hinzufuegen'
+        suggestedIngredientsHint: 'Tippen zum Hinzufügen'
     };
 
     function escapeHtml(value) {
@@ -34,36 +34,75 @@
         return [];
     }
 
-    function buildInlineTemplateText(masterId, template, lang, vars) {
+    // overrideVars: only user-set values (not defaults); used to decide if optional segment is a pill
+    function buildInlineTemplateText(masterId, template, lang, vars, overrideVars) {
         const templateText = (template?.templates?.[lang] || template?.templates?.de || '').toString();
         if (!templateText) return '';
 
+        const mid = (masterId || 'template').toString();
         let tokenIndex = 0;
-        return templateText.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_m, key) {
-            const varKey = String(key || '').trim();
-            const safeKey = escapeHtml(varKey);
+        const effectiveOverrides = overrideVars || {};
+
+        // Helper: extract {{var}} names from a fragment
+        function getVarsInFragment(fragment) {
+            const found = [];
+            fragment.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, k) {
+                if (k && !found.includes(k)) found.push(k);
+            });
+            return found;
+        }
+
+        // Pass 1: handle optional [{{var}}] and ({{var}}) segments
+        const optionalPattern = /\(([^()]*\{\{\s*[^}]+?\s*\}\}[^()]*)\)|\[([^\[\]]*\{\{\s*[^}]+?\s*\}\}[^\[\]]*)\]/g;
+        let processed = templateText.replace(optionalPattern, function (fullMatch, parenInner, bracketInner) {
+            const inner = (parenInner != null ? parenInner : (bracketInner != null ? bracketInner : '')).toString();
+            const varsInGroup = getVarsInFragment(inner);
+            if (!varsInGroup.length) return inner;
+
+            // Only treat as filled if the user explicitly set the value (via inlineOverrides)
+            const hasAnyValue = varsInGroup.some(function (v) {
+                return (effectiveOverrides[v] != null ? String(effectiveOverrides[v]).trim() : '').length > 0;
+            });
+            if (hasAnyValue) return inner; // user filled → render content normally as tokens
+
+            // Empty optional → inline pill
+            const firstVar = varsInGroup[0];
+            const label = inner.replace(/\{\{\s*([^}]+?)\s*\}\}/g, '$1');
+            const tokenId = `${mid}_opt_${varsInGroup.join('_')}_${tokenIndex++}`;
+            const safeVar   = escapeHtml(firstVar);
+            const safeLabel = escapeHtml(label);
+            const safeTid   = escapeHtml(tokenId);
+            return `<span class="optional-inline-pill js-probability-var" role="button" tabindex="0" data-var="${safeVar}" data-var-key="${safeVar}" data-token-id="${safeTid}" data-has-value="0" title="Optional: ${safeLabel}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${safeLabel}</span></span>`;
+        });
+
+        // Pass 2: render remaining {{var}} as clickable tokens
+        processed = processed.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_m, key) {
+            const varKey    = String(key || '').trim();
+            const safeKey   = escapeHtml(varKey);
             const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
             const safeValue = escapeHtml(nextValue || varKey);
-            const tokenId = `${(masterId || 'template').toString()}_${varKey}_${tokenIndex++}`;
-            const safeTokenId = escapeHtml(tokenId);
-
-            return `<span class="probability-var-inline-wrap"><span class="token-highlight placeholder-token template-var js-probability-var probability-var-inline-token" draggable="false" data-var="${safeKey}" data-var-key="${safeKey}" data-token-id="${safeTokenId}" data-has-value="${nextValue ? '1' : '0'}" role="button" tabindex="0">${safeValue}</span></span>`;
+            const tokenId   = `${mid}_${varKey}_${tokenIndex++}`;
+            const safeTid   = escapeHtml(tokenId);
+            return `<span class="probability-var-inline-wrap"><span class="token-highlight placeholder-token template-var js-probability-var probability-var-inline-token" draggable="false" data-var="${safeKey}" data-var-key="${safeKey}" data-token-id="${safeTid}" data-has-value="${nextValue ? '1' : '0'}" role="button" tabindex="0">${safeValue}</span></span>`;
         });
+
+        return processed;
     }
 
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        const inlineText = buildInlineTemplateText(masterId, template, lang, vars);
+        const inlineText = buildInlineTemplateText(masterId, template, lang, vars, {});
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card w-100 text-start">
     <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
       <span class="probability-template-text">${inlineText || safeText}</span>
     </div>
+    <div class="prob-inline-editor-host d-none"></div>
     <div class="probability-template-actions d-flex gap-2 mt-3 align-items-center flex-wrap">
       <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
-      <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Loeschen</button>
+      <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
     </div>
   </div>
 </div>`;
@@ -168,8 +207,9 @@
 
         function rerenderInlineText(masterId, wrap) {
             const merged = getMergedVars(masterId);
+            const overrides = state.inlineOverrides[masterId] || {};
             const template = deps.findTemplate(masterId);
-            const nextHtml = buildInlineTemplateText(masterId, template, getLang(), merged);
+            const nextHtml = buildInlineTemplateText(masterId, template, getLang(), merged, overrides);
             const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
             wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
         }
@@ -177,7 +217,7 @@
         function bindInlineEvents() {
             $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopImmediatePropagation(); // verhindert dass js-probability-template-Handler feuert und Editor wieder schliesst
                 const chip = $(this);
                 const wrap = chip.closest('.probability-template-wrap');
                 const masterId = (wrap.data('master-id') || '').toString();
@@ -193,9 +233,16 @@
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
                         rerenderInlineText(masterId, wrap);
-                    }, chip);
+                    }, chip, function (extras) {
+                        if (!extras || typeof extras !== 'object') return;
+                        if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
+                        Object.keys(extras).forEach(function (k) {
+                            if (extras[k] != null) state.inlineOverrides[masterId][k] = extras[k];
+                        });
+                        rerenderInlineText(masterId, wrap);
+                    });
                 } else {
-                    const nextVal = window.prompt(`Wert fuer ${varKey}:`, currentVal);
+                    const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;

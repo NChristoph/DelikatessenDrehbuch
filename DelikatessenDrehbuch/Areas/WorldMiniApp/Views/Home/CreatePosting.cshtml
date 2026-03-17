@@ -966,6 +966,60 @@
         -webkit-tap-highlight-color: rgba(255, 224, 138, .3);
     }
 
+    /* ── Prob-Inline-Editor: same look as SmartStepCreator's InlineVarEditorHost ── */
+    .prob-inline-editor-host {
+        margin-top: 8px;
+    }
+
+    .prob-inline-editor-host .duration-editor {
+        border-top: 1px solid rgba(255,255,255,.2);
+        padding-top: 10px;
+        color: var(--creator-text, #f1f5f9);
+    }
+
+    .prob-inline-editor-host .text-muted {
+        color: rgba(255,255,255,.5) !important;
+    }
+
+    .prob-inline-editor-host .pill-like {
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.45);
+        background: transparent;
+        color: var(--creator-text, #f1f5f9);
+        font-size: .82rem;
+        padding: 3px 12px;
+        cursor: pointer;
+        transition: background .14s, border-color .14s;
+    }
+
+    .prob-inline-editor-host .pill-like:hover,
+    .prob-inline-editor-host .pill-like.active {
+        background: rgba(255,255,255,0.18);
+        border-color: rgba(255,255,255,0.85);
+        color: #fff;
+    }
+
+    .prob-inline-editor-host .ingredient-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.45);
+        background: transparent;
+        color: var(--creator-text, #f1f5f9);
+        font-size: .82rem;
+        padding: 3px 12px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background .14s, border-color .14s;
+    }
+
+    .prob-inline-editor-host .ingredient-chip:hover,
+    .prob-inline-editor-host .ingredient-chip.active {
+        background: rgba(255,255,255,0.18);
+        border-color: rgba(255,255,255,0.85);
+        color: #fff;
+    }
+
     .common-unit-chips {
         display: flex;
         gap: 6px;
@@ -2625,9 +2679,9 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="~/js/CreatePostingSmartStepCreator.js"></script>
-    <script src="~/js/master-step-renderer.js"></script>
-    <script src="~/js/recipe-step-suggest.js"></script>
+    <script src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
+    <script src="~/js/master-step-renderer.js" asp-append-version="true"></script>
+    <script src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
     <script>
         window.CreatePostingPageConfig = {
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })"
