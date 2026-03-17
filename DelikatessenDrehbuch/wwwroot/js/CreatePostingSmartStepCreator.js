@@ -973,6 +973,14 @@
                 if (!activeStep) return;
                 const varName = token.dataset.var || token.dataset.placeholderKey || token.dataset.var;
                 const tokenId = token.dataset.tokenId || token.dataset.placeholderTokenId || token.dataset.tokenId;
+                // Sequential editing: {state} clicked with separate unfilled {pronoun} → open pronoun first
+                if (isStateVariable(varName) && /\{\{\s*pronoun\s*\}\}/i.test(activeStep.templateRaw || "")) {
+                    const pronounToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='pronoun']");
+                    if (pronounToken && !((activeStep.values["pronoun"] || "").toString().trim())) {
+                        openInlineEditor("pronoun", pronounToken.dataset.tokenId);
+                        return;
+                    }
+                }
                 openInlineEditor(varName, tokenId);
                 return;
             }
@@ -1143,7 +1151,8 @@
     // ── Inline-editor helpers exposed for the probability area ──────────────────
     // buildInlineEditorHtml: same logic as openInlineEditor but returns HTML.
     // Uses class-based rows so multiple host containers don't conflict.
-    function buildInlineEditorHtml(varName, currentVal) {
+    function buildInlineEditorHtml(varName, currentVal, opts) {
+        const suppressPronounButtons = !!(opts && opts.suppressPronounButtons);
         const compactSpecialVar = isCompactSpecialVariable(varName);
         if (compactSpecialVar) {
             const specialBlock = renderSpecialEditor(varName, currentVal);
@@ -1158,7 +1167,7 @@
         const noArticleVar = isNoArticleVariable(varName);
         const stateVar = isStateVariable(varName);
         const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(getArticleOptions(), 'article', null);
-        const pronounButtons = stateVar ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
+        const pronounButtons = (stateVar && !suppressPronounButtons) ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
         const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];

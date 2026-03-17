@@ -342,7 +342,10 @@
             }
 
             const $actions = $anchor.find('.probability-template-actions');
-            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal);
+            // Suppress pronoun buttons inside state editor when the card already has a separate {pronoun} token
+            // (sequential flow handles pronoun separately before state)
+            const hasSeparatePronounToken = !!$anchor.find('.js-probability-var[data-var-key="pronoun"]').length;
+            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, { suppressPronounButtons: hasSeparatePronounToken });
             $host.html(editorHtml).removeClass('d-none');
             $actions.addClass('d-none');
             const editorEl = $host.find('.prob-inline-editor')[0];
@@ -703,6 +706,8 @@
             modeValue: 'Ober- und Unterhitze',
             activePronounTokenId: '',
             pronounValue: '',
+            pendingStateTokenId: '',
+            pendingSc2StateTokenId: '',
             activeEquipmentTokenId: '',
             equipmentValue: 'die Pfanne',
             equipmentArticleValue: 'die',
@@ -3335,6 +3340,22 @@
                 creatorState.ingredientReplaceArmed = false;
                 $('#sc2MasterPreviewCard').removeClass('token-replace-active');
                 const placeholderType = getPlaceholderType(key);
+
+                // Sequential editing: clicking {state} when {pronoun} is unfilled → open pronoun first
+                if (placeholderType === 'state') {
+                    const pronounEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="pronoun"]');
+                    if (pronounEl) {
+                        const pronounTokenId = pronounEl.dataset.placeholderTokenId;
+                        if (!(creatorState.placeholderAssignments[pronounTokenId] || '').toString().trim()) {
+                            creatorState.pendingSc2StateTokenId = tokenId;
+                            openSc2PronounEditorForToken(pronounTokenId);
+                            showSc2CreatorToast('Zuerst Pronomen wählen');
+                            renderSc2TemplateCards();
+                            return;
+                        }
+                    }
+                }
+
                 if (placeholderType === 'ingredient') {
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
@@ -3557,6 +3578,22 @@
 
                     const placeholderType = getPlaceholderType(key);
 
+                    // Sequential editing: clicking {state} when {pronoun} is unfilled → open pronoun first
+                    if (placeholderType === 'state') {
+                        const pronounEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="pronoun"]');
+                        if (pronounEl) {
+                            const pronounTokenId = pronounEl.dataset.placeholderTokenId;
+                            if (!(creatorState.placeholderAssignments[pronounTokenId] || '').toString().trim()) {
+                                creatorState.pendingStateTokenId = tokenId;
+                                creatorState.activePlaceholderTokenId = pronounTokenId;
+                                openPronounEditorForToken(pronounTokenId);
+                                showCreatorToast('Zuerst Pronomen wählen');
+                                renderTemplateCards();
+                                return;
+                            }
+                        }
+                    }
+
                     if (placeholderType === 'ingredient') {
                         handleIngredientPlaceholderSelection(tokenId);
                     } else if (placeholderEditorDispatch[placeholderType]) {
@@ -3774,12 +3811,18 @@
                 closePronounEditor();
                 showCreatorToast('Pronomen eingesetzt');
                 renderTemplateCards();
-                // Sequential editing: auto-open state editor if state token exists and is unfilled
-                const stateTokenEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="state"]');
-                if (stateTokenEl) {
-                    const stateTokenId = stateTokenEl.dataset.placeholderTokenId;
-                    if (!(creatorState.placeholderAssignments[stateTokenId] || '').toString().trim()) {
-                        openStateEditorForToken(stateTokenId);
+                // Sequential editing: open pending state token (from {state} click) or auto-detect
+                const pendingStateId = creatorState.pendingStateTokenId || '';
+                creatorState.pendingStateTokenId = '';
+                if (pendingStateId) {
+                    openStateEditorForToken(pendingStateId);
+                } else {
+                    const stateTokenEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                    if (stateTokenEl) {
+                        const stateTokenId = stateTokenEl.dataset.placeholderTokenId;
+                        if (!(creatorState.placeholderAssignments[stateTokenId] || '').toString().trim()) {
+                            openStateEditorForToken(stateTokenId);
+                        }
                     }
                 }
             });
@@ -4199,12 +4242,18 @@
                 closeSc2PronounEditor();
                 showSc2CreatorToast('Pronomen gesetzt');
                 renderTemplateCards();
-                // Sequential editing: auto-open sc2 state editor if state token exists and is unfilled
-                const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
-                if (sc2StateTokenEl) {
-                    const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
-                    if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
-                        openSc2StateEditorForToken(sc2StateTokenId);
+                // Sequential editing: open pending sc2 state token (from {state} click) or auto-detect
+                const pendingSc2StateId = creatorState.pendingSc2StateTokenId || '';
+                creatorState.pendingSc2StateTokenId = '';
+                if (pendingSc2StateId) {
+                    openSc2StateEditorForToken(pendingSc2StateId);
+                } else {
+                    const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                    if (sc2StateTokenEl) {
+                        const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
+                        if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
+                            openSc2StateEditorForToken(sc2StateTokenId);
+                        }
                     }
                 }
             });
