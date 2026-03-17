@@ -320,7 +320,7 @@
         // Opens the SmartStepCreator-style inline editor inside the probability card.
         // Replaces the floating dock with an inline editor that looks identical to the
         // active step editor in SmartStepCreator.
-        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl) {
+        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras) {
             // Close all open inline editors first and restore their action buttons
             $('.prob-inline-editor-host').empty().addClass('d-none')
                 .closest('.probability-template-card').find('.probability-template-actions').removeClass('d-none');
@@ -356,6 +356,10 @@
             function doApply() {
                 const val = helpers.applyEditorValue(editorEl);
                 if (val != null) onApply(val);
+                if (onApplyExtras && typeof helpers.applyEditorExtras === 'function') {
+                    const extras = helpers.applyEditorExtras(editorEl);
+                    if (extras) onApplyExtras(extras);
+                }
                 closeEditor();
             }
 
@@ -2405,7 +2409,7 @@
                 });
                 return suggestions;
             },
-            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement) => openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorElement),
+            openProbVarEditor: (masterId, varKey, currentVal, onApply, anchorElement, onApplyExtras) => openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorElement, onApplyExtras),
             onAcceptTemplateStep: async (masterId, probabilityVars = null) => {
                 creatorState.selectedTemplateId = masterId;
                 const beforeCount = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`).length;

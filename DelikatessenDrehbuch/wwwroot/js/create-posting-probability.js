@@ -233,7 +233,14 @@
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
                         rerenderInlineText(masterId, wrap);
-                    }, chip);
+                    }, chip, function (extras) {
+                        if (!extras || typeof extras !== 'object') return;
+                        if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
+                        Object.keys(extras).forEach(function (k) {
+                            if (extras[k] != null) state.inlineOverrides[masterId][k] = extras[k];
+                        });
+                        rerenderInlineText(masterId, wrap);
+                    });
                 } else {
                     const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
                     if (nextVal == null) return;
