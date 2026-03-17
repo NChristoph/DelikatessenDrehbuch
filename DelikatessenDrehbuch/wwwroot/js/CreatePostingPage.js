@@ -3687,6 +3687,14 @@
                 closePronounEditor();
                 showCreatorToast('Pronomen eingesetzt');
                 renderTemplateCards();
+                // Sequential editing: auto-open state editor if state token exists and is unfilled
+                const stateTokenEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                if (stateTokenEl) {
+                    const stateTokenId = stateTokenEl.dataset.placeholderTokenId;
+                    if (!(creatorState.placeholderAssignments[stateTokenId] || '').toString().trim()) {
+                        openStateEditorForToken(stateTokenId);
+                    }
+                }
             });
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
@@ -4104,6 +4112,14 @@
                 closeSc2PronounEditor();
                 showSc2CreatorToast('Pronomen gesetzt');
                 renderTemplateCards();
+                // Sequential editing: auto-open sc2 state editor if state token exists and is unfilled
+                const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                if (sc2StateTokenEl) {
+                    const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
+                    if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
+                        openSc2StateEditorForToken(sc2StateTokenId);
+                    }
+                }
             });
 
             // SC2 Heat
