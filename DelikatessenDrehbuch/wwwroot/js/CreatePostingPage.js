@@ -342,7 +342,10 @@
             }
 
             const $actions = $anchor.find('.probability-template-actions');
-            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal);
+            // Suppress pronoun buttons inside state editor when the card already has a separate {pronoun} token
+            // (sequential flow handles pronoun separately before state)
+            const hasSeparatePronounToken = !!$anchor.find('.js-probability-var[data-var-key="pronoun"]').length;
+            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, { suppressPronounButtons: hasSeparatePronounToken });
             $host.html(editorHtml).removeClass('d-none');
             $actions.addClass('d-none');
             const editorEl = $host.find('.prob-inline-editor')[0];

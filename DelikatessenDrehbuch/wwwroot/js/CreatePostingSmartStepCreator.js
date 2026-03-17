@@ -1151,7 +1151,8 @@
     // ── Inline-editor helpers exposed for the probability area ──────────────────
     // buildInlineEditorHtml: same logic as openInlineEditor but returns HTML.
     // Uses class-based rows so multiple host containers don't conflict.
-    function buildInlineEditorHtml(varName, currentVal) {
+    function buildInlineEditorHtml(varName, currentVal, opts) {
+        const suppressPronounButtons = !!(opts && opts.suppressPronounButtons);
         const compactSpecialVar = isCompactSpecialVariable(varName);
         if (compactSpecialVar) {
             const specialBlock = renderSpecialEditor(varName, currentVal);
@@ -1166,7 +1167,7 @@
         const noArticleVar = isNoArticleVariable(varName);
         const stateVar = isStateVariable(varName);
         const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(getArticleOptions(), 'article', null);
-        const pronounButtons = stateVar ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
+        const pronounButtons = (stateVar && !suppressPronounButtons) ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
         const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
