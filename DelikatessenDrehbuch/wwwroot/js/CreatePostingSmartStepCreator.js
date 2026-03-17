@@ -1242,11 +1242,25 @@
         return pronoun ? { pronoun } : null;
     }
 
+    // Checks if sequential pronoun-before-state editing should be triggered.
+    // config: { placeholderType, containerSelector, assignments, onTriggered(pronounTokenId) }
+    // Returns true (and calls onTriggered) if triggered, false otherwise.
+    function triggerPronounBeforeState(config) {
+        if (!config || config.placeholderType !== 'state') return false;
+        const pronounEl = document.querySelector((config.containerSelector || '') + ' .placeholder-token[data-placeholder-key="pronoun"]');
+        if (!pronounEl) return false;
+        const pronounTokenId = pronounEl.dataset.placeholderTokenId;
+        if ((config.assignments[pronounTokenId] || '').toString().trim()) return false;
+        if (config.onTriggered) config.onTriggered(pronounTokenId);
+        return true;
+    }
+
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
         buildInlineEditorHtml,
         applyEditorValue,
-        applyEditorExtras
+        applyEditorExtras,
+        triggerPronounBeforeState
     });
 
     document.addEventListener("DOMContentLoaded", init);
