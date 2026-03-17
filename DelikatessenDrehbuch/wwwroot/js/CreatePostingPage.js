@@ -320,7 +320,7 @@
         // Opens the SmartStepCreator-style inline editor inside the probability card.
         // Replaces the floating dock with an inline editor that looks identical to the
         // active step editor in SmartStepCreator.
-        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras) {
+        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras, flowMode, carriedPronoun) {
             // Close all open inline editors first and restore their action buttons
             $('.prob-inline-editor-host').empty().addClass('d-none')
                 .closest('.probability-template-card').find('.probability-template-actions').removeClass('d-none');
@@ -331,7 +331,10 @@
                 return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
             }
 
-            const $anchor = anchorEl ? $(anchorEl).closest('.probability-template-wrap') : null;
+            const escapedMasterId = (window.CSS && typeof window.CSS.escape === 'function')
+                ? CSS.escape(masterId)
+                : String(masterId || '').replace(/"/g, '\\"');
+            const $anchor = $(`.probability-template-wrap[data-master-id="${escapedMasterId}"]`).first();
             if (!$anchor || !$anchor.length) {
                 return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
             }
@@ -342,14 +345,74 @@
             }
 
             const $actions = $anchor.find('.probability-template-actions');
-            // Suppress pronoun buttons inside state editor when the card already has a separate {pronoun} token
-            // (sequential flow handles pronoun separately before state)
+            const pronounOptions = (typeof MasterStepRenderer !== 'undefined' && typeof MasterStepRenderer.getVariablePresets === 'function')
+                ? (MasterStepRenderer.getVariablePresets('pronoun', currentLang || 'de') || [])
+                : [];
+            const splitPronounStateValue = function (rawValue) {
+                const text = (rawValue || '').toString().trim();
+                if (!text) return { pronoun: '', state: '' };
+                const match = pronounOptions.find(option => {
+                    const candidate = (option || '').toString().trim();
+                    if (!candidate) return false;
+                    const lowerText = text.toLowerCase();
+                    const lowerCandidate = candidate.toLowerCase();
+                    return lowerText === lowerCandidate || lowerText.startsWith(`${lowerCandidate} `);
+                });
+                if (!match) return { pronoun: '', state: text };
+                return {
+                    pronoun: match,
+                    state: text.slice(match.length).trim()
+                };
+            };
+
+            if (varKey === 'state' && flowMode !== 'stateOnly') {
+                const splitState = splitPronounStateValue(currentVal);
+                return openProbVarInlineEditor(
+                    masterId,
+                    'pronoun',
+                    splitState.pronoun,
+                    function (selectedPronoun) {
+                        const normalizedPronoun = selectedPronoun === '__none__' ? '' : (selectedPronoun || '');
+                        if (onApplyExtras) {
+                            onApplyExtras({ pronoun: normalizedPronoun });
+                        }
+                        openProbVarInlineEditor(
+                            masterId,
+                            'state',
+                            splitState.state,
+                            function (nextStateValue) {
+                                if (nextStateValue != null) onApply(nextStateValue);
+                            },
+                            $anchor[0],
+                            onApplyExtras,
+                            'stateOnly',
+                            normalizedPronoun
+                        );
+                    },
+                    $anchor[0],
+                    onApplyExtras,
+                    'pronounOnly'
+                );
+            }
+
             const hasSeparatePronounToken = !!$anchor.find('.js-probability-var[data-var-key="pronoun"]').length;
-            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, { suppressPronounButtons: hasSeparatePronounToken });
+            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, {
+                suppressPronounButtons: hasSeparatePronounToken || flowMode === 'stateOnly',
+                masterId: masterId
+            });
             $host.html(editorHtml).removeClass('d-none');
             $actions.addClass('d-none');
             const editorEl = $host.find('.prob-inline-editor')[0];
             if (!editorEl) return;
+            if (flowMode === 'stateOnly') {
+                editorEl.dataset.selectedPronoun = (carriedPronoun || '').trim();
+            }
+            if (varKey === 'pronoun') {
+                const $valueRow = $host.find('.js-value-btn-row');
+                if ($valueRow.length && !$valueRow.find('[data-pick-value="__none__"]').length) {
+                    $valueRow.prepend('<button type="button" class="btn btn-sm creator-cta-secondary pill-like" data-pick-mode="value" data-pick-value="__none__">ohne</button>');
+                }
+            }
 
             function closeEditor() {
                 $host.empty().addClass('d-none');
@@ -357,10 +420,25 @@
             }
 
             function doApply() {
-                const val = helpers.applyEditorValue(editorEl);
-                const extras = (onApplyExtras && typeof helpers.applyEditorExtras === 'function')
+                const editorVarName = (editorEl.dataset.editorFor || '').trim();
+                const selectedPronoun = (editorEl.dataset.selectedPronoun || carriedPronoun || '').trim();
+                let val = helpers.applyEditorValue(editorEl);
+                let extras = (onApplyExtras && typeof helpers.applyEditorExtras === 'function')
                     ? helpers.applyEditorExtras(editorEl) : null;
-                closeEditor(); // close first → callback may immediately reopen for next token
+
+                if (editorVarName === 'pronoun' && val === '__none__') {
+                    val = '__none__';
+                }
+
+                if (editorVarName === 'state' && selectedPronoun) {
+                    if (hasSeparatePronounToken) {
+                        extras = Object.assign({}, extras || {}, { pronoun: selectedPronoun });
+                    } else if (val) {
+                        val = `${selectedPronoun} ${val}`.trim();
+                    }
+                }
+
+                closeEditor();
                 if (val != null) onApply(val);
                 if (extras) onApplyExtras(extras);
             }
@@ -405,7 +483,6 @@
                     btn.classList.add('active');
                 });
         }
-
         /* ===== End Probability Variable Editor ===== */
 
         async function loadIngredientArticleRules() {
@@ -4457,31 +4534,3 @@
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

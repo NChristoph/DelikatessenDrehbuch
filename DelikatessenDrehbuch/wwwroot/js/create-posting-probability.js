@@ -39,63 +39,28 @@
         const templateText = (template?.templates?.[lang] || template?.templates?.de || '').toString();
         if (!templateText) return '';
 
-        const mid = (masterId || 'template').toString();
-        let tokenIndex = 0;
-        const effectiveOverrides = overrideVars || {};
-
-        // Helper: extract {{var}} names from a fragment
-        function getVarsInFragment(fragment) {
-            const found = [];
-            fragment.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, k) {
-                if (k && !found.includes(k)) found.push(k);
-            });
-            return found;
+        const helpers = window.MasterStepCreatorHelpers || {};
+        if (typeof helpers.renderTemplateWithConfig !== 'function') {
+            return '';
         }
 
-        // Pass 1: handle optional [{{var}}] and ({{var}}) segments
-        const optionalPattern = /\(([^()]*\{\{\s*[^}]+?\s*\}\}[^()]*)\)|\[([^\[\]]*\{\{\s*[^}]+?\s*\}\}[^\[\]]*)\]/g;
-        let processed = templateText.replace(optionalPattern, function (fullMatch, parenInner, bracketInner) {
-            const inner = (parenInner != null ? parenInner : (bracketInner != null ? bracketInner : '')).toString();
-            const varsInGroup = getVarsInFragment(inner);
-            if (!varsInGroup.length) return inner;
-
-            // Only treat as filled if the user explicitly set the value (via inlineOverrides)
-            const hasAnyValue = varsInGroup.some(function (v) {
-                return (effectiveOverrides[v] != null ? String(effectiveOverrides[v]).trim() : '').length > 0;
-            });
-            if (hasAnyValue) return inner; // user filled → render content normally as tokens
-
-            // Empty optional → inline pill
-            const firstVar = varsInGroup[0];
-            const label = inner.replace(/\{\{\s*([^}]+?)\s*\}\}/g, '$1');
-            const tokenId = `${mid}_opt_${varsInGroup.join('_')}_${tokenIndex++}`;
-            const safeVar   = escapeHtml(firstVar);
-            const safeLabel = escapeHtml(label);
-            const safeTid   = escapeHtml(tokenId);
-            return `<span class="optional-inline-pill js-probability-var" role="button" tabindex="0" data-var="${safeVar}" data-var-key="${safeVar}" data-token-id="${safeTid}" data-has-value="0" title="Optional: ${safeLabel}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${safeLabel}</span></span>`;
+        return helpers.renderTemplateWithConfig(templateText, (masterId || 'template').toString(), vars || {}, {
+            optionalValues: overrideVars || {},
+            tokenWrapClass: 'probability-var-inline-wrap',
+            tokenExtraClasses: 'js-probability-var probability-var-inline-token',
+            pillExtraClasses: 'js-probability-var',
+            includeVarKey: true,
+            optionalVarAttrName: 'data-var',
+            pillTitlePrefix: 'Optional'
         });
-
-        // Pass 2: render remaining {{var}} as clickable tokens
-        processed = processed.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_m, key) {
-            const varKey    = String(key || '').trim();
-            const safeKey   = escapeHtml(varKey);
-            const nextValue = vars && vars[varKey] != null ? String(vars[varKey]).trim() : '';
-            const safeValue = escapeHtml(nextValue || varKey);
-            const tokenId   = `${mid}_${varKey}_${tokenIndex++}`;
-            const safeTid   = escapeHtml(tokenId);
-            return `<span class="probability-var-inline-wrap"><span class="token-highlight placeholder-token template-var js-probability-var probability-var-inline-token" draggable="false" data-var="${safeKey}" data-var-key="${safeKey}" data-token-id="${safeTid}" data-has-value="${nextValue ? '1' : '0'}" role="button" tabindex="0">${safeValue}</span></span>`;
-        });
-
-        return processed;
     }
-
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
         const inlineText = buildInlineTemplateText(masterId, template, lang, vars, {});
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <div class="probability-template-card w-100 text-start">
+  <div class="probability-template-card preview-step-card w-100 text-start">
     <div class="prob-step-header">
       <span class="prob-step-label">Erkannter Step</span>
       <div class="probability-template-actions d-flex gap-2 align-items-center">
@@ -104,7 +69,7 @@
       </div>
     </div>
     <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
-      <span class="probability-template-text">${inlineText || safeText}</span>
+      <span class="probability-template-text preview-step-text">${inlineText || safeText}</span>
     </div>
     <div class="prob-inline-editor-host d-none"></div>
   </div>

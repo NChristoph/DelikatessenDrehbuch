@@ -302,6 +302,7 @@
                 </div>
             </section>
 
+            @*was könnte es sein bereich oben*@
             <section class="smart-step-creator mb-3" data-theme="dark" id="card-probability">
                 <div class="creator-top-head sheet-head">
                     <div class="d-flex align-items-center gap-2">
@@ -323,7 +324,7 @@
                     <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
                 </div>
             </section>
-
+            @*smart stap cretor bereich uten*@
             <section class="smart-step-creator mt-3 mb-4" data-theme="rosa" id="card-steps" style="min-height:auto">
                 <div class="sheet-head creator-top-head">
                     <div>
@@ -940,6 +941,7 @@
     }
 
     .probability-template-text {
+        min-height: auto;
         font-size: clamp(1.05rem, 2.5vw, 1.4rem);
         line-height: 1.42;
         font-weight: 700;
@@ -986,46 +988,133 @@
     }
 
     .prob-inline-editor-host .text-muted {
-        color: rgba(255,255,255,.5) !important;
+        color: var(--creator-sub) !important;
     }
 
-    .prob-inline-editor-host .pill-like {
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.45);
-        background: transparent;
-        color: var(--creator-text, #f1f5f9);
-        font-size: .82rem;
-        padding: 3px 12px;
-        cursor: pointer;
-        transition: background .14s, border-color .14s;
-    }
-
-    .prob-inline-editor-host .pill-like:hover,
-    .prob-inline-editor-host .pill-like.active {
-        background: rgba(255,255,255,0.18);
-        border-color: rgba(255,255,255,0.85);
-        color: #fff;
-    }
-
+    .prob-inline-editor-host .pill-like,
     .prob-inline-editor-host .ingredient-chip {
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.45);
-        background: transparent;
-        color: var(--creator-text, #f1f5f9);
+        border: 1px solid var(--creator-border);
+        background: rgba(255,255,255,0.08);
+        color: var(--creator-text);
+        border-radius: 14px;
+        padding: 8px 12px;
         font-size: .82rem;
-        padding: 3px 12px;
-        cursor: pointer;
+        white-space: nowrap;
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        transition: background .14s, border-color .14s;
+        cursor: pointer;
+        transition: all .2s ease;
     }
 
+    .prob-inline-editor-host .pill-like:hover,
+    .prob-inline-editor-host .pill-like.active,
     .prob-inline-editor-host .ingredient-chip:hover,
     .prob-inline-editor-host .ingredient-chip.active {
-        background: rgba(255,255,255,0.18);
-        border-color: rgba(255,255,255,0.85);
+        transform: scale(1.06);
+        border-color: rgba(141,99,255,.8);
+        box-shadow: 0 0 0 3px rgba(141,99,255,.28);
+        background: rgba(141,99,255,.25);
+        color: var(--creator-text);
+    }
+
+    #card-probability {
+        --creator-sheet: linear-gradient(to right, #0f234d, #18366f, #1f4d92);
+        --creator-border: rgba(173, 207, 255, 0.30);
+        --creator-text: #f7fbff;
+        --creator-sub: rgba(237, 245, 255, 0.88);
+        --creator-accent: #79aaff;
+        --creator-bg: radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);
+    }
+
+    #card-probability .probability-template-card {
+        border-color: rgba(164, 193, 255, 0.18);
+        background: rgba(7, 20, 46, 0.76);
+    }
+
+    #card-probability .probability-template-card .prob-step-label,
+    #card-probability .prob-inline-editor-host .text-muted {
+        color: rgba(237, 245, 255, 0.88) !important;
+    }
+
+    #card-probability .prob-inline-editor-host .small,
+    #card-probability .prob-inline-editor-host strong {
+        color: #f7fbff !important;
+    }
+
+    #card-probability .prob-inline-editor-host .pill-like,
+    #card-probability .prob-inline-editor-host .ingredient-chip {
+        border: 1px solid rgba(255,255,255,0.88);
+        background: transparent;
+        color: #f7fbff;
+        padding: 7px 14px;
+        transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+    }
+
+    #card-probability .prob-inline-editor-host .pill-like:hover,
+    #card-probability .prob-inline-editor-host .ingredient-chip:hover {
+        transform: none;
+        border-color: #ffffff;
+        box-shadow: none;
+        background: rgba(255,255,255,0.08);
+        color: #ffffff;
+    }
+
+    #card-probability .prob-inline-editor-host .pill-like.active,
+    #card-probability .prob-inline-editor-host .ingredient-chip.active {
+        transform: none;
+        border-color: rgba(255,255,255,0.94);
+        box-shadow: none;
+        background: rgba(255,255,255,0.92);
+        color: #23365f;
+    }
+
+    #card-probability .prob-inline-editor-host .btn-outline-light {
+        color: rgba(255,255,255,0.9);
+        border-color: rgba(255,255,255,0.28);
+        background: transparent;
+    }
+
+    #card-probability .prob-inline-editor-host .btn-outline-light:hover {
         color: #fff;
+        border-color: rgba(255,255,255,0.42);
+        background: rgba(255,255,255,0.08);
+    }
+
+    #card-probability .probability-template-text .js-probability-var:not(.optional-inline-pill),
+    #card-probability .probability-template-text .probability-var-inline-token:not(.optional-inline-pill) {
+        color: #ffe08a;
+        text-shadow: 0 0 16px rgba(255, 208, 95, .35);
+        border-bottom: 1px dashed rgba(255, 224, 138, .75);
+    }
+
+    #card-probability .probability-template-text .optional-inline-pill.js-probability-var {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 8px 1px 5px;
+        border-radius: 20px;
+        border: 1.5px dashed rgba(255,255,255,0.22);
+        color: rgba(255,255,255,0.32);
+        font-size: 0.80em;
+        font-weight: 700;
+        line-height: 1.5;
+        text-shadow: none;
+        border-bottom: 0;
+        vertical-align: baseline;
+    }
+
+    #card-probability .probability-template-text .optional-inline-pill.js-probability-var:hover,
+    #card-probability .probability-template-text .optional-inline-pill.js-probability-var:focus {
+        color: rgba(255,255,255,0.85);
+        border-color: rgba(141,99,255,0.75);
+        background: rgba(141,99,255,0.14);
+        outline: none;
+    }
+
+    #card-probability .probability-template-text .optional-inline-pill.js-probability-var i,
+    #card-probability .probability-template-text .optional-inline-pill.js-probability-var .optional-pill-label {
+        pointer-events: none;
     }
 
     .common-unit-chips {
@@ -2241,6 +2330,13 @@
         overflow: visible;
         text-overflow: unset;
         line-height: 1.35;
+    }
+
+    .template-snippet-var {
+        color: #ffe08a;
+        text-shadow: 0 0 12px rgba(255,208,95,.28);
+        border-bottom: 1px dashed rgba(255,224,138,.65);
+        font-weight: 700;
     }
 
     .action-bar {

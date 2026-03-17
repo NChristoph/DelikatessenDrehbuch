@@ -1,0 +1,244 @@
+﻿{
+  "version": 1,
+  "description": "Kuratiert sinnvolle Auswahloptionen pro Master-Step und Variable. V1 bewusst ohne Zutaten- oder Scoring-Logik.",
+  "defaults": {
+    "pronoun": {
+      "allowed": {
+        "de": ["", "er", "sie", "es", "ihn"]
+      }
+    },
+    "equipment": {
+      "allowed": {
+        "de": [
+          "Pfanne",
+          "große Pfanne",
+          "Wok",
+          "Topf",
+          "großer Topf",
+          "Schüssel",
+          "Backofen",
+          "Auflaufform",
+          "Backblech",
+          "Mixer",
+          "Stabmixer",
+          "Sieb",
+          "Dampfgarer",
+          "Bräter"
+        ]
+      }
+    },
+    "state": {
+      "allowed": {
+        "de": [
+          "goldbraun",
+          "weich",
+          "glasig",
+          "gar",
+          "knusprig",
+          "cremig",
+          "bissfest",
+          "eingedickt",
+          "sprudelnd",
+          "verdoppelt",
+          "zart",
+          "angeröstet",
+          "geschmolzen",
+          "schaumig",
+          "reduziert (eingekocht)",
+          "abgekühlt",
+          "lauwarm",
+          "fest",
+          "fluffig",
+          "karamellisiert",
+          "geschmeidig",
+          "angebraten",
+          "rundum angebraten",
+          "scharf angebraten",
+          "gleichmäßig gebräunt",
+          "braun",
+          "dunkelbraun",
+          "knusprig gebräunt",
+          "außen knusprig",
+          "innen saftig",
+          "medium-rare",
+          "medium",
+          "durchgegart"
+        ]
+      }
+    },
+    "tool": {
+      "allowed": {
+        "de": ["Messer", "Sparschäler", "Reibe", "feine Reibe", "grobe Reibe", "Schneebesen"]
+      }
+    }
+  },
+  "steps": {
+    "PREP_PEEL_01": {
+      "tool": {
+        "preferred": { "de": ["Sparschäler", "Messer"] },
+        "allowed": { "de": ["Sparschäler", "Messer"] }
+      }
+    },
+    "PREP_GRATE_01": {
+      "tool": {
+        "preferred": { "de": ["feine Reibe", "grobe Reibe", "Reibe"] },
+        "allowed": { "de": ["feine Reibe", "grobe Reibe", "Reibe"] }
+      }
+    },
+    "PREP_KNEAD_01": {
+      "pronoun": {
+        "preferred": { "de": ["er", "sie", "es", ""] }
+      },
+      "state": {
+        "preferred": { "de": ["geschmeidig", "weich", "fest"] },
+        "allowed": { "de": ["geschmeidig", "weich", "fest"] }
+      }
+    },
+    "PREP_DOUGH_RISE_01": {
+      "state": {
+        "preferred": { "de": ["verdoppelt", "fluffig"] },
+        "allowed": { "de": ["verdoppelt", "fluffig"] }
+      }
+    },
+    "PREP_REST_01": {
+      "pronoun": {
+        "preferred": { "de": ["er", "sie", "es", ""] }
+      },
+      "state": {
+        "preferred": { "de": ["abgekühlt", "lauwarm", "fest"] },
+        "allowed": { "de": ["abgekühlt", "lauwarm", "fest", "fluffig"] }
+      }
+    },
+    "COOK_SAUTE_01": {
+      "equipment": {
+        "preferred": { "de": ["Pfanne", "große Pfanne", "Wok"] },
+        "allowed": { "de": ["Pfanne", "große Pfanne", "Wok", "Topf"] }
+      },
+      "state": {
+        "preferred": { "de": ["glasig", "weich", "goldbraun"] },
+        "allowed": { "de": ["glasig", "weich", "goldbraun", "angeröstet", "angebraten", "karamellisiert"] }
+      }
+    },
+    "COOK_FRY_01": {
+      "equipment": {
+        "preferred": { "de": ["Pfanne", "große Pfanne", "Wok"] },
+        "allowed": { "de": ["Pfanne", "große Pfanne", "Wok"] }
+      },
+      "state": {
+        "preferred": { "de": ["goldbraun", "knusprig", "gar"] },
+        "allowed": { "de": ["goldbraun", "knusprig", "gar", "angebraten", "rundum angebraten", "durchgegart"] }
+      }
+    },
+    "COOK_SIMMER_01": {
+      "equipment": {
+        "preferred": { "de": ["Topf", "großer Topf"] },
+        "allowed": { "de": ["Topf", "großer Topf", "Pfanne"] }
+      },
+      "state": {
+        "preferred": { "de": ["gar", "zart", "eingedickt"] },
+        "allowed": { "de": ["gar", "zart", "eingedickt", "cremig", "reduziert (eingekocht)", "sprudelnd"] },
+        "blocked": { "de": ["knusprig", "goldbraun"] }
+      }
+    },
+    "COOK_BOIL_01": {
+      "equipment": {
+        "preferred": { "de": ["Topf", "großer Topf"] },
+        "allowed": { "de": ["Topf", "großer Topf"] }
+      },
+      "state": {
+        "preferred": { "de": ["bissfest", "gar"] },
+        "allowed": { "de": ["bissfest", "gar", "weich", "durchgegart"] }
+      }
+    },
+    "COOK_COVER_01": {
+      "equipment": {
+        "preferred": { "de": ["Topf", "großer Topf", "Pfanne"] },
+        "allowed": { "de": ["Topf", "großer Topf", "Pfanne", "Bräter"] }
+      }
+    },
+    "COOK_BLEND_01": {
+      "equipment": {
+        "preferred": { "de": ["Mixer", "Stabmixer"] },
+        "allowed": { "de": ["Mixer", "Stabmixer"] }
+      },
+      "state": {
+        "preferred": { "de": ["cremig", "schaumig", "fluffig"] },
+        "allowed": { "de": ["cremig", "schaumig", "fluffig"] }
+      }
+    },
+    "COOK_BRAISE_01": {
+      "equipment": {
+        "preferred": { "de": ["Bräter", "Topf"] },
+        "allowed": { "de": ["Bräter", "Topf", "großer Topf"] }
+      },
+      "state": {
+        "preferred": { "de": ["zart", "gar"] },
+        "allowed": { "de": ["zart", "gar", "durchgegart", "eingedickt"] }
+      }
+    },
+    "COOK_REDUCE_01": {
+      "equipment": {
+        "preferred": { "de": ["Topf", "Pfanne"] },
+        "allowed": { "de": ["Topf", "großer Topf", "Pfanne"] }
+      },
+      "state": {
+        "preferred": { "de": ["reduziert (eingekocht)", "eingedickt", "cremig"] },
+        "allowed": { "de": ["reduziert (eingekocht)", "eingedickt", "cremig", "schaumig"] },
+        "blocked": { "de": ["knusprig", "goldbraun"] }
+      }
+    },
+    "COOK_THICKEN_01": {
+      "state": {
+        "preferred": { "de": ["eingedickt", "cremig"] },
+        "allowed": { "de": ["eingedickt", "cremig"] }
+      }
+    },
+    "COOK_BAKE_01": {
+      "equipment": {
+        "preferred": { "de": ["Backofen", "Auflaufform", "Backblech"] },
+        "allowed": { "de": ["Backofen", "Auflaufform", "Backblech"] }
+      },
+      "state": {
+        "preferred": { "de": ["goldbraun", "gar"] },
+        "allowed": { "de": ["goldbraun", "gar", "knusprig", "durchgegart", "fluffig"] }
+      }
+    },
+    "COOK_GRATINATE_01": {
+      "pronoun": {
+        "preferred": { "de": ["ihn", "sie", "es", ""] }
+      },
+      "state": {
+        "preferred": { "de": ["goldbraun", "knusprig gebräunt", "dunkelbraun"] },
+        "allowed": { "de": ["goldbraun", "knusprig gebräunt", "braun", "dunkelbraun", "außen knusprig"] }
+      }
+    },
+    "COOK_STRAIN_01": {
+      "equipment": {
+        "preferred": { "de": ["Sieb"] },
+        "allowed": { "de": ["Sieb"] }
+      }
+    },
+    "COOK_STEAM_01": {
+      "equipment": {
+        "preferred": { "de": ["Dampfgarer", "Topf"] },
+        "allowed": { "de": ["Dampfgarer", "Topf", "großer Topf"] }
+      },
+      "state": {
+        "preferred": { "de": ["zart", "gar"] },
+        "allowed": { "de": ["zart", "gar", "durchgegart"] }
+      }
+    },
+    "PREP_LAYER_01": {
+      "equipment": {
+        "preferred": { "de": ["Auflaufform", "Schüssel"] },
+        "allowed": { "de": ["Auflaufform", "Schüssel", "Backblech"] }
+      }
+    },
+    "FINISH_COOL_01": {
+      "state": {
+        "preferred": { "de": ["abgekühlt", "lauwarm", "fest"] },
+        "allowed": { "de": ["abgekühlt", "lauwarm", "fest"] }
+      }
+    }
+  }
+}

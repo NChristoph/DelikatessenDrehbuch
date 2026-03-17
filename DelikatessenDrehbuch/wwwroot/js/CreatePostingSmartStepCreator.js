@@ -8,12 +8,14 @@
 
 (() => {
     const JSON_URL = "/data/master_steps.json";
+    const OPTION_RULES_URL = "/data/master_step_option_rules.json";
     const DEFAULT_LANG = "de";
 
     // -----------------------------
     // STATE
     // -----------------------------
     let doc = null;
+    let optionRules = { defaults: {}, steps: {} };
     let steps = [];
     let currentLang = DEFAULT_LANG;
 
@@ -62,41 +64,131 @@
         return await res.json();
     }
 
+    async function loadOptionRules() {
+        try {
+            const res = await fetch(`${OPTION_RULES_URL}?v=${Date.now()}`, { cache: "no-store" });
+            if (!res.ok) return { defaults: {}, steps: {} };
+            const data = await res.json();
+            return data && typeof data === "object" ? data : { defaults: {}, steps: {} };
+        } catch {
+            return { defaults: {}, steps: {} };
+        }
+    }
+
     // -----------------------------
     // OPTION LOOKUP (NUR JSON!)
     // -----------------------------
+    function normalizeVarKey(value) {
+        const raw = (value || "").toString().trim();
+        const normalized = raw.toLowerCase().replace(/[_\-\s]+/g, "");
+        const aliasMap = { pronomen: "pronoun" };
+        return {
+            key: aliasMap[normalized] || raw,
+            normalizedKey: (aliasMap[normalized] || raw).toString().toLowerCase().replace(/[_\-\s]+/g, "")
+        };
+    }
+
+    function normalizeOptionValue(value) {
+        return (value || "").toString().trim().toLowerCase();
+    }
+
+    function resolveRuleList(ruleValue) {
+        if (!ruleValue) return [];
+        if (Array.isArray(ruleValue)) {
+            return ruleValue.filter(x => x !== null && x !== undefined)
+                .map(x => (x || "").toString().trim())
+                .filter(Boolean);
+        }
+        if (typeof ruleValue === "object") {
+            const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
+            const list = ruleValue[currentLang] ?? ruleValue[langKey] ?? ruleValue[DEFAULT_LANG] ?? ruleValue.de ?? ruleValue.default;
+            return Array.isArray(list)
+                ? list.filter(x => x !== null && x !== undefined).map(x => (x || "").toString().trim()).filter(Boolean)
+                : [];
+        }
+        return [];
+    }
+
+    function getMergedOptionRules(masterId, varName) {
+        const { normalizedKey } = normalizeVarKey(varName);
+        const defaults = optionRules?.defaults || {};
+        const stepsMap = optionRules?.steps || {};
+        const defaultRule = Object.entries(defaults)
+            .find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null;
+        const stepRule = masterId && stepsMap[masterId] && typeof stepsMap[masterId] === "object"
+            ? (Object.entries(stepsMap[masterId]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
+            : null;
+
+        const stepAllowed = resolveRuleList(stepRule?.allowed);
+        const allowed = stepAllowed.length ? stepAllowed : resolveRuleList(defaultRule?.allowed);
+        const preferred = [...resolveRuleList(defaultRule?.preferred), ...resolveRuleList(stepRule?.preferred)]
+            .filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
+        const blocked = [...resolveRuleList(defaultRule?.blocked), ...resolveRuleList(stepRule?.blocked)]
+            .filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
+
+        return { allowed, preferred, blocked };
+    }
+
+    function applyOptionRules(baseOptions, varName, masterId) {
+        const original = Array.isArray(baseOptions)
+            ? baseOptions.filter(x => x !== null && x !== undefined).map(x => (x || "").toString().trim()).filter(Boolean)
+            : [];
+        if (!original.length) return [];
+
+        const unique = original.filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
+        const rules = getMergedOptionRules(masterId, varName);
+        const blockedSet = new Set((rules.blocked || []).map(normalizeOptionValue));
+        const allowedSet = new Set((rules.allowed || []).map(normalizeOptionValue));
+        const preferredOrder = new Map((rules.preferred || []).map((value, index) => [normalizeOptionValue(value), index]));
+
+        let filtered = unique.filter(option => !blockedSet.has(normalizeOptionValue(option)));
+        if (allowedSet.size) {
+            filtered = filtered.filter(option => allowedSet.has(normalizeOptionValue(option)));
+        }
+        if (!filtered.length) {
+            filtered = unique.filter(option => !blockedSet.has(normalizeOptionValue(option)));
+        }
+
+        return filtered.sort((a, b) => {
+            const aKey = normalizeOptionValue(a);
+            const bKey = normalizeOptionValue(b);
+            const aPreferred = preferredOrder.has(aKey);
+            const bPreferred = preferredOrder.has(bKey);
+            if (aPreferred && bPreferred) return preferredOrder.get(aKey) - preferredOrder.get(bKey);
+            if (aPreferred) return -1;
+            if (bPreferred) return 1;
+            return unique.findIndex(x => normalizeOptionValue(x) === aKey) - unique.findIndex(x => normalizeOptionValue(x) === bKey);
+        });
+    }
+
     // liefert Liste von Optionen für eine Variable (Buttons)
-    function getVarOptions(varName) {
+    function getVarOptions(varName, contextMasterId) {
         if (!doc) return [];
 
-        const key = (varName || "").toString().trim();
-        const normalizedKey = key.toLowerCase().replace(/[_\\-\\s]+/g, "");
-        const aliasMap = { pronomen: "pronoun" };
-        const alias = aliasMap[normalizedKey] || null;
-        const effectiveKey = alias || key;
-        const effectiveNormalizedKey = (alias || normalizedKey).toLowerCase().replace(/[_\\-\\s]+/g, "");
+        const { key, normalizedKey } = normalizeVarKey(varName);
+        let options = [];
 
-        // variable_options[varName][lang] (robust gegen _/-/Case)
-        let vo = doc.variable_options?.[effectiveKey];
+        let vo = doc.variable_options?.[key];
         if (!vo && doc.variable_options && typeof doc.variable_options === "object") {
             const match = Object.entries(doc.variable_options)
-                .find(([k]) => (k || "").toString().toLowerCase().replace(/[_\-\s]+/g, "") === effectiveNormalizedKey);
+                .find(([candidateKey]) => normalizeVarKey(candidateKey).normalizedKey === normalizedKey);
             vo = match ? match[1] : null;
         }
         if (vo && typeof vo === "object") {
             const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
             const list = vo[currentLang] ?? vo[langKey] ?? vo[DEFAULT_LANG] ?? vo.de;
-            if (Array.isArray(list)) return list.filter(x => x !== null && x !== undefined);
+            if (Array.isArray(list)) {
+                options = list.filter(x => x !== null && x !== undefined);
+            }
         }
 
-        // Spezialfall: equipment Map
-        if (normalizedKey === "equipment" && doc.equipment) {
-            return Object.values(doc.equipment);
+        if (!options.length && normalizedKey === "equipment" && doc.equipment) {
+            options = Object.values(doc.equipment);
         }
 
-        return [];
+        const masterId = (contextMasterId || activeStep?.master_id || "").toString().trim();
+        return applyOptionRules(options, key, masterId);
     }
-
     function getArticleOptions() {
         // variable_options.articles[lang] + "ohne"
         const list = doc?.variable_options?.articles?.[currentLang] ?? doc?.variable_options?.articles?.de ?? [];
@@ -271,8 +363,76 @@
         return processed;
     }
 
+
+    function renderTemplateWithConfig(templateRaw, stepId, values, config) {
+        if (!templateRaw) return "";
+        values = values || {};
+        config = config || {};
+
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        const seen = new Set();
+        const optionalValues = config.optionalValues || values;
+        const tokenClass = ["token-highlight placeholder-token template-var", config.tokenExtraClasses || ""].filter(Boolean).join(" ");
+        const pillClass = ["optional-inline-pill", config.pillExtraClasses || ""].filter(Boolean).join(" ");
+        const tokenWrapClass = (config.tokenWrapClass || "").toString().trim();
+        const tokenVarKeyAttr = config.includeVarKey ? ` data-var-key="{{VAR_NAME}}"` : "";
+        const pillVarKeyAttr = config.includeVarKey ? ` data-var-key="{{VAR_NAME}}"` : "";
+        const optionalVarAttrName = (config.optionalVarAttrName || "data-optional-var").toString();
+        const pillTitlePrefix = (config.pillTitlePrefix || "Optional").toString();
+        const PILL_START = "\x01";
+        const PILL_SEP = "\x02";
+        const PILL_END = "\x03";
+
+        let processed = templateRaw.replace(optionalPattern, (_match, parenInner, bracketInner) => {
+            const inner = (parenInner ?? bracketInner ?? "").toString();
+            const varsInGroup = getTemplateVariables(inner);
+            if (!varsInGroup.length) return inner;
+
+            const hasAnyValue = varsInGroup.some(varName => ((optionalValues?.[varName] ?? "").toString().trim().length > 0));
+            if (hasAnyValue) return inner;
+
+            const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
+            if (seen.has(dedupeKey)) return "";
+            seen.add(dedupeKey);
+
+            const firstVar = varsInGroup[0];
+            const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
+            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
+        });
+
+        let tokenIndex = 0;
+        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_match, varRaw) => {
+            const varName = (varRaw ?? "").trim();
+            const tokenId = `${stepId}_${varName}_${tokenIndex++}`;
+            const value = (values[varName] ?? "").toString();
+            const display = value.trim().length > 0 ? value : varName;
+            const varKeyAttr = tokenVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(varName));
+            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="ZurÃ¼cksetzen" aria-label="ZurÃ¼cksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+            if (!tokenWrapClass) return tokenHtml;
+            return `<span class="${escapeHtml(tokenWrapClass)}">${tokenHtml}</span>`;
+        });
+
+        processed = processed.replace(
+            new RegExp(`\\x01([^\\x02]*)\\x02([^\\x02]*)\\x02([^\\x03]*)\\x03`, "g"),
+            (_match, firstVar, tokenId, label) => {
+                const varKeyAttr = pillVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(firstVar));
+                return `<span class="${pillClass}" role="button" tabindex="0" ${optionalVarAttrName}="${escapeHtml(firstVar)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" title="${escapeHtml(pillTitlePrefix)}: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`;
+            }
+        );
+
+        return processed;
+    }
+
     // Renders a read-only template preview for the step-card list.
     // Optional [{{var}}] segments appear as small faded badges instead of raw [brackets].
+    function renderSnippetTokens(text) {
+        return (text || "").toString().replace(/{{\s*([^}]+?)\s*}}/g, (_match, varName) => {
+            const label = escapeHtml((varName || "").toString().trim());
+            return `<span class="template-snippet-var">${label}</span>`;
+        }).split("\n").map(part => part).join("\n");
+    }
+
     function snippetPreview(templateRaw) {
         if (!templateRaw) return "";
         const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
@@ -280,23 +440,19 @@
         let lastIndex = 0;
         let match;
         while ((match = optionalPattern.exec(templateRaw)) !== null) {
-            const textBefore = templateRaw.slice(lastIndex, match.index)
-                .replace(/{{\s*([^}]+?)\s*}}/g, "$1");
-            parts.push(escapeHtml(textBefore));
-            const inner  = (match[1] ?? match[2] ?? "").toString();
-            const vars   = getTemplateVariables(inner);
-            const label  = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
-            parts.push(`<span class="opt-snippet-badge"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i> ${escapeHtml(label)}</span>`);
+            const textBefore = templateRaw.slice(lastIndex, match.index);
+            parts.push(renderSnippetTokens(escapeHtml(textBefore)));
+            const inner = (match[1] ?? match[2] ?? "").toString();
+            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            parts.push(`<span class="opt-snippet-badge"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i> ${renderSnippetTokens(escapeHtml(label))}</span>`);
             lastIndex = match.index + match[0].length;
         }
-        const remaining = templateRaw.slice(lastIndex).replace(/{{\s*([^}]+?)\s*}}/g, "$1");
-        parts.push(escapeHtml(remaining));
+        const remaining = templateRaw.slice(lastIndex);
+        parts.push(renderSnippetTokens(escapeHtml(remaining)));
         return parts.join("");
     }
 
-    // -----------------------------
-    // RENDER: Step Button Liste
-    // -----------------------------
+
     function getPhaseMeta(phase) {
         const p = (phase ?? 0).toString();
         const meta = doc?.phases?.[p];
@@ -422,7 +578,7 @@
 
     function isNoArticleVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
-        return key === "state" || key === "duration" || key === "count" || key === "item" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronomen" || isGrindSizeVariable(varName);
+        return key === "state" || key === "duration" || key === "count" || key === "item" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronomen" || key === "shape" || isGrindSizeVariable(varName);
     }
     function isStateVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
@@ -521,9 +677,10 @@
         // If template has a separate {{pronoun}} token, don't embed pronoun buttons in state editor
         const hasSeparatePronounToken = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
 
-        const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
+                const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
         const pronounButtons = (stateVar && !hasSeparatePronounToken) ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
-        const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
+        const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
+        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
             ? ingredientItems.map(({ name, icon }) => {
@@ -1135,7 +1292,9 @@
     // -----------------------------
     async function init() {
         try {
-            doc = await loadJson();
+            const loaded = await Promise.all([loadJson(), loadOptionRules()]);
+            doc = loaded[0];
+            optionRules = loaded[1] || { defaults: {}, steps: {} };
             steps = doc.master_steps || [];
 
             renderStepButtons();
@@ -1153,6 +1312,7 @@
     // Uses class-based rows so multiple host containers don't conflict.
     function buildInlineEditorHtml(varName, currentVal, opts) {
         const suppressPronounButtons = !!(opts && opts.suppressPronounButtons);
+        const optionsMasterId = (opts && opts.masterId) || activeStep?.master_id || "";
         const compactSpecialVar = isCompactSpecialVariable(varName);
         if (compactSpecialVar) {
             const specialBlock = renderSpecialEditor(varName, currentVal);
@@ -1166,10 +1326,45 @@
         const ingredientVar = isIngredientVariable(varName);
         const noArticleVar = isNoArticleVariable(varName);
         const stateVar = isStateVariable(varName);
-        const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(getArticleOptions(), 'article', null);
-        const pronounButtons = (stateVar && !suppressPronounButtons) ? renderPillButtons(getVarOptions('pronoun'), 'pronoun', null) : '';
+        const rawCurrentVal = (currentVal || '').toString().trim();
+        const articleOptions = getArticleOptions();
+        const pronounOptions = getVarOptions('pronoun', optionsMasterId);
+        let prefilledArticle = '';
+        let prefilledPronoun = '';
+        let prefilledValue = rawCurrentVal;
+
+        if (stateVar && !suppressPronounButtons && rawCurrentVal) {
+            const pronounMatch = pronounOptions.find(option => {
+                const value = (option || '').toString().trim();
+                if (!value) return false;
+                const lowerCurrent = rawCurrentVal.toLowerCase();
+                const lowerOption = value.toLowerCase();
+                return lowerCurrent === lowerOption || lowerCurrent.startsWith(`${lowerOption} `);
+            });
+
+            if (pronounMatch) {
+                prefilledPronoun = pronounMatch;
+                prefilledValue = rawCurrentVal.slice(pronounMatch.length).trim();
+            }
+        } else if (!ingredientVar && !noArticleVar && rawCurrentVal) {
+            const articleMatch = articleOptions.find(option => {
+                const value = (option || '').toString().trim();
+                if (!value || value === 'ohne') return false;
+                const lowerCurrent = rawCurrentVal.toLowerCase();
+                const lowerOption = value.toLowerCase();
+                return lowerCurrent === lowerOption || lowerCurrent.startsWith(`${lowerOption} `);
+            });
+
+            if (articleMatch) {
+                prefilledArticle = articleMatch;
+                prefilledValue = rawCurrentVal.slice(articleMatch.length).trim();
+            }
+        }
+
+        const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(articleOptions, 'article', prefilledArticle);
+        const pronounButtons = (stateVar && !suppressPronounButtons) ? renderPillButtons(['', ...pronounOptions], 'pronoun', prefilledPronoun) : '';
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
-        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
+        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, optionsMasterId);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
             ? ingredientItems.map(({ name, icon }) => {
@@ -1179,10 +1374,10 @@
                 const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : '';
                 return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
             }).join('')
-            : renderPillButtons(options, 'value', currentVal);
+            : renderPillButtons(options, 'value', prefilledValue);
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
-        return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
+        return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="${escapeHtml(prefilledArticle)}" data-selected-pronoun="${escapeHtml(prefilledPronoun)}" data-selected-value="${escapeHtml(prefilledValue)}" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
   <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
   ${specialBlock}
   ${(ingredientVar || noArticleVar) ? '' : `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>`}
@@ -1257,6 +1452,7 @@
 
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
+        renderTemplateWithConfig,
         buildInlineEditorHtml,
         applyEditorValue,
         applyEditorExtras,
