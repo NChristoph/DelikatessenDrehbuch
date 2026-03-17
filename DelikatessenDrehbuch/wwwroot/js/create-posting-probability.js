@@ -214,40 +214,6 @@
             wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
         }
 
-        // Opens the state editor for a specific chip in a probability card.
-        function openProbStateEditor(masterId, wrap, stateChip) {
-            if (!stateChip || !deps.openProbVarEditor) return;
-            const currentVars = getMergedVars(masterId);
-            const stateVal = (currentVars['state'] || '').toString();
-            deps.openProbVarEditor(masterId, 'state', stateVal, function (sv) {
-                if (sv == null) return;
-                if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                state.inlineOverrides[masterId]['state'] = sv;
-                rerenderInlineText(masterId, wrap);
-            }, $(stateChip));
-        }
-
-        // Opens pronoun editor first, then state editor sequentially.
-        function openPronounThenState(masterId, wrap, stateChip) {
-            if (!deps.openProbVarEditor) return;
-            const pronounChip = wrap.find('.js-probability-var[data-var-key="pronoun"]')[0];
-            if (!pronounChip) {
-                openProbStateEditor(masterId, wrap, stateChip);
-                return;
-            }
-            const currentVars = getMergedVars(masterId);
-            const pronounVal = (currentVars['pronoun'] || '').toString();
-            deps.openProbVarEditor(masterId, 'pronoun', pronounVal, function (pv) {
-                if (pv == null) return;
-                if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                state.inlineOverrides[masterId]['pronoun'] = pv;
-                rerenderInlineText(masterId, wrap);
-                // After pronoun is set, open state editor
-                const updatedStateChip = wrap.find('.js-probability-var[data-var-key="state"]')[0];
-                openProbStateEditor(masterId, wrap, updatedStateChip || stateChip);
-            }, $(pronounChip));
-        }
-
         function bindInlineEvents() {
             $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
                 event.preventDefault();
@@ -258,18 +224,6 @@
                 const varKey = (chip.data('var-key') || '').toString();
                 if (!masterId || !varKey) return;
 
-                // Sequential editing: {state} clicked → pronoun first (if unfilled), then state
-                if (varKey === 'state' && deps.openProbVarEditor) {
-                    const pronounChip = wrap.find('.js-probability-var[data-var-key="pronoun"]')[0];
-                    if (pronounChip) {
-                        const pronounOverride = (state.inlineOverrides[masterId] || {})['pronoun'] || '';
-                        if (!pronounOverride) {
-                            openPronounThenState(masterId, wrap, chip[0]);
-                            return;
-                        }
-                    }
-                }
-
                 const currentVars = getMergedVars(masterId);
                 const currentVal = (currentVars[varKey] || '').toString();
 
@@ -279,14 +233,6 @@
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
                         rerenderInlineText(masterId, wrap);
-                        // Sequential editing: after {pronoun} is set, auto-open {state} if unfilled
-                        if (varKey === 'pronoun') {
-                            const stateOverride = (state.inlineOverrides[masterId] || {})['state'] || '';
-                            if (!stateOverride) {
-                                const stateChip = wrap.find('.js-probability-var[data-var-key="state"]')[0];
-                                if (stateChip) openProbStateEditor(masterId, wrap, stateChip);
-                            }
-                        }
                     }, chip, function (extras) {
                         if (!extras || typeof extras !== 'object') return;
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};

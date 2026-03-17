@@ -317,94 +317,43 @@
             closeProbVarEditor();
         }
 
-        // Opens the SmartStepCreator-style inline editor inside the probability card.
-        // Replaces the floating dock with an inline editor that looks identical to the
-        // active step editor in SmartStepCreator.
         function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras) {
-            // Close all open inline editors first and restore their action buttons
+            $('.prob-inline-editor-host').each(function () {
+                if (typeof this._managedEditorCleanup === 'function') this._managedEditorCleanup();
+            });
             $('.prob-inline-editor-host').empty().addClass('d-none')
                 .closest('.probability-template-card').find('.probability-template-actions').removeClass('d-none');
 
             const helpers = window.MasterStepCreatorHelpers;
-            if (!helpers || typeof helpers.buildInlineEditorHtml !== 'function') {
-                // Fallback to the existing dock editor
+            if (!helpers || typeof helpers.openManagedInlineEditor !== 'function')
                 return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
-            }
 
             const $anchor = anchorEl ? $(anchorEl).closest('.probability-template-wrap') : null;
-            if (!$anchor || !$anchor.length) {
+            if (!$anchor || !$anchor.length)
                 return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
-            }
 
             const $host = $anchor.find('.prob-inline-editor-host');
-            if (!$host.length) {
+            if (!$host.length)
                 return openProbVarEditor(masterId, varKey, currentVal, onApply, anchorEl);
-            }
 
+            const hostEl = $host[0];
             const $actions = $anchor.find('.probability-template-actions');
-            // Suppress pronoun buttons inside state editor when the card already has a separate {pronoun} token
-            // (sequential flow handles pronoun separately before state)
             const hasSeparatePronounToken = !!$anchor.find('.js-probability-var[data-var-key="pronoun"]').length;
-            const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, { suppressPronounButtons: hasSeparatePronounToken });
-            $host.html(editorHtml).removeClass('d-none');
+            $host.removeClass('d-none');
             $actions.addClass('d-none');
-            const editorEl = $host.find('.prob-inline-editor')[0];
-            if (!editorEl) return;
-
-            function closeEditor() {
-                $host.empty().addClass('d-none');
-                $actions.removeClass('d-none');
-            }
-
-            function doApply() {
-                const val = helpers.applyEditorValue(editorEl);
-                if (val != null) onApply(val);
-                if (onApplyExtras && typeof helpers.applyEditorExtras === 'function') {
-                    const extras = helpers.applyEditorExtras(editorEl);
-                    if (extras) onApplyExtras(extras);
-                }
-                closeEditor();
-            }
-
-            $host.off('.probinline')
-                .on('click.probinline', '.js-prob-inline-close', closeEditor)
-                .on('click.probinline', '#BtnCloseVarTop', closeEditor)
-                .on('click.probinline', '.js-prob-inline-apply', doApply)
-                .on('click.probinline', '#BtnPickDurationQuick', doApply)
-                .on('click.probinline', '#BtnPickTempQuick', doApply)
-                .on('click.probinline', '#BtnPickCountQuick', doApply)
-                .on('click.probinline', 'button[data-pick-mode]', function () {
-                    const btn = this;
-                    const mode = btn.dataset.pickMode;
-                    const val = btn.dataset.pickValue || '';
-
-                    if (mode === 'ingredient-value') {
-                        const selected = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
-                        const list = Array.isArray(selected) ? selected : [];
-                        const idx = list.indexOf(val);
-                        if (idx >= 0) { list.splice(idx, 1); btn.classList.remove('active'); }
-                        else { list.push(val); btn.classList.add('active'); }
-                        editorEl.dataset.selectedIngredientValues = JSON.stringify(list);
-                        editorEl.dataset.selectedValue = list[0] || '';
-                        return;
-                    }
-
-                    const rowSel = mode === 'article' ? '.js-article-btn-row'
-                        : mode === 'pronoun' ? '.js-pronoun-btn-row' : '.js-value-btn-row';
-                    $host.find(rowSel).find('button[data-pick-mode]').removeClass('active');
-                    btn.classList.add('active');
-
-                    if (mode === 'article') editorEl.dataset.selectedArticle = val;
-                    if (mode === 'pronoun') editorEl.dataset.selectedPronoun = val;
-                    if (mode === 'value') editorEl.dataset.selectedValue = val;
-                })
-                .on('click.probinline', 'button[data-duration-unit]', function () {
-                    const btn = this;
-                    editorEl.dataset.durationUnit = btn.dataset.durationUnit;
-                    btn.parentElement && btn.parentElement.querySelectorAll('button[data-duration-unit]')
-                        .forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
+            helpers.openManagedInlineEditor({
+                varName: varKey, currentVal, hostEl,
+                suppressPronounButtons: hasSeparatePronounToken,
+                onApplyVar(vName, val, extras) {
+                    onApply(val);
+                    if (onApplyExtras && extras && Object.keys(extras).length) onApplyExtras(extras);
+                },
+                onClose() { $host.empty().addClass('d-none'); $actions.removeClass('d-none'); },
+                findCompanionEl(vName) {
+                    return $anchor.find(`.js-probability-var[data-var-key="${vName}"]`)[0] || null;
+                },
+                isVarFilled: () => false,
+            });
         }
 
         /* ===== End Probability Variable Editor ===== */

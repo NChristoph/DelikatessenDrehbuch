@@ -493,90 +493,27 @@
 
     function openInlineEditor(varName, tokenId) {
         if (!activeStep) return;
-
         activeToken = { varName, tokenId };
-
         const host = $("#InlineVarEditorHost");
         if (!host) return;
-
+        if (typeof host._managedEditorCleanup === 'function') host._managedEditorCleanup();
         const currentVal = activeStep.values[varName] ?? "";
-        const compactSpecialVar = isCompactSpecialVariable(varName);
-        if (compactSpecialVar) {
-            const specialBlockCompact = renderSpecialEditor(varName, currentVal);
-            host.innerHTML = `
-      <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
-        ${specialBlockCompact}
-      </div>
-    `;
-            host.dataset.selectedArticle = "";
-            host.dataset.selectedPronoun = "";
-            host.dataset.selectedValue = "";
-            host.dataset.selectedIngredientValues = "[]";
-            return;
-        }
-        const ingredientVar = isIngredientVariable(varName);
-        const noArticleVar = isNoArticleVariable(varName);
-        const stateVar = isStateVariable(varName);
-        // If template has a separate {{pronoun}} token, don't embed pronoun buttons in state editor
-        const hasSeparatePronounToken = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
-
-        const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
-        const pronounButtons = (stateVar && !hasSeparatePronounToken) ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
-        const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
-        const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
-        const valueButtons = ingredientVar
-            ? ingredientItems.map(({ name, icon }) => {
-                const value = name.trim();
-                const active = selectedIngredientValues.includes(value) ? " active" : "";
-                const safe = escapeHtml(value);
-                const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : "";
-                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
-            }).join("")
-            : renderPillButtons(options, "value", currentVal);
-
-        // Spezial UI für duration/temp
-        const specialBlock = renderSpecialEditor(varName, currentVal);
-
-        host.innerHTML = `
-      <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert für <strong>${escapeHtml(varName)}</strong></div>
-
-        ${specialBlock}
-
-        ${(ingredientVar || noArticleVar) ? "" : `
-        <div class="small text-muted mt-2 mb-1">Artikel</div>
-        <div class="d-flex flex-wrap gap-2 mb-2" id="ArticleBtnRow">
-          ${articleButtons}
-        </div>
-        `}
-
-        ${stateVar ? `
-        <div class="small text-muted mt-2 mb-1">Pronomen</div>
-        <div class="d-flex flex-wrap gap-2 mb-2" id="PronounBtnRow">
-          ${pronounButtons}
-        </div>
-        ` : ""}
-
-        <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
-        <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
-          ${valueButtons || (ingredientVar
-            ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
-            : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
-        </div>
-
-        <div class="d-flex gap-2 align-items-center mt-3">
-          <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schließen</button>
-        </div>
-      </div>
-    `;
-
-        // preset selected article/value state
-        host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
-        host.dataset.selectedPronoun = "";
-        host.dataset.selectedValue = "";   // gewählter Wert
-        host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
+        openManagedInlineEditor({
+            varName, currentVal, hostEl: host,
+            suppressPronounButtons: false,
+            onApplyVar(vName, val, extras) {
+                activeStep.values[vName] = val;
+                if (extras && extras.pronoun) activeStep.values['pronoun'] = extras.pronoun;
+                rerenderAfterValueSet();
+            },
+            onClose() { closeInlineEditor(); },
+            findCompanionEl(vName) {
+                return document.querySelector(`#CurrentStepText .placeholder-token[data-var='${vName}']`);
+            },
+            isVarFilled(vName) {
+                return !!((activeStep.values[vName] || "").toString().trim());
+            },
+        });
     }
 
     function renderPillButtons(list, mode, currentVal) {
@@ -667,99 +604,6 @@
     function extractLeadingNumber(text) {
         const m = (text ?? "").toString().match(/\d+/);
         return m ? m[0] : "";
-    }
-
-    // -----------------------------
-    // APPLY VALUE
-    // -----------------------------
-    function applyCurrentEditorSelection() {
-        if (!activeStep || !activeToken) return;
-
-        const host = $("#InlineVarEditorHost");
-        if (!host) return;
-
-        const varName = activeToken.varName;
-
-        // Spezialfälle zuerst
-        if (varName === "duration") {
-            const n = $("#DurationValueInput")?.value?.trim() || "";
-            const unit = host.dataset.durationUnit || "minute";
-            const labels = getDurationUnits();
-            const unitLabel = labels.find(x => x.key === unit)?.label ?? unit;
-            const composed = n ? `${n} ${unitLabel}` : "";
-            if (composed) activeStep.values[varName] = composed;
-            rerenderAfterValueSet();
-            return;
-        }
-
-        if (varName === "temp") {
-            const n = $("#TempValueInput")?.value?.trim() || "";
-            const u = $("#TempUnitSelect")?.value || "°C";
-            const composed = n ? `${n} ${u}` : "";
-            if (composed) activeStep.values[varName] = composed;
-            rerenderAfterValueSet();
-            return;
-        }
-
-
-        if (varName === "count") {
-            const n = $("#CountValueInput")?.value?.trim() || "1";
-            const normalized = /^\d+$/.test(n) ? n : "1";
-            activeStep.values[varName] = normalized;
-            rerenderAfterValueSet();
-            return;
-        }
-        // Normalfall: Artikel + Wert
-        const article = host.dataset.selectedArticle ?? "";
-        const pronoun = host.dataset.selectedPronoun ?? "";
-        let value = host.dataset.selectedValue ?? "";
-        const noArticleVar = isNoArticleVariable(varName);
-        const stateVar = isStateVariable(varName);
-
-        if (isIngredientVariable(varName)) {
-            const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
-            if (!Array.isArray(selectedValues) || !selectedValues.length) return;
-            activeStep.values[varName] = formatSelectedIngredientList(selectedValues, currentLang);
-            rerenderAfterValueSet();
-            return;
-        }
-
-        let composed = value;
-
-        // Artikel nur wenn nicht "ohne"
-        if (!noArticleVar && article && article !== "ohne") {
-            composed = `${article} ${value}`.trim();
-        }
-
-        const hasSepPronoun = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
-        if (stateVar && !hasSepPronoun && pronoun && value) {
-            composed = `${pronoun} ${value}`.trim();
-        }
-
-        // wenn nur artikel geklickt aber kein value -> nix setzen
-        if (!value) return;
-
-        // Detect if we should auto-open state editor after pronoun
-        const isPronounToken = varName === "pronoun";
-        const templateRaw = activeStep?.templateRaw || "";
-        const stateUnfilled = !((activeStep.values["state"] || "").toString().trim());
-        const shouldAutoState = isPronounToken &&
-            /\{\{\s*state\s*\}\}/i.test(templateRaw) &&
-            stateUnfilled;
-
-        activeStep.values[varName] = composed;
-        // Auch {pronoun}-Token setzen falls im Template vorhanden
-        if (stateVar && pronoun) {
-            activeStep.values["pronoun"] = pronoun;
-        }
-        rerenderAfterValueSet();
-
-        if (shouldAutoState) {
-            const stateToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='state']");
-            if (stateToken) {
-                openInlineEditor("state", stateToken.dataset.tokenId);
-            }
-        }
     }
 
     function rerenderAfterValueSet() {
@@ -973,14 +817,6 @@
                 if (!activeStep) return;
                 const varName = token.dataset.var || token.dataset.placeholderKey || token.dataset.var;
                 const tokenId = token.dataset.tokenId || token.dataset.placeholderTokenId || token.dataset.tokenId;
-                // Sequential editing: {state} clicked with separate unfilled {pronoun} → open pronoun first
-                if (isStateVariable(varName) && /\{\{\s*pronoun\s*\}\}/i.test(activeStep.templateRaw || "")) {
-                    const pronounToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='pronoun']");
-                    if (pronounToken && !((activeStep.values["pronoun"] || "").toString().trim())) {
-                        openInlineEditor("pronoun", pronounToken.dataset.tokenId);
-                        return;
-                    }
-                }
                 openInlineEditor(varName, tokenId);
                 return;
             }
@@ -1009,103 +845,6 @@
 
             if (e.target.id === "btnAcceptStep") {
                 acceptActiveStep();
-                return;
-            }
-
-            // Editor Close Buttons
-            if (e.target.id === "BtnCloseVar" || e.target.id === "BtnCloseVarTop") {
-                closeInlineEditor();
-                return;
-            }
-
-            // Apply Button
-            if (e.target.id === "BtnApplyVar") {
-                applyCurrentEditorSelection();
-                return;
-            }
-
-            // Artikel/Wert Button Picks
-            const pickBtn = e.target.closest("button[data-pick-mode]");
-            if (pickBtn) {
-                const host = $("#InlineVarEditorHost");
-                if (!host) return;
-
-                const mode = pickBtn.dataset.pickMode;
-                const val = pickBtn.dataset.pickValue ?? "";
-
-                if (mode === "ingredient-value") {
-                    const selected = JSON.parse(host.dataset.selectedIngredientValues || "[]");
-                    const list = Array.isArray(selected) ? selected : [];
-                    const idx = list.indexOf(val);
-                    if (idx >= 0) {
-                        list.splice(idx, 1);
-                        pickBtn.classList.remove("active");
-                    } else {
-                        list.push(val);
-                        pickBtn.classList.add("active");
-                    }
-                    host.dataset.selectedIngredientValues = JSON.stringify(list);
-                    host.dataset.selectedValue = list[0] || "";
-                    return;
-                }
-
-                // toggle active style
-                const row = mode === "article" ? $("#ArticleBtnRow") : (mode === "pronoun" ? $("#PronounBtnRow") : $("#ValueBtnRow"));
-                if (row) row.querySelectorAll("button[data-pick-mode]").forEach(b => {
-                    if (b.dataset.pickMode === mode) b.classList.remove("active");
-                });
-                pickBtn.classList.add("active");
-
-                if (mode === "article") host.dataset.selectedArticle = val;
-                if (mode === "pronoun") host.dataset.selectedPronoun = val;
-                if (mode === "value") host.dataset.selectedValue = val;
-                return;
-            }
-
-            // duration unit pick
-            const du = e.target.closest("button[data-duration-unit]");
-            if (du) {
-                const host = $("#InlineVarEditorHost");
-                if (!host) return;
-                host.dataset.durationUnit = du.dataset.durationUnit;
-
-                // aktiv markieren
-                du.parentElement?.querySelectorAll("button[data-duration-unit]")?.forEach(b => b.classList.remove("active"));
-                du.classList.add("active");
-                return;
-            }
-
-            // quick duration apply
-            if (e.target.id === "BtnPickDurationQuick") {
-                const host = $("#InlineVarEditorHost");
-                if (!host) return;
-                if (!host.dataset.durationUnit) host.dataset.durationUnit = "minute";
-                const n = $("#DurationValueInput")?.value?.trim() || "";
-                const labels = getDurationUnits();
-                const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
-                const composed = n ? `${n} ${unitLabel}` : "";
-
-                // direkt übernehmen:
-                activeStep.values["duration"] = composed;
-                rerenderAfterValueSet();
-                return;
-            }
-
-            if (e.target.id === "BtnPickCountQuick") {
-                const n = $("#CountValueInput")?.value?.trim() || "1";
-                const normalized = /^\d+$/.test(n) ? n : "1";
-                activeStep.values["count"] = normalized;
-                rerenderAfterValueSet();
-                return;
-            }
-            // quick temp apply
-            if (e.target.id === "BtnPickTempQuick") {
-                const n = $("#TempValueInput")?.value?.trim() || "";
-                const u = $("#TempUnitSelect")?.value || "°C";
-                const composed = n ? `${n} ${u}` : "";
-
-                activeStep.values["temp"] = composed;
-                rerenderAfterValueSet();
                 return;
             }
         });
@@ -1242,11 +981,84 @@
         return pronoun ? { pronoun } : null;
     }
 
+    function openManagedInlineEditor(config) {
+        const { varName, currentVal, hostEl, suppressPronounButtons,
+                onApplyVar, onClose, findCompanionEl, isVarFilled } = config;
+        hostEl.innerHTML = buildInlineEditorHtml(varName, currentVal,
+            { suppressPronounButtons: !!suppressPronounButtons });
+        const editorEl = hostEl.querySelector('.prob-inline-editor');
+        if (!editorEl) return;
+        function teardown() {
+            hostEl.innerHTML = '';
+            if (typeof onClose === 'function') onClose();
+        }
+        function doApply() {
+            const val = applyEditorValue(editorEl);
+            if (val == null) return;
+            const extras = applyEditorExtras(editorEl) || {};
+            onApplyVar(varName, val, extras);
+            const isPronoun = varName === 'pronoun';
+            if (isPronoun) {
+                const stateEl = typeof findCompanionEl === 'function' ? findCompanionEl('state') : null;
+                const stateFilled = typeof isVarFilled === 'function' ? isVarFilled('state') : false;
+                if (stateEl && !stateFilled) {
+                    openManagedInlineEditor({ ...config, varName: 'state', currentVal: '',
+                        suppressPronounButtons: true, hostEl });
+                    return;
+                }
+            }
+            if (!isPronoun && extras && extras.pronoun) onApplyVar('pronoun', extras.pronoun, {});
+            teardown();
+        }
+        function hostClickHandler(e) {
+            if (e.target.classList.contains('js-prob-inline-apply')
+                || e.target.id === 'BtnPickDurationQuick'
+                || e.target.id === 'BtnPickTempQuick'
+                || e.target.id === 'BtnPickCountQuick') { doApply(); return; }
+            if (e.target.classList.contains('js-prob-inline-close')
+                || e.target.id === 'BtnCloseVarTop') { teardown(); return; }
+            const pickBtn = e.target.closest('button[data-pick-mode]');
+            if (pickBtn) {
+                const mode = pickBtn.dataset.pickMode;
+                const val  = pickBtn.dataset.pickValue || '';
+                if (mode === 'ingredient-value') {
+                    const sel = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+                    const idx = sel.indexOf(val);
+                    if (idx >= 0) { sel.splice(idx, 1); pickBtn.classList.remove('active'); }
+                    else { sel.push(val); pickBtn.classList.add('active'); }
+                    editorEl.dataset.selectedIngredientValues = JSON.stringify(sel);
+                    editorEl.dataset.selectedValue = sel[0] || '';
+                    return;
+                }
+                const rowSel = mode === 'article' ? '.js-article-btn-row'
+                             : mode === 'pronoun' ? '.js-pronoun-btn-row' : '.js-value-btn-row';
+                editorEl.querySelectorAll(`${rowSel} button[data-pick-mode]`).forEach(b => b.classList.remove('active'));
+                pickBtn.classList.add('active');
+                if (mode === 'article') editorEl.dataset.selectedArticle = val;
+                if (mode === 'pronoun') editorEl.dataset.selectedPronoun = val;
+                if (mode === 'value')   editorEl.dataset.selectedValue   = val;
+                return;
+            }
+            const duBtn = e.target.closest('button[data-duration-unit]');
+            if (duBtn) {
+                editorEl.dataset.durationUnit = duBtn.dataset.durationUnit;
+                duBtn.closest('div')?.querySelectorAll('button[data-duration-unit]').forEach(b => b.classList.remove('active'));
+                duBtn.classList.add('active');
+            }
+        }
+        hostEl.addEventListener('click', hostClickHandler);
+        hostEl._managedEditorCleanup = () => {
+            hostEl.removeEventListener('click', hostClickHandler);
+            delete hostEl._managedEditorCleanup;
+        };
+    }
+
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
         buildInlineEditorHtml,
         applyEditorValue,
-        applyEditorExtras
+        applyEditorExtras,
+        openManagedInlineEditor
     });
 
     document.addEventListener("DOMContentLoaded", init);
