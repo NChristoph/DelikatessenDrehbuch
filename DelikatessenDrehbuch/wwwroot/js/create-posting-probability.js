@@ -96,14 +96,17 @@
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card w-100 text-start">
+    <div class="prob-step-header">
+      <span class="prob-step-label">Erkannter Step</span>
+      <div class="probability-template-actions d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
+        <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
+      </div>
+    </div>
     <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
       <span class="probability-template-text">${inlineText || safeText}</span>
     </div>
     <div class="prob-inline-editor-host d-none"></div>
-    <div class="probability-template-actions d-flex gap-2 mt-3 align-items-center flex-wrap">
-      <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
-      <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
-    </div>
   </div>
 </div>`;
     }
