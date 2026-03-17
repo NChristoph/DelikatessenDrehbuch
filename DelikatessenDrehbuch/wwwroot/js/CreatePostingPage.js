@@ -3342,19 +3342,17 @@
                 const placeholderType = getPlaceholderType(key);
 
                 // Sequential editing: clicking {state} when {pronoun} is unfilled → open pronoun first
-                if (placeholderType === 'state') {
-                    const pronounEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="pronoun"]');
-                    if (pronounEl) {
-                        const pronounTokenId = pronounEl.dataset.placeholderTokenId;
-                        if (!(creatorState.placeholderAssignments[pronounTokenId] || '').toString().trim()) {
-                            creatorState.pendingSc2StateTokenId = tokenId;
-                            openSc2PronounEditorForToken(pronounTokenId);
-                            showSc2CreatorToast('Zuerst Pronomen wählen');
-                            renderSc2TemplateCards();
-                            return;
-                        }
+                if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.triggerPronounBeforeState({
+                    placeholderType,
+                    containerSelector: '#sc2MasterPreviewText',
+                    assignments: creatorState.placeholderAssignments,
+                    onTriggered: function (pronounTokenId) {
+                        creatorState.pendingSc2StateTokenId = tokenId;
+                        openSc2PronounEditorForToken(pronounTokenId);
+                        showSc2CreatorToast('Zuerst Pronomen wählen');
+                        renderSc2TemplateCards();
                     }
-                }
+                })) return;
 
                 if (placeholderType === 'ingredient') {
                     creatorState.activePlaceholderTokenId = tokenId;
@@ -3579,20 +3577,18 @@
                     const placeholderType = getPlaceholderType(key);
 
                     // Sequential editing: clicking {state} when {pronoun} is unfilled → open pronoun first
-                    if (placeholderType === 'state') {
-                        const pronounEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="pronoun"]');
-                        if (pronounEl) {
-                            const pronounTokenId = pronounEl.dataset.placeholderTokenId;
-                            if (!(creatorState.placeholderAssignments[pronounTokenId] || '').toString().trim()) {
-                                creatorState.pendingStateTokenId = tokenId;
-                                creatorState.activePlaceholderTokenId = pronounTokenId;
-                                openPronounEditorForToken(pronounTokenId);
-                                showCreatorToast('Zuerst Pronomen wählen');
-                                renderTemplateCards();
-                                return;
-                            }
+                    if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.triggerPronounBeforeState({
+                        placeholderType,
+                        containerSelector: '#masterPreviewText',
+                        assignments: creatorState.placeholderAssignments,
+                        onTriggered: function (pronounTokenId) {
+                            creatorState.pendingStateTokenId = tokenId;
+                            creatorState.activePlaceholderTokenId = pronounTokenId;
+                            openPronounEditorForToken(pronounTokenId);
+                            showCreatorToast('Zuerst Pronomen wählen');
+                            renderTemplateCards();
                         }
-                    }
+                    })) return;
 
                     if (placeholderType === 'ingredient') {
                         handleIngredientPlaceholderSelection(tokenId);
