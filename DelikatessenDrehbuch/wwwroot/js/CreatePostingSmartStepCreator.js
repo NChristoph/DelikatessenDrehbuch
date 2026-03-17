@@ -518,11 +518,12 @@
         const ingredientVar = isIngredientVariable(varName);
         const noArticleVar = isNoArticleVariable(varName);
         const stateVar = isStateVariable(varName);
+        // If template has a separate {{pronoun}} token, don't embed pronoun buttons in state editor
+        const hasSeparatePronounToken = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
 
         const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
-        const pronounButtons = stateVar ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
-        const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
-        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
+        const pronounButtons = (stateVar && !hasSeparatePronounToken) ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
+        const options = ingredientVar ? getSelectedIngredientNamesFromPage() : getVarOptions(varName);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
             ? ingredientItems.map(({ name, icon }) => {
@@ -730,12 +731,21 @@
             composed = `${article} ${value}`.trim();
         }
 
-        if (stateVar && pronoun && value) {
+        const hasSepPronoun = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
+        if (stateVar && !hasSepPronoun && pronoun && value) {
             composed = `${pronoun} ${value}`.trim();
         }
 
         // wenn nur artikel geklickt aber kein value -> nix setzen
         if (!value) return;
+
+        // Detect if we should auto-open state editor after pronoun
+        const isPronounToken = varName === "pronoun";
+        const templateRaw = activeStep?.templateRaw || "";
+        const stateUnfilled = !((activeStep.values["state"] || "").toString().trim());
+        const shouldAutoState = isPronounToken &&
+            /\{\{\s*state\s*\}\}/i.test(templateRaw) &&
+            stateUnfilled;
 
         activeStep.values[varName] = composed;
         // Auch {pronoun}-Token setzen falls im Template vorhanden
@@ -743,6 +753,13 @@
             activeStep.values["pronoun"] = pronoun;
         }
         rerenderAfterValueSet();
+
+        if (shouldAutoState) {
+            const stateToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='state']");
+            if (stateToken) {
+                openInlineEditor("state", stateToken.dataset.tokenId);
+            }
+        }
     }
 
     function rerenderAfterValueSet() {
