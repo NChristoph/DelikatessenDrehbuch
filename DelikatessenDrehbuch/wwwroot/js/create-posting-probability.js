@@ -264,7 +264,9 @@
                         rerenderInlineText(masterId, wrap);
                     });
                 } else {
-                    const nextVal = window.prompt(`Wert für ${varKey}:`, currentVal);
+                    const helpers = window.MasterStepCreatorHelpers || {};
+                    const displayKey = typeof helpers.getVarDisplayName === 'function' ? helpers.getVarDisplayName(varKey) : varKey;
+                    const nextVal = window.prompt(`Wert für ${displayKey}:`, currentVal);
                     if (nextVal == null) return;
                     if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                     state.inlineOverrides[masterId][varKey] = nextVal;

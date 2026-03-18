@@ -55,6 +55,50 @@
         return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
     }
 
+    // Mehrsprachige Anzeigenamen für Platzhalter-Variablen
+    const VAR_DISPLAY_NAMES = {
+        ingredient:  { de: "Zutat",        en: "ingredient",   esp: "ingrediente",  prt: "ingrediente",  nl: "ingrediënt",   sv: "ingrediens",   da: "ingrediens",   no: "ingrediens",   id: "bahan",      ms: "bahan"     },
+        ingredient2: { de: "Zutat 2",      en: "ingredient 2", esp: "ingrediente 2",prt: "ingrediente 2",nl: "ingrediënt 2", sv: "ingrediens 2", da: "ingrediens 2", no: "ingrediens 2", id: "bahan 2",    ms: "bahan 2"   },
+        ingredients: { de: "Zutaten",      en: "ingredients",  esp: "ingredientes", prt: "ingredientes", nl: "ingrediënten", sv: "ingredienser", da: "ingredienser", no: "ingredienser", id: "bahan-bahan",ms: "bahan-bahan"},
+        state:       { de: "Zustand",      en: "state",        esp: "estado",       prt: "estado",       nl: "toestand",     sv: "tillstånd",    da: "tilstand",     no: "tilstand",     id: "keadaan",    ms: "keadaan"   },
+        equipment:   { de: "Gerät",        en: "equipment",    esp: "equipo",       prt: "equipamento",  nl: "apparaat",     sv: "redskap",      da: "redskab",      no: "redskap",      id: "peralatan",  ms: "peralatan" },
+        tool:        { de: "Werkzeug",     en: "tool",         esp: "herramienta",  prt: "ferramenta",   nl: "gereedschap",  sv: "verktyg",      da: "værktøj",      no: "verktøy",      id: "alat",       ms: "alat"      },
+        duration:    { de: "Dauer",        en: "duration",     esp: "duración",     prt: "duração",      nl: "duur",         sv: "tid",          da: "varighed",     no: "varighet",     id: "durasi",     ms: "tempoh"    },
+        temp:        { de: "Temperatur",   en: "temperature",  esp: "temperatura",  prt: "temperatura",  nl: "temperatuur",  sv: "temperatur",   da: "temperatur",   no: "temperatur",   id: "suhu",       ms: "suhu"      },
+        shape:       { de: "Form",         en: "shape",        esp: "forma",        prt: "forma",        nl: "vorm",         sv: "form",         da: "form",         no: "form",         id: "bentuk",     ms: "bentuk"    },
+        grind_size:  { de: "Größe",        en: "size",         esp: "tamaño",       prt: "tamanho",      nl: "grootte",      sv: "storlek",      da: "størrelse",    no: "størrelse",    id: "ukuran",     ms: "saiz"      },
+        pronoun:     { de: "Pronomen",     en: "pronoun",      esp: "pronombre",    prt: "pronome",      nl: "voornaamwoord",sv: "pronomen",     da: "pronomen",     no: "pronomen",     id: "kata ganti", ms: "kata ganti"},
+        action:      { de: "Aktion",       en: "action",       esp: "acción",       prt: "ação",         nl: "actie",        sv: "åtgärd",       da: "handling",     no: "handling",     id: "tindakan",   ms: "tindakan"  },
+        liquid:      { de: "Flüssigkeit",  en: "liquid",       esp: "líquido",      prt: "líquido",      nl: "vloeistof",    sv: "vätska",       da: "væske",        no: "væske",        id: "cairan",     ms: "cecair"    },
+        fat:         { de: "Fett",         en: "fat",          esp: "grasa",        prt: "gordura",      nl: "vet",          sv: "fett",         da: "fedt",         no: "fett",         id: "lemak",      ms: "lemak"     },
+        base:        { de: "Basis",        en: "base",         esp: "base",         prt: "base",         nl: "basis",        sv: "bas",          da: "base",         no: "base",         id: "dasar",      ms: "asas"      },
+        marinade:    { de: "Marinade",     en: "marinade",     esp: "marinada",     prt: "marinada",     nl: "marinade",     sv: "marinad",      da: "marinade",     no: "marinade",     id: "bumbu rendam", ms: "perapan" },
+        method:      { de: "Methode",      en: "method",       esp: "método",       prt: "método",       nl: "methode",      sv: "metod",        da: "metode",       no: "metode",       id: "metode",     ms: "kaedah"    },
+        finish:      { de: "Abschluss",    en: "finish",       esp: "acabado",      prt: "acabamento",   nl: "afwerking",    sv: "finish",       da: "finish",       no: "finish",       id: "akhiran",    ms: "kemasan"   },
+        seasonings:  { de: "Gewürze",      en: "seasonings",   esp: "condimentos",  prt: "temperos",     nl: "kruiden",      sv: "kryddor",      da: "krydderier",   no: "krydder",      id: "bumbu",      ms: "perisa"    },
+        thickener:   { de: "Bindemittel",  en: "thickener",    esp: "espesante",    prt: "espessante",   nl: "bindmiddel",   sv: "förtjockningsmedel", da: "fortykningsmiddel", no: "fortykningsmiddel", id: "pengental", ms: "pemekat" },
+        count:       { de: "Anzahl",       en: "count",        esp: "cantidad",     prt: "quantidade",   nl: "aantal",       sv: "antal",        da: "antal",        no: "antall",       id: "jumlah",     ms: "bilangan"  },
+        mode:        { de: "Modus",        en: "mode",         esp: "modo",         prt: "modo",         nl: "modus",        sv: "läge",         da: "tilstand",     no: "modus",        id: "mode",       ms: "mod"       },
+        components:  { de: "Komponenten",  en: "components",   esp: "componentes",  prt: "componentes",  nl: "componenten",  sv: "komponenter",  da: "komponenter",  no: "komponenter",  id: "komponen",   ms: "komponen"  },
+        dough:       { de: "Teig",         en: "dough",        esp: "masa",         prt: "massa",        nl: "deeg",         sv: "deg",          da: "dej",          no: "deig",         id: "adonan",     ms: "doh"       },
+        surface:     { de: "Oberfläche",   en: "surface",      esp: "superficie",   prt: "superfície",   nl: "oppervlak",    sv: "yta",          da: "overflade",    no: "overflate",    id: "permukaan",  ms: "permukaan" },
+        heat:        { de: "Hitze",        en: "heat",         esp: "calor",        prt: "calor",        nl: "hitte",        sv: "värme",        da: "varme",        no: "varme",        id: "panas",      ms: "panas"     },
+        extra:       { de: "Extra",        en: "extra",        esp: "extra",        prt: "extra",        nl: "extra",        sv: "extra",        da: "ekstra",       no: "ekstra",       id: "ekstra",     ms: "ekstra"    },
+        item:        { de: "Element",      en: "item",         esp: "elemento",     prt: "elemento",     nl: "element",      sv: "objekt",       da: "element",      no: "element",      id: "item",       ms: "item"      },
+        position:    { de: "Position",     en: "position",     esp: "posición",     prt: "posição",      nl: "positie",      sv: "position",     da: "position",     no: "posisjon",     id: "posisi",     ms: "posisi"    },
+        reason:      { de: "Grund",        en: "reason",       esp: "razón",        prt: "razão",        nl: "reden",        sv: "anledning",    da: "grund",        no: "grunn",        id: "alasan",     ms: "sebab"     },
+        goal:        { de: "Ziel",         en: "goal",         esp: "objetivo",     prt: "objetivo",     nl: "doel",         sv: "mål",          da: "mål",          no: "mål",          id: "tujuan",     ms: "matlamat"  },
+        balance:     { de: "Balance",      en: "balance",      esp: "equilibrio",   prt: "equilíbrio",   nl: "balans",       sv: "balans",       da: "balance",      no: "balanse",      id: "keseimbangan",ms: "keseimbangan"},
+        keep:        { de: "Beibehalten",  en: "keep",         esp: "mantener",     prt: "manter",       nl: "bewaren",      sv: "behåll",       da: "behold",       no: "behold",       id: "simpan",     ms: "simpan"    }
+    };
+
+    function getVarDisplayName(varName) {
+        const key = (varName || "").toString().trim();
+        const entry = VAR_DISPLAY_NAMES[key] || VAR_DISPLAY_NAMES[key.toLowerCase()];
+        if (!entry) return key;
+        return entry[currentLang] ?? entry[DEFAULT_LANG] ?? entry.de ?? key;
+    }
+
     // -----------------------------
     // LOAD
     // -----------------------------
@@ -92,6 +136,20 @@
         return (value || "").toString().trim().toLowerCase();
     }
 
+    function getIngredientFamilyForStep(masterId) {
+        if (!masterId) return null;
+        const step = steps.find(s => (s?.master_id || "") === masterId);
+        const fk = step?.stable_taxonomy_keys?.ingredient_family_keys;
+        if (!fk) return null;
+        return (Array.isArray(fk) ? fk[0] : fk.toString().trim()) || null;
+    }
+
+    function getActionForStep(masterId) {
+        if (!masterId) return null;
+        const step = steps.find(s => (s?.master_id || "") === masterId);
+        return (step?.action || "").toString().trim() || null;
+    }
+
     function resolveRuleList(ruleValue) {
         if (!ruleValue) return [];
         if (Array.isArray(ruleValue)) {
@@ -119,11 +177,31 @@
             ? (Object.entries(stepsMap[masterId]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
             : null;
 
+        // Action layer
+        const actionKey = getActionForStep(masterId);
+        const actionRulesMap = optionRules?.action;
+        const actionRule = actionKey && actionRulesMap && typeof actionRulesMap[actionKey] === "object"
+            ? (Object.entries(actionRulesMap[actionKey]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
+            : null;
+
+        // Ingredient-family layer
+        const familyKey = getIngredientFamilyForStep(masterId);
+        const familyRulesMap = optionRules?.ingredient_family;
+        const familyRule = familyKey && familyRulesMap && typeof familyRulesMap[familyKey] === "object"
+            ? (Object.entries(familyRulesMap[familyKey]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
+            : null;
+
+        // Merge priority: step > action > ingredient_family > defaults
         const stepAllowed = resolveRuleList(stepRule?.allowed);
-        const allowed = stepAllowed.length ? stepAllowed : resolveRuleList(defaultRule?.allowed);
-        const preferred = [...resolveRuleList(defaultRule?.preferred), ...resolveRuleList(stepRule?.preferred)]
+        const actionAllowed = resolveRuleList(actionRule?.allowed);
+        const familyAllowed = resolveRuleList(familyRule?.allowed);
+        const defaultAllowed = resolveRuleList(defaultRule?.allowed);
+        const allowed = stepAllowed.length ? stepAllowed : (actionAllowed.length ? actionAllowed : (familyAllowed.length ? familyAllowed : defaultAllowed));
+
+        const preferred = [...resolveRuleList(stepRule?.preferred), ...resolveRuleList(actionRule?.preferred), ...resolveRuleList(familyRule?.preferred), ...resolveRuleList(defaultRule?.preferred)]
             .filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
-        const blocked = [...resolveRuleList(defaultRule?.blocked), ...resolveRuleList(stepRule?.blocked)]
+
+        const blocked = [...resolveRuleList(defaultRule?.blocked), ...resolveRuleList(familyRule?.blocked), ...resolveRuleList(actionRule?.blocked), ...resolveRuleList(stepRule?.blocked)]
             .filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
 
         return { allowed, preferred, blocked };
@@ -159,6 +237,30 @@
             if (bPreferred) return 1;
             return unique.findIndex(x => normalizeOptionValue(x) === aKey) - unique.findIndex(x => normalizeOptionValue(x) === bKey);
         });
+    }
+
+    // liefert ALLE Rohoptionen ohne Filterung (für "Weitere anzeigen" Fallback)
+    function getRawVarOptions(varName) {
+        if (!doc) return [];
+        const { key, normalizedKey } = normalizeVarKey(varName);
+        let options = [];
+        let vo = doc.variable_options?.[key];
+        if (!vo && doc.variable_options && typeof doc.variable_options === "object") {
+            const match = Object.entries(doc.variable_options)
+                .find(([candidateKey]) => normalizeVarKey(candidateKey).normalizedKey === normalizedKey);
+            vo = match ? match[1] : null;
+        }
+        if (vo && typeof vo === "object") {
+            const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
+            const list = vo[currentLang] ?? vo[langKey] ?? vo[DEFAULT_LANG] ?? vo.de;
+            if (Array.isArray(list)) {
+                options = list.filter(x => x !== null && x !== undefined).map(x => (x || "").toString().trim()).filter(Boolean);
+            }
+        }
+        if (!options.length && normalizedKey === "equipment" && doc.equipment) {
+            options = Object.values(doc.equipment).map(x => (x || "").toString().trim()).filter(Boolean);
+        }
+        return options.filter((v, i, a) => a.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(v)) === i);
     }
 
     // liefert Liste von Optionen für eine Variable (Buttons)
@@ -275,7 +377,7 @@
             if (seen.has(dedupeKey)) continue;
             seen.add(dedupeKey);
 
-            const label = varsInGroup.join(" / ");
+            const label = varsInGroup.map(v => getVarDisplayName(v)).join(" / ");
             const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
             buttons.push(`
         <button type="button"
@@ -348,19 +450,24 @@
 
             const firstVar   = varsInGroup[0];
             const tokenId    = `${stepId}_optional_${varsInGroup.join("_")}`;
-            const label      = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            const label      = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
             // Encode as sentinel-delimited marker (safe from {{}} regex)
             return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
         });
 
         // Pass 2: render regular {{var}} tokens
         let tokenIndex = 0;
-        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
+        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw, offset) => {
             const varName = (varRaw ?? "").trim();
             const tid     = `${stepId}_${varName}_${tokenIndex++}`;
             const val     = (values[varName] ?? "").toString();
-            const display = val.trim().length > 0 ? val : varName;
-            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+            // Capitalize value when token is at sentence start
+            const isAtSentenceStart = offset === 0 || /^[\s]*$/.test(processed.slice(0, offset)) || /[.!?]\s*$/.test(processed.slice(0, offset));
+            let display = val.trim().length > 0 ? val : getVarDisplayName(varName);
+            if (isAtSentenceStart && display.length > 0) {
+                display = display.charAt(0).toUpperCase() + display.slice(1);
+            }
+            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
         });
 
         // Pass 3: replace pill markers with inline pill HTML
@@ -407,18 +514,22 @@
 
             const firstVar = varsInGroup[0];
             const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
-            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
             return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
         });
 
         let tokenIndex = 0;
-        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_match, varRaw) => {
+        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_match, varRaw, offset) => {
             const varName = (varRaw ?? "").trim();
             const tokenId = `${stepId}_${varName}_${tokenIndex++}`;
             const value = (values[varName] ?? "").toString();
-            const display = value.trim().length > 0 ? value : varName;
+            const isAtSentenceStart = offset === 0 || /^[\s]*$/.test(processed.slice(0, offset)) || /[.!?]\s*$/.test(processed.slice(0, offset));
+            let display = value.trim().length > 0 ? value : getVarDisplayName(varName);
+            if (isAtSentenceStart && display.length > 0) {
+                display = display.charAt(0).toUpperCase() + display.slice(1);
+            }
             const varKeyAttr = tokenVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(varName));
-            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
             if (!tokenWrapClass) return tokenHtml;
             return `<span class="${escapeHtml(tokenWrapClass)}">${tokenHtml}</span>`;
         });
@@ -438,7 +549,7 @@
     // Optional [{{var}}] segments appear as small faded badges instead of raw [brackets].
     function renderSnippetTokens(text) {
         return (text || "").toString().replace(/{{\s*([^}]+?)\s*}}/g, (_match, varName) => {
-            const label = escapeHtml((varName || "").toString().trim());
+            const label = escapeHtml(getVarDisplayName((varName || "").toString().trim()));
             return `<span class="template-snippet-var">${label}</span>`;
         }).split("\n").map(part => part).join("\n");
     }
@@ -453,7 +564,7 @@
             const textBefore = templateRaw.slice(lastIndex, match.index);
             parts.push(renderSnippetTokens(escapeHtml(textBefore)));
             const inner = (match[1] ?? match[2] ?? "").toString();
-            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, "$1");
+            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
             parts.push(`<span class="opt-snippet-badge"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i> ${renderSnippetTokens(escapeHtml(label))}</span>`);
             lastIndex = match.index + match[0].length;
         }
@@ -735,7 +846,7 @@
             const specialBlockCompact = renderSpecialEditor(varName, currentVal);
             host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
+        <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
         ${specialBlockCompact}
       </div>
     `;
@@ -771,7 +882,7 @@
 
         host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
+        <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
 
         ${specialBlock}
 
@@ -789,12 +900,14 @@
         </div>
         ` : ""}
 
-        <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
+        <div class="small text-muted mb-1">${escapeHtml(getVarDisplayName(varName))} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
             ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
+
+        ${ingredientVar ? "" : renderFallbackSection(varName, options)}
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
@@ -808,6 +921,22 @@
         host.dataset.selectedPronoun = "";
         host.dataset.selectedValue = "";   // gewählter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
+    }
+
+    function renderFallbackSection(varName, filteredOptions) {
+        if (isIngredientVariable(varName) || isCompactSpecialVariable(varName)) return "";
+        const allOptions = getRawVarOptions(varName);
+        const filteredSet = new Set((filteredOptions || []).map(normalizeOptionValue));
+        const extras = allOptions.filter(o => !filteredSet.has(normalizeOptionValue(o)));
+        if (!extras.length) return "";
+        const extraButtons = renderPillButtons(extras, "value", null);
+        return `
+        <div class="mt-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary js-toggle-fallback-options" data-expanded="0">Weitere anzeigen ▼</button>
+          <div class="d-flex flex-wrap gap-2 mt-2 js-fallback-options-wrap" style="display:none !important;">
+            ${extraButtons}
+          </div>
+        </div>`;
     }
 
     function renderPillButtons(list, mode, currentVal) {
@@ -1246,6 +1375,19 @@
                 return;
             }
 
+            // "Weitere anzeigen" toggle
+            const fallbackToggle = e.target.closest(".js-toggle-fallback-options");
+            if (fallbackToggle) {
+                const wrap = fallbackToggle.parentElement?.querySelector(".js-fallback-options-wrap");
+                if (wrap) {
+                    const expanded = fallbackToggle.dataset.expanded === "1";
+                    wrap.style.cssText = expanded ? "display:none !important;" : "display:flex !important; flex-wrap:wrap;";
+                    fallbackToggle.dataset.expanded = expanded ? "0" : "1";
+                    fallbackToggle.textContent = expanded ? "Weitere anzeigen \u25BC" : "Weitere ausblenden \u25B2";
+                }
+                return;
+            }
+
             if (e.target.id === "btnAcceptStep") {
                 acceptActiveStep();
                 return;
@@ -1400,7 +1542,7 @@
             const specialBlock = renderSpecialEditor(varName, currentVal);
             // renderSpecialEditor already includes BtnPickDurationQuick/BtnCloseVarTop
             return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="[]">
-  <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
+  <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
   ${specialBlock}
 </div>`;
         }
@@ -1460,15 +1602,16 @@
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
         return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="${escapeHtml(prefilledArticle)}" data-selected-pronoun="${escapeHtml(prefilledPronoun)}" data-selected-value="${escapeHtml(prefilledValue)}" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
-  <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
+  <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
   ${specialBlock}
   ${(ingredientVar || noArticleVar) ? '' : `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>`}
   ${stateVar ? `<div class="small text-muted mt-2 mb-1">Pronomen</div><div class="d-flex flex-wrap gap-2 mb-2 js-pronoun-btn-row">${pronounButtons}</div>` : ''}
   <div class="d-flex flex-wrap gap-2 js-value-btn-row">
     ${valueButtons || (ingredientVar
         ? '<div class="text-muted small">Keine Zutaten ausgewählt.</div>'
-        : `<div class="text-muted small">Keine Optionen: ${escapeHtml(varName)}</div>`)}
+        : `<div class="text-muted small">Keine Optionen: ${escapeHtml(getVarDisplayName(varName))}</div>`)}
   </div>
+  ${ingredientVar ? '' : renderFallbackSection(varName, options)}
   <div class="d-flex gap-2 align-items-center mt-3">
     <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
     <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
@@ -1537,7 +1680,8 @@
         buildInlineEditorHtml,
         applyEditorValue,
         applyEditorExtras,
-        triggerPronounBeforeState
+        triggerPronounBeforeState,
+        getVarDisplayName
     });
 
     document.addEventListener("DOMContentLoaded", init);

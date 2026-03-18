@@ -72,6 +72,98 @@
       }
     }
   },
+  "action": {
+    "grate": {
+      "tool": {
+        "preferred": { "de": ["feine Reibe", "grobe Reibe", "Reibe"] },
+        "blocked": { "de": ["Schneebesen", "Sparschäler"] }
+      }
+    },
+    "peel": {
+      "tool": {
+        "preferred": { "de": ["Sparschäler", "Messer"] },
+        "blocked": { "de": ["Schneebesen", "Reibe", "feine Reibe", "grobe Reibe"] }
+      }
+    },
+    "cut": {
+      "tool": {
+        "preferred": { "de": ["Messer"] },
+        "blocked": { "de": ["Schneebesen", "Sparschäler", "Reibe", "feine Reibe", "grobe Reibe"] }
+      }
+    },
+    "mince": {
+      "tool": {
+        "preferred": { "de": ["Messer"] },
+        "blocked": { "de": ["Schneebesen", "Sparschäler", "Reibe", "feine Reibe", "grobe Reibe"] }
+      }
+    },
+    "whisk": {
+      "tool": {
+        "preferred": { "de": ["Schneebesen"] },
+        "blocked": { "de": ["Sparschäler", "Reibe", "feine Reibe", "grobe Reibe", "Messer"] }
+      }
+    },
+    "beat": {
+      "tool": {
+        "preferred": { "de": ["Schneebesen"] },
+        "blocked": { "de": ["Sparschäler", "Reibe", "feine Reibe", "grobe Reibe", "Messer"] }
+      }
+    }
+  },
+  "ingredient_family": {
+    "egg": {
+      "state": {
+        "preferred": { "de": ["schaumig", "steif", "cremig", "fest"], "en": ["foamy", "stiff", "creamy", "firm"] },
+        "blocked": { "de": ["medium-rare", "medium", "bissfest", "verdoppelt", "glasig", "angebraten", "rundum angebraten", "scharf angebraten", "karamellisiert"], "en": ["medium-rare", "medium", "al dente", "doubled", "translucent", "seared", "caramelized"] }
+      },
+      "tool": {
+        "preferred": { "de": ["Schneebesen"], "en": ["whisk"] },
+        "blocked": { "de": ["Sparschäler", "Reibe", "feine Reibe", "grobe Reibe"], "en": ["peeler", "grater", "fine grater", "coarse grater"] }
+      }
+    },
+    "vegetable": {
+      "state": {
+        "preferred": { "de": ["bissfest", "weich", "glasig", "gar"], "en": ["al dente", "soft", "translucent", "done"] },
+        "blocked": { "de": ["medium-rare", "medium", "verdoppelt", "schaumig", "steif", "geschmeidig"], "en": ["medium-rare", "medium", "doubled", "foamy", "stiff", "smooth"] }
+      }
+    },
+    "meat": {
+      "state": {
+        "preferred": { "de": ["medium-rare", "medium", "durchgegart", "angebraten", "rundum angebraten", "scharf angebraten"], "en": ["medium-rare", "medium", "well-done", "seared", "seared all over", "sharply seared"] },
+        "blocked": { "de": ["verdoppelt", "schaumig", "glasig", "steif", "geschmeidig", "bissfest"], "en": ["doubled", "foamy", "translucent", "stiff", "smooth", "al dente"] }
+      }
+    },
+    "dough": {
+      "state": {
+        "preferred": { "de": ["geschmeidig", "verdoppelt", "fluffig", "fest"], "en": ["smooth", "doubled", "fluffy", "firm"] },
+        "blocked": { "de": ["medium-rare", "medium", "glasig", "bissfest", "schaumig", "angebraten"], "en": ["medium-rare", "medium", "translucent", "al dente", "foamy", "seared"] }
+      }
+    },
+    "liquid": {
+      "state": {
+        "preferred": { "de": ["sprudelnd", "eingedickt", "reduziert (eingekocht)", "cremig"], "en": ["boiling", "thickened", "reduced", "creamy"] },
+        "blocked": { "de": ["medium-rare", "medium", "verdoppelt", "bissfest", "steif", "geschmeidig", "angebraten"], "en": ["medium-rare", "medium", "doubled", "al dente", "stiff", "smooth", "seared"] }
+      }
+    },
+    "fat": {
+      "state": {
+        "preferred": { "de": ["geschmolzen", "goldbraun", "sprudelnd"], "en": ["melted", "golden brown", "sizzling"] },
+        "blocked": { "de": ["medium-rare", "medium", "verdoppelt", "bissfest", "steif", "geschmeidig", "schaumig"], "en": ["medium-rare", "medium", "doubled", "al dente", "stiff", "smooth", "foamy"] }
+      }
+    },
+    "seasoning": {
+      "state": {
+        "preferred": { "de": ["angeröstet", "geschmolzen"], "en": ["toasted", "melted"] },
+        "blocked": { "de": ["medium-rare", "medium", "verdoppelt", "schaumig", "steif", "bissfest", "glasig"], "en": ["medium-rare", "medium", "doubled", "foamy", "stiff", "al dente", "translucent"] }
+      }
+    },
+    "fish": {
+      "state": {
+        "preferred": { "de": ["gar", "zart", "angebraten", "knusprig"], "en": ["done", "tender", "seared", "crispy"] },
+        "blocked": { "de": ["verdoppelt", "schaumig", "glasig", "steif", "geschmeidig", "bissfest"], "en": ["doubled", "foamy", "translucent", "stiff", "smooth", "al dente"] }
+      }
+    }
+  },
   "steps": {
     "PREP_PEEL_01": {
       "tool": {
@@ -232,6 +324,26 @@
       "equipment": {
         "preferred": { "de": ["Auflaufform", "Schüssel"] },
         "allowed": { "de": ["Auflaufform", "Schüssel", "Backblech"] }
+      }
+    },
+    "COOK_DEGLAZE_01": {
+      "equipment": {
+        "preferred": { "de": ["Pfanne", "große Pfanne", "Wok", "Bräter", "Topf"] },
+        "allowed": { "de": ["Pfanne", "große Pfanne", "Wok", "Bräter", "Topf", "großer Topf"] }
+      },
+      "state": {
+        "preferred": { "de": ["eingedickt", "reduziert (eingekocht)", "sprudelnd"] },
+        "allowed": { "de": ["eingedickt", "reduziert (eingekocht)", "sprudelnd", "cremig"] }
+      }
+    },
+    "COOK_DEGLAZE_02": {
+      "equipment": {
+        "preferred": { "de": ["Pfanne", "große Pfanne", "Wok", "Bräter", "Topf"] },
+        "allowed": { "de": ["Pfanne", "große Pfanne", "Wok", "Bräter", "Topf", "großer Topf"] }
+      },
+      "state": {
+        "preferred": { "de": ["eingedickt", "reduziert (eingekocht)", "sprudelnd"] },
+        "allowed": { "de": ["eingedickt", "reduziert (eingekocht)", "sprudelnd", "cremig"] }
       }
     },
     "FINISH_COOL_01": {
