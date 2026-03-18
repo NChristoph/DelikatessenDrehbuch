@@ -161,7 +161,7 @@
         });
     }
 
-    // liefert Liste von Optionen fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r eine Variable (Buttons)
+    // liefert Liste von Optionen für eine Variable (Buttons)
     function getVarOptions(varName, contextMasterId) {
         if (!doc) return [];
 
@@ -311,8 +311,8 @@
               class="placeholder-reset"
               data-token-id="${escapeHtml(tokenId)}"
               data-var="${escapeHtml(varName)}"
-              title="ZurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼cksetzen"
-              aria-label="ZurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼cksetzen">
+              title="Zurücksetzen"
+              aria-label="Zurücksetzen">
         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
       </button>
     `;
@@ -340,7 +340,7 @@
             if (!varsInGroup.length) return inner;
 
             const hasAnyValue = varsInGroup.some(v => ((values?.[v] ?? "").toString().trim().length > 0));
-            if (hasAnyValue) return inner; // filled ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ render content normally
+            if (hasAnyValue) return inner; // filled → render content normally
 
             const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
             if (seen.has(dedupeKey)) return "";
@@ -360,14 +360,14 @@
             const tid     = `${stepId}_${varName}_${tokenIndex++}`;
             const val     = (values[varName] ?? "").toString();
             const display = val.trim().length > 0 ? val : varName;
-            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="ZurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼cksetzen" aria-label="ZurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼cksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
         });
 
         // Pass 3: replace pill markers with inline pill HTML
         processed = processed.replace(
             new RegExp(`\\x01([^\\x02]*)\\x02([^\\x02]*)\\x02([^\\x03]*)\\x03`, "g"),
             (_m, firstVar, tokenId, label) =>
-                `<span class="optional-inline-pill js-optional-var-add" role="button" tabindex="0" data-optional-var="${escapeHtml(firstVar)}" data-token-id="${escapeHtml(tokenId)}" title="Optional hinzufÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼gen: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`
+                `<span class="optional-inline-pill js-optional-var-add" role="button" tabindex="0" data-optional-var="${escapeHtml(firstVar)}" data-token-id="${escapeHtml(tokenId)}" title="Optional hinzufügen: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`
         );
 
         return processed;
@@ -418,7 +418,7 @@
             const value = (values[varName] ?? "").toString();
             const display = value.trim().length > 0 ? value : varName;
             const varKeyAttr = tokenVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(varName));
-            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="ZurÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼cksetzen" aria-label="ZurÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼cksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
             if (!tokenWrapClass) return tokenHtml;
             return `<span class="${escapeHtml(tokenWrapClass)}">${tokenHtml}</span>`;
         });
@@ -501,7 +501,7 @@
         for (const [phaseKey, phaseSteps] of byPhase.entries()) {
             const meta = getPhaseMeta(phaseKey);
 
-            // Header fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r Phase
+            // Header für Phase
             container.insertAdjacentHTML("beforeend", `
                                           <div class="phase-header mt-3 mb-2">
                                             <div class="d-flex align-items-center gap-2">
@@ -544,13 +544,13 @@
         if (!target) return;
 
         if (!activeStep) {
-            target.innerHTML = "WÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hle eine Template.";
+            target.innerHTML = "Wähle eine Template.";
             return;
         }
 
         const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
 
-        // Editor placeholder (wird beim Token-Klick gefÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼llt)
+        // Editor placeholder (wird beim Token-Klick gefüllt)
         target.innerHTML = `
       <div class="current-step-wrap">
         <div class="current-step-header d-flex justify-content-between align-items-center">
@@ -677,7 +677,7 @@
             const specialBlockCompact = renderSpecialEditor(varName, currentVal);
             host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
         ${specialBlockCompact}
       </div>
     `;
@@ -708,12 +708,12 @@
             }).join("")
             : renderPillButtons(options, "value", currentVal);
 
-        // Spezial UI fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r duration/temp
+        // Spezial UI für duration/temp
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
         host.innerHTML = `
       <div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
-        <div class="small text-muted mb-1">Wert fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r <strong>${escapeHtml(varName)}</strong></div>
+        <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
 
         ${specialBlock}
 
@@ -734,13 +734,13 @@
         <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
-            ? `<div class="text-muted small">Keine Zutaten ausgewÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlt.</div>`
+            ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">SchlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVar">Schließen</button>
         </div>
       </div>
     `;
@@ -748,7 +748,7 @@
         // preset selected article/value state
         host.dataset.selectedArticle = ""; // "der/die/..." oder "" (=ohne)
         host.dataset.selectedPronoun = "";
-        host.dataset.selectedValue = "";   // gewÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlter Wert
+        host.dataset.selectedValue = "";   // gewählter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
 
@@ -758,7 +758,7 @@
         return list.map(val => {
             const v = (val ?? "").toString();
             const isActive = currentVal && v === currentVal;
-            // Style: wie dein "Einsetzen"-Button Look -> machst du ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ber CSS Klasse "pill-like"
+            // Style: wie dein "Einsetzen"-Button Look -> machst du über CSS Klasse "pill-like"
             return `
         <button type="button"
                 class="btn btn-sm btn-outline-light pill-like ${isActive ? "active" : ""}"
@@ -789,7 +789,7 @@
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "10")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-2">
@@ -815,7 +815,7 @@
 
         <div class="d-flex gap-2 align-items-center mt-2">
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃƒÆ’Ã…Â¸en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -829,7 +829,7 @@
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">SchlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -855,7 +855,7 @@
 
         const varName = activeToken.varName;
 
-        // SpezialfÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤lle zuerst
+        // Spezialfälle zuerst
         if (varName === "duration") {
             const n = $("#DurationValueInput")?.value?.trim() || "";
             const unit = host.dataset.durationUnit || "minute";
@@ -942,7 +942,7 @@
             // Step-Text neu rendern (Tokens die gesetzt sind werden zu Text)
             renderMasterText();
 
-            // Editor schlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en
+            // Editor schließen
             closeInlineEditor();
         });
     }
@@ -1150,7 +1150,7 @@
                 if (!activeStep) return;
                 const varName = token.dataset.var || token.dataset.placeholderKey || token.dataset.var;
                 const tokenId = token.dataset.tokenId || token.dataset.placeholderTokenId || token.dataset.tokenId;
-                // Sequential editing: {state} clicked with separate unfilled {pronoun} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ open pronoun first
+                // Sequential editing: {state} clicked with separate unfilled {pronoun} → open pronoun first
                 if (isStateVariable(varName) && /\{\{\s*pronoun\s*\}\}/i.test(activeStep.templateRaw || "")) {
                     const pronounToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='pronoun']");
                     if (pronounToken && !((activeStep.values["pronoun"] || "").toString().trim())) {
@@ -1262,7 +1262,7 @@
                 const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
                 const composed = n ? `${n} ${unitLabel}` : "";
 
-                // direkt ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼bernehmen:
+                // direkt übernehmen:
                 activeStep.values["duration"] = composed;
                 rerenderAfterValueSet();
                 return;
@@ -1295,7 +1295,7 @@
 
                 renderStepButtons();
 
-                // wenn aktiv, template neu holen, aber values behalten (du kannst spÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ter language-values bauen)
+                // wenn aktiv, template neu holen, aber values behalten (du kannst später language-values bauen)
                 if (activeStep) {
                     const step = steps.find(s => s.master_id === activeStep.master_id);
                     activeStep.templateRaw = step?.templates?.[currentLang] ?? "";
@@ -1323,11 +1323,11 @@
         } catch (err) {
             console.error(err);
             const target = masterText();
-            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼fen.";
+            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prüfen.";
         }
     }
 
-    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Inline-editor helpers exposed for the probability area ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
+    // ── Inline-editor helpers exposed for the probability area ──────────────────────────────────────
     // buildInlineEditorHtml: same logic as openInlineEditor but returns HTML.
     // Uses class-based rows so multiple host containers don't conflict.
     function buildInlineEditorHtml(varName, currentVal, opts) {
@@ -1338,7 +1338,7 @@
             const specialBlock = renderSpecialEditor(varName, currentVal);
             // renderSpecialEditor already includes BtnPickDurationQuick/BtnCloseVarTop
             return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="" data-selected-pronoun="" data-selected-value="" data-duration-unit="minute" data-selected-ingredient-values="[]">
-  <div class="small text-muted mb-1">Wert fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r <strong>${escapeHtml(varName)}</strong></div>
+  <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
   ${specialBlock}
 </div>`;
         }
@@ -1398,19 +1398,18 @@
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
         return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="${escapeHtml(prefilledArticle)}" data-selected-pronoun="${escapeHtml(prefilledPronoun)}" data-selected-value="${escapeHtml(prefilledValue)}" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
-  <div class="small text-muted mb-1">Wert fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r <strong>${escapeHtml(varName)}</strong></div>
+  <div class="small text-muted mb-1"><strong>${escapeHtml(varName)}</strong> auswählen</div>
   ${specialBlock}
   ${(ingredientVar || noArticleVar) ? '' : `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>`}
   ${stateVar ? `<div class="small text-muted mt-2 mb-1">Pronomen</div><div class="d-flex flex-wrap gap-2 mb-2 js-pronoun-btn-row">${pronounButtons}</div>` : ''}
-  <div class="small text-muted mb-1">${escapeHtml(varName)} einsetzen</div>
   <div class="d-flex flex-wrap gap-2 js-value-btn-row">
     ${valueButtons || (ingredientVar
-        ? '<div class="text-muted small">Keine Zutaten ausgewÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlt.</div>'
+        ? '<div class="text-muted small">Keine Zutaten ausgewählt.</div>'
         : `<div class="text-muted small">Keine Optionen: ${escapeHtml(varName)}</div>`)}
   </div>
   <div class="d-flex gap-2 align-items-center mt-3">
     <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
-    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">SchlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
   </div>
 </div>`;
     }
@@ -1528,7 +1527,7 @@
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
         if (!list.length) {
-            return '<span class="small text-white-50">Keine Zutaten ausgewÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlt</span>';
+            return '<span class="small text-white-50">Keine Zutaten ausgewählt</span>';
         }
 
         return list.map(ing => {
