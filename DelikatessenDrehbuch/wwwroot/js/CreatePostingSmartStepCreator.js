@@ -616,6 +616,49 @@
     }
 
     // Wie getSelectedIngredientNamesFromPage, aber mit Icon aus data-group-icon
+    const EGG_PARTS_BY_LANG = {
+        de:  [{ name: "Eiklar",         icon: "🥚" }, { name: "Eigelb",          icon: "🥚" }, { name: "Eischnee",        icon: "🥚" }],
+        en:  [{ name: "egg white",      icon: "🥚" }, { name: "egg yolk",        icon: "🥚" }, { name: "beaten egg white", icon: "🥚" }],
+        esp: [{ name: "clara de huevo", icon: "🥚" }, { name: "yema de huevo",   icon: "🥚" }, { name: "claras montadas",  icon: "🥚" }],
+        prt: [{ name: "clara de ovo",   icon: "🥚" }, { name: "gema de ovo",     icon: "🥚" }, { name: "claras em neve",   icon: "🥚" }],
+        id:  [{ name: "putih telur",    icon: "🥚" }, { name: "kuning telur",    icon: "🥚" }, { name: "putih telur kocok",icon: "🥚" }],
+        nl:  [{ name: "eiwit",          icon: "🥚" }, { name: "eigeel",          icon: "🥚" }, { name: "opgeklopt eiwit",  icon: "🥚" }],
+        sv:  [{ name: "äggvita",        icon: "🥚" }, { name: "äggula",          icon: "🥚" }, { name: "vispad äggvita",   icon: "🥚" }],
+        da:  [{ name: "æggehvide",      icon: "🥚" }, { name: "æggeblomme",     icon: "🥚" }, { name: "pisket æggehvide", icon: "🥚" }],
+        no:  [{ name: "eggehvite",      icon: "🥚" }, { name: "eggeplomme",     icon: "🥚" }, { name: "pisket eggehvite", icon: "🥚" }],
+        ms:  [{ name: "putih telur",    icon: "🥚" }, { name: "kuning telur",    icon: "🥚" }, { name: "putih telur pukul",icon: "🥚" }]
+    };
+
+    const EGG_TERMS = ["ei", "eier", "egg", "eggs", "huevo", "huevos", "ovo", "ovos", "telur"];
+
+    function getEggPartsForLang(lang) {
+        return EGG_PARTS_BY_LANG[(lang || "de").toLowerCase()] || EGG_PARTS_BY_LANG.de;
+    }
+
+    function hasEggIngredient(items) {
+        return items.some(x => EGG_TERMS.some(t => x.name.toLowerCase().includes(t)));
+    }
+
+    function getEggPartsFromAcceptedSteps() {
+        const stepRows = document.querySelectorAll('#selectedSteps .step-row[data-master-template-id="PREP_SEPARATE_01"]');
+        if (!stepRows.length) return [];
+        const eggParts = getEggPartsForLang(currentLang);
+        const result = [];
+        stepRows.forEach(row => {
+            const refJson = (row.dataset.stepReferenceJson || "").toString();
+            const ingName = (row.dataset.ingredientName || "").toString().toLowerCase();
+            const hasEgg = EGG_TERMS.some(t => ingName.includes(t) || refJson.toLowerCase().includes(t));
+            if (hasEgg) {
+                eggParts.forEach(ep => {
+                    if (!result.some(r => r.name.toLowerCase() === ep.name.toLowerCase())) {
+                        result.push(ep);
+                    }
+                });
+            }
+        });
+        return result;
+    }
+
     function getSelectedIngredientsFromPage() {
         const rows = Array.from(document.querySelectorAll("#selectedIngredients .ingredient-row"));
         let items = rows.map(row => {
@@ -624,21 +667,17 @@
             return { name, icon };
         }).filter(x => x.name);
 
-        if (activeStep && activeStep.master_id === "PREP_SEPARATE_01") {
-            const eggTerms = ["ei", "eier", "egg", "eggs", "huevo", "huevos", "ovo", "ovos", "telur"];
-            const hasEgg = items.some(x => eggTerms.some(t => x.name.toLowerCase().includes(t)));
-            if (hasEgg) {
-                const eggParts = [
-                    { name: "Eiklar", icon: "🥚" },
-                    { name: "Eiweiß", icon: "🥚" },
-                    { name: "Eischnee", icon: "🥚" },
-                    { name: "Eigelb", icon: "🥚" }
-                ];
-                const existing = new Set(items.map(x => x.name.toLowerCase()));
-                eggParts.forEach(ep => {
-                    if (!existing.has(ep.name.toLowerCase())) items.push(ep);
-                });
-            }
+        const addEggParts = (activeStep && activeStep.master_id === "PREP_SEPARATE_01" && hasEggIngredient(items));
+        const eggExtras = addEggParts ? getEggPartsForLang(currentLang) : getEggPartsFromAcceptedSteps();
+
+        if (eggExtras.length) {
+            const existing = new Set(items.map(x => x.name.toLowerCase()));
+            eggExtras.forEach(ep => {
+                if (!existing.has(ep.name.toLowerCase())) {
+                    items.push(ep);
+                    existing.add(ep.name.toLowerCase());
+                }
+            });
         }
 
         return items;
@@ -977,6 +1016,10 @@
     }
 
     function resolveAcceptedIngredientName() {
+        if (activeStep?.master_id === "PREP_SEPARATE_01") {
+            const parts = [activeStep?.values?.ingredient, activeStep?.values?.ingredient2].map(x => (x || "").toString().trim()).filter(Boolean);
+            if (parts.length) return parts.join(", ");
+        }
         const fromValues =
             activeStep?.values?.ingredient ||
             activeStep?.values?.ingredients ||
