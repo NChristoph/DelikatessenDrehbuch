@@ -3179,7 +3179,9 @@
         "Füllung",
         "Marinade",
         "Emulsion",
-        "Schaum"
+        "Schaum",
+        "Eintopf",
+        "Suppe"
       ],
       "en": [
         "egg white foam",
@@ -3191,7 +3193,9 @@
         "filling",
         "marinade",
         "emulsion",
-        "foam"
+        "foam",
+        "stew",
+        "soup"
       ],
       "esp": [
         "las claras montadas",
@@ -3203,7 +3207,9 @@
         "el relleno",
         "la marinada",
         "la emulsión",
-        "la espuma"
+        "la espuma",
+        "el guiso",
+        "la sopa"
       ],
       "prt": [
         "as claras em neve",
@@ -3215,7 +3221,9 @@
         "o recheio",
         "a marinada",
         "a emulsão",
-        "a espuma"
+        "a espuma",
+        "o ensopado",
+        "a sopa"
       ],
       "id": [
         "putih telur kocok",
@@ -3227,7 +3235,9 @@
         "isian",
         "marinade",
         "emulsi",
-        "busa"
+        "busa",
+        "semur",
+        "sup"
       ],
       "nl": [
         "het eiwitschuim",
@@ -3239,7 +3249,9 @@
         "de vulling",
         "de marinade",
         "de emulsie",
-        "het schuim"
+        "het schuim",
+        "de stoofpot",
+        "de soep"
       ],
       "sv": [
         "äggvitan",
@@ -3251,7 +3263,9 @@
         "fyllningen",
         "marinaden",
         "emulsionen",
-        "skummet"
+        "skummet",
+        "grytan",
+        "soppan"
       ],
       "da": [
         "æggehviderne",
@@ -3263,7 +3277,9 @@
         "fyldet",
         "marinaden",
         "emulsionen",
-        "skummet"
+        "skummet",
+        "gryderetten",
+        "suppen"
       ],
       "no": [
         "eggehviten",
@@ -3275,7 +3291,9 @@
         "fyllet",
         "marinaden",
         "emulsjonen",
-        "skummet"
+        "skummet",
+        "gryteretten",
+        "suppen"
       ],
       "ms": [
         "putih telur kembang",
@@ -3287,7 +3305,9 @@
         "inti",
         "perapan",
         "emulsi",
-        "buih"
+        "buih",
+        "stew",
+        "sup"
       ]
     },
     "seasonings": {
