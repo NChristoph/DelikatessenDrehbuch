@@ -1289,6 +1289,43 @@
       }
     },
     {
+      "master_id": "PREP_BEAT_01",
+      "phase": 1,
+      "action": "beat",
+      "equipment": 9,
+      "description": "Zutat mit Werkzeug schlagen bis Zustand erreicht (z.B. Eiklar schaumig schlagen)",
+      "templates": {
+        "de": "Schlage {{ingredient}} mit einem {{tool}}, bis {{pronoun}} {{state}} ist.",
+        "en": "Beat {{ingredient}} with a {{tool}} until {{state}}.",
+        "esp": "Bate {{ingredient}} con un {{tool}} hasta que esté {{state}}.",
+        "prt": "Bata {{ingredient}} com um {{tool}} até ficar {{state}}.",
+        "id": "Kocok {{ingredient}} dengan {{tool}} sampai {{state}}.",
+        "nl": "Klop {{ingredient}} met een {{tool}} tot {{pronoun}} {{state}} is.",
+        "sv": "Vispa {{ingredient}} med en {{tool}} tills {{pronoun}} är {{state}}.",
+        "da": "Pisk {{ingredient}} med en {{tool}}, indtil {{pronoun}} er {{state}}.",
+        "no": "Visp {{ingredient}} med en {{tool}} til {{pronoun}} er {{state}}.",
+        "ms": "Pukul {{ingredient}} dengan {{tool}} sehingga {{state}}."
+      },
+      "variables": [
+        "ingredient",
+        "tool",
+        "pronoun",
+        "state"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool",
+        "pronoun",
+        "state"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "egg"
+      }
+    },
+    {
       "master_id": "PREP_SEPARATE_01",
       "phase": 1,
       "action": "separate",
