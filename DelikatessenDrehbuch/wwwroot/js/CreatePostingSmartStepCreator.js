@@ -584,7 +584,7 @@
 
     function isIngredientVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase();
-        return key === "ingredient" || key === "ingredients" || key === "liquid" || key === "fat";
+        return key === "ingredient" || key === "ingredient2" || key === "ingredients" || key === "liquid" || key === "fat";
     }
 
     function isGrindSizeVariable(varName) {
@@ -618,11 +618,30 @@
     // Wie getSelectedIngredientNamesFromPage, aber mit Icon aus data-group-icon
     function getSelectedIngredientsFromPage() {
         const rows = Array.from(document.querySelectorAll("#selectedIngredients .ingredient-row"));
-        return rows.map(row => {
+        let items = rows.map(row => {
             const name = (row.querySelector(".ingredient-name-text")?.textContent || "").trim();
             const icon = (row.dataset.groupIcon || row.querySelector(".ingredient-group-icon")?.innerHTML || "").trim();
             return { name, icon };
         }).filter(x => x.name);
+
+        if (activeStep && activeStep.master_id === "PREP_SEPARATE_01") {
+            const eggTerms = ["ei", "eier", "egg", "eggs", "huevo", "huevos", "ovo", "ovos", "telur"];
+            const hasEgg = items.some(x => eggTerms.some(t => x.name.toLowerCase().includes(t)));
+            if (hasEgg) {
+                const eggParts = [
+                    { name: "Eiklar", icon: "🥚" },
+                    { name: "Eiweiß", icon: "🥚" },
+                    { name: "Eischnee", icon: "🥚" },
+                    { name: "Eigelb", icon: "🥚" }
+                ];
+                const existing = new Set(items.map(x => x.name.toLowerCase()));
+                eggParts.forEach(ep => {
+                    if (!existing.has(ep.name.toLowerCase())) items.push(ep);
+                });
+            }
+        }
+
+        return items;
     }
 
     

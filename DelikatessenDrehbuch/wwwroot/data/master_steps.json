@@ -1289,6 +1289,39 @@
       }
     },
     {
+      "master_id": "PREP_SEPARATE_01",
+      "phase": 1,
+      "action": "separate",
+      "equipment": 0,
+      "description": "Trennen von Zutaten (z.B. Eier in Eigelb und Eiweiß)",
+      "templates": {
+        "de": "Trenne {{ingredient}} vorsichtig von {{ingredient2}}.",
+        "en": "Carefully separate {{ingredient}} from {{ingredient2}}.",
+        "esp": "Separa {{ingredient}} de {{ingredient2}} con cuidado.",
+        "prt": "Separe {{ingredient}} de {{ingredient2}} com cuidado.",
+        "id": "Pisahkan {{ingredient}} dari {{ingredient2}} dengan hati-hati.",
+        "nl": "Scheid {{ingredient}} voorzichtig van {{ingredient2}}.",
+        "sv": "Separera {{ingredient}} försiktigt från {{ingredient2}}.",
+        "da": "Adskil {{ingredient}} forsigtigt fra {{ingredient2}}.",
+        "no": "Skill {{ingredient}} forsiktig fra {{ingredient2}}.",
+        "ms": "Asingkan {{ingredient}} daripada {{ingredient2}} dengan berhati-hati."
+      },
+      "variables": [
+        "ingredient",
+        "ingredient2"
+      ],
+      "required_variables": [
+        "ingredient",
+        "ingredient2"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "egg"
+      }
+    },
+    {
       "master_id": "PREP_FOLD_IN_01",
       "phase": 1,
       "action": "fold_in",
