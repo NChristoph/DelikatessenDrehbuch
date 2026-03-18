@@ -594,7 +594,7 @@
 
     function isNoArticleVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
-        return key === "state" || key === "duration" || key === "count" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronomen" || key === "shape" || key === "finish" || key === "marinade" || key === "method" || key === "thickener" || isGrindSizeVariable(varName);
+        return key === "state" || key === "duration" || key === "count" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronomen" || key === "shape" || key === "finish" || key === "marinade" || key === "method" || key === "thickener" || key === "action" || isGrindSizeVariable(varName);
     }
     function isStateVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");

@@ -239,6 +239,7 @@
             ingredient: ingredientName,
             ingredients: ingredientName,
             pronoun: 'sie',
+            action: 'rühre',
             tool: 'Messer',
             shape: 'Würfel',
             grind_size: 'fein',
