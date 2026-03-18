@@ -1306,7 +1306,7 @@
                 }
             }
             const map = {
-                de: ['der', 'die', 'das', 'den'],
+                de: ['der', 'die', 'das', 'den', 'dem', 'einen', 'einem', 'einer'],
                 en: ['the'],
                 esp: ['el', 'la', 'los', 'las'],
                 prt: ['o', 'a', 'os', 'as'],
@@ -1606,16 +1606,16 @@
                 : [];
 
             const fallbackByLang = {
-                de: ['den Teig', 'die Masse'],
-                en: ['the dough', 'the mixture'],
-                esp: ['la masa', 'la mezcla'],
-                prt: ['a massa', 'a mistura'],
-                id: ['adonan', 'campuran'],
-                nl: ['het deeg', 'het mengsel'],
-                sv: ['degen', 'blandningen'],
-                da: ['dejen', 'blandingen'],
-                no: ['deigen', 'blandingen'],
-                ms: ['doh', 'campuran']
+                de: ['den Teig', 'die Masse', 'den Eintopf', 'die Suppe'],
+                en: ['the dough', 'the mixture', 'the stew', 'the soup'],
+                esp: ['la masa', 'la mezcla', 'el estofado', 'la sopa'],
+                prt: ['a massa', 'a mistura', 'o ensopado', 'a sopa'],
+                id: ['adonan', 'campuran', 'semur', 'sup'],
+                nl: ['het deeg', 'het mengsel', 'de stoofpot', 'de soep'],
+                sv: ['degen', 'blandningen', 'grytan', 'soppan'],
+                da: ['dejen', 'blandingen', 'gryderetten', 'suppen'],
+                no: ['deigen', 'blandingen', 'gryteretten', 'suppen'],
+                ms: ['doh', 'campuran', 'rebusan', 'sup']
             };
 
             const merged = [
@@ -3896,20 +3896,22 @@
                 closePronounEditor();
                 showCreatorToast('Pronomen eingesetzt');
                 renderTemplateCards();
-                // Sequential editing: open pending state token (from {state} click) or auto-detect
+                // Sequential editing: open pending state token after DOM update
                 const pendingStateId = creatorState.pendingStateTokenId || '';
                 creatorState.pendingStateTokenId = '';
-                if (pendingStateId) {
-                    openStateEditorForToken(pendingStateId);
-                } else {
-                    const stateTokenEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="state"]');
-                    if (stateTokenEl) {
-                        const stateTokenId = stateTokenEl.dataset.placeholderTokenId;
-                        if (!(creatorState.placeholderAssignments[stateTokenId] || '').toString().trim()) {
-                            openStateEditorForToken(stateTokenId);
+                setTimeout(function () {
+                    if (pendingStateId) {
+                        openStateEditorForToken(pendingStateId);
+                    } else {
+                        const stateTokenEl = document.querySelector('#masterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                        if (stateTokenEl) {
+                            const stateTokenId = stateTokenEl.dataset.placeholderTokenId;
+                            if (!(creatorState.placeholderAssignments[stateTokenId] || '').toString().trim()) {
+                                openStateEditorForToken(stateTokenId);
+                            }
                         }
                     }
-                }
+                }, 50);
             });
 
             $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
@@ -4098,14 +4100,15 @@
             });
 
             $('#ingredientConfigOverlay').on('click', function (e) {
+                // Do not close on overlay click - only close via apply button
                 if (e.target === this) {
-                    closeIngredientConfigPopup();
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
             });
 
-            // Close popups on layout change (resize/orientation) to prevent blocked interaction
+            // Close variable editor popups on layout change (resize/orientation)
             window.addEventListener('resize', function () {
-                if ($('#ingredientConfigDock').hasClass('ing-active')) closeIngredientConfigPopup();
                 if ($('#probVarEditorDock').hasClass('ing-active')) closeProbVarEditor();
             });
 
@@ -4333,20 +4336,22 @@
                 closeSc2PronounEditor();
                 showSc2CreatorToast('Pronomen gesetzt');
                 renderTemplateCards();
-                // Sequential editing: open pending sc2 state token (from {state} click) or auto-detect
+                // Sequential editing: open pending sc2 state token after DOM update
                 const pendingSc2StateId = creatorState.pendingSc2StateTokenId || '';
                 creatorState.pendingSc2StateTokenId = '';
-                if (pendingSc2StateId) {
-                    openSc2StateEditorForToken(pendingSc2StateId);
-                } else {
-                    const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
-                    if (sc2StateTokenEl) {
-                        const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
-                        if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
-                            openSc2StateEditorForToken(sc2StateTokenId);
+                setTimeout(function () {
+                    if (pendingSc2StateId) {
+                        openSc2StateEditorForToken(pendingSc2StateId);
+                    } else {
+                        const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                        if (sc2StateTokenEl) {
+                            const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
+                            if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
+                                openSc2StateEditorForToken(sc2StateTokenId);
+                            }
                         }
                     }
-                }
+                }, 50);
             });
 
             // SC2 Heat
