@@ -4099,14 +4099,6 @@
                 applyIngredientConfigPopup();
             });
 
-            $('#ingredientConfigOverlay').on('click', function (e) {
-                // Do not close on overlay click - only close via apply button
-                if (e.target === this) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
-
             // Close variable editor popups on layout change (resize/orientation)
             window.addEventListener('resize', function () {
                 if ($('#probVarEditorDock').hasClass('ing-active')) closeProbVarEditor();
