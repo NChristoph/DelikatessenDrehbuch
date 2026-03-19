@@ -1,12 +1,12 @@
 /**
  * Recipe Step Suggestion Engine
- * Uses recipe_step_mapping.json to suggest preparation steps based on selected ingredients.
+ * Uses recipe_category_scoring.json for recipe type detection and
+ * master_steps.json + probability_template_presets.json for step previews.
  *
  * Features:
  * - Recipe type detection with score (e.g. "82% Lasagne")
- * - Ingredient-specific step filtering (only steps matching selected ingredients)
+ * - Curated step sequences per recipe type
  * - Phase-sorted step sequences
- * - Step text validation against selected ingredient names (avoids "Gouda streuen" when Cheddar selected)
  */
 (function (window) {
     'use strict';
@@ -14,6 +14,8 @@
     let mappingData = null;
     let categoryScoringData = null;
     let masterStepsData = null;
+    let templatePresetsData = null;
+    let recipeTypeStepVarsData = null;
     let mappingLoaded = false;
     let loadingPromise = null;
 
@@ -28,11 +30,19 @@
                 .catch(() => null),
             fetch('/data/master_steps.json')
                 .then(r => r.ok ? r.json() : null)
+                .catch(() => null),
+            fetch('/data/probability_template_presets.json')
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null),
+            fetch('/data/recipe_type_step_variables.json')
+                .then(r => r.ok ? r.json() : null)
                 .catch(() => null)
-        ]).then(([stepData, categoryData, masterData]) => {
+        ]).then(([stepData, categoryData, masterData, presetsData, stepVarsData]) => {
             mappingData = stepData;
             categoryScoringData = categoryData;
             masterStepsData = masterData;
+            templatePresetsData = presetsData;
+            recipeTypeStepVarsData = stepVarsData;
             mappingLoaded = true;
             return { stepData, categoryData, masterData };
         });
@@ -42,71 +52,10 @@
 
     /**
      * Detect which recipe types match the selected ingredients.
+     * Uses recipe_category_scoring.json (weighted scoring with false-positive penalty).
      * Returns sorted array: [{ type, name, score, matchedSignatureCount, totalSignature }]
-     * Score = percentage of signature ingredients matched (weighted by specificity)
      */
     function detectRecipeTypes(selectedIngredientIds) {
-        // If category scoring data is available, use it exclusively.
-        // Old recipe_step_mapping template IDs can differ from current
-        // ingredients_and_nutrients IDs and produce misleading matches
-        // (e.g. unrelated categories with low percentages).
-        if (categoryScoringData && Array.isArray(categoryScoringData.categories)) {
-            return detectRecipeTypesFromCategoryScoring(selectedIngredientIds);
-        }
-
-        if (!mappingData || !mappingData.recipe_type_templates) return [];
-        const selectedSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)));
-
-        const results = [];
-        for (const [typeName, template] of Object.entries(mappingData.recipe_type_templates)) {
-            const sigs = template.signature_ingredients || [];
-            if (!sigs.length) continue;
-
-            let weightedMatched = 0;
-            let weightedTotal = 0;
-            let matchedCount = 0;
-
-            sigs.forEach(sig => {
-                const weight = Math.min(sig.specificity || 1, 10);
-                weightedTotal += weight;
-                if (selectedSet.has(sig.id)) {
-                    weightedMatched += weight;
-                    matchedCount++;
-                }
-            });
-
-            if (matchedCount === 0) continue;
-
-            const score = Math.round((weightedMatched / weightedTotal) * 100);
-            if (score < 10) continue;
-
-            results.push({
-                type: typeName,
-                name: typeName.charAt(0).toUpperCase() + typeName.slice(1).replace('_', ' '),
-                score: score,
-                matchedSignatureCount: matchedCount,
-                totalSignature: sigs.length
-            });
-        }
-
-        results.sort((a, b) => b.score - a.score);
-        return results;
-    }
-
-    /**
-     * Preferred recipe-type detection using recipe_category_scoring.json (new ingredients_and_nutrients IDs).
-     *
-     * Scoring v3 (hybrid formula):
-     * 1. base        = weightedMatched / weightedTotal
-     * 2. fp_penalty  = Abzug für ausgewählte Zutaten, die NICHT in dieser Kategorie sind
-     *                  adjusted = base × (1 - falsePositiveRatio × 0.5)
-     * 3. required    = Falls required_ingredient_ids definiert:
-     *                  - Alle matched  → ×1.5 (capped 1.0)
-     *                  - Keine matched → ×0.2
-     *                  - Teils matched → ×(1 + ratio×0.5), capped 1.0
-     * 4. min_match   = Mindestanzahl Treffer (aus JSON oder Fallback: ≥5 Zutaten → min 2)
-     */
-    function detectRecipeTypesFromCategoryScoring(selectedIngredientIds) {
         if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return [];
 
         const selectedSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
@@ -188,7 +137,6 @@
 
     /**
      * Returns the full category object for a given typeId (from recipe_category_scoring.json).
-     * Useful for retrieving typical_ingredients, required_ingredient_ids, etc.
      * @param {string} typeId
      * @returns {Object|null}
      */
@@ -221,9 +169,9 @@
         const topType = recipeTypes.length ? recipeTypes[0] : null;
 
         // Collect candidate step IDs with scores
-        const stepScores = new Map(); // stepId -> { score, phase, triggeredBy[] }
+        const stepScores = new Map();
 
-        // 1) Direct ingredient->step mapping
+        // Direct ingredient->step mapping
         selectedIngredientIds.forEach(ingId => {
             const stepIds = ingredientToSteps[ingId.toString()] || [];
             stepIds.forEach(sid => {
@@ -237,26 +185,8 @@
             });
         });
 
-        // 2) Bonus from recipe type templates
-        if (topType && topType.score >= 25) {
-            const template = mappingData.recipe_type_templates[topType.type];
-            if (template && template.suggested_step_sequence) {
-                template.suggested_step_sequence.forEach(ss => {
-                    const sidStr = ss.step_id.toString();
-                    // Only add if the triggering ingredient is actually selected
-                    if (!selectedSet.has(ss.triggered_by.toString())) return;
-                    if (!stepScores.has(sidStr)) {
-                        stepScores.set(sidStr, { score: 0, phase: ss.phase, triggeredBy: [] });
-                    }
-                    const entry = stepScores.get(sidStr);
-                    entry.score += (topType.score / 50); // bonus proportional to type match
-                });
-            }
-        }
-
-        // 3) Filter: step must exist in the page's step catalog
-        // 4) Filter: validate step text against selected ingredient names
-        //    Avoid suggesting "geriebenen Gouda" when only "Cheddar" is selected
+        // Filter: step must exist in the page's step catalog
+        // Filter: validate step text against selected ingredient names
         const conflictIngredients = buildConflictMap();
         const results = [];
 
@@ -267,7 +197,6 @@
             const stepText = getStepText(catalogStep);
             if (!stepText) return;
 
-            // Check for conflicting ingredient names in step text
             if (hasConflictingIngredient(stepText, selectedNames, conflictIngredients)) {
                 return;
             }
@@ -308,11 +237,8 @@
     /**
      * Build a map of ingredient names that are "alternatives" to each other.
      * E.g., Gouda/Cheddar/Emmentaler are cheese alternatives.
-     * If a step mentions "Gouda" but only "Cheddar" is selected, skip that step.
      */
     function buildConflictMap() {
-        // Groups of alternative ingredients (lowercase)
-        // If step text contains one from a group but the selected ingredient is a different one from the same group -> conflict
         return [
             ['gouda', 'cheddar', 'emmentaler', 'gruyère', 'edamer', 'bergkäse', 'raclette'],
             ['mozzarella', 'burrata'],
@@ -327,31 +253,23 @@
         ];
     }
 
-    /**
-     * Check if step text mentions an ingredient that conflicts with the selection.
-     * Example: step says "Gouda", but selected ingredients include "Cheddar" not "Gouda" -> conflict
-     */
     function hasConflictingIngredient(stepText, selectedNames, conflictGroups) {
         const textLower = stepText.toLowerCase();
 
         for (const group of conflictGroups) {
-            // Find which items from this group appear in the step text
             const mentionedInStep = group.filter(item => textLower.includes(item));
             if (!mentionedInStep.length) continue;
 
-            // Find which items from this group are in the selected ingredients
             const selectedFromGroup = group.filter(item =>
                 selectedNames.some(name => name.includes(item) || item.includes(name))
             );
 
-            // Conflict: step mentions items from this group, but none of those items are selected
-            // AND at least one other item from this group IS selected
             if (selectedFromGroup.length > 0) {
                 const mentionedAndSelected = mentionedInStep.filter(m =>
                     selectedFromGroup.some(s => s.includes(m) || m.includes(s))
                 );
                 if (mentionedAndSelected.length === 0) {
-                    return true; // step mentions "Gouda" but only "Cheddar" is selected
+                    return true;
                 }
             }
         }
@@ -359,7 +277,6 @@
         return false;
     }
 
-    /** Get step from catalog (handles both Map and plain object, and different key formats) */
     function getStepFromCatalog(stepId, catalog) {
         const sid = stepId.toString();
         if (catalog instanceof Map) {
@@ -368,16 +285,12 @@
         return catalog[sid] || catalog[parseInt(sid, 10)];
     }
 
-    /** Get step display text (handles different property name conventions) */
     function getStepText(step) {
         return step.step_DE || step.de || step.Step_DE || step.StepDe || '';
     }
 
     /**
      * Render recipe type score badges as HTML
-     * @param {Array} recipeTypes - from detectRecipeTypes
-     * @param {number} [maxShow=3]
-     * @returns {string} HTML string
      */
     function renderRecipeTypeBadges(recipeTypes, maxShow) {
         maxShow = maxShow || 3;
@@ -396,97 +309,64 @@
         }).join('');
     }
 
-    function renderMasterTemplate(template, vars) {
-        if (!template) return '';
-        return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
-            const raw = vars[key];
-            if (raw === null || raw === undefined || raw === '') {
-                return key;
-            }
-            return raw;
-        });
-    }
-
-    function getMasterTemplateDefaults(ingredientName) {
-        return {
-            ingredient: ingredientName || 'Zutat',
-            ingredients: ingredientName || 'die Zutaten',
-            pronoun: 'sie',
-            tool: 'Messer',
-            shape: 'mundgerechte Stücke',
-            grind_size: 'fein',
-            marinade: 'Öl, Salz und Gewürzen',
-            duration: '10 Minuten',
-            liquid: 'Wasser',
-            quantity: 'etwas',
-            temperature: 'mittlerer Hitze',
-            heat: 'mittlerer',
-            spice_mix: 'Salz, Pfeffer und Gewürzen',
-            sauce: 'Sauce',
-            target_consistency: 'cremig',
-            garnish: 'frischen Kräutern',
-            serving_style: 'auf Tellern',
-            side: 'Beilage'
-        };
-    }
-
     /**
-       * Erstellt eine vollständige Vorschau aller Master-Steps für die gewählten Zutaten.
-       * Sortiert nach Phasen (Vorbereitung -> Kochen -> Finishing).
-       */
+     * Erstellt eine vollständige Vorschau aller Master-Steps für die gewählten Zutaten.
+     * Nutzt kuratierte Step-Sequenzen aus probability_template_presets.json
+     * mit vorausgefüllten Variablen via MasterStepRenderer.getSmartDefaults().
+     */
     function getMasterStepPreview(selectedIngredients, options) {
         options = options || {};
         const lang = (options.lang || 'de').toLowerCase();
+        const recipeType = (options.recipeType || '').toLowerCase();
 
-        // Wir nehmen an, selectedIngredients ist ein Array von Strings (Namen) 
-        // oder Objekten {name: "..."}. Wir vereinheitlichen das hier:
         const ingredientNames = selectedIngredients.map(ing =>
             typeof ing === 'string' ? ing : (ing.name || ing.ingredient_name)
         );
 
         if (!masterStepsData || !Array.isArray(masterStepsData.master_steps)) return [];
 
+        // If recipe type detected, use curated step sequence with pre-filled variables
+        if (recipeType && templatePresetsData && templatePresetsData.types && templatePresetsData.types[recipeType]) {
+            return buildRecipeTypePreview(recipeType, ingredientNames, lang);
+        }
+
+        return [];
+    }
+
+    /**
+     * Build preview using curated step sequence and pre-filled variables for a recipe type.
+     */
+    function buildRecipeTypePreview(recipeType, ingredientNames, lang) {
+        const stepIds = templatePresetsData.types[recipeType];
+        if (!stepIds || !Array.isArray(stepIds)) return [];
+
         const rendered = [];
-        const seen = new Set();
+        const firstIngredient = ingredientNames.length ? ingredientNames[0] : 'die Zutat';
 
-        // 1. Jede gewählte Zutat durchgehen
-        ingredientNames.forEach(name => {
+        stepIds.forEach(function (masterId) {
+            const masterStep = masterStepsData.master_steps.find(s => s && s.master_id === masterId);
+            if (!masterStep) return;
 
-            // 2. JEDEN Master-Step aus der JSON prüfen
-            masterStepsData.master_steps.forEach(masterStep => {
-
-                // Nur Steps nehmen, die eine einzelne Zutat verarbeiten können
-                if (masterStep.variables.includes('ingredient')) {
-
-                    const key = `${masterStep.master_id}::${name}`;
-                    if (!seen.has(key)) {
-                        seen.add(key);
-
-                        // Template für die Sprache wählen
-                        const templates = masterStep.templates || {};
-                        const rawTemplate = templates[lang] || templates.de || "";
-
-                        // Platzhalter füllen (Nutzt deine Default-Logik für Pronomen etc.)
-                        const vars = getMasterTemplateDefaults(name);
-                        const text = renderMasterTemplate(rawTemplate, vars);
-
-                        if (text) {
-                            rendered.push({
-                                masterId: masterStep.master_id,
-                                phase: parseInt(masterStep.phase || 0, 10),
-                                equipment: masterStep.equipment,
-                                action: masterStep.action,
-                                ingredient: name,
-                                text: text
-                            });
-                        }
-                    }
-                }
+            var vars = MasterStepRenderer.getSmartDefaults(masterId, {
+                ingredientName: firstIngredient,
+                recipeType: recipeType
             });
+
+            var text = MasterStepRenderer.render(masterId, vars, lang);
+
+            if (text) {
+                rendered.push({
+                    masterId: masterId,
+                    phase: parseInt(masterStep.phase || 0, 10),
+                    equipment: masterStep.equipment,
+                    action: masterStep.action,
+                    ingredient: vars.ingredient || firstIngredient,
+                    text: text
+                });
+            }
         });
 
-        // 3. Nach Phase sortieren (Phase 1: Vorbereitung kommt zuerst)
-        return rendered.sort((a, b) => a.phase - b.phase);
+        return rendered;
     }
 
     // Export

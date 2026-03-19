@@ -112,7 +112,8 @@
             presets: null,
             presetsPromise: null,
             varsByTemplate: {},
-            inlineOverrides: {}
+            inlineOverrides: {},
+            currentTypeId: ''
         };
 
         const getLang = () => (deps.getCurrentLang ? deps.getCurrentLang() : 'de');
@@ -141,7 +142,7 @@
             (preferredTemplateIds || []).forEach(masterId => {
                 const template = deps.findTemplate(masterId);
                 if (!template) return;
-                const vars = deps.buildVariablesForTemplate(masterId);
+                const vars = deps.buildVariablesForTemplate(masterId, state.currentTypeId);
                 varsByTemplate[masterId] = vars;
                 const snippet = deps.renderTemplate(masterId, vars, getLang()) || masterId;
                 cards.push(buildTemplateCardHtml(masterId, snippet, template, vars, getLang()));
@@ -150,7 +151,7 @@
         }
 
         function buildFallbackCards(ingredientNames, varsByTemplate) {
-            const preview = deps.getMasterStepPreview(ingredientNames, { lang: getLang() }) || [];
+            const preview = deps.getMasterStepPreview(ingredientNames, { lang: getLang(), recipeType: state.currentTypeId }) || [];
             if (!preview.length) return [];
 
             const cards = [];
@@ -160,7 +161,7 @@
                 if (!masterId || seen.has(masterId)) return;
                 seen.add(masterId);
                 const template = deps.findTemplate(masterId);
-                const vars = deps.buildVariablesForTemplate(masterId);
+                const vars = deps.buildVariablesForTemplate(masterId, state.currentTypeId);
                 cards.push(buildTemplateCardHtml(masterId, item.text || masterId, template, vars, getLang()));
                 varsByTemplate[masterId] = vars;
             });
@@ -168,7 +169,7 @@
         }
 
         function getMergedVars(masterId) {
-            const base = { ...(state.varsByTemplate[masterId] || deps.buildVariablesForTemplate(masterId) || {}) };
+            const base = { ...(state.varsByTemplate[masterId] || deps.buildVariablesForTemplate(masterId, state.currentTypeId) || {}) };
             const overrides = state.inlineOverrides[masterId] || {};
             return { ...base, ...overrides };
         }
@@ -327,6 +328,7 @@
         }
 
         async function showSuggestions(typeId) {
+            state.currentTypeId = typeId || '';
             const box = $('#ingredientProbabilityTemplates');
             const selectedIngredientSuggestionBox = $('#selectedIngredientsSuggestions');
             if (!box.length) return;

@@ -1438,20 +1438,21 @@
       "equipment": 2,
       "description": "Anbraten/Dünsten von Basis-Zutaten",
       "templates": {
-        "de": "Erhitze {{fat}} in {{equipment}} und dünste {{ingredient}} darin[ {{duration}}][, bis {{state}} ist].",
-        "en": "Heat {{fat}} in {{equipment}} and sauté {{ingredient}}[ for {{duration}}][ until {{state}}].",
-        "esp": "Calienta {{fat}} en {{equipment}} y sofríe {{ingredient}}[ durante {{duration}}][ hasta que {{state}}].",
-        "prt": "Aqueça {{fat}} em {{equipment}} e refogue {{ingredient}}[ por {{duration}}][ até que {{state}}].",
-        "id": "Panaskan {{fat}} di {{equipment}} lalu tumis {{ingredient}}[ selama {{duration}}][ hingga {{state}}].",
-        "nl": "Verhit {{fat}} in {{equipment}} en fruit {{ingredient}}[ {{duration}}][ tot {{state}}].",
-        "sv": "Värm {{fat}} i {{equipment}} och fräs {{ingredient}}[ i {{duration}}][ tills {{state}}].",
-        "da": "Varm {{fat}} i {{equipment}} og sautér {{ingredient}}[ i {{duration}}][, indtil {{state}}].",
-        "no": "Varm {{fat}} i {{equipment}} og fres {{ingredient}}[ i {{duration}}][ til {{state}}].",
-        "ms": "Panaskan {{fat}} dalam {{equipment}} dan tumis {{ingredient}}[ selama {{duration}}][ sehingga {{state}}]."
+        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}][, bis {{state}} ist].",
+        "en": "Heat {{fat}} in {{equipment}} and {{action}} {{ingredient}}[ for {{duration}}][ until {{state}}].",
+        "esp": "Calienta {{fat}} en {{equipment}} y {{action}} {{ingredient}}[ durante {{duration}}][ hasta que {{state}}].",
+        "prt": "Aqueça {{fat}} em {{equipment}} e {{action}} {{ingredient}}[ por {{duration}}][ até que {{state}}].",
+        "id": "Panaskan {{fat}} di {{equipment}} lalu {{action}} {{ingredient}}[ selama {{duration}}][ hingga {{state}}].",
+        "nl": "Verhit {{fat}} in {{equipment}} en {{action}} {{ingredient}}[ {{duration}}][ tot {{state}}].",
+        "sv": "Värm {{fat}} i {{equipment}} och {{action}} {{ingredient}}[ i {{duration}}][ tills {{state}}].",
+        "da": "Varm {{fat}} i {{equipment}} og {{action}} {{ingredient}}[ i {{duration}}][, indtil {{state}}].",
+        "no": "Varm {{fat}} i {{equipment}} og {{action}} {{ingredient}}[ i {{duration}}][ til {{state}}].",
+        "ms": "Panaskan {{fat}} dalam {{equipment}} dan {{action}} {{ingredient}}[ selama {{duration}}][ sehingga {{state}}]."
       },
       "variables": [
         "fat",
         "equipment",
+        "action",
         "ingredient",
         "duration",
         "state"
@@ -1459,6 +1460,7 @@
       "required_variables": [
         "fat",
         "equipment",
+        "action",
         "ingredient"
       ],
       "optional_variables": [
@@ -2438,6 +2440,181 @@
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
       }
+    },
+    {
+      "master_id": "PREP_FILLET_01",
+      "phase": 1,
+      "action": "fillet",
+      "equipment": 0,
+      "description": "Filetieren von Fisch, Gräten entfernen",
+      "templates": {
+        "de": "Filetiere {{ingredient}} mit einem {{tool}} und entferne[ vorsichtig] die Gräten.",
+        "en": "Fillet {{ingredient}} with a {{tool}} and[ carefully] remove the bones.",
+        "esp": "Filetea {{ingredient}} con un {{tool}} y retira[ con cuidado] las espinas.",
+        "prt": "Filete {{ingredient}} com uma {{tool}} e retire[ com cuidado] as espinhas.",
+        "id": "Fillet {{ingredient}} dengan {{tool}} dan[ hati-hati] buang tulangnya.",
+        "nl": "Fileer {{ingredient}} met een {{tool}} en verwijder[ voorzichtig] de graten.",
+        "sv": "Filéa {{ingredient}} med en {{tool}} och[ försiktigt] ta bort benen.",
+        "da": "Filetér {{ingredient}} med en {{tool}} og fjern[ forsigtigt] benene.",
+        "no": "Filetér {{ingredient}} med en {{tool}} og[ forsiktig] fjern beinene.",
+        "ms": "Filet {{ingredient}} dengan {{tool}} dan[ berhati-hati] buang tulangnya."
+      },
+      "variables": [
+        "ingredient",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool"
+      ],
+      "optional_variables": [],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "fish"
+      }
+    },
+    {
+      "master_id": "PREP_DESCALE_01",
+      "phase": 1,
+      "action": "descale",
+      "equipment": 0,
+      "description": "Entschuppen von ganzem Fisch",
+      "templates": {
+        "de": "Entschuppe {{ingredient}} unter fließendem Wasser mit einem {{tool}}[ und tupfe {{pronoun}} trocken].",
+        "en": "Descale {{ingredient}} under running water with a {{tool}}[ and pat {{pronoun}} dry].",
+        "esp": "Descama {{ingredient}} bajo agua corriente con un {{tool}}[ y sécalo con papel].",
+        "prt": "Descame {{ingredient}} sob água corrente com uma {{tool}}[ e seque com papel].",
+        "id": "Buang sisik {{ingredient}} di bawah air mengalir dengan {{tool}}[ dan keringkan].",
+        "nl": "Ontschub {{ingredient}} onder stromend water met een {{tool}}[ en dep {{pronoun}} droog].",
+        "sv": "Fjälla {{ingredient}} under rinnande vatten med en {{tool}}[ och torka av].",
+        "da": "Skræl skællene af {{ingredient}} under rindende vand med en {{tool}}[ og dup tør].",
+        "no": "Fjern skjellene fra {{ingredient}} under rennende vann med en {{tool}}[ og tørk av].",
+        "ms": "Buang sisik {{ingredient}} bawah air mengalir dengan {{tool}}[ dan keringkan]."
+      },
+      "variables": [
+        "ingredient",
+        "tool",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool"
+      ],
+      "optional_variables": [
+        "pronoun"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "fish"
+      }
+    },
+    {
+      "master_id": "PREP_DEVEIN_01",
+      "phase": 1,
+      "action": "devein",
+      "equipment": 0,
+      "description": "Schälen und Entdarmen von Garnelen/Shrimps",
+      "templates": {
+        "de": "Schäle {{ingredient}} und entferne den Darm[ mit einem {{tool}}].",
+        "en": "Peel {{ingredient}} and devein[ with a {{tool}}].",
+        "esp": "Pela {{ingredient}} y retira el intestino[ con un {{tool}}].",
+        "prt": "Descasque {{ingredient}} e remova o intestino[ com uma {{tool}}].",
+        "id": "Kupas {{ingredient}} dan buang ususnya[ dengan {{tool}}].",
+        "nl": "Pel {{ingredient}} en verwijder het darmkanaal[ met een {{tool}}].",
+        "sv": "Skala {{ingredient}} och ta bort tarmen[ med en {{tool}}].",
+        "da": "Pil {{ingredient}} og fjern tarmen[ med en {{tool}}].",
+        "no": "Skrell {{ingredient}} og fjern tarmen[ med en {{tool}}].",
+        "ms": "Kupas {{ingredient}} dan buang ususnya[ dengan {{tool}}]."
+      },
+      "variables": [
+        "ingredient",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [
+        "tool"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "seafood"
+      }
+    },
+    {
+      "master_id": "COOK_POACH_01",
+      "phase": 2,
+      "action": "poach",
+      "equipment": 3,
+      "description": "Pochieren/Garziehen von Fisch oder Meeresfrüchten in Flüssigkeit",
+      "templates": {
+        "de": "Gib {{ingredient}} in {{liquid}} und pochiere {{pronoun}}[ bei {{heat}} Hitze][ {{duration}}][, bis {{state}}].",
+        "en": "Place {{ingredient}} in {{liquid}} and poach[ over {{heat}} heat][ for {{duration}}][ until {{state}}].",
+        "esp": "Coloca {{ingredient}} en {{liquid}} y escalfa[ a fuego {{heat}}][ durante {{duration}}][ hasta que {{state}}].",
+        "prt": "Coloque {{ingredient}} em {{liquid}} e escalde[ em fogo {{heat}}][ por {{duration}}][ até que {{state}}].",
+        "id": "Masukkan {{ingredient}} ke dalam {{liquid}} dan rebus perlahan[ dengan api {{heat}}][ selama {{duration}}][ hingga {{state}}].",
+        "nl": "Leg {{ingredient}} in {{liquid}} en pocheer[ op {{heat}} vuur][ {{duration}}][ tot {{state}}].",
+        "sv": "Lägg {{ingredient}} i {{liquid}} och pochera[ på {{heat}} värme][ i {{duration}}][ tills {{state}}].",
+        "da": "Læg {{ingredient}} i {{liquid}} og pochér[ ved {{heat}} varme][ i {{duration}}][ til {{state}}].",
+        "no": "Legg {{ingredient}} i {{liquid}} og posjer[ på {{heat}} varme][ i {{duration}}][ til {{state}}].",
+        "ms": "Masukkan {{ingredient}} dalam {{liquid}} dan reneh perlahan[ atas api {{heat}}][ selama {{duration}}][ sehingga {{state}}]."
+      },
+      "variables": [
+        "ingredient",
+        "liquid",
+        "pronoun",
+        "heat",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "ingredient",
+        "liquid"
+      ],
+      "optional_variables": [
+        "pronoun",
+        "heat",
+        "duration",
+        "state"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "fish"
+      },
+      "quality_rule_keys": "requires_previous_phase"
+    },
+    {
+      "master_id": "PREP_CLEAN_SEAFOOD_01",
+      "phase": 1,
+      "action": "clean_seafood",
+      "equipment": 0,
+      "description": "Putzen und Vorbereiten von Meeresfrüchten (Muscheln, Tintenfisch etc.)",
+      "templates": {
+        "de": "Putze {{ingredient}} gründlich unter kaltem Wasser[ und entferne {{action}}].",
+        "en": "Clean {{ingredient}} thoroughly under cold water[ and remove {{action}}].",
+        "esp": "Limpia {{ingredient}} a fondo bajo agua fría[ y retira {{action}}].",
+        "prt": "Limpe {{ingredient}} bem sob água fria[ e remova {{action}}].",
+        "id": "Bersihkan {{ingredient}} dengan teliti di bawah air dingin[ dan buang {{action}}].",
+        "nl": "Maak {{ingredient}} grondig schoon onder koud water[ en verwijder {{action}}].",
+        "sv": "Rengör {{ingredient}} noggrant under kallt vatten[ och ta bort {{action}}].",
+        "da": "Rens {{ingredient}} grundigt under koldt vand[ og fjern {{action}}].",
+        "no": "Rens {{ingredient}} grundig under kaldt vann[ og fjern {{action}}].",
+        "ms": "Bersihkan {{ingredient}} dengan teliti bawah air sejuk[ dan buang {{action}}]."
+      },
+      "variables": [
+        "ingredient",
+        "action"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [
+        "action"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "seafood"
+      }
     }
   ],
   "variable_hints": {
@@ -2651,7 +2828,9 @@
         "mische",
         "hebe unter",
         "püriere",
-        "reibe"
+        "reibe",
+        "dünste",
+        "brate"
       ],
       "en": [
         "beat",
@@ -2663,7 +2842,9 @@
         "mix",
         "fold in",
         "purée",
-        "grate"
+        "grate",
+        "sauté",
+        "fry"
       ],
       "esp": [
         "bate",
@@ -2675,7 +2856,9 @@
         "mezcla",
         "incorpora",
         "tritura",
-        "ralla"
+        "ralla",
+        "sofríe",
+        "fríe"
       ],
       "prt": [
         "bata",
@@ -2687,7 +2870,9 @@
         "misture",
         "incorpore",
         "triture",
-        "rale"
+        "rale",
+        "refogue",
+        "frite"
       ],
       "id": [
         "kocok",
@@ -2699,7 +2884,9 @@
         "campur",
         "aduk balik",
         "haluskan",
-        "parut"
+        "parut",
+        "tumis",
+        "goreng"
       ],
       "nl": [
         "klop",
@@ -2711,7 +2898,9 @@
         "meng",
         "spatel onder",
         "pureer",
-        "rasp"
+        "rasp",
+        "fruit",
+        "bak"
       ],
       "sv": [
         "vispa",
@@ -2723,7 +2912,9 @@
         "blanda",
         "vänd ner",
         "mixa slät",
-        "riv"
+        "riv",
+        "fräs",
+        "stek"
       ],
       "da": [
         "pisk",
@@ -2735,7 +2926,9 @@
         "bland",
         "vend i",
         "purér",
-        "riv"
+        "riv",
+        "sautér",
+        "steg"
       ],
       "no": [
         "visp",
@@ -2747,7 +2940,9 @@
         "bland",
         "vend inn",
         "purér",
-        "riv"
+        "riv",
+        "fres",
+        "stek"
       ],
       "ms": [
         "pukul",
@@ -2759,7 +2954,9 @@
         "gaul",
         "gaul lipat",
         "kisar halus",
-        "parut"
+        "parut",
+        "tumis",
+        "goreng"
       ]
     },
     "tool": {

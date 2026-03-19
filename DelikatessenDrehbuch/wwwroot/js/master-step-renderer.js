@@ -2,6 +2,7 @@
     'use strict';
 
     let data = null;
+    let recipeTypeStepVarsData = null;
     let loadingPromise = null;
     let lastLoadError = '';
 
@@ -11,18 +12,25 @@
         const configuredUrl = window.MasterStepRendererConfig && window.MasterStepRendererConfig.dataUrl;
         const dataUrl = configuredUrl || '/data/master_steps.json';
 
-        loadingPromise = fetch(dataUrl)
-            .then(function (r) {
+        loadingPromise = Promise.all([
+            fetch(dataUrl).then(function (r) {
                 if (!r.ok) {
                     throw new Error('master_steps.json konnte nicht geladen werden (' + r.status + ' ' + r.statusText + ') von ' + dataUrl);
                 }
                 return r.json();
-            })
-            .then(function (json) {
+            }),
+            fetch('/data/recipe_type_step_variables.json')
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .catch(function () { return null; })
+        ])
+            .then(function (results) {
+                var json = results[0];
+                var stepVarsJson = results[1];
                 if (!json || !Array.isArray(json.master_steps)) {
                     throw new Error('master_steps.json hat ein ungültiges Format.');
                 }
                 data = json;
+                recipeTypeStepVarsData = stepVarsJson;
                 lastLoadError = '';
                 return json;
             })
@@ -220,7 +228,7 @@
             temp: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             liquid: ['Wasser', 'Gemüsebrühe', 'Milch', 'Kokosmilch'],
             equipment: ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb', 'Küchenmaschine', 'Zange', 'Schneidebrett'],
-            state: ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'],
+            state: ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd', 'durchgegart'],
             garnish: ['frischen Kräutern', 'Sesam', 'Parmesan', 'Nüssen'],
             base: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum'],
             seasonings: ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze', 'salt', 'pepper', 'salt and pepper', 'herbs', 'spices'],
@@ -230,42 +238,66 @@
         return presets[variableName] || [];
     }
 
+    function getStepDefaults(masterId) {
+        if (!recipeTypeStepVarsData || !recipeTypeStepVarsData.defaults) return null;
+        return recipeTypeStepVarsData.defaults[masterId] || null;
+    }
+
+    function getRecipeTypeStepVars(recipeType, masterId) {
+        if (!recipeTypeStepVarsData || !recipeTypeStepVarsData.types) return null;
+        var typeData = recipeTypeStepVarsData.types[recipeType];
+        if (!typeData || !typeData.step_variables) return null;
+        return typeData.step_variables[masterId] || null;
+    }
+
     function getSmartDefaults(masterId, context) {
         context = context || {};
         const ingredientName = context.ingredientName || 'die Zutat';
-        const recipeCategory = (context.recipeCategory || '').toString().toLowerCase();
-
-        const defaults = {
-            ingredient: ingredientName,
-            ingredients: ingredientName,
-            pronoun: 'sie',
-            action: 'rühre',
-            tool: 'Messer',
-            shape: 'Würfel',
-            grind_size: 'fein',
-            marinade: 'Öl, Salz und Gewürzen',
-            duration: '10 Minuten',
-            liquid: 'Wasser',
-            equipment: 'Pfanne',
-            quantity: 'etwas',
-            temperature: '180°C',
-            temp: '180°C',
-            heat: 'mittlerer',
-            spice_mix: 'Salz, Pfeffer und Gewürzen',
-            sauce: 'Sauce',
-            target_consistency: 'cremig',
-            garnish: 'frischen Kräutern',
-            serving_style: 'auf Tellern',
-            side: recipeCategory.includes('salat') ? 'frischem Brot' : 'Beilage'
-        };
+        const recipeType = (context.recipeType || '').toString().toLowerCase();
 
         const template = findTemplate(masterId);
-        if (!template || !Array.isArray(template.variables)) return defaults;
+        if (!template || !Array.isArray(template.variables)) return {};
 
+        // 1. Start with step defaults from JSON
+        var stepDefaults = getStepDefaults(masterId) || {};
         const scoped = {};
         template.variables.forEach(function (key) {
-            scoped[key] = defaults[key] || '';
+            if (stepDefaults[key] != null && stepDefaults[key] !== '') {
+                scoped[key] = stepDefaults[key];
+            } else {
+                scoped[key] = '';
+            }
         });
+
+        // 2. Override with recipe-type-specific variable presets (higher priority)
+        var typeVars = null;
+        if (recipeType) {
+            typeVars = getRecipeTypeStepVars(recipeType, masterId);
+            if (typeVars) {
+                template.variables.forEach(function (key) {
+                    if (typeVars[key] != null && typeVars[key] !== '') {
+                        scoped[key] = typeVars[key];
+                    }
+                });
+            }
+        }
+
+        // 3. ingredient/ingredients always from user context (unless recipe-type defines it)
+        if (template.variables.includes('ingredient')) {
+            var typeIngredient = typeVars && typeVars.ingredient;
+            if (!typeIngredient || !recipeType) {
+                scoped.ingredient = ingredientName;
+            }
+        }
+        if (template.variables.includes('ingredients')) {
+            var typeIngredients = typeVars && typeVars.ingredients;
+            if (!typeIngredients || !recipeType) {
+                if (ingredientName !== 'die Zutat') {
+                    scoped.ingredients = ingredientName;
+                }
+            }
+        }
+
         return scoped;
     }
 
@@ -324,6 +356,7 @@
         suggestForIngredient: suggestForIngredient,
         getVariablePresets: getVariablePresets,
         getLastLoadError: getLastLoadError,
-        findTemplate: findTemplate
+        findTemplate: findTemplate,
+        getRecipeTypeStepVars: getRecipeTypeStepVars
     };
 })(window);

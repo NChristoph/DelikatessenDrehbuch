@@ -227,6 +227,7 @@
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, selectedIds)
                     : '';
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
+                renderProbVarIngredientArticleOptions('');
                 $('#probVarIngredientArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
 
@@ -306,6 +307,9 @@
             let value = null;
             if (!$('#probVarIngredientArea').hasClass('d-none')) {
                 value = getSelectedIngredientValueForInsert();
+                if (value && probVarIngredientArticleValue && probVarIngredientArticleValue !== 'ohne') {
+                    value = `${probVarIngredientArticleValue} ${value}`.trim();
+                }
             } else if (!$('#probVarDurationArea').hasClass('d-none')) {
                 const num = parseInt($('#probVarDurationVal').val(), 10) || 1;
                 const unit = $('#probVarDurationUnit').val() || 'minute';
@@ -2007,7 +2011,7 @@
             });
         }
 
-        function buildVariablesForTemplate(templateId) {
+        function buildVariablesForTemplate(templateId, recipeType) {
             const template = MasterStepRenderer.findTemplate(templateId);
             const selectedIngredient = getSelectedIngredientForCreator();
             const selectedNames = getSelectedIngredientNames();
@@ -2020,7 +2024,8 @@
 
             const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
                 ingredientName: ingredientNameWithArticle || ingredientName,
-                recipeCategory: $('#Recipe_Category').val()
+                recipeCategory: $('#Recipe_Category').val(),
+                recipeType: recipeType || ''
             }) || {};
 
             const keys = new Set([...(template?.variables || []), ...getPlaceholderKeysFromTemplate(template)]);
@@ -2028,7 +2033,10 @@
 
             keys.forEach(key => {
                 if (key === 'ingredient' || key === 'ingredients' || key === 'liquid') {
-                    vars[key] = key;
+                    // Keep recipe-type value if present, otherwise use key as placeholder
+                    if (!vars[key] || vars[key] === ingredientNameWithArticle || vars[key] === ingredientName || vars[key] === 'die Zutat') {
+                        vars[key] = key;
+                    }
                     return;
                 }
 
@@ -2037,7 +2045,7 @@
                 }
             });
 
-            if (!vars.ingredient) vars.ingredient = 'ingredient';
+            if (!vars.ingredient || vars.ingredient === 'ingredient') vars.ingredient = vars.ingredient || 'ingredient';
             if (!vars.pronoun) vars.pronoun = creatorState.computedPronoun;
             if (!vars.article) vars.article = creatorState.computedArticle;
             return applyTokenAssignmentsToVariables(vars);
@@ -4134,6 +4142,14 @@
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
                     : '';
                 $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewählt</span>');
+            });
+
+            // Article chip for ingredient variable in prob editor
+            $(document).on('click', '.js-prob-ingredient-article-chip', function () {
+                const val = ($(this).data('value') || '').toString();
+                probVarIngredientArticleValue = val;
+                $('.js-prob-ingredient-article-chip').removeClass('active btn-light text-dark').addClass('btn-outline-light');
+                $(this).addClass('active btn-light text-dark').removeClass('btn-outline-light');
             });
 
             // Option chip ? auto-apply and close

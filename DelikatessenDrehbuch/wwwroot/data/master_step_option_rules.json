@@ -206,9 +206,35 @@
         "preferred": { "de": ["Pfanne", "große Pfanne", "Wok"] },
         "allowed": { "de": ["Pfanne", "große Pfanne", "Wok", "Topf"] }
       },
+      "action": {
+        "preferred": {
+          "de": ["dünste", "brate"],
+          "en": ["sauté", "fry"],
+          "esp": ["sofríe", "fríe"],
+          "prt": ["refogue", "frite"],
+          "id": ["tumis", "goreng"],
+          "nl": ["fruit", "bak"],
+          "sv": ["fräs", "stek"],
+          "da": ["sautér", "steg"],
+          "no": ["fres", "stek"],
+          "ms": ["tumis", "goreng"]
+        },
+        "allowed": {
+          "de": ["dünste", "brate"],
+          "en": ["sauté", "fry"],
+          "esp": ["sofríe", "fríe"],
+          "prt": ["refogue", "frite"],
+          "id": ["tumis", "goreng"],
+          "nl": ["fruit", "bak"],
+          "sv": ["fräs", "stek"],
+          "da": ["sautér", "steg"],
+          "no": ["fres", "stek"],
+          "ms": ["tumis", "goreng"]
+        }
+      },
       "state": {
-        "preferred": { "de": ["glasig", "weich", "goldbraun"] },
-        "allowed": { "de": ["glasig", "weich", "goldbraun", "angeröstet", "angebraten", "karamellisiert"] }
+        "preferred": { "de": ["glasig", "weich", "goldbraun", "durchgegart"] },
+        "allowed": { "de": ["glasig", "weich", "goldbraun", "angeröstet", "angebraten", "karamellisiert", "durchgegart"] }
       }
     },
     "COOK_FRY_01": {

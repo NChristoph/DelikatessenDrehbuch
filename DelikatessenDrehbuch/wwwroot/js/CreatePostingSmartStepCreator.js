@@ -862,7 +862,7 @@
         // If template has a separate {{pronoun}} token, don't embed pronoun buttons in state editor
         const hasSeparatePronounToken = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
 
-                const articleButtons = (ingredientVar || noArticleVar) ? "" : renderPillButtons(getArticleOptions(), "article", null);
+                const articleButtons = noArticleVar ? "" : renderPillButtons(getArticleOptions(), "article", null);
         const pronounButtons = (stateVar && !hasSeparatePronounToken) ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
         const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
@@ -886,7 +886,7 @@
 
         ${specialBlock}
 
-        ${(ingredientVar || noArticleVar) ? "" : `
+        ${noArticleVar ? "" : `
         <div class="small text-muted mt-2 mb-1">Artikel</div>
         <div class="d-flex flex-wrap gap-2 mb-2" id="ArticleBtnRow">
           ${articleButtons}
@@ -1081,7 +1081,12 @@
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
             if (!Array.isArray(selectedValues) || !selectedValues.length) return;
-            activeStep.values[varName] = formatSelectedIngredientList(selectedValues, currentLang);
+            let ingredientComposed = formatSelectedIngredientList(selectedValues, currentLang);
+            // Prepend selected article if chosen
+            if (article && article !== "ohne") {
+                ingredientComposed = `${article} ${ingredientComposed}`.trim();
+            }
+            activeStep.values[varName] = ingredientComposed;
             rerenderAfterValueSet();
             return;
         }
@@ -1643,7 +1648,12 @@
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
             if (!Array.isArray(selectedValues) || !selectedValues.length) return null;
-            return formatSelectedIngredientList(selectedValues, currentLang);
+            let ingredientResult = formatSelectedIngredientList(selectedValues, currentLang);
+            const ingArticle = editorEl.dataset.selectedArticle || '';
+            if (ingArticle && ingArticle !== 'ohne') {
+                ingredientResult = `${ingArticle} ${ingredientResult}`.trim();
+            }
+            return ingredientResult;
         }
         const article = editorEl.dataset.selectedArticle || '';
         const value = editorEl.dataset.selectedValue || '';

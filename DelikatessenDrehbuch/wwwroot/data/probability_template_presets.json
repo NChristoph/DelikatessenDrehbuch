@@ -229,6 +229,35 @@
       "PREP_LAYER_01",
       "SEASON_ADJUST_01",
       "FINISH_SERVE_01"
+    ],
+    "spaghetti": [
+      "PREP_CUT_01",
+      "PREP_MINCE_01",
+      "COOK_SAUTE_01",
+      "COOK_ADD_01",
+      "COOK_SIMMER_01",
+      "COOK_BOIL_01",
+      "COOK_DRAIN_01",
+      "COOK_STIR_01",
+      "SEASON_ADJUST_01",
+      "FINISH_SERVE_01"
+    ],
+    "auflauf": [
+      "PREP_PEEL_01",
+      "PREP_CUT_01",
+      "COOK_SAUTE_01",
+      "PREP_LAYER_01",
+      "COOK_BAKE_01",
+      "COOK_GRATINATE_01",
+      "FINISH_REST_01",
+      "FINISH_SERVE_01"
+    ],
+    "schnitzel": [
+      "PREP_BREAD_3STEP_01",
+      "COOK_FRY_01",
+      "COOK_DRAIN_01",
+      "SEASON_ADJUST_01",
+      "FINISH_SERVE_01"
     ]
   }
 }
