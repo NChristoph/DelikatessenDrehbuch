@@ -24,7 +24,9 @@
         if (loadingPromise) return loadingPromise;
 
         loadingPromise = Promise.all([
-            fetch('/data/recipe_step_mapping.json').then(r => r.json()),
+            fetch('/data/recipe_step_mapping.json')
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null),
             fetch('/data/recipe_category_scoring.json')
                 .then(r => r.ok ? r.json() : null)
                 .catch(() => null),
@@ -44,7 +46,18 @@
             templatePresetsData = presetsData;
             recipeTypeStepVarsData = stepVarsData;
             mappingLoaded = true;
+            console.log('[RecipeStepSuggest] Daten geladen:', {
+                mapping: !!stepData,
+                scoring: !!categoryData,
+                masterSteps: !!masterData,
+                presets: !!presetsData,
+                stepVars: !!stepVarsData
+            });
             return { stepData, categoryData, masterData };
+        }).catch(err => {
+            console.error('[RecipeStepSuggest] Fehler beim Laden:', err);
+            mappingLoaded = false;
+            return null;
         });
 
         return loadingPromise;

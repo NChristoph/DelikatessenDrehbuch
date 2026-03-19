@@ -32,6 +32,11 @@
                 data = json;
                 recipeTypeStepVarsData = stepVarsJson;
                 lastLoadError = '';
+                console.log('[MasterStepRenderer] Geladen:', {
+                    masterSteps: json.master_steps ? json.master_steps.length : 0,
+                    stepVarsDefaults: stepVarsJson && stepVarsJson.defaults ? Object.keys(stepVarsJson.defaults).length : 0,
+                    stepVarsTypes: stepVarsJson && stepVarsJson.types ? Object.keys(stepVarsJson.types).length : 0
+                });
                 return json;
             })
             .catch(function (error) {
@@ -282,20 +287,12 @@
             }
         }
 
-        // 3. ingredient/ingredients always from user context (unless recipe-type defines it)
+        // 3. ingredient/ingredients: always leave empty — user must set these
         if (template.variables.includes('ingredient')) {
-            var typeIngredient = typeVars && typeVars.ingredient;
-            if (!typeIngredient || !recipeType) {
-                scoped.ingredient = ingredientName;
-            }
+            scoped.ingredient = '';
         }
         if (template.variables.includes('ingredients')) {
-            var typeIngredients = typeVars && typeVars.ingredients;
-            if (!typeIngredients || !recipeType) {
-                if (ingredientName !== 'die Zutat') {
-                    scoped.ingredients = ingredientName;
-                }
-            }
+            scoped.ingredients = '';
         }
 
         return scoped;

@@ -1938,9 +1938,8 @@
         function resolveDefaultVariableValueForLanguage(key, langKey) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const placeholderType = getPlaceholderType(key);
-            if (key === 'ingredient' || key === 'ingredients' || key === 'liquid') {
-                const ingredientValue = getSelectedIngredientValueForLanguage(lang);
-                return ingredientValue || getLocalizedFallbackForVariable('ingredient', lang) || key;
+            if (key === 'ingredient' || key === 'ingredients') {
+                return key; // always placeholder — user must choose
             }
             if (key === 'pronoun') {
                 const selectedIngredient = getSelectedIngredientForCreator();
@@ -2032,11 +2031,9 @@
             const vars = { ...defaults };
 
             keys.forEach(key => {
-                if (key === 'ingredient' || key === 'ingredients' || key === 'liquid') {
-                    // Keep recipe-type value if present, otherwise use key as placeholder
-                    if (!vars[key] || vars[key] === ingredientNameWithArticle || vars[key] === ingredientName || vars[key] === 'die Zutat') {
-                        vars[key] = key;
-                    }
+                if (key === 'ingredient' || key === 'ingredients') {
+                    // ingredient/ingredients: always placeholder — user must choose
+                    vars[key] = key;
                     return;
                 }
 
