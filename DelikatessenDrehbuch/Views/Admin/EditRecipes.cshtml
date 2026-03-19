@@ -660,6 +660,7 @@
         let selectedAdminMasterIngredientNames = [];
         let selectedAdminMasterTemplateId = '';
         let tempAdminStepIdCounter = -1;
+        let currentDetectedRecipeType = '';
 
         function escapeForJsSingleQuote(value) {
             return (value || '')
@@ -867,8 +868,11 @@
             }
 
             templates.forEach(function(step) {
+                const ingKey = (typeof MasterStepRenderer.resolveIngredientKey === 'function') ? MasterStepRenderer.resolveIngredientKey(ingredientName) : null;
                 const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
-                    ingredientName: ingredientName
+                    ingredientName: ingredientName,
+                    ingredientKey: ingKey,
+                    recipeType: currentDetectedRecipeType
                 });
                 const localized = MasterStepRenderer.render(step.master_id, defaults, 'de');
                 const label = localized || step.description || step.master_id;
@@ -877,6 +881,60 @@
 
             templateSelect.val(selectedAdminMasterTemplateId);
             renderAdminMasterTemplateEditor();
+        }
+
+        // Localized labels for variable keys
+        const variableLabels = {
+            de: {
+                ingredient: 'Zutat', ingredients: 'Zutaten', pronoun: 'Pronomen',
+                action: 'Aktion', tool: 'Werkzeug', shape: 'Schnittform',
+                grind_size: 'Größe', marinade: 'Marinade', duration: 'Dauer',
+                liquid: 'Flüssigkeit', equipment: 'Gerät', quantity: 'Menge',
+                temperature: 'Temperatur', temp: 'Temperatur', heat: 'Hitze',
+                spice_mix: 'Gewürzmischung', sauce: 'Sauce', state: 'Zustand',
+                target_consistency: 'Konsistenz', garnish: 'Garnitur',
+                serving_style: 'Anrichten', side: 'Beilage', item: 'Gegenstand',
+                base: 'Basis', seasonings: 'Würzung', balance: 'Balance'
+            },
+            en: {
+                ingredient: 'Ingredient', ingredients: 'Ingredients', pronoun: 'Pronoun',
+                action: 'Action', tool: 'Tool', shape: 'Cut shape',
+                grind_size: 'Size', marinade: 'Marinade', duration: 'Duration',
+                liquid: 'Liquid', equipment: 'Equipment', quantity: 'Quantity',
+                temperature: 'Temperature', temp: 'Temperature', heat: 'Heat',
+                spice_mix: 'Spice mix', sauce: 'Sauce', state: 'State',
+                target_consistency: 'Consistency', garnish: 'Garnish',
+                serving_style: 'Serving', side: 'Side dish', item: 'Item',
+                base: 'Base', seasonings: 'Seasoning', balance: 'Balance'
+            },
+            esp: {
+                ingredient: 'Ingrediente', ingredients: 'Ingredientes', pronoun: 'Pronombre',
+                action: 'Acción', tool: 'Herramienta', shape: 'Forma de corte',
+                grind_size: 'Tamaño', marinade: 'Marinada', duration: 'Duración',
+                liquid: 'Líquido', equipment: 'Equipo', quantity: 'Cantidad',
+                temperature: 'Temperatura', temp: 'Temperatura', heat: 'Calor',
+                spice_mix: 'Especias', sauce: 'Salsa', state: 'Estado',
+                target_consistency: 'Consistencia', garnish: 'Guarnición',
+                serving_style: 'Emplatar', side: 'Acompañamiento', item: 'Elemento',
+                base: 'Base', seasonings: 'Condimento', balance: 'Balance'
+            },
+            prt: {
+                ingredient: 'Ingrediente', ingredients: 'Ingredientes', pronoun: 'Pronome',
+                action: 'Ação', tool: 'Ferramenta', shape: 'Forma de corte',
+                grind_size: 'Tamanho', marinade: 'Marinada', duration: 'Duração',
+                liquid: 'Líquido', equipment: 'Equipamento', quantity: 'Quantidade',
+                temperature: 'Temperatura', temp: 'Temperatura', heat: 'Calor',
+                spice_mix: 'Temperos', sauce: 'Molho', state: 'Estado',
+                target_consistency: 'Consistência', garnish: 'Guarnição',
+                serving_style: 'Servir', side: 'Acompanhamento', item: 'Item',
+                base: 'Base', seasonings: 'Tempero', balance: 'Equilíbrio'
+            }
+        };
+
+        function getVariableLabel(key, lang) {
+            const l = (lang || 'de').toLowerCase();
+            const labels = variableLabels[l] || variableLabels.de;
+            return labels[key] || key;
         }
 
         function renderAdminMasterTemplateEditor() {
@@ -896,25 +954,38 @@
                 return;
             }
 
+            const ingKey = (typeof MasterStepRenderer.resolveIngredientKey === 'function') ? MasterStepRenderer.resolveIngredientKey(ingredientName) : null;
             const vars = MasterStepRenderer.getSmartDefaults(templateId, {
-                ingredientName: ingredientName
+                ingredientName: ingredientName,
+                ingredientKey: ingKey,
+                recipeType: currentDetectedRecipeType
             });
+
+            // Determine current UI language (default de)
+            const currentLang = (typeof window.currentAppLang === 'string' ? window.currentAppLang : 'de').toLowerCase();
 
             (template.variables || []).forEach(function(key) {
                 const value = vars[key] || '';
-                const presets = (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') ? MasterStepRenderer.getVariablePresets(key, 'de') : [];
+                const label = getVariableLabel(key, currentLang);
+                const presets = (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') ? MasterStepRenderer.getVariablePresets(key, currentLang) : [];
 
                 if (presets.length) {
-                    const options = presets.map(function(option) {
+                    // Ensure smart-default value is in the options list
+                    let optionsList = presets.slice();
+                    if (value && optionsList.indexOf(value) === -1) {
+                        optionsList.unshift(value);
+                    }
+
+                    const options = optionsList.map(function(option) {
                         const selected = option === value ? ' selected' : '';
                         return `<option value="${option}"${selected}>${option}</option>`;
                     }).join('');
 
-                    box.append(`<div class="col-md-4"><label class="form-label small mb-1">${key}</label><select class="form-select form-select-sm admin-master-var-input" data-var="${key}">${options}</select></div>`);
+                    box.append(`<div class="col-md-4"><label class="form-label small mb-1">${label}</label><select class="form-select form-select-sm admin-master-var-input" data-var="${key}">${options}</select></div>`);
                     return;
                 }
 
-                box.append(`<div class="col-md-4"><label class="form-label small mb-1">${key}</label><input type="text" class="form-control form-control-sm admin-master-var-input" data-var="${key}" value="${value}" /></div>`);
+                box.append(`<div class="col-md-4"><label class="form-label small mb-1">${label}</label><input type="text" class="form-control form-control-sm admin-master-var-input" data-var="${key}" value="${value}" /></div>`);
             });
 
             updateAdminMasterPreview();
@@ -933,8 +1004,13 @@
             if (!templateId || !window.MasterStepRenderer) return;
 
             const ingredientName = buildIngredientTextForAdminMaster();
+            const ingKey = (typeof MasterStepRenderer.resolveIngredientKey === 'function') ? MasterStepRenderer.resolveIngredientKey(ingredientName) : null;
             const vars = {
-                ...MasterStepRenderer.getSmartDefaults(templateId, { ingredientName: ingredientName }),
+                ...MasterStepRenderer.getSmartDefaults(templateId, {
+                    ingredientName: ingredientName,
+                    ingredientKey: ingKey,
+                    recipeType: currentDetectedRecipeType
+                }),
                 ...collectAdminMasterVariables()
             };
 
@@ -949,8 +1025,11 @@
             if (!template) return;
 
             const ingredientName = buildIngredientTextForAdminMaster();
+            const ingKey = (typeof MasterStepRenderer.resolveIngredientKey === 'function') ? MasterStepRenderer.resolveIngredientKey(ingredientName) : null;
             const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
-                ingredientName: ingredientName
+                ingredientName: ingredientName,
+                ingredientKey: ingKey,
+                recipeType: currentDetectedRecipeType
             });
             const vars = {
                 ...defaults,
@@ -1353,6 +1432,9 @@
                 ? suggest.detectRecipeTypes(selectedIds)
                 : [];
 
+            // Store detected recipe type for use in template builder (threshold 15% for preview)
+            currentDetectedRecipeType = (types.length && types[0].score >= 15) ? types[0].type : '';
+
             if (types.length && suggest && typeof suggest.renderRecipeTypeBadges === 'function') {
                 badges.html(suggest.renderRecipeTypeBadges(types, 3));
                 scoreBar.removeClass('d-none');
@@ -1360,13 +1442,37 @@
                 scoreBar.addClass('d-none');
             }
 
-            // Preview ohne harte Abhängigkeit von RecipeStepSuggest.getMasterStepPreview
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.suggestForIngredient === 'function' && typeof MasterStepRenderer.render === 'function') {
+            // Preview: use buildAssignedPreview if recipe type detected, else fallback
+            const ingredientObjects = selectedNames.map(function(n) { return { name: n }; });
+
+            if (currentDetectedRecipeType && suggest && typeof suggest.getMasterStepPreview === 'function') {
+                // Use smart preview with recipe type context
+                const smartPreviews = suggest.getMasterStepPreview(ingredientObjects, {
+                    lang: 'de',
+                    recipeType: currentDetectedRecipeType
+                });
+
+                if (smartPreviews && smartPreviews.length) {
+                    masterList.empty();
+                    smartPreviews.slice(0, 8).forEach(function(item) {
+                        const ingLabel = item.ingredient ? `<span class="text-muted">(${item.ingredient})</span>` : '';
+                        masterList.append(`<div class="small border rounded px-2 py-1 bg-light"><span class="badge text-bg-secondary me-2">P${item.phase}</span>${item.text} ${ingLabel}</div>`);
+                    });
+                    masterBox.removeClass('d-none');
+                } else {
+                    masterBox.addClass('d-none');
+                }
+            } else if (window.MasterStepRenderer && typeof MasterStepRenderer.suggestForIngredient === 'function' && typeof MasterStepRenderer.render === 'function') {
                 const previews = [];
                 selectedNames.slice(0, 2).forEach(function(name) {
+                    const ingKey = (typeof MasterStepRenderer.resolveIngredientKey === 'function') ? MasterStepRenderer.resolveIngredientKey(name) : null;
                     const steps = MasterStepRenderer.suggestForIngredient(name).slice(0, 3);
                     steps.forEach(function(step) {
-                        const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, { ingredientName: name });
+                        const defaults = MasterStepRenderer.getSmartDefaults(step.master_id, {
+                            ingredientName: name,
+                            ingredientKey: ingKey,
+                            recipeType: currentDetectedRecipeType
+                        });
                         const text = MasterStepRenderer.render(step.master_id, defaults, 'de');
                         if (text) {
                             previews.push({ phase: parseInt(step.phase || 0, 10), text: text });
@@ -1677,7 +1783,10 @@
                 suggestStepsForSelectedIngredients();
             });
 
-            MasterStepRenderer.load().then(function() { refreshAdminMasterBuilder(); });
+            MasterStepRenderer.load().then(function() {
+                refreshAdminMasterBuilder();
+                updateRecipeTypeDetection();
+            });
             $('#adminMasterIngredientButtons').on('click', '.admin-master-ingredient-btn', function() {
                 const name = $(this).data('name')?.toString() || '';
                 if (!name) return;
