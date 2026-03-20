@@ -386,7 +386,7 @@
                     splitState.pronoun,
                     function (selectedPronoun) {
                         const normalizedPronoun = selectedPronoun === '__none__' ? '' : (selectedPronoun || '');
-                        if (onApplyExtras) {
+                        if (typeof onApplyExtras === 'function') {
                             onApplyExtras({ pronoun: normalizedPronoun });
                         }
                         openProbVarInlineEditor(
@@ -455,7 +455,7 @@
 
                 closeEditor();
                 if (val != null) onApply(val);
-                if (extras) onApplyExtras(extras);
+                if (extras && typeof onApplyExtras === 'function') onApplyExtras(extras);
                 window.requestAnimationFrame(function () { window.scrollTo(scrollX, scrollY); });
             }
 

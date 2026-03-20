@@ -228,6 +228,13 @@ var staticFileOptions = new StaticFileOptions
     OnPrepareResponse = ctx =>
     {
         ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000");
+
+        // JSON-Dateien explizit mit charset=utf-8 ausliefern (Umlaute ö/ü/ß/ä)
+        var contentType = ctx.Context.Response.ContentType;
+        if (contentType != null && contentType.Contains("application/json") && !contentType.Contains("charset"))
+        {
+            ctx.Context.Response.ContentType = "application/json; charset=utf-8";
+        }
     }
 };
 

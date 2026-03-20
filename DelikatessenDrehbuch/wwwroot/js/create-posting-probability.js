@@ -80,7 +80,9 @@
         return (recipeTypes || []).slice(0, 5).map((recipeType, idx) => {
             const colorClass = recipeType.score >= 60 ? 'btn-success' : (recipeType.score >= 35 ? 'btn-primary' : 'btn-secondary');
             const icon = idx === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
-            return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${escapeHtml(recipeType.type || '')}" data-name="${escapeHtml(recipeType.name || '')}" data-score="${recipeType.score}">${icon}${recipeType.score}% ${escapeHtml(recipeType.name || '')}</button>`;
+            // Use subtype for step-lookup if available, otherwise parent type
+            const effectiveType = recipeType.subtype || recipeType.type || '';
+            return `<button type="button" class="btn btn-sm ${colorClass} probability-type-btn js-probability-type" data-type="${escapeHtml(effectiveType)}" data-parent-type="${escapeHtml(recipeType.type || '')}" data-name="${escapeHtml(recipeType.name || '')}" data-score="${recipeType.score}">${icon}${recipeType.score}% ${escapeHtml(recipeType.name || '')}</button>`;
         }).join('');
     }
 

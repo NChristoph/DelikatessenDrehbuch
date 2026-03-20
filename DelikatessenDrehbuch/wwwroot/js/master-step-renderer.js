@@ -2,7 +2,9 @@
     'use strict';
 
     let data = null;
+    let variableCatalogData = null;
     let recipeTypeStepVarsData = null;
+    let optionRulesData = null;
     let loadingPromise = null;
     let lastLoadError = '';
 
@@ -19,23 +21,35 @@
                 }
                 return r.json();
             }),
+            fetch('/data/master_step_variables.json')
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .catch(function () { return null; }),
             fetch('/data/recipe_type_step_variables.json')
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .catch(function () { return null; }),
+            fetch('/data/master_step_option_rules.json')
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .catch(function () { return null; })
         ])
             .then(function (results) {
                 var json = results[0];
-                var stepVarsJson = results[1];
+                var variableJson = results[1];
+                var stepVarsJson = results[2];
+                var optionRulesJson = results[3];
                 if (!json || !Array.isArray(json.master_steps)) {
                     throw new Error('master_steps.json hat ein ungültiges Format.');
                 }
                 data = json;
+                variableCatalogData = variableJson;
                 recipeTypeStepVarsData = stepVarsJson;
+                optionRulesData = optionRulesJson;
                 lastLoadError = '';
                 console.log('[MasterStepRenderer] Geladen:', {
                     masterSteps: json.master_steps ? json.master_steps.length : 0,
+                    variableCatalog: variableJson && variableJson.variables ? Object.keys(variableJson.variables).length : 0,
                     stepVarsDefaults: stepVarsJson && stepVarsJson.defaults ? Object.keys(stepVarsJson.defaults).length : 0,
-                    stepVarsTypes: stepVarsJson && stepVarsJson.types ? Object.keys(stepVarsJson.types).length : 0
+                    stepVarsTypes: stepVarsJson && stepVarsJson.types ? Object.keys(stepVarsJson.types).length : 0,
+                    optionRules: optionRulesJson ? 'loaded' : 'not available'
                 });
                 return json;
             })
@@ -184,6 +198,22 @@
             result.ingredient = grammar.article + ' ' + ingredient;
         }
 
+        // Auto-resolve copula (ist/sind) based on pronoun if not explicitly set
+        if (!result.copula) {
+            var l = (lang || 'de').toString().toLowerCase();
+            var pro = String(result.pronoun || '').toLowerCase();
+            if (l === 'de') {
+                // "sie" can be singular (feminine) or plural — check ingredient for plural hints
+                var ing = (result.ingredient || result.base || '').toString().toLowerCase();
+                var isPlural = ing.startsWith('die ') && (ing.endsWith('n') || ing.endsWith('en') || ing.endsWith('eln') || ing.endsWith('ern'));
+                result.copula = (pro === 'sie' && isPlural) ? 'sind' : 'ist';
+            } else if (l === 'en') {
+                result.copula = (pro === 'them' || pro === 'they') ? 'are' : 'is';
+            } else {
+                result.copula = 'ist';
+            }
+        }
+
         return result;
     }
 
@@ -213,12 +243,18 @@
 
     function getVariablePresets(variableName, lang) {
         const normalizedLang = (lang || 'de').toLowerCase();
-        const options = data && data.variable_options;
-        const localized = options && options[variableName];
+        const variables = variableCatalogData && variableCatalogData.variables;
+        const localized = variables && variables[variableName];
 
-        if (localized && typeof localized === 'object') {
-            const entries = localized[normalizedLang] || localized.de || localized.en;
-            if (Array.isArray(entries)) {
+        if (localized && Array.isArray(localized.options)) {
+            const entries = localized.options
+                .map(function (option) {
+                    const labels = option && option.labels ? option.labels : null;
+                    if (!labels) return '';
+                    return labels[normalizedLang] || labels.de || labels.en || '';
+                })
+                .filter(function (entry) { return !!entry; });
+            if (entries.length) {
                 return entries;
             }
         }
@@ -228,7 +264,7 @@
             grind_size: ['fein', 'mittel', 'grob', 'ca. 1 cm große', 'ca. 0,5 mm große', 'about 3/8-inch', 'about 0.02-inch'],
             item: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht', 'die Suppe', 'die Soße', 'den Auflauf', 'the dough', 'the batter', 'the mixture', 'the dish', 'the soup', 'the sauce', 'the casserole', 'la masa', 'la mezcla', 'la preparación', 'el plato', 'la sopa', 'la salsa', 'el gratén', 'a massa', 'a mistura', 'a preparação', 'o prato', 'a sopa', 'o molho', 'a caçarola'],
             tool: ['Messer', 'Sparschäler', 'Reibe', 'Schneebesen', 'Spatel', 'Holzlöffel', 'Suppenkelle', 'Messbecher', 'Nudelholz', 'Teigschaber'],
-            duration: ['5 Minuten', '10 Minuten', '15 Minuten', '30 Minuten'],
+            duration: ['5 Minuten', '10 Minuten', '15 Minuten', '20 Minuten', '30 Minuten', '45 Minuten', '1 Stunde', '2 Stunden'],
             temperature: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             temp: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
             liquid: ['Wasser', 'Gemüsebrühe', 'Milch', 'Kokosmilch'],
@@ -237,7 +273,8 @@
             garnish: ['frischen Kräutern', 'Sesam', 'Parmesan', 'Nüssen'],
             base: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum'],
             seasonings: ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze', 'salt', 'pepper', 'salt and pepper', 'herbs', 'spices'],
-            balance: ['die Säure', 'die Süße', 'die Schärfe', 'the acidity', 'the sweetness', 'the spiciness']
+            balance: ['die Säure', 'die Süße', 'die Schärfe', 'the acidity', 'the sweetness', 'the spiciness'],
+            copula: ['ist', 'sind']
         };
 
         return presets[variableName] || [];
@@ -255,6 +292,12 @@
         return typeData.step_variables[masterId] || null;
     }
 
+    function resolveParentType(recipeType) {
+        if (!recipeTypeStepVarsData || !recipeTypeStepVarsData.types) return null;
+        var typeData = recipeTypeStepVarsData.types[recipeType];
+        return (typeData && typeData.parent) ? typeData.parent : null;
+    }
+
     function getSmartDefaults(masterId, context) {
         context = context || {};
         const ingredientName = context.ingredientName || 'die Zutat';
@@ -263,7 +306,7 @@
         const template = findTemplate(masterId);
         if (!template || !Array.isArray(template.variables)) return {};
 
-        // 1. Start with step defaults from JSON
+        // Level 1: Generic defaults from JSON
         var stepDefaults = getStepDefaults(masterId) || {};
         const scoped = {};
         template.variables.forEach(function (key) {
@@ -274,10 +317,22 @@
             }
         });
 
-        // 2. Override with recipe-type-specific variable presets (higher priority)
-        var typeVars = null;
         if (recipeType) {
-            typeVars = getRecipeTypeStepVars(recipeType, masterId);
+            // Level 2: Parent type overrides (if recipeType has a parent)
+            var parentType = resolveParentType(recipeType);
+            if (parentType) {
+                var parentVars = getRecipeTypeStepVars(parentType, masterId);
+                if (parentVars) {
+                    template.variables.forEach(function (key) {
+                        if (parentVars[key] != null && parentVars[key] !== '') {
+                            scoped[key] = parentVars[key];
+                        }
+                    });
+                }
+            }
+
+            // Level 3: Subtype/direct type overrides (highest recipe-type priority)
+            var typeVars = getRecipeTypeStepVars(recipeType, masterId);
             if (typeVars) {
                 template.variables.forEach(function (key) {
                     if (typeVars[key] != null && typeVars[key] !== '') {
@@ -287,7 +342,7 @@
             }
         }
 
-        // 3. ingredient/ingredients: always leave empty — user must set these
+        // Level 4: ingredient/ingredients: always leave empty — user must set these
         if (template.variables.includes('ingredient')) {
             scoped.ingredient = '';
         }
@@ -344,6 +399,45 @@
         });
     }
 
+    function getOptionRulesData() {
+        return optionRulesData || null;
+    }
+
+    function resolveRulesForLang(varRules, lang) {
+        var l = (lang || 'de').toLowerCase();
+        return {
+            preferred: (varRules.preferred && (varRules.preferred[l] || varRules.preferred.de)) || [],
+            blocked: (varRules.blocked && (varRules.blocked[l] || varRules.blocked.de)) || []
+        };
+    }
+
+    function getOptionRulesForAction(action, varName, lang) {
+        if (!optionRulesData || !action || !varName) return { preferred: [], blocked: [] };
+        var actionRules = optionRulesData.action && optionRulesData.action[action];
+        if (!actionRules) return { preferred: [], blocked: [] };
+        var varRules = actionRules[varName];
+        if (!varRules) return { preferred: [], blocked: [] };
+        return resolveRulesForLang(varRules, lang);
+    }
+
+    function getOptionRulesForFamily(family, varName, lang) {
+        if (!optionRulesData || !family || !varName) return { preferred: [], blocked: [] };
+        var familyRules = optionRulesData.ingredient_family && optionRulesData.ingredient_family[family];
+        if (!familyRules) return { preferred: [], blocked: [] };
+        var varRules = familyRules[varName];
+        if (!varRules) return { preferred: [], blocked: [] };
+        return resolveRulesForLang(varRules, lang);
+    }
+
+    function getOptionRulesForStep(masterId, varName, lang) {
+        if (!optionRulesData || !masterId || !varName) return { preferred: [], blocked: [] };
+        var stepRules = optionRulesData.steps && optionRulesData.steps[masterId];
+        if (!stepRules) return { preferred: [], blocked: [] };
+        var varRules = stepRules[varName];
+        if (!varRules) return { preferred: [], blocked: [] };
+        return resolveRulesForLang(varRules, lang);
+    }
+
     window.MasterStepRenderer = {
         load: load,
         getAllTemplates: getAllTemplates,
@@ -354,6 +448,11 @@
         getVariablePresets: getVariablePresets,
         getLastLoadError: getLastLoadError,
         findTemplate: findTemplate,
-        getRecipeTypeStepVars: getRecipeTypeStepVars
+        getRecipeTypeStepVars: getRecipeTypeStepVars,
+        resolveParentType: resolveParentType,
+        getOptionRulesData: getOptionRulesData,
+        getOptionRulesForAction: getOptionRulesForAction,
+        getOptionRulesForFamily: getOptionRulesForFamily,
+        getOptionRulesForStep: getOptionRulesForStep
     };
 })(window);

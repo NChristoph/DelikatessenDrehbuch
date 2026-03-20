@@ -55,7 +55,11 @@
       "Fixed COOK_GRATINATE_01 de: added {{pronoun}} object to 'gratiniere'.",
       "Fixed PREP_DOUGH_RISE_01 de: removed anglicism 'für' in time expression.",
       "Moved spices alias out of variables array into dedicated aliases field (SEASON_ADJUST_01).",
-      "Fixed PREP_SOAK_01 de: removed anglicism 'für' in time expression ('weiche ... ein' now uses 'für' correctly -- kept as natural German)."
+      "Fixed PREP_SOAK_01 de: removed anglicism 'für' in time expression ('weiche ... ein' now uses 'für' correctly -- kept as natural German).",
+      "Added {{copula}} variable (ist/sind) to 19 templates, replacing hardcoded \"ist\". Fixes plural subject grammar.",
+      "Fixed PREP_WHISK_01 de: added \"alles\" subject to \"bis\" clause.",
+      "Fixed PREP_BREAD_3STEP_01 de: consistent imperative \"Wende\" instead of dangling infinitive \"wenden\".",
+      "Fixed COOK_BRAISE_01 de: \"an\" -> \"zu\" for idiomatic German."
     ]
   },
   "phases": {
@@ -434,6 +438,32 @@
         "no": "Controlled text token from presets or mappings.",
         "ms": "Controlled text token from presets or mappings."
       }
+    },
+    "copula": {
+      "label": {
+        "de": "Kopula (ist/sind)",
+        "en": "Copula (is/are)",
+        "esp": "Copula (es/son)",
+        "prt": "Copula (e/sao)",
+        "id": "Kopula",
+        "nl": "Koppelwerkwoord (is/zijn)",
+        "sv": "Kopula (ar)",
+        "da": "Kopula (er)",
+        "no": "Kopula (er)",
+        "ms": "Kopula"
+      },
+      "description": {
+        "de": "Hilfsverb das zum Numerus des Subjekts passt (ist/sind).",
+        "en": "Auxiliary verb matching the subject number (is/are).",
+        "esp": "Verbo copulativo segun el numero del sujeto.",
+        "prt": "Verbo copulativo segundo o numero do sujeito.",
+        "id": "Kata kerja bantu yang sesuai dengan jumlah subjek.",
+        "nl": "Koppelwerkwoord passend bij het onderwerp.",
+        "sv": "Hjalpverb som matchar subjektets numerus.",
+        "da": "Hjalpeudsagnsord der passer til grundleddet.",
+        "no": "Hjelpeverb som passer til subjektets tall.",
+        "ms": "Kata kerja bantu yang sepadan dengan bilangan subjek."
+      }
     }
   },
   "step_intent_definitions": {
@@ -799,12 +829,28 @@
         "ingredient",
         "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:wash",
+        "technique:wash",
+        "waschen",
+        "wash",
+        "raw_prep",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:pronoun",
+        "category:main",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "PREP_PEEL_01",
@@ -832,12 +878,31 @@
         "ingredient",
         "tool"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:peel",
+        "technique:peel",
+        "schälen",
+        "schaelen",
+        "peel",
+        "sparschäler",
+        "sparschaeler",
+        "peeler",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "category:main",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "PREP_CUT_01",
@@ -867,17 +932,36 @@
         "grind_size",
         "shape"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:cut",
+        "technique:cut",
+        "schneiden",
+        "cut",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:grind_size",
+        "variable:shape",
+        "category:main",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "PREP_GRATE_01",
       "phase": 1,
       "action": "grate",
+      "Tag": "grate",
       "equipment": 0,
       "description": "Reiben oder Zesten ziehen",
       "templates": {
@@ -901,13 +985,28 @@
         "ingredient",
         "grind_size"
       ],
-      "optional_variables": [
-        "tool"
-      ],
+      "optional_variables": "tool",
       "stable_taxonomy_keys": {
         "category_keys": "main"
       },
-      "quality_rule_keys": "best_with_visible_result"
+      "quality_rule_keys": "best_with_visible_result",
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:grate",
+        "technique:grate",
+        "reiben",
+        "grate",
+        "reibe",
+        "grater",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:grind_size",
+        "variable:tool",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_MINCE_01",
@@ -927,18 +1026,32 @@
         "no": "Finhakk {{ingredient}} med en kniv.",
         "ms": "Cincang {{ingredient}} halus menggunakan pisau."
       },
-      "variables": [
-        "ingredient"
-      ],
+      "variables": "ingredient",
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:mince",
+        "technique:mince",
+        "hacken",
+        "mince",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "category:main",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "PREP_MARINATE_01",
@@ -970,11 +1083,29 @@
         "pronoun",
         "duration"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:marinate",
+        "technique:marinate",
+        "marinieren",
+        "marinate",
+        "marinade",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:ingredient",
+        "variable:marinade",
+        "variable:pronoun",
+        "variable:duration",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_SOAK_01",
@@ -1004,11 +1135,28 @@
         "liquid",
         "duration"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:soak",
+        "technique:soak",
+        "einweichen",
+        "soak",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "wet_heat",
+        "equipment_id:9",
+        "variable:ingredient",
+        "variable:liquid",
+        "variable:duration",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_MIX_DRY_01",
@@ -1028,17 +1176,29 @@
         "no": "Bland {{ingredients}} i en bolle.",
         "ms": "Gaulkan {{ingredients}} dalam mangkuk."
       },
-      "variables": [
-        "ingredients"
-      ],
+      "variables": "ingredients",
       "required_variables": [
         "ingredients"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:mix_dry",
+        "technique:mix_dry",
+        "mischen",
+        "mix",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "equipment_id:9",
+        "variable:ingredients",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_KNEAD_01",
@@ -1047,7 +1207,7 @@
       "equipment": 9,
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
-        "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}} ist.",
+        "de": "Knete {{dough}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Knead {{dough}} for {{duration}} until the dough is {{state}}.",
         "esp": "Amasa {{dough}} durante {{duration}} hasta que esté {{state}}.",
         "prt": "Sove {{dough}} por {{duration}} até que fique {{state}}.",
@@ -1062,20 +1222,42 @@
         "dough",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
       "required_variables": [
         "dough",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "dough"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:knead",
+        "technique:knead",
+        "kneten",
+        "knead",
+        "teig",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:dough",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "category:main",
+        "family:dough",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "PREP_DOUGH_RISE_01",
@@ -1105,11 +1287,28 @@
         "duration",
         "state"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:rise",
+        "technique:rise",
+        "gehen_lassen",
+        "rise",
+        "teig",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:dough",
+        "variable:duration",
+        "variable:state",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_REST_01",
@@ -1118,7 +1317,7 @@
       "equipment": 9,
       "description": "Teig/Masse ruhen lassen (gehen, quellen, entspannen)",
       "templates": {
-        "de": "Decke {{item}} ab und lasse {{pronoun}} {{duration}} ruhen[, bis {{pronoun}} {{state}} ist].",
+        "de": "Decke {{item}} ab und lasse {{pronoun}} {{duration}} ruhen[, bis {{pronoun}} {{state}} {{copula}}].",
         "en": "Cover {{item}} and let it rest for {{duration}}[ until {{state}}].",
         "esp": "Cubre {{item}} y deja reposar {{duration}}[ hasta que {{state}}].",
         "prt": "Cubra {{item}} e deixe repousar por {{duration}}[ até {{state}}].",
@@ -1133,20 +1332,38 @@
         "item",
         "pronoun",
         "duration",
-        "state"
+        "state",
+        "copula"
       ],
       "required_variables": [
         "item",
         "pronoun",
-        "duration"
+        "duration",
+        "copula"
       ],
-      "optional_variables": [
-        "state"
-      ],
+      "optional_variables": "state",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:rest",
+        "technique:rest",
+        "ruhen",
+        "rest",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:item",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "category:main",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "PREP_PORTION_01",
@@ -1174,11 +1391,25 @@
         "item",
         "count"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:portion",
+        "technique:portion",
+        "portionieren",
+        "portion",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:item",
+        "variable:count",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_ROLL_OUT_01",
@@ -1210,12 +1441,30 @@
         "grind_size",
         "shape"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "dough"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:roll_out",
+        "technique:roll_out",
+        "ausrollen",
+        "roll_out",
+        "teig",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:dough",
+        "variable:surface",
+        "variable:grind_size",
+        "variable:shape",
+        "category:main",
+        "family:dough"
+      ]
     },
     {
       "master_id": "PREP_BREAD_3STEP_01",
@@ -1224,7 +1473,7 @@
       "equipment": 9,
       "description": "Klassisches Panieren: Mehl → Ei → Brösel",
       "templates": {
-        "de": "Paniere {{ingredient}}: zuerst in {{step1}}, dann in {{step2}} und zuletzt in {{step3}} wenden.",
+        "de": "Paniere {{ingredient}}: Wende {{pronoun}} zuerst in {{step1}}, dann in {{step2}} und zuletzt in {{step3}}.",
         "en": "Bread {{ingredient}}: coat in {{step1}}, then {{step2}}, then {{step3}}.",
         "esp": "Empana {{ingredient}}: pasa por {{step1}}, luego por {{step2}} y al final por {{step3}}.",
         "prt": "Empane {{ingredient}}: passe em {{step1}}, depois em {{step2}} e por fim em {{step3}}.",
@@ -1239,20 +1488,41 @@
         "ingredient",
         "step1",
         "step2",
-        "step3"
+        "step3",
+        "pronoun"
       ],
       "required_variables": [
         "ingredient",
         "step1",
         "step2",
-        "step3"
+        "step3",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:bread_3step",
+        "technique:bread_3step",
+        "panieren",
+        "bread",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:ingredient",
+        "variable:step1",
+        "variable:step2",
+        "variable:step3",
+        "category:main",
+        "family:vegetable",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "PREP_WHISK_01",
@@ -1261,7 +1531,7 @@
       "equipment": 9,
       "description": "Flüssiges verrühren/aufschlagen (Ei, Milch, Sauce-Basis)",
       "templates": {
-        "de": "{{action}} {{ingredients}} mit einem {{tool}}, bis {{state}} ist.",
+        "de": "{{action}} {{ingredients}} mit einem {{tool}}, bis alles {{state}} {{copula}}.",
         "en": "{{action}} {{ingredients}} with a {{tool}} until {{state}}.",
         "esp": "{{action}} {{ingredients}} con un {{tool}} hasta que {{state}}.",
         "prt": "{{action}} {{ingredients}} com um {{tool}} até {{state}}.",
@@ -1276,19 +1546,40 @@
         "action",
         "ingredients",
         "tool",
-        "state"
+        "state",
+        "copula"
       ],
       "required_variables": [
         "action",
         "ingredients",
         "tool",
-        "state"
+        "state",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:whisk",
+        "technique:whisk",
+        "aufschlagen",
+        "whisk",
+        "schneebesen",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:action",
+        "variable:ingredients",
+        "variable:tool",
+        "variable:state",
+        "category:main",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "PREP_BEAT_01",
@@ -1297,7 +1588,7 @@
       "equipment": 9,
       "description": "Zutat mit Werkzeug bearbeiten bis Zustand erreicht (z.B. Eiklar schaumig schlagen)",
       "templates": {
-        "de": "{{action}} {{ingredient}} mit einem {{tool}}, bis {{pronoun}} {{state}} ist.",
+        "de": "{{action}} {{ingredient}} mit einem {{tool}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "{{action}} {{ingredient}} with a {{tool}} until {{state}}.",
         "esp": "{{action}} {{ingredient}} con un {{tool}} hasta que esté {{state}}.",
         "prt": "{{action}} {{ingredient}} com um {{tool}} até ficar {{state}}.",
@@ -1313,21 +1604,44 @@
         "ingredient",
         "tool",
         "pronoun",
-        "state"
+        "state",
+        "copula"
       ],
       "required_variables": [
         "action",
         "ingredient",
         "tool",
         "pronoun",
-        "state"
+        "state",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "egg"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:beat",
+        "technique:beat",
+        "schlagen",
+        "beat",
+        "whisk",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:action",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:pronoun",
+        "variable:state",
+        "category:main",
+        "family:egg",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "PREP_SEPARATE_01",
@@ -1355,12 +1669,27 @@
         "ingredient",
         "ingredient2"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "egg"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:separate",
+        "technique:separate",
+        "trennen",
+        "separate",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:ingredient2",
+        "category:main",
+        "family:egg"
+      ]
     },
     {
       "master_id": "PREP_FOLD_IN_01",
@@ -1389,13 +1718,29 @@
         "ingredient",
         "base"
       ],
-      "optional_variables": [
-        "goal"
-      ],
+      "optional_variables": "goal",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:fold_in",
+        "technique:fold_in",
+        "unterheben",
+        "fold",
+        "teigschaber",
+        "spatula",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:ingredient",
+        "variable:base",
+        "variable:goal",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_HEAT_01",
@@ -1424,12 +1769,26 @@
         "equipment",
         "temp"
       ],
-      "optional_variables": [
-        "mode"
-      ],
+      "optional_variables": "mode",
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:preheat",
+        "technique:preheat",
+        "vorheizen",
+        "preheat",
+        "backofen",
+        "oven",
+        "equipment_id:1",
+        "dry_heat",
+        "variable:equipment",
+        "variable:temp",
+        "variable:mode",
+        "category:main"
+      ]
     },
     {
       "master_id": "COOK_SAUTE_01",
@@ -1438,7 +1797,7 @@
       "equipment": 2,
       "description": "Anbraten/Dünsten von Basis-Zutaten",
       "templates": {
-        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}][, bis {{state}} ist].",
+        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}][, bis {{pronoun}} {{state}} {{copula}}].",
         "en": "Heat {{fat}} in {{equipment}} and {{action}} {{ingredient}}[ for {{duration}}][ until {{state}}].",
         "esp": "Calienta {{fat}} en {{equipment}} y {{action}} {{ingredient}}[ durante {{duration}}][ hasta que {{state}}].",
         "prt": "Aqueça {{fat}} em {{equipment}} e {{action}} {{ingredient}}[ por {{duration}}][ até que {{state}}].",
@@ -1455,13 +1814,17 @@
         "action",
         "ingredient",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "fat",
         "equipment",
         "action",
-        "ingredient"
+        "ingredient",
+        "copula",
+        "pronoun"
       ],
       "optional_variables": [
         "duration",
@@ -1471,7 +1834,31 @@
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:sauté",
+        "technique:sauté",
+        "anschwitzen",
+        "saute",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "dry_heat",
+        "equipment_id:2",
+        "variable:fat",
+        "variable:equipment",
+        "variable:action",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:state",
+        "family:vegetable",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_FRY_01",
@@ -1480,7 +1867,7 @@
       "equipment": 2,
       "description": "Braten bei starker Hitze (Schnitzel, Steak, Bratkartoffeln)",
       "templates": {
-        "de": "Brate {{ingredient}} in {{fat}} bei {{heat}} Hitze {{duration}} pro Seite an, bis {{pronoun}} {{state}} ist.",
+        "de": "Brate {{ingredient}} in {{fat}} bei {{heat}} Hitze {{duration}} pro Seite an, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Fry {{ingredient}} in {{fat}} over {{heat}} heat for {{duration}} per side until {{state}}.",
         "esp": "Fríe {{ingredient}} en {{fat}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
         "prt": "Frite {{ingredient}} em {{fat}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
@@ -1497,7 +1884,8 @@
         "heat",
         "duration",
         "pronoun",
-        "state"
+        "state",
+        "copula"
       ],
       "required_variables": [
         "ingredient",
@@ -1505,13 +1893,37 @@
         "heat",
         "duration",
         "pronoun",
-        "state"
+        "state",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "pan"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:fry",
+        "technique:fry",
+        "braten",
+        "fry",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "dry_heat",
+        "equipment_id:2",
+        "variable:ingredient",
+        "variable:fat",
+        "variable:heat",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "category:pan",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "COOK_DEEPFRY_01",
@@ -1520,7 +1932,7 @@
       "equipment": 3,
       "description": "Frittieren in heißem Öl",
       "templates": {
-        "de": "Erhitze {{fat}} auf {{temp}} und frittiere {{ingredient}} portionsweise {{duration}}, bis {{state}} ist. Auf Küchenpapier abtropfen lassen.",
+        "de": "Erhitze {{fat}} auf {{temp}} und frittiere {{ingredient}} portionsweise {{duration}}, bis {{pronoun}} {{state}} {{copula}}. Auf Küchenpapier abtropfen lassen.",
         "en": "Heat {{fat}} to {{temp}} and deep-fry {{ingredient}} in batches for {{duration}} until {{state}}. Drain on paper towels.",
         "esp": "Calienta {{fat}} a {{temp}} y fríe {{ingredient}} en tandas durante {{duration}} hasta que {{state}}. Escurre sobre papel absorbente.",
         "prt": "Aqueça {{fat}} a {{temp}} e frite {{ingredient}} em porções por {{duration}} até que {{state}}. Escorra em papel toalha.",
@@ -1536,21 +1948,49 @@
         "temp",
         "ingredient",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "fat",
         "temp",
         "ingredient",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:deep_fry",
+        "technique:deep_fry",
+        "frittieren",
+        "deep_fry",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "oil",
+        "equipment_id:3",
+        "wet_heat",
+        "variable:fat",
+        "variable:temp",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:state",
+        "family:vegetable",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_BOIL_01",
@@ -1559,7 +1999,7 @@
       "equipment": 3,
       "description": "Kochen in sprudelndem Wasser (Nudeln, Kartoffeln, Eier)",
       "templates": {
-        "de": "Bringe {{liquid}} in einem Topf zum Kochen, gib {{ingredient}} hinein und koche {{pronoun}} {{duration}}, bis {{state}} ist.",
+        "de": "Bringe {{liquid}} in einem Topf zum Kochen, gib {{ingredient}} hinein und koche {{pronoun}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Bring {{liquid}} to a boil in a pot, add {{ingredient}} and cook for {{duration}} until {{state}}.",
         "esp": "Lleva {{liquid}} a ebullición en una olla, añade {{ingredient}} y cocina durante {{duration}} hasta que {{state}}.",
         "prt": "Leve {{liquid}} à fervura numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}.",
@@ -1575,20 +2015,44 @@
         "ingredient",
         "pronoun",
         "duration",
-        "state"
+        "state",
+        "copula"
       ],
       "required_variables": [
         "liquid",
         "ingredient",
         "pronoun",
         "duration",
-        "state"
+        "state",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "soup"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:boil",
+        "technique:boil",
+        "kochen",
+        "boil",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "equipment_id:3",
+        "variable:liquid",
+        "variable:ingredient",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "category:soup",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "COOK_SIMMER_01",
@@ -1597,7 +2061,7 @@
       "equipment": 3,
       "description": "Köcheln bei niedriger Hitze (Saucen, Suppen, Eintöpfe)",
       "templates": {
-        "de": "Reduziere die Hitze und lasse {{base}} bei niedriger Stufe {{duration}} köcheln, bis {{pronoun}} {{state}} ist.",
+        "de": "Reduziere die Hitze und lasse {{base}} bei niedriger Stufe {{duration}} köcheln, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Reduce heat and let {{base}} simmer on low for {{duration}} until {{state}}.",
         "esp": "Reduce el fuego y deja que {{base}} hierva a fuego lento durante {{duration}} hasta que {{state}}.",
         "prt": "Reduza o fogo e deixe {{base}} cozinhar em fogo baixo por {{duration}} até que {{state}}.",
@@ -1612,19 +2076,45 @@
         "base",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
       "required_variables": [
         "base",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "soup"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:simmer",
+        "technique:simmer",
+        "köcheln",
+        "koecheln",
+        "simmer",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "equipment_id:3",
+        "variable:base",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "category:soup",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "COOK_STEAM_01",
@@ -1633,7 +2123,7 @@
       "equipment": 8,
       "description": "Dämpfen von Gemüse, Fisch, Dim Sum",
       "templates": {
-        "de": "Dämpfe {{ingredient}} über kochendem Wasser[ in einem {{equipment}}][ für {{duration}}][, bis {{state}} ist].",
+        "de": "Dämpfe {{ingredient}} über kochendem Wasser[ in einem {{equipment}}][ für {{duration}}][, bis {{pronoun}} {{state}} {{copula}}].",
         "en": "Steam {{ingredient}} over boiling water[ in a {{equipment}}][ for {{duration}}][ until {{state}}].",
         "esp": "Cocina {{ingredient}} al vapor sobre agua hirviendo[ en {{equipment}}][ durante {{duration}}][ hasta que {{state}}].",
         "prt": "Cozinhe {{ingredient}} no vapor sobre água fervente[ em {{equipment}}][ por {{duration}}][ até que {{state}}].",
@@ -1648,10 +2138,14 @@
         "ingredient",
         "equipment",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
-        "ingredient"
+        "ingredient",
+        "copula",
+        "pronoun"
       ],
       "optional_variables": [
         "equipment",
@@ -1662,7 +2156,27 @@
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:steam",
+        "technique:steam",
+        "dämpfen",
+        "daempfen",
+        "steam",
+        "dampfgarer",
+        "steamer",
+        "wet_heat",
+        "equipment_id:8",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:duration",
+        "variable:state",
+        "family:vegetable",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_BAKE_01",
@@ -1671,7 +2185,7 @@
       "equipment": 1,
       "description": "Backen im Ofen (Aufläufe, Kuchen, Brot)",
       "templates": {
-        "de": "Gib {{base}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}}[ ({{mode}})] für {{duration}}, bis {{state}} ist.",
+        "de": "Gib {{base}} in den vorgeheizten Ofen und backe {{pronoun}} bei {{temp}}[ ({{mode}})] für {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Place {{base}} in the preheated oven and bake at {{temp}}[ ({{mode}})] for {{duration}} until {{state}}.",
         "esp": "Coloca {{base}} en el horno precalentado y hornea a {{temp}}[ ({{mode}})] durante {{duration}} hasta que {{state}}.",
         "prt": "Coloque {{base}} no forno pré-aquecido e asse a {{temp}}[ ({{mode}})] por {{duration}} até que {{state}}.",
@@ -1688,21 +2202,41 @@
         "temp",
         "mode",
         "duration",
-        "state"
+        "state",
+        "copula"
       ],
       "required_variables": [
         "base",
         "pronoun",
         "temp",
         "duration",
-        "state"
+        "state",
+        "copula"
       ],
-      "optional_variables": [
-        "mode"
-      ],
+      "optional_variables": "mode",
       "stable_taxonomy_keys": {
         "category_keys": "baked"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:bake",
+        "technique:bake",
+        "backen",
+        "bake",
+        "backofen",
+        "oven",
+        "dry_heat",
+        "equipment_id:1",
+        "variable:base",
+        "variable:pronoun",
+        "variable:temp",
+        "variable:mode",
+        "variable:duration",
+        "variable:state",
+        "category:baked",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "COOK_ROAST_01",
@@ -1711,7 +2245,7 @@
       "equipment": 1,
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
       "templates": {
-        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} ist.",
+        "de": "Verteile {{ingredient}} auf einem Backblech, beträufle mit {{fat}} und röste im Ofen bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Spread {{ingredient}} on a baking sheet, drizzle with {{fat}} and roast in the oven at {{temp}} for {{duration}} until {{state}}.",
         "esp": "Distribuye {{ingredient}} en una bandeja, rocía con {{fat}} y asa en el horno a {{temp}} durante {{duration}} hasta que {{state}}.",
         "prt": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{state}}.",
@@ -1728,7 +2262,8 @@
         "temp",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
       "required_variables": [
         "ingredient",
@@ -1736,14 +2271,37 @@
         "temp",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "baked",
         "diet_keys": "all"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:roast",
+        "technique:roast",
+        "rösten",
+        "roesten",
+        "roast",
+        "backofen",
+        "oven",
+        "dry_heat",
+        "equipment_id:1",
+        "variable:ingredient",
+        "variable:fat",
+        "variable:temp",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "category:baked",
+        "diet:all",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "COOK_GRILL_01",
@@ -1752,7 +2310,7 @@
       "equipment": 7,
       "description": "Grillen auf dem Rost oder in der Grillpfanne",
       "templates": {
-        "de": "Grille {{ingredient}} auf dem {{equipment}} bei {{heat}} Hitze {{duration}} pro Seite, bis {{state}} ist.",
+        "de": "Grille {{ingredient}} auf dem {{equipment}} bei {{heat}} Hitze {{duration}} pro Seite, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Grill {{ingredient}} on the {{equipment}} over {{heat}} heat for {{duration}} per side until {{state}}.",
         "esp": "Asa {{ingredient}} en {{equipment}} a fuego {{heat}} durante {{duration}} por lado hasta que {{state}}.",
         "prt": "Grelhe {{ingredient}} na {{equipment}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
@@ -1768,20 +2326,43 @@
         "equipment",
         "heat",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "ingredient",
         "equipment",
         "heat",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "diet_keys": "all"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:grill",
+        "technique:grill",
+        "grillen",
+        "grill",
+        "grill_device",
+        "dry_heat",
+        "equipment_id:7",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:heat",
+        "variable:duration",
+        "variable:state",
+        "diet:all",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_DEGLAZE_01",
@@ -1809,12 +2390,32 @@
         "liquid",
         "equipment"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "liquid"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:deglaze",
+        "technique:deglaze",
+        "ablöschen",
+        "deglaze",
+        "pfanne",
+        "pan",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:2",
+        "dry_heat",
+        "variable:liquid",
+        "variable:equipment",
+        "family:liquid"
+      ]
     },
     {
       "master_id": "COOK_DEGLAZE_02",
@@ -1842,10 +2443,29 @@
         "ingredient",
         "liquid"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:deglaze",
+        "technique:deglaze",
+        "ablöschen",
+        "deglaze",
+        "pfanne",
+        "pan",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:2",
+        "dry_heat",
+        "variable:ingredient",
+        "variable:liquid"
+      ]
     },
     {
       "master_id": "COOK_REDUCE_01",
@@ -1854,7 +2474,7 @@
       "equipment": 3,
       "description": "Flüssigkeit einkochen/reduzieren",
       "templates": {
-        "de": "Lasse {{liquid}} offen {{duration}} einkochen, bis {{state}} ist.",
+        "de": "Lasse {{liquid}} offen {{duration}} einkochen, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Let {{liquid}} reduce uncovered for {{duration}} until {{state}}.",
         "esp": "Reduce {{liquid}} sin tapar durante {{duration}} hasta que {{state}}.",
         "prt": "Reduza {{liquid}} sem tampa por {{duration}} até {{state}}.",
@@ -1868,19 +2488,46 @@
       "variables": [
         "liquid",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "liquid",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "liquid"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:reduce",
+        "technique:reduce",
+        "einkochen",
+        "reduce",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:3",
+        "wet_heat",
+        "variable:liquid",
+        "variable:duration",
+        "variable:state",
+        "family:liquid",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_THICKEN_01",
@@ -1889,7 +2536,7 @@
       "equipment": 3,
       "description": "Sauce/Suppe binden (Mehlschwitze, Stärke etc.)",
       "templates": {
-        "de": "Binde {{base}} mit {{thickener}} und rühre, bis {{state}} ist.",
+        "de": "Binde {{base}} mit {{thickener}} und rühre, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Thicken {{base}} with {{thickener}} and stir until {{state}}.",
         "esp": "Espesa {{base}} con {{thickener}} y remueve hasta que {{state}}.",
         "prt": "Engrosse {{base}} com {{thickener}} e mexa até {{state}}.",
@@ -1903,17 +2550,43 @@
       "variables": [
         "base",
         "thickener",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "base",
         "thickener",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:thicken",
+        "technique:thicken",
+        "eindicken",
+        "thicken",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:3",
+        "wet_heat",
+        "variable:base",
+        "variable:thickener",
+        "variable:state",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_STIR_01",
@@ -1944,15 +2617,34 @@
         "ingredient",
         "base"
       ],
-      "optional_variables": [
-        "method"
-      ],
+      "optional_variables": "method",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "pan",
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:stir",
+        "technique:stir",
+        "rühren",
+        "ruehren",
+        "stir",
+        "kochlöffel",
+        "kochloeffel",
+        "spoon",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:action",
+        "variable:ingredient",
+        "variable:method",
+        "variable:base",
+        "category:pan",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "COOK_DRAIN_01",
@@ -1982,12 +2674,27 @@
         "equipment",
         "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:drain",
+        "technique:drain",
+        "abtropfen",
+        "drain",
+        "sieb",
+        "strainer",
+        "equipment_id:10",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:pronoun",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "COOK_STRAIN_01",
@@ -2017,12 +2724,27 @@
         "equipment",
         "keep"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:strain",
+        "technique:strain",
+        "abseihen",
+        "strain",
+        "sieb",
+        "strainer",
+        "equipment_id:10",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:keep",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "COOK_COVER_01",
@@ -2052,12 +2774,31 @@
         "heat",
         "duration"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "soup"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:cover",
+        "technique:cover",
+        "abdecken",
+        "cover",
+        "equipment_id:3",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "variable:equipment",
+        "variable:heat",
+        "variable:duration",
+        "category:soup"
+      ]
     },
     {
       "master_id": "COOK_BLEND_01",
@@ -2066,7 +2807,7 @@
       "equipment": 6,
       "description": "Pürieren/Mixen (Suppen, Saucen, Smoothies)",
       "templates": {
-        "de": "{{action}} {{base}} mit einem {{equipment}}, bis {{state}} ist.",
+        "de": "{{action}} {{base}} mit einem {{equipment}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "{{action}} {{base}} with a {{equipment}} until {{state}}.",
         "esp": "{{action}} {{base}} con {{equipment}} hasta que {{state}}.",
         "prt": "{{action}} {{base}} com {{equipment}} até {{state}}.",
@@ -2081,20 +2822,42 @@
         "action",
         "base",
         "equipment",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "action",
         "base",
         "equipment",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "soup"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:blend",
+        "technique:blend",
+        "mixen",
+        "blend",
+        "mixer",
+        "equipment_id:6",
+        "blender",
+        "variable:action",
+        "variable:base",
+        "variable:equipment",
+        "variable:state",
+        "category:soup",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "COOK_ADD_01",
@@ -2121,14 +2884,26 @@
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": [
-        "method"
-      ],
+      "optional_variables": "method",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:add",
+        "technique:add",
+        "zugeben",
+        "add",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:method",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "COOK_BRAISE_01",
@@ -2137,7 +2912,7 @@
       "equipment": 4,
       "description": "Schmoren im Bräter (Braten, Ragouts)",
       "templates": {
-        "de": "Gieße {{liquid}} an {{ingredient}} im {{equipment}}, decke ab und schmore {{duration}}, bis {{state}} ist.",
+        "de": "Gib {{liquid}} zu {{ingredient}} im {{equipment}}, decke ab und schmore {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Add {{liquid}} to {{ingredient}} in the {{equipment}}, cover and braise for {{duration}} until {{state}}.",
         "esp": "Añade {{liquid}} a {{ingredient}} en {{equipment}}, tapa y guisa durante {{duration}} hasta que {{state}}.",
         "prt": "Adicione {{liquid}} a {{ingredient}} no {{equipment}}, tampe e cozinhe por {{duration}} até {{state}}.",
@@ -2153,20 +2928,45 @@
         "ingredient",
         "equipment",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
         "liquid",
         "ingredient",
         "equipment",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "diet_keys": "all"
-      }
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:braise",
+        "technique:braise",
+        "schmoren",
+        "braise",
+        "bräter",
+        "braeter",
+        "roaster",
+        "wet_heat",
+        "equipment_id:4",
+        "variable:liquid",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:duration",
+        "variable:state",
+        "diet:all",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "PREP_LAYER_01",
@@ -2196,11 +2996,28 @@
         "equipment",
         "finish"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:layer",
+        "technique:layer",
+        "schichten",
+        "layer",
+        "equipment_id:4",
+        "bräter",
+        "braeter",
+        "roaster",
+        "wet_heat",
+        "variable:components",
+        "variable:equipment",
+        "variable:finish",
+        "category:main"
+      ]
     },
     {
       "master_id": "COOK_GRATINATE_01",
@@ -2209,7 +3026,7 @@
       "equipment": 1,
       "description": "Kurz unter starker Oberhitze gratinieren/überbacken",
       "templates": {
-        "de": "Stelle {{base}} {{position}} unter die Grillfunktion und gratiniere {{pronoun}} {{duration}}, bis {{state}} ist.",
+        "de": "Stelle {{base}} {{position}} unter die Grillfunktion und gratiniere {{pronoun}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
         "en": "Place {{base}} {{position}} under the broiler and broil for {{duration}} until {{state}}.",
         "esp": "Coloca {{base}} {{position}} bajo el grill y gratina durante {{duration}} hasta que {{state}}.",
         "prt": "Coloque {{base}} {{position}} sob o grill e gratine por {{duration}} até {{state}}.",
@@ -2225,19 +3042,41 @@
         "position",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
       "required_variables": [
         "base",
         "position",
         "duration",
         "state",
-        "pronoun"
+        "pronoun",
+        "copula"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:broil",
+        "technique:broil",
+        "übergrillen",
+        "uebergrillen",
+        "broil",
+        "grill",
+        "dry_heat",
+        "equipment_id:1",
+        "backofen",
+        "oven",
+        "variable:base",
+        "variable:position",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "variable:copula"
+      ]
     },
     {
       "master_id": "SEASON_ADJUST_01",
@@ -2270,14 +3109,27 @@
         "seasonings",
         "balance"
       ],
-      "optional_variables": [
-        "seasonings"
-      ],
+      "optional_variables": "seasonings",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "seasoning"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:season_adjust",
+        "technique:season_adjust",
+        "abschmecken",
+        "season",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:seasonings",
+        "variable:balance",
+        "family:seasoning"
+      ]
     },
     {
       "master_id": "FINISH_COOL_01",
@@ -2286,7 +3138,7 @@
       "equipment": 0,
       "description": "Abkühlen lassen (Desserts, Kuchen)",
       "templates": {
-        "de": "Lasse {{base}} abkühlen[ {{duration}}][, bis {{state}} ist].",
+        "de": "Lasse {{base}} abkühlen[ {{duration}}][, bis {{pronoun}} {{state}} {{copula}}].",
         "en": "Let {{base}} cool[ for {{duration}}][ until {{state}}].",
         "esp": "Deja que {{base}} se enfríe[ durante {{duration}}][ hasta que {{state}}].",
         "prt": "Deixe {{base}} esfriar[ por {{duration}}][ até {{state}}].",
@@ -2300,10 +3152,14 @@
       "variables": [
         "base",
         "duration",
-        "state"
+        "state",
+        "copula",
+        "pronoun"
       ],
       "required_variables": [
-        "base"
+        "base",
+        "copula",
+        "pronoun"
       ],
       "optional_variables": [
         "duration",
@@ -2311,7 +3167,23 @@
       ],
       "variable_types": {},
       "stable_taxonomy_keys": {},
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:cool",
+        "technique:cool",
+        "kühlen",
+        "cool",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:duration",
+        "variable:state",
+        "variable:copula",
+        "variable:pronoun"
+      ]
     },
     {
       "master_id": "FINISH_REST_01",
@@ -2341,10 +3213,24 @@
         "duration",
         "reason"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:rest",
+        "technique:rest",
+        "ruhen",
+        "rest",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:duration",
+        "variable:reason"
+      ]
     },
     {
       "master_id": "FINISH_PORTION_01",
@@ -2372,12 +3258,26 @@
         "base",
         "count"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:portion",
+        "technique:portion",
+        "portionieren",
+        "portion",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:count",
+        "category:main"
+      ]
     },
     {
       "master_id": "FINISH_SERVE_01",
@@ -2405,11 +3305,25 @@
         "base",
         "extra"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
-      }
+      },
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:serve",
+        "technique:serve",
+        "servieren",
+        "serve",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:extra",
+        "category:main"
+      ]
     },
     {
       "master_id": "PREP_MARINADE_MAKE_01",
@@ -2428,18 +3342,26 @@
         "no": "Lag en marinade av {{ingredients}}.",
         "ms": "Sediakan perapan daripada {{ingredients}}."
       },
-      "variables": [
-        "ingredients"
-      ],
+      "variables": "ingredients",
       "required_variables": [
         "ingredients"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
         "ingredient_family_keys": "vegetable"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredients",
+        "category:main",
+        "family:vegetable"
+      ]
     },
     {
       "master_id": "PREP_FILLET_01",
@@ -2448,16 +3370,16 @@
       "equipment": 0,
       "description": "Filetieren von Fisch, Gräten entfernen",
       "templates": {
-        "de": "Filetiere {{ingredient}} mit einem {{tool}} und entferne[ vorsichtig] die Gräten.",
-        "en": "Fillet {{ingredient}} with a {{tool}} and[ carefully] remove the bones.",
-        "esp": "Filetea {{ingredient}} con un {{tool}} y retira[ con cuidado] las espinas.",
-        "prt": "Filete {{ingredient}} com uma {{tool}} e retire[ com cuidado] as espinhas.",
-        "id": "Fillet {{ingredient}} dengan {{tool}} dan[ hati-hati] buang tulangnya.",
-        "nl": "Fileer {{ingredient}} met een {{tool}} en verwijder[ voorzichtig] de graten.",
-        "sv": "Filéa {{ingredient}} med en {{tool}} och[ försiktigt] ta bort benen.",
-        "da": "Filetér {{ingredient}} med en {{tool}} og fjern[ forsigtigt] benene.",
-        "no": "Filetér {{ingredient}} med en {{tool}} og[ forsiktig] fjern beinene.",
-        "ms": "Filet {{ingredient}} dengan {{tool}} dan[ berhati-hati] buang tulangnya."
+        "de": "Filetiere {{ingredient}} mit einem {{tool}} und entferne vorsichtig die Gräten.",
+        "en": "Fillet {{ingredient}} with a {{tool}} and carefully remove the bones.",
+        "esp": "Filetea {{ingredient}} con un {{tool}} y retira con cuidado las espinas.",
+        "prt": "Filete {{ingredient}} com uma {{tool}} e retire com cuidado as espinhas.",
+        "id": "Fillet {{ingredient}} dengan {{tool}} dan hati-hati buang tulangnya.",
+        "nl": "Fileer {{ingredient}} met een {{tool}} en verwijder voorzichtig de graten.",
+        "sv": "Filéa {{ingredient}} med en {{tool}} och försiktigt ta bort benen.",
+        "da": "Filetér {{ingredient}} med en {{tool}} og fjern forsigtigt benene.",
+        "no": "Filetér {{ingredient}} med en {{tool}} og forsiktig fjern beinene.",
+        "ms": "Filet {{ingredient}} dengan {{tool}} dan berhati-hati buang tulangnya."
       },
       "variables": [
         "ingredient",
@@ -2467,11 +3389,27 @@
         "ingredient",
         "tool"
       ],
-      "optional_variables": [],
+      "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "fish"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:fillet",
+        "technique:fillet",
+        "filetieren",
+        "fillet",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "family:fish"
+      ]
     },
     {
       "master_id": "PREP_DESCALE_01",
@@ -2500,13 +3438,28 @@
         "ingredient",
         "tool"
       ],
-      "optional_variables": [
-        "pronoun"
-      ],
+      "optional_variables": "pronoun",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "fish"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:descale",
+        "technique:descale",
+        "entschuppen",
+        "descale",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:pronoun",
+        "family:fish"
+      ]
     },
     {
       "master_id": "PREP_DEVEIN_01",
@@ -2533,13 +3486,27 @@
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": [
-        "tool"
-      ],
+      "optional_variables": "tool",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "seafood"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:devein",
+        "technique:devein",
+        "entdarmen",
+        "devein",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "family:seafood"
+      ]
     },
     {
       "master_id": "COOK_POACH_01",
@@ -2581,7 +3548,29 @@
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "fish"
       },
-      "quality_rule_keys": "requires_previous_phase"
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:poach",
+        "technique:poach",
+        "pochieren",
+        "poach",
+        "topf",
+        "pot",
+        "wet_heat",
+        "equipment_id:3",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "variable:ingredient",
+        "variable:liquid",
+        "variable:pronoun",
+        "variable:heat",
+        "variable:duration",
+        "variable:state",
+        "family:fish"
+      ]
     },
     {
       "master_id": "PREP_CLEAN_SEAFOOD_01",
@@ -2608,13 +3597,25 @@
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": [
-        "action"
-      ],
+      "optional_variables": "action",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "seafood"
-      }
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:clean_seafood",
+        "technique:clean_seafood",
+        "reinigen",
+        "clean",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:action",
+        "family:seafood"
+      ]
     }
   ],
   "variable_hints": {
@@ -2653,3285 +3654,8 @@
     "balance": "Geschmacksbalance, z.B. de: 'Salz/Säure/Schärfe'. esp: 'sal/acidez/picante'.",
     "servings": "Portionenanzahl als Zahl, z.B. '2' oder '4'.",
     "extra": "Servierhinweis, z.B. de: 'mit frischen Kräutern / sofort heiß'. esp: 'con hierbas frescas / inmediatamente caliente'.",
-    "keep": "Aufzufangender Anteil, z.B. de: 'das Kochwasser / die Brühe'. esp: 'el agua de cocción / el caldo'."
-  },
-  "variable_options": {
-    "articles": {
-      "de": [
-        "der",
-        "die",
-        "das",
-        "den",
-        "dem",
-        "einen",
-        "einem",
-        "einer"
-      ],
-      "en": [
-        "the"
-      ],
-      "esp": [
-        "el",
-        "la",
-        "los",
-        "las"
-      ],
-      "prt": [
-        "o",
-        "a",
-        "os",
-        "as"
-      ],
-      "id": [
-        ""
-      ],
-      "nl": [
-        "de",
-        "het"
-      ],
-      "sv": [
-        ""
-      ],
-      "da": [
-        ""
-      ],
-      "no": [
-        ""
-      ],
-      "ms": [
-        ""
-      ]
-    },
-    "pronoun": {
-      "de": [
-        "er",
-        "sie",
-        "es",
-        "ihn"
-      ],
-      "en": [
-        "he",
-        "she",
-        "it",
-        "them"
-      ],
-      "esp": [
-        "él",
-        "ella",
-        "ello",
-        "los",
-        "las"
-      ],
-      "prt": [
-        "ele",
-        "ela",
-        "isso",
-        "os",
-        "as"
-      ],
-      "id": [
-        "dia",
-        "ia",
-        "nya"
-      ],
-      "nl": [
-        "hij",
-        "zij",
-        "het",
-        "hem",
-        "haar"
-      ],
-      "sv": [
-        "han",
-        "hon",
-        "den",
-        "det"
-      ],
-      "da": [
-        "han",
-        "hun",
-        "den",
-        "det"
-      ],
-      "no": [
-        "han",
-        "hun",
-        "den",
-        "det"
-      ],
-      "ms": [
-        "dia",
-        "ia",
-        "nya"
-      ]
-    },
-    "heat": {
-      "de": [
-        "niedriger",
-        "mittlerer",
-        "hoher"
-      ],
-      "en": [
-        "low",
-        "medium",
-        "high"
-      ],
-      "esp": [
-        "bajo",
-        "medio",
-        "alto"
-      ],
-      "prt": [
-        "baixo",
-        "médio",
-        "alto"
-      ],
-      "id": [
-        "rendah",
-        "sedang",
-        "tinggi"
-      ],
-      "nl": [
-        "laag",
-        "middelhoog",
-        "hoog"
-      ],
-      "sv": [
-        "låg",
-        "medelhög",
-        "hög"
-      ],
-      "da": [
-        "lav",
-        "middel",
-        "høj"
-      ],
-      "no": [
-        "lav",
-        "middels",
-        "høy"
-      ],
-      "ms": [
-        "rendah",
-        "sederhana",
-        "tinggi"
-      ]
-    },
-    "action": {
-      "de": [
-        "schlage",
-        "rühre",
-        "schneide",
-        "hacke",
-        "schäle",
-        "mixe",
-        "mische",
-        "hebe unter",
-        "püriere",
-        "reibe",
-        "dünste",
-        "brate",
-        "Vermenge",
-        "Wende",
-        "Verquirle",
-        "Verrühre",
-        "Rühre",
-        "Püriere",
-        "Schlage",
-        "Schwenke",
-        "putze"
-      ],
-      "en": [
-        "beat",
-        "stir",
-        "cut",
-        "chop",
-        "peel",
-        "blend",
-        "mix",
-        "fold in",
-        "purée",
-        "grate",
-        "sauté",
-        "fry",
-        "combine",
-        "flip",
-        "whisk together",
-        "stir together",
-        "whip",
-        "toss",
-        "clean"
-      ],
-      "esp": [
-        "bate",
-        "remueve",
-        "corta",
-        "pica",
-        "pela",
-        "mezcla",
-        "mezcla",
-        "incorpora",
-        "tritura",
-        "ralla",
-        "sofríe",
-        "fríe",
-        "combina",
-        "da la vuelta",
-        "bate junto",
-        "remueve junto",
-        "saltea",
-        "limpia"
-      ],
-      "prt": [
-        "bata",
-        "mexa",
-        "corte",
-        "pique",
-        "descasque",
-        "bata no liquidificador",
-        "misture",
-        "incorpore",
-        "triture",
-        "rale",
-        "refogue",
-        "frite",
-        "combine",
-        "vire",
-        "bata junto",
-        "misture junto",
-        "salteie",
-        "limpe"
-      ],
-      "id": [
-        "kocok",
-        "aduk",
-        "potong",
-        "cincang",
-        "kupas",
-        "blender",
-        "campur",
-        "aduk balik",
-        "haluskan",
-        "parut",
-        "tumis",
-        "goreng",
-        "balik",
-        "kocok bersama",
-        "aduk bersama",
-        "aduk cepat",
-        "bersihkan"
-      ],
-      "nl": [
-        "klop",
-        "roer",
-        "snijd",
-        "hak",
-        "schil",
-        "mix",
-        "meng",
-        "spatel onder",
-        "pureer",
-        "rasp",
-        "fruit",
-        "bak",
-        "combineer",
-        "keer om",
-        "klop samen",
-        "roer samen",
-        "zwenk",
-        "maak schoon"
-      ],
-      "sv": [
-        "vispa",
-        "rör",
-        "skär",
-        "hacka",
-        "skala",
-        "mixa",
-        "blanda",
-        "vänd ner",
-        "mixa slät",
-        "riv",
-        "fräs",
-        "stek",
-        "blanda ihop",
-        "vänd",
-        "vispa ihop",
-        "rör ihop",
-        "sväng",
-        "rengör"
-      ],
-      "da": [
-        "pisk",
-        "rør",
-        "skær",
-        "hak",
-        "skræl",
-        "blend",
-        "bland",
-        "vend i",
-        "purér",
-        "riv",
-        "sautér",
-        "steg",
-        "bland sammen",
-        "vend",
-        "pisk sammen",
-        "rør sammen",
-        "svits",
-        "rens"
-      ],
-      "no": [
-        "visp",
-        "rør",
-        "skjær",
-        "hakk",
-        "skrell",
-        "blend",
-        "bland",
-        "vend inn",
-        "purér",
-        "riv",
-        "fres",
-        "stek",
-        "bland sammen",
-        "snu",
-        "visp sammen",
-        "rør sammen",
-        "sverts",
-        "rens"
-      ],
-      "ms": [
-        "pukul",
-        "kacau",
-        "potong",
-        "cincang",
-        "kupas",
-        "kisar",
-        "gaul",
-        "gaul lipat",
-        "kisar halus",
-        "parut",
-        "tumis",
-        "goreng",
-        "gaul bersama",
-        "balik",
-        "pukul bersama",
-        "kacau bersama",
-        "gaul cepat",
-        "bersihkan"
-      ]
-    },
-    "tool": {
-      "de": [
-        "🔪 Messer",
-        "Schneebesen",
-        "🥄 Kochlöffel",
-        "Pfannenwender",
-        "Reibe",
-        "Sparschäler",
-        "Messbecher",
-        "🥄 Kelle",
-        "Zange",
-        "✂️ Schere",
-        "Teigschaber",
-        "Mörser"
-      ],
-      "en": [
-        "🔪 knife",
-        "whisk",
-        "🥄 wooden spoon",
-        "spatula",
-        "grater",
-        "peeler",
-        "measuring cup",
-        "🥄 ladle",
-        "tongs",
-        "✂️ kitchen scissors",
-        "dough scraper",
-        "mortar"
-      ],
-      "esp": [
-        "🔪 cuchillo",
-        "batidor",
-        "🥄 cuchara de madera",
-        "espátula",
-        "rallador",
-        "pelador",
-        "vaso medidor",
-        "🥄 cucharón",
-        "pinzas",
-        "✂️ tijeras de cocina",
-        "rasqueta",
-        "mortero"
-      ],
-      "prt": [
-        "🔪 faca",
-        "batedor",
-        "🥄 colher de pau",
-        "espátula",
-        "ralador",
-        "descascador",
-        "copo medidor",
-        "🥄 concha",
-        "pinça",
-        "✂️ tesoura de cozinha",
-        "raspador de massa",
-        "almofariz"
-      ],
-      "id": [
-        "🔪 pisau",
-        "pengocok",
-        "🥄 sendok kayu",
-        "spatula",
-        "parutan",
-        "pengupas",
-        "gelas ukur",
-        "🥄 sendok sayur",
-        "penjepit",
-        "✂️ gunting dapur",
-        "scraper adonan",
-        "cobek"
-      ],
-      "nl": [
-        "🔪 mes",
-        "garde",
-        "🥄 houten lepel",
-        "spatel",
-        "rasp",
-        "dunschiller",
-        "maatbeker",
-        "🥄 pollepel",
-        "tang",
-        "✂️ keukenschaar",
-        "deegschraper",
-        "vijzel"
-      ],
-      "sv": [
-        "🔪 kniv",
-        "visp",
-        "🥄 träsked",
-        "stekspade",
-        "rivjärn",
-        "skalare",
-        "måttbågare",
-        "🥄 slev",
-        "tång",
-        "✂️ köksax",
-        "degskrapa",
-        "mortel"
-      ],
-      "da": [
-        "🔪 kniv",
-        "piskeris",
-        "🥄 træske",
-        "paletkniv",
-        "rivejern",
-        "skræller",
-        "målebæger",
-        "🥄 øse",
-        "tang",
-        "✂️ køkkensaks",
-        "dejskraber",
-        "morter"
-      ],
-      "no": [
-        "🔪 kniv",
-        "visp",
-        "🥄 tresleiv",
-        "stekespade",
-        "rivjern",
-        "skreller",
-        "målebeger",
-        "🥄 øse",
-        "tang",
-        "✂️ kjøkkensaks",
-        "deigskrape",
-        "morter"
-      ],
-      "ms": [
-        "🔪 pisau",
-        "pemukul",
-        "🥄 sudu kayu",
-        "spatula",
-        "parut",
-        "pengupas",
-        "cawan penyukat",
-        "🥄 senduk",
-        "penyepit",
-        "✂️ gunting dapur",
-        "pengikis doh",
-        "lesung"
-      ]
-    },
-    "shape": {
-      "de": [
-        "Würfel",
-        "Scheiben",
-        "Streifen",
-        "Spalten",
-        "Ringe",
-        "Julienne",
-        "Stifte",
-        "grob gehackt",
-        "fein gehackt"
-      ],
-      "en": [
-        "cubes",
-        "slices",
-        "strips",
-        "wedges",
-        "rings",
-        "julienne",
-        "batons",
-        "roughly chopped",
-        "finely chopped"
-      ],
-      "esp": [
-        "dados",
-        "rodajas",
-        "tiras",
-        "gajos",
-        "aros",
-        "juliana",
-        "bastones",
-        "picado grueso",
-        "picado fino"
-      ],
-      "prt": [
-        "cubos",
-        "fatias",
-        "tiras",
-        "gomos",
-        "anéis",
-        "juliana",
-        "palitos",
-        "picado grosso",
-        "picado fino"
-      ],
-      "id": [
-        "dadu",
-        "irisan",
-        "potongan memanjang",
-        "belahan",
-        "cincin",
-        "julienne",
-        "baton",
-        "cincang kasar",
-        "cincang halus"
-      ],
-      "nl": [
-        "blokjes",
-        "plakjes",
-        "reepjes",
-        "partjes",
-        "ringen",
-        "julienne",
-        "staafjes",
-        "grof gehakt",
-        "fijngehakt"
-      ],
-      "sv": [
-        "tärningar",
-        "skivor",
-        "strimlor",
-        "klyftor",
-        "ringar",
-        "julienne",
-        "stavar",
-        "grovt hackat",
-        "finhackat"
-      ],
-      "da": [
-        "tern",
-        "skiver",
-        "strimler",
-        "både",
-        "ringe",
-        "julienne",
-        "stave",
-        "groft hakket",
-        "finthakket"
-      ],
-      "no": [
-        "terninger",
-        "skiver",
-        "strimler",
-        "båter",
-        "ringer",
-        "julienne",
-        "staver",
-        "grovt hakket",
-        "finhakket"
-      ],
-      "ms": [
-        "dadu",
-        "hirisan",
-        "jalur",
-        "baji",
-        "cincin",
-        "julienne",
-        "baton",
-        "cincang kasar",
-        "cincang halus"
-      ]
-    },
-    "state": {
-      "de": [
-        "goldbraun",
-        "weich",
-        "glasig",
-        "gar",
-        "knusprig",
-        "cremig",
-        "bissfest",
-        "eingedickt",
-        "sprudelnd",
-        "verdoppelt",
-        "zart",
-        "angeröstet",
-        "geschmolzen",
-        "schaumig",
-        "reduziert (eingekocht)",
-        "abgekühlt",
-        "lauwarm",
-        "fest",
-        "fluffig",
-        "karamellisiert",
-        "geschmeidig",
-        "angebraten",
-        "rundum angebraten",
-        "scharf angebraten",
-        "gleichmäßig gebräunt",
-        "braun",
-        "dunkelbraun",
-        "knusprig gebräunt",
-        "außen knusprig",
-        "innen saftig",
-        "medium-rare",
-        "medium",
-        "durchgegart",
-        "al dente",
-        "sämig",
-        "sämig und aromatisch",
-        "glasig und duftend",
-        "glasig und zart",
-        "geschmeidig und elastisch",
-        "doppelt so groß",
-        "entspannt",
-        "gegrillt",
-        "goldbraun und knusprig",
-        "goldbraun überbacken",
-        "goldbraun (Stäbchenprobe)",
-        "goldbraun und blasig",
-        "goldbraun und fest",
-        "krümelig und braun",
-        "glatt",
-        "glatt und cremig",
-        "glatt und schaumig",
-        "gleichmäßig vermischt",
-        "steif",
-        "handwarm",
-        "emulgiert",
-        "durchgefroren",
-        "leicht gebräunt",
-        "leicht geröstet",
-        "weich und durchgezogen",
-        "weich und gar",
-        "gar und würzig",
-        "gar und zart",
-        "zart und saftig",
-        "fest genug zum Schneiden",
-        "fest am Rand, leicht wackelnd in der Mitte",
-        "langsam abgekühlt",
-        "medium rare",
-        "medium (rosa Kern)",
-        "medium durchgebraten",
-        "würzig und durchgebraten",
-        "würzig und gar",
-        "eingedickt und aromatisch",
-        "cremig und al dente",
-        "cremig und glatt",
-        "butterzart"
-      ],
-      "en": [
-        "golden brown",
-        "soft",
-        "translucent",
-        "cooked through",
-        "crispy",
-        "creamy",
-        "al dente",
-        "thickened",
-        "bubbling",
-        "doubled",
-        "tender",
-        "toasted",
-        "melted",
-        "foamy",
-        "reduced",
-        "cooled",
-        "lukewarm",
-        "firm",
-        "fluffy",
-        "caramelized",
-        "smooth",
-        "seared",
-        "seared all over",
-        "hard seared",
-        "evenly browned",
-        "brown",
-        "dark brown",
-        "crisply browned",
-        "crispy on the outside",
-        "juicy inside",
-        "medium-rare",
-        "medium",
-        "well done",
-        "thick",
-        "thick and aromatic",
-        "translucent and fragrant",
-        "translucent and tender",
-        "smooth and elastic",
-        "doubled in size",
-        "relaxed",
-        "grilled",
-        "golden and crispy",
-        "golden au gratin",
-        "golden (skewer test)",
-        "golden and blistered",
-        "golden and firm",
-        "crumbly and brown",
-        "smooth and creamy",
-        "smooth and frothy",
-        "evenly mixed",
-        "stiff",
-        "hand-warm",
-        "emulsified",
-        "frozen through",
-        "lightly browned",
-        "lightly toasted",
-        "soft and infused",
-        "soft and cooked",
-        "cooked and seasoned",
-        "cooked and tender",
-        "tender and juicy",
-        "firm enough to slice",
-        "set at edges, slightly wobbly in center",
-        "slowly cooled",
-        "medium rare",
-        "medium (pink center)",
-        "medium done",
-        "seasoned and cooked through",
-        "seasoned and done",
-        "thickened and aromatic",
-        "creamy and al dente",
-        "creamy and smooth",
-        "butter-tender"
-      ],
-      "esp": [
-        "dorado",
-        "blando",
-        "translúcido",
-        "cocido",
-        "crujiente",
-        "cremoso",
-        "al dente",
-        "espeso",
-        "hirviendo suavemente",
-        "duplicado",
-        "tierno",
-        "tostado",
-        "derretido",
-        "espumoso",
-        "reducido",
-        "enfriado",
-        "tibio",
-        "firme",
-        "esponjoso",
-        "caramelizado",
-        "sedoso",
-        "marcado",
-        "marcado por todos lados",
-        "marcado a fuego fuerte",
-        "dorado uniformemente",
-        "marrón",
-        "marrón oscuro",
-        "crujiente y dorado",
-        "crujiente por fuera",
-        "jugoso por dentro",
-        "poco hecho",
-        "al punto",
-        "bien hecho",
-        "espesa",
-        "espesa y aromática",
-        "transparente y aromática",
-        "transparente y tierna",
-        "suave y elástica",
-        "doblado su tamaño",
-        "relajada",
-        "a la parrilla",
-        "dorada y crujiente",
-        "gratinada",
-        "dorada (prueba del palillo)",
-        "dorada y con ampollas",
-        "dorada y firme",
-        "desmenuzable y marrón",
-        "lisa",
-        "lisa y cremosa",
-        "lisa y espumosa",
-        "mezclado uniformemente",
-        "templada",
-        "emulsionada",
-        "completamente congelada",
-        "ligeramente dorada",
-        "ligeramente tostada",
-        "blanda e infusionada",
-        "blanda y cocida",
-        "cocida y condimentada",
-        "cocida y tierna",
-        "tierna y jugosa",
-        "firme para cortar",
-        "cuajada en los bordes, ligeramente temblorosa en el centro",
-        "enfriada lentamente",
-        "medio cruda",
-        "al punto (centro rosado)",
-        "hecha",
-        "condimentada y cocida",
-        "condimentada y lista",
-        "espesa y aromática",
-        "cremosa y al dente",
-        "cremosa y suave",
-        "tierna como mantequilla"
-      ],
-      "prt": [
-        "dourado",
-        "macio",
-        "translúcido",
-        "cozido",
-        "crocante",
-        "cremoso",
-        "al dente",
-        "encorpado",
-        "borbulhando",
-        "dobrado",
-        "tenro",
-        "tostado",
-        "derretido",
-        "espumoso",
-        "reduzido",
-        "arrefecido",
-        "morno",
-        "firme",
-        "fofo",
-        "caramelizado",
-        "sedoso",
-        "selado",
-        "selado por todos os lados",
-        "selado em fogo alto",
-        "uniformemente dourado",
-        "castanho",
-        "castanho-escuro",
-        "crocante e dourado",
-        "crocante por fora",
-        "suculento por dentro",
-        "mal passado",
-        "ao ponto",
-        "bem passado",
-        "encorpada",
-        "encorpada e aromática",
-        "translúcida e perfumada",
-        "translúcida e tenra",
-        "lisa e elástica",
-        "dobrado de tamanho",
-        "relaxada",
-        "grelhada",
-        "dourada e crocante",
-        "gratinada",
-        "dourada (teste do palito)",
-        "dourada e com bolhas",
-        "dourada e firme",
-        "esfarelada e castanha",
-        "lisa",
-        "lisa e cremosa",
-        "lisa e espumosa",
-        "misturado uniformemente",
-        "morna",
-        "emulsionada",
-        "completamente congelada",
-        "ligeiramente dourada",
-        "ligeiramente tostada",
-        "macia e aromatizada",
-        "macia e cozida",
-        "cozida e temperada",
-        "cozida e tenra",
-        "tenra e suculenta",
-        "firme para cortar",
-        "firme nas bordas, ligeiramente trémula no centro",
-        "arrefecida lentamente",
-        "mal passada",
-        "ao ponto (centro rosado)",
-        "bem passada",
-        "temperada e cozida",
-        "temperada e pronta",
-        "encorpada e aromática",
-        "cremosa e al dente",
-        "cremosa e lisa",
-        "macia como manteiga"
-      ],
-      "id": [
-        "keemasan",
-        "lembut",
-        "bening",
-        "matang",
-        "renyah",
-        "kremi",
-        "al dente",
-        "mengental",
-        "mendidih perlahan",
-        "dua kali lipat",
-        "empuk",
-        "terpanggang",
-        "meleleh",
-        "berbusa",
-        "tereduksi",
-        "dingin",
-        "suam-suam kuku",
-        "padat",
-        "mengembang",
-        "terkaramelisasi",
-        "halus",
-        "ditumis hingga kecokelatan",
-        "kecokelatan merata",
-        "ditumis dengan api besar",
-        "kecokelatan secara merata",
-        "cokelat",
-        "cokelat tua",
-        "kecokelatan renyah",
-        "renyah di luar",
-        "juicy di dalam",
-        "medium-rare",
-        "medium",
-        "matang sepenuhnya",
-        "kental",
-        "kental dan aromatik",
-        "jernih dan harum",
-        "jernih dan empuk",
-        "halus dan elastis",
-        "rileks",
-        "dipanggang",
-        "keemasan dan renyah",
-        "keemasan gratinasi",
-        "keemasan (tes tusuk)",
-        "keemasan dan berlepuh",
-        "keemasan dan padat",
-        "remah dan cokelat",
-        "halus dan kremi",
-        "halus dan berbusa",
-        "tercampur rata",
-        "kaku",
-        "hangat-hangat",
-        "teremulsi",
-        "beku merata",
-        "sedikit kecokelatan",
-        "sedikit terpanggang",
-        "lembut dan meresap",
-        "lembut dan matang",
-        "matang dan berasa",
-        "matang dan empuk",
-        "empuk dan juicy",
-        "cukup padat untuk diiris",
-        "mengeras di pinggir, agak bergoyang di tengah",
-        "didinginkan perlahan",
-        "medium rare",
-        "medium (tengah merah muda)",
-        "medium matang",
-        "berasa dan matang",
-        "berasa dan siap",
-        "kental dan aromatik",
-        "kremi dan al dente",
-        "kremi dan halus",
-        "lembut seperti mentega"
-      ],
-      "nl": [
-        "goudbruin",
-        "zacht",
-        "glazig",
-        "gaar",
-        "knapperig",
-        "romig",
-        "beetgaar",
-        "ingedikt",
-        "zacht borrelend",
-        "verdubbeld",
-        "mals",
-        "geroosterd",
-        "gesmolten",
-        "schuimig",
-        "gereduceerd",
-        "afgekoeld",
-        "lauw",
-        "stevig",
-        "luchtig",
-        "gekaramelliseerd",
-        "glad",
-        "aangebraden",
-        "rondom aangebraden",
-        "hard aangebraden",
-        "gelijkmatig gebruind",
-        "bruin",
-        "donkerbruin",
-        "knapperig gebruind",
-        "knapperig van buiten",
-        "sappig van binnen",
-        "medium-rare",
-        "medium",
-        "doorbakken",
-        "al dente",
-        "dik",
-        "dik en aromatisch",
-        "glazig en geurig",
-        "glazig en mals",
-        "glad en elastisch",
-        "verdubbeld in grootte",
-        "ontspannen",
-        "gegrild",
-        "goudbruin en knapperig",
-        "gegratineerd",
-        "goudbruin (prikvasttest)",
-        "goudbruin en blaasjes",
-        "goudbruin en stevig",
-        "kruimelig en bruin",
-        "glad en romig",
-        "glad en schuimig",
-        "gelijkmatig gemengd",
-        "stijf",
-        "handwarm",
-        "geëmulgeerd",
-        "helemaal doorgevroren",
-        "licht gebruind",
-        "licht geroosterd",
-        "zacht en doorgetrokken",
-        "zacht en gaar",
-        "gaar en gekruid",
-        "gaar en mals",
-        "mals en sappig",
-        "stevig genoeg om te snijden",
-        "vast aan de rand, licht wiebelend in het midden",
-        "langzaam afgekoeld",
-        "medium rare",
-        "medium (roze kern)",
-        "medium doorbakken",
-        "gekruid en gaar",
-        "gekruid en klaar",
-        "ingedikt en aromatisch",
-        "romig en al dente",
-        "romig en glad",
-        "boterzacht"
-      ],
-      "sv": [
-        "gyllenbrun",
-        "mjuk",
-        "glansig",
-        "genomstekt",
-        "krispig",
-        "krämig",
-        "al dente",
-        "förtjockad",
-        "sjudande",
-        "fördubblad",
-        "mör",
-        "rostad",
-        "smält",
-        "skummig",
-        "reducerad",
-        "avsvalnad",
-        "ljummen",
-        "fast",
-        "fluffig",
-        "karamelliserad",
-        "smidig",
-        "brynt",
-        "brynt runt om",
-        "hårt brynt",
-        "jämnt brynt",
-        "brun",
-        "mörkbrun",
-        "krispigt brynt",
-        "krispig utanpå",
-        "saftig inuti",
-        "medium rare",
-        "medium",
-        "genomstekt",
-        "tjock",
-        "tjock och aromatisk",
-        "glansig och doftande",
-        "glansig och mör",
-        "smidig och elastisk",
-        "fördubblad i storlek",
-        "avslappnad",
-        "grillad",
-        "gyllenbrun och krispig",
-        "gratinerad",
-        "gyllenbrun (stickprov)",
-        "gyllenbrun och blåsig",
-        "gyllenbrun och fast",
-        "smullig och brun",
-        "slät",
-        "slät och krämig",
-        "slät och skummig",
-        "jämnt blandat",
-        "styv",
-        "handvarm",
-        "emulgerad",
-        "helt genomfryst",
-        "lätt brynt",
-        "lätt rostad",
-        "mjuk och genomdragen",
-        "mjuk och tillagad",
-        "tillagad och kryddad",
-        "tillagad och mör",
-        "mör och saftig",
-        "fast nog att skära",
-        "fast i kanten, svajig i mitten",
-        "långsamt avsvalnad",
-        "medium (rosa kärna)",
-        "genomstekt medium",
-        "kryddad och genomstekt",
-        "kryddad och klar",
-        "förtjockad och aromatisk",
-        "krämig och al dente",
-        "krämig och slät",
-        "smörlen"
-      ],
-      "da": [
-        "gyldenbrun",
-        "blød",
-        "klar",
-        "gennemtilberedt",
-        "sprød",
-        "cremet",
-        "al dente",
-        "indkogt",
-        "småkogene",
-        "fordoblet",
-        "mør",
-        "ristet",
-        "smeltet",
-        "skummende",
-        "reduceret",
-        "afkølet",
-        "lunken",
-        "fast",
-        "luftig",
-        "karamelliseret",
-        "smidig",
-        "brunet",
-        "brunet hele vejen rundt",
-        "hårdt brunet",
-        "jævnt brunet",
-        "brun",
-        "mørkebrun",
-        "sprødt brunet",
-        "sprød udenpå",
-        "saftig indeni",
-        "medium-rare",
-        "medium",
-        "gennemstegt",
-        "tyk",
-        "tyk og aromatisk",
-        "klar og duftende",
-        "klar og mør",
-        "glat og elastisk",
-        "fordoblet i størrelse",
-        "afslappet",
-        "grillet",
-        "gyldenbrun og sprød",
-        "gratineret",
-        "gyldenbrun (stikprøve)",
-        "gyldenbrun og blæret",
-        "gyldenbrun og fast",
-        "krumlet og brun",
-        "glat",
-        "glat og cremet",
-        "glat og skummende",
-        "jævnt blandet",
-        "stiv",
-        "håndvarm",
-        "emulgeret",
-        "helt igennemfrosset",
-        "let brunet",
-        "let ristet",
-        "blød og gennemtrukket",
-        "blød og kogt",
-        "kogt og krydret",
-        "kogt og mør",
-        "mør og saftig",
-        "fast nok til at skære",
-        "fast i kanten, let vuggende i midten",
-        "langsomt afkølet",
-        "medium rare",
-        "medium (rosa kerne)",
-        "medium gennemstegt",
-        "krydret og gennemstegt",
-        "krydret og klar",
-        "indkogt og aromatisk",
-        "cremet og al dente",
-        "cremet og glat",
-        "smørblød"
-      ],
-      "no": [
-        "gyllenbrun",
-        "myk",
-        "blank",
-        "gjennomkokt",
-        "sprø",
-        "kremet",
-        "al dente",
-        "innkokt",
-        "småkoker",
-        "doblet",
-        "mør",
-        "ristet",
-        "smeltet",
-        "skummende",
-        "redusert",
-        "avkjølt",
-        "lunken",
-        "fast",
-        "luftig",
-        "karamellisert",
-        "smidig",
-        "brunet",
-        "brunet på alle sider",
-        "hardt brunet",
-        "jevnt brunet",
-        "brun",
-        "mørkebrun",
-        "sprøtt brunet",
-        "sprø utenpå",
-        "saftig inni",
-        "medium-rare",
-        "medium",
-        "gjennomstekt",
-        "tykk",
-        "tykk og aromatisk",
-        "blank og duftende",
-        "blank og mør",
-        "smidig og elastisk",
-        "doblet i størrelse",
-        "avslappet",
-        "grillet",
-        "gyllenbrun og sprø",
-        "gratinert",
-        "gyllenbrun (stikkprøve)",
-        "gyllenbrun og blæret",
-        "gyllenbrun og fast",
-        "smuldrete og brun",
-        "glatt",
-        "glatt og kremet",
-        "glatt og skummende",
-        "jevnt blandet",
-        "stiv",
-        "håndvarm",
-        "emulgert",
-        "helt gjennomfrosset",
-        "lett brunet",
-        "lett ristet",
-        "myk og gjennomtrukket",
-        "myk og kokt",
-        "kokt og krydret",
-        "kokt og mør",
-        "mør og saftig",
-        "fast nok til å skjære",
-        "fast i kanten, litt vuggende i midten",
-        "langsomt avkjølt",
-        "medium rare",
-        "medium (rosa kjerne)",
-        "medium gjennomstekt",
-        "krydret og gjennomstekt",
-        "krydret og klar",
-        "innkokt og aromatisk",
-        "kremet og al dente",
-        "kremet og glatt",
-        "smørmyk"
-      ],
-      "ms": [
-        "perang keemasan",
-        "lembut",
-        "jernih",
-        "masak",
-        "rangup",
-        "berkrim",
-        "al dente",
-        "pekat",
-        "merenih",
-        "berganda",
-        "lembut",
-        "terpanggang",
-        "cair",
-        "berbuih",
-        "terkurang",
-        "disejukkan",
-        "suam",
-        "pejal",
-        "gebu",
-        "terkaramel",
-        "licin",
-        "ditumis",
-        "ditumis sekata",
-        "ditumis dengan api besar",
-        "keperangan sekata",
-        "perang",
-        "perang gelap",
-        "rangup keperangan",
-        "rangup di luar",
-        "berjus di dalam",
-        "medium-rare",
-        "medium",
-        "masak sepenuhnya",
-        "pekat dan aromatik",
-        "jernih dan wangi",
-        "jernih dan lembut",
-        "licin dan elastik",
-        "berganda saiz",
-        "rileks",
-        "dipanggang",
-        "perang keemasan dan rangup",
-        "digratin",
-        "perang keemasan (ujian cucuk)",
-        "perang keemasan dan berlepuh",
-        "perang keemasan dan pejal",
-        "berkecai dan perang",
-        "licin dan berkrim",
-        "licin dan berbuih",
-        "dicampur sekata",
-        "kaku",
-        "suam tangan",
-        "emulsi",
-        "beku sepenuhnya",
-        "sedikit keperangan",
-        "sedikit dipanggang",
-        "lembut dan meresap",
-        "lembut dan masak",
-        "masak dan berbumbu",
-        "masak dan lembut",
-        "lembut dan berjus",
-        "cukup pejal untuk dihiris",
-        "pejal di tepi, sedikit bergoyang di tengah",
-        "disejukkan perlahan",
-        "medium rare",
-        "medium (tengah merah jambu)",
-        "medium masak",
-        "berbumbu dan masak",
-        "berbumbu dan sedia",
-        "pekat dan aromatik",
-        "berkrim dan al dente",
-        "berkrim dan licin",
-        "lembut bagai mentega"
-      ]
-    },
-    "base": {
-      "de": [
-        "Eischnee",
-        "Masse",
-        "Teig",
-        "Creme",
-        "Sauce",
-        "Glasur",
-        "Füllung",
-        "Marinade",
-        "Emulsion",
-        "Schaum",
-        "Eintopf",
-        "Suppe"
-      ],
-      "en": [
-        "egg white foam",
-        "mixture",
-        "dough",
-        "cream",
-        "sauce",
-        "glaze",
-        "filling",
-        "marinade",
-        "emulsion",
-        "foam",
-        "stew",
-        "soup"
-      ],
-      "esp": [
-        "las claras montadas",
-        "la mezcla",
-        "la masa",
-        "la crema",
-        "la salsa",
-        "el glaseado",
-        "el relleno",
-        "la marinada",
-        "la emulsión",
-        "la espuma",
-        "el guiso",
-        "la sopa"
-      ],
-      "prt": [
-        "as claras em neve",
-        "a mistura",
-        "a massa",
-        "o creme",
-        "o molho",
-        "a cobertura",
-        "o recheio",
-        "a marinada",
-        "a emulsão",
-        "a espuma",
-        "o ensopado",
-        "a sopa"
-      ],
-      "id": [
-        "putih telur kocok",
-        "adonan",
-        "adonan dasar",
-        "krim",
-        "saus",
-        "glasir",
-        "isian",
-        "marinade",
-        "emulsi",
-        "busa",
-        "semur",
-        "sup"
-      ],
-      "nl": [
-        "het eiwitschuim",
-        "de massa",
-        "het deeg",
-        "de crème",
-        "de saus",
-        "het glazuur",
-        "de vulling",
-        "de marinade",
-        "de emulsie",
-        "het schuim",
-        "de stoofpot",
-        "de soep"
-      ],
-      "sv": [
-        "äggvitan",
-        "massan",
-        "degen",
-        "krämen",
-        "såsen",
-        "glasyren",
-        "fyllningen",
-        "marinaden",
-        "emulsionen",
-        "skummet",
-        "grytan",
-        "soppan"
-      ],
-      "da": [
-        "æggehviderne",
-        "massen",
-        "dejen",
-        "cremen",
-        "saucen",
-        "glasuren",
-        "fyldet",
-        "marinaden",
-        "emulsionen",
-        "skummet",
-        "gryderetten",
-        "suppen"
-      ],
-      "no": [
-        "eggehviten",
-        "massen",
-        "deigen",
-        "kremen",
-        "sausen",
-        "glasuren",
-        "fyllet",
-        "marinaden",
-        "emulsjonen",
-        "skummet",
-        "gryteretten",
-        "suppen"
-      ],
-      "ms": [
-        "putih telur kembang",
-        "adunan",
-        "doh",
-        "krim",
-        "sos",
-        "glasur",
-        "inti",
-        "perapan",
-        "emulsi",
-        "buih",
-        "stew",
-        "sup"
-      ]
-    },
-    "seasonings": {
-      "de": [
-        "Salz",
-        "Pfeffer",
-        "Salz und Pfeffer",
-        "Kräuter",
-        "Gewürzen"
-      ],
-      "en": [
-        "salt",
-        "pepper",
-        "salt and pepper",
-        "herbs",
-        "spices"
-      ],
-      "esp": [
-        "sal",
-        "pimienta",
-        "sal y pimienta",
-        "hierbas",
-        "especias"
-      ],
-      "prt": [
-        "sal",
-        "pimenta",
-        "sal e pimenta",
-        "ervas",
-        "especiarias"
-      ],
-      "id": [
-        "garam",
-        "lada",
-        "garam dan lada",
-        "herba",
-        "rempah"
-      ],
-      "nl": [
-        "zout",
-        "peper",
-        "zout en peper",
-        "kruiden",
-        "specerijen"
-      ],
-      "sv": [
-        "salt",
-        "peppar",
-        "salt och peppar",
-        "örter",
-        "kryddor"
-      ],
-      "da": [
-        "salt",
-        "peber",
-        "salt og peber",
-        "urter",
-        "krydderier"
-      ],
-      "no": [
-        "salt",
-        "pepper",
-        "salt og pepper",
-        "urter",
-        "krydder"
-      ],
-      "ms": [
-        "garam",
-        "lada",
-        "garam dan lada",
-        "herba",
-        "rempah"
-      ]
-    },
-    "balance": {
-      "de": [
-        "die Säure",
-        "die Süße",
-        "die Schärfe"
-      ],
-      "en": [
-        "the acidity",
-        "the sweetness",
-        "the spiciness"
-      ],
-      "esp": [
-        "la acidez",
-        "la dulzura",
-        "el picante"
-      ],
-      "prt": [
-        "a acidez",
-        "a doçura",
-        "o picante"
-      ],
-      "id": [
-        "keasaman",
-        "kemanisan",
-        "kepedasan"
-      ],
-      "nl": [
-        "de zuurgraad",
-        "de zoetheid",
-        "de pittigheid"
-      ],
-      "sv": [
-        "syran",
-        "sötman",
-        "hettan"
-      ],
-      "da": [
-        "syren",
-        "sødmen",
-        "styrken"
-      ],
-      "no": [
-        "syren",
-        "sødmen",
-        "styrken"
-      ],
-      "ms": [
-        "keasidan",
-        "kemanisan",
-        "kepedasan"
-      ]
-    },
-    "grind_size": {
-      "de": [
-        "fein",
-        "feine",
-        "mittel",
-        "mittlere",
-        "grob",
-        "grobe",
-        "dünn",
-        "dünne",
-        "breit",
-        "breite",
-        "klein",
-        "kleine",
-        "groß",
-        "große",
-        "ca. 1 cm groß",
-        "ca. 1 cm große",
-        "ca. 0,5 mm groß",
-        "ca. 0,5 mm große"
-      ],
-      "en": [
-        "fine",
-        "medium",
-        "coarse",
-        "thin",
-        "wide",
-        "small",
-        "large",
-        "about 3/8-inch",
-        "about 0.02-inch"
-      ],
-      "esp": [
-        "finas",
-        "medianas",
-        "gruesas",
-        "delgadas",
-        "anchas",
-        "pequeñas",
-        "grandes"
-      ],
-      "prt": [
-        "finas",
-        "médias",
-        "grossas",
-        "finas",
-        "largas",
-        "pequenas",
-        "grandes"
-      ],
-      "id": [
-        "halus",
-        "sedang",
-        "kasar",
-        "tipis",
-        "tebal",
-        "kecil",
-        "besar"
-      ],
-      "nl": [
-        "fijne",
-        "middelgrote",
-        "grove",
-        "dunne",
-        "brede",
-        "kleine",
-        "grote"
-      ],
-      "sv": [
-        "fina",
-        "medelgrova",
-        "grova",
-        "tunna",
-        "breda",
-        "små",
-        "stora"
-      ],
-      "da": [
-        "fine",
-        "mellemstore",
-        "grove",
-        "tynde",
-        "brede",
-        "små",
-        "store"
-      ],
-      "no": [
-        "fine",
-        "middels",
-        "grove",
-        "tynne",
-        "brede",
-        "små",
-        "store"
-      ],
-      "ms": [
-        "halus",
-        "sederhana",
-        "kasar",
-        "nipis",
-        "lebar",
-        "kecil",
-        "besar"
-      ]
-    },
-    "item": {
-      "de": [
-        "🍞 den Teig",
-        "🥣 die Masse",
-        "🥣 die Mischung",
-        "🍽️ das Gericht",
-        "🍖 den Braten"
-      ],
-      "en": [
-        "🍞 dough",
-        "🥣 batter",
-        "🥣 mixture",
-        "🍽️ dish",
-        "🍖 roast"
-      ],
-      "esp": [
-        "🍞 masa",
-        "🥣 mezcla",
-        "🥣 preparaci�n",
-        "🍽️ plato",
-        "🍖 el asado"
-      ],
-      "prt": [
-        "🍞 massa",
-        "🥣 mistura",
-        "🥣 prepara��o",
-        "🍽️ prato",
-        "🍖 o assado"
-      ],
-      "id": [
-        "🍞 adonan",
-        "🥣 campuran",
-        "🥣 olahan",
-        "🍽️ hidangan",
-        "🍖 daging panggang"
-      ],
-      "nl": [
-        "🍞 deeg",
-        "🥣 mengsel",
-        "🥣 mix",
-        "🍽️ gerecht",
-        "🍖 het braadstuk"
-      ],
-      "sv": [
-        "🍞 deg",
-        "🥣 smet",
-        "🥣 blandning",
-        "🍽️ r�tt",
-        "🍖 steken"
-      ],
-      "da": [
-        "🍞 dej",
-        "🥣 masse",
-        "🥣 blanding",
-        "🍽️ ret",
-        "🍖 stegen"
-      ],
-      "no": [
-        "🍞 deig",
-        "🥣 r�re",
-        "🥣 blanding",
-        "🍽️ rett",
-        "🍖 steken"
-      ],
-      "ms": [
-        "🍞 doh",
-        "🥣 adunan",
-        "🥣 campuran",
-        "🍽️ hidangan",
-        "🍖 daging panggang"
-      ]
-    },
-    "equipment": {
-      "de": [
-        "🍳 Pfanne",
-        "🍲 Topf",
-        "♨️ Backofen",
-        "🍲 Bräter",
-        "🔥 Kochfeld",
-        "Mixer",
-        "🔥 Grill",
-        "♨️ Dampfgarer",
-        "🥣 Schüssel",
-        "Sieb"
-      ],
-      "en": [
-        "🍳 pan",
-        "🍲 pot",
-        "♨️ oven",
-        "🍲 roasting pan",
-        "🔥 stovetop",
-        "blender",
-        "🔥 grill",
-        "♨️ steamer",
-        "🥣 bowl",
-        "strainer"
-      ],
-      "esp": [
-        "🍳 la sartén",
-        "🍲 la olla",
-        "♨️ el horno",
-        "🍲 la asadera",
-        "🔥 la placa de cocción",
-        "la batidora",
-        "🔥 la parrilla",
-        "♨️ la vaporera",
-        "🥣 el bol",
-        "el colador"
-      ],
-      "prt": [
-        "🍳 a frigideira",
-        "🍲 a panela",
-        "♨️ o forno",
-        "🍲 a assadeira",
-        "🔥 o fogão",
-        "o liquidificador",
-        "🔥 a grelha",
-        "♨️ o cozedor a vapor",
-        "🥣 a tigela",
-        "a peneira"
-      ],
-      "id": [
-        "🍳 wajan",
-        "🍲 panci",
-        "♨️ oven",
-        "🍲 loyang",
-        "🔥 kompor",
-        "blender",
-        "🔥 pemanggang",
-        "♨️ pengukus",
-        "🥣 mangkuk",
-        "saringan"
-      ],
-      "nl": [
-        "🍳 de pan",
-        "🍲 de kookpot",
-        "♨️ de oven",
-        "🍲 de braadslede",
-        "🔥 de kookplaat",
-        "de blender",
-        "🔥 de grill",
-        "♨️ de stomer",
-        "🥣 de kom",
-        "de zeef"
-      ],
-      "sv": [
-        "🍳 stekpannan",
-        "🍲 kastrullen",
-        "♨️ ugnen",
-        "🍲 stekgrytan",
-        "🔥 spishållen",
-        "mixern",
-        "🔥 grillen",
-        "♨️ ångkokaren",
-        "🥣 skålen",
-        "silen"
-      ],
-      "da": [
-        "🍳 panden",
-        "🍲 gryden",
-        "♨️ ovnen",
-        "🍲 bradepanden",
-        "🔥 kogepladen",
-        "blenderen",
-        "🔥 grillen",
-        "♨️ dampkogeren",
-        "🥣 skålen",
-        "sien"
-      ],
-      "no": [
-        "🍳 stekepannen",
-        "🍲 gryta",
-        "♨️ ovnen",
-        "🍲 den ildfaste formen",
-        "🔥 koketoppen",
-        "blenderen",
-        "🔥 grillen",
-        "♨️ dampkokeren",
-        "🥣 bollen",
-        "silen"
-      ],
-      "ms": [
-        "🍳 kuali",
-        "🍲 periuk",
-        "♨️ ketuhar",
-        "🍲 bekas pembakar",
-        "🔥 dapur",
-        "pengisar",
-        "🔥 gril",
-        "♨️ pengukus",
-        "🥣 mangkuk",
-        "penapis"
-      ]
-    },
-    "marinade": {
-      "de": [
-        "Olivenöl und Gewürzen",
-        "Joghurt und Gewürzen",
-        "Sojasauce, Knoblauch und Ingwer",
-        "Zitronensaft, Öl und Kräutern",
-        "Marinade"
-      ],
-      "en": [
-        "olive oil and spices",
-        "yogurt and spices",
-        "soy sauce, garlic and ginger",
-        "lemon juice, oil and herbs",
-        "marinade"
-      ],
-      "esp": [
-        "aceite de oliva y especias",
-        "yogur y especias",
-        "salsa de soja, ajo y jengibre",
-        "zumo de limón, aceite y hierbas",
-        "la marinada"
-      ],
-      "prt": [
-        "azeite e especiarias",
-        "iogurte e especiarias",
-        "molho de soja, alho e gengibre",
-        "sumo de limão, azeite e ervas",
-        "a marinada"
-      ],
-      "id": [
-        "minyak zaitun dan rempah",
-        "yogurt dan rempah",
-        "kecap asin, bawang putih, dan jahe",
-        "jus lemon, minyak, dan herba",
-        "marinade"
-      ],
-      "nl": [
-        "olijfolie en kruiden",
-        "yoghurt en kruiden",
-        "sojasaus, knoflook en gember",
-        "citroensap, olie en kruiden",
-        "marinade"
-      ],
-      "sv": [
-        "olivolja och kryddor",
-        "yoghurt och kryddor",
-        "sojasås, vitlök och ingefära",
-        "citronsaft, olja och örter",
-        "marinade"
-      ],
-      "da": [
-        "olivenolie og krydderier",
-        "yoghurt og krydderier",
-        "sojasauce, hvidløg og ingefær",
-        "citronsaft, olie og urter",
-        "marinade"
-      ],
-      "no": [
-        "olivenolje og krydder",
-        "yoghurt og krydder",
-        "soyasaus, hvitløk og ingefær",
-        "sitronsaft, olje og urter",
-        "marinade"
-      ],
-      "ms": [
-        "minyak zaitun dan rempah",
-        "yogurt dan rempah",
-        "kicap soya, bawang putih dan halia",
-        "jus lemon, minyak dan herba",
-        "perapan"
-      ]
-    },
-    "method": {
-      "de": [
-        "vorsichtig unter",
-        "gleichmäßig einrühren",
-        "kurz vermengen",
-        "gründlich vermischen",
-        "vorsichtig",
-        "unterrühren",
-        "schwenkend",
-        "regelmäßig",
-        "unter ständigem Rühren",
-        "kellenweise einrühren",
-        "kellenweise Brühe ein",
-        "angießen und unterrühren",
-        "zugießen und unterrühren",
-        "die Currypaste ein",
-        "fein",
-        "fest einrollen"
-      ],
-      "en": [
-        "fold in gently",
-        "stir in evenly",
-        "mix briefly",
-        "combine thoroughly",
-        "gently",
-        "stir in",
-        "tossing",
-        "regularly",
-        "stirring constantly",
-        "ladle in and stir",
-        "ladle in broth",
-        "pour in and stir",
-        "add and stir in",
-        "the curry paste",
-        "finely",
-        "roll tightly"
-      ],
-      "esp": [
-        "incorpora suavemente",
-        "remueve de forma uniforme",
-        "mezcla brevemente",
-        "mezcla bien",
-        "suavemente",
-        "incorporar",
-        "salteando",
-        "regularmente",
-        "removiendo constantemente",
-        "añadir con cucharón",
-        "añadir caldo con cucharón",
-        "verter y remover",
-        "añadir y remover",
-        "la pasta de curry",
-        "finamente",
-        "enrollar firmemente"
-      ],
-      "prt": [
-        "incorpore delicadamente",
-        "misture de forma uniforme",
-        "misture rapidamente",
-        "misture bem",
-        "delicadamente",
-        "incorporar",
-        "salteando",
-        "regularmente",
-        "mexendo constantemente",
-        "adicionar com concha",
-        "adicionar caldo com concha",
-        "despejar e mexer",
-        "adicionar e mexer",
-        "a pasta de curry",
-        "finamente",
-        "enrolar firmemente"
-      ],
-      "id": [
-        "aduk perlahan",
-        "aduk rata",
-        "campur sebentar",
-        "campur hingga rata",
-        "perlahan",
-        "aduk masuk",
-        "mengaduk-aduk",
-        "secara teratur",
-        "sambil terus mengaduk",
-        "sendok demi sendok",
-        "sendok kaldu masuk",
-        "tuang dan aduk",
-        "tambah dan aduk",
-        "pasta kari",
-        "halus",
-        "gulung rapat"
-      ],
-      "nl": [
-        "voorzichtig erdoor spatelen",
-        "gelijkmatig erdoor roeren",
-        "kort mengen",
-        "grondig mengen",
-        "voorzichtig",
-        "erdoor roeren",
-        "zwenkend",
-        "regelmatig",
-        "onder voortdurend roeren",
-        "schep voor schep erbij",
-        "schep bouillon erbij",
-        "erbij gieten en roeren",
-        "toevoegen en erdoor roeren",
-        "de currypasta",
-        "fijn",
-        "strak oprollen"
-      ],
-      "sv": [
-        "vänd ner försiktigt",
-        "rör i jämnt",
-        "blanda kort",
-        "blanda ordentligt",
-        "försiktigt",
-        "rör i",
-        "svängande",
-        "regelbundet",
-        "under ständig omrörning",
-        "slev för slev",
-        "slev i buljong",
-        "häll i och rör",
-        "tillsätt och rör i",
-        "currypastan",
-        "fint",
-        "rulla hårt"
-      ],
-      "da": [
-        "vend forsigtigt i",
-        "rør jævnt i",
-        "bland kort",
-        "bland grundigt",
-        "forsigtigt",
-        "rør i",
-        "svitsende",
-        "regelmæssigt",
-        "under konstant omrøring",
-        "øse for øse",
-        "øse bouillon i",
-        "hæld i og rør",
-        "tilsæt og rør i",
-        "currypastaen",
-        "fint",
-        "rul stramt"
-      ],
-      "no": [
-        "vend forsiktig inn",
-        "rør jevnt inn",
-        "bland kort",
-        "bland godt",
-        "forsiktig",
-        "rør inn",
-        "svertende",
-        "regelmessig",
-        "under stadig omrøring",
-        "øse for øse",
-        "øse buljong inn",
-        "hell i og rør",
-        "tilsett og rør inn",
-        "currypastaen",
-        "fint",
-        "rull stramt"
-      ],
-      "ms": [
-        "gaul perlahan",
-        "kacau rata",
-        "gaul sebentar",
-        "gaul sebati",
-        "perlahan",
-        "kacau masuk",
-        "mengayun",
-        "secara tetap",
-        "sambil terus mengacau",
-        "senduk demi senduk",
-        "senduk stok masuk",
-        "tuang dan kacau",
-        "tambah dan kacau",
-        "pes kari",
-        "halus",
-        "gulung ketat"
-      ]
-    },
-    "mode": {
-      "de": [
-        "Ober-/Unterhitze",
-        "Umluft",
-        "Grillfunktion"
-      ],
-      "en": [
-        "top/bottom heat",
-        "fan-assisted",
-        "broil mode"
-      ],
-      "esp": [
-        "calor arriba y abajo",
-        "aire caliente",
-        "función grill"
-      ],
-      "prt": [
-        "calor superior/inferior",
-        "ventilado",
-        "função grill"
-      ],
-      "id": [
-        "api atas-bawah",
-        "kipas konveksi",
-        "mode grill"
-      ],
-      "nl": [
-        "boven-/onderwarmte",
-        "hetelucht",
-        "grillstand"
-      ],
-      "sv": [
-        "över-/undervärme",
-        "varmluft",
-        "grilläge"
-      ],
-      "da": [
-        "over-/undervarme",
-        "varmluft",
-        "grillfunktion"
-      ],
-      "no": [
-        "over-/undervarme",
-        "varmluft",
-        "grillfunksjon"
-      ],
-      "ms": [
-        "haba atas/bawah",
-        "kipas perolakan",
-        "mod gril"
-      ]
-    },
-    "servings": {
-      "de": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "en": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "esp": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "prt": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "id": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "nl": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "sv": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "da": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "no": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ],
-      "ms": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "8",
-        "10",
-        "12"
-      ]
-    },
-    "position": {
-      "de": [
-        "mittig",
-        "auf oberer Schiene",
-        "nah unter dem Grill"
-      ],
-      "en": [
-        "in the middle",
-        "on the top rack",
-        "close to the broiler"
-      ],
-      "esp": [
-        "en el centro",
-        "en la bandeja superior",
-        "cerca del grill"
-      ],
-      "prt": [
-        "ao centro",
-        "na prateleira superior",
-        "perto do grill"
-      ],
-      "id": [
-        "di tengah",
-        "di rak atas",
-        "dekat pemanggang"
-      ],
-      "nl": [
-        "in het midden",
-        "op het bovenste rooster",
-        "dicht onder de grill"
-      ],
-      "sv": [
-        "i mitten",
-        "på översta falsen",
-        "nära grillelementet"
-      ],
-      "da": [
-        "i midten",
-        "på øverste rille",
-        "tæt under grillen"
-      ],
-      "no": [
-        "i midten",
-        "på øverste rille",
-        "nært grillelementet"
-      ],
-      "ms": [
-        "di tengah",
-        "di rak atas",
-        "dekat gril"
-      ]
-    },
-    "keep": {
-      "de": [
-        "das Kochwasser",
-        "die Brühe",
-        "die Sauce",
-        "den Sud"
-      ],
-      "en": [
-        "the cooking water",
-        "the broth",
-        "the sauce",
-        "the liquid"
-      ],
-      "esp": [
-        "el agua de cocción",
-        "el caldo",
-        "la salsa",
-        "el líquido"
-      ],
-      "prt": [
-        "a água da cozedura",
-        "o caldo",
-        "o molho",
-        "o líquido"
-      ],
-      "id": [
-        "air rebusan",
-        "kaldu",
-        "saus",
-        "cairan rebusan"
-      ],
-      "nl": [
-        "het kookwater",
-        "de bouillon",
-        "de saus",
-        "het vocht"
-      ],
-      "sv": [
-        "kokvattnet",
-        "buljongen",
-        "såsen",
-        "vätskan"
-      ],
-      "da": [
-        "kogevandet",
-        "bouillonen",
-        "saucen",
-        "væsken"
-      ],
-      "no": [
-        "kokevannet",
-        "kraften",
-        "sausen",
-        "væsken"
-      ],
-      "ms": [
-        "air rebusan",
-        "stok",
-        "sos",
-        "cecair"
-      ]
-    },
-    "surface": {
-      "de": [
-        "einer bemehlten Arbeitsfläche",
-        "Backpapier",
-        "einer Silikonmatte",
-        "der Arbeitsfläche"
-      ],
-      "en": [
-        "a floured work surface",
-        "parchment paper",
-        "a silicone mat",
-        "the work surface"
-      ],
-      "esp": [
-        "una superficie enharinada",
-        "papel de horno",
-        "una esterilla de silicona",
-        "la superficie de trabajo"
-      ],
-      "prt": [
-        "uma superfície enfarinhada",
-        "papel vegetal",
-        "um tapete de silicone",
-        "a superfície de trabalho"
-      ],
-      "id": [
-        "permukaan bertabur tepung",
-        "kertas roti",
-        "alas silikon",
-        "permukaan kerja"
-      ],
-      "nl": [
-        "een bebloemd werkblad",
-        "bakpapier",
-        "een siliconenmat",
-        "het werkblad"
-      ],
-      "sv": [
-        "en mjölad arbetsyta",
-        "bakplåtspapper",
-        "en silikonmatta",
-        "arbetsytan"
-      ],
-      "da": [
-        "et meldrysset bord",
-        "bagepapir",
-        "en silikonemåtte",
-        "arbejdsfladen"
-      ],
-      "no": [
-        "en melet arbeidsflate",
-        "bakepapir",
-        "en silikonmatte",
-        "arbeidsflaten"
-      ],
-      "ms": [
-        "permukaan bertabur tepung",
-        "kertas pembakar",
-        "alas silikon",
-        "permukaan kerja"
-      ]
-    },
-    "thickener": {
-      "de": [
-        "Speisestärke",
-        "Mehl",
-        "angerührter Stärke",
-        "einer Mehlschwitze"
-      ],
-      "en": [
-        "cornstarch",
-        "flour",
-        "slurry",
-        "a roux"
-      ],
-      "esp": [
-        "maicena",
-        "harina",
-        "fécula disuelta",
-        "un roux"
-      ],
-      "prt": [
-        "amido de milho",
-        "farinha",
-        "amido dissolvido",
-        "um roux"
-      ],
-      "id": [
-        "tepung maizena",
-        "tepung",
-        "larutan pati",
-        "roux"
-      ],
-      "nl": [
-        "maïzena",
-        "bloem",
-        "zetmeelpapje",
-        "een roux"
-      ],
-      "sv": [
-        "majsstärkelse",
-        "mjöl",
-        "redning",
-        "en roux"
-      ],
-      "da": [
-        "majsstivelse",
-        "mel",
-        "jævning",
-        "en roux"
-      ],
-      "no": [
-        "maisstivelse",
-        "mel",
-        "jevning",
-        "en roux"
-      ],
-      "ms": [
-        "tepung jagung",
-        "tepung",
-        "bancuhan kanji",
-        "roux"
-      ]
-    },
-    "components": {
-      "de": [
-        "Gemüse und Sauce",
-        "Kartoffeln und Gemüse",
-        "Nudeln und Sauce",
-        "Schichten aus Teig und Füllung",
-        "die Zutaten"
-      ],
-      "en": [
-        "vegetables and sauce",
-        "potatoes and vegetables",
-        "pasta and sauce",
-        "layers of dough and filling",
-        "the ingredients"
-      ],
-      "esp": [
-        "verduras y salsa",
-        "patatas y verduras",
-        "pasta y salsa",
-        "capas de masa y relleno",
-        "los ingredientes"
-      ],
-      "prt": [
-        "legumes e molho",
-        "batatas e legumes",
-        "massa e molho",
-        "camadas de massa e recheio",
-        "os ingredientes"
-      ],
-      "id": [
-        "sayur dan saus",
-        "kentang dan sayur",
-        "pasta dan saus",
-        "lapisan adonan dan isian",
-        "bahan-bahan"
-      ],
-      "nl": [
-        "groenten en saus",
-        "aardappelen en groenten",
-        "pasta en saus",
-        "lagen deeg en vulling",
-        "de ingredienten"
-      ],
-      "sv": [
-        "grönsaker och sås",
-        "potatis och grönsaker",
-        "pasta och sås",
-        "lager av deg och fyllning",
-        "ingredienserna"
-      ],
-      "da": [
-        "grøntsager og sauce",
-        "kartofler og grøntsager",
-        "pasta og sauce",
-        "lag af dej og fyld",
-        "ingredienserne"
-      ],
-      "no": [
-        "grønnsaker og saus",
-        "poteter og grønnsaker",
-        "pasta og saus",
-        "lag av deig og fyll",
-        "ingrediensene"
-      ],
-      "ms": [
-        "sayur dan sos",
-        "kentang dan sayur",
-        "pasta dan sos",
-        "lapisan doh dan inti",
-        "bahan-bahan"
-      ]
-    },
-    "finish": {
-      "de": [
-        "geriebenem Käse",
-        "frischen Kräutern",
-        "Semmelbröseln",
-        "einem Schuss Olivenöl",
-        "Bechamelsauce"
-      ],
-      "en": [
-        "grated cheese",
-        "fresh herbs",
-        "breadcrumbs",
-        "a drizzle of olive oil",
-        "bechamel sauce"
-      ],
-      "esp": [
-        "queso rallado",
-        "hierbas frescas",
-        "pan rallado",
-        "un chorrito de aceite de oliva",
-        "salsa bechamel"
-      ],
-      "prt": [
-        "queijo ralado",
-        "ervas frescas",
-        "pão ralado",
-        "um fio de azeite",
-        "molho bechamel"
-      ],
-      "id": [
-        "keju parut",
-        "herba segar",
-        "tepung roti",
-        "sedikit minyak zaitun",
-        "saus bechamel"
-      ],
-      "nl": [
-        "geraspte kaas",
-        "verse kruiden",
-        "paneermeel",
-        "een scheutje olijfolie",
-        "bechamelsaus"
-      ],
-      "sv": [
-        "riven ost",
-        "färska örter",
-        "ströbröd",
-        "en skvätt olivolja",
-        "bechamelsas"
-      ],
-      "da": [
-        "revet ost",
-        "friske urter",
-        "rasp",
-        "en smule olivenolie",
-        "bechamelsauce"
-      ],
-      "no": [
-        "revet ost",
-        "friske urter",
-        "brødrasp",
-        "en skvett olivenolje",
-        "bechamelsaus"
-      ],
-      "ms": [
-        "keju parut",
-        "herba segar",
-        "serbuk roti",
-        "sedikit minyak zaitun",
-        "sos bechamel"
-      ]
-    },
-    "extra": {
-      "de": [
-        "mit frischen Kräutern",
-        "mit einem Dip",
-        "mit Zitronenspalten",
-        "sofort heiß"
-      ],
-      "en": [
-        "with fresh herbs",
-        "with a dip",
-        "with lemon wedges",
-        "serve immediately while hot"
-      ],
-      "esp": [
-        "con hierbas frescas",
-        "con una salsa",
-        "con gajos de limón",
-        "servir caliente de inmediato"
-      ],
-      "prt": [
-        "com ervas frescas",
-        "com um molho",
-        "com gomos de limão",
-        "servir de imediato bem quente"
-      ],
-      "id": [
-        "dengan herba segar",
-        "dengan cecah",
-        "dengan irisan lemon",
-        "sajikan segera saat panas"
-      ],
-      "nl": [
-        "met verse kruiden",
-        "met een dip",
-        "met partjes citroen",
-        "meteen heet serveren"
-      ],
-      "sv": [
-        "med färska örter",
-        "med en dip",
-        "med citronklyftor",
-        "servera direkt varm"
-      ],
-      "da": [
-        "med friske urter",
-        "med en dip",
-        "med citronbåde",
-        "servér straks varm"
-      ],
-      "no": [
-        "med friske urter",
-        "med en dip",
-        "med sitronbåter",
-        "server straks varm"
-      ],
-      "ms": [
-        "dengan herba segar",
-        "dengan sos pencicah",
-        "dengan hirisan lemon",
-        "hidang segera semasa panas"
-      ]
-    },
-    "reason": {
-      "de": [
-        "sich die Aromen verbinden",
-        "die Masse stabil bleibt",
-        "der Saft sich verteilt",
-        "die Kruste knusprig bleibt"
-      ],
-      "en": [
-        "the flavors can meld",
-        "the mixture stays stable",
-        "the juices can redistribute",
-        "the crust stays crispy"
-      ],
-      "esp": [
-        "se integren los sabores",
-        "la mezcla se mantenga estable",
-        "los jugos se redistribuyan",
-        "la costra quede crujiente"
-      ],
-      "prt": [
-        "os sabores se integrem",
-        "a mistura se mantenha estável",
-        "os sucos se redistribuam",
-        "a crosta fique crocante"
-      ],
-      "id": [
-        "rasa menyatu",
-        "adonan tetap stabil",
-        "sari merata kembali",
-        "kerak tetap renyah"
-      ],
-      "nl": [
-        "de smaken zich verbinden",
-        "het mengsel stabiel blijft",
-        "de sappen zich verdelen",
-        "de korst knapperig blijft"
-      ],
-      "sv": [
-        "smakerna hinner sätta sig",
-        "blandningen håller sig stabil",
-        "saften fördelas igen",
-        "skorpan håller sig krispig"
-      ],
-      "da": [
-        "smagene samler sig",
-        "massen holder sig stabil",
-        "saften fordeler sig",
-        "skorpen forbliver sprød"
-      ],
-      "no": [
-        "smakene setter seg",
-        "blandingen holder seg stabil",
-        "saften fordeler seg",
-        "skorpen holder seg sprø"
-      ],
-      "ms": [
-        "rasa sebati",
-        "adunan kekal stabil",
-        "jus kembali sekata",
-        "kerak kekal rangup"
-      ]
-    },
-    "goal": {
-      "de": [
-        "die Masse luftig bleibt",
-        "keine Luft entweicht",
-        "alles gleichmäßig verteilt ist",
-        "die Struktur erhalten bleibt"
-      ],
-      "en": [
-        "the mixture stays airy",
-        "no air is lost",
-        "everything is evenly distributed",
-        "the structure is preserved"
-      ],
-      "esp": [
-        "la mezcla quede aireada",
-        "no se pierda aire",
-        "todo quede repartido de forma uniforme",
-        "se conserve la estructura"
-      ],
-      "prt": [
-        "a mistura fique aerada",
-        "não se perca ar",
-        "tudo fique distribuído de forma uniforme",
-        "a estrutura seja preservada"
-      ],
-      "id": [
-        "adonan tetap ringan",
-        "udara tidak hilang",
-        "semua tersebar merata",
-        "strukturnya terjaga"
-      ],
-      "nl": [
-        "het mengsel luchtig blijft",
-        "er geen lucht verloren gaat",
-        "alles gelijkmatig verdeeld is",
-        "de structuur behouden blijft"
-      ],
-      "sv": [
-        "smeten håller sig luftig",
-        "ingen luft går förlorad",
-        "allt fördelas jämnt",
-        "strukturen bevaras"
-      ],
-      "da": [
-        "massen forbliver luftig",
-        "ingen luft går tabt",
-        "alt fordeles jævnt",
-        "strukturen bevares"
-      ],
-      "no": [
-        "blandingen holder seg luftig",
-        "ingen luft går tapt",
-        "alt fordeles jevnt",
-        "strukturen bevares"
-      ],
-      "ms": [
-        "adunan kekal ringan",
-        "udara tidak hilang",
-        "semua tersebar sekata",
-        "struktur kekal terpelihara"
-      ]
-    },
-    "step1": {
-      "de": [
-        "Mehl",
-        "Stärke",
-        "Pankomehl"
-      ],
-      "en": [
-        "flour",
-        "starch",
-        "panko breadcrumbs"
-      ],
-      "esp": [
-        "harina",
-        "fécula",
-        "panko"
-      ],
-      "prt": [
-        "farinha",
-        "amido",
-        "panko"
-      ],
-      "id": [
-        "tepung",
-        "pati",
-        "tepung roti panko"
-      ],
-      "nl": [
-        "bloem",
-        "zetmeel",
-        "panko"
-      ],
-      "sv": [
-        "mjöl",
-        "stärkelse",
-        "panko"
-      ],
-      "da": [
-        "mel",
-        "stivelse",
-        "panko"
-      ],
-      "no": [
-        "mel",
-        "stivelse",
-        "panko"
-      ],
-      "ms": [
-        "tepung",
-        "kanji",
-        "panko"
-      ]
-    },
-    "step2": {
-      "de": [
-        "verquirltem Ei",
-        "Buttermilch",
-        "pflanzlicher Milch"
-      ],
-      "en": [
-        "beaten egg",
-        "buttermilk",
-        "plant-based milk"
-      ],
-      "esp": [
-        "huevo batido",
-        "suero de leche",
-        "leche vegetal"
-      ],
-      "prt": [
-        "ovo batido",
-        "leitelho",
-        "bebida vegetal"
-      ],
-      "id": [
-        "telur kocok",
-        "buttermilk",
-        "susu nabati"
-      ],
-      "nl": [
-        "losgeklopt ei",
-        "karnemelk",
-        "plantaardige melk"
-      ],
-      "sv": [
-        "uppvispat ägg",
-        "kärnmjölk",
-        "växtbaserad mjölk"
-      ],
-      "da": [
-        "sammenpisket æg",
-        "kærnemælk",
-        "plantebaseret mælk"
-      ],
-      "no": [
-        "sammenvispet egg",
-        "kjernemelk",
-        "plantebasert melk"
-      ],
-      "ms": [
-        "telur pukul",
-        "susu mentega",
-        "susu berasaskan tumbuhan"
-      ]
-    },
-    "step3": {
-      "de": [
-        "Semmelbröseln",
-        "Panko",
-        "zerdrückten Cornflakes"
-      ],
-      "en": [
-        "breadcrumbs",
-        "panko",
-        "crushed cornflakes"
-      ],
-      "esp": [
-        "pan rallado",
-        "panko",
-        "copos de maíz triturados"
-      ],
-      "prt": [
-        "pão ralado",
-        "panko",
-        "cornflakes triturados"
-      ],
-      "id": [
-        "tepung roti",
-        "panko",
-        "cornflakes hancur"
-      ],
-      "nl": [
-        "paneermeel",
-        "panko",
-        "geplette cornflakes"
-      ],
-      "sv": [
-        "ströbröd",
-        "panko",
-        "krossade cornflakes"
-      ],
-      "da": [
-        "rasp",
-        "panko",
-        "knuste cornflakes"
-      ],
-      "no": [
-        "brødrasp",
-        "panko",
-        "knuste cornflakes"
-      ],
-      "ms": [
-        "serbuk roti",
-        "panko",
-        "cornflakes hancur"
-      ]
-    },
-    "dough": {
-      "de": [
-        "Teig",
-        "Pizzateig",
-        "Mürbeteig",
-        "Hefeteig"
-      ],
-      "en": [
-        "dough",
-        "pizza dough",
-        "shortcrust pastry",
-        "yeast dough"
-      ],
-      "esp": [
-        "masa",
-        "masa de pizza",
-        "masa quebrada",
-        "masa con levadura"
-      ],
-      "prt": [
-        "massa",
-        "massa de pizza",
-        "massa quebrada",
-        "massa levedada"
-      ],
-      "id": [
-        "adonan",
-        "adonan pizza",
-        "adonan pastry",
-        "adonan ragi"
-      ],
-      "nl": [
-        "deeg",
-        "pizzadeeg",
-        "zanddeeg",
-        "gistdeeg"
-      ],
-      "sv": [
-        "deg",
-        "pizzadeg",
-        "mördeg",
-        "jästdeg"
-      ],
-      "da": [
-        "dej",
-        "pizzadej",
-        "mørdej",
-        "gærdej"
-      ],
-      "no": [
-        "deig",
-        "pizzadeig",
-        "mørdeig",
-        "gjærdeig"
-      ],
-      "ms": [
-        "doh",
-        "doh piza",
-        "doh pastri",
-        "doh yis"
-      ]
-    },
-    "liquid": {
-      "de": [
-        "Wasser",
-        "Salzwasser",
-        "Zuckerwasser",
-        "Suppe",
-        "Brühe",
-        "Fond",
-        "Milch",
-        "Öl",
-        "Wein",
-        "Weißwein",
-        "Rotwein"
-      ],
-      "en": [
-        "water",
-        "salted water",
-        "sugar water",
-        "soup",
-        "broth",
-        "stock",
-        "milk",
-        "oil",
-        "wine",
-        "white wine",
-        "red wine"
-      ],
-      "esp": [
-        "agua",
-        "agua con sal",
-        "agua azucarada",
-        "sopa",
-        "caldo",
-        "fondo",
-        "leche",
-        "aceite",
-        "vino",
-        "vino blanco",
-        "vino tinto"
-      ],
-      "prt": [
-        "água",
-        "água salgada",
-        "água açucarada",
-        "sopa",
-        "caldo",
-        "fundo",
-        "leite",
-        "óleo",
-        "vinho",
-        "vinho branco",
-        "vinho tinto"
-      ],
-      "id": [
-        "air",
-        "air garam",
-        "air gula",
-        "sup",
-        "kaldu",
-        "kaldu dasar",
-        "susu",
-        "minyak",
-        "anggur",
-        "anggur putih",
-        "anggur merah"
-      ],
-      "nl": [
-        "water",
-        "zout water",
-        "suikerwater",
-        "soep",
-        "bouillon",
-        "fond",
-        "melk",
-        "olie",
-        "wijn",
-        "witte wijn",
-        "rode wijn"
-      ],
-      "sv": [
-        "vatten",
-        "saltvatten",
-        "sockervatten",
-        "soppa",
-        "buljong",
-        "fond",
-        "mjölk",
-        "olja",
-        "vin",
-        "vitt vin",
-        "rött vin"
-      ],
-      "da": [
-        "vand",
-        "saltvand",
-        "sukkervand",
-        "suppe",
-        "bouillon",
-        "fond",
-        "mælk",
-        "olie",
-        "vin",
-        "hvidvin",
-        "rødvin"
-      ],
-      "no": [
-        "vann",
-        "saltvann",
-        "sukkervann",
-        "suppe",
-        "buljong",
-        "fond",
-        "melk",
-        "olje",
-        "vin",
-        "hvitvin",
-        "rødvin"
-      ],
-      "ms": [
-        "air",
-        "air garam",
-        "air gula",
-        "sup",
-        "stok",
-        "stok asas",
-        "susu",
-        "minyak",
-        "wain",
-        "wain putih",
-        "wain merah"
-      ]
-    }
+    "keep": "Aufzufangender Anteil, z.B. de: 'das Kochwasser / die Brühe'. esp: 'el agua de cocción / el caldo'.",
+    "copula": "Kopula (Hilfsverb) passend zum Subjekt. de: 'ist' (Singular) / 'sind' (Plural). en: 'is' (Singular) / 'are' (Plural). Muss zum Numerus der {{ingredient}}/{{base}} passen."
   },
   "duration_units": {
     "minute": {
@@ -5957,6 +3681,18 @@
       "da": "timer",
       "no": "timer",
       "ms": "jam"
+    },
+    "per_package": {
+      "de": "laut Packungsanweisung",
+      "en": "according to package instructions",
+      "esp": "según las instrucciones del paquete",
+      "prt": "conforme as instruções da embalagem",
+      "id": "sesuai petunjuk kemasan",
+      "nl": "volgens de verpakkingsinstructies",
+      "sv": "enligt förpackningens anvisningar",
+      "da": "ifølge pakkens anvisninger",
+      "no": "ifølge pakkens anvisninger",
+      "ms": "mengikut arahan pembungkusan"
     }
   },
   "example_render": {
@@ -6004,5 +3740,6 @@
       "ms": "Panaskan minyak zaitun dalam kuali besar dan tumis bawang selama 3–4 minit hingga lutsinar."
     },
     "_note": "{{ingredient}} wird pro Sprache mit korrektem Artikel und Genus befüllt. Der Renderer muss die sprachspezifische ingredient-Form aus den Zutaten-Stammdaten ziehen."
-  }
+  },
+  "variable_catalog_url": "/data/master_step_variables.json"
 }

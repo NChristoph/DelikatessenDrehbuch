@@ -1,0 +1,5138 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-03-19",
+  "description": "Aus master_steps.json ausgelagerter Variablen-Katalog mit Tag-basierter Filterung für den Creator.",
+  "variables": {
+    "articles": {
+      "description": "Ausgelagerte Optionen für Variable \u0027articles\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "der",
+          "labels": {
+            "de": "der",
+            "en": "the",
+            "esp": "el",
+            "prt": "o",
+            "id": "",
+            "nl": "de",
+            "sv": "den",
+            "da": "den",
+            "no": "den",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:der"
+          ]
+        },
+        {
+          "key": "die",
+          "labels": {
+            "de": "die",
+            "en": "the",
+            "esp": "la",
+            "prt": "a",
+            "id": "",
+            "nl": "de",
+            "sv": "den",
+            "da": "den",
+            "no": "den",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:die"
+          ]
+        },
+        {
+          "key": "das",
+          "labels": {
+            "de": "das",
+            "en": "the",
+            "esp": "los",
+            "prt": "os",
+            "id": "",
+            "nl": "het",
+            "sv": "det",
+            "da": "det",
+            "no": "det",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:das"
+          ]
+        },
+        {
+          "key": "den",
+          "labels": {
+            "de": "den",
+            "en": "the",
+            "esp": "las",
+            "prt": "as",
+            "id": "",
+            "nl": "de",
+            "sv": "den",
+            "da": "den",
+            "no": "den",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:den"
+          ]
+        },
+        {
+          "key": "dem",
+          "labels": {
+            "de": "dem",
+            "en": "the",
+            "esp": "el",
+            "prt": "o",
+            "id": "",
+            "nl": "de",
+            "sv": "den",
+            "da": "den",
+            "no": "den",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:dem"
+          ]
+        },
+        {
+          "key": "einen",
+          "labels": {
+            "de": "einen",
+            "en": "a",
+            "esp": "un",
+            "prt": "um",
+            "id": "",
+            "nl": "een",
+            "sv": "en",
+            "da": "en",
+            "no": "en",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:einen"
+          ]
+        },
+        {
+          "key": "einem",
+          "labels": {
+            "de": "einem",
+            "en": "a",
+            "esp": "un",
+            "prt": "um",
+            "id": "",
+            "nl": "een",
+            "sv": "en",
+            "da": "en",
+            "no": "en",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:einem"
+          ]
+        },
+        {
+          "key": "einer",
+          "labels": {
+            "de": "einer",
+            "en": "a",
+            "esp": "una",
+            "prt": "uma",
+            "id": "",
+            "nl": "een",
+            "sv": "en",
+            "da": "en",
+            "no": "en",
+            "ms": ""
+          },
+          "tags": [
+            "variable:articles",
+            "value:einer"
+          ]
+        }
+      ]
+    },
+    "pronoun": {
+      "description": "Ausgelagerte Optionen für Variable \u0027pronoun\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "er",
+          "labels": {
+            "de": "er",
+            "en": "he",
+            "esp": "él",
+            "prt": "ele",
+            "id": "dia",
+            "nl": "hij",
+            "sv": "han",
+            "da": "han",
+            "no": "han",
+            "ms": "dia"
+          },
+          "tags": [
+            "variable:pronoun",
+            "value:er"
+          ]
+        },
+        {
+          "key": "sie",
+          "labels": {
+            "de": "sie",
+            "en": "she",
+            "esp": "ella",
+            "prt": "ela",
+            "id": "ia",
+            "nl": "zij",
+            "sv": "hon",
+            "da": "hun",
+            "no": "hun",
+            "ms": "ia"
+          },
+          "tags": [
+            "variable:pronoun",
+            "value:sie"
+          ]
+        },
+        {
+          "key": "es",
+          "labels": {
+            "de": "es",
+            "en": "it",
+            "esp": "ello",
+            "prt": "isso",
+            "id": "nya",
+            "nl": "het",
+            "sv": "den",
+            "da": "den",
+            "no": "den",
+            "ms": "nya"
+          },
+          "tags": [
+            "variable:pronoun",
+            "value:es"
+          ]
+        },
+        {
+          "key": "ihn",
+          "labels": {
+            "de": "ihn",
+            "en": "them",
+            "esp": "los",
+            "prt": "os",
+            "id": "nya",
+            "nl": "hem",
+            "sv": "det",
+            "da": "det",
+            "no": "det",
+            "ms": "nya"
+          },
+          "tags": [
+            "variable:pronoun",
+            "value:ihn"
+          ]
+        },
+        {
+          "key": "las",
+          "labels": {
+            "de": "sie",
+            "en": "them",
+            "esp": "las",
+            "prt": "as",
+            "id": "mereka",
+            "nl": "haar",
+            "sv": "dem",
+            "da": "dem",
+            "no": "dem",
+            "ms": "mereka"
+          },
+          "tags": [
+            "variable:pronoun",
+            "value:las"
+          ]
+        }
+      ]
+    },
+    "heat": {
+      "description": "Ausgelagerte Optionen für Variable \u0027heat\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "niedriger",
+          "labels": {
+            "de": "niedriger",
+            "en": "low",
+            "esp": "bajo",
+            "prt": "baixo",
+            "id": "rendah",
+            "nl": "laag",
+            "sv": "låg",
+            "da": "lav",
+            "no": "lav",
+            "ms": "rendah"
+          },
+          "tags": [
+            "variable:heat",
+            "value:niedriger",
+            "heat:low",
+            "low_heat",
+            "heatplate",
+            "stovetop",
+            "action:simmer",
+            "action:melt",
+            "action:warm"
+          ]
+        },
+        {
+          "key": "mittlerer",
+          "labels": {
+            "de": "mittlerer",
+            "en": "medium",
+            "esp": "medio",
+            "prt": "médio",
+            "id": "sedang",
+            "nl": "middelhoog",
+            "sv": "medelhög",
+            "da": "middel",
+            "no": "middels",
+            "ms": "sederhana"
+          },
+          "tags": [
+            "variable:heat",
+            "value:mittlerer",
+            "medium_heat",
+            "heatplate",
+            "stovetop",
+            "action:fry",
+            "action:saute",
+            "action:braise"
+          ]
+        },
+        {
+          "key": "hoher",
+          "labels": {
+            "de": "hoher",
+            "en": "high",
+            "esp": "alto",
+            "prt": "alto",
+            "id": "tinggi",
+            "nl": "hoog",
+            "sv": "hög",
+            "da": "høj",
+            "no": "høy",
+            "ms": "tinggi"
+          },
+          "tags": [
+            "variable:heat",
+            "value:hoher",
+            "high_heat",
+            "heatplate",
+            "stovetop",
+            "grill_heat",
+            "action:grill",
+            "action:sear",
+            "action:stir_fry"
+          ]
+        }
+      ]
+    },
+    "action": {
+      "description": "Ausgelagerte Optionen für Variable \u0027action\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "schlage",
+          "labels": {
+            "de": "schlage",
+            "en": "beat",
+            "esp": "bate",
+            "prt": "bata",
+            "id": "kocok",
+            "nl": "klop",
+            "sv": "vispa",
+            "da": "pisk",
+            "no": "visp",
+            "ms": "pukul"
+          },
+          "tags": [
+            "variable:action",
+            "value:schlage"
+          ]
+        },
+        {
+          "key": "r_hre",
+          "labels": {
+            "de": "rühre",
+            "en": "stir",
+            "esp": "remueve",
+            "prt": "mexa",
+            "id": "aduk",
+            "nl": "roer",
+            "sv": "rör",
+            "da": "rør",
+            "no": "rør",
+            "ms": "kacau"
+          },
+          "tags": [
+            "variable:action",
+            "value:r_hre"
+          ]
+        },
+        {
+          "key": "schneide",
+          "labels": {
+            "de": "schneide",
+            "en": "cut",
+            "esp": "corta",
+            "prt": "corte",
+            "id": "potong",
+            "nl": "snijd",
+            "sv": "skär",
+            "da": "skær",
+            "no": "skjær",
+            "ms": "potong"
+          },
+          "tags": [
+            "variable:action",
+            "value:schneide"
+          ]
+        },
+        {
+          "key": "hacke",
+          "labels": {
+            "de": "hacke",
+            "en": "chop",
+            "esp": "pica",
+            "prt": "pique",
+            "id": "cincang",
+            "nl": "hak",
+            "sv": "hacka",
+            "da": "hak",
+            "no": "hakk",
+            "ms": "cincang"
+          },
+          "tags": [
+            "variable:action",
+            "value:hacke"
+          ]
+        },
+        {
+          "key": "sch_le",
+          "labels": {
+            "de": "schäle",
+            "en": "peel",
+            "esp": "pela",
+            "prt": "descasque",
+            "id": "kupas",
+            "nl": "schil",
+            "sv": "skala",
+            "da": "skræl",
+            "no": "skrell",
+            "ms": "kupas"
+          },
+          "tags": [
+            "variable:action",
+            "value:sch_le"
+          ]
+        },
+        {
+          "key": "mixe",
+          "labels": {
+            "de": "mixe",
+            "en": "blend",
+            "esp": "mezcla",
+            "prt": "bata no liquidificador",
+            "id": "blender",
+            "nl": "mix",
+            "sv": "mixa",
+            "da": "blend",
+            "no": "blend",
+            "ms": "kisar"
+          },
+          "tags": [
+            "variable:action",
+            "value:mixe"
+          ]
+        },
+        {
+          "key": "mische",
+          "labels": {
+            "de": "mische",
+            "en": "mix",
+            "esp": "mezcla",
+            "prt": "misture",
+            "id": "campur",
+            "nl": "meng",
+            "sv": "blanda",
+            "da": "bland",
+            "no": "bland",
+            "ms": "gaul"
+          },
+          "tags": [
+            "variable:action",
+            "value:mische"
+          ]
+        },
+        {
+          "key": "hebe_unter",
+          "labels": {
+            "de": "hebe unter",
+            "en": "fold in",
+            "esp": "incorpora",
+            "prt": "incorpore",
+            "id": "aduk balik",
+            "nl": "spatel onder",
+            "sv": "vänd ner",
+            "da": "vend i",
+            "no": "vend inn",
+            "ms": "gaul lipat"
+          },
+          "tags": [
+            "variable:action",
+            "value:hebe_unter"
+          ]
+        },
+        {
+          "key": "p_riere",
+          "labels": {
+            "de": "püriere",
+            "en": "purée",
+            "esp": "tritura",
+            "prt": "triture",
+            "id": "haluskan",
+            "nl": "pureer",
+            "sv": "mixa slät",
+            "da": "purér",
+            "no": "purér",
+            "ms": "kisar halus"
+          },
+          "tags": [
+            "variable:action",
+            "value:p_riere"
+          ]
+        },
+        {
+          "key": "reibe",
+          "labels": {
+            "de": "reibe",
+            "en": "grate",
+            "esp": "ralla",
+            "prt": "rale",
+            "id": "parut",
+            "nl": "rasp",
+            "sv": "riv",
+            "da": "riv",
+            "no": "riv",
+            "ms": "parut"
+          },
+          "tags": [
+            "variable:action",
+            "value:reibe",
+            "tool:grater",
+            "reibe",
+            "grater",
+            "reiben",
+            "grate"
+          ]
+        },
+        {
+          "key": "d_nste",
+          "labels": {
+            "de": "dünste",
+            "en": "sauté",
+            "esp": "sofríe",
+            "prt": "refogue",
+            "id": "tumis",
+            "nl": "smoor",
+            "sv": "fräs",
+            "da": "svits",
+            "no": "surr",
+            "ms": "tumis"
+          },
+          "tags": [
+            "variable:action",
+            "value:d_nste"
+          ]
+        },
+        {
+          "key": "brate",
+          "labels": {
+            "de": "brate",
+            "en": "fry",
+            "esp": "fríe",
+            "prt": "frite",
+            "id": "goreng",
+            "nl": "bak",
+            "sv": "stek",
+            "da": "steg",
+            "no": "stek",
+            "ms": "goreng"
+          },
+          "tags": [
+            "variable:action",
+            "value:brate"
+          ]
+        },
+        {
+          "key": "verr_hre",
+          "labels": {
+            "de": "Verrühre",
+            "en": "mix together",
+            "esp": "mezcla",
+            "prt": "misture",
+            "id": "aduk rata",
+            "nl": "roer samen",
+            "sv": "rör ihop",
+            "da": "rør sammen",
+            "no": "rør sammen",
+            "ms": "kacau rata"
+          },
+          "tags": [
+            "variable:action",
+            "value:verr_hre"
+          ]
+        },
+        {
+          "key": "verquirle",
+          "labels": {
+            "de": "Verquirle",
+            "en": "whisk together",
+            "esp": "bate",
+            "prt": "bata",
+            "id": "kocok",
+            "nl": "klop samen",
+            "sv": "vispa ihop",
+            "da": "pisk sammen",
+            "no": "visp sammen",
+            "ms": "pukul bersama"
+          },
+          "tags": [
+            "variable:action",
+            "value:verquirle"
+          ]
+        },
+        {
+          "key": "vermenge",
+          "labels": {
+            "de": "Vermenge",
+            "en": "combine",
+            "esp": "combina",
+            "prt": "combine",
+            "id": "campurkan",
+            "nl": "meng",
+            "sv": "blanda ihop",
+            "da": "bland sammen",
+            "no": "bland sammen",
+            "ms": "campurkan"
+          },
+          "tags": [
+            "variable:action",
+            "value:vermenge"
+          ]
+        },
+        {
+          "key": "wende",
+          "labels": {
+            "de": "Wende",
+            "en": "flip",
+            "esp": "da la vuelta",
+            "prt": "vire",
+            "id": "balik",
+            "nl": "keer om",
+            "sv": "vänd",
+            "da": "vend",
+            "no": "snu",
+            "ms": "balik"
+          },
+          "tags": [
+            "variable:action",
+            "value:wende"
+          ]
+        },
+        {
+          "key": "schwenke",
+          "labels": {
+            "de": "Schwenke",
+            "en": "toss",
+            "esp": "saltea",
+            "prt": "salteie",
+            "id": "aduk cepat",
+            "nl": "schud om",
+            "sv": "sväng",
+            "da": "svits",
+            "no": "sving",
+            "ms": "gaul cepat"
+          },
+          "tags": [
+            "variable:action",
+            "value:schwenke"
+          ]
+        },
+        {
+          "key": "putze",
+          "labels": {
+            "de": "putze",
+            "en": "clean",
+            "esp": "limpia",
+            "prt": "limpe",
+            "id": "bersihkan",
+            "nl": "maak schoon",
+            "sv": "rensa",
+            "da": "rens",
+            "no": "rens",
+            "ms": "bersihkan"
+          },
+          "tags": [
+            "variable:action",
+            "value:putze"
+          ]
+        }
+      ]
+    },
+    "tool": {
+      "description": "Ausgelagerte Optionen für Variable \u0027tool\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "messer",
+          "labels": {
+            "de": "🔪 Messer",
+            "en": "🔪 knife",
+            "esp": "🔪 cuchillo",
+            "prt": "🔪 faca",
+            "id": "🔪 pisau",
+            "nl": "🔪 mes",
+            "sv": "🔪 kniv",
+            "da": "🔪 kniv",
+            "no": "🔪 kniv",
+            "ms": "🔪 pisau"
+          },
+          "tags": [
+            "variable:tool",
+            "value:messer",
+            "tool:knife",
+            "technique:cut",
+            "technique:mince",
+            "cut",
+            "mince",
+            "messer",
+            "knife",
+            "peel",
+            "clean",
+            "fillet",
+            "descale",
+            "devein"
+          ]
+        },
+        {
+          "key": "schneebesen",
+          "labels": {
+            "de": "Schneebesen",
+            "en": "whisk",
+            "esp": "batidor",
+            "prt": "batedor",
+            "id": "pengocok",
+            "nl": "garde",
+            "sv": "visp",
+            "da": "piskeris",
+            "no": "visp",
+            "ms": "pemukul"
+          },
+          "tags": [
+            "variable:tool",
+            "value:schneebesen",
+            "tool:whisk",
+            "technique:whisk",
+            "technique:beat",
+            "whisk",
+            "beat",
+            "schneebesen",
+            "schlagen",
+            "aufschlagen"
+          ]
+        },
+        {
+          "key": "kochl_ffel",
+          "labels": {
+            "de": "🥄 Kochlöffel",
+            "en": "🥄 wooden spoon",
+            "esp": "🥄 cuchara de madera",
+            "prt": "🥄 colher de pau",
+            "id": "🥄 sendok kayu",
+            "nl": "🥄 houten lepel",
+            "sv": "🥄 träsked",
+            "da": "🥄 træske",
+            "no": "🥄 tresleiv",
+            "ms": "🥄 sudu kayu"
+          },
+          "tags": [
+            "variable:tool",
+            "value:kochl_ffel",
+            "tool:spoon",
+            "kochlöffel",
+            "kochloeffel",
+            "spoon",
+            "rühren",
+            "ruehren",
+            "stir"
+          ]
+        },
+        {
+          "key": "pfannenwender",
+          "labels": {
+            "de": "Pfannenwender",
+            "en": "spatula",
+            "esp": "espátula",
+            "prt": "espátula",
+            "id": "spatula",
+            "nl": "spatel",
+            "sv": "stekspade",
+            "da": "paletkniv",
+            "no": "stekespade",
+            "ms": "spatula"
+          },
+          "tags": [
+            "variable:tool",
+            "value:pfannenwender",
+            "pfannenwender",
+            "spatula",
+            "fry",
+            "turn",
+            "equipment:pan",
+            "pfanne",
+            "pan",
+            "braten",
+            "saute",
+            "kochfeld",
+            "heatplate",
+            "stovetop",
+            "dry_heat"
+          ]
+        },
+        {
+          "key": "reibe",
+          "labels": {
+            "de": "Reibe",
+            "en": "grater",
+            "esp": "rallador",
+            "prt": "ralador",
+            "id": "parutan",
+            "nl": "rasp",
+            "sv": "rivjärn",
+            "da": "rivejern",
+            "no": "rivjern",
+            "ms": "parut"
+          },
+          "tags": [
+            "variable:tool",
+            "value:reibe",
+            "tool:grater",
+            "technique:grate",
+            "grate",
+            "reibe",
+            "grater",
+            "reiben"
+          ]
+        },
+        {
+          "key": "sparsch_ler",
+          "labels": {
+            "de": "Sparschäler",
+            "en": "peeler",
+            "esp": "pelador",
+            "prt": "descascador",
+            "id": "pengupas",
+            "nl": "dunschiller",
+            "sv": "skalare",
+            "da": "skræller",
+            "no": "skreller",
+            "ms": "pengupas"
+          },
+          "tags": [
+            "variable:tool",
+            "value:sparsch_ler",
+            "peel",
+            "tool:peeler",
+            "technique:peel",
+            "sparschäler",
+            "sparschaeler",
+            "peeler",
+            "schälen",
+            "schaelen"
+          ]
+        },
+        {
+          "key": "messbecher",
+          "labels": {
+            "de": "Messbecher",
+            "en": "measuring cup",
+            "esp": "vaso medidor",
+            "prt": "copo medidor",
+            "id": "gelas ukur",
+            "nl": "maatbeker",
+            "sv": "måttbågare",
+            "da": "målebæger",
+            "no": "målebeger",
+            "ms": "cawan penyukat"
+          },
+          "tags": [
+            "variable:tool",
+            "value:messbecher",
+            "messbecher",
+            "measure"
+          ]
+        },
+        {
+          "key": "kelle",
+          "labels": {
+            "de": "🥄 Kelle",
+            "en": "🥄 ladle",
+            "esp": "🥄 cucharón",
+            "prt": "🥄 concha",
+            "id": "🥄 sendok sayur",
+            "nl": "🥄 pollepel",
+            "sv": "🥄 slev",
+            "da": "🥄 øse",
+            "no": "🥄 øse",
+            "ms": "🥄 senduk"
+          },
+          "tags": [
+            "variable:tool",
+            "value:kelle",
+            "kelle",
+            "ladle",
+            "serve",
+            "soup"
+          ]
+        },
+        {
+          "key": "zange",
+          "labels": {
+            "de": "Zange",
+            "en": "tongs",
+            "esp": "pinzas",
+            "prt": "pinça",
+            "id": "penjepit",
+            "nl": "tang",
+            "sv": "tång",
+            "da": "tang",
+            "no": "tang",
+            "ms": "penyepit"
+          },
+          "tags": [
+            "variable:tool",
+            "value:zange",
+            "zange",
+            "tongs",
+            "grill",
+            "fry",
+            "turn"
+          ]
+        },
+        {
+          "key": "schere",
+          "labels": {
+            "de": "✂️ Schere",
+            "en": "✂️ kitchen scissors",
+            "esp": "✂️ tijeras de cocina",
+            "prt": "✂️ tesoura de cozinha",
+            "id": "✂️ gunting dapur",
+            "nl": "✂️ keukenschaar",
+            "sv": "✂️ köksax",
+            "da": "✂️ køkkensaks",
+            "no": "✂️ kjøkkensaks",
+            "ms": "✂️ gunting dapur"
+          },
+          "tags": [
+            "variable:tool",
+            "value:schere",
+            "schere",
+            "scissors",
+            "cut"
+          ]
+        },
+        {
+          "key": "teigschaber",
+          "labels": {
+            "de": "Teigschaber",
+            "en": "dough scraper",
+            "esp": "rasqueta",
+            "prt": "raspador de massa",
+            "id": "scraper adonan",
+            "nl": "deegschraper",
+            "sv": "degskrapa",
+            "da": "dejskraber",
+            "no": "deigskrape",
+            "ms": "pengikis doh"
+          },
+          "tags": [
+            "variable:tool",
+            "value:teigschaber",
+            "tool:stir",
+            "technique:stir",
+            "technique:fold",
+            "stir",
+            "fold",
+            "teigschaber",
+            "scraper",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        },
+        {
+          "key": "m_rser",
+          "labels": {
+            "de": "Mörser",
+            "en": "mortar",
+            "esp": "mortero",
+            "prt": "almofariz",
+            "id": "cobek",
+            "nl": "vijzel",
+            "sv": "mortel",
+            "da": "morter",
+            "no": "morter",
+            "ms": "lesung"
+          },
+          "tags": [
+            "variable:tool",
+            "value:m_rser"
+          ]
+        },
+        {
+          "key": "handr_hrger_t",
+          "labels": {
+            "de": "Handrührgerät",
+            "en": "hand mixer",
+            "esp": "batidora de mano",
+            "prt": "batedeira de mão",
+            "id": "mixer tangan",
+            "nl": "handmixer",
+            "sv": "elvisp",
+            "da": "håndmixer",
+            "no": "håndmikser",
+            "ms": "pengadun tangan"
+          },
+          "tags": [
+            "variable:tool",
+            "value:handr_hrger_t",
+            "technique:whisk",
+            "technique:beat",
+            "beat",
+            "whisk"
+          ]
+        },
+        {
+          "key": "filetiermesser",
+          "labels": {
+            "de": "Filetiermesser",
+            "en": "fillet knife",
+            "esp": "cuchillo de filetear",
+            "prt": "faca de filetar",
+            "id": "pisau fillet",
+            "nl": "fileermes",
+            "sv": "filékniv",
+            "da": "filetkniv",
+            "no": "filetkniv",
+            "ms": "pisau fillet"
+          },
+          "tags": [
+            "variable:tool",
+            "value:filetiermesser",
+            "technique:fillet",
+            "fillet"
+          ]
+        },
+        {
+          "key": "fischmesser",
+          "labels": {
+            "de": "Fischmesser",
+            "en": "fish knife",
+            "esp": "cuchillo de pescado",
+            "prt": "faca de peixe",
+            "id": "pisau ikan",
+            "nl": "vismes",
+            "sv": "fiskkniv",
+            "da": "fiskekniv",
+            "no": "fiskekniv",
+            "ms": "pisau ikan"
+          },
+          "tags": [
+            "variable:tool",
+            "value:fischmesser",
+            "technique:descale",
+            "descale"
+          ]
+        },
+        {
+          "key": "kleines_messer",
+          "labels": {
+            "de": "kleines Messer",
+            "en": "small knife",
+            "esp": "cuchillo pequeño",
+            "prt": "faca pequena",
+            "id": "pisau kecil",
+            "nl": "klein mes",
+            "sv": "liten kniv",
+            "da": "lille kniv",
+            "no": "liten kniv",
+            "ms": "pisau kecil"
+          },
+          "tags": [
+            "variable:tool",
+            "value:kleines_messer",
+            "technique:devein",
+            "devein"
+          ]
+        }
+      ]
+    },
+    "shape": {
+      "description": "Ausgelagerte Optionen für Variable \u0027shape\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "w_rfel",
+          "labels": {
+            "de": "Würfel",
+            "en": "cubes",
+            "esp": "dados",
+            "prt": "cubos",
+            "id": "dadu",
+            "nl": "blokjes",
+            "sv": "tärningar",
+            "da": "tern",
+            "no": "terninger",
+            "ms": "dadu"
+          },
+          "tags": [
+            "variable:shape",
+            "value:w_rfel",
+            "technique:cut"
+          ]
+        },
+        {
+          "key": "scheiben",
+          "labels": {
+            "de": "Scheiben",
+            "en": "slices",
+            "esp": "rodajas",
+            "prt": "fatias",
+            "id": "irisan",
+            "nl": "plakjes",
+            "sv": "skivor",
+            "da": "skiver",
+            "no": "skiver",
+            "ms": "hirisan"
+          },
+          "tags": [
+            "variable:shape",
+            "value:scheiben",
+            "technique:cut",
+            "tool:knife"
+          ]
+        },
+        {
+          "key": "streifen",
+          "labels": {
+            "de": "Streifen",
+            "en": "strips",
+            "esp": "tiras",
+            "prt": "tiras",
+            "id": "potongan memanjang",
+            "nl": "reepjes",
+            "sv": "strimlor",
+            "da": "strimler",
+            "no": "strimler",
+            "ms": "jalur"
+          },
+          "tags": [
+            "variable:shape",
+            "value:streifen",
+            "technique:cut",
+            "tool:knife"
+          ]
+        },
+        {
+          "key": "spalten",
+          "labels": {
+            "de": "Spalten",
+            "en": "wedges",
+            "esp": "gajos",
+            "prt": "gomos",
+            "id": "belahan",
+            "nl": "partjes",
+            "sv": "klyftor",
+            "da": "både",
+            "no": "båter",
+            "ms": "baji"
+          },
+          "tags": [
+            "variable:shape",
+            "value:spalten",
+            "technique:cut",
+            "tool:knife"
+          ]
+        },
+        {
+          "key": "ringe",
+          "labels": {
+            "de": "Ringe",
+            "en": "rings",
+            "esp": "aros",
+            "prt": "anéis",
+            "id": "cincin",
+            "nl": "ringen",
+            "sv": "ringar",
+            "da": "ringe",
+            "no": "ringer",
+            "ms": "cincin"
+          },
+          "tags": [
+            "variable:shape",
+            "value:ringe",
+            "technique:cut"
+          ]
+        },
+        {
+          "key": "julienne",
+          "labels": {
+            "de": "Julienne",
+            "en": "julienne",
+            "esp": "juliana",
+            "prt": "juliana",
+            "id": "julienne",
+            "nl": "julienne",
+            "sv": "julienne",
+            "da": "julienne",
+            "no": "julienne",
+            "ms": "julienne"
+          },
+          "tags": [
+            "variable:shape",
+            "value:julienne",
+            "technique:cut",
+            "tool:knife"
+          ]
+        },
+        {
+          "key": "stifte",
+          "labels": {
+            "de": "Stifte",
+            "en": "batons",
+            "esp": "bastones",
+            "prt": "palitos",
+            "id": "baton",
+            "nl": "staafjes",
+            "sv": "stavar",
+            "da": "stave",
+            "no": "staver",
+            "ms": "baton"
+          },
+          "tags": [
+            "variable:shape",
+            "value:stifte",
+            "technique:cut"
+          ]
+        },
+        {
+          "key": "grob_gehackt",
+          "labels": {
+            "de": "grob gehackt",
+            "en": "roughly chopped",
+            "esp": "picado grueso",
+            "prt": "picado grosso",
+            "id": "cincang kasar",
+            "nl": "grof gehakt",
+            "sv": "grovt hackat",
+            "da": "groft hakket",
+            "no": "grovt hakket",
+            "ms": "cincang kasar"
+          },
+          "tags": [
+            "variable:shape",
+            "value:grob_gehackt",
+            "technique:cut",
+            "tool:knife"
+          ]
+        },
+        {
+          "key": "fein_gehackt",
+          "labels": {
+            "de": "fein gehackt",
+            "en": "finely chopped",
+            "esp": "picado fino",
+            "prt": "picado fino",
+            "id": "cincang halus",
+            "nl": "fijngehakt",
+            "sv": "finhackat",
+            "da": "finthakket",
+            "no": "finhakket",
+            "ms": "cincang halus"
+          },
+          "tags": [
+            "variable:shape",
+            "value:fein_gehackt",
+            "technique:cut",
+            "tool:knife"
+          ]
+        },
+        {
+          "key": "mundgerechte_st_cke",
+          "labels": {
+            "de": "mundgerechte Stücke",
+            "en": "bite-sized pieces",
+            "esp": "trozos pequeños",
+            "prt": "pedaços pequenos",
+            "id": "potongan kecil",
+            "nl": "hapklare stukjes",
+            "sv": "lagom stora bitar",
+            "da": "mundstykker",
+            "no": "bitstore biter",
+            "ms": "potongan kecil"
+          },
+          "tags": [
+            "variable:shape",
+            "value:mundgerechte_st_cke",
+            "technique:cut"
+          ]
+        },
+        {
+          "key": "st_cke",
+          "labels": {
+            "de": "Stücke",
+            "en": "pieces",
+            "esp": "trozos",
+            "prt": "pedaços",
+            "id": "potongan",
+            "nl": "stukken",
+            "sv": "bitar",
+            "da": "stykker",
+            "no": "biter",
+            "ms": "keping"
+          },
+          "tags": [
+            "variable:shape",
+            "value:st_cke",
+            "technique:cut"
+          ]
+        },
+        {
+          "key": "rund",
+          "labels": {
+            "de": "rund",
+            "en": "round",
+            "esp": "redonda",
+            "prt": "redonda",
+            "id": "bulat",
+            "nl": "rond",
+            "sv": "rund",
+            "da": "rund",
+            "no": "rund",
+            "ms": "bulat"
+          },
+          "tags": [
+            "variable:shape",
+            "value:rund",
+            "technique:roll_out"
+          ]
+        }
+      ]
+    },
+    "state": {
+      "description": "Ausgelagerte Optionen für Variable \u0027state\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "goldbraun",
+          "labels": {
+            "de": "goldbraun",
+            "en": "golden brown",
+            "esp": "dorado",
+            "prt": "dourado",
+            "id": "keemasan",
+            "nl": "goudbruin",
+            "sv": "gyllenbrun",
+            "da": "gyldenbrun",
+            "no": "gyllenbrun",
+            "ms": "perang keemasan"
+          },
+          "tags": [
+            "variable:state",
+            "value:goldbraun",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "saute",
+            "backen",
+            "bake",
+            "roast"
+          ]
+        },
+        {
+          "key": "weich",
+          "labels": {
+            "de": "weich",
+            "en": "soft",
+            "esp": "blando",
+            "prt": "macio",
+            "id": "lembut",
+            "nl": "zacht",
+            "sv": "mjuk",
+            "da": "blød",
+            "no": "myk",
+            "ms": "lembut"
+          },
+          "tags": [
+            "variable:state",
+            "value:weich",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "technique:steam",
+            "kochen",
+            "boil",
+            "koecheln",
+            "simmer",
+            "steam"
+          ]
+        },
+        {
+          "key": "glasig",
+          "labels": {
+            "de": "glasig",
+            "en": "translucent",
+            "esp": "translúcido",
+            "prt": "translúcido",
+            "id": "bening",
+            "nl": "glazig",
+            "sv": "glansig",
+            "da": "klar",
+            "no": "blank",
+            "ms": "jernih"
+          },
+          "tags": [
+            "variable:state",
+            "value:glasig",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "technique:steam",
+            "braten",
+            "saute",
+            "pfanne",
+            "pan"
+          ]
+        },
+        {
+          "key": "gar",
+          "labels": {
+            "de": "gar",
+            "en": "cooked through",
+            "esp": "cocido",
+            "prt": "cozido",
+            "id": "matang",
+            "nl": "gaar",
+            "sv": "genomstekt",
+            "da": "gennemtilberedt",
+            "no": "gjennomkokt",
+            "ms": "masak"
+          },
+          "tags": [
+            "variable:state",
+            "value:gar",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "technique:steam",
+            "kochen",
+            "boil",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "dämpfen",
+            "daempfen",
+            "steam"
+          ]
+        },
+        {
+          "key": "knusprig",
+          "labels": {
+            "de": "knusprig",
+            "en": "crispy",
+            "esp": "crujiente",
+            "prt": "crocante",
+            "id": "renyah",
+            "nl": "knapperig",
+            "sv": "krispig",
+            "da": "sprød",
+            "no": "sprø",
+            "ms": "rangup"
+          },
+          "tags": [
+            "variable:state",
+            "value:knusprig",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "backen",
+            "bake",
+            "grill"
+          ]
+        },
+        {
+          "key": "cremig",
+          "labels": {
+            "de": "cremig",
+            "en": "creamy",
+            "esp": "cremoso",
+            "prt": "cremoso",
+            "id": "kremi",
+            "nl": "romig",
+            "sv": "krämig",
+            "da": "cremet",
+            "no": "kremet",
+            "ms": "berkrim"
+          },
+          "tags": [
+            "variable:state",
+            "value:cremig",
+            "component:sauce",
+            "technique:thicken",
+            "technique:blend",
+            "technique:whisk",
+            "rühren",
+            "ruehren",
+            "stir",
+            "simmer",
+            "thicken",
+            "blend"
+          ]
+        },
+        {
+          "key": "bissfest",
+          "labels": {
+            "de": "bissfest",
+            "en": "al dente",
+            "esp": "al dente",
+            "prt": "al dente",
+            "id": "al dente",
+            "nl": "beetgaar",
+            "sv": "al dente",
+            "da": "al dente",
+            "no": "al dente",
+            "ms": "al dente"
+          },
+          "tags": [
+            "variable:state",
+            "value:bissfest",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "technique:steam",
+            "family:vegetable"
+          ]
+        },
+        {
+          "key": "eingedickt",
+          "labels": {
+            "de": "eingedickt",
+            "en": "thickened",
+            "esp": "espeso",
+            "prt": "encorpado",
+            "id": "mengental",
+            "nl": "ingedikt",
+            "sv": "förtjockad",
+            "da": "indkogt",
+            "no": "innkokt",
+            "ms": "pekat"
+          },
+          "tags": [
+            "variable:state",
+            "value:eingedickt",
+            "component:sauce",
+            "technique:thicken",
+            "technique:blend",
+            "technique:whisk",
+            "simmer",
+            "reduce",
+            "thicken",
+            "rühren",
+            "ruehren",
+            "stir"
+          ]
+        },
+        {
+          "key": "sprudelnd",
+          "labels": {
+            "de": "sprudelnd",
+            "en": "bubbling",
+            "esp": "hirviendo suavemente",
+            "prt": "borbulhando",
+            "id": "mendidih perlahan",
+            "nl": "zacht borrelend",
+            "sv": "sjudande",
+            "da": "småkogene",
+            "no": "småkoker",
+            "ms": "merenih"
+          },
+          "tags": [
+            "variable:state",
+            "value:sprudelnd",
+            "heat:wet",
+            "component:liquid",
+            "boil",
+            "kochfeld",
+            "heatplate",
+            "family:liquid"
+          ]
+        },
+        {
+          "key": "verdoppelt",
+          "labels": {
+            "de": "verdoppelt",
+            "en": "doubled",
+            "esp": "duplicado",
+            "prt": "dobrado",
+            "id": "dua kali lipat",
+            "nl": "verdubbeld",
+            "sv": "fördubblad",
+            "da": "fordoblet",
+            "no": "doblet",
+            "ms": "berganda"
+          },
+          "tags": [
+            "variable:state",
+            "value:verdoppelt",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "dough",
+            "rise",
+            "family:dough"
+          ]
+        },
+        {
+          "key": "zart",
+          "labels": {
+            "de": "zart",
+            "en": "tender",
+            "esp": "tierno",
+            "prt": "tenro",
+            "id": "empuk",
+            "nl": "mals",
+            "sv": "mör",
+            "da": "mør",
+            "no": "mør",
+            "ms": "lembut"
+          },
+          "tags": [
+            "variable:state",
+            "value:zart",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "technique:steam",
+            "braise",
+            "poach",
+            "simmer"
+          ]
+        },
+        {
+          "key": "anger_stet",
+          "labels": {
+            "de": "angeröstet",
+            "en": "toasted",
+            "esp": "tostado",
+            "prt": "tostado",
+            "id": "terpanggang",
+            "nl": "geroosterd",
+            "sv": "rostad",
+            "da": "ristet",
+            "no": "ristet",
+            "ms": "terpanggang"
+          },
+          "tags": [
+            "variable:state",
+            "value:anger_stet"
+          ]
+        },
+        {
+          "key": "geschmolzen",
+          "labels": {
+            "de": "geschmolzen",
+            "en": "melted",
+            "esp": "derretido",
+            "prt": "derretido",
+            "id": "meleleh",
+            "nl": "gesmolten",
+            "sv": "smält",
+            "da": "smeltet",
+            "no": "smeltet",
+            "ms": "cair"
+          },
+          "tags": [
+            "variable:state",
+            "value:geschmolzen",
+            "heat:wet",
+            "component:liquid",
+            "melt",
+            "warm",
+            "family:fat"
+          ]
+        },
+        {
+          "key": "schaumig",
+          "labels": {
+            "de": "schaumig",
+            "en": "foamy",
+            "esp": "espumoso",
+            "prt": "espumoso",
+            "id": "berbusa",
+            "nl": "schuimig",
+            "sv": "skummig",
+            "da": "skummende",
+            "no": "skummende",
+            "ms": "berbuih"
+          },
+          "tags": [
+            "variable:state",
+            "value:schaumig",
+            "technique:whisk",
+            "technique:beat",
+            "whisk",
+            "beat",
+            "family:egg",
+            "family:liquid"
+          ]
+        },
+        {
+          "key": "reduziert_eingekocht",
+          "labels": {
+            "de": "reduziert (eingekocht)",
+            "en": "reduced",
+            "esp": "reducido",
+            "prt": "reduzido",
+            "id": "tereduksi",
+            "nl": "gereduceerd",
+            "sv": "reducerad",
+            "da": "reduceret",
+            "no": "redusert",
+            "ms": "terkurang"
+          },
+          "tags": [
+            "variable:state",
+            "value:reduziert_eingekocht"
+          ]
+        },
+        {
+          "key": "abgek_hlt",
+          "labels": {
+            "de": "abgekühlt",
+            "en": "cooled",
+            "esp": "enfriado",
+            "prt": "arrefecido",
+            "id": "dingin",
+            "nl": "afgekoeld",
+            "sv": "avsvalnad",
+            "da": "afkølet",
+            "no": "avkjølt",
+            "ms": "disejukkan"
+          },
+          "tags": [
+            "variable:state",
+            "value:abgek_hlt"
+          ]
+        },
+        {
+          "key": "lauwarm",
+          "labels": {
+            "de": "lauwarm",
+            "en": "lukewarm",
+            "esp": "tibio",
+            "prt": "morno",
+            "id": "suam-suam kuku",
+            "nl": "lauw",
+            "sv": "ljummen",
+            "da": "lunken",
+            "no": "lunken",
+            "ms": "suam"
+          },
+          "tags": [
+            "variable:state",
+            "value:lauwarm"
+          ]
+        },
+        {
+          "key": "fest",
+          "labels": {
+            "de": "fest",
+            "en": "firm",
+            "esp": "firme",
+            "prt": "firme",
+            "id": "padat",
+            "nl": "stevig",
+            "sv": "fast",
+            "da": "fast",
+            "no": "fast",
+            "ms": "pejal"
+          },
+          "tags": [
+            "variable:state",
+            "value:fest"
+          ]
+        },
+        {
+          "key": "fluffig",
+          "labels": {
+            "de": "fluffig",
+            "en": "fluffy",
+            "esp": "esponjoso",
+            "prt": "fofo",
+            "id": "mengembang",
+            "nl": "luchtig",
+            "sv": "fluffig",
+            "da": "luftig",
+            "no": "luftig",
+            "ms": "gebu"
+          },
+          "tags": [
+            "variable:state",
+            "value:fluffig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "beat",
+            "bake",
+            "dough",
+            "family:dough"
+          ]
+        },
+        {
+          "key": "karamellisiert",
+          "labels": {
+            "de": "karamellisiert",
+            "en": "caramelized",
+            "esp": "caramelizado",
+            "prt": "caramelizado",
+            "id": "terkaramelisasi",
+            "nl": "gekaramelliseerd",
+            "sv": "karamelliserad",
+            "da": "karamelliseret",
+            "no": "karamellisert",
+            "ms": "terkaramel"
+          },
+          "tags": [
+            "variable:state",
+            "value:karamellisiert",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake"
+          ]
+        },
+        {
+          "key": "geschmeidig",
+          "labels": {
+            "de": "geschmeidig",
+            "en": "smooth",
+            "esp": "sedoso",
+            "prt": "sedoso",
+            "id": "halus",
+            "nl": "glad",
+            "sv": "smidig",
+            "da": "smidig",
+            "no": "smidig",
+            "ms": "licin"
+          },
+          "tags": [
+            "variable:state",
+            "value:geschmeidig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "knead",
+            "dough",
+            "family:dough"
+          ]
+        },
+        {
+          "key": "angebraten",
+          "labels": {
+            "de": "angebraten",
+            "en": "seared",
+            "esp": "marcado",
+            "prt": "selado",
+            "id": "ditumis hingga kecokelatan",
+            "nl": "aangebraden",
+            "sv": "brynt",
+            "da": "brunet",
+            "no": "brunet",
+            "ms": "ditumis"
+          },
+          "tags": [
+            "variable:state",
+            "value:angebraten",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "saute",
+            "family:meat",
+            "family:fish"
+          ]
+        },
+        {
+          "key": "rundum_angebraten",
+          "labels": {
+            "de": "rundum angebraten",
+            "en": "seared all over",
+            "esp": "marcado por todos lados",
+            "prt": "selado por todos os lados",
+            "id": "kecokelatan merata",
+            "nl": "rondom aangebraden",
+            "sv": "brynt runt om",
+            "da": "brunet hele vejen rundt",
+            "no": "brunet på alle sider",
+            "ms": "ditumis sekata"
+          },
+          "tags": [
+            "variable:state",
+            "value:rundum_angebraten",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "saute",
+            "family:meat"
+          ]
+        },
+        {
+          "key": "scharf_angebraten",
+          "labels": {
+            "de": "scharf angebraten",
+            "en": "hard seared",
+            "esp": "marcado a fuego fuerte",
+            "prt": "selado em fogo alto",
+            "id": "ditumis dengan api besar",
+            "nl": "hard aangebraden",
+            "sv": "hårt brynt",
+            "da": "hårdt brunet",
+            "no": "hardt brunet",
+            "ms": "ditumis dengan api besar"
+          },
+          "tags": [
+            "variable:state",
+            "value:scharf_angebraten",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "saute",
+            "family:meat"
+          ]
+        },
+        {
+          "key": "gleichm_ig_gebr_unt",
+          "labels": {
+            "de": "gleichmäßig gebräunt",
+            "en": "evenly browned",
+            "esp": "dorado uniformemente",
+            "prt": "uniformemente dourado",
+            "id": "kecokelatan secara merata",
+            "nl": "gelijkmatig gebruind",
+            "sv": "jämnt brynt",
+            "da": "jævnt brunet",
+            "no": "jevnt brunet",
+            "ms": "keperangan sekata"
+          },
+          "tags": [
+            "variable:state",
+            "value:gleichm_ig_gebr_unt"
+          ]
+        },
+        {
+          "key": "braun",
+          "labels": {
+            "de": "braun",
+            "en": "brown",
+            "esp": "marrón",
+            "prt": "castanho",
+            "id": "cokelat",
+            "nl": "bruin",
+            "sv": "brun",
+            "da": "brun",
+            "no": "brun",
+            "ms": "perang"
+          },
+          "tags": [
+            "variable:state",
+            "value:braun",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake"
+          ]
+        },
+        {
+          "key": "dunkelbraun",
+          "labels": {
+            "de": "dunkelbraun",
+            "en": "dark brown",
+            "esp": "marrón oscuro",
+            "prt": "castanho-escuro",
+            "id": "cokelat tua",
+            "nl": "donkerbruin",
+            "sv": "mörkbrun",
+            "da": "mørkebrun",
+            "no": "mørkebrun",
+            "ms": "perang gelap"
+          },
+          "tags": [
+            "variable:state",
+            "value:dunkelbraun",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake"
+          ]
+        },
+        {
+          "key": "knusprig_gebr_unt",
+          "labels": {
+            "de": "knusprig gebräunt",
+            "en": "crisply browned",
+            "esp": "crujiente y dorado",
+            "prt": "crocante e dourado",
+            "id": "kecokelatan renyah",
+            "nl": "knapperig gebruind",
+            "sv": "krispigt brynt",
+            "da": "sprødt brunet",
+            "no": "sprøtt brunet",
+            "ms": "rangup keperangan"
+          },
+          "tags": [
+            "variable:state",
+            "value:knusprig_gebr_unt",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "backen",
+            "bake",
+            "grill"
+          ]
+        },
+        {
+          "key": "au_en_knusprig",
+          "labels": {
+            "de": "außen knusprig",
+            "en": "crispy on the outside",
+            "esp": "crujiente por fuera",
+            "prt": "crocante por fora",
+            "id": "renyah di luar",
+            "nl": "knapperig van buiten",
+            "sv": "krispig utanpå",
+            "da": "sprød udenpå",
+            "no": "sprø utenpå",
+            "ms": "rangup di luar"
+          },
+          "tags": [
+            "variable:state",
+            "value:au_en_knusprig",
+            "heat:dry",
+            "technique:fry",
+            "technique:roast",
+            "technique:bake",
+            "braten",
+            "fry",
+            "backen",
+            "bake",
+            "grill"
+          ]
+        },
+        {
+          "key": "innen_saftig",
+          "labels": {
+            "de": "innen saftig",
+            "en": "juicy inside",
+            "esp": "jugoso por dentro",
+            "prt": "suculento por dentro",
+            "id": "juicy di dalam",
+            "nl": "sappig van binnen",
+            "sv": "saftig inuti",
+            "da": "saftig indeni",
+            "no": "saftig inni",
+            "ms": "berjus di dalam"
+          },
+          "tags": [
+            "variable:state",
+            "value:innen_saftig",
+            "family:meat",
+            "family:fish"
+          ]
+        },
+        {
+          "key": "medium_rare",
+          "labels": {
+            "de": "medium-rare",
+            "en": "medium-rare",
+            "esp": "poco hecho",
+            "prt": "mal passado",
+            "id": "medium-rare",
+            "nl": "medium-rare",
+            "sv": "medium rare",
+            "da": "medium-rare",
+            "no": "medium-rare",
+            "ms": "medium-rare"
+          },
+          "tags": [
+            "variable:state",
+            "value:medium_rare",
+            "family:meat",
+            "heat:dry",
+            "technique:fry",
+            "technique:grill"
+          ]
+        },
+        {
+          "key": "medium",
+          "labels": {
+            "de": "medium",
+            "en": "medium",
+            "esp": "al punto",
+            "prt": "ao ponto",
+            "id": "medium",
+            "nl": "medium",
+            "sv": "medium",
+            "da": "medium",
+            "no": "medium",
+            "ms": "medium"
+          },
+          "tags": [
+            "variable:state",
+            "value:medium",
+            "family:meat",
+            "heat:dry",
+            "technique:fry",
+            "technique:grill"
+          ]
+        },
+        {
+          "key": "durchgegart",
+          "labels": {
+            "de": "durchgegart",
+            "en": "well done",
+            "esp": "bien hecho",
+            "prt": "bem passado",
+            "id": "matang sepenuhnya",
+            "nl": "doorbakken",
+            "sv": "genomstekt",
+            "da": "gennemstegt",
+            "no": "gjennomstekt",
+            "ms": "masak sepenuhnya"
+          },
+          "tags": [
+            "variable:state",
+            "value:durchgegart",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "technique:steam",
+            "kochen",
+            "boil",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "dämpfen",
+            "daempfen",
+            "steam",
+            "roast",
+            "bake"
+          ]
+        },
+        {
+          "key": "s_mig",
+          "labels": {
+            "de": "sämig",
+            "en": "thick and smooth",
+            "esp": "espeso y cremoso",
+            "prt": "encorpado e cremoso",
+            "id": "kental dan lembut",
+            "nl": "gebonden",
+            "sv": "tjockflytande",
+            "da": "jævn",
+            "no": "jevn",
+            "ms": "pekat dan licin"
+          },
+          "tags": [
+            "variable:state",
+            "value:s_mig",
+            "component:sauce",
+            "technique:thicken",
+            "simmer",
+            "reduce"
+          ]
+        },
+        {
+          "key": "emulgiert",
+          "labels": {
+            "de": "emulgiert",
+            "en": "emulsified",
+            "esp": "emulsionado",
+            "prt": "emulsionado",
+            "id": "teremulsi",
+            "nl": "geëmulgeerd",
+            "sv": "emulgerad",
+            "da": "emulgeret",
+            "no": "emulgert",
+            "ms": "teremulsi"
+          },
+          "tags": [
+            "variable:state",
+            "value:emulgiert",
+            "technique:whisk"
+          ]
+        },
+        {
+          "key": "steif",
+          "labels": {
+            "de": "steif",
+            "en": "stiff",
+            "esp": "firme",
+            "prt": "firme",
+            "id": "kaku",
+            "nl": "stijf",
+            "sv": "styv",
+            "da": "stiv",
+            "no": "stiv",
+            "ms": "kaku"
+          },
+          "tags": [
+            "variable:state",
+            "value:steif",
+            "technique:whisk",
+            "technique:beat",
+            "family:egg"
+          ]
+        },
+        {
+          "key": "glatt",
+          "labels": {
+            "de": "glatt",
+            "en": "smooth",
+            "esp": "liso",
+            "prt": "liso",
+            "id": "halus",
+            "nl": "glad",
+            "sv": "slät",
+            "da": "glat",
+            "no": "glatt",
+            "ms": "licin"
+          },
+          "tags": [
+            "variable:state",
+            "value:glatt",
+            "technique:blend",
+            "technique:whisk"
+          ]
+        },
+        {
+          "key": "gegrillt",
+          "labels": {
+            "de": "gegrillt",
+            "en": "grilled",
+            "esp": "a la parrilla",
+            "prt": "grelhado",
+            "id": "dipanggang",
+            "nl": "gegrild",
+            "sv": "grillad",
+            "da": "grillet",
+            "no": "grillet",
+            "ms": "dipanggang"
+          },
+          "tags": [
+            "variable:state",
+            "value:gegrillt",
+            "heat:dry",
+            "technique:grill",
+            "grill"
+          ]
+        }
+      ]
+    },
+    "base": {
+      "description": "Ausgelagerte Optionen für Variable \u0027base\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "eischnee",
+          "labels": {
+            "de": "Eischnee",
+            "en": "egg white foam",
+            "esp": "las claras montadas",
+            "prt": "as claras em neve",
+            "id": "putih telur kocok",
+            "nl": "het eiwitschuim",
+            "sv": "äggvitan",
+            "da": "æggehviderne",
+            "no": "eggehviten",
+            "ms": "putih telur kembang"
+          },
+          "tags": [
+            "variable:base",
+            "value:eischnee"
+          ]
+        },
+        {
+          "key": "masse",
+          "labels": {
+            "de": "Masse",
+            "en": "mixture",
+            "esp": "la mezcla",
+            "prt": "a mistura",
+            "id": "adonan",
+            "nl": "de massa",
+            "sv": "massan",
+            "da": "massen",
+            "no": "massen",
+            "ms": "adunan"
+          },
+          "tags": [
+            "variable:base",
+            "value:masse",
+            "component:mix"
+          ]
+        },
+        {
+          "key": "teig",
+          "labels": {
+            "de": "Teig",
+            "en": "dough",
+            "esp": "la masa",
+            "prt": "a massa",
+            "id": "adonan dasar",
+            "nl": "het deeg",
+            "sv": "degen",
+            "da": "dejen",
+            "no": "deigen",
+            "ms": "doh"
+          },
+          "tags": [
+            "variable:base",
+            "value:teig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "technique:roll_out",
+            "dough",
+            "knead",
+            "rise",
+            "roll_out",
+            "base:dough",
+            "teig",
+            "kneten",
+            "ausrollen"
+          ]
+        },
+        {
+          "key": "creme",
+          "labels": {
+            "de": "Creme",
+            "en": "cream",
+            "esp": "la crema",
+            "prt": "o creme",
+            "id": "krim",
+            "nl": "de crème",
+            "sv": "krämen",
+            "da": "cremen",
+            "no": "kremen",
+            "ms": "krim"
+          },
+          "tags": [
+            "variable:base",
+            "value:creme",
+            "component:mix",
+            "cream",
+            "mix",
+            "stir"
+          ]
+        },
+        {
+          "key": "sauce",
+          "labels": {
+            "de": "Sauce",
+            "en": "sauce",
+            "esp": "la salsa",
+            "prt": "o molho",
+            "id": "saus",
+            "nl": "de saus",
+            "sv": "såsen",
+            "da": "saucen",
+            "no": "sausen",
+            "ms": "sos"
+          },
+          "tags": [
+            "variable:base",
+            "value:sauce",
+            "component:sauce",
+            "heat:wet",
+            "technique:simmer",
+            "technique:thicken",
+            "sauce",
+            "simmer",
+            "thicken",
+            "reduce",
+            "stir",
+            "base:sauce",
+            "soße",
+            "köcheln",
+            "koecheln"
+          ]
+        },
+        {
+          "key": "glasur",
+          "labels": {
+            "de": "Glasur",
+            "en": "glaze",
+            "esp": "el glaseado",
+            "prt": "a cobertura",
+            "id": "glasir",
+            "nl": "het glazuur",
+            "sv": "glasyren",
+            "da": "glasuren",
+            "no": "glasuren",
+            "ms": "glasur"
+          },
+          "tags": [
+            "variable:base",
+            "value:glasur"
+          ]
+        },
+        {
+          "key": "f_llung",
+          "labels": {
+            "de": "Füllung",
+            "en": "filling",
+            "esp": "el relleno",
+            "prt": "o recheio",
+            "id": "isian",
+            "nl": "de vulling",
+            "sv": "fyllningen",
+            "da": "fyldet",
+            "no": "fyllet",
+            "ms": "inti"
+          },
+          "tags": [
+            "variable:base",
+            "value:f_llung",
+            "base:filling",
+            "füllung",
+            "fuellung",
+            "filling",
+            "schichten",
+            "layer"
+          ]
+        },
+        {
+          "key": "marinade",
+          "labels": {
+            "de": "Marinade",
+            "en": "marinade",
+            "esp": "la marinada",
+            "prt": "a marinada",
+            "id": "marinade",
+            "nl": "de marinade",
+            "sv": "marinaden",
+            "da": "marinaden",
+            "no": "marinaden",
+            "ms": "perapan"
+          },
+          "tags": [
+            "variable:base",
+            "value:marinade",
+            "component:mix",
+            "marinade",
+            "mix"
+          ]
+        },
+        {
+          "key": "emulsion",
+          "labels": {
+            "de": "Emulsion",
+            "en": "emulsion",
+            "esp": "la emulsión",
+            "prt": "a emulsão",
+            "id": "emulsi",
+            "nl": "de emulsie",
+            "sv": "emulsionen",
+            "da": "emulsionen",
+            "no": "emulsjonen",
+            "ms": "emulsi"
+          },
+          "tags": [
+            "variable:base",
+            "value:emulsion",
+            "component:mix"
+          ]
+        },
+        {
+          "key": "schaum",
+          "labels": {
+            "de": "Schaum",
+            "en": "foam",
+            "esp": "la espuma",
+            "prt": "a espuma",
+            "id": "busa",
+            "nl": "het schuim",
+            "sv": "skummet",
+            "da": "skummet",
+            "no": "skummet",
+            "ms": "buih"
+          },
+          "tags": [
+            "variable:base",
+            "value:schaum"
+          ]
+        },
+        {
+          "key": "eintopf",
+          "labels": {
+            "de": "Eintopf",
+            "en": "stew",
+            "esp": "el guiso",
+            "prt": "o ensopado",
+            "id": "semur",
+            "nl": "de stoofpot",
+            "sv": "grytan",
+            "da": "gryderetten",
+            "no": "gryteretten",
+            "ms": "stew"
+          },
+          "tags": [
+            "variable:base",
+            "value:eintopf",
+            "component:sauce",
+            "heat:wet",
+            "technique:simmer",
+            "technique:thicken",
+            "stew",
+            "boil",
+            "simmer",
+            "equipment:pot",
+            "topf",
+            "pot",
+            "kochen",
+            "köcheln",
+            "koecheln",
+            "kochfeld",
+            "heatplate",
+            "stovetop",
+            "wet_heat"
+          ]
+        },
+        {
+          "key": "suppe",
+          "labels": {
+            "de": "Suppe",
+            "en": "soup",
+            "esp": "la sopa",
+            "prt": "a sopa",
+            "id": "sup",
+            "nl": "de soep",
+            "sv": "soppan",
+            "da": "suppen",
+            "no": "suppen",
+            "ms": "sup"
+          },
+          "tags": [
+            "variable:base",
+            "value:suppe",
+            "component:sauce",
+            "heat:wet",
+            "technique:simmer",
+            "technique:thicken",
+            "soup",
+            "boil",
+            "simmer",
+            "blend"
+          ]
+        }
+      ]
+    },
+    "seasonings": {
+      "description": "Ausgelagerte Optionen für Variable \u0027seasonings\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "salz",
+          "labels": {
+            "de": "Salz",
+            "en": "salt",
+            "esp": "sal",
+            "prt": "sal",
+            "id": "garam",
+            "nl": "zout",
+            "sv": "salt",
+            "da": "salt",
+            "no": "salt",
+            "ms": "garam"
+          },
+          "tags": [
+            "variable:seasonings",
+            "value:salz",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "pfeffer",
+          "labels": {
+            "de": "Pfeffer",
+            "en": "pepper",
+            "esp": "pimienta",
+            "prt": "pimenta",
+            "id": "lada",
+            "nl": "peper",
+            "sv": "peppar",
+            "da": "peber",
+            "no": "pepper",
+            "ms": "lada"
+          },
+          "tags": [
+            "variable:seasonings",
+            "value:pfeffer",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "salz_und_pfeffer",
+          "labels": {
+            "de": "Salz und Pfeffer",
+            "en": "salt and pepper",
+            "esp": "sal y pimienta",
+            "prt": "sal e pimenta",
+            "id": "garam dan lada",
+            "nl": "zout en peper",
+            "sv": "salt och peppar",
+            "da": "salt og peber",
+            "no": "salt og pepper",
+            "ms": "garam dan lada"
+          },
+          "tags": [
+            "variable:seasonings",
+            "value:salz_und_pfeffer",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "kr_uter",
+          "labels": {
+            "de": "Kräuter",
+            "en": "herbs",
+            "esp": "hierbas",
+            "prt": "ervas",
+            "id": "herba",
+            "nl": "kruiden",
+            "sv": "örter",
+            "da": "urter",
+            "no": "urter",
+            "ms": "herba"
+          },
+          "tags": [
+            "variable:seasonings",
+            "value:kr_uter",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "gew_rzen",
+          "labels": {
+            "de": "Gewürzen",
+            "en": "spices",
+            "esp": "especias",
+            "prt": "especiarias",
+            "id": "rempah",
+            "nl": "specerijen",
+            "sv": "kryddor",
+            "da": "krydderier",
+            "no": "krydder",
+            "ms": "rempah"
+          },
+          "tags": [
+            "variable:seasonings",
+            "value:gew_rzen",
+            "technique:season"
+          ]
+        }
+      ]
+    },
+    "balance": {
+      "description": "Ausgelagerte Optionen für Variable \u0027balance\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "die_s_ure",
+          "labels": {
+            "de": "die Säure",
+            "en": "the acidity",
+            "esp": "la acidez",
+            "prt": "a acidez",
+            "id": "keasaman",
+            "nl": "de zuurgraad",
+            "sv": "syran",
+            "da": "syren",
+            "no": "syren",
+            "ms": "keasidan"
+          },
+          "tags": [
+            "variable:balance",
+            "value:die_s_ure",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "die_s_e",
+          "labels": {
+            "de": "die Süße",
+            "en": "the sweetness",
+            "esp": "la dulzura",
+            "prt": "a doçura",
+            "id": "kemanisan",
+            "nl": "de zoetheid",
+            "sv": "sötman",
+            "da": "sødmen",
+            "no": "sødmen",
+            "ms": "kemanisan"
+          },
+          "tags": [
+            "variable:balance",
+            "value:die_s_e",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "die_sch_rfe",
+          "labels": {
+            "de": "die Schärfe",
+            "en": "the spiciness",
+            "esp": "el picante",
+            "prt": "o picante",
+            "id": "kepedasan",
+            "nl": "de pittigheid",
+            "sv": "hettan",
+            "da": "styrken",
+            "no": "styrken",
+            "ms": "kepedasan"
+          },
+          "tags": [
+            "variable:balance",
+            "value:die_sch_rfe",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "die_w_rze",
+          "labels": {
+            "de": "die Würze",
+            "en": "the seasoning",
+            "esp": "el sazón",
+            "prt": "o tempero",
+            "id": "bumbunya",
+            "nl": "de kruiding",
+            "sv": "smaken",
+            "da": "krydringen",
+            "no": "krydringen",
+            "ms": "perasa"
+          },
+          "tags": [
+            "variable:balance",
+            "value:die_w_rze",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "die_cremigkeit",
+          "labels": {
+            "de": "die Cremigkeit",
+            "en": "the creaminess",
+            "esp": "la cremosidad",
+            "prt": "a cremosidade",
+            "id": "kekremian",
+            "nl": "de romigheid",
+            "sv": "krämigheten",
+            "da": "kremetheden",
+            "no": "kremetheten",
+            "ms": "kekreman"
+          },
+          "tags": [
+            "variable:balance",
+            "value:die_cremigkeit",
+            "technique:season"
+          ]
+        },
+        {
+          "key": "die_frische",
+          "labels": {
+            "de": "die Frische",
+            "en": "the freshness",
+            "esp": "la frescura",
+            "prt": "a frescura",
+            "id": "kesegaran",
+            "nl": "de frisheid",
+            "sv": "fräschheten",
+            "da": "friskheden",
+            "no": "friskheten",
+            "ms": "kesegaran"
+          },
+          "tags": [
+            "variable:balance",
+            "value:die_frische",
+            "technique:season"
+          ]
+        }
+      ]
+    },
+    "grind_size": {
+      "description": "Ausgelagerte Optionen für Variable \u0027grind_size\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "fein",
+          "labels": {
+            "de": "fein",
+            "en": "fine",
+            "esp": "finas",
+            "prt": "finas",
+            "id": "halus",
+            "nl": "fijne",
+            "sv": "fina",
+            "da": "fine",
+            "no": "fine",
+            "ms": "halus"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:fein",
+            "technique:cut",
+            "technique:grate",
+            "grate",
+            "cut"
+          ]
+        },
+        {
+          "key": "feine",
+          "labels": {
+            "de": "feine",
+            "en": "medium",
+            "esp": "medianas",
+            "prt": "médias",
+            "id": "sedang",
+            "nl": "middelgrote",
+            "sv": "medelgrova",
+            "da": "mellemstore",
+            "no": "middels",
+            "ms": "sederhana"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:feine",
+            "technique:cut",
+            "technique:grate",
+            "grate",
+            "cut"
+          ]
+        },
+        {
+          "key": "mittel",
+          "labels": {
+            "de": "mittel",
+            "en": "coarse",
+            "esp": "gruesas",
+            "prt": "grossas",
+            "id": "kasar",
+            "nl": "grove",
+            "sv": "grova",
+            "da": "grove",
+            "no": "grove",
+            "ms": "kasar"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:mittel",
+            "technique:cut",
+            "technique:grate",
+            "cut"
+          ]
+        },
+        {
+          "key": "mittlere",
+          "labels": {
+            "de": "mittlere",
+            "en": "thin",
+            "esp": "delgadas",
+            "prt": "finas",
+            "id": "tipis",
+            "nl": "dunne",
+            "sv": "tunna",
+            "da": "tynde",
+            "no": "tynne",
+            "ms": "nipis"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:mittlere"
+          ]
+        },
+        {
+          "key": "grob",
+          "labels": {
+            "de": "grob",
+            "en": "wide",
+            "esp": "anchas",
+            "prt": "largas",
+            "id": "tebal",
+            "nl": "brede",
+            "sv": "breda",
+            "da": "brede",
+            "no": "brede",
+            "ms": "lebar"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:grob",
+            "technique:cut",
+            "technique:grate",
+            "grate",
+            "cut"
+          ]
+        },
+        {
+          "key": "grobe",
+          "labels": {
+            "de": "grobe",
+            "en": "small",
+            "esp": "pequeñas",
+            "prt": "pequenas",
+            "id": "kecil",
+            "nl": "kleine",
+            "sv": "små",
+            "da": "små",
+            "no": "små",
+            "ms": "kecil"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:grobe",
+            "technique:cut",
+            "technique:grate",
+            "grate",
+            "cut"
+          ]
+        },
+        {
+          "key": "d_nn",
+          "labels": {
+            "de": "dünn",
+            "en": "large",
+            "esp": "grandes",
+            "prt": "grandes",
+            "id": "besar",
+            "nl": "grote",
+            "sv": "stora",
+            "da": "store",
+            "no": "store",
+            "ms": "besar"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:d_nn"
+          ]
+        },
+        {
+          "key": "d_nne",
+          "labels": {
+            "de": "dünne",
+            "en": "about 3/8-inch"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:d_nne"
+          ]
+        },
+        {
+          "key": "breit",
+          "labels": {
+            "de": "breit",
+            "en": "about 0.02-inch"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:breit"
+          ]
+        },
+        {
+          "key": "breite",
+          "labels": {
+            "de": "breite"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:breite"
+          ]
+        },
+        {
+          "key": "klein",
+          "labels": {
+            "de": "klein"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:klein"
+          ]
+        },
+        {
+          "key": "kleine",
+          "labels": {
+            "de": "kleine"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:kleine"
+          ]
+        },
+        {
+          "key": "gro",
+          "labels": {
+            "de": "groß"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:gro"
+          ]
+        },
+        {
+          "key": "gro_e",
+          "labels": {
+            "de": "große"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:gro_e"
+          ]
+        },
+        {
+          "key": "ca_1_cm_gro",
+          "labels": {
+            "de": "ca. 1 cm groß"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:ca_1_cm_gro"
+          ]
+        },
+        {
+          "key": "ca_1_cm_gro_e",
+          "labels": {
+            "de": "ca. 1 cm große"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:ca_1_cm_gro_e"
+          ]
+        },
+        {
+          "key": "ca_0_5_mm_gro",
+          "labels": {
+            "de": "ca. 0,5 mm groß"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:ca_0_5_mm_gro"
+          ]
+        },
+        {
+          "key": "ca_0_5_mm_gro_e",
+          "labels": {
+            "de": "ca. 0,5 mm große"
+          },
+          "tags": [
+            "variable:grind_size",
+            "value:ca_0_5_mm_gro_e"
+          ]
+        }
+      ]
+    },
+    "item": {
+      "description": "Ausgelagerte Optionen für Variable \u0027item\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "den_teig",
+          "labels": {
+            "de": "🍞 den Teig",
+            "en": "🍞 dough",
+            "esp": "🍞 masa",
+            "prt": "🍞 massa",
+            "id": "🍞 adonan",
+            "nl": "🍞 deeg",
+            "sv": "🍞 deg",
+            "da": "🍞 dej",
+            "no": "🍞 deig",
+            "ms": "🍞 doh"
+          },
+          "tags": [
+            "variable:item",
+            "value:den_teig",
+            "component:dough",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        },
+        {
+          "key": "die_masse",
+          "labels": {
+            "de": "🥣 die Masse",
+            "en": "🥣 batter",
+            "esp": "🥣 mezcla",
+            "prt": "🥣 mistura",
+            "id": "🥣 campuran",
+            "nl": "🥣 mengsel",
+            "sv": "🥣 smet",
+            "da": "🥣 masse",
+            "no": "🥣 røre",
+            "ms": "🥣 adunan"
+          },
+          "tags": [
+            "variable:item",
+            "value:die_masse"
+          ]
+        },
+        {
+          "key": "die_mischung",
+          "labels": {
+            "de": "🥣 die Mischung",
+            "en": "🥣 mixture",
+            "esp": "🥣 preparación",
+            "prt": "🥣 preparação",
+            "id": "🥣 olahan",
+            "nl": "🥣 mix",
+            "sv": "🥣 blandning",
+            "da": "🥣 blanding",
+            "no": "🥣 blanding",
+            "ms": "🥣 campuran"
+          },
+          "tags": [
+            "variable:item",
+            "value:die_mischung"
+          ]
+        },
+        {
+          "key": "das_gericht",
+          "labels": {
+            "de": "🍽️ das Gericht",
+            "en": "🍽️ dish",
+            "esp": "🍽️ plato",
+            "prt": "🍽️ prato",
+            "id": "🍽️ hidangan",
+            "nl": "🍽️ gerecht",
+            "sv": "🍽️ rätt",
+            "da": "🍽️ ret",
+            "no": "🍽️ rett",
+            "ms": "🍽️ hidangan"
+          },
+          "tags": [
+            "variable:item",
+            "value:das_gericht",
+            "technique:serve",
+            "technique:rest"
+          ]
+        },
+        {
+          "key": "den_braten",
+          "labels": {
+            "de": "🍖 den Braten",
+            "en": "🍖 roast",
+            "esp": "🍖 el asado",
+            "prt": "🍖 o assado",
+            "id": "🍖 daging panggang",
+            "nl": "🍖 het braadstuk",
+            "sv": "🍖 steken",
+            "da": "🍖 stegen",
+            "no": "🍖 steken",
+            "ms": "🍖 daging panggang"
+          },
+          "tags": [
+            "variable:item",
+            "value:den_braten"
+          ]
+        }
+      ]
+    },
+    "equipment": {
+      "description": "Ausgelagerte Optionen für Variable \u0027equipment\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "pfanne",
+          "labels": {
+            "de": "🍳 Pfanne",
+            "en": "🍳 pan",
+            "esp": "🍳 la sartén",
+            "prt": "🍳 a frigideira",
+            "id": "🍳 wajan",
+            "nl": "🍳 de pan",
+            "sv": "🍳 stekpannan",
+            "da": "🍳 panden",
+            "no": "🍳 stekepannen",
+            "ms": "🍳 kuali"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:pfanne",
+            "equipment:pan",
+            "heat:stovetop",
+            "heat:dry",
+            "technique:saute",
+            "technique:fry",
+            "pfanne",
+            "pan",
+            "braten",
+            "fry",
+            "saute",
+            "kochfeld",
+            "heatplate",
+            "stovetop",
+            "dry_heat"
+          ]
+        },
+        {
+          "key": "topf",
+          "labels": {
+            "de": "🍲 Topf",
+            "en": "🍲 pot",
+            "esp": "🍲 la olla",
+            "prt": "🍲 a panela",
+            "id": "🍲 panci",
+            "nl": "🍲 de kookpot",
+            "sv": "🍲 kastrullen",
+            "da": "🍲 gryden",
+            "no": "🍲 gryta",
+            "ms": "🍲 periuk"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:topf",
+            "equipment:pot",
+            "heat:stovetop",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "topf",
+            "pot",
+            "kochen",
+            "boil",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "kochfeld",
+            "heatplate",
+            "stovetop",
+            "wet_heat"
+          ]
+        },
+        {
+          "key": "backofen",
+          "labels": {
+            "de": "♨️ Backofen",
+            "en": "♨️ oven",
+            "esp": "♨️ el horno",
+            "prt": "♨️ o forno",
+            "id": "♨️ oven",
+            "nl": "♨️ de oven",
+            "sv": "♨️ ugnen",
+            "da": "♨️ ovnen",
+            "no": "♨️ ovnen",
+            "ms": "♨️ ketuhar"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:backofen",
+            "equipment:oven",
+            "heat:dry",
+            "technique:bake",
+            "backofen",
+            "oven",
+            "backen",
+            "bake",
+            "dry_heat"
+          ]
+        },
+        {
+          "key": "br_ter",
+          "labels": {
+            "de": "🍲 Bräter",
+            "en": "🍲 roasting pan",
+            "esp": "🍲 la asadera",
+            "prt": "🍲 a assadeira",
+            "id": "🍲 loyang",
+            "nl": "🍲 de braadslede",
+            "sv": "🍲 stekgrytan",
+            "da": "🍲 bradepanden",
+            "no": "🍲 den ildfaste formen",
+            "ms": "🍲 bekas pembakar"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:br_ter",
+            "equipment:roaster",
+            "bräter",
+            "braeter",
+            "roaster",
+            "schmoren",
+            "braise",
+            "wet_heat"
+          ]
+        },
+        {
+          "key": "kochfeld",
+          "labels": {
+            "de": "🔥 Kochfeld",
+            "en": "🔥 stovetop",
+            "esp": "🔥 la placa de cocción",
+            "prt": "🔥 o fogão",
+            "id": "🔥 kompor",
+            "nl": "🔥 de kookplaat",
+            "sv": "🔥 spishållen",
+            "da": "🔥 kogepladen",
+            "no": "🔥 koketoppen",
+            "ms": "🔥 dapur"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:kochfeld",
+            "kochfeld",
+            "heatplate",
+            "stovetop",
+            "braten",
+            "kochen"
+          ]
+        },
+        {
+          "key": "mixer",
+          "labels": {
+            "de": "Mixer",
+            "en": "blender",
+            "esp": "la batidora",
+            "prt": "o liquidificador",
+            "id": "blender",
+            "nl": "de blender",
+            "sv": "mixern",
+            "da": "blenderen",
+            "no": "blenderen",
+            "ms": "pengisar"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:mixer",
+            "equipment:blender",
+            "technique:blend",
+            "mixer",
+            "blender",
+            "pürieren",
+            "puerieren",
+            "blend"
+          ]
+        },
+        {
+          "key": "grill",
+          "labels": {
+            "de": "🔥 Grill",
+            "en": "🔥 grill",
+            "esp": "🔥 la parrilla",
+            "prt": "🔥 a grelha",
+            "id": "🔥 pemanggang",
+            "nl": "🔥 de grill",
+            "sv": "🔥 grillen",
+            "da": "🔥 grillen",
+            "no": "🔥 grillen",
+            "ms": "🔥 gril"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:grill",
+            "equipment:grill",
+            "technique:grill",
+            "heat:dry",
+            "grill",
+            "grillen",
+            "grill_heat",
+            "dry_heat"
+          ]
+        },
+        {
+          "key": "dampfgarer",
+          "labels": {
+            "de": "♨️ Dampfgarer",
+            "en": "♨️ steamer",
+            "esp": "♨️ la vaporera",
+            "prt": "♨️ o cozedor a vapor",
+            "id": "♨️ pengukus",
+            "nl": "♨️ de stomer",
+            "sv": "♨️ ångkokaren",
+            "da": "♨️ dampkogeren",
+            "no": "♨️ dampkokeren",
+            "ms": "♨️ pengukus"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:dampfgarer",
+            "equipment:steamer",
+            "heat:wet",
+            "technique:steam",
+            "dampfgarer",
+            "steamer",
+            "dämpfen",
+            "daempfen",
+            "steam",
+            "wet_heat"
+          ]
+        },
+        {
+          "key": "sch_ssel",
+          "labels": {
+            "de": "🥣 Schüssel",
+            "en": "🥣 bowl",
+            "esp": "🥣 el bol",
+            "prt": "🥣 a tigela",
+            "id": "🥣 mangkuk",
+            "nl": "🥣 de kom",
+            "sv": "🥣 skålen",
+            "da": "🥣 skålen",
+            "no": "🥣 bollen",
+            "ms": "🥣 mangkuk"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:sch_ssel",
+            "equipment:bowl",
+            "schüssel",
+            "schuessel",
+            "bowl",
+            "mischen",
+            "mix",
+            "einweichen",
+            "soak"
+          ]
+        },
+        {
+          "key": "sieb",
+          "labels": {
+            "de": "Sieb",
+            "en": "strainer",
+            "esp": "el colador",
+            "prt": "a peneira",
+            "id": "saringan",
+            "nl": "de zeef",
+            "sv": "silen",
+            "da": "sien",
+            "no": "silen",
+            "ms": "penapis"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:sieb",
+            "equipment:strainer",
+            "technique:drain",
+            "technique:strain",
+            "sieb",
+            "strainer",
+            "drain",
+            "strain",
+            "abgießen"
+          ]
+        }
+      ]
+    },
+    "marinade": {
+      "description": "Ausgelagerte Optionen für Variable \u0027marinade\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "oliven_l_und_gew_rzen",
+          "labels": {
+            "de": "Olivenöl und Gewürzen",
+            "en": "olive oil and spices",
+            "esp": "aceite de oliva y especias",
+            "prt": "azeite e especiarias",
+            "id": "minyak zaitun dan rempah",
+            "nl": "olijfolie en kruiden",
+            "sv": "olivolja och kryddor",
+            "da": "olivenolie og krydderier",
+            "no": "olivenolje og krydder",
+            "ms": "minyak zaitun dan rempah"
+          },
+          "tags": [
+            "variable:marinade",
+            "value:oliven_l_und_gew_rzen",
+            "component:marinade",
+            "technique:marinate"
+          ]
+        },
+        {
+          "key": "joghurt_und_gew_rzen",
+          "labels": {
+            "de": "Joghurt und Gewürzen",
+            "en": "yogurt and spices",
+            "esp": "yogur y especias",
+            "prt": "iogurte e especiarias",
+            "id": "yogurt dan rempah",
+            "nl": "yoghurt en kruiden",
+            "sv": "yoghurt och kryddor",
+            "da": "yoghurt og krydderier",
+            "no": "yoghurt og krydder",
+            "ms": "yogurt dan rempah"
+          },
+          "tags": [
+            "variable:marinade",
+            "value:joghurt_und_gew_rzen",
+            "component:marinade",
+            "technique:marinate"
+          ]
+        },
+        {
+          "key": "sojasauce_knoblauch_und_ingwer",
+          "labels": {
+            "de": "Sojasauce, Knoblauch und Ingwer",
+            "en": "soy sauce, garlic and ginger",
+            "esp": "salsa de soja, ajo y jengibre",
+            "prt": "molho de soja, alho e gengibre",
+            "id": "kecap asin, bawang putih, dan jahe",
+            "nl": "sojasaus, knoflook en gember",
+            "sv": "sojasås, vitlök och ingefära",
+            "da": "sojasauce, hvidløg og ingefær",
+            "no": "soyasaus, hvitløk og ingefær",
+            "ms": "kicap soya, bawang putih dan halia"
+          },
+          "tags": [
+            "variable:marinade",
+            "value:sojasauce_knoblauch_und_ingwer",
+            "component:marinade",
+            "technique:marinate",
+            "base:sauce",
+            "sauce",
+            "soße",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "reduce",
+            "stir"
+          ]
+        },
+        {
+          "key": "zitronensaft_l_und_kr_utern",
+          "labels": {
+            "de": "Zitronensaft, Öl und Kräutern",
+            "en": "lemon juice, oil and herbs",
+            "esp": "zumo de limón, aceite y hierbas",
+            "prt": "sumo de limão, azeite e ervas",
+            "id": "jus lemon, minyak, dan herba",
+            "nl": "citroensap, olie en kruiden",
+            "sv": "citronsaft, olja och örter",
+            "da": "citronsaft, olie og urter",
+            "no": "sitronsaft, olje og urter",
+            "ms": "jus lemon, minyak dan herba"
+          },
+          "tags": [
+            "variable:marinade",
+            "value:zitronensaft_l_und_kr_utern",
+            "component:marinade",
+            "technique:marinate"
+          ]
+        },
+        {
+          "key": "marinade",
+          "labels": {
+            "de": "Marinade",
+            "en": "marinade",
+            "esp": "la marinada",
+            "prt": "a marinada",
+            "id": "marinade",
+            "nl": "marinade",
+            "sv": "marinade",
+            "da": "marinade",
+            "no": "marinade",
+            "ms": "perapan"
+          },
+          "tags": [
+            "variable:marinade",
+            "value:marinade",
+            "component:marinade",
+            "technique:marinate"
+          ]
+        }
+      ]
+    },
+    "method": {
+      "description": "Ausgelagerte Optionen für Variable \u0027method\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "vorsichtig_unter",
+          "labels": {
+            "de": "vorsichtig unter",
+            "en": "fold in gently",
+            "esp": "incorpora suavemente",
+            "prt": "incorpore delicadamente",
+            "id": "aduk perlahan",
+            "nl": "voorzichtig erdoor spatelen",
+            "sv": "vänd ner försiktigt",
+            "da": "vend forsigtigt i",
+            "no": "vend forsiktig inn",
+            "ms": "gaul perlahan"
+          },
+          "tags": [
+            "variable:method",
+            "value:vorsichtig_unter"
+          ]
+        },
+        {
+          "key": "gleichm_ig_einr_hren",
+          "labels": {
+            "de": "gleichmäßig einrühren",
+            "en": "stir in evenly",
+            "esp": "remueve de forma uniforme",
+            "prt": "misture de forma uniforme",
+            "id": "aduk rata",
+            "nl": "gelijkmatig erdoor roeren",
+            "sv": "rör i jämnt",
+            "da": "rør jævnt i",
+            "no": "rør jevnt inn",
+            "ms": "kacau rata"
+          },
+          "tags": [
+            "variable:method",
+            "value:gleichm_ig_einr_hren"
+          ]
+        },
+        {
+          "key": "kurz_vermengen",
+          "labels": {
+            "de": "kurz vermengen",
+            "en": "mix briefly",
+            "esp": "mezcla brevemente",
+            "prt": "misture rapidamente",
+            "id": "campur sebentar",
+            "nl": "kort mengen",
+            "sv": "blanda kort",
+            "da": "bland kort",
+            "no": "bland kort",
+            "ms": "gaul sebentar"
+          },
+          "tags": [
+            "variable:method",
+            "value:kurz_vermengen"
+          ]
+        },
+        {
+          "key": "gr_ndlich_vermischen",
+          "labels": {
+            "de": "gründlich vermischen",
+            "en": "combine thoroughly",
+            "esp": "mezcla bien",
+            "prt": "misture bem",
+            "id": "campur hingga rata",
+            "nl": "grondig mengen",
+            "sv": "blanda ordentligt",
+            "da": "bland grundigt",
+            "no": "bland godt",
+            "ms": "gaul sebati"
+          },
+          "tags": [
+            "variable:method",
+            "value:gr_ndlich_vermischen"
+          ]
+        },
+        {
+          "key": "unterr_hren",
+          "labels": {
+            "de": "unterrühren",
+            "en": "stir in",
+            "esp": "incorporar removiendo",
+            "prt": "incorporar mexendo",
+            "id": "aduk masuk",
+            "nl": "erdoor roeren",
+            "sv": "rör ner",
+            "da": "rør i",
+            "no": "rør inn",
+            "ms": "kacau masuk"
+          },
+          "tags": [
+            "variable:method",
+            "value:unterr_hren"
+          ]
+        },
+        {
+          "key": "schwenkend",
+          "labels": {
+            "de": "schwenkend",
+            "en": "by tossing",
+            "esp": "salteando",
+            "prt": "salteando",
+            "id": "dengan mengaduk",
+            "nl": "al zwenkend",
+            "sv": "genom att svänga",
+            "da": "ved at svitse",
+            "no": "ved å svinge",
+            "ms": "dengan mengaul"
+          },
+          "tags": [
+            "variable:method",
+            "value:schwenkend"
+          ]
+        },
+        {
+          "key": "vorsichtig",
+          "labels": {
+            "de": "vorsichtig",
+            "en": "gently",
+            "esp": "con cuidado",
+            "prt": "com cuidado",
+            "id": "perlahan",
+            "nl": "voorzichtig",
+            "sv": "försiktigt",
+            "da": "forsigtigt",
+            "no": "forsiktig",
+            "ms": "perlahan"
+          },
+          "tags": [
+            "variable:method",
+            "value:vorsichtig"
+          ]
+        },
+        {
+          "key": "regelm_ig",
+          "labels": {
+            "de": "regelmäßig",
+            "en": "regularly",
+            "esp": "regularmente",
+            "prt": "regularmente",
+            "id": "secara teratur",
+            "nl": "regelmatig",
+            "sv": "regelbundet",
+            "da": "regelmæssigt",
+            "no": "jevnlig",
+            "ms": "secara berkala"
+          },
+          "tags": [
+            "variable:method",
+            "value:regelm_ig"
+          ]
+        }
+      ]
+    },
+    "mode": {
+      "description": "Ausgelagerte Optionen für Variable \u0027mode\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "ober_unterhitze",
+          "labels": {
+            "de": "Ober-/Unterhitze",
+            "en": "top/bottom heat",
+            "esp": "calor arriba y abajo",
+            "prt": "calor superior/inferior",
+            "id": "api atas-bawah",
+            "nl": "boven-/onderwarmte",
+            "sv": "över-/undervärme",
+            "da": "over-/undervarme",
+            "no": "over-/undervarme",
+            "ms": "haba atas/bawah"
+          },
+          "tags": [
+            "variable:mode",
+            "value:ober_unterhitze",
+            "equipment:oven",
+            "heat:dry",
+            "technique:bake"
+          ]
+        },
+        {
+          "key": "umluft",
+          "labels": {
+            "de": "Umluft",
+            "en": "fan-assisted",
+            "esp": "aire caliente",
+            "prt": "ventilado",
+            "id": "kipas konveksi",
+            "nl": "hetelucht",
+            "sv": "varmluft",
+            "da": "varmluft",
+            "no": "varmluft",
+            "ms": "kipas perolakan"
+          },
+          "tags": [
+            "variable:mode",
+            "value:umluft",
+            "equipment:oven",
+            "heat:dry",
+            "technique:bake"
+          ]
+        },
+        {
+          "key": "grillfunktion",
+          "labels": {
+            "de": "Grillfunktion",
+            "en": "broil mode",
+            "esp": "función grill",
+            "prt": "função grill",
+            "id": "mode grill",
+            "nl": "grillstand",
+            "sv": "grilläge",
+            "da": "grillfunktion",
+            "no": "grillfunksjon",
+            "ms": "mod gril"
+          },
+          "tags": [
+            "variable:mode",
+            "value:grillfunktion",
+            "equipment:oven",
+            "heat:dry",
+            "technique:bake"
+          ]
+        }
+      ]
+    },
+    "servings": {
+      "description": "Ausgelagerte Optionen für Variable \u0027servings\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "1",
+          "labels": {
+            "de": "1",
+            "en": "1",
+            "esp": "1",
+            "prt": "1",
+            "id": "1",
+            "nl": "1",
+            "sv": "1",
+            "da": "1",
+            "no": "1",
+            "ms": "1"
+          },
+          "tags": [
+            "variable:servings",
+            "value:1"
+          ]
+        },
+        {
+          "key": "2",
+          "labels": {
+            "de": "2",
+            "en": "2",
+            "esp": "2",
+            "prt": "2",
+            "id": "2",
+            "nl": "2",
+            "sv": "2",
+            "da": "2",
+            "no": "2",
+            "ms": "2"
+          },
+          "tags": [
+            "variable:servings",
+            "value:2"
+          ]
+        },
+        {
+          "key": "3",
+          "labels": {
+            "de": "3",
+            "en": "3",
+            "esp": "3",
+            "prt": "3",
+            "id": "3",
+            "nl": "3",
+            "sv": "3",
+            "da": "3",
+            "no": "3",
+            "ms": "3"
+          },
+          "tags": [
+            "variable:servings",
+            "value:3"
+          ]
+        },
+        {
+          "key": "4",
+          "labels": {
+            "de": "4",
+            "en": "4",
+            "esp": "4",
+            "prt": "4",
+            "id": "4",
+            "nl": "4",
+            "sv": "4",
+            "da": "4",
+            "no": "4",
+            "ms": "4"
+          },
+          "tags": [
+            "variable:servings",
+            "value:4"
+          ]
+        },
+        {
+          "key": "5",
+          "labels": {
+            "de": "5",
+            "en": "5",
+            "esp": "5",
+            "prt": "5",
+            "id": "5",
+            "nl": "5",
+            "sv": "5",
+            "da": "5",
+            "no": "5",
+            "ms": "5"
+          },
+          "tags": [
+            "variable:servings",
+            "value:5"
+          ]
+        },
+        {
+          "key": "6",
+          "labels": {
+            "de": "6",
+            "en": "6",
+            "esp": "6",
+            "prt": "6",
+            "id": "6",
+            "nl": "6",
+            "sv": "6",
+            "da": "6",
+            "no": "6",
+            "ms": "6"
+          },
+          "tags": [
+            "variable:servings",
+            "value:6"
+          ]
+        },
+        {
+          "key": "8",
+          "labels": {
+            "de": "8",
+            "en": "8",
+            "esp": "8",
+            "prt": "8",
+            "id": "8",
+            "nl": "8",
+            "sv": "8",
+            "da": "8",
+            "no": "8",
+            "ms": "8"
+          },
+          "tags": [
+            "variable:servings",
+            "value:8"
+          ]
+        },
+        {
+          "key": "10",
+          "labels": {
+            "de": "10",
+            "en": "10",
+            "esp": "10",
+            "prt": "10",
+            "id": "10",
+            "nl": "10",
+            "sv": "10",
+            "da": "10",
+            "no": "10",
+            "ms": "10"
+          },
+          "tags": [
+            "variable:servings",
+            "value:10"
+          ]
+        },
+        {
+          "key": "12",
+          "labels": {
+            "de": "12",
+            "en": "12",
+            "esp": "12",
+            "prt": "12",
+            "id": "12",
+            "nl": "12",
+            "sv": "12",
+            "da": "12",
+            "no": "12",
+            "ms": "12"
+          },
+          "tags": [
+            "variable:servings",
+            "value:12"
+          ]
+        }
+      ]
+    },
+    "position": {
+      "description": "Ausgelagerte Optionen für Variable \u0027position\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "mittig",
+          "labels": {
+            "de": "mittig",
+            "en": "in the middle",
+            "esp": "en el centro",
+            "prt": "ao centro",
+            "id": "di tengah",
+            "nl": "in het midden",
+            "sv": "i mitten",
+            "da": "i midten",
+            "no": "i midten",
+            "ms": "di tengah"
+          },
+          "tags": [
+            "variable:position",
+            "value:mittig"
+          ]
+        },
+        {
+          "key": "auf_oberer_schiene",
+          "labels": {
+            "de": "auf oberer Schiene",
+            "en": "on the top rack",
+            "esp": "en la bandeja superior",
+            "prt": "na prateleira superior",
+            "id": "di rak atas",
+            "nl": "op het bovenste rooster",
+            "sv": "på översta falsen",
+            "da": "på øverste rille",
+            "no": "på øverste rille",
+            "ms": "di rak atas"
+          },
+          "tags": [
+            "variable:position",
+            "value:auf_oberer_schiene"
+          ]
+        },
+        {
+          "key": "nah_unter_dem_grill",
+          "labels": {
+            "de": "nah unter dem Grill",
+            "en": "close to the broiler",
+            "esp": "cerca del grill",
+            "prt": "perto do grill",
+            "id": "dekat pemanggang",
+            "nl": "dicht onder de grill",
+            "sv": "nära grillelementet",
+            "da": "tæt under grillen",
+            "no": "nært grillelementet",
+            "ms": "dekat gril"
+          },
+          "tags": [
+            "variable:position",
+            "value:nah_unter_dem_grill"
+          ]
+        }
+      ]
+    },
+    "keep": {
+      "description": "Ausgelagerte Optionen für Variable \u0027keep\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "das_kochwasser",
+          "labels": {
+            "de": "das Kochwasser",
+            "en": "the cooking water",
+            "esp": "el agua de cocción",
+            "prt": "a água da cozedura",
+            "id": "air rebusan",
+            "nl": "het kookwater",
+            "sv": "kokvattnet",
+            "da": "kogevandet",
+            "no": "kokevannet",
+            "ms": "air rebusan"
+          },
+          "tags": [
+            "variable:keep",
+            "value:das_kochwasser"
+          ]
+        },
+        {
+          "key": "die_br_he",
+          "labels": {
+            "de": "die Brühe",
+            "en": "the broth",
+            "esp": "el caldo",
+            "prt": "o caldo",
+            "id": "kaldu",
+            "nl": "de bouillon",
+            "sv": "buljongen",
+            "da": "bouillonen",
+            "no": "kraften",
+            "ms": "stok"
+          },
+          "tags": [
+            "variable:keep",
+            "value:die_br_he"
+          ]
+        },
+        {
+          "key": "die_sauce",
+          "labels": {
+            "de": "die Sauce",
+            "en": "the sauce",
+            "esp": "la salsa",
+            "prt": "o molho",
+            "id": "saus",
+            "nl": "de saus",
+            "sv": "såsen",
+            "da": "saucen",
+            "no": "sausen",
+            "ms": "sos"
+          },
+          "tags": [
+            "variable:keep",
+            "value:die_sauce",
+            "base:sauce",
+            "sauce",
+            "soße",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "reduce",
+            "stir"
+          ]
+        },
+        {
+          "key": "den_sud",
+          "labels": {
+            "de": "den Sud",
+            "en": "the liquid",
+            "esp": "el líquido",
+            "prt": "o líquido",
+            "id": "cairan rebusan",
+            "nl": "het vocht",
+            "sv": "vätskan",
+            "da": "væsken",
+            "no": "væsken",
+            "ms": "cecair"
+          },
+          "tags": [
+            "variable:keep",
+            "value:den_sud"
+          ]
+        }
+      ]
+    },
+    "surface": {
+      "description": "Ausgelagerte Optionen für Variable \u0027surface\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "einer_bemehlten_arbeitsfl_che",
+          "labels": {
+            "de": "einer bemehlten Arbeitsfläche",
+            "en": "a floured work surface",
+            "esp": "una superficie enharinada",
+            "prt": "uma superfície enfarinhada",
+            "id": "permukaan bertabur tepung",
+            "nl": "een bebloemd werkblad",
+            "sv": "en mjölad arbetsyta",
+            "da": "et meldrysset bord",
+            "no": "en melet arbeidsflate",
+            "ms": "permukaan bertabur tepung"
+          },
+          "tags": [
+            "variable:surface",
+            "value:einer_bemehlten_arbeitsfl_che",
+            "component:dough",
+            "technique:roll_out"
+          ]
+        },
+        {
+          "key": "backpapier",
+          "labels": {
+            "de": "Backpapier",
+            "en": "parchment paper",
+            "esp": "papel de horno",
+            "prt": "papel vegetal",
+            "id": "kertas roti",
+            "nl": "bakpapier",
+            "sv": "bakplåtspapper",
+            "da": "bagepapir",
+            "no": "bakepapir",
+            "ms": "kertas pembakar"
+          },
+          "tags": [
+            "variable:surface",
+            "value:backpapier",
+            "component:dough",
+            "technique:roll_out"
+          ]
+        },
+        {
+          "key": "einer_silikonmatte",
+          "labels": {
+            "de": "einer Silikonmatte",
+            "en": "a silicone mat",
+            "esp": "una esterilla de silicona",
+            "prt": "um tapete de silicone",
+            "id": "alas silikon",
+            "nl": "een siliconenmat",
+            "sv": "en silikonmatta",
+            "da": "en silikonemåtte",
+            "no": "en silikonmatte",
+            "ms": "alas silikon"
+          },
+          "tags": [
+            "variable:surface",
+            "value:einer_silikonmatte",
+            "component:dough",
+            "technique:roll_out"
+          ]
+        },
+        {
+          "key": "der_arbeitsfl_che",
+          "labels": {
+            "de": "der Arbeitsfläche",
+            "en": "the work surface",
+            "esp": "la superficie de trabajo",
+            "prt": "a superfície de trabalho",
+            "id": "permukaan kerja",
+            "nl": "het werkblad",
+            "sv": "arbetsytan",
+            "da": "arbejdsfladen",
+            "no": "arbeidsflaten",
+            "ms": "permukaan kerja"
+          },
+          "tags": [
+            "variable:surface",
+            "value:der_arbeitsfl_che",
+            "component:dough",
+            "technique:roll_out"
+          ]
+        }
+      ]
+    },
+    "thickener": {
+      "description": "Ausgelagerte Optionen für Variable \u0027thickener\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "speisest_rke",
+          "labels": {
+            "de": "Speisestärke",
+            "en": "cornstarch",
+            "esp": "maicena",
+            "prt": "amido de milho",
+            "id": "tepung maizena",
+            "nl": "maïzena",
+            "sv": "majsstärkelse",
+            "da": "majsstivelse",
+            "no": "maisstivelse",
+            "ms": "tepung jagung"
+          },
+          "tags": [
+            "variable:thickener",
+            "value:speisest_rke",
+            "component:sauce",
+            "technique:thicken"
+          ]
+        },
+        {
+          "key": "mehl",
+          "labels": {
+            "de": "Mehl",
+            "en": "flour",
+            "esp": "harina",
+            "prt": "farinha",
+            "id": "tepung",
+            "nl": "bloem",
+            "sv": "mjöl",
+            "da": "mel",
+            "no": "mel",
+            "ms": "tepung"
+          },
+          "tags": [
+            "variable:thickener",
+            "value:mehl",
+            "component:sauce",
+            "technique:thicken"
+          ]
+        },
+        {
+          "key": "anger_hrter_st_rke",
+          "labels": {
+            "de": "angerührter Stärke",
+            "en": "slurry",
+            "esp": "fécula disuelta",
+            "prt": "amido dissolvido",
+            "id": "larutan pati",
+            "nl": "zetmeelpapje",
+            "sv": "redning",
+            "da": "jævning",
+            "no": "jevning",
+            "ms": "bancuhan kanji"
+          },
+          "tags": [
+            "variable:thickener",
+            "value:anger_hrter_st_rke",
+            "component:sauce",
+            "technique:thicken"
+          ]
+        },
+        {
+          "key": "einer_mehlschwitze",
+          "labels": {
+            "de": "einer Mehlschwitze",
+            "en": "a roux",
+            "esp": "un roux",
+            "prt": "um roux",
+            "id": "roux",
+            "nl": "een roux",
+            "sv": "en roux",
+            "da": "en roux",
+            "no": "en roux",
+            "ms": "roux"
+          },
+          "tags": [
+            "variable:thickener",
+            "value:einer_mehlschwitze",
+            "component:sauce",
+            "technique:thicken"
+          ]
+        }
+      ]
+    },
+    "components": {
+      "description": "Ausgelagerte Optionen für Variable \u0027components\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "gem_se_und_sauce",
+          "labels": {
+            "de": "Gemüse und Sauce",
+            "en": "vegetables and sauce",
+            "esp": "verduras y salsa",
+            "prt": "legumes e molho",
+            "id": "sayur dan saus",
+            "nl": "groenten en saus",
+            "sv": "grönsaker och sås",
+            "da": "grøntsager og sauce",
+            "no": "grønnsaker og saus",
+            "ms": "sayur dan sos"
+          },
+          "tags": [
+            "variable:components",
+            "value:gem_se_und_sauce",
+            "technique:layer",
+            "component:mix",
+            "base:sauce",
+            "sauce",
+            "soße",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "reduce",
+            "stir"
+          ]
+        },
+        {
+          "key": "kartoffeln_und_gem_se",
+          "labels": {
+            "de": "Kartoffeln und Gemüse",
+            "en": "potatoes and vegetables",
+            "esp": "patatas y verduras",
+            "prt": "batatas e legumes",
+            "id": "kentang dan sayur",
+            "nl": "aardappelen en groenten",
+            "sv": "potatis och grönsaker",
+            "da": "kartofler og grøntsager",
+            "no": "poteter og grønnsaker",
+            "ms": "kentang dan sayur"
+          },
+          "tags": [
+            "variable:components",
+            "value:kartoffeln_und_gem_se",
+            "technique:layer",
+            "component:mix"
+          ]
+        },
+        {
+          "key": "nudeln_und_sauce",
+          "labels": {
+            "de": "Nudeln und Sauce",
+            "en": "pasta and sauce",
+            "esp": "pasta y salsa",
+            "prt": "massa e molho",
+            "id": "pasta dan saus",
+            "nl": "pasta en saus",
+            "sv": "pasta och sås",
+            "da": "pasta og sauce",
+            "no": "pasta og saus",
+            "ms": "pasta dan sos"
+          },
+          "tags": [
+            "variable:components",
+            "value:nudeln_und_sauce",
+            "technique:layer",
+            "component:mix",
+            "base:sauce",
+            "sauce",
+            "soße",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "reduce",
+            "stir"
+          ]
+        },
+        {
+          "key": "schichten_aus_teig_und_f_llung",
+          "labels": {
+            "de": "Schichten aus Teig und Füllung",
+            "en": "layers of dough and filling",
+            "esp": "capas de masa y relleno",
+            "prt": "camadas de massa e recheio",
+            "id": "lapisan adonan dan isian",
+            "nl": "lagen deeg en vulling",
+            "sv": "lager av deg och fyllning",
+            "da": "lag af dej og fyld",
+            "no": "lag av deig og fyll",
+            "ms": "lapisan doh dan inti"
+          },
+          "tags": [
+            "variable:components",
+            "value:schichten_aus_teig_und_f_llung",
+            "technique:layer",
+            "component:mix",
+            "base:filling",
+            "füllung",
+            "fuellung",
+            "filling",
+            "schichten",
+            "layer",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        },
+        {
+          "key": "die_zutaten",
+          "labels": {
+            "de": "die Zutaten",
+            "en": "the ingredients",
+            "esp": "los ingredientes",
+            "prt": "os ingredientes",
+            "id": "bahan-bahan",
+            "nl": "de ingredienten",
+            "sv": "ingredienserna",
+            "da": "ingredienserne",
+            "no": "ingrediensene",
+            "ms": "bahan-bahan"
+          },
+          "tags": [
+            "variable:components",
+            "value:die_zutaten",
+            "technique:layer",
+            "component:mix"
+          ]
+        }
+      ]
+    },
+    "finish": {
+      "description": "Ausgelagerte Optionen für Variable \u0027finish\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "geriebenem_k_se",
+          "labels": {
+            "de": "geriebenem Käse",
+            "en": "grated cheese",
+            "esp": "queso rallado",
+            "prt": "queijo ralado",
+            "id": "keju parut",
+            "nl": "geraspte kaas",
+            "sv": "riven ost",
+            "da": "revet ost",
+            "no": "revet ost",
+            "ms": "keju parut"
+          },
+          "tags": [
+            "variable:finish",
+            "value:geriebenem_k_se",
+            "technique:layer",
+            "technique:serve"
+          ]
+        },
+        {
+          "key": "frischen_kr_utern",
+          "labels": {
+            "de": "frischen Kräutern",
+            "en": "fresh herbs",
+            "esp": "hierbas frescas",
+            "prt": "ervas frescas",
+            "id": "herba segar",
+            "nl": "verse kruiden",
+            "sv": "färska örter",
+            "da": "friske urter",
+            "no": "friske urter",
+            "ms": "herba segar"
+          },
+          "tags": [
+            "variable:finish",
+            "value:frischen_kr_utern",
+            "technique:layer",
+            "technique:serve"
+          ]
+        },
+        {
+          "key": "semmelbr_seln",
+          "labels": {
+            "de": "Semmelbröseln",
+            "en": "breadcrumbs",
+            "esp": "pan rallado",
+            "prt": "pão ralado",
+            "id": "tepung roti",
+            "nl": "paneermeel",
+            "sv": "ströbröd",
+            "da": "rasp",
+            "no": "brødrasp",
+            "ms": "serbuk roti"
+          },
+          "tags": [
+            "variable:finish",
+            "value:semmelbr_seln",
+            "technique:layer",
+            "technique:serve"
+          ]
+        },
+        {
+          "key": "einem_schuss_oliven_l",
+          "labels": {
+            "de": "einem Schuss Olivenöl",
+            "en": "a drizzle of olive oil",
+            "esp": "un chorrito de aceite de oliva",
+            "prt": "um fio de azeite",
+            "id": "sedikit minyak zaitun",
+            "nl": "een scheutje olijfolie",
+            "sv": "en skvätt olivolja",
+            "da": "en smule olivenolie",
+            "no": "en skvett olivenolje",
+            "ms": "sedikit minyak zaitun"
+          },
+          "tags": [
+            "variable:finish",
+            "value:einem_schuss_oliven_l",
+            "technique:layer",
+            "technique:serve"
+          ]
+        },
+        {
+          "key": "bechamelsauce",
+          "labels": {
+            "de": "Bechamelsauce",
+            "en": "bechamel sauce",
+            "esp": "salsa bechamel",
+            "prt": "molho bechamel",
+            "id": "saus bechamel",
+            "nl": "bechamelsaus",
+            "sv": "bechamelsas",
+            "da": "bechamelsauce",
+            "no": "bechamelsaus",
+            "ms": "sos bechamel"
+          },
+          "tags": [
+            "variable:finish",
+            "value:bechamelsauce",
+            "technique:layer",
+            "technique:serve",
+            "base:sauce",
+            "sauce",
+            "soße",
+            "köcheln",
+            "koecheln",
+            "simmer",
+            "reduce",
+            "stir"
+          ]
+        }
+      ]
+    },
+    "extra": {
+      "description": "Ausgelagerte Optionen für Variable \u0027extra\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "mit_frischen_kr_utern",
+          "labels": {
+            "de": "mit frischen Kräutern",
+            "en": "with fresh herbs",
+            "esp": "con hierbas frescas",
+            "prt": "com ervas frescas",
+            "id": "dengan herba segar",
+            "nl": "met verse kruiden",
+            "sv": "med färska örter",
+            "da": "med friske urter",
+            "no": "med friske urter",
+            "ms": "dengan herba segar"
+          },
+          "tags": [
+            "variable:extra",
+            "value:mit_frischen_kr_utern"
+          ]
+        },
+        {
+          "key": "mit_einem_dip",
+          "labels": {
+            "de": "mit einem Dip",
+            "en": "with a dip",
+            "esp": "con una salsa",
+            "prt": "com um molho",
+            "id": "dengan cecah",
+            "nl": "met een dip",
+            "sv": "med en dip",
+            "da": "med en dip",
+            "no": "med en dip",
+            "ms": "dengan sos pencicah"
+          },
+          "tags": [
+            "variable:extra",
+            "value:mit_einem_dip"
+          ]
+        },
+        {
+          "key": "mit_zitronenspalten",
+          "labels": {
+            "de": "mit Zitronenspalten",
+            "en": "with lemon wedges",
+            "esp": "con gajos de limón",
+            "prt": "com gomos de limão",
+            "id": "dengan irisan lemon",
+            "nl": "met partjes citroen",
+            "sv": "med citronklyftor",
+            "da": "med citronbåde",
+            "no": "med sitronbåter",
+            "ms": "dengan hirisan lemon"
+          },
+          "tags": [
+            "variable:extra",
+            "value:mit_zitronenspalten"
+          ]
+        },
+        {
+          "key": "sofort_hei",
+          "labels": {
+            "de": "sofort heiß",
+            "en": "serve immediately while hot",
+            "esp": "servir caliente de inmediato",
+            "prt": "servir de imediato bem quente",
+            "id": "sajikan segera saat panas",
+            "nl": "meteen heet serveren",
+            "sv": "servera direkt varm",
+            "da": "servér straks varm",
+            "no": "server straks varm",
+            "ms": "hidang segera semasa panas"
+          },
+          "tags": [
+            "variable:extra",
+            "value:sofort_hei"
+          ]
+        }
+      ]
+    },
+    "reason": {
+      "description": "Ausgelagerte Optionen für Variable \u0027reason\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "sich_die_aromen_verbinden",
+          "labels": {
+            "de": "sich die Aromen verbinden",
+            "en": "the flavors can meld",
+            "esp": "se integren los sabores",
+            "prt": "os sabores se integrem",
+            "id": "rasa menyatu",
+            "nl": "de smaken zich verbinden",
+            "sv": "smakerna hinner sätta sig",
+            "da": "smagene samler sig",
+            "no": "smakene setter seg",
+            "ms": "rasa sebati"
+          },
+          "tags": [
+            "variable:reason",
+            "value:sich_die_aromen_verbinden"
+          ]
+        },
+        {
+          "key": "die_masse_stabil_bleibt",
+          "labels": {
+            "de": "die Masse stabil bleibt",
+            "en": "the mixture stays stable",
+            "esp": "la mezcla se mantenga estable",
+            "prt": "a mistura se mantenha estável",
+            "id": "adonan tetap stabil",
+            "nl": "het mengsel stabiel blijft",
+            "sv": "blandningen håller sig stabil",
+            "da": "massen holder sig stabil",
+            "no": "blandingen holder seg stabil",
+            "ms": "adunan kekal stabil"
+          },
+          "tags": [
+            "variable:reason",
+            "value:die_masse_stabil_bleibt"
+          ]
+        },
+        {
+          "key": "der_saft_sich_verteilt",
+          "labels": {
+            "de": "der Saft sich verteilt",
+            "en": "the juices can redistribute",
+            "esp": "los jugos se redistribuyan",
+            "prt": "os sucos se redistribuam",
+            "id": "sari merata kembali",
+            "nl": "de sappen zich verdelen",
+            "sv": "saften fördelas igen",
+            "da": "saften fordeler sig",
+            "no": "saften fordeler seg",
+            "ms": "jus kembali sekata"
+          },
+          "tags": [
+            "variable:reason",
+            "value:der_saft_sich_verteilt"
+          ]
+        },
+        {
+          "key": "die_kruste_knusprig_bleibt",
+          "labels": {
+            "de": "die Kruste knusprig bleibt",
+            "en": "the crust stays crispy",
+            "esp": "la costra quede crujiente",
+            "prt": "a crosta fique crocante",
+            "id": "kerak tetap renyah",
+            "nl": "de korst knapperig blijft",
+            "sv": "skorpan håller sig krispig",
+            "da": "skorpen forbliver sprød",
+            "no": "skorpen holder seg sprø",
+            "ms": "kerak kekal rangup"
+          },
+          "tags": [
+            "variable:reason",
+            "value:die_kruste_knusprig_bleibt"
+          ]
+        }
+      ]
+    },
+    "goal": {
+      "description": "Ausgelagerte Optionen für Variable \u0027goal\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "die_masse_luftig_bleibt",
+          "labels": {
+            "de": "die Masse luftig bleibt",
+            "en": "the mixture stays airy",
+            "esp": "la mezcla quede aireada",
+            "prt": "a mistura fique aerada",
+            "id": "adonan tetap ringan",
+            "nl": "het mengsel luchtig blijft",
+            "sv": "smeten håller sig luftig",
+            "da": "massen forbliver luftig",
+            "no": "blandingen holder seg luftig",
+            "ms": "adunan kekal ringan"
+          },
+          "tags": [
+            "variable:goal",
+            "value:die_masse_luftig_bleibt"
+          ]
+        },
+        {
+          "key": "keine_luft_entweicht",
+          "labels": {
+            "de": "keine Luft entweicht",
+            "en": "no air is lost",
+            "esp": "no se pierda aire",
+            "prt": "não se perca ar",
+            "id": "udara tidak hilang",
+            "nl": "er geen lucht verloren gaat",
+            "sv": "ingen luft går förlorad",
+            "da": "ingen luft går tabt",
+            "no": "ingen luft går tapt",
+            "ms": "udara tidak hilang"
+          },
+          "tags": [
+            "variable:goal",
+            "value:keine_luft_entweicht"
+          ]
+        },
+        {
+          "key": "alles_gleichm_ig_verteilt_ist",
+          "labels": {
+            "de": "alles gleichmäßig verteilt ist",
+            "en": "everything is evenly distributed",
+            "esp": "todo quede repartido de forma uniforme",
+            "prt": "tudo fique distribuído de forma uniforme",
+            "id": "semua tersebar merata",
+            "nl": "alles gelijkmatig verdeeld is",
+            "sv": "allt fördelas jämnt",
+            "da": "alt fordeles jævnt",
+            "no": "alt fordeles jevnt",
+            "ms": "semua tersebar sekata"
+          },
+          "tags": [
+            "variable:goal",
+            "value:alles_gleichm_ig_verteilt_ist"
+          ]
+        },
+        {
+          "key": "die_struktur_erhalten_bleibt",
+          "labels": {
+            "de": "die Struktur erhalten bleibt",
+            "en": "the structure is preserved",
+            "esp": "se conserve la estructura",
+            "prt": "a estrutura seja preservada",
+            "id": "strukturnya terjaga",
+            "nl": "de structuur behouden blijft",
+            "sv": "strukturen bevaras",
+            "da": "strukturen bevares",
+            "no": "strukturen bevares",
+            "ms": "struktur kekal terpelihara"
+          },
+          "tags": [
+            "variable:goal",
+            "value:die_struktur_erhalten_bleibt"
+          ]
+        }
+      ]
+    },
+    "step1": {
+      "description": "Ausgelagerte Optionen für Variable \u0027step1\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "mehl",
+          "labels": {
+            "de": "Mehl",
+            "en": "flour",
+            "esp": "harina",
+            "prt": "farinha",
+            "id": "tepung",
+            "nl": "bloem",
+            "sv": "mjöl",
+            "da": "mel",
+            "no": "mel",
+            "ms": "tepung"
+          },
+          "tags": [
+            "variable:step1",
+            "value:mehl"
+          ]
+        },
+        {
+          "key": "st_rke",
+          "labels": {
+            "de": "Stärke",
+            "en": "starch",
+            "esp": "fécula",
+            "prt": "amido",
+            "id": "pati",
+            "nl": "zetmeel",
+            "sv": "stärkelse",
+            "da": "stivelse",
+            "no": "stivelse",
+            "ms": "kanji"
+          },
+          "tags": [
+            "variable:step1",
+            "value:st_rke"
+          ]
+        },
+        {
+          "key": "pankomehl",
+          "labels": {
+            "de": "Pankomehl",
+            "en": "panko breadcrumbs",
+            "esp": "panko",
+            "prt": "panko",
+            "id": "tepung roti panko",
+            "nl": "panko",
+            "sv": "panko",
+            "da": "panko",
+            "no": "panko",
+            "ms": "panko"
+          },
+          "tags": [
+            "variable:step1",
+            "value:pankomehl"
+          ]
+        }
+      ]
+    },
+    "step2": {
+      "description": "Ausgelagerte Optionen für Variable \u0027step2\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "verquirltem_ei",
+          "labels": {
+            "de": "verquirltem Ei",
+            "en": "beaten egg",
+            "esp": "huevo batido",
+            "prt": "ovo batido",
+            "id": "telur kocok",
+            "nl": "losgeklopt ei",
+            "sv": "uppvispat ägg",
+            "da": "sammenpisket æg",
+            "no": "sammenvispet egg",
+            "ms": "telur pukul"
+          },
+          "tags": [
+            "variable:step2",
+            "value:verquirltem_ei"
+          ]
+        },
+        {
+          "key": "buttermilch",
+          "labels": {
+            "de": "Buttermilch",
+            "en": "buttermilk",
+            "esp": "suero de leche",
+            "prt": "leitelho",
+            "id": "buttermilk",
+            "nl": "karnemelk",
+            "sv": "kärnmjölk",
+            "da": "kærnemælk",
+            "no": "kjernemelk",
+            "ms": "susu mentega"
+          },
+          "tags": [
+            "variable:step2",
+            "value:buttermilch"
+          ]
+        },
+        {
+          "key": "pflanzlicher_milch",
+          "labels": {
+            "de": "pflanzlicher Milch",
+            "en": "plant-based milk",
+            "esp": "leche vegetal",
+            "prt": "bebida vegetal",
+            "id": "susu nabati",
+            "nl": "plantaardige melk",
+            "sv": "växtbaserad mjölk",
+            "da": "plantebaseret mælk",
+            "no": "plantebasert melk",
+            "ms": "susu berasaskan tumbuhan"
+          },
+          "tags": [
+            "variable:step2",
+            "value:pflanzlicher_milch"
+          ]
+        }
+      ]
+    },
+    "step3": {
+      "description": "Ausgelagerte Optionen für Variable \u0027step3\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "semmelbr_seln",
+          "labels": {
+            "de": "Semmelbröseln",
+            "en": "breadcrumbs",
+            "esp": "pan rallado",
+            "prt": "pão ralado",
+            "id": "tepung roti",
+            "nl": "paneermeel",
+            "sv": "ströbröd",
+            "da": "rasp",
+            "no": "brødrasp",
+            "ms": "serbuk roti"
+          },
+          "tags": [
+            "variable:step3",
+            "value:semmelbr_seln"
+          ]
+        },
+        {
+          "key": "panko",
+          "labels": {
+            "de": "Panko",
+            "en": "panko",
+            "esp": "panko",
+            "prt": "panko",
+            "id": "panko",
+            "nl": "panko",
+            "sv": "panko",
+            "da": "panko",
+            "no": "panko",
+            "ms": "panko"
+          },
+          "tags": [
+            "variable:step3",
+            "value:panko"
+          ]
+        },
+        {
+          "key": "zerdr_ckten_cornflakes",
+          "labels": {
+            "de": "zerdrückten Cornflakes",
+            "en": "crushed cornflakes",
+            "esp": "copos de maíz triturados",
+            "prt": "cornflakes triturados",
+            "id": "cornflakes hancur",
+            "nl": "geplette cornflakes",
+            "sv": "krossade cornflakes",
+            "da": "knuste cornflakes",
+            "no": "knuste cornflakes",
+            "ms": "cornflakes hancur"
+          },
+          "tags": [
+            "variable:step3",
+            "value:zerdr_ckten_cornflakes"
+          ]
+        }
+      ]
+    },
+    "dough": {
+      "description": "Ausgelagerte Optionen für Variable \u0027dough\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "teig",
+          "labels": {
+            "de": "Teig",
+            "en": "dough",
+            "esp": "masa",
+            "prt": "massa",
+            "id": "adonan",
+            "nl": "deeg",
+            "sv": "deg",
+            "da": "dej",
+            "no": "deig",
+            "ms": "doh"
+          },
+          "tags": [
+            "variable:dough",
+            "value:teig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "technique:roll_out",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        },
+        {
+          "key": "pizzateig",
+          "labels": {
+            "de": "Pizzateig",
+            "en": "pizza dough",
+            "esp": "masa de pizza",
+            "prt": "massa de pizza",
+            "id": "adonan pizza",
+            "nl": "pizzadeeg",
+            "sv": "pizzadeg",
+            "da": "pizzadej",
+            "no": "pizzadeig",
+            "ms": "doh piza"
+          },
+          "tags": [
+            "variable:dough",
+            "value:pizzateig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "technique:roll_out",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        },
+        {
+          "key": "m_rbeteig",
+          "labels": {
+            "de": "Mürbeteig",
+            "en": "shortcrust pastry",
+            "esp": "masa quebrada",
+            "prt": "massa quebrada",
+            "id": "adonan pastry",
+            "nl": "zanddeeg",
+            "sv": "mördeg",
+            "da": "mørdej",
+            "no": "mørdeig",
+            "ms": "doh pastri"
+          },
+          "tags": [
+            "variable:dough",
+            "value:m_rbeteig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "technique:roll_out",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        },
+        {
+          "key": "hefeteig",
+          "labels": {
+            "de": "Hefeteig",
+            "en": "yeast dough",
+            "esp": "masa con levadura",
+            "prt": "massa levedada",
+            "id": "adonan ragi",
+            "nl": "gistdeeg",
+            "sv": "jästdeg",
+            "da": "gærdej",
+            "no": "gjærdeig",
+            "ms": "doh yis"
+          },
+          "tags": [
+            "variable:dough",
+            "value:hefeteig",
+            "component:dough",
+            "technique:knead",
+            "technique:rise",
+            "technique:roll_out",
+            "base:dough",
+            "teig",
+            "dough",
+            "kneten",
+            "knead",
+            "ausrollen",
+            "roll_out"
+          ]
+        }
+      ]
+    }
+  }
+}

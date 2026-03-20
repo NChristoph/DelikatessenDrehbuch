@@ -8,14 +8,15 @@
 
 (() => {
     const JSON_URL = "/data/master_steps.json";
-    const OPTION_RULES_URL = "/data/master_step_option_rules.json";
+    const VARIABLE_JSON_URL = "/data/master_step_variables.json";
     const DEFAULT_LANG = "de";
+    const VISIBLE_RANKED_OPTIONS = 3;
 
     // -----------------------------
     // STATE
     // -----------------------------
     let doc = null;
-    let optionRules = { defaults: {}, steps: {} };
+    let variableCatalog = { variables: {} };
     let steps = [];
     let currentLang = DEFAULT_LANG;
 
@@ -108,14 +109,14 @@
         return await res.json();
     }
 
-    async function loadOptionRules() {
+    async function loadVariableCatalog() {
         try {
-            const res = await fetch(`${OPTION_RULES_URL}?v=${Date.now()}`, { cache: "no-store" });
-            if (!res.ok) return { defaults: {}, steps: {} };
+            const res = await fetch(`${VARIABLE_JSON_URL}?v=${Date.now()}`, { cache: "no-store" });
+            if (!res.ok) return { variables: {} };
             const data = await res.json();
-            return data && typeof data === "object" ? data : { defaults: {}, steps: {} };
+            return data && typeof data === "object" ? data : { variables: {} };
         } catch {
-            return { defaults: {}, steps: {} };
+            return { variables: {} };
         }
     }
 
@@ -133,194 +134,323 @@
     }
 
     function normalizeOptionValue(value) {
-        return (value || "").toString().trim().toLowerCase();
+        return (value || "").toString().trim().toLowerCase()
+            .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, "")
+            .trim();
     }
 
-    function getIngredientFamilyForStep(masterId) {
+    function isSemanticTag(tag) {
+        const value = (tag || "").toString().trim().toLowerCase();
+        return !!value && !value.startsWith("variable:") && !value.startsWith("value:");
+    }
+
+    function getStepById(masterId) {
         if (!masterId) return null;
-        const step = steps.find(s => (s?.master_id || "") === masterId);
-        const fk = step?.stable_taxonomy_keys?.ingredient_family_keys;
-        if (!fk) return null;
-        return (Array.isArray(fk) ? fk[0] : fk.toString().trim()) || null;
+        return steps.find(s => (s?.master_id || "") === masterId) || null;
     }
 
-    function getActionForStep(masterId) {
-        if (!masterId) return null;
-        const step = steps.find(s => (s?.master_id || "") === masterId);
-        return (step?.action || "").toString().trim() || null;
+    function getStepSelectionTags(masterId) {
+        const step = getStepById(masterId);
+        const tags = Array.isArray(step?.selection_tags) ? [...step.selection_tags] : [];
+        const explicitTags = [];
+        if (Array.isArray(step?.tags)) {
+            explicitTags.push(...step.tags);
+        }
+        if (step?.Tag) {
+            explicitTags.push(step.Tag);
+        }
+        explicitTags
+            .map(tag => (tag || "").toString().trim())
+            .filter(Boolean)
+            .forEach(tag => {
+                if (!tags.includes(tag)) tags.push(tag);
+            });
+        return tags;
     }
 
-    function resolveRuleList(ruleValue) {
-        if (!ruleValue) return [];
-        if (Array.isArray(ruleValue)) {
-            return ruleValue.filter(x => x !== null && x !== undefined)
-                .map(x => (x || "").toString().trim())
-                .filter(Boolean);
-        }
-        if (typeof ruleValue === "object") {
-            const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
-            const list = ruleValue[currentLang] ?? ruleValue[langKey] ?? ruleValue[DEFAULT_LANG] ?? ruleValue.de ?? ruleValue.default;
-            return Array.isArray(list)
-                ? list.filter(x => x !== null && x !== undefined).map(x => (x || "").toString().trim()).filter(Boolean)
-                : [];
-        }
-        return [];
-    }
-
-    function getMergedOptionRules(masterId, varName) {
-        const { normalizedKey } = normalizeVarKey(varName);
-        const defaults = optionRules?.defaults || {};
-        const stepsMap = optionRules?.steps || {};
-        const defaultRule = Object.entries(defaults)
-            .find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null;
-        const stepRule = masterId && stepsMap[masterId] && typeof stepsMap[masterId] === "object"
-            ? (Object.entries(stepsMap[masterId]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
-            : null;
-
-        // Action layer
-        const actionKey = getActionForStep(masterId);
-        const actionRulesMap = optionRules?.action;
-        const actionRule = actionKey && actionRulesMap && typeof actionRulesMap[actionKey] === "object"
-            ? (Object.entries(actionRulesMap[actionKey]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
-            : null;
-
-        // Ingredient-family layer
-        const familyKey = getIngredientFamilyForStep(masterId);
-        const familyRulesMap = optionRules?.ingredient_family;
-        const familyRule = familyKey && familyRulesMap && typeof familyRulesMap[familyKey] === "object"
-            ? (Object.entries(familyRulesMap[familyKey]).find(([key]) => normalizeVarKey(key).normalizedKey === normalizedKey)?.[1] || null)
-            : null;
-
-        // Merge priority: step > action > ingredient_family > defaults
-        const stepAllowed = resolveRuleList(stepRule?.allowed);
-        const actionAllowed = resolveRuleList(actionRule?.allowed);
-        const familyAllowed = resolveRuleList(familyRule?.allowed);
-        const defaultAllowed = resolveRuleList(defaultRule?.allowed);
-        const allowed = stepAllowed.length ? stepAllowed : (actionAllowed.length ? actionAllowed : (familyAllowed.length ? familyAllowed : defaultAllowed));
-
-        const preferred = [...resolveRuleList(stepRule?.preferred), ...resolveRuleList(actionRule?.preferred), ...resolveRuleList(familyRule?.preferred), ...resolveRuleList(defaultRule?.preferred)]
-            .filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
-
-        const blocked = [...resolveRuleList(defaultRule?.blocked), ...resolveRuleList(familyRule?.blocked), ...resolveRuleList(actionRule?.blocked), ...resolveRuleList(stepRule?.blocked)]
-            .filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
-
-        return { allowed, preferred, blocked };
-    }
-
-    function applyOptionRules(baseOptions, varName, masterId) {
-        const original = Array.isArray(baseOptions)
-            ? baseOptions.filter(x => x !== null && x !== undefined).map(x => (x || "").toString().trim()).filter(Boolean)
-            : [];
-        if (!original.length) return [];
-
-        const unique = original.filter((value, index, arr) => arr.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(value)) === index);
-        const rules = getMergedOptionRules(masterId, varName);
-        const blockedSet = new Set((rules.blocked || []).map(normalizeOptionValue));
-        const allowedSet = new Set((rules.allowed || []).map(normalizeOptionValue));
-        const preferredOrder = new Map((rules.preferred || []).map((value, index) => [normalizeOptionValue(value), index]));
-
-        let filtered = unique.filter(option => !blockedSet.has(normalizeOptionValue(option)));
-        if (allowedSet.size) {
-            filtered = filtered.filter(option => allowedSet.has(normalizeOptionValue(option)));
-        }
-        if (!filtered.length) {
-            filtered = unique.filter(option => !blockedSet.has(normalizeOptionValue(option)));
-        }
-
-        return filtered.sort((a, b) => {
-            const aKey = normalizeOptionValue(a);
-            const bKey = normalizeOptionValue(b);
-            const aPreferred = preferredOrder.has(aKey);
-            const bPreferred = preferredOrder.has(bKey);
-            if (aPreferred && bPreferred) return preferredOrder.get(aKey) - preferredOrder.get(bKey);
-            if (aPreferred) return -1;
-            if (bPreferred) return 1;
-            return unique.findIndex(x => normalizeOptionValue(x) === aKey) - unique.findIndex(x => normalizeOptionValue(x) === bKey);
+    function getComparableTags(rawTags) {
+        const variants = new Set();
+        (Array.isArray(rawTags) ? rawTags : []).forEach(rawTag => {
+            const tag = (rawTag || "").toString().trim().toLowerCase();
+            if (!tag) return;
+            variants.add(tag);
+            const parts = tag.split(":").filter(Boolean);
+            if (parts.length > 1) {
+                variants.add(parts[parts.length - 1]);
+            }
         });
+        return variants;
+    }
+
+    function getVariableCatalogEntry(varName) {
+        const { key, normalizedKey } = normalizeVarKey(varName);
+        const variables = variableCatalog && variableCatalog.variables;
+        if (!variables || typeof variables !== "object") return null;
+
+        if (variables[key]) return variables[key];
+
+        const match = Object.entries(variables)
+            .find(([candidateKey]) => normalizeVarKey(candidateKey).normalizedKey === normalizedKey);
+        return match ? match[1] : null;
+    }
+
+    function getLocalizedOptionLabel(option) {
+        if (!option || !option.labels || typeof option.labels !== "object") return "";
+        const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
+        return option.labels[currentLang]
+            ?? option.labels[langKey]
+            ?? option.labels[DEFAULT_LANG]
+            ?? option.labels.de
+            ?? option.labels.en
+            ?? "";
+    }
+
+    function getCatalogOptionEntries(varName) {
+        const entry = getVariableCatalogEntry(varName);
+        const options = entry && Array.isArray(entry.options) ? entry.options : [];
+        return options
+            .map(option => ({
+                value: (getLocalizedOptionLabel(option) || "").toString().trim(),
+                tags: Array.isArray(option?.tags) ? option.tags : []
+            }))
+            .filter(option => option.value);
+    }
+
+    function filterOptionEntriesByStepTags(optionEntries, masterId) {
+        const entries = Array.isArray(optionEntries) ? optionEntries : [];
+        if (!entries.length || !masterId) return entries;
+
+        const stepTags = getComparableTags(getStepSelectionTags(masterId).filter(isSemanticTag));
+        if (!stepTags.size) return entries;
+
+        const taggedEntries = entries.filter(option => Array.isArray(option.tags) && option.tags.some(isSemanticTag));
+        if (!taggedEntries.length) return entries;
+
+        const matches = entries.filter(option =>
+            Array.isArray(option.tags) &&
+            option.tags.some(tag => {
+                if (!isSemanticTag(tag)) return false;
+                const comparable = getComparableTags([tag]);
+                return Array.from(comparable).some(value => stepTags.has(value));
+            })
+        );
+
+        return matches.length ? matches : entries;
+    }
+
+    function getStepAction(masterId) {
+        const step = getStepById(masterId);
+        return step ? (step.action || "").toString().trim() : "";
+    }
+
+    function getOptionRulesContext(varName, masterId, context) {
+        const ctx = context || {};
+        const action = ctx.action || getStepAction(masterId);
+        const ingredientFamily = ctx.ingredientFamily || "";
+        const lang = currentLang || DEFAULT_LANG;
+        const renderer = window.MasterStepRenderer;
+        const actionRules = renderer && renderer.getOptionRulesForAction
+            ? renderer.getOptionRulesForAction(action, varName, lang) : { preferred: [], blocked: [] };
+        const familyRules = renderer && renderer.getOptionRulesForFamily
+            ? renderer.getOptionRulesForFamily(ingredientFamily, varName, lang) : { preferred: [], blocked: [] };
+        const stepRules = renderer && renderer.getOptionRulesForStep
+            ? renderer.getOptionRulesForStep(masterId, varName, lang) : { preferred: [], blocked: [] };
+        return { action, ingredientFamily, actionRules, familyRules, stepRules };
+    }
+
+    function buildCurrentScoringContext() {
+        const masterId = (activeStep?.master_id || "").toString().trim();
+        const action = getStepAction(masterId);
+        // Try to detect ingredient family from selected ingredients
+        const ingredientFamily = detectIngredientFamily();
+        return { action, ingredientFamily };
+    }
+
+    function detectIngredientFamily() {
+        const items = getSelectedIngredientsFromPage();
+        if (!items.length) return "";
+        const names = items.map(x => (x.name || "").toString().toLowerCase());
+
+        const eggTerms = ["eier", "eggs", "eigelb", "eiweiß", "yolk"];
+        const eggExact = ["ei", "egg"];
+        const meatTerms = ["fleisch", "meat", "rind", "beef", "schwein", "pork", "lamm", "lamb", "huhn", "hähn", "chicken", "kalb", "veal", "ente", "duck", "wildschwein", "wildfleisch", "hirsch", "reh", "venison", "hack", "steak", "filet", "schnitzel", "braten", "gulasch", "schinken", "speck", "bacon", "wurst", "sausage"];
+        const fishTerms = ["fisch", "fish", "lachs", "salmon", "thunfisch", "tuna", "garnele", "shrimp", "forelle", "trout", "kabeljau", "cod", "pangasius", "dorade", "zander", "hering", "sardine", "muschel", "tintenfisch", "calamari", "krebs", "crab", "hummer", "lobster"];
+        const vegTerms = ["zwiebel", "onion", "karotte", "carrot", "tomate", "tomato", "paprika", "pepper", "brokkoli", "broccoli", "zucchini", "aubergine", "sellerie", "celery", "lauch", "leek", "knoblauch", "garlic", "salat", "gemüse", "spinat", "spinach", "kürbis", "pumpkin", "bohne", "bean", "erbse", "pea", "mais", "corn", "gurke", "cucumber", "radieschen", "radish", "blumenkohl", "cauliflower", "rosenkohl", "kohlrabi", "fenchel", "pilz", "mushroom", "champignon"];
+        const doughTerms = ["teig", "dough", "mehl", "flour", "hefe", "yeast"];
+        const liquidTerms = ["brühe", "broth", "stock", "milch", "milk", "sahne", "cream", "wasser", "water", "wein", "wine", "saft", "juice", "buttermilch", "kokosmilch"];
+        const fatTerms = ["öl", "oil", "schmalz", "lard", "margarine", "ghee"];
+        const fatExact = ["butter", "fett"];
+        const seasoningTerms = ["salz", "salt", "pfeffer", "pepper", "gewürz", "spice", "zucker", "sugar", "zimt", "cinnamon", "paprikapulver", "kümmel", "muskat", "oregano", "thymian", "rosmarin", "basilikum", "curry", "kurkuma"];
+
+        const hasAny = (terms) => names.some(n => terms.some(t => n.includes(t)));
+        const hasExact = (terms) => names.some(n => terms.includes(n));
+
+        if (hasAny(eggTerms) || hasExact(eggExact)) return "egg";
+        if (hasAny(meatTerms)) return "meat";
+        if (hasAny(fishTerms)) return "fish";
+        if (hasAny(doughTerms)) return "dough";
+        if (hasAny(liquidTerms)) return "liquid";
+        if (hasAny(fatTerms) || hasExact(fatExact)) return "fat";
+        if (hasAny(seasoningTerms)) return "seasoning";
+        if (hasAny(vegTerms)) return "vegetable";
+        return "";
+    }
+
+    function getRankedVarOptionEntries(varName, contextMasterId, context) {
+        if (!doc) return [];
+
+        const { key, normalizedKey } = normalizeVarKey(varName);
+        let optionEntries = getCatalogOptionEntries(key);
+        if (!optionEntries.length && normalizedKey === "equipment" && doc.equipment) {
+            optionEntries = Object.values(doc.equipment)
+                .map(value => ({ value: (value || "").toString().trim(), tags: [] }))
+                .filter(option => option.value);
+        }
+
+        const uniqueEntries = [];
+        const seen = new Set();
+        optionEntries.forEach((entry, index) => {
+            const value = (entry && entry.value ? entry.value : "").toString().trim();
+            const normalizedValue = normalizeOptionValue(value);
+            if (!normalizedValue || seen.has(normalizedValue)) return;
+            seen.add(normalizedValue);
+            uniqueEntries.push({
+                value,
+                tags: Array.isArray(entry?.tags) ? entry.tags : [],
+                originalIndex: index
+            });
+        });
+
+        const masterId = (contextMasterId || activeStep?.master_id || "").toString().trim();
+        const stepTags = getComparableTags(getStepSelectionTags(masterId).filter(isSemanticTag));
+        const hasSemanticStepTags = stepTags.size > 0;
+
+        // Load option rules context for multi-level scoring
+        const rulesCtx = getOptionRulesContext(key, masterId, context);
+        const actionPreferred = new Set((rulesCtx.actionRules.preferred || []).map(normalizeOptionValue));
+        const actionBlocked = new Set((rulesCtx.actionRules.blocked || []).map(normalizeOptionValue));
+        const familyPreferred = new Set((rulesCtx.familyRules.preferred || []).map(normalizeOptionValue));
+        const familyBlocked = new Set((rulesCtx.familyRules.blocked || []).map(normalizeOptionValue));
+        const stepPreferred = new Set((rulesCtx.stepRules.preferred || []).map(normalizeOptionValue));
+        const stepBlocked = new Set((rulesCtx.stepRules.blocked || []).map(normalizeOptionValue));
+
+        const ranked = uniqueEntries
+            .map(entry => {
+                const semanticTags = (entry.tags || []).filter(isSemanticTag);
+                const matchedTags = semanticTags.filter(tag => {
+                    const comparable = getComparableTags([tag]);
+                    return Array.from(comparable).some(value => stepTags.has(value));
+                });
+                let score = 0;
+                const normalizedValue = normalizeOptionValue(entry.value);
+
+                // --- Tag Match: +30 per semantic tag match ---
+                if (matchedTags.length) {
+                    score += matchedTags.length * 30;
+                } else if (hasSemanticStepTags && semanticTags.length) {
+                    score -= 15;
+                }
+
+                if (!semanticTags.length) {
+                    score += 5;
+                }
+
+                // --- Step-specific rules (highest priority): +60 preferred, -120 blocked ---
+                if (stepPreferred.has(normalizedValue)) {
+                    score += 60;
+                }
+                if (stepBlocked.has(normalizedValue)) {
+                    score -= 120;
+                }
+
+                // --- Action rules: +50 preferred, -100 blocked ---
+                if (actionPreferred.has(normalizedValue)) {
+                    score += 50;
+                }
+                if (actionBlocked.has(normalizedValue)) {
+                    score -= 100;
+                }
+
+                // --- Ingredient Family rules: +40 preferred, -80 blocked ---
+                if (familyPreferred.has(normalizedValue)) {
+                    score += 40;
+                }
+                if (familyBlocked.has(normalizedValue)) {
+                    score -= 80;
+                }
+
+                // --- Position decay ---
+                score -= entry.originalIndex * 0.01;
+
+                return {
+                    value: entry.value,
+                    score,
+                    matchedTagsCount: matchedTags.length,
+                    originalIndex: entry.originalIndex
+                };
+            })
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                if (b.matchedTagsCount !== a.matchedTagsCount) return b.matchedTagsCount - a.matchedTagsCount;
+                return a.originalIndex - b.originalIndex;
+            });
+
+        const finalRanked = ranked;
+
+        if (normalizedKey === "shape") {
+            const blocked = new Set(["fein", "feine", "grob", "grobe"]);
+            const filtered = finalRanked.filter(entry => {
+                const normalized = normalizeOptionValue(entry.value);
+                return normalized && !blocked.has(normalized);
+            });
+            const hasGehackt = filtered.some(entry => normalizeOptionValue(entry.value) === "gehackt");
+            if (!hasGehackt) {
+                filtered.unshift({
+                    value: "gehackt",
+                    score: Number.MAX_SAFE_INTEGER,
+                    matchedTagsCount: 0,
+                    originalIndex: -1
+                });
+            }
+            return filtered;
+        }
+
+        return finalRanked;
     }
 
     // liefert ALLE Rohoptionen ohne Filterung (für "Weitere anzeigen" Fallback)
-    function getRawVarOptions(varName) {
-        if (!doc) return [];
-        const { key, normalizedKey } = normalizeVarKey(varName);
-        let options = [];
-        let vo = doc.variable_options?.[key];
-        if (!vo && doc.variable_options && typeof doc.variable_options === "object") {
-            const match = Object.entries(doc.variable_options)
-                .find(([candidateKey]) => normalizeVarKey(candidateKey).normalizedKey === normalizedKey);
-            vo = match ? match[1] : null;
-        }
-        if (vo && typeof vo === "object") {
-            const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
-            const list = vo[currentLang] ?? vo[langKey] ?? vo[DEFAULT_LANG] ?? vo.de;
-            if (Array.isArray(list)) {
-                options = list.filter(x => x !== null && x !== undefined).map(x => (x || "").toString().trim()).filter(Boolean);
-            }
-        }
-        if (!options.length && normalizedKey === "equipment" && doc.equipment) {
-            options = Object.values(doc.equipment).map(x => (x || "").toString().trim()).filter(Boolean);
-        }
-        return options.filter((v, i, a) => a.findIndex(x => normalizeOptionValue(x) === normalizeOptionValue(v)) === i);
+    function getRawVarOptions(varName, contextMasterId, context) {
+        return getRankedVarOptionEntries(varName, contextMasterId, context).map(entry => entry.value);
     }
 
     // liefert Liste von Optionen für eine Variable (Buttons)
-    function getVarOptions(varName, contextMasterId) {
-        if (!doc) return [];
-
-        const { key, normalizedKey } = normalizeVarKey(varName);
-        let options = [];
-
-        let vo = doc.variable_options?.[key];
-        if (!vo && doc.variable_options && typeof doc.variable_options === "object") {
-            const match = Object.entries(doc.variable_options)
-                .find(([candidateKey]) => normalizeVarKey(candidateKey).normalizedKey === normalizedKey);
-            vo = match ? match[1] : null;
-        }
-        if (vo && typeof vo === "object") {
-            const langKey = (currentLang || DEFAULT_LANG || "de").toLowerCase();
-            const list = vo[currentLang] ?? vo[langKey] ?? vo[DEFAULT_LANG] ?? vo.de;
-            if (Array.isArray(list)) {
-                options = list.filter(x => x !== null && x !== undefined);
-            }
-        }
-
-        if (!options.length && normalizedKey === "equipment" && doc.equipment) {
-            options = Object.values(doc.equipment);
-        }
-
-        const masterId = (contextMasterId || activeStep?.master_id || "").toString().trim();
-        const ruledOptions = applyOptionRules(options, key, masterId);
-        if (normalizedKey === "shape") {
-            const blocked = new Set(["fein", "feine", "grob", "grobe"]);
-            const filtered = ruledOptions.filter(option => {
-                const normalized = normalizeOptionValue(option);
-                return normalized && !blocked.has(normalized);
-            });
-            const hasGehackt = filtered.some(option => normalizeOptionValue(option) === "gehackt");
-            return hasGehackt ? filtered : ["gehackt", ...filtered];
-        }
-        return ruledOptions;
+    function getVarOptions(varName, contextMasterId, context) {
+        return getRankedVarOptionEntries(varName, contextMasterId, context)
+            .slice(0, VISIBLE_RANKED_OPTIONS)
+            .map(entry => entry.value);
     }
     function getArticleOptions() {
-        // variable_options.articles[lang] + "ohne"
-        const list = doc?.variable_options?.articles?.[currentLang] ?? doc?.variable_options?.articles?.de ?? [];
+        const list = getCatalogOptionEntries("articles").map(option => option.value);
         const cleaned = Array.isArray(list) ? list : [];
         return ["ohne", ...cleaned.filter(x => (x ?? "").toString().trim().length > 0)];
     }
 
     function getDurationUnits() {
-        // duration_units: { minute:{de:"Minuten"...}, hour:{de:"Stunden"...}}
+        // duration_units: { minute:{de:"Minuten"...}, hour:{de:"Stunden"...}, per_package:{de:"laut Packungsanweisung"...}}
         const du = doc?.duration_units;
         if (!du) return [
             { key: "minute", label: "Minute(n)" },
-            { key: "hour", label: "Stunde(n)" }
+            { key: "hour", label: "Stunde(n)" },
+            { key: "per_package", label: "laut Packungsanweisung" }
         ];
 
         const minuteLabel = du.minute?.[currentLang] ?? du.minute?.de ?? "Minuten";
         const hourLabel = du.hour?.[currentLang] ?? du.hour?.de ?? "Stunden";
+        const perPackageLabel = du.per_package?.[currentLang] ?? du.per_package?.de ?? "laut Packungsanweisung";
         return [
             { key: "minute", label: minuteLabel },
-            { key: "hour", label: hourLabel }
+            { key: "hour", label: hourLabel },
+            { key: "per_package", label: perPackageLabel }
         ];
     }
 
@@ -863,9 +993,10 @@
         const hasSeparatePronounToken = /\{\{\s*pronoun\s*\}\}/i.test(activeStep?.templateRaw || "");
 
                 const articleButtons = noArticleVar ? "" : renderPillButtons(getArticleOptions(), "article", null);
-        const pronounButtons = (stateVar && !hasSeparatePronounToken) ? renderPillButtons(getVarOptions("pronoun"), "pronoun", null) : "";
+        const scoringContext = buildCurrentScoringContext();
+        const pronounButtons = (stateVar && !hasSeparatePronounToken) ? renderPillButtons(getVarOptions("pronoun", null, scoringContext), "pronoun", null) : "";
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
-        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName);
+        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, null, scoringContext);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
             ? ingredientItems.map(({ name, icon }) => {
@@ -904,10 +1035,10 @@
         <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
           ${valueButtons || (ingredientVar
             ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
-            : `<div class="text-muted small">Keine Optionen im JSON gefunden: variable_options.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
+            : `<div class="text-muted small">Keine Optionen im JSON gefunden: master_step_variables.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
-        ${ingredientVar ? "" : renderFallbackSection(varName, options)}
+        ${ingredientVar ? "" : renderFallbackSection(varName, options, activeStep?.master_id || "", scoringContext)}
 
         <div class="d-flex gap-2 align-items-center mt-3">
           <button type="button" class="btn btn-sm creator-cta-primary" id="BtnApplyVar">Einsetzen</button>
@@ -923,9 +1054,10 @@
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
     }
 
-    function renderFallbackSection(varName, filteredOptions) {
+    function renderFallbackSection(varName, filteredOptions, contextMasterId, context) {
         if (isIngredientVariable(varName) || isCompactSpecialVariable(varName)) return "";
-        const allOptions = getRawVarOptions(varName);
+        const optionsMasterId = (contextMasterId || activeStep?.master_id || "").toString();
+        const allOptions = getRawVarOptions(varName, optionsMasterId, context);
         const filteredSet = new Set((filteredOptions || []).map(normalizeOptionValue));
         const extras = allOptions.filter(o => !filteredSet.has(normalizeOptionValue(o)));
         if (!extras.length) return "";
@@ -961,13 +1093,24 @@
         // duration -> Input + unit buttons (minute/hour) oder dropdown
         if (varName === "duration") {
             const units = getDurationUnits();
-            const unitBtns = units.map(u => `
+            const timeUnits = units.filter(u => u.key !== 'per_package');
+            const perPackage = units.find(u => u.key === 'per_package');
+            const unitBtns = timeUnits.map(u => `
         <button type="button"
                 class="btn btn-sm btn-outline-light pill-like"
                 data-duration-unit="${escapeHtml(u.key)}">
           ${escapeHtml(u.label)}
         </button>
       `).join("");
+
+            const perPackageBtn = perPackage ? `
+        <div class="mt-2">
+          <button type="button"
+                  class="btn btn-sm btn-outline-warning pill-like js-duration-per-package"
+                  data-duration-unit="per_package">
+            ${escapeHtml(perPackage.label)}
+          </button>
+        </div>` : '';
 
             return `
         <div class="d-flex gap-2 align-items-center">
@@ -982,6 +1125,7 @@
         <div class="d-flex flex-wrap gap-2 mt-2">
           ${unitBtns}
         </div>
+        ${perPackageBtn}
       `;
         }
 
@@ -1044,12 +1188,17 @@
 
         // Spezialfälle zuerst
         if (varName === "duration") {
-            const n = $("#DurationValueInput")?.value?.trim() || "";
             const unit = host.dataset.durationUnit || "minute";
             const labels = getDurationUnits();
-            const unitLabel = labels.find(x => x.key === unit)?.label ?? unit;
-            const composed = n ? `${n} ${unitLabel}` : "";
-            if (composed) activeStep.values[varName] = composed;
+            if (unit === "per_package") {
+                const perPackageLabel = labels.find(x => x.key === "per_package")?.label ?? "laut Packungsanweisung";
+                activeStep.values[varName] = perPackageLabel;
+            } else {
+                const n = $("#DurationValueInput")?.value?.trim() || "";
+                const unitLabel = labels.find(x => x.key === unit)?.label ?? unit;
+                const composed = n ? `${n} ${unitLabel}` : "";
+                if (composed) activeStep.values[varName] = composed;
+            }
             rerenderAfterValueSet();
             return;
         }
@@ -1455,9 +1604,15 @@
                 if (!host) return;
                 host.dataset.durationUnit = du.dataset.durationUnit;
 
-                // aktiv markieren
-                du.parentElement?.querySelectorAll("button[data-duration-unit]")?.forEach(b => b.classList.remove("active"));
+                // aktiv markieren — alle duration-unit Buttons im gesamten Editor deaktivieren
+                host.querySelectorAll("button[data-duration-unit]")?.forEach(b => b.classList.remove("active"));
                 du.classList.add("active");
+
+                // per_package: Zahlenfeld ausblenden; Minute/Stunde: einblenden
+                const numInput = host.querySelector("#DurationValueInput");
+                if (numInput) {
+                    numInput.style.display = du.dataset.durationUnit === "per_package" ? "none" : "";
+                }
                 return;
             }
 
@@ -1466,13 +1621,18 @@
                 const host = $("#InlineVarEditorHost");
                 if (!host) return;
                 if (!host.dataset.durationUnit) host.dataset.durationUnit = "minute";
-                const n = $("#DurationValueInput")?.value?.trim() || "";
                 const labels = getDurationUnits();
-                const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
-                const composed = n ? `${n} ${unitLabel}` : "";
+                let composed;
+                if (host.dataset.durationUnit === "per_package") {
+                    composed = labels.find(x => x.key === "per_package")?.label ?? "laut Packungsanweisung";
+                } else {
+                    const n = $("#DurationValueInput")?.value?.trim() || "";
+                    const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
+                    composed = n ? `${n} ${unitLabel}` : "";
+                }
 
                 // direkt übernehmen:
-                activeStep.values["duration"] = composed;
+                if (composed) activeStep.values["duration"] = composed;
                 rerenderAfterValueSet();
                 return;
             }
@@ -1521,9 +1681,9 @@
     // -----------------------------
     async function init() {
         try {
-            const loaded = await Promise.all([loadJson(), loadOptionRules()]);
+            const loaded = await Promise.all([loadJson(), loadVariableCatalog()]);
             doc = loaded[0];
-            optionRules = loaded[1] || { defaults: {}, steps: {} };
+            variableCatalog = loaded[1] || { variables: {} };
             steps = doc.master_steps || [];
 
             renderStepButtons();
@@ -1556,8 +1716,9 @@
         const noArticleVar = isNoArticleVariable(varName);
         const stateVar = isStateVariable(varName);
         const rawCurrentVal = (currentVal || '').toString().trim();
+        const scoringCtx = buildCurrentScoringContext();
         const articleOptions = getArticleOptions();
-        const pronounOptions = getVarOptions('pronoun', optionsMasterId);
+        const pronounOptions = getVarOptions('pronoun', optionsMasterId, scoringCtx);
         let prefilledArticle = '';
         let prefilledPronoun = '';
         let prefilledValue = rawCurrentVal;
@@ -1593,7 +1754,7 @@
         const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(articleOptions, 'article', prefilledArticle);
         const pronounButtons = (stateVar && !suppressPronounButtons) ? renderPillButtons(['', ...pronounOptions], 'pronoun', prefilledPronoun) : '';
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
-        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, optionsMasterId);
+        const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, optionsMasterId, scoringCtx);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
             ? ingredientItems.map(({ name, icon }) => {
@@ -1616,7 +1777,7 @@
         ? '<div class="text-muted small">Keine Zutaten ausgewählt.</div>'
         : `<div class="text-muted small">Keine Optionen: ${escapeHtml(getVarDisplayName(varName))}</div>`)}
   </div>
-  ${ingredientVar ? '' : renderFallbackSection(varName, options)}
+  ${ingredientVar ? '' : renderFallbackSection(varName, options, optionsMasterId, scoringCtx)}
   <div class="d-flex gap-2 align-items-center mt-3">
     <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
     <button type="button" class="btn btn-sm btn-outline-secondary js-prob-inline-close">Schließen</button>
@@ -1630,9 +1791,12 @@
         const varName = (editorEl.dataset.editorFor || '').trim();
 
         if (varName === 'duration') {
-            const n = (editorEl.querySelector('#DurationValueInput') || {}).value?.trim() || '';
             const unit = editorEl.dataset.durationUnit || 'minute';
             const units = getDurationUnits();
+            if (unit === 'per_package') {
+                return (units.find(x => x.key === 'per_package') || {}).label || 'laut Packungsanweisung';
+            }
+            const n = (editorEl.querySelector('#DurationValueInput') || {}).value?.trim() || '';
             const unitLabel = (units.find(x => x.key === unit) || {}).label || unit;
             return n ? `${n} ${unitLabel}` : null;
         }

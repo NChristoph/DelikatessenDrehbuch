@@ -64,6 +64,28 @@
     }
 
     /**
+     * Ingredient alias groups: selecting any member also counts as selecting all others.
+     * E.g. "Rinderhackfleisch" (218) also matches "Hackfleisch gemischt" (220).
+     */
+    const INGREDIENT_ALIAS_GROUPS = [
+        [11, 12, 83, 248],       // Zwiebeln: normal(11), rot(12), Rote(83), Perl(248)
+        [218, 219, 220],          // Hackfleisch: Rind(218), Schwein(219), Gemischt(220)
+        [85, 227, 231]            // Eier: ganz(85), Eigelb(227), Eiweiß(231)
+    ];
+
+    /** Expand a set of ingredient IDs with alias group members */
+    function expandWithAliases(idSet) {
+        const expanded = new Set(idSet);
+        INGREDIENT_ALIAS_GROUPS.forEach(group => {
+            const hasAny = group.some(id => idSet.has(id));
+            if (hasAny) {
+                group.forEach(id => expanded.add(id));
+            }
+        });
+        return expanded;
+    }
+
+    /**
      * Detect which recipe types match the selected ingredients.
      * Uses recipe_category_scoring.json (weighted scoring with false-positive penalty).
      * Returns sorted array: [{ type, name, score, matchedSignatureCount, totalSignature }]
@@ -71,8 +93,9 @@
     function detectRecipeTypes(selectedIngredientIds) {
         if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return [];
 
-        const selectedSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-        const selectedCount = selectedSet.size;
+        const rawSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+        const selectedSet = expandWithAliases(rawSet);
+        const selectedCount = rawSet.size;
         const results = [];
 
         categoryScoringData.categories.forEach(cat => {
@@ -80,7 +103,14 @@
             if (!weights.length) return;
 
             // Build category ingredient ID set for false-positive detection
+            // Include subtype boost/required ingredients — they are legitimate for this category
             const categoryIngredientIds = new Set(weights.map(w => parseInt(w.ingredient_id, 10)));
+            if (Array.isArray(cat.subtypes)) {
+                cat.subtypes.forEach(sub => {
+                    (sub.boost_weights || []).forEach(bw => categoryIngredientIds.add(parseInt(bw.ingredient_id, 10)));
+                    (sub.required_ingredient_ids || []).forEach(id => categoryIngredientIds.add(parseInt(id, 10)));
+                });
+            }
 
             let weightedTotal = 0;
             let weightedMatched = 0;
@@ -104,23 +134,40 @@
             const minMatch = (typeof cat.min_match === 'number')
                 ? cat.min_match
                 : (weights.length >= 5 ? 2 : 1);
-            if (matchedCount < minMatch) return;
+            if (matchedCount < minMatch) {
+                // Subtype pull-up: if a subtype's required ingredients match,
+                // allow the parent through with at least 1 match
+                if (matchedCount >= 1 && Array.isArray(cat.subtypes) && cat.subtypes.length > 0) {
+                    const hasSubtypeMatch = cat.subtypes.some(sub => {
+                        const reqIds = sub.required_ingredient_ids || [];
+                        if (reqIds.length === 0) return false;
+                        const reqMatched = reqIds.filter(id => selectedSet.has(parseInt(id, 10))).length;
+                        return reqMatched >= Math.ceil(reqIds.length / 2);
+                    });
+                    if (!hasSubtypeMatch) return;
+                } else {
+                    return;
+                }
+            }
 
             // 1. Base score
             let score = weightedMatched / weightedTotal;
 
             // 2. False-positive penalty:
             //    ingredients selected that don't belong to this category reduce confidence
-            const notInCategory = Array.from(selectedSet).filter(id => !categoryIngredientIds.has(id)).length;
+            //    Use rawSet (not alias-expanded) to avoid inflated false-positive counts
+            const notInCategory = Array.from(rawSet).filter(id => !categoryIngredientIds.has(id)).length;
             const falsePositiveRatio = selectedCount > 0 ? notInCategory / selectedCount : 0;
             score = score * (1 - falsePositiveRatio * 0.5);
 
             // 3. Required ingredient boost / penalty
+            const hasSubtypes = Array.isArray(cat.subtypes) && cat.subtypes.length > 0;
             const requiredIds = Array.isArray(cat.required_ingredient_ids) ? cat.required_ingredient_ids : [];
             if (requiredIds.length > 0) {
                 const requiredMatched = requiredIds.filter(id => selectedSet.has(parseInt(id, 10))).length;
                 if (requiredMatched === 0) {
-                    score = score * 0.2;
+                    // Softer penalty for categories with subtypes — subtypes have their own required check
+                    score = score * (hasSubtypes ? 0.5 : 0.2);
                 } else if (requiredMatched === requiredIds.length) {
                     score = Math.min(score * 1.5, 1.0);
                 } else {
@@ -130,7 +177,8 @@
             }
 
             const finalScore = Math.round(score * 100);
-            if (finalScore < 10) return;
+            // Lower threshold for categories with subtypes — subtype scoring will refine
+            if (finalScore < (hasSubtypes ? 3 : 10)) return;
 
             const localizedName = cat?.display_name?.de || cat?.display_name?.en || cat.id || 'Unbekannt';
 
@@ -145,6 +193,59 @@
         });
 
         results.sort((a, b) => b.score - a.score);
+
+        // Subtype detection: for top results with subtypes, find the best matching subtype
+        results.forEach(result => {
+            const cat = getCategoryById(result.type);
+            if (!cat || !Array.isArray(cat.subtypes) || !cat.subtypes.length) return;
+
+            let bestSubtype = null;
+            let bestSubScore = 0;
+
+            cat.subtypes.forEach(sub => {
+                let subScore = result.score;
+
+                // Boost for matched boost_weights
+                (sub.boost_weights || []).forEach(bw => {
+                    if (selectedSet.has(parseInt(bw.ingredient_id, 10))) {
+                        subScore += bw.weight;
+                    }
+                });
+
+                // Penalty for blocked ingredients
+                (sub.blocked_ingredient_ids || []).forEach(bid => {
+                    if (selectedSet.has(parseInt(bid, 10))) {
+                        subScore -= 30;
+                    }
+                });
+
+                // Required ingredients check
+                const reqIds = sub.required_ingredient_ids || [];
+                if (reqIds.length > 0) {
+                    const reqMatched = reqIds.filter(id => selectedSet.has(parseInt(id, 10))).length;
+                    if (reqMatched === 0) subScore *= 0.3;
+                    else if (reqMatched === reqIds.length) subScore = Math.min(subScore * 1.3, 100);
+                }
+
+                if (subScore > bestSubScore) {
+                    bestSubScore = subScore;
+                    bestSubtype = sub;
+                }
+            });
+
+            if (bestSubtype && bestSubScore > result.score) {
+                result.subtype = bestSubtype.id;
+                result.subtypeName = bestSubtype.display_name?.de || bestSubtype.id;
+                result.subtypeScore = Math.round(bestSubScore);
+                // Promote subtype score/name to main result so buttons/badges show the best match
+                result.score = Math.round(bestSubScore);
+                result.name = result.subtypeName;
+            }
+        });
+
+        // Re-sort after subtype promotion may have changed scores
+        results.sort((a, b) => b.score - a.score);
+
         return results;
     }
 
@@ -312,13 +413,17 @@
         }
 
         return recipeTypes.slice(0, maxShow).map((rt, i) => {
+            // Show subtype info when available (higher score, more specific name)
+            const displayScore = rt.subtypeScore || rt.score;
+            const displayName = rt.subtypeName || rt.name;
+
             let colorClass;
-            if (rt.score >= 60) colorClass = 'bg-success';
-            else if (rt.score >= 35) colorClass = 'bg-primary';
+            if (displayScore >= 60) colorClass = 'bg-success';
+            else if (displayScore >= 35) colorClass = 'bg-primary';
             else colorClass = 'bg-secondary';
 
             const icon = i === 0 ? '<i class="bi bi-star-fill me-1"></i>' : '';
-            return `<span class="badge ${colorClass} me-1">${icon}${rt.score}% ${rt.name}</span>`;
+            return `<span class="badge ${colorClass} me-1">${icon}${displayScore}% ${displayName}</span>`;
         }).join('');
     }
 
@@ -339,8 +444,18 @@
         if (!masterStepsData || !Array.isArray(masterStepsData.master_steps)) return [];
 
         // If recipe type detected, use curated step sequence with pre-filled variables
-        if (recipeType && templatePresetsData && templatePresetsData.types && templatePresetsData.types[recipeType]) {
-            return buildRecipeTypePreview(recipeType, ingredientNames, lang);
+        // Support subtype: check subtype first, then parent type
+        if (recipeType && templatePresetsData && templatePresetsData.types) {
+            if (templatePresetsData.types[recipeType]) {
+                return buildRecipeTypePreview(recipeType, ingredientNames, lang);
+            }
+            // Fallback: check if recipeType has a parent in step_variables
+            if (recipeTypeStepVarsData && recipeTypeStepVarsData.types && recipeTypeStepVarsData.types[recipeType]) {
+                const parentType = recipeTypeStepVarsData.types[recipeType].parent;
+                if (parentType && templatePresetsData.types[parentType]) {
+                    return buildRecipeTypePreview(recipeType, ingredientNames, lang);
+                }
+            }
         }
 
         return [];
@@ -348,9 +463,20 @@
 
     /**
      * Build preview using curated step sequence and pre-filled variables for a recipe type.
+     * Supports subtype fallback: looks up subtype steps first, then parent steps.
      */
     function buildRecipeTypePreview(recipeType, ingredientNames, lang) {
-        const stepIds = templatePresetsData.types[recipeType];
+        // Subtype-aware step lookup: subtype steps || parent steps
+        let stepIds = templatePresetsData.types[recipeType];
+        if (!stepIds || !Array.isArray(stepIds)) {
+            // Try to find parent from recipe_type_step_variables
+            if (recipeTypeStepVarsData && recipeTypeStepVarsData.types && recipeTypeStepVarsData.types[recipeType]) {
+                const parentType = recipeTypeStepVarsData.types[recipeType].parent;
+                if (parentType) {
+                    stepIds = templatePresetsData.types[parentType];
+                }
+            }
+        }
         if (!stepIds || !Array.isArray(stepIds)) return [];
 
         const rendered = [];
