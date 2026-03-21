@@ -12,7 +12,37 @@
         if (loadingPromise) return loadingPromise;
 
         const configuredUrl = window.MasterStepRendererConfig && window.MasterStepRendererConfig.dataUrl;
-        const dataUrl = configuredUrl || '/data/master_steps.json';
+        const dataUrl = configuredUrl || window.CreatePostingUtils.getDataUrl('masterSteps') || '/data/master_steps.json';
+
+        if (window.CreatePostingDataStore && typeof window.CreatePostingDataStore.loadMany === 'function') {
+            loadingPromise = window.CreatePostingDataStore.loadMany([
+                'masterSteps',
+                'masterStepVariables',
+                'recipeTypeStepVariables',
+                'masterStepOptionRules'
+            ]).then(function (results) {
+                data = results.masterSteps;
+                variableCatalogData = results.masterStepVariables || null;
+                recipeTypeStepVarsData = results.recipeTypeStepVariables || null;
+                optionRulesData = results.masterStepOptionRules || null;
+                lastLoadError = '';
+                console.log('[MasterStepRenderer] Geladen:', {
+                    masterSteps: data && data.master_steps ? data.master_steps.length : 0,
+                    variableCatalog: variableCatalogData && variableCatalogData.variables ? Object.keys(variableCatalogData.variables).length : 0,
+                    stepVarsDefaults: recipeTypeStepVarsData && recipeTypeStepVarsData.defaults ? Object.keys(recipeTypeStepVarsData.defaults).length : 0,
+                    stepVarsTypes: recipeTypeStepVarsData && recipeTypeStepVarsData.types ? Object.keys(recipeTypeStepVarsData.types).length : 0,
+                    optionRules: optionRulesData ? 'loaded' : 'not available'
+                });
+                return data;
+            }).catch(function (error) {
+                data = null;
+                lastLoadError = error && error.message ? error.message : 'Unbekannter Fehler beim Laden von master_steps.json';
+                console.error('MasterStepRenderer.load fehlgeschlagen:', error);
+                return null;
+            });
+
+            return loadingPromise;
+        }
 
         loadingPromise = Promise.all([
             fetch(dataUrl).then(function (r) {
@@ -21,13 +51,13 @@
                 }
                 return r.json();
             }),
-            fetch('/data/master_step_variables.json')
+            fetch(window.CreatePostingUtils.getDataUrl('masterStepVariables') || '/data/master_step_variables.json')
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .catch(function () { return null; }),
-            fetch('/data/recipe_type_step_variables.json')
+            fetch(window.CreatePostingUtils.getDataUrl('recipeTypeStepVariables') || '/data/recipe_type_step_variables.json')
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .catch(function () { return null; }),
-            fetch('/data/master_step_option_rules.json')
+            fetch(window.CreatePostingUtils.getDataUrl('masterStepOptionRules') || '/data/master_step_option_rules.json')
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .catch(function () { return null; })
         ])

@@ -7,8 +7,6 @@
 // - <select id="LangSelect"></select>
 
 (() => {
-    const JSON_URL = "/data/master_steps.json";
-    const VARIABLE_JSON_URL = "/data/master_step_variables.json";
     const DEFAULT_LANG = "de";
     const VISIBLE_RANKED_OPTIONS = 3;
 
@@ -96,16 +94,12 @@
     // LOAD
     // -----------------------------
     async function loadJson() {
-        const res = await fetch(`${JSON_URL}?v=${Date.now()}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Konnte master_steps.json nicht laden: " + res.status);
-        return await res.json();
+        return await window.CreatePostingDataStore.load("masterSteps");
     }
 
     async function loadVariableCatalog() {
         try {
-            const res = await fetch(`${VARIABLE_JSON_URL}?v=${Date.now()}`, { cache: "no-store" });
-            if (!res.ok) return { variables: {} };
-            const data = await res.json();
+            const data = await window.CreatePostingDataStore.load("masterStepVariables");
             return data && typeof data === "object" ? data : { variables: {} };
         } catch {
             return { variables: {} };

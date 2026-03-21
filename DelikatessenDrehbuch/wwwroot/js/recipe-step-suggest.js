@@ -23,37 +23,27 @@
     function loadMapping() {
         if (loadingPromise) return loadingPromise;
 
-        loadingPromise = Promise.all([
-            fetch('/data/recipe_step_mapping.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null),
-            fetch('/data/recipe_category_scoring.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null),
-            fetch('/data/master_steps.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null),
-            fetch('/data/probability_template_presets.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null),
-            fetch('/data/recipe_type_step_variables.json')
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null)
-        ]).then(([stepData, categoryData, masterData, presetsData, stepVarsData]) => {
-            mappingData = stepData;
-            categoryScoringData = categoryData;
-            masterStepsData = masterData;
-            templatePresetsData = presetsData;
-            recipeTypeStepVarsData = stepVarsData;
+        loadingPromise = window.CreatePostingDataStore.loadMany([
+            'recipeStepMapping',
+            'recipeCategoryScoring',
+            'masterSteps',
+            'probabilityTemplatePresets',
+            'recipeTypeStepVariables'
+        ]).then((results) => {
+            mappingData = results.recipeStepMapping;
+            categoryScoringData = results.recipeCategoryScoring;
+            masterStepsData = results.masterSteps;
+            templatePresetsData = results.probabilityTemplatePresets;
+            recipeTypeStepVarsData = results.recipeTypeStepVariables;
             mappingLoaded = true;
             console.log('[RecipeStepSuggest] Daten geladen:', {
-                mapping: !!stepData,
-                scoring: !!categoryData,
-                masterSteps: !!masterData,
-                presets: !!presetsData,
-                stepVars: !!stepVarsData
+                mapping: !!mappingData,
+                scoring: !!categoryScoringData,
+                masterSteps: !!masterStepsData,
+                presets: !!templatePresetsData,
+                stepVars: !!recipeTypeStepVarsData
             });
-            return { stepData, categoryData, masterData };
+            return { stepData: mappingData, categoryData: categoryScoringData, masterData: masterStepsData };
         }).catch(err => {
             console.error('[RecipeStepSuggest] Fehler beim Laden:', err);
             mappingLoaded = false;

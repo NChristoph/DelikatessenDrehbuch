@@ -3781,19 +3781,19 @@
       "equipment": 0,
       "description": "Einweichen/Auflösen (Gelatine, Gewürze anrösten)",
       "templates": {
-        "de": "Löse {{agent}} in {{liquid}} auf und lasse {{pronoun}} {{duration}} {{state}}.",
-        "en": "Dissolve {{agent}} in {{liquid}} and let {{pronoun}} {{state}} for {{duration}}.",
-        "esp": "Disuelve {{agent}} en {{liquid}} y deja {{state}} durante {{duration}}.",
-        "prt": "Dissolva {{agent}} em {{liquid}} e deixe {{state}} por {{duration}}.",
-        "id": "Larutkan {{agent}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}.",
-        "nl": "Los {{agent}} op in {{liquid}} en laat {{pronoun}} {{duration}} {{state}}.",
-        "sv": "Lös upp {{agent}} i {{liquid}} och låt {{pronoun}} {{state}} i {{duration}}.",
-        "da": "Opløs {{agent}} i {{liquid}} og lad {{pronoun}} {{state}} i {{duration}}.",
-        "no": "Løs opp {{agent}} i {{liquid}} og la {{pronoun}} {{state}} i {{duration}}.",
-        "ms": "Larutkan {{agent}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}."
+        "de": "Löse {{ingredients}} in {{liquid}} auf und lasse {{pronoun}} {{duration}} {{state}}.",
+        "en": "Dissolve {{ingredients}} in {{liquid}} and let {{pronoun}} {{state}} for {{duration}}.",
+        "esp": "Disuelve {{ingredients}} en {{liquid}} y deja {{state}} durante {{duration}}.",
+        "prt": "Dissolva {{ingredients}} em {{liquid}} e deixe {{state}} por {{duration}}.",
+        "id": "Larutkan {{ingredients}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}.",
+        "nl": "Los {{ingredients}} op in {{liquid}} en laat {{pronoun}} {{duration}} {{state}}.",
+        "sv": "Lös upp {{ingredients}} i {{liquid}} och låt {{pronoun}} {{state}} i {{duration}}.",
+        "da": "Opløs {{ingredients}} i {{liquid}} og lad {{pronoun}} {{state}} i {{duration}}.",
+        "no": "Løs opp {{ingredients}} i {{liquid}} og la {{pronoun}} {{state}} i {{duration}}.",
+        "ms": "Larutkan {{ingredients}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}."
       },
-      "variables": ["agent", "liquid", "pronoun", "duration", "state"],
-      "required_variables": ["agent", "liquid", "pronoun", "duration", "state"],
+      "variables": ["ingredients", "liquid", "pronoun", "duration", "state"],
+      "required_variables": ["ingredients", "liquid", "pronoun", "duration", "state"],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
@@ -3801,7 +3801,7 @@
         "phase:prep", "step_group:prep", "action:bloom", "technique:bloom",
         "einweichen", "auflösen", "aufloesen", "bloom", "dissolve",
         "equipment_id:0", "keins", "none",
-        "variable:agent", "variable:liquid", "variable:pronoun", "variable:duration", "variable:state"
+        "variable:ingredients", "variable:liquid", "variable:pronoun", "variable:duration", "variable:state"
       ]
     },
     {
@@ -3902,19 +3902,19 @@
       "equipment": 0,
       "description": "Beizen/Pökeln (Gravlax, Bacon, Räucherlachs)",
       "templates": {
-        "de": "Reibe {{base}} gleichmäßig mit {{cure_mix}} ein und lasse {{pronoun}} {{duration}} im Kühlschrank durchziehen.",
-        "en": "Rub {{base}} evenly with {{cure_mix}} and let {{pronoun}} cure in the fridge for {{duration}}.",
-        "esp": "Frota {{base}} uniformemente con {{cure_mix}} y deja curar en el refrigerador durante {{duration}}.",
-        "prt": "Esfregue {{base}} uniformemente com {{cure_mix}} e deixe curar no frigorífico por {{duration}}.",
-        "id": "Gosok {{base}} secara merata dengan {{cure_mix}} dan biarkan {{pronoun}} mengasinkan di lemari es selama {{duration}}.",
-        "nl": "Wrijf {{base}} gelijkmatig in met {{cure_mix}} en laat {{pronoun}} {{duration}} pekelen in de koelkast.",
-        "sv": "Gnid in {{base}} jämnt med {{cure_mix}} och låt {{pronoun}} rimma i kylskåpet i {{duration}}.",
-        "da": "Gnid {{base}} jævnt ind med {{cure_mix}} og lad {{pronoun}} marinere i køleskabet i {{duration}}.",
-        "no": "Gni {{base}} jevnt inn med {{cure_mix}} og la {{pronoun}} marinere i kjøleskapet i {{duration}}.",
-        "ms": "Gosok {{base}} secara rata dengan {{cure_mix}} dan biarkan {{pronoun}} memasin di dalam peti sejuk selama {{duration}}."
+        "de": "Reibe {{base}} gleichmäßig mit {{ingredients}} ein und lasse {{pronoun}} {{duration}} im Kühlschrank durchziehen.",
+        "en": "Rub {{base}} evenly with {{ingredients}} and let {{pronoun}} cure in the fridge for {{duration}}.",
+        "esp": "Frota {{base}} uniformemente con {{ingredients}} y deja curar en el refrigerador durante {{duration}}.",
+        "prt": "Esfregue {{base}} uniformemente com {{ingredients}} e deixe curar no frigorífico por {{duration}}.",
+        "id": "Gosok {{base}} secara merata dengan {{ingredients}} dan biarkan {{pronoun}} mengasinkan di lemari es selama {{duration}}.",
+        "nl": "Wrijf {{base}} gelijkmatig in met {{ingredients}} en laat {{pronoun}} {{duration}} pekelen in de koelkast.",
+        "sv": "Gnid in {{base}} jämnt med {{ingredients}} och låt {{pronoun}} rimma i kylskåpet i {{duration}}.",
+        "da": "Gnid {{base}} jævnt ind med {{ingredients}} og lad {{pronoun}} marinere i køleskabet i {{duration}}.",
+        "no": "Gni {{base}} jevnt inn med {{ingredients}} og la {{pronoun}} marinere i kjøleskapet i {{duration}}.",
+        "ms": "Gosok {{base}} secara rata dengan {{ingredients}} dan biarkan {{pronoun}} memasin di dalam peti sejuk selama {{duration}}."
       },
-      "variables": ["base", "cure_mix", "pronoun", "duration"],
-      "required_variables": ["base", "cure_mix", "pronoun", "duration"],
+      "variables": ["base", "ingredients", "pronoun", "duration"],
+      "required_variables": ["base", "ingredients", "pronoun", "duration"],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
@@ -3922,7 +3922,7 @@
         "phase:prep", "step_group:prep", "action:cure", "technique:cure",
         "beizen", "pökeln", "poekeln", "cure",
         "equipment_id:0", "keins", "none",
-        "variable:base", "variable:cure_mix", "variable:pronoun", "variable:duration"
+        "variable:base", "variable:ingredients", "variable:pronoun", "variable:duration"
       ]
     },
     {

@@ -5501,41 +5501,6 @@
         }
       ]
     },
-    "agent": {
-      "description": "Ausgelagerte Optionen für Variable 'agent' mit Tag-Metadaten für die Creator-Auswahl.",
-      "options": [
-        {
-          "key": "gelatine",
-          "labels": { "de": "Gelatine", "en": "gelatin", "esp": "gelatina", "prt": "gelatina", "id": "gelatin", "nl": "gelatine", "sv": "gelatin", "da": "gelatine", "no": "gelatin", "ms": "gelatin" },
-          "tags": ["variable:agent", "value:gelatine", "technique:bloom"]
-        },
-        {
-          "key": "agar_agar",
-          "labels": { "de": "Agar-Agar", "en": "agar-agar", "esp": "agar-agar", "prt": "ágar-ágar", "id": "agar-agar", "nl": "agar-agar", "sv": "agar-agar", "da": "agar-agar", "no": "agar-agar", "ms": "agar-agar" },
-          "tags": ["variable:agent", "value:agar_agar", "technique:bloom"]
-        },
-        {
-          "key": "hefe",
-          "labels": { "de": "Hefe", "en": "yeast", "esp": "levadura", "prt": "fermento", "id": "ragi", "nl": "gist", "sv": "jäst", "da": "gær", "no": "gjær", "ms": "yis" },
-          "tags": ["variable:agent", "value:hefe", "technique:bloom"]
-        }
-      ]
-    },
-    "cure_mix": {
-      "description": "Ausgelagerte Optionen für Variable 'cure_mix' mit Tag-Metadaten für die Creator-Auswahl.",
-      "options": [
-        {
-          "key": "salz_zucker_dill",
-          "labels": { "de": "Salz, Zucker und Dill", "en": "salt, sugar and dill", "esp": "sal, azúcar y eneldo", "prt": "sal, açúcar e endro", "id": "garam, gula dan dill", "nl": "zout, suiker en dille", "sv": "salt, socker och dill", "da": "salt, sukker og dild", "no": "salt, sukker og dill", "ms": "garam, gula dan dill" },
-          "tags": ["variable:cure_mix", "value:salz_zucker_dill", "technique:cure"]
-        },
-        {
-          "key": "p_kelsalz_gew_rze",
-          "labels": { "de": "Pökelsalz und Gewürze", "en": "curing salt and spices", "esp": "sal de curado y especias", "prt": "sal de cura e especiarias", "id": "garam pengawet dan rempah", "nl": "pekelzout en kruiden", "sv": "nitritlakesalt och kryddor", "da": "nitritlagesalt og krydderier", "no": "nitrittsalt og krydder", "ms": "garam pengawet dan rempah" },
-          "tags": ["variable:cure_mix", "value:p_kelsalz_gew_rze", "technique:cure"]
-        }
-      ]
-    },
     "folds": {
       "description": "Ausgelagerte Optionen für Variable 'folds' mit Tag-Metadaten für die Creator-Auswahl.",
       "options": [

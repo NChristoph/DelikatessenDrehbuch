@@ -123,8 +123,7 @@
             if (state.presetsPromise) return state.presetsPromise;
 
             const defaultPresets = { types: {} };
-            state.presetsPromise = fetch('/data/probability_template_presets.json')
-                .then(r => r.ok ? r.json() : null)
+            state.presetsPromise = window.CreatePostingDataStore.load('probabilityTemplatePresets')
                 .catch(() => null)
                 .then(data => {
                     state.presets = data && typeof data === 'object' ? data : defaultPresets;
