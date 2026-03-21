@@ -1053,9 +1053,9 @@
           "pronoun": "es",
           "state": "goldbraun"
         },
-        "PREP_LAYER_01": {
+        "PREP_ASSEMBLE_01": {
+          "base": "Gericht",
           "components": "Füllung, Salat und Toppings",
-          "equipment": "🍽️ Teller",
           "finish": "nach Belieben garnieren"
         },
         "SEASON_ADJUST_01": {
@@ -1090,9 +1090,9 @@
           "pronoun": "ihn",
           "state": "goldbraun"
         },
-        "PREP_LAYER_01": {
+        "PREP_ASSEMBLE_01": {
+          "base": "Burger",
           "components": "Brötchen, Salat, Patty, Tomate und Sauce",
-          "equipment": "🍽️ Teller",
           "finish": "mit dem oberen Brötchen abschließen"
         },
         "SEASON_ADJUST_01": {
@@ -1127,9 +1127,9 @@
           "pronoun": "ihn",
           "state": "angebraten"
         },
-        "PREP_LAYER_01": {
+        "PREP_ASSEMBLE_01": {
+          "base": "Wrap",
           "components": "Füllung, Salsa, Käse und Salat",
-          "equipment": "🌯 Tortilla",
           "finish": "fest einrollen"
         },
         "SEASON_ADJUST_01": {
@@ -1164,9 +1164,9 @@
           "duration": "5-7 Minuten",
           "state": "gar"
         },
-        "PREP_LAYER_01": {
+        "PREP_ASSEMBLE_01": {
+          "base": "Tacos",
           "components": "Taco-Shell, Fleisch, Avocado, Tomaten und Käse",
-          "equipment": "🌮 Taco-Shell",
           "finish": "mit Koriander garnieren"
         },
         "SEASON_ADJUST_01": {

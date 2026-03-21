@@ -1,5 +1,6 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 {
@@ -14,7 +15,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         public async Task CreateNewUser(VerifyRequestDto request)
         {
-            var user = _context.WorldAppUser.FirstOrDefault(x => x.UserHash == request.Payload.NullifierHash);
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == request.Payload.NullifierHash);
 
             if (user != null)
             {
@@ -46,7 +47,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 return;
             }
 
-            var user = _context.WorldAppUser.FirstOrDefault(x => x.UserHash == normalizedHash);
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == normalizedHash);
 
             if (user != null)
             {
@@ -78,7 +79,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 return;
             }
 
-            var user = _context.WorldAppUser.FirstOrDefault(x => x.UserHash == normalizedWallet);
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == normalizedWallet);
 
             if (user != null)
             {

@@ -10,19 +10,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
     public class WorldAppMealPlanService : IWorldAppMealPlanService
     {
 
-        private readonly ApplicationDbContext _contex;
+        private readonly ApplicationDbContext _context;
 
         public WorldAppMealPlanService(ApplicationDbContext context)
         {
-            _contex = context;
+            _context = context;
         }
 
-        private string CheckTitle(string title, string userHash)
+        private async Task<string> CheckTitleAsync(string title, string userHash)
         {
 
-            var existingTitles = _contex.WorldUserMealPlan
+            var existingTitles = (await _context.WorldUserMealPlan
                 .Where(x => x.UserHash == userHash)
                 .Select(x => x.Title)
+                .ToListAsync())
                 .ToHashSet();
 
 
@@ -35,10 +36,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             int counter = 1;
             string newTitle = title;
 
-            // PrÃ¼fe: "Test 1", "Test 2", "Test 3"...
             while (existingTitles.Contains(newTitle))
             {
-                newTitle = $"{title} {counter}"; // FÃ¼gt Leerzeichen und Zahl an
+                newTitle = $"{title} {counter}";
                 counter++;
             }
 
@@ -46,30 +46,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         }
 
 
-        public async Task<Task> CheckVerifie(MiniAppSetupModel settings, string userHash, string title)
+        public async Task CheckVerify(MiniAppSetupModel settings, string userHash, string title)
         {
-            var user = await _contex.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
 
             if (user == null)
-                throw new Exception("Bad Reguest");
+                throw new Exception("Bad Request");
 
             if (user.IsVerified == "orb")
-                _ =  await CreateWorldUserMealPlan(settings, userHash, title);
+                await CreateWorldUserMealPlan(settings, userHash, title);
             else
             {
-                var plan = _contex.WorldUserMealPlan.FirstOrDefault(x => x.UserHash == userHash);
+                var plan = await _context.WorldUserMealPlan.FirstOrDefaultAsync(x => x.UserHash == userHash);
                 if(plan==null)
-                    _ = await CreateWorldUserMealPlan(settings, userHash, title);
+                    await CreateWorldUserMealPlan(settings, userHash, title);
             }
 
-            return Task.CompletedTask;
-
         }
-        public async Task<Task> CreateWorldUserMealPlan(MiniAppSetupModel settings, string UserHash, string title)
+        public async Task CreateWorldUserMealPlan(MiniAppSetupModel settings, string UserHash, string title)
         {
-            var checkedTitle = CheckTitle(title, UserHash);
+            var checkedTitle = await CheckTitleAsync(title, UserHash);
 
-           
+
 
             if (!string.IsNullOrEmpty(UserHash))
             {
@@ -82,8 +80,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
                 };
 
-                await _contex.WorldUserMealPlan.AddAsync(newMealPlan);
-                await _contex.SaveChangesAsync();
+                await _context.WorldUserMealPlan.AddAsync(newMealPlan);
+                await _context.SaveChangesAsync();
             }
             else
             {
@@ -91,29 +89,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             }
 
 
-            return Task.CompletedTask;
-
-
         }
 
-        public async Task<Task> SaveNewMealPlan(string userHash, List<MealPlanerModel> mealPlanerModels,string title)
+        public async Task SaveNewMealPlan(string userHash, List<MealPlanerModel> mealPlanerModels,string title)
         {
-            var user = await _contex.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
+            if (user == null) throw new InvalidOperationException("User nicht gefunden.");
             if(user.IsVerified=="orb")
             {
-                var existigPlan = _contex.WorldUserMealPlan.Where(x => x.UserHash == userHash && x.Title.Trim() == title.Trim()).FirstOrDefault();
-                existigPlan.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlanerModels));
+                var existingPlan = await _context.WorldUserMealPlan.Where(x => x.UserHash == userHash && x.Title.Trim() == title.Trim()).FirstOrDefaultAsync();
+                if (existingPlan == null) throw new InvalidOperationException("Essensplan nicht gefunden.");
+                existingPlan.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlanerModels));
             }
             else
             {
-                var plan= _contex.WorldUserMealPlan.Where(x => x.UserHash == userHash).FirstOrDefault();
+                var plan = await _context.WorldUserMealPlan.Where(x => x.UserHash == userHash).FirstOrDefaultAsync();
+                if (plan == null) throw new InvalidOperationException("Essensplan nicht gefunden.");
                 plan.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlanerModels));
             }
 
-                await _contex.SaveChangesAsync();
-
-            return Task.CompletedTask;
-
+                await _context.SaveChangesAsync();
         }
 
         private Dictionary<int, List<int>> GetDictionary(List<MealPlanerModel> mealPlanerModels)
@@ -128,42 +123,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             return dic;
         }
 
-        public Task EditeMealPlan(string userHash, string title, List<MealPlanerModel> mealPlaner)
+        public async Task EditMealPlanAsync(string userHash, string title, List<MealPlanerModel> mealPlaner)
         {
-            var mealPlanToEdit = _contex.WorldUserMealPlan.FirstOrDefault(x => x.UserHash == userHash && x.Title == title);
+            var mealPlanToEdit = await _context.WorldUserMealPlan.FirstOrDefaultAsync(x => x.UserHash == userHash && x.Title == title);
+            if (mealPlanToEdit == null) throw new InvalidOperationException("Essensplan nicht gefunden.");
 
             mealPlanToEdit.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlaner));
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<List<WorldUserMealPlan>> GetMealPlansByHash(string userHasch)
+        public async Task<List<WorldUserMealPlan>> GetMealPlansByHash(string userHash)
         {
-            return await _contex.WorldUserMealPlan.Where(x => x.UserHash == userHasch).ToListAsync();
+            return await _context.WorldUserMealPlan.Where(x => x.UserHash == userHash).ToListAsync();
         }
 
-        public void DeleteMealPlan(int id, string userHash)
+        public async Task DeleteMealPlanAsync(int id, string userHash)
         {
-            var mealPlan = _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id && x.UserHash == userHash);
+            var mealPlan = await _context.WorldUserMealPlan.SingleOrDefaultAsync(x => x.Id == id && x.UserHash == userHash);
             if (mealPlan == null)
                 throw new Exception("Essensplan nicht gefunden oder keine Berechtigung.");
 
-            var purchases = _contex.MealPlanPurchases
+            var purchases = await _context.MealPlanPurchases
                 .Where(x => x.CreatedMealPlanId == id && x.BuyerHash == userHash)
-                .ToList();
+                .ToListAsync();
 
             if (purchases.Any())
             {
-                _contex.MealPlanPurchases.RemoveRange(purchases);
+                _context.MealPlanPurchases.RemoveRange(purchases);
             }
 
-            _contex.WorldUserMealPlan.Remove(mealPlan);
-            _contex.SaveChanges();
+            _context.WorldUserMealPlan.Remove(mealPlan);
+            await _context.SaveChangesAsync();
         }
 
-        public WorldUserMealPlan GetMealPlanById(int id, string userHash)
+        public async Task<WorldUserMealPlan?> GetMealPlanByIdAsync(int id, string userHash)
         {
-            return _contex.WorldUserMealPlan.SingleOrDefault(x => x.Id == id && x.UserHash == userHash);
+            return await _context.WorldUserMealPlan.SingleOrDefaultAsync(x => x.Id == id && x.UserHash == userHash);
         }
     }
 }

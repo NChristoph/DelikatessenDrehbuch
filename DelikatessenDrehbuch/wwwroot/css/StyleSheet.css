@@ -1,14 +1,4 @@
-﻿/*main {
-    margin-top: 250px;
-}*/
-
-.textColoreCream {
-    text-decoration-color: #FFFDD0;
-}
-
-
-
-
+﻿
 html {
     font-size: 18px;
 }
@@ -17,29 +7,16 @@ html {
     box-sizing: border-box;
 }
 
-.text {
-    text-shadow: -1px 0 #D4AF37, 0 1px #D4AF37, 1px 0 #D4AF37, 0 -1px #D4AF37;
-}
-
 .Border-Gold {
     border: 1px solid #D4AF37 !important;
     border-color: #D4AF37 !important;
 }
 
-tr:nth-child(even) {
+tr {
     background-color: #FEFFF1;
     padding: 2px 10px;
     border-radius: 0.5rem;
     border: 1px solid;
-
-}
-
-tr:nth-child(odd) {
-    background-color: #FEFFF1;
-    padding: 2px 10px;
-    border-radius: 0.5rem;
-    border: 1px solid ;
-   
 }
 
 .bgRed {
@@ -52,10 +29,6 @@ tr:nth-child(odd) {
 
 .Bg-Cream {
     background-color: #FEFFF1;
-}
-
-.color-Gold {
-    color: #D4AF37;
 }
 
 .mobile-aktive {
@@ -95,20 +68,12 @@ tr:nth-child(odd) {
     flex: 1;
 }
 
-.dropdown {
-    flex: 1;
-}
-
 .ingredient-button {
     flex: 0;
 }
 
 .flex {
     display: flex;
-}
-
-.flexAuto {
-    flex: auto;
 }
 
 .flexColumn {
@@ -130,20 +95,12 @@ tr:nth-child(odd) {
     flex-wrap: wrap;
 }
 
-.flexNoWrap {
-    flex-wrap: nowrap;
-}
-
 .flexJustifyContendCenter {
     justify-content: center;
 }
 
 .flexJustifyContendEnd {
     justify-content: end;
-}
-
-.flexJustifyContendStart {
-    justify-content: start;
 }
 
 .flexJustifyContendSpaceAround {
@@ -154,40 +111,12 @@ tr:nth-child(odd) {
     justify-content: space-between;
 }
 
-.flexAlginContentCenter {
-    align-content: center;
-}
-
-.flexAlginContentStart {
-    align-content: start;
-}
-
-.flexAlginContentEnd {
-    align-content: end;
-}
-
-.flexAlginSelfCenter {
-    align-self: center;
-}
-
-.flexAlginSelfStar {
-    align-self: start;
-}
-
 .flexAlginSelfEnd {
     align-self: end;
 }
 
 .flexAlginItemCenter {
     align-items: center;
-}
-
-.flexAlginItemStart {
-    align-items: start;
-}
-
-.flexAlginItemEnd {
-    align-items: end;
 }
 
 /*#endregion FlexBox */
@@ -197,10 +126,6 @@ tr:nth-child(odd) {
 /*#endregion Margin Padding*/
 
 /*#region Width*/
-
-.max-Widthcontent {
-    width: max-content;
-}
 
 .minWidth100vh {
     min-width: 100vh;

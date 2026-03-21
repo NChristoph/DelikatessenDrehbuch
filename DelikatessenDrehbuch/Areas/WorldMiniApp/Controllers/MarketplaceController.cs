@@ -681,6 +681,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(path)) return path;
 
+            // TODO: Secret noch entfernen — CDN-Domains in Konfiguration auslagern
             const string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
             const string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
 

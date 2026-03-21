@@ -443,7 +443,6 @@
             padding: 12px 12px 120px 12px;
             background: linear-gradient( 180deg, rgba(28, 38, 78, 0.35), rgba(16, 22, 46, 0.45) );
             border-radius: 22px;
-            backdrop-filter: blur(10px);
         }
 
         .feed-shell[data-theme="rosa"] {
@@ -451,7 +450,6 @@
             padding: 12px 12px 120px 12px;
             background: linear-gradient( 180deg, rgba(120, 40, 100, 0.35), rgba(40, 16, 36, 0.45) );
             border-radius: 22px;
-            backdrop-filter: blur(10px);
         }
 
 
@@ -460,8 +458,7 @@
     .creator-loading {
         position: fixed;
         inset: 0;
-        background: rgba(255,255,255,0.72);
-        backdrop-filter: blur(8px);
+        background: rgba(255,255,255,0.85);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -487,7 +484,6 @@
         top: 0;
         z-index: 1500;
         background: rgba(255,255,255,0.86);
-        backdrop-filter: blur(10px);
         border-bottom: 1px solid rgba(0,0,0,0.06);
         display: flex;
         align-items: center;
@@ -535,7 +531,6 @@
         border-radius: 999px;
         background: rgba(255,255,255,0.14);
         border: 1px solid rgba(255,255,255,0.18);
-        backdrop-filter: blur(10px);
     }
 
     .theme-switch-btn {
@@ -612,8 +607,7 @@
     /* ---------- Hero ---------- */
     .creator-hero {
         border-radius: 26px;
-        background: rgba(255,255,255,0.82);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.92);
         border: 1px solid rgba(0,0,0,0.06);
         box-shadow: 0 10px 32px rgba(0,0,0,0.06);
         padding: 18px;
@@ -671,8 +665,7 @@
     .creator-card {
         border: 1px solid rgba(0,0,0,0.06);
         border-radius: 26px;
-        background: rgba(255,255,255,0.86);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.94);
         box-shadow: 0 10px 32px rgba(0,0,0,0.06);
         overflow: hidden;
     }
@@ -917,8 +910,7 @@
 
     .probability-template-card {
         border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(12px);
+        background: rgba(255,255,255,0.18);
         border-radius: 22px;
         padding: 16px;
         margin-bottom: 10px;
@@ -1315,8 +1307,7 @@
     .creator-bottom-inner {
         pointer-events: auto;
         border-radius: 999px;
-        background: rgba(255,255,255,0.92);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.96);
         border: 1px solid rgba(0,0,0,0.08);
         box-shadow: 0 14px 36px rgba(0,0,0,0.10);
         padding: 10px;
@@ -1497,7 +1488,6 @@
         padding: 12px 12px 120px 12px;
         background: linear-gradient( 180deg, rgba(192, 192, 192, 0.35), rgba(182, 182, 182, 0.45) );
         border-radius: 22px;
-        backdrop-filter: blur(10px);
     }
 
     .smart-step-creator[data-theme="gold"],
@@ -2002,8 +1992,7 @@
         margin-top: 10px;
         border-radius: 22px;
         border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(12px);
+        background: rgba(255,255,255,0.18);
         padding: 16px;
         box-shadow: 0 14px 30px rgba(0,0,0,0.2);
         transform: translateY(0);
@@ -2168,7 +2157,6 @@
         height: auto;
         background: var(--creator-sheet);
         border-top: 1px solid var(--creator-border);
-        backdrop-filter: blur(16px);
         border-radius: 24px 24px 0 0;
         padding: 12px;
         display: flex;
@@ -2644,19 +2632,45 @@
     </div>
 </div>
 
+<style>
+    /* Performance: eliminate 300ms tap-delay on interactive elements */
+    .creator-card button,
+    .creator-card input,
+    .creator-card select,
+    .creator-card textarea,
+    .smart-step-creator button,
+    .smart-step-creator input,
+    .smart-step-creator select,
+    .smart-step-creator textarea,
+    .creator-topbar button,
+    .creator-checklist-toolbar { touch-action: manipulation; }
+
+    /* Performance: GPU-hint for sticky bars */
+    .creator-topbar,
+    .creator-checklist-toolbar { will-change: transform; }
+
+    /* Performance: skip rendering of off-screen form sections */
+    #card-basics,
+    #card-media,
+    #card-ingredients,
+    #card-steps,
+    #card-keywords { content-visibility: auto; }
+</style>
+
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
-    <script src="~/js/master-step-renderer.js" asp-append-version="true"></script>
-    <script src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
+    <script src="~/js/create-posting-utils.js" asp-append-version="true"></script>
+    <script defer src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script defer src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
+    <script defer src="~/js/master-step-renderer.js" asp-append-version="true"></script>
+    <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
     <script>
         window.CreatePostingPageConfig = {
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })"
         };
     </script>
-    <script src="~/js/create-posting-probability.js" asp-append-version="true"></script>
-    <script src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
-    <script src="~/js/create-posting-publish-checklist.js"></script>
+    <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script>
+    <script defer src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
+    <script defer src="~/js/create-posting-publish-checklist.js" asp-append-version="true"></script>
 }
 
 

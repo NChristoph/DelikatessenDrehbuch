@@ -1,0 +1,48 @@
+-- =============================================================
+-- DB Index Changes (Phase 4)
+-- Manuelle SQL-Statements falls Migration nicht automatisch läuft
+-- =============================================================
+
+-- WorldAppUser: Jede Query filtert nach UserHash
+CREATE UNIQUE INDEX [IX_WorldAppUser_UserHash]
+    ON [dbo].[WorldAppUser] ([UserHash]);
+
+-- WorldUserMealPlan: Queries filtern nach UserHash
+CREATE INDEX [IX_WorldUserMealPlan_UserHash]
+    ON [dbo].[WorldUserMealPlan] ([UserHash]);
+
+-- WorldUserMealPlan: UserHash + Title Kombination
+CREATE INDEX [IX_WorldUserMealPlan_UserHash_Title]
+    ON [dbo].[WorldUserMealPlan] ([UserHash], [Title]);
+
+-- WorldUserPosting: Feed-Queries filtern nach CreatorId
+CREATE INDEX [IX_WorldUserPosting_CreatorId]
+    ON [dbo].[WorldUserPosting] ([CreatorId]);
+
+-- RecipeBaseData: Title-Lookup bei Upload
+CREATE INDEX [IX_RecipeBaseData_Title]
+    ON [dbo].[RecipeBaseData] ([Title]);
+
+-- MealPlanPurchase: Duplikatschutz via TxHash
+CREATE UNIQUE INDEX [IX_WorldMealplanPurcase_ReferenceTxHash]
+    ON [dbo].[WorldMealplanPurcase] ([ReferenceTxHash]);
+
+-- MealPlanPurchase: Käufer-Abfragen
+CREATE INDEX [IX_WorldMealplanPurcase_BuyerHash]
+    ON [dbo].[WorldMealplanPurcase] ([BuyerHash]);
+
+-- MealPlanPurchase: Verkäufer-Dashboard
+CREATE INDEX [IX_WorldMealplanPurcase_SellerHash]
+    ON [dbo].[WorldMealplanPurcase] ([SellerHash]);
+
+-- MealPlanListings: Aktive Listings (Marketplace)
+CREATE INDEX [IX_MealPlanListings_IsActive_CreatedAt]
+    ON [dbo].[MealPlanListings] ([IsActive], [CreatedAt]);
+
+-- MealPlanListings: Verkäufer
+CREATE INDEX [IX_MealPlanListings_SellerHash]
+    ON [dbo].[MealPlanListings] ([SellerHash]);
+
+-- WildCoinTransaction: User-History
+CREATE INDEX [IX_WildCoinTransactions_UserHash_CreatedAt]
+    ON [dbo].[WildCoinTransactions] ([UserHash], [CreatedAt]);

@@ -130,6 +130,52 @@ namespace DelikatessenDrehbuch.Data
                 .Property(x => x.Score)
                 .HasColumnType("decimal(10,2)");
 
+            // WorldAppUser — fast jede Query filtert nach UserHash
+            builder.Entity<WorldAppUser>()
+                .HasIndex(x => x.UserHash)
+                .IsUnique();
+
+            // WorldUserMealPlan — alle Queries filtern nach UserHash
+            builder.Entity<WorldUserMealPlan>()
+                .HasIndex(x => x.UserHash);
+
+            // WorldUserMealPlan — UserHash + Title Kombination (SaveNewMealPlan, EditMealPlan)
+            builder.Entity<WorldUserMealPlan>()
+                .HasIndex(x => new { x.UserHash, x.Title });
+
+            // WorldUserPosting — Feed-Queries filtern nach CreatorId
+            builder.Entity<WorldUserPosting>()
+                .HasIndex(x => x.CreatorId);
+
+            // RecipeBaseData.Title — Lookup bei Upload (SaveNewRecipeService)
+            builder.Entity<RecipeBaseData>()
+                .HasIndex(x => x.Title);
+
+            // MealPlanPurchase — Duplikatschutz via TxHash
+            builder.Entity<MealPlanPurchase>()
+                .HasIndex(x => x.ReferenceTxHash)
+                .IsUnique();
+
+            // MealPlanPurchase — Käufer-Abfragen
+            builder.Entity<MealPlanPurchase>()
+                .HasIndex(x => x.BuyerHash);
+
+            // MealPlanPurchase — Verkäufer-Dashboard
+            builder.Entity<MealPlanPurchase>()
+                .HasIndex(x => x.SellerHash);
+
+            // MealPlanListings — aktive Listings (Marketplace)
+            builder.Entity<MealPlanListing>()
+                .HasIndex(x => new { x.IsActive, x.CreatedAt });
+
+            // MealPlanListings — Verkäufer
+            builder.Entity<MealPlanListing>()
+                .HasIndex(x => x.SellerHash);
+
+            // WildCoinTransaction — User-History
+            builder.Entity<WildCoinTransaction>()
+                .HasIndex(x => new { x.UserHash, x.CreatedAt });
+
             // Legacy/production table name mapping (typo kept for compatibility):
             // Model MealPlanPurchase -> dbo.WorldMealplanPurcase
             builder.Entity<MealPlanPurchase>().ToTable("WorldMealplanPurcase");

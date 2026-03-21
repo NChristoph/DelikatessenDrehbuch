@@ -30,24 +30,8 @@
 
     let cachedUnits = null;
 
-    function resolveLangKey(value) {
-        const normalized = (value || "de").toString().toLowerCase();
-        if (normalized === "es") return "esp";
-        if (normalized === "pt") return "prt";
-        if (normalized === "se") return "sv";
-        if (normalized === "dk") return "da";
-        return normalized;
-    }
-
-    function escapeHtml(value) {
-        return (value ?? "")
-            .toString()
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
-    }
+    var resolveLangKey = window.CreatePostingUtils.resolveLangKey;
+    var escapeHtml = window.CreatePostingUtils.escapeHtml;
 
     function normalizeUnit(unit) {
         const de = (unit?.de || "").toString().trim();

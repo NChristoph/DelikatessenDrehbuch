@@ -1430,6 +1430,26 @@
             "value:rund",
             "technique:roll_out"
           ]
+        },
+        {
+          "key": "fladen",
+          "labels": {
+            "de": "Fladen",
+            "en": "flatbread",
+            "esp": "torta",
+            "prt": "disco",
+            "id": "lempeng",
+            "nl": "flensje",
+            "sv": "flatbröd",
+            "da": "fladbrød",
+            "no": "flatbrød",
+            "ms": "lempeng"
+          },
+          "tags": [
+            "variable:shape",
+            "value:fladen",
+            "technique:roll_out"
+          ]
         }
       ]
     },
@@ -2662,6 +2682,63 @@
             "boil",
             "simmer",
             "blend"
+          ]
+        },
+        {
+          "key": "b_chamel",
+          "labels": {
+            "de": "Béchamel",
+            "en": "béchamel",
+            "esp": "bechamel",
+            "prt": "béchamel",
+            "id": "béchamel",
+            "nl": "bechamelsaus",
+            "sv": "bechamelsås",
+            "da": "bechamelsauce",
+            "no": "bechamelsaus",
+            "ms": "sos béchamel"
+          },
+          "tags": [
+            "variable:base",
+            "value:b_chamel",
+            "component:sauce",
+            "base:sauce",
+            "sauce",
+            "soße",
+            "technique:thicken",
+            "technique:simmer",
+            "technique:layer",
+            "bechamel",
+            "béchamel",
+            "weiße_sauce",
+            "white_sauce"
+          ]
+        },
+        {
+          "key": "hackfleischmischung",
+          "labels": {
+            "de": "Hackfleischmischung",
+            "en": "ground meat mixture",
+            "esp": "mezcla de carne picada",
+            "prt": "mistura de carne moída",
+            "id": "campuran daging cincang",
+            "nl": "gehaktmengsel",
+            "sv": "köttfärsblandning",
+            "da": "hakkeblanding",
+            "no": "kjøttdeigblanding",
+            "ms": "campuran daging cincang"
+          },
+          "tags": [
+            "variable:base",
+            "value:hackfleischmischung",
+            "component:meat",
+            "family:meat",
+            "technique:stuff",
+            "technique:layer",
+            "technique:assemble",
+            "hackfleisch",
+            "ground_meat",
+            "mince"
           ]
         }
       ]
@@ -4546,6 +4623,119 @@
             "technique:layer",
             "component:mix"
           ]
+        },
+        {
+          "key": "bolognese_lasagnebl_tter_b_chamel_und_k_se",
+          "labels": {
+            "de": "Bolognese, Lasagneblätter, Béchamel und Käse",
+            "en": "bolognese, lasagna sheets, béchamel and cheese",
+            "esp": "boloñesa, láminas de lasaña, bechamel y queso",
+            "prt": "bolonhesa, folhas de lasanha, béchamel e queijo",
+            "id": "bolognese, lembaran lasagna, béchamel dan keju",
+            "nl": "bolognese, lasagnevellen, bechamelsaus en kaas",
+            "sv": "bolognese, lasagneplattor, bechamelsås och ost",
+            "da": "bolognese, lasagneplader, bechamelsauce og ost",
+            "no": "bolognese, lasagneplater, bechamelsaus og ost",
+            "ms": "bolognese, lembaran lasagna, béchamel dan keju"
+          },
+          "tags": [
+            "variable:components",
+            "value:bolognese_lasagnebl_tter_b_chamel_und_k_se",
+            "technique:layer",
+            "component:mix",
+            "base:sauce",
+            "family:pasta"
+          ]
+        },
+        {
+          "key": "hackfleischmischung_und_gem_se",
+          "labels": {
+            "de": "Hackfleischmischung und Gemüse",
+            "en": "ground meat mixture and vegetables",
+            "esp": "mezcla de carne picada y verduras",
+            "prt": "mistura de carne moída e legumes",
+            "id": "campuran daging cincang dan sayuran",
+            "nl": "gehaktmengsel en groenten",
+            "sv": "köttfärsblandning och grönsaker",
+            "da": "hakkeblanding og grøntsager",
+            "no": "kjøttdeigblanding og grønnsaker",
+            "ms": "campuran daging cincang dan sayuran"
+          },
+          "tags": [
+            "variable:components",
+            "value:hackfleischmischung_und_gem_se",
+            "technique:layer",
+            "technique:stuff",
+            "technique:assemble",
+            "component:mix",
+            "family:meat"
+          ]
+        },
+        {
+          "key": "br_tchen_salat_patty_tomate_und_sauce",
+          "labels": {
+            "de": "Brötchen, Salat, Patty, Tomate und Sauce",
+            "en": "bun, lettuce, patty, tomato and sauce",
+            "esp": "panecillo, lechuga, hamburguesa, tomate y salsa",
+            "prt": "pão, alface, hambúrguer, tomate e molho",
+            "id": "roti, selada, patty, tomat dan saus",
+            "nl": "broodje, sla, burger, tomaat en saus",
+            "sv": "bröd, sallad, biff, tomat och sås",
+            "da": "bolle, salat, bøf, tomat og sauce",
+            "no": "rundstykke, salat, burger, tomat og saus",
+            "ms": "roti, salad, pati, tomato dan sos"
+          },
+          "tags": [
+            "variable:components",
+            "value:br_tchen_salat_patty_tomate_und_sauce",
+            "technique:assemble",
+            "component:mix",
+            "family:meat"
+          ]
+        },
+        {
+          "key": "f_llung_salsa_k_se_und_salat",
+          "labels": {
+            "de": "Füllung, Salsa, Käse und Salat",
+            "en": "filling, salsa, cheese and lettuce",
+            "esp": "relleno, salsa, queso y lechuga",
+            "prt": "recheio, salsa, queijo e alface",
+            "id": "isian, salsa, keju dan selada",
+            "nl": "vulling, salsa, kaas en sla",
+            "sv": "fyllning, salsa, ost och sallad",
+            "da": "fyld, salsa, ost og salat",
+            "no": "fyll, salsa, ost og salat",
+            "ms": "inti, salsa, keju dan salad"
+          },
+          "tags": [
+            "variable:components",
+            "value:f_llung_salsa_k_se_und_salat",
+            "technique:assemble",
+            "technique:wrap",
+            "component:mix"
+          ]
+        },
+        {
+          "key": "taco_shell_fleisch_avocado_tomaten_und_k_se",
+          "labels": {
+            "de": "Taco-Shell, Fleisch, Avocado, Tomaten und Käse",
+            "en": "taco shell, meat, avocado, tomatoes and cheese",
+            "esp": "taco, carne, aguacate, tomates y queso",
+            "prt": "taco, carne, abacate, tomates e queijo",
+            "id": "taco shell, daging, alpukat, tomat dan keju",
+            "nl": "tacoschelp, vlees, avocado, tomaten en kaas",
+            "sv": "tacoskal, kött, avokado, tomater och ost",
+            "da": "tacoskal, kød, avocado, tomater og ost",
+            "no": "tacoskjell, kjøtt, avokado, tomater og ost",
+            "ms": "taco shell, daging, avokado, tomato dan keju"
+          },
+          "tags": [
+            "variable:components",
+            "value:taco_shell_fleisch_avocado_tomaten_und_k_se",
+            "technique:assemble",
+            "component:mix",
+            "family:meat"
+          ]
         }
       ]
     },
@@ -5218,6 +5408,256 @@
             "ausrollen",
             "roll_out"
           ]
+        }
+      ]
+    },
+    "base_sauce": {
+      "description": "Ausgelagerte Optionen für Variable 'base_sauce' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "tomatensauce",
+          "labels": { "de": "Tomatensauce", "en": "tomato sauce", "esp": "salsa de tomate", "prt": "molho de tomate", "id": "saus tomat", "nl": "tomatensaus", "sv": "tomatsås", "da": "tomatsauce", "no": "tomatsaus", "ms": "sos tomato" },
+          "tags": ["variable:base_sauce", "value:tomatensauce"]
+        },
+        {
+          "key": "cr_me_fra_che",
+          "labels": { "de": "Crème fraîche", "en": "crème fraîche", "esp": "crème fraîche", "prt": "crème fraîche", "id": "crème fraîche", "nl": "crème fraîche", "sv": "crème fraîche", "da": "crème fraîche", "no": "crème fraîche", "ms": "crème fraîche" },
+          "tags": ["variable:base_sauce", "value:cr_me_fra_che"]
+        },
+        {
+          "key": "pesto",
+          "labels": { "de": "Pesto", "en": "pesto", "esp": "pesto", "prt": "pesto", "id": "pesto", "nl": "pesto", "sv": "pesto", "da": "pesto", "no": "pesto", "ms": "pesto" },
+          "tags": ["variable:base_sauce", "value:pesto"]
+        },
+        {
+          "key": "oliven_l",
+          "labels": { "de": "Olivenöl", "en": "olive oil", "esp": "aceite de oliva", "prt": "azeite", "id": "minyak zaitun", "nl": "olijfolie", "sv": "olivolja", "da": "olivenolie", "no": "olivenolje", "ms": "minyak zaitun" },
+          "tags": ["variable:base_sauce", "value:oliven_l"]
+        }
+      ]
+    },
+    "toppings": {
+      "description": "Ausgelagerte Optionen für Variable 'toppings' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "mozzarella_und_belag",
+          "labels": { "de": "Mozzarella und Belag", "en": "mozzarella and toppings", "esp": "mozzarella y ingredientes", "prt": "mozzarella e coberturas", "id": "mozzarella dan topping", "nl": "mozzarella en beleg", "sv": "mozzarella och pålägg", "da": "mozzarella og topping", "no": "mozzarella og topping", "ms": "mozzarella dan topping" },
+          "tags": ["variable:toppings", "value:mozzarella_und_belag"]
+        },
+        {
+          "key": "gem_se",
+          "labels": { "de": "Gemüse", "en": "vegetables", "esp": "verduras", "prt": "legumes", "id": "sayuran", "nl": "groenten", "sv": "grönsaker", "da": "grøntsager", "no": "grønnsaker", "ms": "sayur-sayuran" },
+          "tags": ["variable:toppings", "value:gem_se"]
+        },
+        {
+          "key": "k_se",
+          "labels": { "de": "Käse", "en": "cheese", "esp": "queso", "prt": "queijo", "id": "keju", "nl": "kaas", "sv": "ost", "da": "ost", "no": "ost", "ms": "keju" },
+          "tags": ["variable:toppings", "value:k_se"]
+        }
+      ]
+    },
+    "filling": {
+      "description": "Ausgelagerte Optionen für Variable 'filling' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "hackfleischmischung",
+          "labels": { "de": "Hackfleischmischung", "en": "ground meat mixture", "esp": "mezcla de carne picada", "prt": "mistura de carne moída", "id": "campuran daging cincang", "nl": "gehaktmengsel", "sv": "köttfärsblandning", "da": "hakkeblanding", "no": "kjøttdeigblanding", "ms": "campuran daging cincang" },
+          "tags": ["variable:filling", "value:hackfleischmischung", "technique:stuff"]
+        },
+        {
+          "key": "reis_gem_se_f_llung",
+          "labels": { "de": "Reis-Gemüse-Füllung", "en": "rice and vegetable filling", "esp": "relleno de arroz y verduras", "prt": "recheio de arroz e legumes", "id": "isian nasi dan sayuran", "nl": "rijst-groentevulling", "sv": "ris- och grönsaksfyllning", "da": "ris-grøntsagsfyld", "no": "ris- og grønnsaksfyll", "ms": "isian nasi dan sayuran" },
+          "tags": ["variable:filling", "value:reis_gem_se_f_llung", "technique:stuff"]
+        },
+        {
+          "key": "k_se_spinat_f_llung",
+          "labels": { "de": "Käse-Spinat-Füllung", "en": "cheese and spinach filling", "esp": "relleno de queso y espinacas", "prt": "recheio de queijo e espinafre", "id": "isian keju dan bayam", "nl": "kaas-spinazievulling", "sv": "ost- och spenatfyllning", "da": "ost-spinatfyld", "no": "ost- og spinatfyll", "ms": "isian keju dan bayam" },
+          "tags": ["variable:filling", "value:k_se_spinat_f_llung", "technique:stuff"]
+        }
+      ]
+    },
+    "wrapper": {
+      "description": "Ausgelagerte Optionen für Variable 'wrapper' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "teigblatt",
+          "labels": { "de": "Teigblatt", "en": "pastry sheet", "esp": "hoja de masa", "prt": "folha de massa", "id": "lembaran adonan", "nl": "deegvel", "sv": "degark", "da": "dejplade", "no": "deigplate", "ms": "lembaran doh" },
+          "tags": ["variable:wrapper", "value:teigblatt", "technique:wrap"]
+        },
+        {
+          "key": "reispapier",
+          "labels": { "de": "Reispapier", "en": "rice paper", "esp": "papel de arroz", "prt": "papel de arroz", "id": "kertas nasi", "nl": "rijstpapier", "sv": "rispapper", "da": "rispapir", "no": "rispapir", "ms": "kertas nasi" },
+          "tags": ["variable:wrapper", "value:reispapier", "technique:wrap"]
+        },
+        {
+          "key": "kohlblatt",
+          "labels": { "de": "Kohlblatt", "en": "cabbage leaf", "esp": "hoja de repollo", "prt": "folha de couve", "id": "daun kubis", "nl": "koolblad", "sv": "kålblad", "da": "kålblad", "no": "kålblad", "ms": "daun kubis" },
+          "tags": ["variable:wrapper", "value:kohlblatt", "technique:wrap"]
+        },
+        {
+          "key": "tortilla",
+          "labels": { "de": "Tortilla", "en": "tortilla", "esp": "tortilla", "prt": "tortilha", "id": "tortilla", "nl": "tortilla", "sv": "tortilla", "da": "tortilla", "no": "tortilla", "ms": "tortilla" },
+          "tags": ["variable:wrapper", "value:tortilla", "technique:wrap"]
+        }
+      ]
+    },
+    "agent": {
+      "description": "Ausgelagerte Optionen für Variable 'agent' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "gelatine",
+          "labels": { "de": "Gelatine", "en": "gelatin", "esp": "gelatina", "prt": "gelatina", "id": "gelatin", "nl": "gelatine", "sv": "gelatin", "da": "gelatine", "no": "gelatin", "ms": "gelatin" },
+          "tags": ["variable:agent", "value:gelatine", "technique:bloom"]
+        },
+        {
+          "key": "agar_agar",
+          "labels": { "de": "Agar-Agar", "en": "agar-agar", "esp": "agar-agar", "prt": "ágar-ágar", "id": "agar-agar", "nl": "agar-agar", "sv": "agar-agar", "da": "agar-agar", "no": "agar-agar", "ms": "agar-agar" },
+          "tags": ["variable:agent", "value:agar_agar", "technique:bloom"]
+        },
+        {
+          "key": "hefe",
+          "labels": { "de": "Hefe", "en": "yeast", "esp": "levadura", "prt": "fermento", "id": "ragi", "nl": "gist", "sv": "jäst", "da": "gær", "no": "gjær", "ms": "yis" },
+          "tags": ["variable:agent", "value:hefe", "technique:bloom"]
+        }
+      ]
+    },
+    "cure_mix": {
+      "description": "Ausgelagerte Optionen für Variable 'cure_mix' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "salz_zucker_dill",
+          "labels": { "de": "Salz, Zucker und Dill", "en": "salt, sugar and dill", "esp": "sal, azúcar y eneldo", "prt": "sal, açúcar e endro", "id": "garam, gula dan dill", "nl": "zout, suiker en dille", "sv": "salt, socker och dill", "da": "salt, sukker og dild", "no": "salt, sukker og dill", "ms": "garam, gula dan dill" },
+          "tags": ["variable:cure_mix", "value:salz_zucker_dill", "technique:cure"]
+        },
+        {
+          "key": "p_kelsalz_gew_rze",
+          "labels": { "de": "Pökelsalz und Gewürze", "en": "curing salt and spices", "esp": "sal de curado y especias", "prt": "sal de cura e especiarias", "id": "garam pengawet dan rempah", "nl": "pekelzout en kruiden", "sv": "nitritlakesalt och kryddor", "da": "nitritlagesalt og krydderier", "no": "nitrittsalt og krydder", "ms": "garam pengawet dan rempah" },
+          "tags": ["variable:cure_mix", "value:p_kelsalz_gew_rze", "technique:cure"]
+        }
+      ]
+    },
+    "folds": {
+      "description": "Ausgelagerte Optionen für Variable 'folds' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "einfache_tour",
+          "labels": { "de": "zu einer einfachen Tour", "en": "into a single fold", "esp": "en un pliegue simple", "prt": "numa dobra simples", "id": "menjadi lipatan tunggal", "nl": "tot een enkele slag", "sv": "till en enkel tur", "da": "til en enkelt tur", "no": "til en enkel tur", "ms": "menjadi lipatan tunggal" },
+          "tags": ["variable:folds", "value:einfache_tour", "technique:laminate"]
+        },
+        {
+          "key": "doppelte_tour",
+          "labels": { "de": "zu einer doppelten Tour", "en": "into a double fold", "esp": "en un pliegue doble", "prt": "numa dobra dupla", "id": "menjadi lipatan ganda", "nl": "tot een dubbele slag", "sv": "till en dubbel tur", "da": "til en dobbelt tur", "no": "til en dobbel tur", "ms": "menjadi lipatan berganda" },
+          "tags": ["variable:folds", "value:doppelte_tour", "technique:laminate"]
+        }
+      ]
+    },
+    "fat": {
+      "description": "Ausgelagerte Optionen für Variable 'fat' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "butter",
+          "labels": { "de": "Butter", "en": "butter", "esp": "mantequilla", "prt": "manteiga", "id": "mentega", "nl": "boter", "sv": "smör", "da": "smør", "no": "smør", "ms": "mentega" },
+          "tags": ["variable:fat", "value:butter", "technique:laminate", "technique:confit"]
+        },
+        {
+          "key": "oliven_l",
+          "labels": { "de": "Olivenöl", "en": "olive oil", "esp": "aceite de oliva", "prt": "azeite", "id": "minyak zaitun", "nl": "olijfolie", "sv": "olivolja", "da": "olivenolie", "no": "olivenolje", "ms": "minyak zaitun" },
+          "tags": ["variable:fat", "value:oliven_l", "technique:confit"]
+        },
+        {
+          "key": "entenfett",
+          "labels": { "de": "Entenfett", "en": "duck fat", "esp": "grasa de pato", "prt": "gordura de pato", "id": "lemak bebek", "nl": "eendenvet", "sv": "ankfett", "da": "andefedt", "no": "andefett", "ms": "lemak itik" },
+          "tags": ["variable:fat", "value:entenfett", "technique:confit"]
+        },
+        {
+          "key": "schmalz",
+          "labels": { "de": "Schmalz", "en": "lard", "esp": "manteca", "prt": "banha", "id": "lemak babi", "nl": "reuzel", "sv": "ister", "da": "svinefedt", "no": "svinefett", "ms": "lemak babi" },
+          "tags": ["variable:fat", "value:schmalz", "technique:confit"]
+        }
+      ]
+    },
+    "wood": {
+      "description": "Ausgelagerte Optionen für Variable 'wood' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "buchenholz",
+          "labels": { "de": "Buchenholz", "en": "beechwood", "esp": "madera de haya", "prt": "madeira de faia", "id": "kayu beech", "nl": "beukenhout", "sv": "bokträ", "da": "bøgetræ", "no": "bøketre", "ms": "kayu beech" },
+          "tags": ["variable:wood", "value:buchenholz", "technique:smoke"]
+        },
+        {
+          "key": "hickory",
+          "labels": { "de": "Hickory", "en": "hickory", "esp": "nogal", "prt": "nogueira", "id": "hickory", "nl": "hickory", "sv": "hickory", "da": "hickory", "no": "hickory", "ms": "hickory" },
+          "tags": ["variable:wood", "value:hickory", "technique:smoke"]
+        },
+        {
+          "key": "kirschholz",
+          "labels": { "de": "Kirschholz", "en": "cherry wood", "esp": "madera de cerezo", "prt": "madeira de cerejeira", "id": "kayu ceri", "nl": "kersenhout", "sv": "körsbärsträ", "da": "kirsebærtræ", "no": "kirsebærtre", "ms": "kayu ceri" },
+          "tags": ["variable:wood", "value:kirschholz", "technique:smoke"]
+        }
+      ]
+    },
+    "spirit": {
+      "description": "Ausgelagerte Optionen für Variable 'spirit' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "cognac",
+          "labels": { "de": "Cognac", "en": "cognac", "esp": "coñac", "prt": "conhaque", "id": "cognac", "nl": "cognac", "sv": "konjak", "da": "cognac", "no": "cognac", "ms": "cognac" },
+          "tags": ["variable:spirit", "value:cognac", "technique:flambe"]
+        },
+        {
+          "key": "rum",
+          "labels": { "de": "Rum", "en": "rum", "esp": "ron", "prt": "rum", "id": "rum", "nl": "rum", "sv": "rom", "da": "rom", "no": "rom", "ms": "rum" },
+          "tags": ["variable:spirit", "value:rum", "technique:flambe"]
+        },
+        {
+          "key": "grand_marnier",
+          "labels": { "de": "Grand Marnier", "en": "Grand Marnier", "esp": "Grand Marnier", "prt": "Grand Marnier", "id": "Grand Marnier", "nl": "Grand Marnier", "sv": "Grand Marnier", "da": "Grand Marnier", "no": "Grand Marnier", "ms": "Grand Marnier" },
+          "tags": ["variable:spirit", "value:grand_marnier", "technique:flambe"]
+        }
+      ]
+    },
+    "glaze": {
+      "description": "Ausgelagerte Optionen für Variable 'glaze' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "zuckerguss",
+          "labels": { "de": "Zuckerguss", "en": "icing", "esp": "glaseado", "prt": "glacê", "id": "lapisan gula", "nl": "glazuur", "sv": "glasyr", "da": "glasur", "no": "glasur", "ms": "aising" },
+          "tags": ["variable:glaze", "value:zuckerguss", "technique:glaze"]
+        },
+        {
+          "key": "schokoladenglasur",
+          "labels": { "de": "Schokoladenglasur", "en": "chocolate glaze", "esp": "glaseado de chocolate", "prt": "cobertura de chocolate", "id": "lapisan cokelat", "nl": "chocoladeglazuur", "sv": "chokladglasyr", "da": "chokoladeglasur", "no": "sjokoladeglasur", "ms": "salutan coklat" },
+          "tags": ["variable:glaze", "value:schokoladenglasur", "technique:glaze"]
+        },
+        {
+          "key": "honigglasur",
+          "labels": { "de": "Honigglasur", "en": "honey glaze", "esp": "glaseado de miel", "prt": "cobertura de mel", "id": "lapisan madu", "nl": "honingglazuur", "sv": "honungsglasyr", "da": "honningglasur", "no": "honningglasur", "ms": "salutan madu" },
+          "tags": ["variable:glaze", "value:honigglasur", "technique:glaze"]
+        }
+      ]
+    },
+    "decoration": {
+      "description": "Ausgelagerte Optionen für Variable 'decoration' mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "puderzucker",
+          "labels": { "de": "Puderzucker", "en": "powdered sugar", "esp": "azúcar glas", "prt": "açúcar de confeiteiro", "id": "gula halus", "nl": "poedersuiker", "sv": "florsocker", "da": "flormelis", "no": "melis", "ms": "gula aising" },
+          "tags": ["variable:decoration", "value:puderzucker", "technique:decorate"]
+        },
+        {
+          "key": "frische_kr_uter",
+          "labels": { "de": "frische Kräuter", "en": "fresh herbs", "esp": "hierbas frescas", "prt": "ervas frescas", "id": "rempah segar", "nl": "verse kruiden", "sv": "färska örter", "da": "friske urter", "no": "friske urter", "ms": "herba segar" },
+          "tags": ["variable:decoration", "value:frische_kr_uter", "technique:decorate"]
+        },
+        {
+          "key": "sahnetupfen",
+          "labels": { "de": "Sahnetupfen", "en": "whipped cream dollops", "esp": "montoncitos de nata", "prt": "pontinhos de chantilly", "id": "gumpalan krim kocok", "nl": "slagroomtoefjes", "sv": "gräddflugor", "da": "flødeskumstoppe", "no": "kremtopper", "ms": "gumpalan krim putar" },
+          "tags": ["variable:decoration", "value:sahnetupfen", "technique:decorate"]
+        },
+        {
+          "key": "essbare_bl_ten",
+          "labels": { "de": "essbare Blüten", "en": "edible flowers", "esp": "flores comestibles", "prt": "flores comestíveis", "id": "bunga yang dapat dimakan", "nl": "eetbare bloemen", "sv": "ätbara blommor", "da": "spiselige blomster", "no": "spiselige blomster", "ms": "bunga boleh dimakan" },
+          "tags": ["variable:decoration", "value:essbare_bl_ten", "technique:decorate"]
         }
       ]
     }

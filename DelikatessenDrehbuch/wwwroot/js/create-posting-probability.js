@@ -14,9 +14,7 @@
         suggestedIngredientsHint: 'Tippen zum Hinzufügen'
     };
 
-    function escapeHtml(value) {
-        return $('<div>').text(value ?? '').html();
-    }
+    var escapeHtml = window.CreatePostingUtils.escapeHtml;
 
     function setStatus(container, text) {
         container.text(text || UI_TEXT.analysisUnavailable);

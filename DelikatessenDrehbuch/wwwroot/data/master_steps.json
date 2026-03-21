@@ -3680,6 +3680,524 @@
         "variable:action",
         "family:seafood"
       ]
+    },
+    {
+      "master_id": "PREP_STUFF_01",
+      "phase": 1,
+      "action": "stuff",
+      "equipment": 0,
+      "description": "Füllen (Paprika, Zucchini, Hähnchen, Cannelloni)",
+      "templates": {
+        "de": "Fülle {{base}} gleichmäßig mit {{filling}} und setze {{pronoun}} in {{equipment}}.",
+        "en": "Fill {{base}} evenly with {{filling}} and place {{pronoun}} in {{equipment}}.",
+        "esp": "Rellena {{base}} uniformemente con {{filling}} y coloca en {{equipment}}.",
+        "prt": "Recheie {{base}} uniformemente com {{filling}} e coloque em {{equipment}}.",
+        "id": "Isi {{base}} secara merata dengan {{filling}} dan letakkan di {{equipment}}.",
+        "nl": "Vul {{base}} gelijkmatig met {{filling}} en zet {{pronoun}} in {{equipment}}.",
+        "sv": "Fyll {{base}} jämnt med {{filling}} och placera {{pronoun}} i {{equipment}}.",
+        "da": "Fyld {{base}} jævnt med {{filling}} og sæt {{pronoun}} i {{equipment}}.",
+        "no": "Fyll {{base}} jevnt med {{filling}} og sett {{pronoun}} i {{equipment}}.",
+        "ms": "Isikan {{base}} secara rata dengan {{filling}} dan letakkan di {{equipment}}."
+      },
+      "variables": ["base", "filling", "pronoun", "equipment"],
+      "required_variables": ["base", "filling", "pronoun", "equipment"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": { "category_keys": "main" },
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:stuff", "technique:stuff",
+        "füllen", "fuellen", "stuff", "fill",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:filling", "variable:pronoun", "variable:equipment",
+        "category:main"
+      ]
+    },
+    {
+      "master_id": "PREP_WRAP_01",
+      "phase": 1,
+      "action": "wrap",
+      "equipment": 0,
+      "description": "Einwickeln/Einrollen (Frühlingsrollen, Krautwickel, Burek)",
+      "templates": {
+        "de": "Gib {{filling}} auf {{wrapper}} und rolle {{pronoun}} fest zusammen.",
+        "en": "Place {{filling}} on {{wrapper}} and roll {{pronoun}} up tightly.",
+        "esp": "Coloca {{filling}} sobre {{wrapper}} y enrolla bien.",
+        "prt": "Coloque {{filling}} sobre {{wrapper}} e enrole bem.",
+        "id": "Letakkan {{filling}} di atas {{wrapper}} dan gulung dengan rapat.",
+        "nl": "Leg {{filling}} op {{wrapper}} en rol {{pronoun}} stevig op.",
+        "sv": "Lägg {{filling}} på {{wrapper}} och rulla ihop {{pronoun}} ordentligt.",
+        "da": "Læg {{filling}} på {{wrapper}} og rul {{pronoun}} godt sammen.",
+        "no": "Legg {{filling}} på {{wrapper}} og rull {{pronoun}} godt sammen.",
+        "ms": "Letakkan {{filling}} di atas {{wrapper}} dan gulung dengan ketat."
+      },
+      "variables": ["filling", "wrapper", "pronoun"],
+      "required_variables": ["filling", "wrapper", "pronoun"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": { "category_keys": "main" },
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:wrap", "technique:wrap",
+        "einwickeln", "einrollen", "wrap", "roll",
+        "equipment_id:0", "keins", "none",
+        "variable:filling", "variable:wrapper", "variable:pronoun",
+        "category:main"
+      ]
+    },
+    {
+      "master_id": "PREP_ASSEMBLE_01",
+      "phase": 1,
+      "action": "assemble",
+      "equipment": 0,
+      "description": "Zusammenbauen (Burger, Sandwich, Taco)",
+      "templates": {
+        "de": "Baue {{base}} aus {{components}} zusammen und schließe mit {{finish}} ab.",
+        "en": "Assemble {{base}} with {{components}} and finish with {{finish}}.",
+        "esp": "Monta {{base}} con {{components}} y termina con {{finish}}.",
+        "prt": "Monte {{base}} com {{components}} e finalize com {{finish}}.",
+        "id": "Susun {{base}} dengan {{components}} dan akhiri dengan {{finish}}.",
+        "nl": "Stel {{base}} samen met {{components}} en maak af met {{finish}}.",
+        "sv": "Sätt ihop {{base}} med {{components}} och avsluta med {{finish}}.",
+        "da": "Saml {{base}} med {{components}} og afslut med {{finish}}.",
+        "no": "Sett sammen {{base}} med {{components}} og avslutt med {{finish}}.",
+        "ms": "Susun {{base}} dengan {{components}} dan akhiri dengan {{finish}}."
+      },
+      "variables": ["base", "components", "finish"],
+      "required_variables": ["base", "components", "finish"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": { "category_keys": "main" },
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:assemble", "technique:assemble",
+        "zusammenbauen", "assemble",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:components", "variable:finish",
+        "category:main"
+      ]
+    },
+    {
+      "master_id": "PREP_BLOOM_01",
+      "phase": 1,
+      "action": "bloom",
+      "equipment": 0,
+      "description": "Einweichen/Auflösen (Gelatine, Gewürze anrösten)",
+      "templates": {
+        "de": "Löse {{agent}} in {{liquid}} auf und lasse {{pronoun}} {{duration}} {{state}}.",
+        "en": "Dissolve {{agent}} in {{liquid}} and let {{pronoun}} {{state}} for {{duration}}.",
+        "esp": "Disuelve {{agent}} en {{liquid}} y deja {{state}} durante {{duration}}.",
+        "prt": "Dissolva {{agent}} em {{liquid}} e deixe {{state}} por {{duration}}.",
+        "id": "Larutkan {{agent}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}.",
+        "nl": "Los {{agent}} op in {{liquid}} en laat {{pronoun}} {{duration}} {{state}}.",
+        "sv": "Lös upp {{agent}} i {{liquid}} och låt {{pronoun}} {{state}} i {{duration}}.",
+        "da": "Opløs {{agent}} i {{liquid}} og lad {{pronoun}} {{state}} i {{duration}}.",
+        "no": "Løs opp {{agent}} i {{liquid}} og la {{pronoun}} {{state}} i {{duration}}.",
+        "ms": "Larutkan {{agent}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}."
+      },
+      "variables": ["agent", "liquid", "pronoun", "duration", "state"],
+      "required_variables": ["agent", "liquid", "pronoun", "duration", "state"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:bloom", "technique:bloom",
+        "einweichen", "auflösen", "aufloesen", "bloom", "dissolve",
+        "equipment_id:0", "keins", "none",
+        "variable:agent", "variable:liquid", "variable:pronoun", "variable:duration", "variable:state"
+      ]
+    },
+    {
+      "master_id": "PREP_TENDERIZE_01",
+      "phase": 1,
+      "action": "tenderize",
+      "equipment": 0,
+      "description": "Klopfen/Plattieren (Schnitzel, Roulade)",
+      "templates": {
+        "de": "Klopfe {{base}} mit {{tool}} gleichmäßig auf {{grind_size}} Dicke.",
+        "en": "Pound {{base}} evenly with {{tool}} to {{grind_size}} thickness.",
+        "esp": "Golpea {{base}} uniformemente con {{tool}} hasta un grosor {{grind_size}}.",
+        "prt": "Bata {{base}} uniformemente com {{tool}} até uma espessura {{grind_size}}.",
+        "id": "Pukul {{base}} secara merata dengan {{tool}} hingga ketebalan {{grind_size}}.",
+        "nl": "Klop {{base}} gelijkmatig met {{tool}} tot {{grind_size}} dikte.",
+        "sv": "Platta till {{base}} jämnt med {{tool}} till {{grind_size}} tjocklek.",
+        "da": "Bank {{base}} jævnt med {{tool}} til {{grind_size}} tykkelse.",
+        "no": "Bank {{base}} jevnt med {{tool}} til {{grind_size}} tykkelse.",
+        "ms": "Ketuk {{base}} secara rata dengan {{tool}} hingga ketebalan {{grind_size}}."
+      },
+      "variables": ["base", "tool", "grind_size"],
+      "required_variables": ["base", "tool", "grind_size"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:tenderize", "technique:tenderize",
+        "klopfen", "plattieren", "tenderize", "pound",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:tool", "variable:grind_size"
+      ]
+    },
+    {
+      "master_id": "PREP_LAMINATE_01",
+      "phase": 1,
+      "action": "laminate",
+      "equipment": 0,
+      "description": "Tourieren (Blätterteig, Croissant-Teig)",
+      "templates": {
+        "de": "Schlage {{fat}} in {{dough}} ein, falte {{pronoun}} {{folds}} und stelle {{pronoun}} {{duration}} kalt.",
+        "en": "Enclose {{fat}} in {{dough}}, fold {{pronoun}} {{folds}} and chill for {{duration}}.",
+        "esp": "Envuelve {{fat}} en {{dough}}, pliega {{folds}} y refrigera durante {{duration}}.",
+        "prt": "Envolva {{fat}} em {{dough}}, dobre {{folds}} e refrigere por {{duration}}.",
+        "id": "Bungkus {{fat}} dalam {{dough}}, lipat {{folds}} dan dinginkan selama {{duration}}.",
+        "nl": "Sluit {{fat}} in {{dough}} in, vouw {{pronoun}} {{folds}} en laat {{duration}} koud rusten.",
+        "sv": "Slå in {{fat}} i {{dough}}, vik {{pronoun}} {{folds}} och kyl i {{duration}}.",
+        "da": "Pak {{fat}} ind i {{dough}}, fold {{pronoun}} {{folds}} og køl i {{duration}}.",
+        "no": "Pakk {{fat}} inn i {{dough}}, brett {{pronoun}} {{folds}} og kjøl i {{duration}}.",
+        "ms": "Bungkus {{fat}} dalam {{dough}}, lipat {{folds}} dan sejukkan selama {{duration}}."
+      },
+      "variables": ["fat", "dough", "pronoun", "folds", "duration"],
+      "required_variables": ["fat", "dough", "pronoun", "folds", "duration"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:laminate", "technique:laminate",
+        "tourieren", "laminate", "fold",
+        "equipment_id:0", "keins", "none",
+        "variable:fat", "variable:dough", "variable:pronoun", "variable:folds", "variable:duration"
+      ]
+    },
+    {
+      "master_id": "PREP_FERMENT_01",
+      "phase": 1,
+      "action": "ferment",
+      "equipment": 0,
+      "description": "Fermentieren (Sauerkraut, Kimchi, Sauerteig)",
+      "templates": {
+        "de": "Gib {{base}} in {{equipment}} und lasse {{pronoun}} {{duration}} bei {{temp}} fermentieren, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Place {{base}} in {{equipment}} and let {{pronoun}} ferment at {{temp}} for {{duration}} until {{state}}.",
+        "esp": "Coloca {{base}} en {{equipment}} y deja fermentar a {{temp}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Coloque {{base}} em {{equipment}} e deixe fermentar a {{temp}} por {{duration}} até {{state}}.",
+        "id": "Masukkan {{base}} ke dalam {{equipment}} dan biarkan berfermentasi pada {{temp}} selama {{duration}} hingga {{state}}.",
+        "nl": "Doe {{base}} in {{equipment}} en laat {{pronoun}} {{duration}} fermenteren bij {{temp}} tot {{state}}.",
+        "sv": "Lägg {{base}} i {{equipment}} och låt {{pronoun}} fermentera i {{duration}} vid {{temp}} tills {{state}}.",
+        "da": "Læg {{base}} i {{equipment}} og lad {{pronoun}} fermentere i {{duration}} ved {{temp}} til {{state}}.",
+        "no": "Legg {{base}} i {{equipment}} og la {{pronoun}} fermentere i {{duration}} ved {{temp}} til {{state}}.",
+        "ms": "Masukkan {{base}} ke dalam {{equipment}} dan biarkan menapaikan pada {{temp}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": ["base", "equipment", "pronoun", "duration", "temp", "state", "copula"],
+      "required_variables": ["base", "equipment", "pronoun", "duration", "temp", "state", "copula"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:ferment", "technique:ferment",
+        "fermentieren", "ferment",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:equipment", "variable:pronoun", "variable:duration",
+        "variable:temp", "variable:state", "variable:copula"
+      ]
+    },
+    {
+      "master_id": "PREP_CURE_01",
+      "phase": 1,
+      "action": "cure",
+      "equipment": 0,
+      "description": "Beizen/Pökeln (Gravlax, Bacon, Räucherlachs)",
+      "templates": {
+        "de": "Reibe {{base}} gleichmäßig mit {{cure_mix}} ein und lasse {{pronoun}} {{duration}} im Kühlschrank durchziehen.",
+        "en": "Rub {{base}} evenly with {{cure_mix}} and let {{pronoun}} cure in the fridge for {{duration}}.",
+        "esp": "Frota {{base}} uniformemente con {{cure_mix}} y deja curar en el refrigerador durante {{duration}}.",
+        "prt": "Esfregue {{base}} uniformemente com {{cure_mix}} e deixe curar no frigorífico por {{duration}}.",
+        "id": "Gosok {{base}} secara merata dengan {{cure_mix}} dan biarkan {{pronoun}} mengasinkan di lemari es selama {{duration}}.",
+        "nl": "Wrijf {{base}} gelijkmatig in met {{cure_mix}} en laat {{pronoun}} {{duration}} pekelen in de koelkast.",
+        "sv": "Gnid in {{base}} jämnt med {{cure_mix}} och låt {{pronoun}} rimma i kylskåpet i {{duration}}.",
+        "da": "Gnid {{base}} jævnt ind med {{cure_mix}} og lad {{pronoun}} marinere i køleskabet i {{duration}}.",
+        "no": "Gni {{base}} jevnt inn med {{cure_mix}} og la {{pronoun}} marinere i kjøleskapet i {{duration}}.",
+        "ms": "Gosok {{base}} secara rata dengan {{cure_mix}} dan biarkan {{pronoun}} memasin di dalam peti sejuk selama {{duration}}."
+      },
+      "variables": ["base", "cure_mix", "pronoun", "duration"],
+      "required_variables": ["base", "cure_mix", "pronoun", "duration"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep", "step_group:prep", "action:cure", "technique:cure",
+        "beizen", "pökeln", "poekeln", "cure",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:cure_mix", "variable:pronoun", "variable:duration"
+      ]
+    },
+    {
+      "master_id": "COOK_RICE_01",
+      "phase": 2,
+      "action": "cook_rice",
+      "equipment": 2,
+      "description": "Reis/Getreide nach Quellmethode kochen",
+      "templates": {
+        "de": "Gib {{base}} mit {{liquid}} in {{equipment}}, bringe {{pronoun}} zum Kochen und lasse {{pronoun}} {{duration}} bei geschlossenem Deckel quellen.",
+        "en": "Place {{base}} with {{liquid}} in {{equipment}}, bring to a boil and let {{pronoun}} absorb for {{duration}} with the lid on.",
+        "esp": "Pon {{base}} con {{liquid}} en {{equipment}}, lleva a ebullición y deja absorber {{duration}} con tapa.",
+        "prt": "Coloque {{base}} com {{liquid}} em {{equipment}}, leve à ebulição e deixe absorver por {{duration}} com tampa.",
+        "id": "Masukkan {{base}} dengan {{liquid}} ke dalam {{equipment}}, didihkan dan biarkan menyerap selama {{duration}} dengan tutup tertutup.",
+        "nl": "Doe {{base}} met {{liquid}} in {{equipment}}, breng aan de kook en laat {{pronoun}} {{duration}} wellen met deksel erop.",
+        "sv": "Lägg {{base}} med {{liquid}} i {{equipment}}, koka upp och låt {{pronoun}} svälla i {{duration}} med lock.",
+        "da": "Kom {{base}} med {{liquid}} i {{equipment}}, kog op og lad {{pronoun}} svulme i {{duration}} med låg på.",
+        "no": "Ha {{base}} med {{liquid}} i {{equipment}}, kok opp og la {{pronoun}} svelle i {{duration}} med lokk på.",
+        "ms": "Masukkan {{base}} dengan {{liquid}} ke dalam {{equipment}}, didihkan dan biarkan menyerap selama {{duration}} dengan penutup ditutup."
+      },
+      "variables": ["base", "liquid", "equipment", "pronoun", "duration"],
+      "required_variables": ["base", "liquid", "equipment", "pronoun", "duration"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:cook_rice", "technique:cook_rice",
+        "reis", "getreide", "rice", "grain", "quellen",
+        "equipment_id:2", "topf", "pot",
+        "variable:base", "variable:liquid", "variable:equipment", "variable:pronoun", "variable:duration"
+      ]
+    },
+    {
+      "master_id": "COOK_EMULSIFY_01",
+      "phase": 2,
+      "action": "emulsify",
+      "equipment": 0,
+      "description": "Emulgieren (Vinaigrette, Hollandaise, Mayonnaise)",
+      "templates": {
+        "de": "Schlage {{components}} mit {{tool}} kräftig auf, bis {{state}} entsteht.",
+        "en": "Whisk {{components}} vigorously with {{tool}} until {{state}} forms.",
+        "esp": "Bate {{components}} vigorosamente con {{tool}} hasta obtener {{state}}.",
+        "prt": "Bata {{components}} vigorosamente com {{tool}} até obter {{state}}.",
+        "id": "Kocok {{components}} dengan kuat menggunakan {{tool}} hingga {{state}} terbentuk.",
+        "nl": "Klop {{components}} krachtig met {{tool}} tot {{state}} ontstaat.",
+        "sv": "Vispa {{components}} kraftigt med {{tool}} tills {{state}} bildas.",
+        "da": "Pisk {{components}} kraftigt med {{tool}} til {{state}} dannes.",
+        "no": "Visp {{components}} kraftig med {{tool}} til {{state}} dannes.",
+        "ms": "Pukul {{components}} dengan kuat menggunakan {{tool}} sehingga {{state}} terbentuk."
+      },
+      "variables": ["components", "tool", "state"],
+      "required_variables": ["components", "tool", "state"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:emulsify", "technique:emulsify",
+        "emulgieren", "emulsify", "aufschlagen",
+        "equipment_id:0", "keins", "none",
+        "variable:components", "variable:tool", "variable:state"
+      ]
+    },
+    {
+      "master_id": "COOK_CARAMELIZE_01",
+      "phase": 2,
+      "action": "caramelize",
+      "equipment": 3,
+      "description": "Karamellisieren (Zucker, Zwiebeln, Gemüse)",
+      "templates": {
+        "de": "Erhitze {{base}} in {{equipment}} bei {{heat}}er Hitze und karamellisiere {{pronoun}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Heat {{base}} in {{equipment}} over {{heat}} heat and caramelize for {{duration}} until {{state}}.",
+        "esp": "Calienta {{base}} en {{equipment}} a fuego {{heat}} y carameliza durante {{duration}} hasta que {{state}}.",
+        "prt": "Aqueça {{base}} em {{equipment}} em fogo {{heat}} e caramelize por {{duration}} até {{state}}.",
+        "id": "Panaskan {{base}} dalam {{equipment}} dengan api {{heat}} dan karamelkan selama {{duration}} hingga {{state}}.",
+        "nl": "Verhit {{base}} in {{equipment}} op {{heat}} vuur en karamelliseer {{pronoun}} {{duration}} tot {{state}}.",
+        "sv": "Hetta upp {{base}} i {{equipment}} på {{heat}} värme och karamellisera i {{duration}} tills {{state}}.",
+        "da": "Opvarm {{base}} i {{equipment}} ved {{heat}} varme og karamellisér i {{duration}} til {{state}}.",
+        "no": "Varm opp {{base}} i {{equipment}} på {{heat}} varme og karamelliser i {{duration}} til {{state}}.",
+        "ms": "Panaskan {{base}} dalam {{equipment}} dengan api {{heat}} dan karamelkan selama {{duration}} sehingga {{state}}."
+      },
+      "variables": ["base", "equipment", "pronoun", "heat", "duration", "state", "copula"],
+      "required_variables": ["base", "equipment", "pronoun", "heat", "duration", "state", "copula"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:caramelize", "technique:caramelize",
+        "karamellisieren", "caramelize",
+        "equipment_id:3", "pfanne", "pan",
+        "variable:base", "variable:equipment", "variable:pronoun", "variable:heat",
+        "variable:duration", "variable:state", "variable:copula"
+      ]
+    },
+    {
+      "master_id": "COOK_FLAMBE_01",
+      "phase": 2,
+      "action": "flambe",
+      "equipment": 3,
+      "description": "Flambieren (Crêpe Suzette, Steak Diane)",
+      "templates": {
+        "de": "Gieße {{spirit}} über {{base}} in {{equipment}} und flambiere {{pronoun}} vorsichtig, bis die Flamme erlischt.",
+        "en": "Pour {{spirit}} over {{base}} in {{equipment}} and carefully flambé until the flame dies out.",
+        "esp": "Vierte {{spirit}} sobre {{base}} en {{equipment}} y flambea con cuidado hasta que la llama se apague.",
+        "prt": "Despeje {{spirit}} sobre {{base}} em {{equipment}} e flambe com cuidado até a chama se apagar.",
+        "id": "Tuangkan {{spirit}} di atas {{base}} dalam {{equipment}} dan flambé dengan hati-hati hingga api padam.",
+        "nl": "Giet {{spirit}} over {{base}} in {{equipment}} en flambeer {{pronoun}} voorzichtig tot de vlam dooft.",
+        "sv": "Häll {{spirit}} över {{base}} i {{equipment}} och flambera {{pronoun}} försiktigt tills lågan slocknar.",
+        "da": "Hæld {{spirit}} over {{base}} i {{equipment}} og flambér {{pronoun}} forsigtigt til flammen slukker.",
+        "no": "Hell {{spirit}} over {{base}} i {{equipment}} og flamber {{pronoun}} forsiktig til flammen slukner.",
+        "ms": "Tuangkan {{spirit}} ke atas {{base}} dalam {{equipment}} dan flambé dengan berhati-hati sehingga api padam."
+      },
+      "variables": ["spirit", "base", "equipment", "pronoun"],
+      "required_variables": ["spirit", "base", "equipment", "pronoun"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:flambe", "technique:flambe",
+        "flambieren", "flambe",
+        "equipment_id:3", "pfanne", "pan",
+        "variable:spirit", "variable:base", "variable:equipment", "variable:pronoun"
+      ]
+    },
+    {
+      "master_id": "COOK_SMOKE_01",
+      "phase": 2,
+      "action": "smoke",
+      "equipment": 7,
+      "description": "Räuchern (Lachs, Fleisch, Käse)",
+      "templates": {
+        "de": "Räuchere {{base}} bei {{temp}} mit {{wood}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Smoke {{base}} at {{temp}} with {{wood}} for {{duration}} until {{state}}.",
+        "esp": "Ahúma {{base}} a {{temp}} con {{wood}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Defume {{base}} a {{temp}} com {{wood}} por {{duration}} até {{state}}.",
+        "id": "Asapkan {{base}} pada {{temp}} dengan {{wood}} selama {{duration}} hingga {{state}}.",
+        "nl": "Rook {{base}} bij {{temp}} met {{wood}} gedurende {{duration}} tot {{state}}.",
+        "sv": "Rök {{base}} vid {{temp}} med {{wood}} i {{duration}} tills {{state}}.",
+        "da": "Røg {{base}} ved {{temp}} med {{wood}} i {{duration}} til {{state}}.",
+        "no": "Røyk {{base}} ved {{temp}} med {{wood}} i {{duration}} til {{state}}.",
+        "ms": "Salai {{base}} pada {{temp}} dengan {{wood}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": ["base", "temp", "wood", "duration", "pronoun", "state", "copula"],
+      "required_variables": ["base", "temp", "wood", "duration", "pronoun", "state", "copula"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:smoke", "technique:smoke",
+        "räuchern", "raeuchern", "smoke",
+        "equipment_id:7", "smoker", "grill",
+        "variable:base", "variable:temp", "variable:wood", "variable:duration",
+        "variable:pronoun", "variable:state", "variable:copula"
+      ]
+    },
+    {
+      "master_id": "COOK_SOUS_VIDE_01",
+      "phase": 2,
+      "action": "sous_vide",
+      "equipment": 0,
+      "description": "Sous-Vide-Garen (vakuumiert im Wasserbad)",
+      "templates": {
+        "de": "Vakuumiere {{base}} und gare {{pronoun}} im Wasserbad bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Vacuum-seal {{base}} and cook {{pronoun}} in a water bath at {{temp}} for {{duration}} until {{state}}.",
+        "esp": "Sella {{base}} al vacío y cocina a {{temp}} en baño María durante {{duration}} hasta que {{state}}.",
+        "prt": "Sele {{base}} a vácuo e cozinhe em banho-maria a {{temp}} por {{duration}} até {{state}}.",
+        "id": "Kemas vakum {{base}} dan masak dalam rendaman air pada {{temp}} selama {{duration}} hingga {{state}}.",
+        "nl": "Vacuümverpak {{base}} en gaar {{pronoun}} in een waterbad op {{temp}} gedurende {{duration}} tot {{state}}.",
+        "sv": "Vakuumförpacka {{base}} och tillaga {{pronoun}} i vattenbad vid {{temp}} i {{duration}} tills {{state}}.",
+        "da": "Vakuumpak {{base}} og tilbered {{pronoun}} i vandbad ved {{temp}} i {{duration}} til {{state}}.",
+        "no": "Vakuumpakk {{base}} og tilbered {{pronoun}} i vannbad ved {{temp}} i {{duration}} til {{state}}.",
+        "ms": "Vakum {{base}} dan masak {{pronoun}} dalam rendaman air pada {{temp}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": ["base", "pronoun", "temp", "duration", "state", "copula"],
+      "required_variables": ["base", "pronoun", "temp", "duration", "state", "copula"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:sous_vide", "technique:sous_vide",
+        "sous_vide", "vakuumgaren", "wasserbad",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:pronoun", "variable:temp", "variable:duration",
+        "variable:state", "variable:copula"
+      ]
+    },
+    {
+      "master_id": "COOK_CONFIT_01",
+      "phase": 2,
+      "action": "confit",
+      "equipment": 2,
+      "description": "Konfieren (Entenkeule, Knoblauch, Zitrone)",
+      "templates": {
+        "de": "Gare {{base}} langsam in {{fat}} bei {{temp}} für {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Slowly cook {{base}} in {{fat}} at {{temp}} for {{duration}} until {{state}}.",
+        "esp": "Cocina {{base}} lentamente en {{fat}} a {{temp}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Cozinhe {{base}} lentamente em {{fat}} a {{temp}} por {{duration}} até {{state}}.",
+        "id": "Masak {{base}} perlahan dalam {{fat}} pada {{temp}} selama {{duration}} hingga {{state}}.",
+        "nl": "Gaar {{base}} langzaam in {{fat}} bij {{temp}} gedurende {{duration}} tot {{state}}.",
+        "sv": "Tillaga {{base}} långsamt i {{fat}} vid {{temp}} i {{duration}} tills {{state}}.",
+        "da": "Tilbered {{base}} langsomt i {{fat}} ved {{temp}} i {{duration}} til {{state}}.",
+        "no": "Tilbered {{base}} sakte i {{fat}} ved {{temp}} i {{duration}} til {{state}}.",
+        "ms": "Masak {{base}} perlahan dalam {{fat}} pada {{temp}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": ["base", "fat", "temp", "duration", "pronoun", "state", "copula"],
+      "required_variables": ["base", "fat", "temp", "duration", "pronoun", "state", "copula"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook", "step_group:cook", "action:confit", "technique:confit",
+        "konfieren", "confit",
+        "equipment_id:2", "topf", "pot",
+        "variable:base", "variable:fat", "variable:temp", "variable:duration",
+        "variable:pronoun", "variable:state", "variable:copula"
+      ]
+    },
+    {
+      "master_id": "FINISH_GLAZE_01",
+      "phase": 4,
+      "action": "glaze",
+      "equipment": 0,
+      "description": "Glasieren (Kuchen, Gebäck, Schinken)",
+      "templates": {
+        "de": "Bestreiche {{base}} gleichmäßig mit {{glaze}} und lasse {{pronoun}} {{state}}.",
+        "en": "Brush {{base}} evenly with {{glaze}} and let {{pronoun}} {{state}}.",
+        "esp": "Unta {{base}} uniformemente con {{glaze}} y deja {{state}}.",
+        "prt": "Pincele {{base}} uniformemente com {{glaze}} e deixe {{state}}.",
+        "id": "Olesi {{base}} secara merata dengan {{glaze}} dan biarkan {{state}}.",
+        "nl": "Bestrijk {{base}} gelijkmatig met {{glaze}} en laat {{pronoun}} {{state}}.",
+        "sv": "Pensla {{base}} jämnt med {{glaze}} och låt {{pronoun}} {{state}}.",
+        "da": "Pensl {{base}} jævnt med {{glaze}} og lad {{pronoun}} {{state}}.",
+        "no": "Pensl {{base}} jevnt med {{glaze}} og la {{pronoun}} {{state}}.",
+        "ms": "Sapukan {{base}} secara rata dengan {{glaze}} dan biarkan {{state}}."
+      },
+      "variables": ["base", "glaze", "pronoun", "state"],
+      "required_variables": ["base", "glaze", "pronoun", "state"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:serve", "step_group:serve", "action:glaze", "technique:glaze",
+        "glasieren", "glaze",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:glaze", "variable:pronoun", "variable:state"
+      ]
+    },
+    {
+      "master_id": "FINISH_DECORATE_01",
+      "phase": 4,
+      "action": "decorate",
+      "equipment": 0,
+      "description": "Dekorieren/Garnieren (Torten, Desserts, Festtagsgerichte)",
+      "templates": {
+        "de": "Dekoriere {{base}} mit {{decoration}} und serviere {{pronoun}} {{extra}}.",
+        "en": "Decorate {{base}} with {{decoration}} and serve {{pronoun}} {{extra}}.",
+        "esp": "Decora {{base}} con {{decoration}} y sirve {{extra}}.",
+        "prt": "Decore {{base}} com {{decoration}} e sirva {{extra}}.",
+        "id": "Hias {{base}} dengan {{decoration}} dan sajikan {{extra}}.",
+        "nl": "Decoreer {{base}} met {{decoration}} en serveer {{pronoun}} {{extra}}.",
+        "sv": "Dekorera {{base}} med {{decoration}} och servera {{pronoun}} {{extra}}.",
+        "da": "Dekorer {{base}} med {{decoration}} og servér {{pronoun}} {{extra}}.",
+        "no": "Dekorer {{base}} med {{decoration}} og server {{pronoun}} {{extra}}.",
+        "ms": "Hias {{base}} dengan {{decoration}} dan hidangkan {{extra}}."
+      },
+      "variables": ["base", "decoration", "pronoun", "extra"],
+      "required_variables": ["base", "decoration", "pronoun", "extra"],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:serve", "step_group:serve", "action:decorate", "technique:decorate",
+        "dekorieren", "garnieren", "decorate", "garnish",
+        "equipment_id:0", "keins", "none",
+        "variable:base", "variable:decoration", "variable:pronoun", "variable:extra"
+      ]
     }
   ],
   "variable_hints": {

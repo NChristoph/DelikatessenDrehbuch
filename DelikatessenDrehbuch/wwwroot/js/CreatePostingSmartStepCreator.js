@@ -35,15 +35,7 @@
     // -----------------------------
     // UTIL
     // -----------------------------
-    function escapeHtml(str) {
-        return (str ?? "")
-            .toString()
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
-    }
+    var escapeHtml = window.CreatePostingUtils.escapeHtml;
 
     function encodeAttr(str) {
         return encodeURIComponent(str ?? "");
@@ -1697,7 +1689,7 @@
                         pickBtn.classList.add("active");
                     }
                     host.dataset.selectedIngredientValues = JSON.stringify(list);
-                    host.dataset.selectedValue = list[0] || "";
+                    host.dataset.selectedValue = list.join(", ");
                     return;
                 }
 
@@ -1964,24 +1956,8 @@
     document.addEventListener("DOMContentLoaded", init);
 })();
 (() => {
-    function resolveLangKey(value) {
-        const normalized = (value || "de").toString().toLowerCase();
-        if (normalized === "es") return "esp";
-        if (normalized === "pt") return "prt";
-        if (normalized === "se") return "sv";
-        if (normalized === "dk") return "da";
-        return normalized;
-    }
-
-    function escapeHtml(value) {
-        return (value ?? "")
-            .toString()
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
-    }
+    var resolveLangKey = window.CreatePostingUtils.resolveLangKey;
+    var escapeHtml = window.CreatePostingUtils.escapeHtml;
 
     function formatIngredientList(names, langKey = "de") {
         const list = (names || []).map(x => (x || "").toString().trim()).filter(Boolean);

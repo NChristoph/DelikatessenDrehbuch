@@ -18,14 +18,7 @@
              return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
          }
 
-        function resolveLangKey(value) {
-            const normalized = (value || 'de').toLowerCase();
-            if (normalized === 'es') return 'esp';
-            if (normalized === 'pt') return 'prt';
-            if (normalized === 'se') return 'sv';
-            if (normalized === 'dk') return 'da';
-            return normalized;
-        }
+        var resolveLangKey = window.CreatePostingUtils.resolveLangKey;
 
         let currentLang = resolveLangKey(getCookieValue('deli-lang'));
         var nextThemePreference = null;
@@ -284,13 +277,13 @@
             if (probVarEditorAnchor && probVarEditorAnchor.length) {
                 overlay.removeClass('ing-active').attr('aria-hidden', 'true');
                 probVarEditorAnchor.append(dock);
-                setTimeout(function () { dock.addClass('ing-active prob-inline-mode'); }, 10);
+                requestAnimationFrame(function () { dock.addClass('ing-active prob-inline-mode'); });
                 return;
             }
 
             $('#probVarEditorDockParking').append(dock);
             overlay.addClass('ing-active').attr('aria-hidden', 'false');
-            setTimeout(function () { dock.addClass('ing-active'); }, 10);
+            requestAnimationFrame(function () { dock.addClass('ing-active'); });
         }
 
         function closeProbVarEditor() {
@@ -503,7 +496,7 @@
 
         async function loadIngredientArticleRules() {
             try {
-                const response = await fetch('/data/ingredient_article_rules.json', { cache: 'no-store' });
+                const response = await fetch('/data/ingredient_article_rules.json');
                 if (!response.ok) return;
                 ingredientArticleRules = await response.json();
             } catch (_) {
@@ -2991,17 +2984,17 @@
 
         function syncIngredientSourceVisibility() {
             const query = normalizeSearchText((($('#ingredientSearch').val() || '').toString().trim()));
-            const selectedIds = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
+            const selectedIds = new Set($('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
                 return $(this).val()?.toString();
-            }).get();
+            }).get());
 
             $('.ingredient-db-row').each(function () {
-                const row = $(this);
-                const id = row.data('ingredient-id')?.toString() || '';
-                const text = normalizeSearchText((row.data('name-' + currentLang) || row.data('name-de') || '') + '');
-                const isSelected = !!id && selectedIds.includes(id);
+                const el = this;
+                const id = ($(el).data('ingredient-id') || '').toString();
+                const text = normalizeSearchText(($(el).data('name-' + currentLang) || $(el).data('name-de') || '') + '');
+                const isSelected = !!id && selectedIds.has(id);
                 const matchesSearch = !query || text.includes(query);
-                row.toggle(!isSelected && matchesSearch);
+                el.classList.toggle('d-none', isSelected || !matchesSearch);
             });
         }
 
@@ -3153,10 +3146,16 @@
             refreshIngredientProbabilityHints();
         }
 
+        var _currentPreviewBlobUrl = null;
+
         function handleVideoUpload(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
+                if (_currentPreviewBlobUrl) {
+                    URL.revokeObjectURL(_currentPreviewBlobUrl);
+                }
                 const fileUrl = URL.createObjectURL(file);
+                _currentPreviewBlobUrl = fileUrl;
                 const isVideo = file.type.startsWith('video/');
 
                 if (isVideo) {
@@ -3173,6 +3172,10 @@
         }
 
         function resetVideo() {
+            if (_currentPreviewBlobUrl) {
+                URL.revokeObjectURL(_currentPreviewBlobUrl);
+                _currentPreviewBlobUrl = null;
+            }
             $('#videoInput').val('');
             $('#videoPreviewContainer').addClass('d-none');
             $('#uploadLabel').removeClass('d-none');
@@ -4079,23 +4082,25 @@
 
             window.setCreatePostingTheme(readStoredCreatePostingTheme(), { persist: false, refresh: false });
 
-            $(document).on('click', '[data-create-posting-theme]', function () {
+            $('.creator-topbar').on('click', '[data-create-posting-theme]', function () {
                 const nextTheme = ($(this).data('create-posting-theme') || '').toString();
                 window.setCreatePostingTheme(nextTheme);
             });
+            var _ingredientSearchTimer;
             $('#ingredientSearch').on('input', function () {
-                syncIngredientSourceVisibility();
+                clearTimeout(_ingredientSearchTimer);
+                _ingredientSearchTimer = setTimeout(syncIngredientSourceVisibility, 200);
             });
             refreshIngredientProbabilityHints();
 
-            $(document).on('input', '#ingredientConfigQty, .js-db-qty', function () {
+            $('#recipeForm').on('input', '#ingredientConfigQty, .js-db-qty', function () {
                 const sanitized = sanitizeQuantityInputValue(this.value);
                 if (this.value !== sanitized) {
                     this.value = sanitized;
                 }
             });
 
-            $(document).on('click', '.js-common-unit-chip', function (e) {
+            $('#recipeForm').on('click', '.js-common-unit-chip', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const row = $(this).closest('.ingredient-db-row');
@@ -4108,7 +4113,7 @@
             });
 
             // Quick unit chips inside the ingredient config dock
-            $(document).on('click', '.js-config-unit-chip', function (e) {
+            $('#recipeForm').on('click', '.js-config-unit-chip', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const select = $('#ingredientConfigUnit');
@@ -4128,14 +4133,14 @@
                 select.val(unitValue);
             });
 
-            $(document).on('click', '.js-probability-type', async function () {
+            $('#recipeForm').on('click', '.js-probability-type', async function () {
                 const typeId = ($(this).data('type') || '').toString();
                 const typeName = ($(this).data('name') || '').toString();
                 const score = parseInt($(this).data('score'), 10) || 0;
                 await showProbabilityTemplateSuggestions(typeId, typeName, score);
             });
 
-            $(document).on('click', '.js-probability-template', function () {
+            $('#recipeForm').on('click', '.js-probability-template', function () {
                 const wrap = $(this).closest('.probability-template-wrap');
                 const swipeTs = parseInt(wrap.data('swipeJustHandled') || 0, 10);
                 if (swipeTs && (Date.now() - swipeTs) < 350) return;
@@ -4152,7 +4157,7 @@
             });
 
             // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
-            $(document).on('click', '.js-typical-ingredient-chip', function () {
+            $('#recipeForm').on('click', '.js-typical-ingredient-chip', function () {
                 const ingId = ($(this).data('ingredient-id') || '').toString();
                 if (!ingId) return;
 
@@ -4718,7 +4723,7 @@
                 toast: 'Seasonings eingesetzt'
             });
 
-            $(document).on('click', '.ingredient-db-row', function (e) {
+            $('#recipeForm').on('click', '.ingredient-db-row', function (e) {
                 if ($(e.target).closest('button, input, select, label').length) return;
                 const details = $(this).find('.ingredient-db-details').first();
                 if (!details.length) return;
@@ -4757,7 +4762,7 @@
             });
 
             // Ingredient chip - toggle selection in editor (apply via Einsetzen)
-            $(document).on('click', '.js-prob-ingredient-chip', function () {
+            $('#probVarEditorDock').on('click', '.js-prob-ingredient-chip', function () {
                 const id = ($(this).data('id') || '').toString();
                 if (!id) return;
 
@@ -4776,7 +4781,7 @@
             });
 
             // Article chip for ingredient variable in prob editor
-            $(document).on('click', '.js-prob-ingredient-article-chip', function () {
+            $('#probVarEditorDock').on('click', '.js-prob-ingredient-article-chip', function () {
                 const val = ($(this).data('value') || '').toString();
                 probVarIngredientArticleValue = val;
                 $('.js-prob-ingredient-article-chip').removeClass('active btn-light text-dark').addClass('btn-outline-light');
@@ -4784,7 +4789,7 @@
             });
 
             // Option chip ? auto-apply and close
-            $(document).on('click', '.js-prob-option-chip', function () {
+            $('#probVarEditorDock').on('click', '.js-prob-option-chip', function () {
                 const value = ($(this).data('value') || $(this).text()).toString();
                 if (probVarEditorCallback) probVarEditorCallback(value);
                 closeProbVarEditor();

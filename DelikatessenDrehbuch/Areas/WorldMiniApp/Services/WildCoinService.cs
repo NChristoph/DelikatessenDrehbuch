@@ -13,6 +13,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<WildCoinService> _logger;
         private static readonly Regex TxHashRegex = new("^0x[a-fA-F0-9]{64}$", RegexOptions.Compiled);
+        // TODO: Secret noch entfernen — RPC-URL in Konfiguration auslagern
         private const string WorldChainRpcUrl = "https://worldchain-mainnet.g.alchemy.com/public";
 
         public WildCoinService(ApplicationDbContext context, IConfiguration configuration, ILogger<WildCoinService> logger)

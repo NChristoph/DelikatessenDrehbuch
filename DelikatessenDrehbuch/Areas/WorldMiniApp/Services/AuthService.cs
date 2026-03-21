@@ -8,6 +8,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
     public class AuthService : IAuthService
     {
         private readonly ILogger<AuthService> _logger;
+        // TODO: Secret noch entfernen — APP_ID in Konfiguration auslagern
         private const string APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
         // ✅ RICHTIGE URL!
         private const string VERIFY_URL = "https://developer.worldcoin.org/api/v2/verify/"+APP_ID;
@@ -29,6 +30,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                     new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
 
+                // TODO: Secret noch entfernen — Default-Signal-Hash in Konfiguration auslagern
                 string defaultSignalHash = "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4";
 
                 // Wenn Signal leer ist, nehmen wir den Default-Hash. 

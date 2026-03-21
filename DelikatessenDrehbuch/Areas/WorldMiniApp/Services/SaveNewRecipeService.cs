@@ -27,10 +27,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 await ProcessIngredientsAsync(recipeBaseData, recipesModel);
 
                 
-                ProcessPreparationSteps(recipeBaseData, recipesModel);
+                await ProcessPreparationStepsAsync(recipeBaseData, recipesModel);
 
-                
-                ProcessRecipeImage(recipeBaseData, recipesModel,wordUserImage);
+
+                await ProcessRecipeImageAsync(recipeBaseData, recipesModel,wordUserImage);
 
               
                 await _context.SaveChangesAsync();
@@ -43,7 +43,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                
                 await transaction.RollbackAsync();
 
-                throw ex;
+                throw;
             }
         }
 
@@ -78,13 +78,56 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         private async Task ProcessIngredientsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
-            foreach (var incomingIngredient in model.IngredientMeasureQuantity)
+            var nutrientIds = model.IngredientMeasureQuantity.Select(i => i.IngredientsAndNutrients.Id).Distinct().ToList();
+            var measureNames = model.IngredientMeasureQuantity
+                .Select(i => (i.Measure.Metriks_DE == "Gramm" ? "g." : i.Measure.Metriks_DE).ToLower())
+                .Distinct().ToList();
+            var quantities = model.IngredientMeasureQuantity.Select(i => i.Quantity.Quantitys).Distinct().ToList();
+
+            var nutrientsDict = await _context.IngredientsAndNutrients
+                .Where(n => nutrientIds.Contains(n.Id)).ToDictionaryAsync(n => n.Id);
+            var measuresDict = await _context.Metrics
+                .Where(m => measureNames.Contains(m.Metriks_DE.ToLower())).ToDictionaryAsync(m => m.Metriks_DE.ToLower());
+            var quantitiesDict = await _context.Quantities
+                .Where(q => quantities.Contains(q.Quantitys)).ToDictionaryAsync(q => q.Quantitys);
+
+            foreach (var incoming in model.IngredientMeasureQuantity)
             {
-                var ingredientToUse = await GetOrCreateIngredientMeasureQuantityAsync(incomingIngredient);
+                if (incoming.Measure.Metriks_DE == "Gramm")
+                    incoming.Measure.Metriks_DE = "g.";
+
+                var existing = await _context.IngredientMeasureQuantity
+                    .FirstOrDefaultAsync(x => x.IngredientsAndNutrients.Name_DE == incoming.IngredientsAndNutrients.Name_DE
+                                           && x.Measure.Metriks_DE == incoming.Measure.Metriks_DE
+                                           && x.Quantity.Quantitys == incoming.Quantity.Quantitys);
+
+                IngredientMeasureQuantity ingredientToUse;
+                if (existing != null)
+                {
+                    ingredientToUse = existing;
+                }
+                else
+                {
+                    if (!nutrientsDict.TryGetValue(incoming.IngredientsAndNutrients.Id, out var nutrientRef)
+                        || !measuresDict.TryGetValue(incoming.Measure.Metriks_DE.ToLower(), out var measureRef)
+                        || !quantitiesDict.TryGetValue(incoming.Quantity.Quantitys, out var quantityRef))
+                    {
+                        throw new InvalidOperationException("Referenzdaten für Zutat nicht gefunden.");
+                    }
+
+                    ingredientToUse = new IngredientMeasureQuantity
+                    {
+                        IngredientsAndNutrients = nutrientRef,
+                        Measure = measureRef,
+                        Quantity = quantityRef
+                    };
+
+                    await _context.IngredientMeasureQuantity.AddAsync(ingredientToUse);
+                }
 
                 var joinEntity = new RecipeJoinIngredientMeasureQuantity
                 {
-                    Recipe = recipe, 
+                    Recipe = recipe,
                     Ingredient = ingredientToUse
                 };
 
@@ -92,42 +135,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             }
         }
 
-        private async Task<IngredientMeasureQuantity> GetOrCreateIngredientMeasureQuantityAsync(IngredientMeasureQuantity incoming)
-        {
-            var existing = await _context.IngredientMeasureQuantity
-                .FirstOrDefaultAsync(x => x.IngredientsAndNutrients.Name_DE == incoming.IngredientsAndNutrients.Name_DE
-                                       && x.Measure.Metriks_DE == incoming.Measure.Metriks_DE
-                                       && x.Quantity.Quantitys == incoming.Quantity.Quantitys);
-
-            if (existing != null) return existing;
-
-            if (incoming.Measure.Metriks_DE == "Gramm")
-                incoming.Measure.Metriks_DE = "g.";
-
-            var nutrientRef = await _context.IngredientsAndNutrients.FirstOrDefaultAsync(x => x.Id == incoming.IngredientsAndNutrients.Id);
-            var measureRef = await _context.Metrics.FirstOrDefaultAsync(x => x.Metriks_DE.ToLower() == incoming.Measure.Metriks_DE.ToLower());
-            var quantityRef = await _context.Quantities.FirstOrDefaultAsync(x => x.Quantitys == incoming.Quantity.Quantitys);
-
-            if (nutrientRef == null || measureRef == null || quantityRef == null)
-                throw new InvalidOperationException("Referenzdaten für Zutat nicht gefunden.");
-
-            var newIngredient = new IngredientMeasureQuantity
-            {
-                IngredientsAndNutrients = nutrientRef,
-                Measure = measureRef,
-                Quantity = quantityRef
-            };
-
-            await _context.IngredientMeasureQuantity.AddAsync(newIngredient);
-            return newIngredient;
-        }
-
-        private void ProcessPreparationSteps(RecipeBaseData recipe, SaveNewRecipeModel model)
+        private async Task ProcessPreparationStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
             foreach (var step in model.RecipeJoyinPreperationSteps ?? Enumerable.Empty<RecipeJoyinPreperationSteps>())
             {
                 step.Recipe = recipe;
-                step.RecipePreperationStep = ResolvePreparationStep(step);
+                step.RecipePreperationStep = await ResolvePreparationStepAsync(step);
                 if (step.RecipePreperationStep == null)
                 {
                     continue;
@@ -137,7 +150,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             }
         }
 
-        private RecipePreperationSteps ResolvePreparationStep(RecipeJoyinPreperationSteps joinStep)
+        private async Task<RecipePreperationSteps?> ResolvePreparationStepAsync(RecipeJoyinPreperationSteps joinStep)
         {
             var postedStep = joinStep.RecipePreperationStep;
             var hasPostedText = !string.IsNullOrWhiteSpace(postedStep?.Step_DE)
@@ -147,7 +160,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
             if (joinStep.PreperationStepId > 0 && !hasPostedText)
             {
-                return _context.RecipePreperationSteps.FirstOrDefault(x => x.Id == joinStep.PreperationStepId);
+                return await _context.RecipePreperationSteps.FirstOrDefaultAsync(x => x.Id == joinStep.PreperationStepId);
             }
 
             if (!hasPostedText)
@@ -177,7 +190,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 en = de;
             }
 
-            var existing = _context.RecipePreperationSteps.FirstOrDefault(x => x.Step_DE == de
+            var existing = await _context.RecipePreperationSteps.FirstOrDefaultAsync(x => x.Step_DE == de
                 && x.Step_EN == en
                 && x.Step_ESP == esp
                 && x.Step_PRT == prt
@@ -204,14 +217,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             return newStep;
         }
 
-        private void ProcessRecipeImage(RecipeBaseData recipe, SaveNewRecipeModel model,bool wordlUserImage)
+        private async Task ProcessRecipeImageAsync(RecipeBaseData recipe, SaveNewRecipeModel model,bool wordlUserImage)
         {
             var imagePath = !string.IsNullOrWhiteSpace(model.Recipes.ImagePath)
                 ? model.Recipes.ImagePath
-                : _context.Recipes
+                : await _context.Recipes
                     .Where(x => x.Preparation == model.Recipes.Preparation)
                     .Select(x => x.ImagePath)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
 
             if (imagePath != null)
             {

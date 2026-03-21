@@ -249,7 +249,7 @@
       "PREP_CUT_01",
       "COOK_SAUTE_01",
       "COOK_FRY_01",
-      "PREP_LAYER_01",
+      "PREP_ASSEMBLE_01",
       "SEASON_ADJUST_01",
       "FINISH_SERVE_01"
     ],
@@ -258,7 +258,7 @@
       "PREP_MINCE_01",
       "COOK_GRILL_01",
       "COOK_FRY_01",
-      "PREP_LAYER_01",
+      "PREP_ASSEMBLE_01",
       "SEASON_ADJUST_01",
       "FINISH_SERVE_01"
     ],
@@ -266,7 +266,7 @@
       "PREP_CUT_01",
       "COOK_SAUTE_01",
       "COOK_FRY_01",
-      "PREP_LAYER_01",
+      "PREP_ASSEMBLE_01",
       "SEASON_ADJUST_01",
       "FINISH_SERVE_01"
     ],
@@ -274,7 +274,7 @@
       "PREP_CUT_01",
       "COOK_FRY_01",
       "COOK_SAUTE_01",
-      "PREP_LAYER_01",
+      "PREP_ASSEMBLE_01",
       "SEASON_ADJUST_01",
       "FINISH_SERVE_01"
     ],

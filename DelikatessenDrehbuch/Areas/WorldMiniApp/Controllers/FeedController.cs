@@ -39,7 +39,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _logger = logger;
             _coinService = coinService;
         }
-        //TODO:Likecount zu basedata recipe hinzufügen und abo system auch machen neue column auserdem brauchen 
+        //TODO:Likecount zu basedata recipe hinzufï¿½gen und abo system auch machen neue column auserdem brauchen 
         //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
         //TodoThumbAutomatisch speichern
         public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0, string searchTerm = "", string category = "", int? maxPrepTime = null)
@@ -211,7 +211,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
                     IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
                     IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
-                        || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase),
+                        || (listing.Description ?? string.Empty).Contains("diï¿½t", StringComparison.OrdinalIgnoreCase),
                     HeroSlides = heroImages.Select(x => new PlanCardHeroSlideViewModel { ImageUrl = x.ImageUrl, RecipeTitle = x.RecipeTitle }).ToList(),
                     HeroImageUrls = heroImages.Select(x => x.ImageUrl).ToList(),
                     HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
@@ -361,6 +361,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrEmpty(path)) return path;
 
           
+            // TODO: Secret noch entfernen â€” CDN-Domains in Konfiguration auslagern
             string oldDomain = "blobdelikatessendrehbuch.blob.core.windows.net";
             string newCdnDomain = "DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net";
 
@@ -468,7 +469,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
             if (user == null) return NotFound();
 
-            // --- BASIS DATEN (Für alle) ---
+            // --- BASIS DATEN (Fï¿½r alle) ---
 
             // 1. Likes laden
             var likes = _context.WorldUserLike.Where(x => x.WorldAppUser.UserHash == userHash).Select(x => x.Recipe.Id);
@@ -493,7 +494,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var myVideos = new List<WorldUserPosting>();
             int followerCount = 0;
 
-            // Prüfung auf "orb"
+            // Prï¿½fung auf "orb"
+            // TODO: Secret noch entfernen â€” hardcodierten SuperUserHash durch Konfiguration ersetzen
             if (user.IsVerified == "orb" || user.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839")
             {
                 // 3. Eigene Videos laden
@@ -503,7 +505,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .OrderByDescending(p => p.CreationTime)
                     .ToListAsync();
 
-                // 4. Follower zählen (Wer folgt mir?)
+                // 4. Follower zï¿½hlen (Wer folgt mir?)
                 followerCount = await _context.WorldUserAbo
                     .CountAsync(a => a.Creator.Id == user.Id);
             }

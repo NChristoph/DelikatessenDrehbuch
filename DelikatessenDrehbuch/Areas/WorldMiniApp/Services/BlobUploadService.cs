@@ -116,6 +116,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             };
         }
 
+        // TODO: Secret noch entfernen — Blob/CDN-Domains in Konfiguration auslagern
         private static readonly string[] AllowedUrlHosts = {
             "blobdelikatessendrehbuch.blob.core.windows.net",
             "delekatesendrehbuchcdn-beecexhdaghhacab.z01.azurefd.net"

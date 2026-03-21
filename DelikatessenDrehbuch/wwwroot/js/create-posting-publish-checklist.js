@@ -1,6 +1,26 @@
 (function () {
     const STYLE_ID = "creator-publish-checklist-style";
 
+    function rafThrottle(fn) {
+        let ticking = false;
+        return function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+                fn();
+                ticking = false;
+            });
+        };
+    }
+
+    function debounce(fn, delay) {
+        let timer;
+        return function () {
+            clearTimeout(timer);
+            timer = setTimeout(fn, delay);
+        };
+    }
+
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) {
             return;
@@ -17,8 +37,7 @@
                 max-width: 720px;
                 margin: 0 auto 10px;
                 padding: 8px 12px 10px;
-                background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.84));
-                backdrop-filter: blur(10px);
+                background: rgba(255,255,255,0.97);
             }
 
             .creator-checklist {
@@ -139,6 +158,19 @@
             .filter(section => section.element);
         const checklistItems = Array.from(checklist.querySelectorAll(".creator-check-item[data-check-key]"));
 
+        var _cachedTopbarH = null;
+        var _cachedToolbarH = null;
+
+        function getCachedHeights() {
+            if (_cachedTopbarH === null) {
+                _cachedTopbarH = topbar ? topbar.offsetHeight : 0;
+            }
+            if (_cachedToolbarH === null) {
+                _cachedToolbarH = toolbar ? toolbar.offsetHeight : 0;
+            }
+            return { topbarH: _cachedTopbarH, toolbarH: _cachedToolbarH };
+        }
+
         function buildChecklistState() {
             return {
                 basics: !!(titleInput && titleInput.value.trim()) && !!(categorySelect && categorySelect.value.trim()),
@@ -156,9 +188,8 @@
                 return;
             }
 
-            const topbarHeight = topbar ? topbar.offsetHeight : 0;
-            const toolbarHeight = toolbar ? toolbar.offsetHeight : 0;
-            const top = target.getBoundingClientRect().top + window.scrollY - topbarHeight - toolbarHeight - 16;
+            const h = getCachedHeights();
+            const top = target.getBoundingClientRect().top + window.scrollY - h.topbarH - h.toolbarH - 16;
             window.scrollTo({ top, behavior: "auto" });
         }
 
@@ -190,9 +221,8 @@
                 return;
             }
 
-            const topbarHeight = topbar ? topbar.offsetHeight : 0;
-            const toolbarHeight = toolbar ? toolbar.offsetHeight : 0;
-            const marker = window.scrollY + topbarHeight + toolbarHeight + 28;
+            const h = getCachedHeights();
+            const marker = window.scrollY + h.topbarH + h.toolbarH + 28;
             let activeSection = sections[0];
 
             sections.forEach(section => {
@@ -222,7 +252,7 @@
                 button.title = isReady ? "" : `Mindestens ${requiredCompletedSteps} von 5 Schritten abschliessen`;
             });
 
-            topbarProgress.innerHTML = isReady ? "Ready to publish" : `${completedCount}/5 bereit`;
+            topbarProgress.textContent = isReady ? "Ready to publish" : `${completedCount}/5 bereit`;
         }
 
         checklistItems.forEach(item => {
@@ -246,11 +276,16 @@
                 return;
             }
 
-            new MutationObserver(updateChecklist).observe(container, { childList: true, subtree: true });
+            new MutationObserver(debounce(updateChecklist, 50)).observe(container, { childList: true });
         });
 
-        window.addEventListener("scroll", updateActiveSection, { passive: true });
-        window.addEventListener("resize", updateActiveSection);
+        var throttledUpdateActiveSection = rafThrottle(updateActiveSection);
+        window.addEventListener("scroll", throttledUpdateActiveSection, { passive: true });
+        window.addEventListener("resize", function () {
+            _cachedTopbarH = null;
+            _cachedToolbarH = null;
+            throttledUpdateActiveSection();
+        }, { passive: true });
         form.addEventListener("submit", function (event) {
             const completedCount = Object.values(buildChecklistState()).filter(Boolean).length;
             if (completedCount >= requiredCompletedSteps) {
