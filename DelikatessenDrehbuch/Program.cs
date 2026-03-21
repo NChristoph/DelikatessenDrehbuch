@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
@@ -198,10 +199,27 @@ else
         errorApp.Run(async context =>
         {
             var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionHandlerFeature?.Error != null)
+            var error = exceptionHandlerFeature?.Error;
+
+            if (error != null)
             {
                 var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-                logger.LogError(exceptionHandlerFeature.Error, "Unhandled exception.");
+
+                if (error is WorldMiniAppException worldEx)
+                {
+                    logger.LogWarning(worldEx, "WorldMiniApp exception: {Message}", worldEx.Message);
+
+                    context.Response.StatusCode = worldEx.StatusCode;
+                    context.Response.ContentType = "application/problem+json";
+
+                    await Results.Problem(
+                            title: worldEx.Message,
+                            statusCode: worldEx.StatusCode)
+                        .ExecuteAsync(context);
+                    return;
+                }
+
+                logger.LogError(error, "Unhandled exception.");
             }
 
             if (context.Request.Headers.Accept.Any(accept => accept.Contains("text/html", StringComparison.OrdinalIgnoreCase)))
@@ -263,6 +281,4 @@ app.MapRazorPages();
 
 app.Run();
 
-
-
-
+public partial class Program { }

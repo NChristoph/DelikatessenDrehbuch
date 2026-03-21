@@ -12,8 +12,8 @@
         public List<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
         public List<IngredientMeasureQuantity> IngredientMeasureQuantity { get; set; }
 
-        public List<RecipePreperationSteps> RecipePreperationSteps { get; set; }
-        public List<RecipeJoyinPreperationSteps> RecipeJoyinPreperationSteps { get; set; }
+        public List<RecipePreparationSteps> RecipePreparationSteps { get; set; }
+        public List<RecipeJoinPreparationSteps> RecipeJoinPreparationSteps { get; set; }
         public EditRecipesModel()
         {
             Recipes = new Recipes();

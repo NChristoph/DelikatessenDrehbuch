@@ -137,7 +137,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (maxPrepTime.HasValue)
             {
-                query = query.Where(post => post.Recipe.PreperationTime <= maxPrepTime.Value);
+                query = query.Where(post => post.Recipe.PreparationTime <= maxPrepTime.Value);
             }
 
             if (filter == "myvideos")
@@ -510,7 +510,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .CountAsync(a => a.Creator.Id == user.Id);
             }
 
-            var purchases = await _coinService.GetPurchasesByBuyer(userHash);
+            var purchases = await _coinService.GetPurchasesByBuyerAsync(userHash);
             var purchasedMealPlanIds = purchases
                 .Select(p => p.CreatedMealPlanId)
                 .Where(id => id > 0)

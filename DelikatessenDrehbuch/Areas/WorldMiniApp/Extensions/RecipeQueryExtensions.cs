@@ -11,7 +11,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions
             return query
                 .Include(r => r.Images)
                 .Include(r => r.Steps)
-                    .ThenInclude(s => s.RecipePreperationStep)
+                    .ThenInclude(s => s.RecipePreparationStep)
                 .Include(r => r.Ingredients)
                     .ThenInclude(ri => ri.Ingredient)
                         .ThenInclude(i => i.IngredientsAndNutrients)
@@ -58,7 +58,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions
                     .ThenInclude(r => r.Images)
                 .Include(x => x.Recipe)
                     .ThenInclude(r => r.Steps)
-                        .ThenInclude(s => s.RecipePreperationStep)
+                        .ThenInclude(s => s.RecipePreparationStep)
                 .Include(x => x.Recipe)
                     .ThenInclude(r => r.RecipeKeywords);
         }

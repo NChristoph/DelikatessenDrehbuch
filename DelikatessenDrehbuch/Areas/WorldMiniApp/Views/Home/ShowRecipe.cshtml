@@ -12,7 +12,7 @@
     {
         var nutri = item.Ingredient.IngredientsAndNutrients;
         var quantity = (decimal)item.Ingredient.Quantity.Quantitys;
-        var unit = item.Ingredient.Measure.Metriks_DE.ToLower();
+        var unit = item.Ingredient.Measure.Metrics_DE.ToLower();
 
         decimal factor = (unit == "stk" || unit == "stück")
             ? (quantity * nutri.Weight_per_piece) / 100m
@@ -45,7 +45,7 @@
         _ => item.Name_DE
     };
 
-    string StepText(DelikatessenDrehbuch.Models.RecipePreperationSteps step) => language switch
+    string StepText(DelikatessenDrehbuch.Models.RecipePreparationSteps step) => language switch
     {
         "en" => step.Step_EN,
         "es" => step.Step_ESP,
@@ -338,7 +338,7 @@
 
             <div class="badge-row">
                 <div class="premium-badge">
-                    <i class="bi bi-clock text-warning"></i> @Model.PreperationTime Min.
+                    <i class="bi bi-clock text-warning"></i> @Model.PreparationTime Min.
                 </div>
                 <div class="premium-badge">
                     <i class="bi bi-fire text-danger"></i>
@@ -401,7 +401,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
                                     <span class="text-muted small">
-                                        <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.Metriks_DE
+                                        <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.Metrics_DE
                                     </span>
                                 </div>
                             </div>
@@ -416,7 +416,7 @@
                     {
                         <div class="step-card">
                             <span class="step-badge">@T("Schritt", "Step", "Paso", "Passo") @step.StepIndex</span>
-                            <p class="mb-0 lh-lg" style="font-size: 1.05rem; color: #444;">@StepText(step.RecipePreperationStep)</p>
+                            <p class="mb-0 lh-lg" style="font-size: 1.05rem; color: #444;">@StepText(step.RecipePreparationStep)</p>
                         </div>
                     }
                 </div>

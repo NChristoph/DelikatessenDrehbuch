@@ -12,7 +12,7 @@ namespace DelikatessenDrehbuch.Services.Interfaces
         int GetRecipesCount();
         Task<Recipes> SaveRecipesInDbAsync(Recipes recipes);
         Task EditRecipesAsync(int recipeToChangeId,Recipes newRecipesData);
-        Task<int> GetRecipeIdByNameAndPreperation(string recipeName, string preperation);
+        Task<int> GetRecipeIdByNameAndPreparation(string recipeName, string preperation);
         List<IngredientHandlerModel> GetOrdetIngredientHandler(List<RecipesHandler> recipesHandler);
         Task<FullRecipeData> GetFullRecipeDataByRecipesIdAsync(int id);
         public Task<List<FullRecipeData>> GetFullRecipeDataListByRecipesIdsAsync(List<int> resipesIds);

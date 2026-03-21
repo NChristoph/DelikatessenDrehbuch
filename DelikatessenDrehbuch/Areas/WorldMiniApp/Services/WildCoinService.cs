@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
@@ -23,13 +24,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             _logger = logger;
         }
 
-        public async Task<decimal> GetBalance(string userHash)
+        public async Task<decimal> GetBalanceAsync(string userHash)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
             return user?.WildCoinBalance ?? 0;
         }
 
-        public async Task<bool> Transfer(string fromHash, string toHash, decimal amount, string referenceInfo)
+        public async Task<bool> TransferAsync(string fromHash, string toHash, decimal amount, string referenceInfo)
         {
             if (amount <= 0) return false;
 
@@ -72,7 +73,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
         }
 
-        public async Task<bool> Reward(string userHash, decimal amount, string referenceInfo)
+        public async Task<bool> RewardAsync(string userHash, decimal amount, string referenceInfo)
         {
             if (amount <= 0) return false;
 
@@ -94,7 +95,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return true;
         }
 
-        public async Task<List<WildCoinTransaction>> GetTransactions(string userHash, int take = 20)
+        public async Task<List<WildCoinTransaction>> GetTransactionsAsync(string userHash, int take = 20)
         {
             return await _context.WildCoinTransactions
                 .Where(t => t.UserHash == userHash)
@@ -105,13 +106,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         // ---- Marketplace ----
 
-        public async Task<MealPlanListing> CreateListing(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null)
+        public async Task<MealPlanListing> CreateListingAsync(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sellerHash);
-            if (user == null) throw new InvalidOperationException("User nicht gefunden.");
+            if (user == null) throw new WorldMiniAppNotFoundException("User nicht gefunden.");
 
             var mealPlan = await _context.WorldUserMealPlan.FirstOrDefaultAsync(m => m.Id == mealPlanId && m.UserHash == sellerHash);
-            if (mealPlan == null) throw new InvalidOperationException("Essensplan nicht gefunden oder gehört nicht dir.");
+            if (mealPlan == null) throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden oder gehört nicht dir.");
 
             var mealPlanDays = ExtractMealPlanDays(mealPlan.MealPlan);
             var recipeIds = mealPlanDays
@@ -131,7 +132,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
                 if (recipeIds.Except(ownedRecipeIds).Any())
                 {
-                    throw new InvalidOperationException("Du kannst nur Essenspläne verkaufen, die ausschließlich deine eigenen Rezepte enthalten.");
+                    throw new WorldMiniAppValidationException("Du kannst nur Essenspläne verkaufen, die ausschließlich deine eigenen Rezepte enthalten.");
                 }
             }
 
@@ -176,7 +177,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
         }
 
-        public async Task<List<MealPlanListing>> GetActiveListings(int skip = 0, int take = 20)
+        public async Task<List<MealPlanListing>> GetActiveListingsAsync(int skip = 0, int take = 20)
         {
             return await _context.MealPlanListings
                 .Where(l => l.IsActive)
@@ -186,7 +187,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 .ToListAsync();
         }
 
-        public async Task<List<MealPlanListing>> GetMyListings(string userHash)
+        public async Task<List<MealPlanListing>> GetMyListingsAsync(string userHash)
         {
             return await _context.MealPlanListings
                 .Include(l => l.MealPlan)
@@ -195,14 +196,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 .ToListAsync();
         }
 
-        public async Task<MealPlanListing?> GetListingById(int id)
+        public async Task<MealPlanListing?> GetListingByIdAsync(int id)
         {
             return await _context.MealPlanListings
                 .Include(l => l.MealPlan)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
 
-        public async Task<bool> DeactivateListing(string userHash, int listingId)
+        public async Task<bool> DeactivateListingAsync(string userHash, int listingId)
         {
             var listing = await _context.MealPlanListings.FirstOrDefaultAsync(l => l.Id == listingId && l.SellerHash == userHash);
             if (listing == null) return false;
@@ -212,7 +213,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return true;
         }
 
-        public async Task<bool> ActivateListing(string userHash, int listingId)
+        public async Task<bool> ActivateListingAsync(string userHash, int listingId)
         {
             var listing = await _context.MealPlanListings.FirstOrDefaultAsync(l => l.Id == listingId && l.SellerHash == userHash);
             if (listing == null) return false;
@@ -223,7 +224,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
 
 
-        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchase(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
+        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchaseAsync(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
         {
             if (string.IsNullOrWhiteSpace(txHash))
             {
@@ -324,7 +325,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
         }
 
-        public async Task<List<MealPlanPurchase>> GetPurchasesByBuyer(string buyerHash)
+        public async Task<List<MealPlanPurchase>> GetPurchasesByBuyerAsync(string buyerHash)
         {
             return await _context.MealPlanPurchases
                 .Include(p => p.Listing)

@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public Recipes Recipe { get; set; }
-        public Querys Query { get; set; }
+        public Queries Query { get; set; }
 
 
 

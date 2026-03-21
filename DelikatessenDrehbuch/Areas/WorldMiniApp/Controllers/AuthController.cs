@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
@@ -81,12 +82,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     return BadRequest(new { status = "error", isValid = false, message = verifyResult.Reason ?? "Invalid SIWE message/signature" });
                 }
 
-                await _userManager.CreateOrUpdateWalletUser(verifyResult.Address, request.RememberLogin);
+                await _userManager.CreateOrUpdateWalletUserAsync(verifyResult.Address, request.RememberLogin);
 
                 var normalizedWallet = verifyResult.Address.ToLowerInvariant();
                 WorldMiniAppUserHashHelper.Persist(HttpContext, normalizedWallet, isTestHash: false);
 
                 return Ok(new { status = "success", isValid = true, walletAddress = normalizedWallet });
+            }
+            catch (WorldMiniAppException ex)
+            {
+                _logger.LogWarning(ex, "CompleteSiwe WorldMiniApp error.");
+                return StatusCode(ex.StatusCode, new { status = "error", isValid = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -110,15 +116,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (isValid.Success)
                 {
-                    await _userManager.CreateNewUser(request);
+                    await _userManager.CreateNewUserAsync(request);
                     WorldMiniAppUserHashHelper.Persist(HttpContext, request.Payload.NullifierHash, isTestHash: false);
 
                     return Ok(new { status = 200, message = "Erfolg!" });
                 }
                 else
                 {
-                    return BadRequest("Verifizierung fehlgeschlagen (False zurückgegeben).");
+                    return BadRequest("Verifizierung fehlgeschlagen (False zurï¿½ckgegeben).");
                 }
+            }
+            catch (WorldMiniAppException ex)
+            {
+                _logger.LogWarning(ex, "VerifyAction WorldMiniApp error.");
+                return StatusCode(ex.StatusCode, new { status = "error", message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -139,7 +150,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             var userHash = request.UserHash.Trim();
-            await _userManager.CreateOrUpdateTestUser(userHash, request.RememberLogin ?? true);
+            await _userManager.CreateOrUpdateTestUserAsync(userHash, request.RememberLogin ?? true);
             WorldMiniAppUserHashHelper.Persist(HttpContext, userHash, isTestHash: true);
 
             return Ok(new

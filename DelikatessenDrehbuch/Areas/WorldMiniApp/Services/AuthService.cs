@@ -1,4 +1,5 @@
-﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using System.Net.Http.Json;
 using System.Security.Policy;
 using System.Text.Json;
@@ -68,7 +69,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                         response.StatusCode,
                         jsonString);
 
-                    throw new Exception(
+                    throw new WorldMiniAppExternalServiceException("Worldcoin",
                         $"Worldcoin API Error {response.StatusCode}: " +
                         $"{jsonString.Substring(0, Math.Min(200, jsonString.Length))}");
                 }
@@ -100,12 +101,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "❌ HTTP Request Error beim Verifizieren");
-                throw new Exception($"Netzwerkfehler bei Worldcoin API: {ex.Message}", ex);
+                throw new WorldMiniAppExternalServiceException("Worldcoin", $"Netzwerkfehler bei Worldcoin API: {ex.Message}", ex);
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "❌ JSON Parse Error");
-                throw new Exception($"Ungültige API-Antwort von Worldcoin: {ex.Message}", ex);
+                throw new WorldMiniAppExternalServiceException("Worldcoin", $"Ungültige API-Antwort von Worldcoin: {ex.Message}", ex);
             }
             catch (Exception ex)
             {

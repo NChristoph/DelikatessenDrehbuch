@@ -83,7 +83,7 @@ namespace DelikatessenDrehbuch.Services
 
             };
 
-            var Id = await GetRecipeIdByNameAndPreperation(newRecipes.Name, newRecipes.Preparation);
+            var Id = await GetRecipeIdByNameAndPreparation(newRecipes.Name, newRecipes.Preparation);
             if (Id == 0)
             {
                 _context.Recipes.Add(newRecipes);
@@ -96,7 +96,7 @@ namespace DelikatessenDrehbuch.Services
 
         }
 
-        public async Task<int> GetRecipeIdByNameAndPreperation(string recipeName, string preperation)
+        public async Task<int> GetRecipeIdByNameAndPreparation(string recipeName, string preperation)
         {
             var recipesId = await _context.Recipes.Where(x => x.Preparation == preperation
                                                                   && x.Name == recipeName)

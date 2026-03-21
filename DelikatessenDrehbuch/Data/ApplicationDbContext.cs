@@ -17,7 +17,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipesHandler> RecipesHandlers { get; set; }
         public DbSet<IngredientHandlerModel> IngredientHandlers { get; set; }
         public DbSet<SupportMessage> SupportMessage { get; set; }
-        public DbSet<Querys> Querys { get; set; }
+        public DbSet<Queries> Querys { get; set; }
         public DbSet<QueryHandler> QueryHandler { get; set; }
         public DbSet<UserPreferencesQuery> UserPreferencesQuerys { get; set; }
         public DbSet<UserPreferencesRecipe> UserPreferencesRecipes { get; set; }
@@ -32,9 +32,9 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeBaseData> RecipeBaseData { get; set; }
         public DbSet<RecipeBaseDataImage> RecipeBaseDataImage { get; set; }
         public DbSet<RecipeJoinIngredientMeasureQuantity> RecipeJoinIngredientMeasureQuantity { get; set; }
-        public DbSet<RecipeJoyinPreperationSteps> RecipeJoinPreperationSteps { get; set; }
+        public DbSet<RecipeJoinPreparationSteps> RecipeJoinPreparationSteps { get; set; }
         public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
-        public DbSet<RecipePreperationSteps> RecipePreperationSteps { get; set; }
+        public DbSet<RecipePreparationSteps> RecipePreparationSteps { get; set; }
 
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
@@ -48,7 +48,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
-        public DbSet<JoinIngredientPreperationStep> JoinIngredientPreperationStep { get; set; }
+        public DbSet<JoinIngredientPreparationStep> JoinIngredientPreparationStep { get; set; }
         public DbSet<MealPlanListing> MealPlanListings { get; set; }
         public DbSet<WildCoinTransaction> WildCoinTransactions { get; set; }
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
@@ -179,6 +179,46 @@ namespace DelikatessenDrehbuch.Data
             // Legacy/production table name mapping (typo kept for compatibility):
             // Model MealPlanPurchase -> dbo.WorldMealplanPurcase
             builder.Entity<MealPlanPurchase>().ToTable("WorldMealplanPurcase");
+
+            // --- Naming-Compatibility: C#-Klassen umbenannt, DB-Schema bleibt ---
+
+            builder.Entity<RecipePreparationSteps>().ToTable("RecipePreperationSteps");
+
+            builder.Entity<RecipeJoinPreparationSteps>(e =>
+            {
+                e.ToTable("RecipeJoinPreperationSteps");
+                e.HasOne(x => x.RecipePreparationStep)
+                    .WithMany()
+                    .HasForeignKey("RecipePreperationStepId");
+            });
+
+            builder.Entity<Queries>().ToTable("Querys");
+            builder.Entity<UserPreferencesQuery>().ToTable("UserPreferencesQuerys");
+
+            builder.Entity<JoinIngredientPreparationStep>(e =>
+            {
+                e.ToTable("JoinIngredientPreperationStep");
+                e.HasOne(x => x.Preparation)
+                    .WithMany()
+                    .HasForeignKey("PreperationId");
+            });
+
+            builder.Entity<Measure>(e =>
+            {
+                e.Property(m => m.Metrics_DE).HasColumnName("Metriks_DE");
+                e.Property(m => m.Metrics_EN).HasColumnName("Metriks_EN");
+                e.Property(m => m.Metrics_ESP).HasColumnName("Metriks_ESP");
+                e.Property(m => m.Metrics_PRT).HasColumnName("Metriks_PRT");
+                e.Property(m => m.Metrics_ID).HasColumnName("Metriks_ID");
+                e.Property(m => m.Metrics_MS).HasColumnName("Metriks_MS");
+                e.Property(m => m.Metrics_NL).HasColumnName("Metriks_NL");
+                e.Property(m => m.Metrics_SE).HasColumnName("Metriks_SE");
+                e.Property(m => m.Metrics_DK).HasColumnName("Metriks_DK");
+                e.Property(m => m.Metrics_NO).HasColumnName("Metriks_NO");
+            });
+
+            builder.Entity<RecipeBaseData>()
+                .Property(e => e.PreparationTime).HasColumnName("PreperationTime");
         }
     }
 }

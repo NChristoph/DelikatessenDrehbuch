@@ -7,7 +7,7 @@
         ?? new Dictionary<int, List<int>>();
 
     var stepCatalogJson = JsonConvert.SerializeObject(
-        Model.RecipePreperationSteps?.Select(step => new {
+        Model.RecipePreparationSteps?.Select(step => new {
             id = step.Id,
             step_DE = step.Step_DE,
             phase = step.Phase,
@@ -1988,14 +1988,14 @@
             let html = `
                 <div class="row g-2 align-items-center mb-2 p-3 border rounded bg-white shadow-sm step-row" id="step_row_${tempId}" data-step-id="${stepId}" draggable="true" style="border-left: 5px solid #0d6efd !important;">
 
-                    <input type="hidden" class="field-prepid" name="RecipeJoyinPreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
-                    <input type="hidden" class="field-recid" name="RecipeJoyinPreperationSteps[INDEX].RecipeId" value="@Model.Recipes.Id" />
-                    <input type="hidden" class="step-hidden-de" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(normalizedStep.de).html()}" />
-                    <input type="hidden" class="step-hidden-en" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_EN" value="${$('<div>').text(normalizedStep.en).html()}" />
-                    <input type="hidden" class="step-hidden-esp" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_ESP" value="${$('<div>').text(normalizedStep.esp).html()}" />
-                    <input type="hidden" class="step-hidden-prt" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Step_PRT" value="${$('<div>').text(normalizedStep.prt).html()}" />
-                    <input type="hidden" class="step-hidden-phase" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStep.phase}" />
-                    <input type="hidden" class="step-hidden-equipment" name="RecipeJoyinPreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStep.equipment}" />
+                    <input type="hidden" class="field-prepid" name="RecipeJoinPreparationSteps[INDEX].PreparationStepId" value="${postedStepId}" />
+                    <input type="hidden" class="field-recid" name="RecipeJoinPreparationSteps[INDEX].RecipeId" value="@Model.Recipes.Id" />
+                    <input type="hidden" class="step-hidden-de" name="RecipeJoinPreparationSteps[INDEX].RecipePreparationStep.Step_DE" value="${$('<div>').text(normalizedStep.de).html()}" />
+                    <input type="hidden" class="step-hidden-en" name="RecipeJoinPreparationSteps[INDEX].RecipePreparationStep.Step_EN" value="${$('<div>').text(normalizedStep.en).html()}" />
+                    <input type="hidden" class="step-hidden-esp" name="RecipeJoinPreparationSteps[INDEX].RecipePreparationStep.Step_ESP" value="${$('<div>').text(normalizedStep.esp).html()}" />
+                    <input type="hidden" class="step-hidden-prt" name="RecipeJoinPreparationSteps[INDEX].RecipePreparationStep.Step_PRT" value="${$('<div>').text(normalizedStep.prt).html()}" />
+                    <input type="hidden" class="step-hidden-phase" name="RecipeJoinPreparationSteps[INDEX].RecipePreparationStep.Phase" value="${normalizedStep.phase}" />
+                    <input type="hidden" class="step-hidden-equipment" name="RecipeJoinPreparationSteps[INDEX].RecipePreparationStep.Equipment" value="${normalizedStep.equipment}" />
 
                     <div class="col-12 col-md-1 d-flex flex-md-column gap-1 align-items-center justify-content-center">
                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="moveStepRow(this, -1)" title="Schritt nach oben">
@@ -2009,7 +2009,7 @@
                     <div class="col-3 col-md-2">
                          <label class="small text-muted fw-bold">Nr.</label>
                          <input type="number" class="form-control fw-bold text-center border-primary field-stepindex"
-                                name="RecipeJoyinPreperationSteps[INDEX].StepIndex"
+                                name="RecipeJoinPreparationSteps[INDEX].StepIndex"
                                 value="${currentCount}" required />
                     </div>
 

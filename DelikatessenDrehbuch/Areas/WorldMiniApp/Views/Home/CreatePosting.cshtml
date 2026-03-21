@@ -154,7 +154,7 @@
 
                             <div class="input-pill" data-theme="gold">
                                 <i class="bi bi-clock text-muted"></i>
-                                <input asp-for="Recipe.PreperationTime"
+                                <input asp-for="Recipe.PreparationTime"
                                        type="number"
                                        class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
                                        placeholder="Minuten"
@@ -252,7 +252,7 @@
                                      data-group-icon="@(item.Icon ?? item.Group?.Icon)"
                                      data-selected-qty="1"
                                      data-theme="gold"
-                                     data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metriks_DE ?? "")">
+                                     data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metrics_DE ?? "")">
 
                                     <div class="d-flex align-items-center gap-2 mb-1 ingredient-card-head" style="min-height:max-content">
                                         <div class="preview-step-text display-name mb-0 flex-grow-1 d-flex align-items-center gap-2" style="min-height:max-content"><span class="ingredient-group-icon">@Html.Raw(item.Icon ?? item.Group?.Icon)</span><span class="ingredient-name-text">@item.Name_DE</span></div>
@@ -275,7 +275,7 @@
                                                 {
                                                     foreach (var m in Model.Measure)
                                                     {
-                                                        <option value="@m.Metriks_DE">@m.Metriks_DE</option>
+                                                        <option value="@m.Metrics_DE">@m.Metrics_DE</option>
                                                     }
                                                 }
                                             </select>

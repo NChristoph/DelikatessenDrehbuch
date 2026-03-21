@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
@@ -46,12 +47,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         }
 
 
-        public async Task CheckVerify(MiniAppSetupModel settings, string userHash, string title)
+        public async Task CheckVerifyAsync(MiniAppSetupModel settings, string userHash, string title)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
 
             if (user == null)
-                throw new Exception("Bad Request");
+                throw new WorldMiniAppNotFoundException("User nicht gefunden.");
 
             if (user.IsVerified == "orb")
                 await CreateWorldUserMealPlan(settings, userHash, title);
@@ -85,26 +86,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             }
             else
             {
-                throw new Exception("User Hash Nicht gefunden");
+                throw new WorldMiniAppValidationException("User Hash nicht gefunden.");
             }
 
 
         }
 
-        public async Task SaveNewMealPlan(string userHash, List<MealPlanerModel> mealPlanerModels,string title)
+        public async Task SaveNewMealPlanAsync(string userHash, List<MealPlanerModel> mealPlanerModels,string title)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
-            if (user == null) throw new InvalidOperationException("User nicht gefunden.");
+            if (user == null) throw new WorldMiniAppNotFoundException("User nicht gefunden.");
             if(user.IsVerified=="orb")
             {
                 var existingPlan = await _context.WorldUserMealPlan.Where(x => x.UserHash == userHash && x.Title.Trim() == title.Trim()).FirstOrDefaultAsync();
-                if (existingPlan == null) throw new InvalidOperationException("Essensplan nicht gefunden.");
+                if (existingPlan == null) throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden.");
                 existingPlan.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlanerModels));
             }
             else
             {
                 var plan = await _context.WorldUserMealPlan.Where(x => x.UserHash == userHash).FirstOrDefaultAsync();
-                if (plan == null) throw new InvalidOperationException("Essensplan nicht gefunden.");
+                if (plan == null) throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden.");
                 plan.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlanerModels));
             }
 
@@ -126,13 +127,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         public async Task EditMealPlanAsync(string userHash, string title, List<MealPlanerModel> mealPlaner)
         {
             var mealPlanToEdit = await _context.WorldUserMealPlan.FirstOrDefaultAsync(x => x.UserHash == userHash && x.Title == title);
-            if (mealPlanToEdit == null) throw new InvalidOperationException("Essensplan nicht gefunden.");
+            if (mealPlanToEdit == null) throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden.");
 
             mealPlanToEdit.MealPlan = JsonSerializer.Serialize(GetDictionary(mealPlaner));
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<WorldUserMealPlan>> GetMealPlansByHash(string userHash)
+        public async Task<List<WorldUserMealPlan>> GetMealPlansByHashAsync(string userHash)
         {
             return await _context.WorldUserMealPlan.Where(x => x.UserHash == userHash).ToListAsync();
         }
@@ -141,7 +142,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         {
             var mealPlan = await _context.WorldUserMealPlan.SingleOrDefaultAsync(x => x.Id == id && x.UserHash == userHash);
             if (mealPlan == null)
-                throw new Exception("Essensplan nicht gefunden oder keine Berechtigung.");
+                throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden oder keine Berechtigung.");
 
             var purchases = await _context.MealPlanPurchases
                 .Where(x => x.CreatedMealPlanId == id && x.BuyerHash == userHash)

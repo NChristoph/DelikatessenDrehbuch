@@ -89,7 +89,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (recipe != null)
             {
                 posting.Recipe = recipe;
-                posting.Recipe.PreperationTime = 0;
+                posting.Recipe.PreparationTime = 0;
             }
 
             await _context.WorldUserPosting.AddAsync(posting);
@@ -143,7 +143,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 Category = posting.Recipe.Category,
                 Preferences = posting.Recipe.Preferences,
                 PersonCount = posting.Recipe.PersonCount,
-                PreperationTime = posting.Recipe.PreperationTime,
+                PreparationTime = posting.Recipe.PreparationTime,
                 CurrentImageUrl = posting.ThumbnailUrl ?? posting.Source,
                 Ingredients = posting.Recipe.Ingredients?
                     .Where(x => x.Ingredient?.IngredientsAndNutrients != null && x.Ingredient?.Measure != null)
@@ -156,10 +156,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .ToList() ?? new List<EditPostingIngredientRowViewModel>(),
                 Steps = posting.Recipe.Steps?
                     .OrderBy(s => s.StepIndex)
-                    .Where(s => s.RecipePreperationStep != null)
+                    .Where(s => s.RecipePreparationStep != null)
                     .Select(s => new EditPostingStepRowViewModel
                     {
-                        PreperationStepId = s.RecipePreperationStep.Id,
+                        PreparationStepId = s.RecipePreparationStep.Id,
                         StepIndex = s.StepIndex
                     })
                     .ToList() ?? new List<EditPostingStepRowViewModel>(),
@@ -167,11 +167,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .Select(k => k.KeywordId)
                     .ToList() ?? new List<int>(),
                 AvailableIngredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
-                AvailableMeasures = await _context.Metrics.OrderBy(x => x.Metriks_DE).ToListAsync(),
-                AvailableSteps = await _context.RecipePreperationSteps.ToListAsync(),
+                AvailableMeasures = await _context.Metrics.OrderBy(x => x.Metrics_DE).ToListAsync(),
+                AvailableSteps = await _context.RecipePreparationSteps.ToListAsync(),
                 AvailableKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync(),
-                IngredientStepJoins = await _context.JoinIngredientPreperationStep
-                    .Include(x => x.Preperation)
+                IngredientStepJoins = await _context.JoinIngredientPreparationStep
+                    .Include(x => x.Preparation)
                     .Include(x => x.Ingredient)
                     .ToListAsync()
             };
@@ -201,7 +201,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var phase = request.Phase;
             var equipment = request.Equipment;
 
-            var existing = await _context.RecipePreperationSteps
+            var existing = await _context.RecipePreparationSteps
                 .FirstOrDefaultAsync(x => x.Step_DE == de
                     && x.Step_EN == en
                     && x.Step_ESP == esp
@@ -214,7 +214,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new { id = existing.Id, reused = true });
             }
 
-            var step = new RecipePreperationSteps
+            var step = new RecipePreparationSteps
             {
                 Step_DE = de,
                 Step_EN = en,
@@ -224,7 +224,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 Equipment = equipment
             };
 
-            await _context.RecipePreperationSteps.AddAsync(step);
+            await _context.RecipePreparationSteps.AddAsync(step);
             await _context.SaveChangesAsync();
 
             return Json(new { id = step.Id, reused = false });
@@ -264,7 +264,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             postingToEdit.Recipe.Category = model.Category ?? postingToEdit.Recipe.Category;
             postingToEdit.Recipe.Preferences = model.Preferences ?? postingToEdit.Recipe.Preferences;
             postingToEdit.Recipe.PersonCount = model.PersonCount;
-            postingToEdit.Recipe.PreperationTime = model.PreperationTime;
+            postingToEdit.Recipe.PreparationTime = model.PreparationTime;
 
             var existingJoinEntries = postingToEdit.Recipe.Ingredients?.ToList() ?? new List<RecipeJoinIngredientMeasureQuantity>();
 
@@ -348,28 +348,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             // Update steps
-            var existingSteps = await _context.RecipeJoinPreperationSteps
+            var existingSteps = await _context.RecipeJoinPreparationSteps
                 .Where(s => s.Recipe.Id == postingToEdit.Recipe.Id)
                 .ToListAsync();
-            _context.RecipeJoinPreperationSteps.RemoveRange(existingSteps);
+            _context.RecipeJoinPreparationSteps.RemoveRange(existingSteps);
 
             var parsedSteps = ExtractStepRowsFromRequest(Request.Form);
-            var stepIds = parsedSteps.Where(s => s.PreperationStepId > 0).Select(s => s.PreperationStepId).ToList();
-            var stepEntities = await _context.RecipePreperationSteps
+            var stepIds = parsedSteps.Where(s => s.PreparationStepId > 0).Select(s => s.PreparationStepId).ToList();
+            var stepEntities = await _context.RecipePreparationSteps
                 .Where(s => stepIds.Contains(s.Id))
                 .ToDictionaryAsync(s => s.Id);
 
-            foreach (var stepRow in parsedSteps.Where(s => s.PreperationStepId > 0))
+            foreach (var stepRow in parsedSteps.Where(s => s.PreparationStepId > 0))
             {
-                if (!stepEntities.TryGetValue(stepRow.PreperationStepId, out var stepEntity)) continue;
+                if (!stepEntities.TryGetValue(stepRow.PreparationStepId, out var stepEntity)) continue;
 
-                var stepJoin = new RecipeJoyinPreperationSteps
+                var stepJoin = new RecipeJoinPreparationSteps
                 {
                     Recipe = postingToEdit.Recipe,
-                    RecipePreperationStep = stepEntity,
+                    RecipePreparationStep = stepEntity,
                     StepIndex = stepRow.StepIndex
                 };
-                await _context.RecipeJoinPreperationSteps.AddAsync(stepJoin);
+                await _context.RecipeJoinPreparationSteps.AddAsync(stepJoin);
             }
 
             // Update keywords
@@ -435,7 +435,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var result = new List<EditPostingStepRowViewModel>();
             for (var i = 0; ; i++)
             {
-                var stepIdKey = $"Steps[{i}].PreperationStepId";
+                var stepIdKey = $"Steps[{i}].PreparationStepId";
                 var indexKey = $"Steps[{i}].StepIndex";
 
                 if (!form.ContainsKey(stepIdKey))
@@ -448,7 +448,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     result.Add(new EditPostingStepRowViewModel
                     {
-                        PreperationStepId = stepId,
+                        PreparationStepId = stepId,
                         StepIndex = stepIndex > 0 ? stepIndex : i + 1
                     });
                 }

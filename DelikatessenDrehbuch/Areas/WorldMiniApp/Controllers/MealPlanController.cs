@@ -42,7 +42,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             userHash = ResolveUserHash(userHash);
             ViewData["PersonCount"] = model.PersonCount;
             ViewData["Title"] = title;
-            await _worldAppMealPlanService.CheckVerify(model, userHash, title);
+            await _worldAppMealPlanService.CheckVerifyAsync(model, userHash, title);
 
             var recipes = await GetFiltredRecipes(model);
 
@@ -57,7 +57,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 });
             }
 
-            await _worldAppMealPlanService.SaveNewMealPlan(userHash, mealPlan, title);
+            await _worldAppMealPlanService.SaveNewMealPlanAsync(userHash, mealPlan, title);
 
             return View("~/Areas/WorldMiniApp/Views/Home/Generated.cshtml", mealPlan);
         }
@@ -202,7 +202,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return RedirectToAction("PersonalityAsync", new { userHash });
             }
 
-            await _worldAppMealPlanService.SaveNewMealPlan(userHash, model, title);
+            await _worldAppMealPlanService.SaveNewMealPlanAsync(userHash, model, title);
             return View("~/Areas/WorldMiniApp/Views/Home/Finaly.cshtml", model);
         }
 
@@ -483,7 +483,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         model.Add(new MealPlanerModel
                         {
                             Index = entry.Key,
-                            Recipes = new Recipes { Id = baseData.Id, Name = baseData.Title, Category = baseData.Category, PreparationTime = baseData.PreperationTime, ImagePath = baseImage },
+                            Recipes = new Recipes { Id = baseData.Id, Name = baseData.Title, Category = baseData.Category, PreparationTime = baseData.PreparationTime, ImagePath = baseImage },
                             IsBaseData = true
                         });
                     }
@@ -494,7 +494,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private async Task<MyAreaViewModel> BuildMyAreaViewModelAsync(string userHash)
         {
-            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHash(userHash);
+            var mealPlans = await _worldAppMealPlanService.GetMealPlansByHashAsync(userHash);
             var purchases = await _context.MealPlanPurchases
                 .Include(x => x.Listing)
                 .Where(x => x.BuyerHash == userHash)
@@ -545,7 +545,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var nutrient = ingredient?.IngredientsAndNutrients;
                     var name = nutrient?.Name_DE?.Trim();
                     var groupName = nutrient?.Group?.Name ?? "Sonstiges";
-                    var unit = ingredient?.Measure?.Metriks_DE ?? string.Empty;
+                    var unit = ingredient?.Measure?.Metrics_DE ?? string.Empty;
                     var quantity = ingredient?.Quantity?.Quantitys;
 
                     if (string.IsNullOrWhiteSpace(name))
@@ -648,7 +648,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     }
 
                     var quantity = ingredient.Quantity?.Quantitys ?? 0;
-                    var unit = ingredient.Measure?.Metriks_DE ?? string.Empty;
+                    var unit = ingredient.Measure?.Metrics_DE ?? string.Empty;
                     var grams = (decimal)quantity;
 
                     if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)

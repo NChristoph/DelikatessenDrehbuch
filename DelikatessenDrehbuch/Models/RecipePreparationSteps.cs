@@ -1,6 +1,6 @@
-﻿namespace DelikatessenDrehbuch.Models
+namespace DelikatessenDrehbuch.Models
 {
-    public class RecipePreperationSteps
+    public class RecipePreparationSteps
     {
         public int Id { get; set; }
         public string Step_DE { get; set; }

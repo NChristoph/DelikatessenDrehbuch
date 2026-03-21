@@ -13,7 +13,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string Category { get; set; }
         public string Preferences { get; set; }
         public int PersonCount { get; set; }
-        public int PreperationTime { get; set; }
+        public int PreparationTime { get; set; }
 
         public string? CurrentImageUrl { get; set; }
         public IFormFile? NewContent { get; set; }
@@ -24,9 +24,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
         public List<IngredientsAndNutrients> AvailableIngredients { get; set; } = new();
         public List<Measure> AvailableMeasures { get; set; } = new();
-        public List<RecipePreperationSteps> AvailableSteps { get; set; } = new();
+        public List<RecipePreparationSteps> AvailableSteps { get; set; } = new();
         public List<Keyword> AvailableKeywords { get; set; } = new();
-        public List<JoinIngredientPreperationStep> IngredientStepJoins { get; set; } = new();
+        public List<JoinIngredientPreparationStep> IngredientStepJoins { get; set; } = new();
     }
 
     public class EditPostingIngredientRowViewModel
@@ -38,7 +38,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
     public class EditPostingStepRowViewModel
     {
-        public int PreperationStepId { get; set; }
+        public int PreparationStepId { get; set; }
         public int StepIndex { get; set; }
     }
 }

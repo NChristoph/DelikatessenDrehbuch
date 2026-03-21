@@ -35,7 +35,7 @@ namespace DelikatessenDrehbuch.ViewComponents
             {
                 var ingredientHandler = ingredientHadlers.FirstOrDefault(ih => ih.Ingredient.Id == nutrient.Ingredient.Id);
                 var caloris = ingredientHandler.Ingredient.Calories / 100.0;
-                var sum = caloris * ((ingredientHandler.Measure.Metriks_DE == "Stk."  ? ingredientHandler.Ingredient.AverageWeight * ingredientHandler.Quantity.Quantitys: ingredientHandler.Ingredient.AverageWeight)
+                var sum = caloris * ((ingredientHandler.Measure.Metrics_DE == "Stk."  ? ingredientHandler.Ingredient.AverageWeight * ingredientHandler.Quantity.Quantitys: ingredientHandler.Ingredient.AverageWeight)
                                       ?? ingredientHandler.Quantity.Quantitys / recipes.RecipePersonCount);
 
                 if (ingredientHandler != null)

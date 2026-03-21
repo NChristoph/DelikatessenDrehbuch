@@ -1,5 +1,5 @@
 ﻿@using DelikatessenDrehbuch.Models
-@model List<RecipePreperationSteps>
+@model List<RecipePreparationSteps>
 
 <div class="recipe-card minWidth90 mobieleWidth90 mx-auto" style="border-left-color: #0d6efd;">
     <h3 class="section-title" style="color: #0d6efd;">
@@ -8,7 +8,7 @@
 
     <p class="text-muted">Fülle die Felder aus und speichere den Schritt in der Datenbank.</p>
 
-    <form asp-controller="Admin" asp-action="SavePreperationStep" method="post">
+    <form asp-controller="Admin" asp-action="SavePreparationStep" method="post">
 
         <input type="hidden" name="Id" value="0" />
 

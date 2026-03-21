@@ -37,7 +37,7 @@ namespace DelikatessenDrehbuch.Services
             {
                 if (!querysFromDb.Contains(query.ToLower().Trim()))
                 {
-                    var newQuery = new Querys()
+                    var newQuery = new Queries()
                     {
                         Id = 0,
                         Query = query,

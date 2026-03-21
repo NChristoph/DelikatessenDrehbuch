@@ -44,7 +44,7 @@ namespace DelikatessenDrehbuch.ViewComponents
             }
 
             var summedIngredients = allHandlers
-                .GroupBy(x => new { x.Ingredient.Id, x.Measure.Metriks_DE })
+                .GroupBy(x => new { x.Ingredient.Id, x.Measure.Metrics_DE })
                 .Select(g => new IngredientHandlerModel
                 {
                     Ingredient = g.First().Ingredient,

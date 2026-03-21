@@ -52,8 +52,8 @@
                     <input asp-for="PersonCount" min="1" type="number" class="form-control rounded-3" />
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="PreperationTime" class="form-label fw-semibold">Zeit</label>
-                    <input asp-for="PreperationTime" min="0" type="number" class="form-control rounded-3" />
+                    <label asp-for="PreparationTime" class="form-label fw-semibold">Zeit</label>
+                    <input asp-for="PreparationTime" min="0" type="number" class="form-control rounded-3" />
                 </div>
             </div>
 
@@ -105,11 +105,11 @@
                                 {
                                     if (measure.Id == Model.Ingredients[i].MeasureId)
                                     {
-                                        <option value="@measure.Id" selected>@measure.Metriks_DE</option>
+                                        <option value="@measure.Id" selected>@measure.Metrics_DE</option>
                                     }
                                     else
                                     {
-                                        <option value="@measure.Id">@measure.Metriks_DE</option>
+                                        <option value="@measure.Id">@measure.Metrics_DE</option>
                                     }
                                 }
                             </select>
@@ -147,7 +147,7 @@
             <select class="form-select rounded-3 ingredient-measure" required>
                 @foreach (var measure in Model.AvailableMeasures)
                 {
-                    <option value="@measure.Id">@measure.Metriks_DE</option>
+                    <option value="@measure.Id">@measure.Metrics_DE</option>
                 }
             </select>
         </div>

@@ -13,7 +13,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             _context = context;
         }
 
-        public async Task CreateNewUser(VerifyRequestDto request)
+        public async Task CreateNewUserAsync(VerifyRequestDto request)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == request.Payload.NullifierHash);
 
@@ -39,7 +39,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         }
 
 
-        public async Task CreateOrUpdateTestUser(string userHash, bool rememberLogin)
+        public async Task CreateOrUpdateTestUserAsync(string userHash, bool rememberLogin)
         {
             var normalizedHash = userHash?.Trim();
             if (string.IsNullOrWhiteSpace(normalizedHash))
@@ -71,7 +71,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
             await _context.SaveChangesAsync();
         }
-        public async Task CreateOrUpdateWalletUser(string walletAddress, bool rememberLogin)
+        public async Task CreateOrUpdateWalletUserAsync(string walletAddress, bool rememberLogin)
         {
             var normalizedWallet = walletAddress?.Trim().ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(normalizedWallet))

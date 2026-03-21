@@ -1,3 +1,4 @@
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
@@ -177,7 +178,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var userHash = GetUserHash();
             if (string.IsNullOrWhiteSpace(userHash)) return RedirectToAction("Index");
 
-            var listings = await _coinService.GetMyListings(userHash);
+            var listings = await _coinService.GetMyListingsAsync(userHash);
 
             var recipeIds = listings
                 .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
@@ -320,10 +321,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             try
             {
-                var listing = await _coinService.CreateListing(userHash, mealPlanId, title, description, price, sellerWalletAddress, sellerUsdtWalletAddress);
+                var listing = await _coinService.CreateListingAsync(userHash, mealPlanId, title, description, price, sellerWalletAddress, sellerUsdtWalletAddress);
                 return Json(new { success = true, listingId = listing.Id });
             }
-            catch (InvalidOperationException ex)
+            catch (WorldMiniAppException ex)
             {
                 return Json(new { success = false, error = ex.Message });
             }
@@ -349,7 +350,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
 
-            var success = await _coinService.DeactivateListing(userHash, listingId);
+            var success = await _coinService.DeactivateListingAsync(userHash, listingId);
             return Json(new { success });
         }
 
@@ -362,7 +363,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
 
-            var success = await _coinService.ActivateListing(userHash, listingId);
+            var success = await _coinService.ActivateListingAsync(userHash, listingId);
             return Json(new { success });
         }
 
@@ -412,7 +413,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             try
             {
-                var purchase = await _coinService.FinalizeWorldChainPurchase(
+                var purchase = await _coinService.FinalizeWorldChainPurchaseAsync(
                     userHash,
                     request.ListingId,
                     request.TxHash,
@@ -424,7 +425,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
             }
-            catch (InvalidOperationException ex)
+            catch (WorldMiniAppException ex)
             {
                 return Json(new { success = false, error = ex.Message });
             }
@@ -449,7 +450,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new List<object>());
 
-            var transactions = await _coinService.GetTransactions(userHash);
+            var transactions = await _coinService.GetTransactionsAsync(userHash);
             return Json(transactions.Select(t => new
             {
                 t.Amount,
@@ -509,7 +510,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                             id = baseR.Id,
                             title = baseR.Title,
                             category = baseR.Category,
-                            time = baseR.PreperationTime,
+                            time = baseR.PreparationTime,
                             image = img
                         });
                         continue;
@@ -728,7 +729,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     if (nutrient == null) continue;
 
                     var quantity = ingredient.Quantity?.Quantitys ?? 0;
-                    var unit = ingredient.Measure?.Metriks_DE ?? string.Empty;
+                    var unit = ingredient.Measure?.Metrics_DE ?? string.Empty;
                     var grams = (decimal)quantity;
 
                     if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)

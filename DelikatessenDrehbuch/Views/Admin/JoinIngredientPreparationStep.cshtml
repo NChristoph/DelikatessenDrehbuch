@@ -3,8 +3,8 @@
 
 @{
     var stepBindings = Model.ExistingJoins
-        .Where(x => x.Preperation != null && x.Ingredient != null)
-        .GroupBy(x => x.Preperation.Id)
+        .Where(x => x.Preparation != null && x.Ingredient != null)
+        .GroupBy(x => x.Preparation.Id)
         .ToDictionary(
             group => group.Key,
             group => group
@@ -32,7 +32,7 @@
 
     <p class="text-muted">Schritte auswählen, Zutaten markieren und gemeinsam speichern. Die Verknüpfungen sind nur nötig, wenn Schritte später nach Zutaten gefiltert werden sollen.</p>
 
-    <form asp-action="SaveJoinIngredientPreperationStep" asp-controller="Admin" method="post">
+    <form asp-action="SaveJoinIngredientPreparationStep" asp-controller="Admin" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" id="selectedStepId" name="selectedStepId" />
         <input type="hidden" id="selectedStepIds" name="selectedStepIds" />
@@ -128,7 +128,7 @@
         <button type="submit" class="btn bgRed Border-Gold mt-3" style="color:white">Verknüpfung speichern</button>
     </form>
 
-    <form asp-action="DeleteJoinIngredientPreperationStepsBulk" asp-controller="Admin" method="post" id="bulkDeleteJoinForm" class="mt-3 mb-2">
+    <form asp-action="DeleteJoinIngredientPreparationStepsBulk" asp-controller="Admin" method="post" id="bulkDeleteJoinForm" class="mt-3 mb-2">
         @Html.AntiForgeryToken()
         <input type="hidden" id="selectedJoinIds" name="selectedJoinIds" />
         <button type="submit" id="bulkDeleteJoinBtn" class="btn btn-danger btn-sm" disabled>
@@ -145,18 +145,18 @@
                 <tbody>
                     @foreach (var join in Model.ExistingJoins)
                     {
-                        var stepId = join.Preperation?.Id ?? 0;
+                        var stepId = join.Preparation?.Id ?? 0;
                         var ingredientId = join.Ingredient?.Id ?? 0;
                         <tr>
                             <td>
                                 <input type="checkbox" class="form-check-input join-select-checkbox" value="@join.Id" />
                             </td>
-                            <td>@join.Preperation?.Step_DE</td>
+                            <td>@join.Preparation?.Step_DE</td>
                             <td>@join.Ingredient?.Name_DE</td>
                             <td class="text-end">
                                 @if (stepId > 0 && ingredientId > 0)
                                 {
-                                    <form asp-action="DeleteJoinIngredientPreperationStep" asp-controller="Admin" method="post" class="d-inline">
+                                    <form asp-action="DeleteJoinIngredientPreparationStep" asp-controller="Admin" method="post" class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="stepId" value="@stepId" />
                                         <input type="hidden" name="ingredientId" value="@ingredientId" />
