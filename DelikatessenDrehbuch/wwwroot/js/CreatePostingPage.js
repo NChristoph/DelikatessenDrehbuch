@@ -572,44 +572,602 @@
             }).get().filter(id => !isNaN(id));
         }
 
-        function getSelectedIngredientsForSandbox() {
-            const fromSelected = $('#selectedIngredients .ingredient-row').map(function () {
+        const ingredientArticlePrefixesByLang = {
+            de: ['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'einer'],
+            en: ['the', 'a', 'an'],
+            esp: ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas'],
+            prt: ['o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas'],
+            nl: ['de', 'het', 'een'],
+            sv: ['en', 'ett'],
+            da: ['en', 'et'],
+            no: ['en', 'et'],
+            id: [],
+            ms: []
+        };
+
+        const separatedEggPartsByLang = {
+            de: [
+                { key: 'egg_white', name: 'Eiklar', genus: 'n' },
+                { key: 'egg_yolk', name: 'Eigelb', genus: 'n' }
+            ],
+            en: [
+                { key: 'egg_white', name: 'egg white', genus: 'n' },
+                { key: 'egg_yolk', name: 'egg yolk', genus: 'n' }
+            ],
+            esp: [
+                { key: 'egg_white', name: 'clara de huevo', genus: 'f' },
+                { key: 'egg_yolk', name: 'yema de huevo', genus: 'f' }
+            ],
+            prt: [
+                { key: 'egg_white', name: 'clara de ovo', genus: 'f' },
+                { key: 'egg_yolk', name: 'gema de ovo', genus: 'f' }
+            ],
+            id: [
+                { key: 'egg_white', name: 'putih telur', genus: 'n' },
+                { key: 'egg_yolk', name: 'kuning telur', genus: 'n' }
+            ],
+            nl: [
+                { key: 'egg_white', name: 'eiwit', genus: 'n' },
+                { key: 'egg_yolk', name: 'eigeel', genus: 'n' }
+            ],
+            sv: [
+                { key: 'egg_white', name: 'äggvita', genus: 'n' },
+                { key: 'egg_yolk', name: 'äggula', genus: 'n' }
+            ],
+            da: [
+                { key: 'egg_white', name: 'æggehvide', genus: 'n' },
+                { key: 'egg_yolk', name: 'æggeblomme', genus: 'n' }
+            ],
+            no: [
+                { key: 'egg_white', name: 'eggehvite', genus: 'n' },
+                { key: 'egg_yolk', name: 'eggeplomme', genus: 'n' }
+            ],
+            ms: [
+                { key: 'egg_white', name: 'putih telur', genus: 'n' },
+                { key: 'egg_yolk', name: 'kuning telur', genus: 'n' }
+            ]
+        };
+
+        function stripLeadingArticle(value, langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const raw = (value || '').toString().trim();
+            if (!raw) return '';
+            const lower = raw.toLowerCase();
+            const prefixes = ingredientArticlePrefixesByLang[lang] || [];
+            const found = prefixes.find(prefix => lower === prefix || lower.startsWith(`${prefix} `));
+            return found ? raw.slice(found.length).trim() : raw;
+        }
+
+        function normalizeIngredientMatchValue(value, langKey = currentLang) {
+            return normalizeSearchText(stripLeadingArticle(value, langKey));
+        }
+
+        function splitIngredientNames(rawValue, langKey = currentLang) {
+            const stripped = stripLeadingArticle(rawValue, langKey);
+            return (stripped || '')
+                .split(/,|\bund\b|\band\b|\by\b|\be\b/gi)
+                .map(x => x.trim())
+                .filter(Boolean);
+        }
+
+        function getBaseSandboxIngredients() {
+            return $('#selectedIngredients .ingredient-row').filter(function () {
+                return $(this).attr('data-derived-row') !== 'true';
+            }).map(function () {
                 const row = $(this);
                 const id = row.find('input[name$="IngredientsAndNutrients.Id"]').val()?.toString() || '';
-                const name = row.find('.ingredient-name-text').text()?.trim() || '';
+                const namesByLang = {
+                    de: (row.data('name-de') || row.find('.ingredient-name-text').text() || '').toString().trim(),
+                    en: (row.data('name-en') || row.data('name-de') || '').toString().trim(),
+                    esp: (row.data('name-esp') || row.data('name-de') || '').toString().trim(),
+                    prt: (row.data('name-prt') || row.data('name-de') || '').toString().trim(),
+                    id: (row.data('name-id') || row.data('name-de') || '').toString().trim(),
+                    nl: (row.data('name-nl') || row.data('name-de') || '').toString().trim(),
+                    sv: (row.data('name-sv') || row.data('name-de') || '').toString().trim(),
+                    da: (row.data('name-da') || row.data('name-de') || '').toString().trim(),
+                    no: (row.data('name-no') || row.data('name-de') || '').toString().trim(),
+                    ms: (row.data('name-ms') || row.data('name-de') || '').toString().trim()
+                };
                 const genusByLang = {
                     de: (row.data('genus-de') || '').toString().trim(),
-                    en: (row.data('genus-en') || '').toString().trim(),
-                    esp: (row.data('genus-esp') || '').toString().trim(),
-                    prt: (row.data('genus-prt') || '').toString().trim(),
-                    id: (row.data('genus-id') || '').toString().trim(),
-                    nl: (row.data('genus-nl') || '').toString().trim(),
-                    sv: (row.data('genus-sv') || '').toString().trim(),
-                    da: (row.data('genus-da') || '').toString().trim(),
-                    no: (row.data('genus-no') || '').toString().trim(),
-                    ms: (row.data('genus-ms') || '').toString().trim()
+                    en: (row.data('genus-en') || row.data('genus-de') || '').toString().trim(),
+                    esp: (row.data('genus-esp') || row.data('genus-de') || '').toString().trim(),
+                    prt: (row.data('genus-prt') || row.data('genus-de') || '').toString().trim(),
+                    id: (row.data('genus-id') || row.data('genus-de') || '').toString().trim(),
+                    nl: (row.data('genus-nl') || row.data('genus-de') || '').toString().trim(),
+                    sv: (row.data('genus-sv') || row.data('genus-de') || '').toString().trim(),
+                    da: (row.data('genus-da') || row.data('genus-de') || '').toString().trim(),
+                    no: (row.data('genus-no') || row.data('genus-de') || '').toString().trim(),
+                    ms: (row.data('genus-ms') || row.data('genus-de') || '').toString().trim()
                 };
                 return {
                     id,
-                    name,
+                    name: namesByLang[resolveLangKey(currentLang)] || namesByLang.de || 'Zutat',
+                    namesByLang,
                     genusDe: genusByLang.de || '',
-                    genusLocalized: genusByLang[currentLang] || '',
+                    genusLocalized: genusByLang[resolveLangKey(currentLang)] || genusByLang.de || '',
                     genusByLang,
-                    iconHtml: (row.data('group-icon') || '').toString()
+                    iconHtml: (row.data('group-icon') || '').toString(),
+                    sourceBaseId: id
                 };
             }).get().filter(x => x.id || x.name);
+        }
 
-            if (fromSelected.length) {
-                return fromSelected.map(x => ({
-                    id: x.id || '',
-                    name: x.name || 'Zutat',
-                    genusDe: x.genusDe || '',
-                    genusLocalized: x.genusLocalized || '',
-                    genusByLang: x.genusByLang || {},
-                    iconHtml: x.iconHtml || ''
-                }));
+        function getDerivedGermanAdjectiveForm(baseAdjective, genusRaw) {
+            const g = normalizeGenusKey(genusRaw || '');
+            if (g === 'f') return `${baseAdjective}e`;
+            if (g === 'n') return `${baseAdjective}es`;
+            return `${baseAdjective}er`;
+        }
+
+        function buildDerivedIngredientName(baseName, transformType, langKey, genusRaw) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const noun = (baseName || '').toString().trim();
+            if (!noun) return '';
+
+            const byLang = {
+                de: {
+                    mince: getDerivedGermanAdjectiveForm('gehackt', genusRaw) + ' ' + noun,
+                    grate: getDerivedGermanAdjectiveForm('gerieben', genusRaw) + ' ' + noun,
+                    dice: getDerivedGermanAdjectiveForm('gewürfelt', genusRaw) + ' ' + noun,
+                    slice: `in Scheiben geschnittene ${noun}`,
+                    strip: `in Streifen geschnittene ${noun}`,
+                    wedge: `in Spalten geschnittene ${noun}`,
+                    ring: `in Ringe geschnittene ${noun}`,
+                    julienne: `in Julienne geschnittene ${noun}`,
+                    piece: `geschnittene ${noun}`
+                },
+                en: {
+                    mince: `minced ${noun}`,
+                    grate: `grated ${noun}`,
+                    dice: `diced ${noun}`,
+                    slice: `sliced ${noun}`,
+                    strip: `${noun} strips`,
+                    wedge: `${noun} wedges`,
+                    ring: `${noun} rings`,
+                    julienne: `${noun} julienne`,
+                    piece: `cut ${noun}`
+                },
+                esp: {
+                    mince: `${noun} picado`,
+                    grate: `${noun} rallado`,
+                    dice: `${noun} en cubos`,
+                    slice: `${noun} en rodajas`,
+                    strip: `${noun} en tiras`,
+                    wedge: `${noun} en gajos`,
+                    ring: `${noun} en anillos`,
+                    julienne: `${noun} en juliana`,
+                    piece: `${noun} troceado`
+                },
+                prt: {
+                    mince: `${noun} picado`,
+                    grate: `${noun} ralado`,
+                    dice: `${noun} em cubos`,
+                    slice: `${noun} em rodelas`,
+                    strip: `${noun} em tiras`,
+                    wedge: `${noun} em gomos`,
+                    ring: `${noun} em anéis`,
+                    julienne: `${noun} em juliana`,
+                    piece: `${noun} cortado`
+                },
+                id: {
+                    mince: `${noun} cincang`,
+                    grate: `${noun} parut`,
+                    dice: `${noun} potong dadu`,
+                    slice: `${noun} iris`,
+                    strip: `${noun} iris memanjang`,
+                    wedge: `${noun} potong wedge`,
+                    ring: `${noun} iris cincin`,
+                    julienne: `${noun} iris julienne`,
+                    piece: `${noun} potong`
+                },
+                nl: {
+                    mince: `gehakte ${noun}`,
+                    grate: `geraspte ${noun}`,
+                    dice: `blokjes ${noun}`,
+                    slice: `gesneden ${noun}`,
+                    strip: `${noun} in reepjes`,
+                    wedge: `${noun} in partjes`,
+                    ring: `${noun} in ringen`,
+                    julienne: `${noun} in julienne`,
+                    piece: `gesneden ${noun}`
+                },
+                sv: {
+                    mince: `hackad ${noun}`,
+                    grate: `riven ${noun}`,
+                    dice: `tärnad ${noun}`,
+                    slice: `skivad ${noun}`,
+                    strip: `${noun} i strimlor`,
+                    wedge: `${noun} i klyftor`,
+                    ring: `${noun} i ringar`,
+                    julienne: `${noun} i julienne`,
+                    piece: `skuren ${noun}`
+                },
+                da: {
+                    mince: `hakket ${noun}`,
+                    grate: `revet ${noun}`,
+                    dice: `${noun} i tern`,
+                    slice: `skåret ${noun}`,
+                    strip: `${noun} i strimler`,
+                    wedge: `${noun} i både`,
+                    ring: `${noun} i ringe`,
+                    julienne: `${noun} i julienne`,
+                    piece: `skåret ${noun}`
+                },
+                no: {
+                    mince: `hakket ${noun}`,
+                    grate: `revet ${noun}`,
+                    dice: `${noun} i terninger`,
+                    slice: `skivet ${noun}`,
+                    strip: `${noun} i strimler`,
+                    wedge: `${noun} i båter`,
+                    ring: `${noun} i ringer`,
+                    julienne: `${noun} i julienne`,
+                    piece: `skåret ${noun}`
+                },
+                ms: {
+                    mince: `${noun} dicincang`,
+                    grate: `${noun} diparut`,
+                    dice: `${noun} dipotong dadu`,
+                    slice: `${noun} dihiris`,
+                    strip: `${noun} dihiris memanjang`,
+                    wedge: `${noun} dipotong baji`,
+                    ring: `${noun} dihiris cincin`,
+                    julienne: `${noun} dipotong julienne`,
+                    piece: `${noun} dipotong`
+                }
+            };
+
+            return byLang[lang]?.[transformType] || byLang.de[transformType] || noun;
+        }
+
+        function getStepVariableDisplayValue(stableReference, key) {
+            const vars = stableReference && stableReference.variables ? stableReference.variables : {};
+            const item = vars && vars[key] ? vars[key] : null;
+            return (item?.display_value || '').toString().trim();
+        }
+
+        function resolveCutTransformationType(stableReference) {
+            const shape = normalizeSearchText(getStepVariableDisplayValue(stableReference, 'shape'));
+            if (!shape) return 'piece';
+            if (shape.includes('wurfel') || shape.includes('cubo') || shape.includes('dice')) return 'dice';
+            if (shape.includes('scheib') || shape.includes('rodaja') || shape.includes('slice')) return 'slice';
+            if (shape.includes('streif') || shape.includes('tira') || shape.includes('strip')) return 'strip';
+            if (shape.includes('spalt') || shape.includes('gajo') || shape.includes('wedge')) return 'wedge';
+            if (shape.includes('ring') || shape.includes('anillo')) return 'ring';
+            if (shape.includes('julienne') || shape.includes('juliana')) return 'julienne';
+            return 'piece';
+        }
+
+        function matchSandboxItemsByStep(items, stepRow, langKey = currentLang) {
+            const stableReferenceRaw = (stepRow.data('step-reference-json') || stepRow.attr('data-step-reference-json') || '').toString();
+            let stableReference = {};
+            try { stableReference = stableReferenceRaw ? JSON.parse(stableReferenceRaw) : {}; } catch (_) { stableReference = {}; }
+
+            const candidateNames = [];
+            ['ingredient', 'ingredients', 'liquid', 'fat'].forEach(function (key) {
+                const value = getStepVariableDisplayValue(stableReference, key);
+                if (value) {
+                    splitIngredientNames(value, langKey).forEach(name => candidateNames.push(name));
+                }
+            });
+
+            const ingredientNameAttr = (stepRow.data('ingredient-name') || stepRow.attr('data-ingredient-name') || '').toString();
+            if (ingredientNameAttr) {
+                splitIngredientNames(ingredientNameAttr, langKey).forEach(name => candidateNames.push(name));
             }
-            return [];
+
+            const normalizedCandidates = Array.from(new Set(candidateNames.map(name => normalizeIngredientMatchValue(name, langKey)).filter(Boolean)));
+            if (!normalizedCandidates.length) return [];
+
+            return items.filter(item => {
+                const localizedName = item.namesByLang?.[resolveLangKey(langKey)] || item.name || '';
+                const normalizedItem = normalizeIngredientMatchValue(localizedName, langKey);
+                return normalizedCandidates.includes(normalizedItem);
+            });
+        }
+
+        function buildSeparatedEggItemsFromBase(item) {
+            const synthetic = [];
+            ['egg_white', 'egg_yolk'].forEach(function (partKey) {
+                const namesByLang = {
+                    de: separatedEggPartsByLang.de.find(x => x.key === partKey)?.name || '',
+                    en: separatedEggPartsByLang.en.find(x => x.key === partKey)?.name || '',
+                    esp: separatedEggPartsByLang.esp.find(x => x.key === partKey)?.name || '',
+                    prt: separatedEggPartsByLang.prt.find(x => x.key === partKey)?.name || '',
+                    id: separatedEggPartsByLang.id.find(x => x.key === partKey)?.name || '',
+                    nl: separatedEggPartsByLang.nl.find(x => x.key === partKey)?.name || '',
+                    sv: separatedEggPartsByLang.sv.find(x => x.key === partKey)?.name || '',
+                    da: separatedEggPartsByLang.da.find(x => x.key === partKey)?.name || '',
+                    no: separatedEggPartsByLang.no.find(x => x.key === partKey)?.name || '',
+                    ms: separatedEggPartsByLang.ms.find(x => x.key === partKey)?.name || ''
+                };
+                const genusByLang = {
+                    de: separatedEggPartsByLang.de.find(x => x.key === partKey)?.genus || 'n',
+                    en: separatedEggPartsByLang.en.find(x => x.key === partKey)?.genus || 'n',
+                    esp: separatedEggPartsByLang.esp.find(x => x.key === partKey)?.genus || 'f',
+                    prt: separatedEggPartsByLang.prt.find(x => x.key === partKey)?.genus || 'f',
+                    id: separatedEggPartsByLang.id.find(x => x.key === partKey)?.genus || 'n',
+                    nl: separatedEggPartsByLang.nl.find(x => x.key === partKey)?.genus || 'n',
+                    sv: separatedEggPartsByLang.sv.find(x => x.key === partKey)?.genus || 'n',
+                    da: separatedEggPartsByLang.da.find(x => x.key === partKey)?.genus || 'n',
+                    no: separatedEggPartsByLang.no.find(x => x.key === partKey)?.genus || 'n',
+                    ms: separatedEggPartsByLang.ms.find(x => x.key === partKey)?.genus || 'n'
+                };
+                synthetic.push({
+                    id: `${item.id || item.sourceBaseId || 'ingredient'}__${partKey}`,
+                    name: namesByLang[resolveLangKey(currentLang)] || namesByLang.de,
+                    namesByLang,
+                    genusDe: genusByLang.de,
+                    genusLocalized: genusByLang[resolveLangKey(currentLang)] || genusByLang.de,
+                    genusByLang,
+                    iconHtml: item.iconHtml || '',
+                    sourceBaseId: item.sourceBaseId || item.id || ''
+                });
+            });
+            return synthetic;
+        }
+
+        function collectSelectedStepDerivationDescriptors() {
+            return $('#selectedSteps .step-row').map(function () {
+                const row = $(this);
+                const masterId = (row.data('master-template-id') || row.attr('data-master-template-id') || '').toString();
+                if (!masterId) return null;
+
+                const stableReferenceRaw = (row.data('step-reference-json') || row.attr('data-step-reference-json') || '').toString();
+                let stableReference = {};
+                try { stableReference = stableReferenceRaw ? JSON.parse(stableReferenceRaw) : {}; } catch (_) { stableReference = {}; }
+
+                return {
+                    masterId,
+                    ingredientName: (row.data('ingredient-name') || row.attr('data-ingredient-name') || '').toString(),
+                    stableReference
+                };
+            }).get().filter(Boolean);
+        }
+
+        function deriveIngredientsForSteps(baseItems, stepDescriptors, langKey = currentLang) {
+            let items = Array.isArray(baseItems) ? [...baseItems] : [];
+            const descriptors = Array.isArray(stepDescriptors) ? stepDescriptors : [];
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+
+            descriptors.forEach(function (descriptor) {
+                const masterId = (descriptor?.masterId || '').toString();
+                if (!masterId) return;
+
+                if (masterId === 'PREP_SEPARATE_01') {
+                    const targets = items.filter(item => {
+                        const deName = (item.namesByLang?.de || item.name || '').toString();
+                        const normalized = normalizeIngredientMatchValue(deName, 'de');
+                        return normalized === 'ei' || normalized === 'egg' || normalized.includes('ei ') || normalized.includes('egg ');
+                    });
+                    if (!targets.length) return;
+
+                    const targetIds = new Set(targets.map(item => item.id));
+                    const replacements = targets.flatMap(buildSeparatedEggItemsFromBase);
+                    items = items.filter(item => !targetIds.has(item.id)).concat(replacements);
+                    return;
+                }
+
+                const transformType =
+                    masterId === 'PREP_MINCE_01' ? 'mince' :
+                    masterId === 'PREP_GRATE_01' ? 'grate' :
+                    masterId === 'PREP_CUT_01' ? resolveCutTransformationType(descriptor?.stableReference || {}) :
+                    '';
+
+                if (!transformType) return;
+
+                const matched = matchSandboxItemsByStep(items, {
+                    data: function (key) {
+                        if (key === 'step-reference-json') return JSON.stringify(descriptor?.stableReference || {});
+                        if (key === 'ingredient-name') return descriptor?.ingredientName || '';
+                        return '';
+                    },
+                    attr: function (key) {
+                        if (key === 'data-step-reference-json') return JSON.stringify(descriptor?.stableReference || {});
+                        if (key === 'data-ingredient-name') return descriptor?.ingredientName || '';
+                        return '';
+                    }
+                }, lang);
+                if (!matched.length) return;
+
+                const matchedIds = new Set(matched.map(item => item.id));
+                const replacements = matched.map(item => {
+                    const namesByLang = {
+                        de: buildDerivedIngredientName(item.namesByLang?.de || item.name, transformType, 'de', item.genusByLang?.de),
+                        en: buildDerivedIngredientName(item.namesByLang?.en || item.namesByLang?.de || item.name, transformType, 'en', item.genusByLang?.en || item.genusByLang?.de),
+                        esp: buildDerivedIngredientName(item.namesByLang?.esp || item.namesByLang?.de || item.name, transformType, 'esp', item.genusByLang?.esp || item.genusByLang?.de),
+                        prt: buildDerivedIngredientName(item.namesByLang?.prt || item.namesByLang?.de || item.name, transformType, 'prt', item.genusByLang?.prt || item.genusByLang?.de),
+                        id: buildDerivedIngredientName(item.namesByLang?.id || item.namesByLang?.de || item.name, transformType, 'id', item.genusByLang?.id || item.genusByLang?.de),
+                        nl: buildDerivedIngredientName(item.namesByLang?.nl || item.namesByLang?.de || item.name, transformType, 'nl', item.genusByLang?.nl || item.genusByLang?.de),
+                        sv: buildDerivedIngredientName(item.namesByLang?.sv || item.namesByLang?.de || item.name, transformType, 'sv', item.genusByLang?.sv || item.genusByLang?.de),
+                        da: buildDerivedIngredientName(item.namesByLang?.da || item.namesByLang?.de || item.name, transformType, 'da', item.genusByLang?.da || item.genusByLang?.de),
+                        no: buildDerivedIngredientName(item.namesByLang?.no || item.namesByLang?.de || item.name, transformType, 'no', item.genusByLang?.no || item.genusByLang?.de),
+                        ms: buildDerivedIngredientName(item.namesByLang?.ms || item.namesByLang?.de || item.name, transformType, 'ms', item.genusByLang?.ms || item.genusByLang?.de)
+                    };
+                    return {
+                        id: `${item.id || item.sourceBaseId || 'ingredient'}__${transformType}`,
+                        name: namesByLang[lang] || namesByLang.de,
+                        namesByLang,
+                        genusDe: item.genusByLang?.de || item.genusDe || '',
+                        genusLocalized: item.genusByLang?.[lang] || item.genusLocalized || item.genusDe || '',
+                        genusByLang: item.genusByLang || {},
+                        iconHtml: item.iconHtml || '',
+                        sourceBaseId: item.sourceBaseId || item.id || ''
+                    };
+                });
+
+                items = items.filter(item => !matchedIds.has(item.id)).concat(replacements);
+            });
+
+            return items;
+        }
+
+        function deriveSandboxIngredients(baseItems) {
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.deriveIngredientsForSteps === 'function') {
+                return window.MasterStepCreatorHelpers.deriveIngredientsForSteps(baseItems, collectSelectedStepDerivationDescriptors(), currentLang);
+            }
+            return deriveIngredientsForSteps(baseItems, collectSelectedStepDerivationDescriptors(), currentLang);
+        }
+
+        function getSelectedIngredientsForSandbox(langKey = currentLang) {
+            const lang = resolveLangKey(langKey || currentLang || 'de');
+            const derived = deriveSandboxIngredients(getBaseSandboxIngredients());
+            return derived.map(item => ({
+                id: (item.id || '').toString(),
+                name: item.namesByLang?.[lang] || item.namesByLang?.de || item.name || 'Zutat',
+                namesByLang: item.namesByLang || {},
+                genusDe: item.genusByLang?.de || item.genusDe || '',
+                genusLocalized: item.genusByLang?.[lang] || item.genusLocalized || item.genusDe || '',
+                genusByLang: item.genusByLang || {},
+                iconHtml: item.iconHtml || '',
+                sourceBaseId: item.sourceBaseId || item.id || ''
+            }));
+        }
+
+        function localizeIngredientValueForSandbox(rawValue, targetLang, sourceLang = currentLang) {
+            const value = (rawValue || '').toString().trim();
+            if (!value) return '';
+
+            const sourceItems = getSelectedIngredientsForSandbox(sourceLang);
+            const targetItems = getSelectedIngredientsForSandbox(targetLang);
+            const byId = new Map(targetItems.map(item => [item.id, item]));
+            const tokens = splitIngredientNames(value, sourceLang);
+            if (!tokens.length) return value;
+
+            const localizedNames = tokens.map(token => {
+                const normalizedToken = normalizeIngredientMatchValue(token, sourceLang);
+                const sourceItem = sourceItems.find(item =>
+                    normalizeIngredientMatchValue(item.name || item.namesByLang?.[resolveLangKey(sourceLang)] || '', sourceLang) === normalizedToken
+                );
+                if (!sourceItem) return '';
+                const targetItem = byId.get(sourceItem.id);
+                return targetItem?.name || '';
+            }).filter(Boolean);
+
+            if (!localizedNames.length) return value;
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.resolveIngredientInsertValue === 'function') {
+                return window.MasterStepCreatorHelpers.resolveIngredientInsertValue(localizedNames, targetLang, value);
+            }
+            return localizedNames.join(', ');
+        }
+
+        function findCatalogIngredientRowByNames(namesByLang = {}) {
+            const entries = Object.entries(namesByLang)
+                .map(([lang, value]) => [lang, normalizeIngredientMatchValue(value, lang)])
+                .filter(([, value]) => !!value);
+
+            if (!entries.length) return $();
+
+            return $('.ingredient-db-row').filter(function () {
+                const row = $(this);
+                return entries.some(([lang, value]) => {
+                    const rowName = (row.data('name-' + lang) || '').toString().trim();
+                    return rowName && normalizeIngredientMatchValue(rowName, lang) === value;
+                });
+            }).first();
+        }
+
+        function setIngredientRowDisabled(row, disabled) {
+            row.find('input, select, textarea').prop('disabled', !!disabled);
+        }
+
+        function buildDerivedIngredientRowHtml(sourceRow, item, catalogRow) {
+            const qty = (sourceRow.find('.ingredient-qty-hidden').val() || '').toString();
+            const unitDe = (sourceRow.find('.ingredient-unit-hidden').val() || '').toString();
+            const unitObj = findUnitByDe(unitDe);
+            const unitLabel = getUnitLabel(unitObj, currentLang) || unitDe;
+            const fallbackName = item.namesByLang?.[resolveLangKey(currentLang)] || item.name || '';
+            const localizedData = catalogRow && catalogRow.length
+                ? getLocalizedIngredientData(catalogRow, fallbackName)
+                : {
+                    names: {
+                        de: item.namesByLang?.de || fallbackName,
+                        en: item.namesByLang?.en || item.namesByLang?.de || fallbackName,
+                        esp: item.namesByLang?.esp || item.namesByLang?.de || fallbackName,
+                        prt: item.namesByLang?.prt || item.namesByLang?.de || fallbackName,
+                        id: item.namesByLang?.id || item.namesByLang?.de || fallbackName,
+                        nl: item.namesByLang?.nl || item.namesByLang?.de || fallbackName,
+                        sv: item.namesByLang?.sv || item.namesByLang?.de || fallbackName,
+                        da: item.namesByLang?.da || item.namesByLang?.de || fallbackName,
+                        no: item.namesByLang?.no || item.namesByLang?.de || fallbackName,
+                        ms: item.namesByLang?.ms || item.namesByLang?.de || fallbackName
+                    },
+                    genus: {
+                        de: item.genusByLang?.de || '',
+                        en: item.genusByLang?.en || '',
+                        esp: item.genusByLang?.esp || '',
+                        prt: item.genusByLang?.prt || '',
+                        id: item.genusByLang?.id || '',
+                        nl: item.genusByLang?.nl || '',
+                        sv: item.genusByLang?.sv || '',
+                        da: item.genusByLang?.da || '',
+                        no: item.genusByLang?.no || '',
+                        ms: item.genusByLang?.ms || ''
+                    }
+                };
+            const iconHtml = (catalogRow && catalogRow.length ? catalogRow.data('group-icon') : '') || item.iconHtml || sourceRow.data('group-icon') || '';
+            const catalogId = (catalogRow && catalogRow.length ? (catalogRow.data('ingredient-id') || '') : '').toString();
+            let html = buildIngredientRowHtml({
+                id: catalogId || item.id || '',
+                localizedData,
+                selectedQuantity: qty,
+                selectedUnit: unitDe,
+                selectedUnitLabel: unitLabel,
+                displayName: localizedData.names[resolveLangKey(currentLang)] || localizedData.names.de || fallbackName,
+                iconHtml
+            });
+            html = html.replace(
+                '<div class="dynamic-item ingredient-row shadow-sm"',
+                `<div class="dynamic-item ingredient-row shadow-sm" data-derived-row="true" data-derived-source-base-id="${escapeAttr(item.sourceBaseId || '')}" data-derived-key="${escapeAttr(item.id || '')}"`
+            );
+            return html;
+        }
+
+        function applyDerivedIngredientRowVisuals() {
+            const selectedWrap = $('#selectedIngredients');
+            if (!selectedWrap.length) return;
+
+            const derivedItems = deriveSandboxIngredients(getBaseSandboxIngredients());
+            const derivedBySourceId = derivedItems.reduce((map, item) => {
+                const sourceId = (item.sourceBaseId || item.id || '').toString();
+                if (!sourceId) return map;
+                if (!map[sourceId]) map[sourceId] = [];
+                map[sourceId].push(item);
+                return map;
+            }, {});
+
+            selectedWrap.find('.ingredient-row[data-derived-row="true"]').remove();
+
+            selectedWrap.find('.ingredient-row').filter(function () {
+                return $(this).attr('data-derived-row') !== 'true';
+            }).each(function () {
+                const row = $(this);
+                const rowId = (row.find('input[name$="IngredientsAndNutrients.Id"]').val() || '').toString();
+                const names = derivedBySourceId[rowId] || [];
+                const isEggSplit = names.length > 1 && names.every(item => /__(egg_white|egg_yolk)$/.test((item.id || '').toString()));
+
+                if (isEggSplit) {
+                    row.addClass('d-none').attr('data-derived-hidden-source', 'true');
+                    setIngredientRowDisabled(row, true);
+                    names.forEach(function (item) {
+                        const catalogRow = findCatalogIngredientRowByNames(item.namesByLang || {});
+                        const derivedHtml = buildDerivedIngredientRowHtml(row, item, catalogRow);
+                        row.after(derivedHtml);
+                    });
+                    return;
+                }
+
+                row.removeClass('d-none').removeAttr('data-derived-hidden-source');
+                setIngredientRowDisabled(row, false);
+
+                const visibleItem = names.length === 1 ? names[0] : null;
+                const fallbackName = (row.data('name-' + resolveLangKey(currentLang)) || row.data('name-de') || '').toString().trim();
+                const displayName = visibleItem
+                    ? (visibleItem.namesByLang?.[resolveLangKey(currentLang)] || visibleItem.namesByLang?.de || visibleItem.name || fallbackName)
+                    : fallbackName;
+                row.find('.ingredient-name-text').text(displayName || fallbackName);
+            });
         }
 
         const createPostingThemeStorageKey = 'createPostingTheme';
@@ -819,7 +1377,7 @@
             baseValue: 'den Teig',
             baseArticleValue: 'den',
             activeBalanceTokenId: '',
-            balanceValue: 'die Säure',
+            balanceValue: 'Säure',
             balanceArticleValue: 'die',
             activeSeasoningsTokenId: '',
             seasoningsValue: 'Salz und Pfeffer'
@@ -1320,9 +1878,12 @@
         }
 
         function splitLeadingArticle(value, langKey = currentLang) {
+            const options = getEditorArticleOptions(langKey);
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.splitLeadingArticleByOptions === 'function') {
+                return window.MasterStepCreatorHelpers.splitLeadingArticleByOptions(value, options);
+            }
             const raw = (value || '').toString().trim();
             if (!raw) return { article: '', noun: '' };
-            const options = getEditorArticleOptions(langKey);
             const lower = raw.toLowerCase();
             const found = options.find(x => lower.startsWith(`${x.toLowerCase()} `));
             if (!found) return { article: '', noun: raw };
@@ -1330,6 +1891,9 @@
         }
 
         function composeArticleAndNoun(article, noun) {
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.composeArticleAndNoun === 'function') {
+                return window.MasterStepCreatorHelpers.composeArticleAndNoun(article, noun);
+            }
             const art = (article || '').toString().trim();
             const n = (noun || '').toString().trim();
             if (!n) return '';
@@ -1337,6 +1901,10 @@
         }
 
         function getNounOptions(options, langKey = currentLang) {
+            const articleOptions = getEditorArticleOptions(langKey);
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.getNounOptionsFromValues === 'function') {
+                return window.MasterStepCreatorHelpers.getNounOptionsFromValues(options, articleOptions);
+            }
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const result = (options || []).map(x => splitLeadingArticle(x, lang).noun).filter(Boolean);
             return Array.from(new Set(result));
@@ -1371,6 +1939,50 @@
             wrap.html(noArticleHtml + optionHtml);
         }
 
+        function buildArticleChoiceSelectionState(currentText, options, config) {
+            const opts = config || {};
+            const mode = (opts.mode || 'full').toString();
+            const fallback = (opts.fallback || '').toString();
+            const current = (currentText || '').toString().trim();
+            const available = Array.isArray(options) ? options : [];
+            const currentParts = splitLeadingArticle(current, currentLang);
+            const currentNoun = currentParts.noun || current;
+
+            let selected = '';
+            if (mode === 'noun') {
+                selected = available.find(x => (x || '').toString().trim().toLowerCase() === currentNoun.toLowerCase()) || '';
+            } else {
+                selected = available.find(x => (x || '').toString().trim().toLowerCase() === current.toLowerCase()) || '';
+                if (!selected && currentNoun) {
+                    selected = available.find(x => splitLeadingArticle(x, currentLang).noun.toLowerCase() === currentNoun.toLowerCase()) || '';
+                }
+            }
+            selected = selected || available[0] || fallback;
+
+            const selectedParts = splitLeadingArticle(selected, currentLang);
+            return {
+                article: currentParts.article || selectedParts.article || '',
+                noun: selectedParts.noun || currentNoun || selected,
+                selected
+            };
+        }
+
+        function renderArticleChoiceOptions(config) {
+            const opts = config || {};
+            const wrap = $(opts.optionsSelector);
+            if (!wrap.length) return;
+            renderArticleOptions(opts.articleSelector, opts.selectedArticle || '');
+            const optionClass = (opts.optionClass || '').toString().trim();
+            const options = getNounOptions(opts.options || [], currentLang);
+            const currentVal = splitLeadingArticle(opts.currentValue || '', currentLang).noun.toLowerCase();
+            const html = options.map(x => {
+                const isActive = currentVal === x.toLowerCase();
+                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
+                return `<button type="button" class="btn btn-sm ${btnClass} ${optionClass}" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
+            }).join('');
+            wrap.html(html);
+        }
+
         function getEquipmentOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
             const fallbackByLang = {
@@ -1403,10 +2015,9 @@
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
             const options = getEquipmentOptions();
-            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'die Pfanne';
-            const parts = splitLeadingArticle(selected, currentLang);
-            creatorState.equipmentArticleValue = parts.article;
-            creatorState.equipmentValue = selected;
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'die Pfanne', mode: 'full' });
+            creatorState.equipmentArticleValue = selection.article;
+            creatorState.equipmentValue = selection.selected;
             renderInlineEquipmentOptions();
             placeEditorLikeTemperature('#equipmentEditor');
             $('#equipmentEditor').removeClass('d-none');
@@ -1418,17 +2029,14 @@
         }
 
         function renderInlineEquipmentOptions() {
-            const wrap = $('#inlineEquipmentOptions');
-            if (!wrap.length) return;
-            renderArticleOptions('#inlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
-            const options = getNounOptions(getEquipmentOptions(), currentLang);
-            const currentVal = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun.toLowerCase();
-            const html = options.map(x => {
-                const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
-                return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
-            }).join('');
-            wrap.html(html);
+            renderArticleChoiceOptions({
+                optionsSelector: '#inlineEquipmentOptions',
+                articleSelector: '#inlineEquipmentArticleOptions',
+                options: getEquipmentOptions(),
+                selectedArticle: creatorState.equipmentArticleValue,
+                currentValue: creatorState.equipmentValue,
+                optionClass: 'inline-equipment-opt'
+            });
         }
 
         function getStateOptions() {
@@ -1503,10 +2111,9 @@
             creatorState.activeToolTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
             const options = getToolOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'Messer';
-            const parts = splitLeadingArticle(selected, currentLang);
-            creatorState.toolArticleValue = parts.article;
-            creatorState.toolValue = composeArticleAndNoun(parts.article, parts.noun || selected);
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'Messer', mode: 'noun' });
+            creatorState.toolArticleValue = selection.article;
+            creatorState.toolValue = selection.noun;
             renderInlineToolOptions();
             $('#toolEditor').removeClass('d-none');
         }
@@ -1517,17 +2124,14 @@
         }
 
         function renderInlineToolOptions() {
-            const wrap = $('#inlineToolOptions');
-            if (!wrap.length) return;
-            renderArticleOptions('#inlineToolArticleOptions', creatorState.toolArticleValue);
-            const options = getNounOptions(getToolOptions(), currentLang);
-            const currentVal = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun.toLowerCase();
-            const html = options.map(x => {
-                const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
-                return `<button type="button" class="btn btn-sm ${btnClass} inline-tool-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
-            }).join('');
-            wrap.html(html);
+            renderArticleChoiceOptions({
+                optionsSelector: '#inlineToolOptions',
+                articleSelector: '#inlineToolArticleOptions',
+                options: getToolOptions(),
+                selectedArticle: creatorState.toolArticleValue,
+                currentValue: creatorState.toolValue,
+                optionClass: 'inline-tool-opt'
+            });
         }
 
         function getGrindSizeOptions() {
@@ -1646,10 +2250,9 @@
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
             const options = getBaseOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'den Teig';
-            const parts = splitLeadingArticle(selected, currentLang);
-            creatorState.baseArticleValue = parts.article;
-            creatorState.baseValue = selected;
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'den Teig', mode: 'full' });
+            creatorState.baseArticleValue = selection.article;
+            creatorState.baseValue = selection.selected;
             renderInlineBaseOptions();
             $('#baseEditor').removeClass('d-none');
         }
@@ -1660,17 +2263,14 @@
         }
 
         function renderInlineBaseOptions() {
-            const wrap = $('#inlineBaseOptions');
-            if (!wrap.length) return;
-            renderArticleOptions('#inlineBaseArticleOptions', creatorState.baseArticleValue);
-            const options = getNounOptions(getBaseOptions(), currentLang);
-            const currentVal = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun.toLowerCase();
-            const html = options.map(x => {
-                const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
-                return `<button type="button" class="btn btn-sm ${btnClass} inline-base-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
-            }).join('');
-            wrap.html(html);
+            renderArticleChoiceOptions({
+                optionsSelector: '#inlineBaseOptions',
+                articleSelector: '#inlineBaseArticleOptions',
+                options: getBaseOptions(),
+                selectedArticle: creatorState.baseArticleValue,
+                currentValue: creatorState.baseValue,
+                optionClass: 'inline-base-opt'
+            });
         }
         function getItemOptions() {
             return getNounOptions(getBaseAndItemOptions(), currentLang);
@@ -1681,11 +2281,9 @@
             creatorState.activeItemTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
             const options = getItemOptions();
-            const parts = splitLeadingArticle(currentText, currentLang);
-            const currentNoun = (parts.noun || currentText).toLowerCase();
-            const selected = options.find(x => x.toLowerCase() === currentNoun) || options[0] || 'Teig';
-            creatorState.itemArticleValue = parts.article || creatorState.itemArticleValue || '';
-            creatorState.itemValue = parts.noun || selected;
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'Teig', mode: 'noun' });
+            creatorState.itemArticleValue = selection.article || creatorState.itemArticleValue || '';
+            creatorState.itemValue = selection.noun;
             renderInlineItemOptions();
             placeEditorLikeTemperature('#itemEditor');
             $('#itemEditor').removeClass('d-none');
@@ -1697,17 +2295,14 @@
         }
 
         function renderInlineItemOptions() {
-            const wrap = $('#inlineItemOptions');
-            if (!wrap.length) return;
-            renderArticleOptions('#inlineItemArticleOptions', creatorState.itemArticleValue);
-            const options = getNounOptions(getItemOptions(), currentLang);
-            const currentVal = (creatorState.itemValue || '').toString().trim().toLowerCase();
-            const html = options.map(x => {
-                const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
-                return `<button type="button" class="btn btn-sm ${btnClass} inline-item-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
-            }).join('');
-            wrap.html(html);
+            renderArticleChoiceOptions({
+                optionsSelector: '#inlineItemOptions',
+                articleSelector: '#inlineItemArticleOptions',
+                options: getItemOptions(),
+                selectedArticle: creatorState.itemArticleValue,
+                currentValue: creatorState.itemValue,
+                optionClass: 'inline-item-opt'
+            });
         }
 
         function getBalanceOptions() {
@@ -1715,10 +2310,10 @@
             if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
                 const options = MasterStepRenderer.getVariablePresets('balance', lang);
                 if (Array.isArray(options) && options.length) {
-                    return options;
+                    return getNounOptions(options, currentLang);
                 }
             }
-            return ['die Säure', 'die Süße', 'die Schärfe'];
+            return ['Säure', 'Süße', 'Schärfe'];
         }
 
         function openBalanceEditorForToken(tokenId) {
@@ -1726,10 +2321,9 @@
             creatorState.activeBalanceTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
             const options = getBalanceOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'die Säure';
-            const parts = splitLeadingArticle(selected, currentLang);
-            creatorState.balanceArticleValue = parts.article;
-            creatorState.balanceValue = selected;
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'Säure', mode: 'noun' });
+            creatorState.balanceArticleValue = selection.article || creatorState.balanceArticleValue || '';
+            creatorState.balanceValue = selection.noun;
             renderInlineBalanceOptions();
             placeEditorLikeTemperature('#balanceEditor');
             $('#balanceEditor').removeClass('d-none');
@@ -1741,17 +2335,14 @@
         }
 
         function renderInlineBalanceOptions() {
-            const wrap = $('#inlineBalanceOptions');
-            if (!wrap.length) return;
-            renderArticleOptions('#inlineBalanceArticleOptions', creatorState.balanceArticleValue);
-            const options = getNounOptions(getBalanceOptions(), currentLang);
-            const currentVal = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun.toLowerCase();
-            const html = options.map(x => {
-                const isActive = currentVal === x.toLowerCase();
-                const btnClass = isActive ? 'btn-light text-dark' : 'btn-outline-light';
-                return `<button type="button" class="btn btn-sm ${btnClass} inline-balance-opt" data-value="${$('<div>').text(x).html()}">${$('<div>').text(x).html()}</button>`;
-            }).join('');
-            wrap.html(html);
+            renderArticleChoiceOptions({
+                optionsSelector: '#inlineBalanceOptions',
+                articleSelector: '#inlineBalanceArticleOptions',
+                options: getBalanceOptions(),
+                selectedArticle: creatorState.balanceArticleValue,
+                currentValue: creatorState.balanceValue,
+                optionClass: 'inline-balance-opt'
+            });
         }
 
         function getSeasoningsOptions() {
@@ -1911,7 +2502,7 @@
             }
 
             if (keyNorm === 'balance') {
-                return getBalanceOptions()[0] || 'die Säure';
+                return getBalanceOptions()[0] || 'Säure';
             }
 
             if (keyNorm === 'seasonings' || keyNorm === 'spices') {
@@ -2066,22 +2657,11 @@
             const langKey = (currentLang || 'de').toLowerCase();
             const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
             const vars = buildVariablesForTemplate(templateId);
-            let placeholderOccurrence = 0;
-
-            const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
-                const k = String(key || '').trim();
-                const tokenId = `${k}__${placeholderOccurrence++}`;
-                const fallback = vars[k] != null ? String(vars[k]).trim() : k;
-                const assigned = creatorState.placeholderAssignments[tokenId];
-                const value = assigned || fallback || k;
-                const safeValue = $('<div>').text(value).html();
-                const safeFallback = $('<div>').text(fallback || k).html();
-                const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
-                return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
-                    <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
-                </span>`;
-            });
+            const previewHtml = window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate === 'function'
+                ? window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate(tpl, vars, creatorState.placeholderAssignments, {
+                    activeTokenId: creatorState.activePlaceholderTokenId
+                })
+                : (tpl || '');
 
             $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
             creatorState.previewText = $('#masterPreviewText').text().trim() || 'Keine Vorschau verfügbar.';
@@ -2218,6 +2798,7 @@
         function refreshMasterTemplateBuilder() {
             try {
                 applyCurrentThemeAttributes();
+                applyDerivedIngredientRowVisuals();
                 renderIngredientChips();
                 renderTemplateCards();
                 applyCurrentThemeAttributes();
@@ -2526,6 +3107,15 @@
             }
         });
 
+        window.CreatePostingIngredientHelpers = Object.assign(window.CreatePostingIngredientHelpers || {}, {
+            getSelectedIngredientsForSandbox: getSelectedIngredientsForSandbox,
+            localizeIngredientValueForSandbox: localizeIngredientValueForSandbox
+        });
+
+        window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
+            deriveIngredientsForSteps: deriveIngredientsForSteps
+        });
+
         async function refreshIngredientProbabilityHints() {
             if (!probabilityFeature) return;
             await probabilityFeature.refresh();
@@ -2552,6 +3142,7 @@
                 const unitLabel = getUnitLabel(unitObj, langKey) || unitDe;
                 row.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
             });
+            applyDerivedIngredientRowVisuals();
             syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
             $('.keyword-pill').each(function () { $(this).find('.keyword-text').text($(this).data('word-' + langKey)); });
@@ -3006,12 +3597,16 @@
             </div>`);
 
             updateStepIndices();
+            applyDerivedIngredientRowVisuals();
+            renderIngredientChips();
 
         }
 
         function removeStep(btn) {
             $(btn).closest('.step-row').remove();
             updateStepIndices();
+            applyDerivedIngredientRowVisuals();
+            renderIngredientChips();
         }
 
         function removeStepsByMasterTemplateId(masterId) {
@@ -3026,6 +3621,8 @@
 
             rows.remove();
             updateStepIndices();
+            applyDerivedIngredientRowVisuals();
+            renderIngredientChips();
             showCreatorToast('Step(s) entfernt');
         }
 
@@ -3148,21 +3745,11 @@
             const langKey = (currentLang || 'de').toLowerCase();
             const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
             const vars = buildVariablesForTemplate(templateId);
-            let placeholderOccurrence = 0;
-            const previewHtml = (tpl || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
-                const k = String(key || '').trim();
-                const tokenId = `${k}__${placeholderOccurrence++}`;
-                const fallback = vars[k] != null ? String(vars[k]).trim() : k;
-                const assigned = creatorState.placeholderAssignments[tokenId];
-                const value = assigned || fallback || k;
-                const safeValue = $('<div>').text(value).html();
-                const safeFallback = $('<div>').text(fallback || k).html();
-                const activeClass = creatorState.activePlaceholderTokenId === tokenId ? ' token-active' : '';
-                return `<span class="placeholder-wrap" data-placeholder-token-id="${tokenId}">
-                    <span class="token-highlight placeholder-token${activeClass}" draggable="false" data-placeholder-key="${k}" data-placeholder-token-id="${tokenId}">${safeValue}</span>
-                    <button type="button" class="placeholder-reset" data-placeholder-token-id="${tokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
-                </span>`;
-            });
+            const previewHtml = window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate === 'function'
+                ? window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate(tpl, vars, creatorState.placeholderAssignments, {
+                    activeTokenId: creatorState.activePlaceholderTokenId
+                })
+                : (tpl || '');
             $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfügbar.');
             if (!creatorState.ingredientReplaceArmed) { $('#sc2MasterPreviewCard').removeClass('token-replace-active'); }
             const sc2Card = $('#sc2MasterPreviewCard');
@@ -3303,17 +3890,17 @@
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
-            creatorState.equipmentArticleValue = parts.article;
-            creatorState.equipmentValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getEquipmentOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-equipment-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineEquipmentOptions').html(chips);
+            const selection = buildArticleChoiceSelectionState(currentText, getEquipmentOptions(), { fallback: 'die Pfanne', mode: 'noun' });
+            creatorState.equipmentArticleValue = selection.article;
+            creatorState.equipmentValue = selection.noun;
+            renderArticleChoiceOptions({
+                optionsSelector: '#sc2InlineEquipmentOptions',
+                articleSelector: '#sc2InlineEquipmentArticleOptions',
+                options: getEquipmentOptions(),
+                selectedArticle: creatorState.equipmentArticleValue,
+                currentValue: creatorState.equipmentValue,
+                optionClass: 'inline-equipment-opt'
+            });
             $('#sc2EquipmentEditor').removeClass('d-none');
         }
         function openSc2StateEditorForToken(tokenId) {
@@ -3326,17 +3913,17 @@
             if (!tokenId) return;
             creatorState.activeToolTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
-            creatorState.toolArticleValue = parts.article;
-            creatorState.toolValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getToolOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-tool-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineToolOptions').html(chips);
+            const selection = buildArticleChoiceSelectionState(currentText, getToolOptions(), { fallback: 'Messer', mode: 'noun' });
+            creatorState.toolArticleValue = selection.article;
+            creatorState.toolValue = selection.noun;
+            renderArticleChoiceOptions({
+                optionsSelector: '#sc2InlineToolOptions',
+                articleSelector: '#sc2InlineToolArticleOptions',
+                options: getToolOptions(),
+                selectedArticle: creatorState.toolArticleValue,
+                currentValue: creatorState.toolValue,
+                optionClass: 'inline-tool-opt'
+            });
             $('#sc2ToolEditor').removeClass('d-none');
         }
         function openSc2GrindSizeEditorForToken(tokenId) {
@@ -3355,51 +3942,51 @@
             if (!tokenId) return;
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
-            creatorState.baseArticleValue = parts.article;
-            creatorState.baseValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getBaseOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-base-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineBaseOptions').html(chips);
+            const selection = buildArticleChoiceSelectionState(currentText, getBaseOptions(), { fallback: 'den Teig', mode: 'noun' });
+            creatorState.baseArticleValue = selection.article;
+            creatorState.baseValue = selection.noun;
+            renderArticleChoiceOptions({
+                optionsSelector: '#sc2InlineBaseOptions',
+                articleSelector: '#sc2InlineBaseArticleOptions',
+                options: getBaseOptions(),
+                selectedArticle: creatorState.baseArticleValue,
+                currentValue: creatorState.baseValue,
+                optionClass: 'inline-base-opt'
+            });
             $('#sc2BaseEditor').removeClass('d-none');
         }
         function openSc2ItemEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeItemTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
-            creatorState.itemArticleValue = parts.article || creatorState.itemArticleValue || '';
-            creatorState.itemValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getItemOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-item-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineItemOptions').html(chips);
+            const selection = buildArticleChoiceSelectionState(currentText, getItemOptions(), { fallback: 'Teig', mode: 'noun' });
+            creatorState.itemArticleValue = selection.article || creatorState.itemArticleValue || '';
+            creatorState.itemValue = selection.noun;
+            renderArticleChoiceOptions({
+                optionsSelector: '#sc2InlineItemOptions',
+                articleSelector: '#sc2InlineItemArticleOptions',
+                options: getItemOptions(),
+                selectedArticle: creatorState.itemArticleValue,
+                currentValue: creatorState.itemValue,
+                optionClass: 'inline-item-opt'
+            });
             $('#sc2ItemEditor').removeClass('d-none');
         }
         function openSc2BalanceEditorForToken(tokenId) {
             if (!tokenId) return;
             creatorState.activeBalanceTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
-            const parts = splitLeadingArticle(currentText, currentLang);
-            creatorState.balanceArticleValue = parts.article;
-            creatorState.balanceValue = parts.noun || currentText;
-            renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
-            const currentVal = (parts.noun || currentText).toLowerCase();
-            const chips = getNounOptions(getBalanceOptions(), currentLang).map(opt => {
-                const isActive = currentVal && currentVal === opt.toLowerCase();
-                const safe = $('<div>').text(opt).html();
-                return `<button type="button" class="btn btn-sm ${isActive ? 'btn-light text-dark active' : 'btn-outline-light'} inline-balance-opt" data-value="${safe}">${safe}</button>`;
-            }).join('');
-            $('#sc2InlineBalanceOptions').html(chips);
+            const selection = buildArticleChoiceSelectionState(currentText, getBalanceOptions(), { fallback: 'Säure', mode: 'noun' });
+            creatorState.balanceArticleValue = selection.article || creatorState.balanceArticleValue || '';
+            creatorState.balanceValue = selection.noun;
+            renderArticleChoiceOptions({
+                optionsSelector: '#sc2InlineBalanceOptions',
+                articleSelector: '#sc2InlineBalanceArticleOptions',
+                options: getBalanceOptions(),
+                selectedArticle: creatorState.balanceArticleValue,
+                currentValue: creatorState.balanceValue,
+                optionClass: 'inline-balance-opt'
+            });
             $('#sc2BalanceEditor').removeClass('d-none');
         }
         function openSc2SeasoningsEditorForToken(tokenId) {
@@ -3457,6 +4044,25 @@
                     creatorState.activePlaceholderTokenId = sc2EditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
                     sc2EditorDispatch[placeholderType].open(tokenId);
                     showSc2CreatorToast(sc2EditorDispatch[placeholderType].toast);
+                } else if (typeof openProbVarInlineEditor === 'function') {
+                    creatorState.activePlaceholderTokenId = tokenId;
+                    openProbVarInlineEditor(
+                        creatorState.selectedTemplateId || '',
+                        key,
+                        creatorState.placeholderAssignments[tokenId] || '',
+                        function (selectedValue) {
+                            creatorState.placeholderAssignments[tokenId] = selectedValue;
+                            renderSc2TemplateCards();
+                        },
+                        null,
+                        function (extras) {
+                            if (!extras || !extras.pronoun) return;
+                            const pronounTokenId = $(`#sc2MasterPreviewText .placeholder-token[data-placeholder-key="pronoun"]`).data('placeholder-token-id');
+                            if (pronounTokenId) {
+                                creatorState.placeholderAssignments[pronounTokenId] = extras.pronoun;
+                            }
+                        }
+                    );
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
@@ -3690,6 +4296,25 @@
                         creatorState.activePlaceholderTokenId = placeholderEditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
                         placeholderEditorDispatch[placeholderType].open(tokenId);
                         showCreatorToast(placeholderEditorDispatch[placeholderType].toast);
+                    } else if (typeof openProbVarInlineEditor === 'function') {
+                        creatorState.activePlaceholderTokenId = tokenId;
+                        openProbVarInlineEditor(
+                            creatorState.selectedTemplateId || '',
+                            key,
+                            creatorState.placeholderAssignments[tokenId] || '',
+                            function (selectedValue) {
+                                creatorState.placeholderAssignments[tokenId] = selectedValue;
+                                renderTemplateCards();
+                            },
+                            null,
+                            function (extras) {
+                                if (!extras || !extras.pronoun) return;
+                                const pronounTokenId = $(`#masterPreviewText .placeholder-token[data-placeholder-key="pronoun"]`).data('placeholder-token-id');
+                                if (pronounTokenId) {
+                                    creatorState.placeholderAssignments[pronounTokenId] = extras.pronoun;
+                                }
+                            }
+                        );
                     } else {
                         creatorState.activePlaceholderTokenId = '';
                     }
@@ -3857,6 +4482,58 @@
                 });
             }
 
+            function bindArticleChoiceEditorHandlers(config) {
+                const {
+                    articleContainer,
+                    optionsContainer,
+                    optionButtonClass,
+                    articleStateKey,
+                    valueStateKey,
+                    render,
+                    applyButton,
+                    activeTokenKey,
+                    closeEditor,
+                    toast,
+                    toastFn,
+                    composeDuringSelection,
+                    composeOnApply
+                } = config;
+
+                const showToast = typeof toastFn === 'function' ? toastFn : showCreatorToast;
+
+                if (articleContainer) {
+                    $(articleContainer).on('click', '.inline-article-opt', function () {
+                        const val = ($(this).data('value') || '').toString().trim();
+                        creatorState[articleStateKey] = val;
+                        if (composeDuringSelection) {
+                            const noun = splitLeadingArticle(creatorState[valueStateKey] || '', currentLang).noun;
+                            creatorState[valueStateKey] = composeArticleAndNoun(val, noun);
+                        }
+                        render();
+                    });
+                }
+
+                $(optionsContainer).on('click', optionButtonClass, function () {
+                    const val = ($(this).data('value') || '').toString().trim();
+                    creatorState[valueStateKey] = composeDuringSelection
+                        ? composeArticleAndNoun(creatorState[articleStateKey], val)
+                        : val;
+                    render();
+                });
+
+                $(applyButton).on('click', function () {
+                    const tokenId = creatorState[activeTokenKey];
+                    const val = (creatorState[valueStateKey] || '').toString().trim();
+                    if (!tokenId || !val) return;
+                    creatorState.placeholderAssignments[tokenId] = composeOnApply
+                        ? composeArticleAndNoun(creatorState[articleStateKey], val)
+                        : val;
+                    closeEditor();
+                    showToast(toast);
+                    renderTemplateCards();
+                });
+            }
+
             bindSimpleEditorOptionHandlers({
                 optionsContainer: '#inlineHeatOptions',
                 optionButtonClass: '.inline-heat-opt',
@@ -3919,61 +4596,81 @@
                 }, 50);
             });
 
-            $('#inlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.equipmentValue = composeArticleAndNoun(creatorState.equipmentArticleValue, val);
-                renderInlineEquipmentOptions();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#inlineEquipmentArticleOptions',
+                optionsContainer: '#inlineEquipmentOptions',
+                optionButtonClass: '.inline-equipment-opt',
+                articleStateKey: 'equipmentArticleValue',
+                valueStateKey: 'equipmentValue',
+                render: renderInlineEquipmentOptions,
+                applyButton: '#btnApplyEquipment',
+                activeTokenKey: 'activeEquipmentTokenId',
+                closeEditor: closeEquipmentEditor,
+                toast: 'Tool / GerÃ¤t eingesetzt',
+                composeDuringSelection: true,
+                composeOnApply: false
             });
 
-            $('#inlineEquipmentArticleOptions').on('click', '.inline-article-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.equipmentArticleValue = val;
-                const noun = splitLeadingArticle(creatorState.equipmentValue || '', currentLang).noun;
-                creatorState.equipmentValue = composeArticleAndNoun(val, noun);
-                renderInlineEquipmentOptions();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#inlineToolArticleOptions',
+                optionsContainer: '#inlineToolOptions',
+                optionButtonClass: '.inline-tool-opt',
+                articleStateKey: 'toolArticleValue',
+                valueStateKey: 'toolValue',
+                render: renderInlineToolOptions,
+                applyButton: '#btnApplyTool',
+                activeTokenKey: 'activeToolTokenId',
+                closeEditor: closeToolEditor,
+                toast: 'Werkzeug eingesetzt',
+                composeDuringSelection: true,
+                composeOnApply: false
             });
 
-            $('#inlineToolArticleOptions').on('click', '.inline-article-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.toolArticleValue = val;
-                const noun = splitLeadingArticle(creatorState.toolValue || '', currentLang).noun;
-                creatorState.toolValue = composeArticleAndNoun(val, noun);
-                renderInlineToolOptions();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#inlineBaseArticleOptions',
+                optionsContainer: '#inlineBaseOptions',
+                optionButtonClass: '.inline-base-opt',
+                articleStateKey: 'baseArticleValue',
+                valueStateKey: 'baseValue',
+                render: renderInlineBaseOptions,
+                applyButton: '#btnApplyBase',
+                activeTokenKey: 'activeBaseTokenId',
+                closeEditor: closeBaseEditor,
+                toast: 'Basis eingesetzt',
+                composeDuringSelection: true,
+                composeOnApply: false
             });
 
-            $('#inlineBaseArticleOptions').on('click', '.inline-article-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.baseArticleValue = val;
-                const noun = splitLeadingArticle(creatorState.baseValue || '', currentLang).noun;
-                creatorState.baseValue = composeArticleAndNoun(val, noun);
-                renderInlineBaseOptions();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#inlineItemArticleOptions',
+                optionsContainer: '#inlineItemOptions',
+                optionButtonClass: '.inline-item-opt',
+                articleStateKey: 'itemArticleValue',
+                valueStateKey: 'itemValue',
+                render: renderInlineItemOptions,
+                applyButton: '#btnApplyItem',
+                activeTokenKey: 'activeItemTokenId',
+                closeEditor: closeItemEditor,
+                toast: 'Item eingesetzt',
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
-            $('#inlineItemArticleOptions').on('click', '.inline-article-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.itemArticleValue = val;
-                creatorState.itemValue = (creatorState.itemValue || '').toString().trim();
-                renderInlineItemOptions();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#inlineBalanceArticleOptions',
+                optionsContainer: '#inlineBalanceOptions',
+                optionButtonClass: '.inline-balance-opt',
+                articleStateKey: 'balanceArticleValue',
+                valueStateKey: 'balanceValue',
+                render: renderInlineBalanceOptions,
+                applyButton: '#btnApplyBalance',
+                activeTokenKey: 'activeBalanceTokenId',
+                closeEditor: closeBalanceEditor,
+                toast: 'Balance eingesetzt',
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
-            $('#inlineBalanceArticleOptions').on('click', '.inline-article-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.balanceArticleValue = val;
-                const noun = splitLeadingArticle(creatorState.balanceValue || '', currentLang).noun;
-                creatorState.balanceValue = composeArticleAndNoun(val, noun);
-                renderInlineBalanceOptions();
-            });
-
-            $('#btnApplyEquipment').on('click', function () {
-                const tokenId = creatorState.activeEquipmentTokenId;
-                const val = (creatorState.equipmentValue || '').toString().trim();
-                if (!tokenId || !val) return;
-                creatorState.equipmentValue = val;
-                creatorState.placeholderAssignments[tokenId] = val;
-                closeEquipmentEditor();
-                showCreatorToast('Tool / Gerät eingesetzt');
-                renderTemplateCards();
-            });
 
             bindSimpleEditorOptionHandlers({
                 optionsContainer: '#inlineStateOptions',
@@ -3986,21 +4683,6 @@
                 toast: 'Zustand eingesetzt'
             });
 
-            $('#inlineToolOptions').on('click', '.inline-tool-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.toolValue = composeArticleAndNoun(creatorState.toolArticleValue, val);
-                renderInlineToolOptions();
-            });
-
-            $('#btnApplyTool').on('click', function () {
-                const tokenId = creatorState.activeToolTokenId;
-                const val = (creatorState.toolValue || '').toString().trim();
-                if (!tokenId || !val) return;
-                creatorState.placeholderAssignments[tokenId] = val;
-                closeToolEditor();
-                showCreatorToast('Werkzeug eingesetzt');
-                renderTemplateCards();
-            });
 
             bindSimpleEditorOptionHandlers({
                 optionsContainer: '#inlineGrindSizeOptions',
@@ -4024,54 +4706,6 @@
                 toast: 'Schnittform eingesetzt'
             });
 
-            $('#inlineBaseOptions').on('click', '.inline-base-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.baseValue = composeArticleAndNoun(creatorState.baseArticleValue, val);
-                renderInlineBaseOptions();
-            });
-
-            $('#btnApplyBase').on('click', function () {
-                const tokenId = creatorState.activeBaseTokenId;
-                const val = (creatorState.baseValue || '').toString().trim();
-                if (!tokenId || !val) return;
-                creatorState.baseValue = val;
-                creatorState.placeholderAssignments[tokenId] = val;
-                closeBaseEditor();
-                showCreatorToast('Basis eingesetzt');
-                renderTemplateCards();
-            });
-
-            $('#inlineItemOptions').on('click', '.inline-item-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.itemValue = val;
-                renderInlineItemOptions();
-            });
-
-            $('#btnApplyItem').on('click', function () {
-                const tokenId = creatorState.activeItemTokenId;
-                const val = (creatorState.itemValue || '').toString().trim();
-                if (!tokenId || !val) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.itemArticleValue, val);
-                closeItemEditor();
-                showCreatorToast('Item eingesetzt');
-                renderTemplateCards();
-            });
-
-            $('#inlineBalanceOptions').on('click', '.inline-balance-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.balanceValue = composeArticleAndNoun(creatorState.balanceArticleValue, val);
-                renderInlineBalanceOptions();
-            });
-
-            $('#btnApplyBalance').on('click', function () {
-                const tokenId = creatorState.activeBalanceTokenId;
-                const val = (creatorState.balanceValue || '').toString().trim();
-                if (!tokenId || !val) return;
-                creatorState.placeholderAssignments[tokenId] = val;
-                closeBalanceEditor();
-                showCreatorToast('Balance eingesetzt');
-                renderTemplateCards();
-            });
 
             bindSimpleEditorOptionHandlers({
                 optionsContainer: '#inlineSeasoningsOptions',
@@ -4392,23 +5026,29 @@
             });
 
             // SC2 Equipment
-            $('#sc2InlineEquipmentArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.equipmentArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineEquipmentArticleOptions', creatorState.equipmentArticleValue);
-            });
-            $('#sc2InlineEquipmentOptions').on('click', '.inline-equipment-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.equipmentValue = val;
-                $('#sc2InlineEquipmentOptions .inline-equipment-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
-            });
-            $('#sc2BtnApplyEquipment').on('click', function () {
-                const tokenId = creatorState.activeEquipmentTokenId;
-                if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.equipmentArticleValue, creatorState.equipmentValue);
-                closeSc2EquipmentEditor();
-                showSc2CreatorToast('Tool eingesetzt');
-                renderTemplateCards();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#sc2InlineEquipmentArticleOptions',
+                optionsContainer: '#sc2InlineEquipmentOptions',
+                optionButtonClass: '.inline-equipment-opt',
+                articleStateKey: 'equipmentArticleValue',
+                valueStateKey: 'equipmentValue',
+                render: function () {
+                    renderArticleChoiceOptions({
+                        optionsSelector: '#sc2InlineEquipmentOptions',
+                        articleSelector: '#sc2InlineEquipmentArticleOptions',
+                        options: getEquipmentOptions(),
+                        selectedArticle: creatorState.equipmentArticleValue,
+                        currentValue: creatorState.equipmentValue,
+                        optionClass: 'inline-equipment-opt'
+                    });
+                },
+                applyButton: '#sc2BtnApplyEquipment',
+                activeTokenKey: 'activeEquipmentTokenId',
+                closeEditor: closeSc2EquipmentEditor,
+                toast: 'Tool eingesetzt',
+                toastFn: showSc2CreatorToast,
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
             // SC2 State
@@ -4428,23 +5068,29 @@
             });
 
             // SC2 Tool
-            $('#sc2InlineToolArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.toolArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineToolArticleOptions', creatorState.toolArticleValue);
-            });
-            $('#sc2InlineToolOptions').on('click', '.inline-tool-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.toolValue = val;
-                $('#sc2InlineToolOptions .inline-tool-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
-            });
-            $('#sc2BtnApplyTool').on('click', function () {
-                const tokenId = creatorState.activeToolTokenId;
-                if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.toolArticleValue, creatorState.toolValue);
-                closeSc2ToolEditor();
-                showSc2CreatorToast('Werkzeug eingesetzt');
-                renderTemplateCards();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#sc2InlineToolArticleOptions',
+                optionsContainer: '#sc2InlineToolOptions',
+                optionButtonClass: '.inline-tool-opt',
+                articleStateKey: 'toolArticleValue',
+                valueStateKey: 'toolValue',
+                render: function () {
+                    renderArticleChoiceOptions({
+                        optionsSelector: '#sc2InlineToolOptions',
+                        articleSelector: '#sc2InlineToolArticleOptions',
+                        options: getToolOptions(),
+                        selectedArticle: creatorState.toolArticleValue,
+                        currentValue: creatorState.toolValue,
+                        optionClass: 'inline-tool-opt'
+                    });
+                },
+                applyButton: '#sc2BtnApplyTool',
+                activeTokenKey: 'activeToolTokenId',
+                closeEditor: closeSc2ToolEditor,
+                toast: 'Werkzeug eingesetzt',
+                toastFn: showSc2CreatorToast,
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
             // SC2 GrindSize
@@ -4480,63 +5126,81 @@
             });
 
             // SC2 Base
-            $('#sc2InlineBaseArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.baseArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineBaseArticleOptions', creatorState.baseArticleValue);
-            });
-            $('#sc2InlineBaseOptions').on('click', '.inline-base-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.baseValue = val;
-                $('#sc2InlineBaseOptions .inline-base-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
-            });
-            $('#sc2BtnApplyBase').on('click', function () {
-                const tokenId = creatorState.activeBaseTokenId;
-                if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.baseArticleValue, creatorState.baseValue);
-                closeSc2BaseEditor();
-                showSc2CreatorToast('Basis eingesetzt');
-                renderTemplateCards();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#sc2InlineBaseArticleOptions',
+                optionsContainer: '#sc2InlineBaseOptions',
+                optionButtonClass: '.inline-base-opt',
+                articleStateKey: 'baseArticleValue',
+                valueStateKey: 'baseValue',
+                render: function () {
+                    renderArticleChoiceOptions({
+                        optionsSelector: '#sc2InlineBaseOptions',
+                        articleSelector: '#sc2InlineBaseArticleOptions',
+                        options: getBaseOptions(),
+                        selectedArticle: creatorState.baseArticleValue,
+                        currentValue: creatorState.baseValue,
+                        optionClass: 'inline-base-opt'
+                    });
+                },
+                applyButton: '#sc2BtnApplyBase',
+                activeTokenKey: 'activeBaseTokenId',
+                closeEditor: closeSc2BaseEditor,
+                toast: 'Basis eingesetzt',
+                toastFn: showSc2CreatorToast,
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
             // SC2 Item
-            $('#sc2InlineItemArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.itemArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineItemArticleOptions', creatorState.itemArticleValue);
-            });
-            $('#sc2InlineItemOptions').on('click', '.inline-item-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.itemValue = val;
-                $('#sc2InlineItemOptions .inline-item-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
-            });
-            $('#sc2BtnApplyItem').on('click', function () {
-                const tokenId = creatorState.activeItemTokenId;
-                if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.itemArticleValue, creatorState.itemValue);
-                closeSc2ItemEditor();
-                showSc2CreatorToast('Item eingesetzt');
-                renderTemplateCards();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#sc2InlineItemArticleOptions',
+                optionsContainer: '#sc2InlineItemOptions',
+                optionButtonClass: '.inline-item-opt',
+                articleStateKey: 'itemArticleValue',
+                valueStateKey: 'itemValue',
+                render: function () {
+                    renderArticleChoiceOptions({
+                        optionsSelector: '#sc2InlineItemOptions',
+                        articleSelector: '#sc2InlineItemArticleOptions',
+                        options: getItemOptions(),
+                        selectedArticle: creatorState.itemArticleValue,
+                        currentValue: creatorState.itemValue,
+                        optionClass: 'inline-item-opt'
+                    });
+                },
+                applyButton: '#sc2BtnApplyItem',
+                activeTokenKey: 'activeItemTokenId',
+                closeEditor: closeSc2ItemEditor,
+                toast: 'Item eingesetzt',
+                toastFn: showSc2CreatorToast,
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
             // SC2 Balance
-            $('#sc2InlineBalanceArticleOptions').on('click', '.inline-article-opt', function () {
-                creatorState.balanceArticleValue = ($(this).data('value') || '').toString();
-                renderArticleOptions('#sc2InlineBalanceArticleOptions', creatorState.balanceArticleValue);
-            });
-            $('#sc2InlineBalanceOptions').on('click', '.inline-balance-opt', function () {
-                const val = ($(this).data('value') || '').toString().trim();
-                creatorState.balanceValue = val;
-                $('#sc2InlineBalanceOptions .inline-balance-opt').removeClass('btn-light text-dark active').addClass('btn-outline-light');
-                $(this).removeClass('btn-outline-light').addClass('btn-light text-dark active');
-            });
-            $('#sc2BtnApplyBalance').on('click', function () {
-                const tokenId = creatorState.activeBalanceTokenId;
-                if (!tokenId) return;
-                creatorState.placeholderAssignments[tokenId] = composeArticleAndNoun(creatorState.balanceArticleValue, creatorState.balanceValue);
-                closeSc2BalanceEditor();
-                showSc2CreatorToast('Balance eingesetzt');
-                renderTemplateCards();
+            bindArticleChoiceEditorHandlers({
+                articleContainer: '#sc2InlineBalanceArticleOptions',
+                optionsContainer: '#sc2InlineBalanceOptions',
+                optionButtonClass: '.inline-balance-opt',
+                articleStateKey: 'balanceArticleValue',
+                valueStateKey: 'balanceValue',
+                render: function () {
+                    renderArticleChoiceOptions({
+                        optionsSelector: '#sc2InlineBalanceOptions',
+                        articleSelector: '#sc2InlineBalanceArticleOptions',
+                        options: getBalanceOptions(),
+                        selectedArticle: creatorState.balanceArticleValue,
+                        currentValue: creatorState.balanceValue,
+                        optionClass: 'inline-balance-opt'
+                    });
+                },
+                applyButton: '#sc2BtnApplyBalance',
+                activeTokenKey: 'activeBalanceTokenId',
+                closeEditor: closeSc2BalanceEditor,
+                toast: 'Balance eingesetzt',
+                toastFn: showSc2CreatorToast,
+                composeDuringSelection: false,
+                composeOnApply: true
             });
 
             // SC2 Seasonings

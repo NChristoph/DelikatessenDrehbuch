@@ -260,6 +260,49 @@
         }
       ]
     },
+    "copula": {
+      "description": "Ausgelagerte Optionen für Variable \u0027copula\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "singular",
+          "labels": {
+            "de": "ist",
+            "en": "is",
+            "esp": "es",
+            "prt": "é",
+            "id": "adalah",
+            "nl": "is",
+            "sv": "är",
+            "da": "er",
+            "no": "er",
+            "ms": "ialah"
+          },
+          "tags": [
+            "variable:copula",
+            "value:singular"
+          ]
+        },
+        {
+          "key": "plural",
+          "labels": {
+            "de": "sind",
+            "en": "are",
+            "esp": "son",
+            "prt": "são",
+            "id": "adalah",
+            "nl": "zijn",
+            "sv": "är",
+            "da": "er",
+            "no": "er",
+            "ms": "ialah"
+          },
+          "tags": [
+            "variable:copula",
+            "value:plural"
+          ]
+        }
+      ]
+    },
     "heat": {
       "description": "Ausgelagerte Optionen für Variable \u0027heat\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
       "options": [
@@ -690,6 +733,50 @@
           "tags": [
             "variable:action",
             "value:putze"
+          ]
+        },
+        {
+          "key": "tupfe",
+          "labels": {
+            "de": "tupfe",
+            "en": "pat",
+            "esp": "seca",
+            "prt": "seque",
+            "id": "tepuk",
+            "nl": "dep",
+            "sv": "torka",
+            "da": "dup",
+            "no": "tork",
+            "ms": "lap"
+          },
+          "tags": [
+            "variable:action",
+            "value:tupfe",
+            "prep",
+            "dry",
+            "wash"
+          ]
+        },
+        {
+          "key": "schuettele",
+          "labels": {
+            "de": "schüttle",
+            "en": "shake",
+            "esp": "sacude",
+            "prt": "sacuda",
+            "id": "guncang",
+            "nl": "schud",
+            "sv": "skaka",
+            "da": "ryst",
+            "no": "rist",
+            "ms": "goncang"
+          },
+          "tags": [
+            "variable:action",
+            "value:schuettele",
+            "prep",
+            "dry",
+            "wash"
           ]
         }
       ]
@@ -2308,13 +2395,13 @@
           "labels": {
             "de": "Masse",
             "en": "mixture",
-            "esp": "la mezcla",
-            "prt": "a mistura",
+            "esp": "mezcla",
+            "prt": "mistura",
             "id": "adonan",
-            "nl": "de massa",
-            "sv": "massan",
-            "da": "massen",
-            "no": "massen",
+            "nl": "massa",
+            "sv": "massa",
+            "da": "masse",
+            "no": "masse",
             "ms": "adunan"
           },
           "tags": [
@@ -2328,13 +2415,13 @@
           "labels": {
             "de": "Teig",
             "en": "dough",
-            "esp": "la masa",
-            "prt": "a massa",
+            "esp": "masa",
+            "prt": "massa",
             "id": "adonan dasar",
-            "nl": "het deeg",
-            "sv": "degen",
-            "da": "dejen",
-            "no": "deigen",
+            "nl": "deeg",
+            "sv": "deg",
+            "da": "dej",
+            "no": "deig",
             "ms": "doh"
           },
           "tags": [
@@ -2359,13 +2446,13 @@
           "labels": {
             "de": "Creme",
             "en": "cream",
-            "esp": "la crema",
-            "prt": "o creme",
+            "esp": "crema",
+            "prt": "creme",
             "id": "krim",
-            "nl": "de crème",
-            "sv": "krämen",
-            "da": "cremen",
-            "no": "kremen",
+            "nl": "crème",
+            "sv": "kräm",
+            "da": "creme",
+            "no": "krem",
             "ms": "krim"
           },
           "tags": [
@@ -2382,13 +2469,13 @@
           "labels": {
             "de": "Sauce",
             "en": "sauce",
-            "esp": "la salsa",
-            "prt": "o molho",
+            "esp": "salsa",
+            "prt": "molho",
             "id": "saus",
-            "nl": "de saus",
-            "sv": "såsen",
-            "da": "saucen",
-            "no": "sausen",
+            "nl": "saus",
+            "sv": "sås",
+            "da": "sauce",
+            "no": "saus",
             "ms": "sos"
           },
           "tags": [
@@ -2690,15 +2777,15 @@
         {
           "key": "die_s_ure",
           "labels": {
-            "de": "die Säure",
-            "en": "the acidity",
-            "esp": "la acidez",
-            "prt": "a acidez",
+            "de": "Säure",
+            "en": "acidity",
+            "esp": "acidez",
+            "prt": "acidez",
             "id": "keasaman",
-            "nl": "de zuurgraad",
-            "sv": "syran",
-            "da": "syren",
-            "no": "syren",
+            "nl": "zuurgraad",
+            "sv": "syra",
+            "da": "syre",
+            "no": "syre",
             "ms": "keasidan"
           },
           "tags": [
@@ -2710,15 +2797,15 @@
         {
           "key": "die_s_e",
           "labels": {
-            "de": "die Süße",
-            "en": "the sweetness",
-            "esp": "la dulzura",
-            "prt": "a doçura",
+            "de": "Süße",
+            "en": "sweetness",
+            "esp": "dulzura",
+            "prt": "doçura",
             "id": "kemanisan",
-            "nl": "de zoetheid",
-            "sv": "sötman",
-            "da": "sødmen",
-            "no": "sødmen",
+            "nl": "zoetheid",
+            "sv": "sötma",
+            "da": "sødme",
+            "no": "sødme",
             "ms": "kemanisan"
           },
           "tags": [
@@ -2730,15 +2817,15 @@
         {
           "key": "die_sch_rfe",
           "labels": {
-            "de": "die Schärfe",
-            "en": "the spiciness",
-            "esp": "el picante",
-            "prt": "o picante",
+            "de": "Schärfe",
+            "en": "spiciness",
+            "esp": "picante",
+            "prt": "picante",
             "id": "kepedasan",
-            "nl": "de pittigheid",
-            "sv": "hettan",
-            "da": "styrken",
-            "no": "styrken",
+            "nl": "pittigheid",
+            "sv": "hetta",
+            "da": "styrke",
+            "no": "styrke",
             "ms": "kepedasan"
           },
           "tags": [
@@ -2750,15 +2837,15 @@
         {
           "key": "die_w_rze",
           "labels": {
-            "de": "die Würze",
-            "en": "the seasoning",
-            "esp": "el sazón",
-            "prt": "o tempero",
+            "de": "Würze",
+            "en": "seasoning",
+            "esp": "sazón",
+            "prt": "tempero",
             "id": "bumbunya",
-            "nl": "de kruiding",
-            "sv": "smaken",
-            "da": "krydringen",
-            "no": "krydringen",
+            "nl": "kruiding",
+            "sv": "smak",
+            "da": "krydring",
+            "no": "krydring",
             "ms": "perasa"
           },
           "tags": [
@@ -2770,15 +2857,15 @@
         {
           "key": "die_cremigkeit",
           "labels": {
-            "de": "die Cremigkeit",
-            "en": "the creaminess",
-            "esp": "la cremosidad",
-            "prt": "a cremosidade",
+            "de": "Cremigkeit",
+            "en": "creaminess",
+            "esp": "cremosidad",
+            "prt": "cremosidade",
             "id": "kekremian",
-            "nl": "de romigheid",
-            "sv": "krämigheten",
-            "da": "kremetheden",
-            "no": "kremetheten",
+            "nl": "romigheid",
+            "sv": "krämighet",
+            "da": "kremethed",
+            "no": "kremethet",
             "ms": "kekreman"
           },
           "tags": [
@@ -2790,15 +2877,15 @@
         {
           "key": "die_frische",
           "labels": {
-            "de": "die Frische",
-            "en": "the freshness",
-            "esp": "la frescura",
-            "prt": "a frescura",
+            "de": "Frische",
+            "en": "freshness",
+            "esp": "frescura",
+            "prt": "frescura",
             "id": "kesegaran",
-            "nl": "de frisheid",
-            "sv": "fräschheten",
-            "da": "friskheden",
-            "no": "friskheten",
+            "nl": "frisheid",
+            "sv": "fräschhet",
+            "da": "friskhed",
+            "no": "friskhet",
             "ms": "kesegaran"
           },
           "tags": [
@@ -3084,7 +3171,7 @@
         {
           "key": "den_teig",
           "labels": {
-            "de": "🍞 den Teig",
+            "de": "🍞 Teig",
             "en": "🍞 dough",
             "esp": "🍞 masa",
             "prt": "🍞 massa",
@@ -3111,7 +3198,7 @@
         {
           "key": "die_masse",
           "labels": {
-            "de": "🥣 die Masse",
+            "de": "🥣 Masse",
             "en": "🥣 batter",
             "esp": "🥣 mezcla",
             "prt": "🥣 mistura",
@@ -3130,7 +3217,7 @@
         {
           "key": "die_mischung",
           "labels": {
-            "de": "🥣 die Mischung",
+            "de": "🥣 Mischung",
             "en": "🥣 mixture",
             "esp": "🥣 preparación",
             "prt": "🥣 preparação",
@@ -3149,7 +3236,7 @@
         {
           "key": "das_gericht",
           "labels": {
-            "de": "🍽️ das Gericht",
+            "de": "🍽️ Gericht",
             "en": "🍽️ dish",
             "esp": "🍽️ plato",
             "prt": "🍽️ prato",
@@ -3170,12 +3257,12 @@
         {
           "key": "den_braten",
           "labels": {
-            "de": "🍖 den Braten",
+            "de": "🍖 Braten",
             "en": "🍖 roast",
-            "esp": "🍖 el asado",
-            "prt": "🍖 o assado",
+            "esp": "🍖 asado",
+            "prt": "🍖 assado",
             "id": "🍖 daging panggang",
-            "nl": "🍖 het braadstuk",
+            "nl": "🍖 braadstuk",
             "sv": "🍖 steken",
             "da": "🍖 stegen",
             "no": "🍖 steken",
@@ -4062,15 +4149,15 @@
         {
           "key": "das_kochwasser",
           "labels": {
-            "de": "das Kochwasser",
-            "en": "the cooking water",
-            "esp": "el agua de cocción",
-            "prt": "a água da cozedura",
+            "de": "Kochwasser",
+            "en": "cooking water",
+            "esp": "agua de cocción",
+            "prt": "água da cozedura",
             "id": "air rebusan",
-            "nl": "het kookwater",
-            "sv": "kokvattnet",
-            "da": "kogevandet",
-            "no": "kokevannet",
+            "nl": "kookwater",
+            "sv": "kokvatten",
+            "da": "kogevand",
+            "no": "kokevann",
             "ms": "air rebusan"
           },
           "tags": [
@@ -4081,15 +4168,15 @@
         {
           "key": "die_br_he",
           "labels": {
-            "de": "die Brühe",
-            "en": "the broth",
-            "esp": "el caldo",
-            "prt": "o caldo",
+            "de": "Brühe",
+            "en": "broth",
+            "esp": "caldo",
+            "prt": "caldo",
             "id": "kaldu",
-            "nl": "de bouillon",
-            "sv": "buljongen",
-            "da": "bouillonen",
-            "no": "kraften",
+            "nl": "bouillon",
+            "sv": "buljong",
+            "da": "bouillon",
+            "no": "kraft",
             "ms": "stok"
           },
           "tags": [
@@ -4100,15 +4187,15 @@
         {
           "key": "die_sauce",
           "labels": {
-            "de": "die Sauce",
-            "en": "the sauce",
-            "esp": "la salsa",
-            "prt": "o molho",
+            "de": "Sauce",
+            "en": "sauce",
+            "esp": "salsa",
+            "prt": "molho",
             "id": "saus",
-            "nl": "de saus",
-            "sv": "såsen",
-            "da": "saucen",
-            "no": "sausen",
+            "nl": "saus",
+            "sv": "sås",
+            "da": "sauce",
+            "no": "saus",
             "ms": "sos"
           },
           "tags": [
@@ -4127,15 +4214,15 @@
         {
           "key": "den_sud",
           "labels": {
-            "de": "den Sud",
-            "en": "the liquid",
-            "esp": "el líquido",
-            "prt": "o líquido",
+            "de": "Sud",
+            "en": "liquid",
+            "esp": "líquido",
+            "prt": "líquido",
             "id": "cairan rebusan",
-            "nl": "het vocht",
-            "sv": "vätskan",
-            "da": "væsken",
-            "no": "væsken",
+            "nl": "vocht",
+            "sv": "vätska",
+            "da": "væske",
+            "no": "væske",
             "ms": "cecair"
           },
           "tags": [
@@ -4442,15 +4529,15 @@
         {
           "key": "die_zutaten",
           "labels": {
-            "de": "die Zutaten",
-            "en": "the ingredients",
-            "esp": "los ingredientes",
-            "prt": "os ingredientes",
+            "de": "Zutaten",
+            "en": "ingredients",
+            "esp": "ingredientes",
+            "prt": "ingredientes",
             "id": "bahan-bahan",
-            "nl": "de ingredienten",
-            "sv": "ingredienserna",
-            "da": "ingredienserne",
-            "no": "ingrediensene",
+            "nl": "ingrediënten",
+            "sv": "ingredienser",
+            "da": "ingredienser",
+            "no": "ingredienser",
             "ms": "bahan-bahan"
           },
           "tags": [

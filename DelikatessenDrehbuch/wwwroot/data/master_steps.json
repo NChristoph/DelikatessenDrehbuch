@@ -810,23 +810,25 @@
       "equipment": 0,
       "description": "Waschen und Trocknen von Zutaten",
       "templates": {
-        "de": "Wasche {{ingredient}} gründlich und tupfe {{pronoun}} trocken.",
-        "en": "Wash {{ingredient}} thoroughly and pat {{pronoun}} dry.",
-        "esp": "Lava {{ingredient}} a fondo y sécalo bien.",
-        "prt": "Lave {{ingredient}} bem e seque-o bem.",
-        "id": "Cuci {{ingredient}} hingga bersih lalu keringkan dengan ditepuk-tepuk.",
-        "nl": "Was {{ingredient}} grondig en dep {{pronoun}} droog.",
-        "sv": "Tvätta {{ingredient}} noggrant och torka {{pronoun}} torr.",
-        "da": "Vask {{ingredient}} grundigt og dup {{pronoun}} tør.",
-        "no": "Vask {{ingredient}} grundig og tørk {{pronoun}} tørr.",
-        "ms": "Basuh {{ingredient}} hingga bersih dan lap kering."
+        "de": "Wasche {{ingredient}} gründlich und {{action}} {{pronoun}} trocken.",
+        "en": "Wash {{ingredient}} thoroughly and {{action}} {{pronoun}} dry.",
+        "esp": "Lava {{ingredient}} a fondo y {{action}} bien.",
+        "prt": "Lave {{ingredient}} bem e {{action}} bem.",
+        "id": "Cuci {{ingredient}} hingga bersih lalu {{action}} hingga kering.",
+        "nl": "Was {{ingredient}} grondig en {{action}} {{pronoun}} droog.",
+        "sv": "Tvätta {{ingredient}} noggrant och {{action}} {{pronoun}} torr.",
+        "da": "Vask {{ingredient}} grundigt og {{action}} {{pronoun}} tør.",
+        "no": "Vask {{ingredient}} grundig og {{action}} {{pronoun}} tørr.",
+        "ms": "Basuh {{ingredient}} hingga bersih dan {{action}} sehingga kering."
       },
       "variables": [
         "ingredient",
+        "action",
         "pronoun"
       ],
       "required_variables": [
         "ingredient",
+        "action",
         "pronoun"
       ],
       "optional_variables": null,
@@ -2052,6 +2054,68 @@
         "variable:state",
         "category:soup",
         "variable:copula"
+      ]
+    },
+    {
+      "master_id": "COOK_SIMMER_02",
+      "phase": 2,
+      "action": "simmer",
+      "equipment": 3,
+      "description": "Köcheln lassen, bis eine Zutat den Zielzustand erreicht",
+      "templates": {
+        "de": "Lasse {{ingredient}} bei niedriger Hitze {{duration}} köcheln, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Let {{ingredient}} simmer over low heat for {{duration}} until {{pronoun}} {{state}} {{copula}}.",
+        "esp": "Deja que {{ingredient}} hierva a fuego lento durante {{duration}} hasta que {{pronoun}} {{state}} {{copula}}.",
+        "prt": "Deixe {{ingredient}} cozinhar em fogo baixo por {{duration}} até que {{pronoun}} {{state}} {{copula}}.",
+        "id": "Biarkan {{ingredient}} mendidih perlahan selama {{duration}} hingga {{pronoun}} {{state}} {{copula}}.",
+        "nl": "Laat {{ingredient}} {{duration}} zachtjes sudderen tot {{pronoun}} {{state}} {{copula}}.",
+        "sv": "Låt {{ingredient}} sjuda på låg värme i {{duration}} tills {{pronoun}} {{state}} {{copula}}.",
+        "da": "Lad {{ingredient}} simre ved lav varme i {{duration}}, indtil {{pronoun}} {{state}} {{copula}}.",
+        "no": "La {{ingredient}} småkoke på lav varme i {{duration}} til {{pronoun}} {{state}} {{copula}}.",
+        "ms": "Biarkan {{ingredient}} mereneh pada api kecil selama {{duration}} sehingga {{pronoun}} {{state}} {{copula}}."
+      },
+      "variables": [
+        "ingredient",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:simmer",
+        "technique:simmer",
+        "köcheln",
+        "koecheln",
+        "simmer",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "equipment_id:3",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "variable:copula",
+        "category:soup"
       ]
     },
     {

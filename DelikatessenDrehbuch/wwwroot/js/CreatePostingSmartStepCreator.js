@@ -675,6 +675,105 @@
         return processed;
     }
 
+    // Shared placeholder renderer for other creator UIs that need the same
+    // clickable token/reset structure for a single template preview.
+    function renderAssignedPlaceholderTemplate(templateRaw, values, assignments, config) {
+        const template = (templateRaw || "").toString();
+        if (!template) return "";
+
+        const opts = config || {};
+        const activeTokenId = (opts.activeTokenId || "").toString();
+        const tokenKeyAttr = (opts.tokenKeyAttr || "data-placeholder-key").toString();
+        const tokenIdAttr = (opts.tokenIdAttr || "data-placeholder-token-id").toString();
+        const wrapAttr = (opts.wrapAttr || tokenIdAttr).toString();
+        let placeholderIndex = 0;
+
+        return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_match, rawKey) {
+            const key = (rawKey || "").toString().trim();
+            const tokenId = `${key}__${placeholderIndex++}`;
+            const fallback = values && values[key] != null ? String(values[key]).trim() : key;
+            const assigned = assignments && assignments[tokenId] != null ? String(assignments[tokenId]).trim() : "";
+            const value = assigned || fallback || key;
+            const activeClass = activeTokenId === tokenId ? " token-active" : "";
+            const safeKey = escapeHtml(key);
+            const safeTokenId = escapeHtml(tokenId);
+            const safeValue = escapeHtml(value);
+            const safeFallback = escapeHtml(fallback || key);
+
+            return `<span class="placeholder-wrap" ${wrapAttr}="${safeTokenId}">
+                    <span class="token-highlight placeholder-token${activeClass}" draggable="false" ${tokenKeyAttr}="${safeKey}" ${tokenIdAttr}="${safeTokenId}">${safeValue}</span>
+                    <button type="button" class="placeholder-reset" ${tokenIdAttr}="${safeTokenId}" data-default-value="${safeFallback}" title="Zurücksetzen">&#8630;</button>
+                </span>`;
+        });
+    }
+
+    function splitLeadingArticleByOptions(value, articleOptions) {
+        const raw = (value || "").toString().trim();
+        if (!raw) return { article: "", noun: "" };
+        const options = Array.isArray(articleOptions) ? articleOptions : [];
+        const lower = raw.toLowerCase();
+        const found = options.find(option => {
+            const candidate = (option || "").toString().trim();
+            return candidate && lower.startsWith(`${candidate.toLowerCase()} `);
+        });
+        if (!found) return { article: "", noun: raw };
+        return { article: found, noun: raw.substring(found.length).trim() };
+    }
+
+    function composeArticleAndNoun(article, noun) {
+        const art = (article || "").toString().trim();
+        const n = (noun || "").toString().trim();
+        if (!n) return "";
+        return art && art !== "ohne" ? `${art} ${n}` : n;
+    }
+
+    function getNounOptionsFromValues(options, articleOptions) {
+        const nouns = (options || [])
+            .map(option => splitLeadingArticleByOptions(option, articleOptions).noun)
+            .filter(Boolean);
+        return Array.from(new Set(nouns));
+    }
+
+    function splitEditorPrefillValue(rawValue, config) {
+        const opts = config || {};
+        const rawCurrentVal = (rawValue || "").toString().trim();
+        const articleOptions = Array.isArray(opts.articleOptions) ? opts.articleOptions : [];
+        const pronounOptions = Array.isArray(opts.pronounOptions) ? opts.pronounOptions : [];
+        const stateVar = opts.stateVar === true;
+        const ingredientVar = opts.ingredientVar === true;
+        const noArticleVar = opts.noArticleVar === true;
+        const suppressPronounButtons = opts.suppressPronounButtons === true;
+
+        let prefilledArticle = "";
+        let prefilledPronoun = "";
+        let prefilledValue = rawCurrentVal;
+
+        if (stateVar && !suppressPronounButtons && rawCurrentVal) {
+            const pronounMatch = pronounOptions.find(option => {
+                const value = (option || "").toString().trim();
+                if (!value) return false;
+                const lowerCurrent = rawCurrentVal.toLowerCase();
+                const lowerOption = value.toLowerCase();
+                return lowerCurrent === lowerOption || lowerCurrent.startsWith(`${lowerOption} `);
+            });
+
+            if (pronounMatch) {
+                prefilledPronoun = pronounMatch;
+                prefilledValue = rawCurrentVal.slice(pronounMatch.length).trim();
+            }
+        } else if (!ingredientVar && !noArticleVar && rawCurrentVal) {
+            const parts = splitLeadingArticleByOptions(rawCurrentVal, articleOptions);
+            prefilledArticle = parts.article || "";
+            prefilledValue = parts.noun || rawCurrentVal;
+        }
+
+        return {
+            article: prefilledArticle,
+            pronoun: prefilledPronoun,
+            value: prefilledValue
+        };
+    }
+
     // Renders a read-only template preview for the step-card list.
     // Optional [{{var}}] segments appear as small faded badges instead of raw [brackets].
     function renderSnippetTokens(text) {
@@ -901,6 +1000,16 @@
     }
 
     function getSelectedIngredientsFromPage() {
+        if (window.CreatePostingIngredientHelpers && typeof window.CreatePostingIngredientHelpers.getSelectedIngredientsForSandbox === "function") {
+            return window.CreatePostingIngredientHelpers.getSelectedIngredientsForSandbox(currentLang).map(item => ({
+                name: (item?.name || "").toString().trim(),
+                icon: (item?.iconHtml || "").toString().trim(),
+                namesByLang: item?.namesByLang || {},
+                genusByLang: item?.genusByLang || {},
+                id: (item?.id || "").toString()
+            })).filter(x => x.name);
+        }
+
         const rows = Array.from(document.querySelectorAll("#selectedIngredients .ingredient-row"));
         let items = rows.map(row => {
             const name = (row.querySelector(".ingredient-name-text")?.textContent || "").trim();
@@ -1291,7 +1400,15 @@
     function getRenderedTextForLang(step, lang) {
         const langKey = (lang || DEFAULT_LANG).toLowerCase();
         const templateRaw = step?.templates?.[langKey] ?? step?.templates?.[DEFAULT_LANG] ?? activeStep?.templateRaw ?? "";
-        const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", activeStep?.values || {});
+        const values = { ...(activeStep?.values || {}) };
+        if (window.CreatePostingIngredientHelpers && typeof window.CreatePostingIngredientHelpers.localizeIngredientValueForSandbox === "function") {
+            ["ingredient", "ingredient2", "ingredients", "liquid", "fat"].forEach(function (key) {
+                if (!values[key]) return;
+                const localized = window.CreatePostingIngredientHelpers.localizeIngredientValueForSandbox(values[key], langKey, currentLang);
+                if (localized) values[key] = localized;
+            });
+        }
+        const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", values);
         const temp = document.createElement("div");
         temp.innerHTML = rendered || "";
         temp.querySelectorAll(".placeholder-reset, .optional-inline-pill").forEach(el => el.remove());
@@ -1719,39 +1836,20 @@
         const scoringCtx = buildCurrentScoringContext();
         const articleOptions = getArticleOptions();
         const pronounOptions = getVarOptions('pronoun', optionsMasterId, scoringCtx);
-        let prefilledArticle = '';
-        let prefilledPronoun = '';
-        let prefilledValue = rawCurrentVal;
+        const prefilled = splitEditorPrefillValue(rawCurrentVal, {
+            articleOptions,
+            pronounOptions,
+            stateVar,
+            ingredientVar,
+            noArticleVar,
+            suppressPronounButtons
+        });
+        const prefilledArticle = prefilled.article;
+        const prefilledPronoun = prefilled.pronoun;
+        const prefilledValue = prefilled.value;
 
-        if (stateVar && !suppressPronounButtons && rawCurrentVal) {
-            const pronounMatch = pronounOptions.find(option => {
-                const value = (option || '').toString().trim();
-                if (!value) return false;
-                const lowerCurrent = rawCurrentVal.toLowerCase();
-                const lowerOption = value.toLowerCase();
-                return lowerCurrent === lowerOption || lowerCurrent.startsWith(`${lowerOption} `);
-            });
-
-            if (pronounMatch) {
-                prefilledPronoun = pronounMatch;
-                prefilledValue = rawCurrentVal.slice(pronounMatch.length).trim();
-            }
-        } else if (!ingredientVar && !noArticleVar && rawCurrentVal) {
-            const articleMatch = articleOptions.find(option => {
-                const value = (option || '').toString().trim();
-                if (!value || value === 'ohne') return false;
-                const lowerCurrent = rawCurrentVal.toLowerCase();
-                const lowerOption = value.toLowerCase();
-                return lowerCurrent === lowerOption || lowerCurrent.startsWith(`${lowerOption} `);
-            });
-
-            if (articleMatch) {
-                prefilledArticle = articleMatch;
-                prefilledValue = rawCurrentVal.slice(articleMatch.length).trim();
-            }
-        }
-
-        const articleButtons = (ingredientVar || noArticleVar) ? '' : renderPillButtons(articleOptions, 'article', prefilledArticle);
+        const showArticleButtons = !noArticleVar;
+        const articleButtons = showArticleButtons ? renderPillButtons(articleOptions, 'article', prefilledArticle) : '';
         const pronounButtons = (stateVar && !suppressPronounButtons) ? renderPillButtons(['', ...pronounOptions], 'pronoun', prefilledPronoun) : '';
         const ingredientItems = ingredientVar ? getSelectedIngredientsFromPage() : [];
         const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, optionsMasterId, scoringCtx);
@@ -1770,7 +1868,7 @@
         return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="${escapeHtml(prefilledArticle)}" data-selected-pronoun="${escapeHtml(prefilledPronoun)}" data-selected-value="${escapeHtml(prefilledValue)}" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
   <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
   ${specialBlock}
-  ${(ingredientVar || noArticleVar) ? '' : `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>`}
+  ${showArticleButtons ? `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>` : ''}
   ${stateVar ? `<div class="small text-muted mt-2 mb-1">Pronomen</div><div class="d-flex flex-wrap gap-2 mb-2 js-pronoun-btn-row">${pronounButtons}</div>` : ''}
   <div class="d-flex flex-wrap gap-2 js-value-btn-row">
     ${valueButtons || (ingredientVar
@@ -1822,7 +1920,7 @@
         const article = editorEl.dataset.selectedArticle || '';
         const value = editorEl.dataset.selectedValue || '';
         if (!value) return null;
-        return (article && article !== 'ohne') ? `${article} ${value}` : value;
+        return composeArticleAndNoun(article, value);
     }
 
     // applyEditorExtras: returns companion variable values (e.g. pronoun for state vars).
@@ -1851,6 +1949,11 @@
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
         renderTemplateWithConfig,
+        renderAssignedPlaceholderTemplate,
+        splitLeadingArticleByOptions,
+        composeArticleAndNoun,
+        getNounOptionsFromValues,
+        splitEditorPrefillValue,
         buildInlineEditorHtml,
         applyEditorValue,
         applyEditorExtras,
