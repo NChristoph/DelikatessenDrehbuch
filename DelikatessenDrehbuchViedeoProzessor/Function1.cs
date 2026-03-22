@@ -73,6 +73,8 @@ namespace DelikatessenDrehbuchViedeoProzessor
             var inputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{Path.GetExtension(blobName)}");
             var outputBlobName = Path.GetFileNameWithoutExtension(blobName) + "_processed.mp4";
             var outputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}_processed.mp4");
+            var thumbBlobName = Path.GetFileNameWithoutExtension(blobName) + "_thumb.webp";
+            var thumbPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}_thumb.webp");
 
             try
             {
@@ -214,6 +216,47 @@ namespace DelikatessenDrehbuchViedeoProzessor
                 await outputBlob.UploadAsync(outputStream, overwrite: true);
                 await outputBlob.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = "video/mp4" });
 
+                // Thumbnail: Frame bei Sekunde 1 als WEBP (400x711)
+                _logger.LogInformation("🖼️ Generating thumbnail: {Thumb}", thumbBlobName);
+                var thumbArgs = $"-y -ss 1 -i \"{outputPath}\" -frames:v 1 -vf \"scale=400:711:force_original_aspect_ratio=decrease:force_divisible_by=2\" -c:v libwebp -quality 80 \"{thumbPath}\"";
+
+                var thumbStartInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegToUse,
+                    Arguments = thumbArgs,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using var thumbProcess = Process.Start(thumbStartInfo);
+                if (thumbProcess != null)
+                {
+                    using var thumbCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                    try
+                    {
+                        await thumbProcess.WaitForExitAsync(thumbCts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        try { thumbProcess.Kill(entireProcessTree: true); } catch { }
+                    }
+
+                    if (thumbProcess.ExitCode == 0 && File.Exists(thumbPath))
+                    {
+                        var thumbBlob = containerClient.GetBlobClient(thumbBlobName);
+                        await using var thumbStream = File.OpenRead(thumbPath);
+                        await thumbBlob.UploadAsync(thumbStream, overwrite: true);
+                        await thumbBlob.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = "image/webp" });
+                        _logger.LogInformation("🖼️ Thumbnail uploaded: {Url}", thumbBlob.Uri.ToString());
+                    }
+                    else
+                    {
+                        _logger.LogWarning("⚠️ Thumbnail generation failed (ExitCode={ExitCode}), continuing without thumbnail.", thumbProcess.ExitCode);
+                    }
+                }
+
                 _logger.LogInformation("✅ Done. Output: {Url}", outputBlob.Uri.ToString());
             }
             catch (Exception ex)
@@ -225,6 +268,7 @@ namespace DelikatessenDrehbuchViedeoProzessor
             {
                 SafeDeleteFile(inputPath);
                 SafeDeleteFile(outputPath);
+                SafeDeleteFile(thumbPath);
             }
         }
 
