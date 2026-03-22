@@ -94,8 +94,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var videoResult = await UploadRawVideoAsync(blobContainerClient, file, fileName, uniqueToken);
             var processedVideoName = GetProcessedVideoName(videoResult.BlobName);
             var processedVideoUrl = blobContainerClient.GetBlobClient(processedVideoName).Uri.ToString();
-            var thumbName = GetVideoThumbnailName(videoResult.BlobName);
-            var thumbUrl = blobContainerClient.GetBlobClient(thumbName).Uri.ToString();
+            var videoThumbName = GetVideoThumbnailName(videoResult.BlobName);
+            var videoThumbUrl = blobContainerClient.GetBlobClient(videoThumbName).Uri.ToString();
 
             // Nach Video-Upload: Queue-Job erstellen
             try
@@ -127,7 +127,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return new UploadContentResult
             {
                 SourceUrl = processedVideoUrl,
-                ThumbnailUrl = thumbUrl
+                ThumbnailUrl = videoThumbUrl
             };
         }
 
