@@ -333,47 +333,7 @@
                 </div>
             </section>
             @*smart stap cretor bereich uten*@
-            <section class="smart-step-creator mt-3 mb-4" data-theme="rosa" id="card-steps" style="min-height:auto">
-                <div class="sheet-head creator-top-head">
-                    <div>
-                        <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps">Arbeitsschritte</div>
-                        <div class="sheet-sub label-lang" data-de="Sortiere & bearbeite wie ein Script" data-en="Order & edit like a script">Sortiere & bearbeite wie ein Script</div>
-                    </div>
-                    <span class="badge rounded-pill bg-transparent border border-light text-light">4/5</span>
-                </div>
-
-                <div class="creator-preview-canvas" style="min-height:auto; padding:14px 16px;">
-                    <div id="sc2MasterPreviewCanvas" style="border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:16px;margin-bottom:16px;">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <div class="sheet-title" style="font-size:14px;">Smart Step Creator</div>
-                                <div class="sheet-sub" style="font-size:12px;">Wähle Zutat + Template wie im Creator Flow</div>
-                                <div class="small text-muted mt-1"><span id="sc2StoryStepCount">Schritte: 0</span></div>
-                            </div>
-                        </div>
-
-                        <div id="sc2MasterPreviewCard" class="preview-step-card" data-theme="gold">
-                            <div id="MasterText" class="preview-step-text">Template auswählen.</div>
-                        </div>
-
-                        <div class="template-selection-wrap">
-                            <div class="ingredient-top-title mb-1">Weitere Steps zur Auswahl</div>
-                            <div id="insertContainer" class="preview-step-text template-library-fixed p-2"></div>
-                        </div>
-                    </div>
-
-                    <div id="stepsChipStrip" class="ingredient-top-strip mb-3 d-none">
-                        <div class="ingredient-top-title">Zutat für Schritt wählen</div>
-                        <div class="ingredient-swiper ingredient-swiper-top mb-2" id="stepsIngredientButtons"></div>
-                        <div class="d-flex gap-2 mt-1">
-                            <button type="button" id="btnApplyStepIngredient" class="btn btn-sm creator-cta-primary">Einsetzen</button>
-                            <button type="button" id="btnCancelStepIngredient" class="btn btn-sm btn-outline-light">Abbrechen</button>
-                        </div>
-                    </div>
-
-                    <div id="selectedSteps" class="selected-zone"></div>
-                </div>
-            </section>
+            @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Home/_SmartStepCreatorPartial.cshtml")
 
             <section class="creator-card mb-4" data-theme="gold" id="card-keywords">
                 <div class="creator-card-head">
@@ -1268,36 +1228,6 @@
         margin-bottom: 10px;
         border: 1px solid rgba(0,0,0,0.05);
         box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-    }
-
-    #selectedSteps .step-row {
-        border: 1px solid var(--creator-border);
-        border-radius: 14px;
-        background: rgba(255,255,255,0.08);
-        color: var(--creator-text);
-        padding: 10px;
-        box-shadow: none;
-    }
-
-    #selectedSteps .step-badge {
-        display: none;
-    }
-
-    #selectedSteps .display-step-selected {
-        color: var(--creator-text);
-    }
-
-    #selectedSteps .step-text-content {
-        display: block;
-        font-weight: 700;
-        margin-top: 6px;
-    }
-
-    .step-row-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 10px;
     }
 
     .keyword-btn {

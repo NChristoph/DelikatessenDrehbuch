@@ -5388,24 +5388,24 @@
       "equipment": 0,
       "description": "Beträufeln mit Öl, Sauce oder Dressing",
       "templates": {
-        "de": "Beträufle {{base}} mit {{topping}}.",
-        "en": "Drizzle {{base}} with {{topping}}.",
-        "esp": "Rocía {{base}} con {{topping}}.",
-        "prt": "Regue {{base}} com {{topping}}.",
-        "id": "Teteskan {{topping}} di atas {{base}}.",
-        "nl": "Besprenkel {{base}} met {{topping}}.",
-        "sv": "Ringla {{topping}} över {{base}}.",
-        "da": "Dryp {{topping}} over {{base}}.",
-        "no": "Drypp {{topping}} over {{base}}.",
-        "ms": "Titiskan {{topping}} di atas {{base}}."
+        "de": "Beträufle {{base}} mit {{ingredient}}.",
+        "en": "Drizzle {{base}} with {{ingredient}}.",
+        "esp": "Rocía {{base}} con {{ingredient}}.",
+        "prt": "Regue {{base}} com {{ingredient}}.",
+        "id": "Teteskan {{ingredient}} di atas {{base}}.",
+        "nl": "Besprenkel {{base}} met {{ingredient}}.",
+        "sv": "Ringla {{ingredient}} över {{base}}.",
+        "da": "Dryp {{ingredient}} over {{base}}.",
+        "no": "Drypp {{ingredient}} over {{base}}.",
+        "ms": "Titiskan {{ingredient}} di atas {{base}}."
       },
       "variables": [
         "base",
-        "topping"
+        "ingredient"
       ],
       "required_variables": [
         "base",
-        "topping"
+        "ingredient"
       ],
       "optional_variables": null,
       "variable_types": {},
@@ -5422,7 +5422,7 @@
         "keins",
         "none",
         "variable:base",
-        "variable:topping",
+        "variable:ingredient",
         "sub_group:seasoning"
       ]
     },
@@ -5434,24 +5434,24 @@
       "equipment": 0,
       "description": "Bestreuen mit Kräutern, Gewürzen oder Toppings",
       "templates": {
-        "de": "Bestreue {{base}} mit {{topping}}.",
-        "en": "Sprinkle {{base}} with {{topping}}.",
-        "esp": "Espolvorea {{base}} con {{topping}}.",
-        "prt": "Polvilhe {{base}} com {{topping}}.",
-        "id": "Taburkan {{topping}} di atas {{base}}.",
-        "nl": "Bestrooi {{base}} met {{topping}}.",
-        "sv": "Strö {{topping}} över {{base}}.",
-        "da": "Drys {{topping}} over {{base}}.",
-        "no": "Dryss {{topping}} over {{base}}.",
-        "ms": "Taburkan {{topping}} di atas {{base}}."
+        "de": "Bestreue {{base}} mit {{ingredient}}.",
+        "en": "Sprinkle {{base}} with {{ingredient}}.",
+        "esp": "Espolvorea {{base}} con {{ingredient}}.",
+        "prt": "Polvilhe {{base}} com {{ingredient}}.",
+        "id": "Taburkan {{ingredient}} di atas {{base}}.",
+        "nl": "Bestrooi {{base}} met {{ingredient}}.",
+        "sv": "Strö {{ingredient}} över {{base}}.",
+        "da": "Drys {{ingredient}} over {{base}}.",
+        "no": "Dryss {{ingredient}} over {{base}}.",
+        "ms": "Taburkan {{ingredient}} di atas {{base}}."
       },
       "variables": [
         "base",
-        "topping"
+        "ingredient"
       ],
       "required_variables": [
         "base",
-        "topping"
+        "ingredient"
       ],
       "optional_variables": null,
       "variable_types": {},
@@ -5467,7 +5467,7 @@
         "keins",
         "none",
         "variable:base",
-        "variable:topping",
+        "variable:ingredient",
         "sub_group:seasoning"
       ]
     },
@@ -5479,24 +5479,24 @@
       "equipment": 0,
       "description": "Einpinseln/Bestreichen (Glasur, Eigelb, Butter)",
       "templates": {
-        "de": "Bestreiche {{base}} gleichmäßig mit {{topping}}.",
-        "en": "Brush {{base}} evenly with {{topping}}.",
-        "esp": "Pincela {{base}} uniformemente con {{topping}}.",
-        "prt": "Pincele {{base}} uniformemente com {{topping}}.",
-        "id": "Olesi {{base}} secara merata dengan {{topping}}.",
-        "nl": "Bestrijk {{base}} gelijkmatig met {{topping}}.",
-        "sv": "Pensla {{base}} jämnt med {{topping}}.",
-        "da": "Pensl {{base}} jævnt med {{topping}}.",
-        "no": "Pensl {{base}} jevnt med {{topping}}.",
-        "ms": "Sapukan {{base}} secara rata dengan {{topping}}."
+        "de": "Bestreiche {{base}} gleichmäßig mit {{ingredient}}.",
+        "en": "Brush {{base}} evenly with {{ingredient}}.",
+        "esp": "Pincela {{base}} uniformemente con {{ingredient}}.",
+        "prt": "Pincele {{base}} uniformemente com {{ingredient}}.",
+        "id": "Olesi {{base}} secara merata dengan {{ingredient}}.",
+        "nl": "Bestrijk {{base}} gelijkmatig met {{ingredient}}.",
+        "sv": "Pensla {{base}} jämnt med {{ingredient}}.",
+        "da": "Pensl {{base}} jævnt med {{ingredient}}.",
+        "no": "Pensl {{base}} jevnt med {{ingredient}}.",
+        "ms": "Sapukan {{base}} secara rata dengan {{ingredient}}."
       },
       "variables": [
         "base",
-        "topping"
+        "ingredient"
       ],
       "required_variables": [
         "base",
-        "topping"
+        "ingredient"
       ],
       "optional_variables": null,
       "variable_types": {},
@@ -5513,7 +5513,7 @@
         "keins",
         "none",
         "variable:base",
-        "variable:topping",
+        "variable:ingredient",
         "sub_group:finishing"
       ]
     },
@@ -5581,23 +5581,23 @@
       "equipment": 0,
       "description": "Sauce anrichten/aufgießen",
       "templates": {
-        "de": "Richte {{topping}} auf {{base}} an.",
-        "en": "Arrange {{topping}} on {{base}}.",
-        "esp": "Dispón {{topping}} sobre {{base}}.",
-        "prt": "Disponha {{topping}} sobre {{base}}.",
-        "id": "Tata {{topping}} di atas {{base}}.",
-        "nl": "Schik {{topping}} op {{base}}.",
-        "sv": "Arrangera {{topping}} på {{base}}.",
-        "da": "Anret {{topping}} på {{base}}.",
-        "no": "Anrett {{topping}} på {{base}}.",
-        "ms": "Susun {{topping}} di atas {{base}}."
+        "de": "Richte {{ingredient}} auf {{base}} an.",
+        "en": "Arrange {{ingredient}} on {{base}}.",
+        "esp": "Dispón {{ingredient}} sobre {{base}}.",
+        "prt": "Disponha {{ingredient}} sobre {{base}}.",
+        "id": "Tata {{ingredient}} di atas {{base}}.",
+        "nl": "Schik {{ingredient}} op {{base}}.",
+        "sv": "Arrangera {{ingredient}} på {{base}}.",
+        "da": "Anret {{ingredient}} på {{base}}.",
+        "no": "Anrett {{ingredient}} på {{base}}.",
+        "ms": "Susun {{ingredient}} di atas {{base}}."
       },
       "variables": [
-        "topping",
+        "ingredient",
         "base"
       ],
       "required_variables": [
-        "topping",
+        "ingredient",
         "base"
       ],
       "optional_variables": null,
@@ -5614,7 +5614,7 @@
         "equipment_id:0",
         "keins",
         "none",
-        "variable:topping",
+        "variable:ingredient",
         "variable:base",
         "sub_group:assembly"
       ]

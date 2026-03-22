@@ -985,45 +985,57 @@
     }
 
     // Wie getSelectedIngredientNamesFromPage, aber mit Icon aus data-group-icon
-    const EGG_PARTS_BY_LANG = {
-        de:  [{ name: "Eiklar",         icon: "🥚" }, { name: "Eigelb",          icon: "🥚" }, { name: "Eischnee",        icon: "🥚" }],
-        en:  [{ name: "egg white",      icon: "🥚" }, { name: "egg yolk",        icon: "🥚" }, { name: "beaten egg white", icon: "🥚" }],
-        esp: [{ name: "clara de huevo", icon: "🥚" }, { name: "yema de huevo",   icon: "🥚" }, { name: "claras montadas",  icon: "🥚" }],
-        prt: [{ name: "clara de ovo",   icon: "🥚" }, { name: "gema de ovo",     icon: "🥚" }, { name: "claras em neve",   icon: "🥚" }],
-        id:  [{ name: "putih telur",    icon: "🥚" }, { name: "kuning telur",    icon: "🥚" }, { name: "putih telur kocok",icon: "🥚" }],
-        nl:  [{ name: "eiwit",          icon: "🥚" }, { name: "eigeel",          icon: "🥚" }, { name: "opgeklopt eiwit",  icon: "🥚" }],
-        sv:  [{ name: "äggvita",        icon: "🥚" }, { name: "äggula",          icon: "🥚" }, { name: "vispad äggvita",   icon: "🥚" }],
-        da:  [{ name: "æggehvide",      icon: "🥚" }, { name: "æggeblomme",     icon: "🥚" }, { name: "pisket æggehvide", icon: "🥚" }],
-        no:  [{ name: "eggehvite",      icon: "🥚" }, { name: "eggeplomme",     icon: "🥚" }, { name: "pisket eggehvite", icon: "🥚" }],
-        ms:  [{ name: "putih telur",    icon: "🥚" }, { name: "kuning telur",    icon: "🥚" }, { name: "putih telur pukul",icon: "🥚" }]
-    };
-
-    const EGG_TERMS = ["ei", "eier", "egg", "eggs", "huevo", "huevos", "ovo", "ovos", "telur"];
-
-    function getEggPartsForLang(lang) {
-        return EGG_PARTS_BY_LANG[(lang || "de").toLowerCase()] || EGG_PARTS_BY_LANG.de;
+    function getSpecialTransformChipsForStep(masterId) {
+        if (!window.ingredientTransforms) return [];
+        var transforms = window.ingredientTransforms.special_transforms || [];
+        var lang = (currentLang || "de").toLowerCase();
+        var chips = [];
+        transforms.forEach(function (t) {
+            if (t.trigger_step !== masterId) return;
+            (t.outputs || []).forEach(function (o) {
+                var name = (o.names && (o.names[lang] || o.names.de)) || "";
+                if (name && !chips.some(function (c) { return c.name.toLowerCase() === name.toLowerCase(); })) {
+                    chips.push({ name: name, icon: o.icon || "🔄" });
+                }
+            });
+        });
+        return chips;
     }
 
-    function hasEggIngredient(items) {
-        return items.some(x => EGG_TERMS.some(t => x.name.toLowerCase().includes(t)));
+    function hasMatchingIngredientForTransform(items, transformDef) {
+        var lang = (currentLang || "de").toLowerCase();
+        var matchTerms = (transformDef.match && (transformDef.match[lang] || transformDef.match.de)) || [];
+        return items.some(function (x) {
+            var name = (x.name || "").toLowerCase();
+            return matchTerms.some(function (t) { return name.includes(t); });
+        });
     }
 
-    function getEggPartsFromAcceptedSteps() {
-        const stepRows = document.querySelectorAll('#selectedSteps .step-row[data-master-template-id="PREP_SEPARATE_01"]');
-        if (!stepRows.length) return [];
-        const eggParts = getEggPartsForLang(currentLang);
-        const result = [];
-        stepRows.forEach(row => {
-            const refJson = (row.dataset.stepReferenceJson || "").toString();
-            const ingName = (row.dataset.ingredientName || "").toString().toLowerCase();
-            const hasEgg = EGG_TERMS.some(t => ingName.includes(t) || refJson.toLowerCase().includes(t));
-            if (hasEgg) {
-                eggParts.forEach(ep => {
-                    if (!result.some(r => r.name.toLowerCase() === ep.name.toLowerCase())) {
-                        result.push(ep);
-                    }
-                });
-            }
+    function getDerivedChipsFromAcceptedSteps() {
+        if (!window.ingredientTransforms) return [];
+        var transforms = window.ingredientTransforms.special_transforms || [];
+        var lang = (currentLang || "de").toLowerCase();
+        var result = [];
+
+        transforms.forEach(function (transformDef) {
+            var stepRows = document.querySelectorAll(
+                '#selectedSteps .step-row[data-master-template-id="' + transformDef.trigger_step + '"]');
+            if (!stepRows.length) return;
+
+            var matchTerms = (transformDef.match && (transformDef.match[lang] || transformDef.match.de)) || [];
+            stepRows.forEach(function (row) {
+                var refJson = (row.dataset.stepReferenceJson || "").toLowerCase();
+                var ingName = (row.dataset.ingredientName || "").toLowerCase();
+                var hasMatch = matchTerms.some(function (t) { return ingName.includes(t) || refJson.includes(t); });
+                if (hasMatch) {
+                    (transformDef.outputs || []).forEach(function (output) {
+                        var name = (output.names && (output.names[lang] || output.names.de)) || "";
+                        if (name && !result.some(function (r) { return r.name.toLowerCase() === name.toLowerCase(); })) {
+                            result.push({ name: name, icon: output.icon || "🔄" });
+                        }
+                    });
+                }
+            });
         });
         return result;
     }
@@ -1046,17 +1058,20 @@
             return { name, icon };
         }).filter(x => x.name);
 
-        const addEggParts = (activeStep && activeStep.master_id === "PREP_SEPARATE_01" && hasEggIngredient(items));
-        const eggExtras = addEggParts ? getEggPartsForLang(currentLang) : getEggPartsFromAcceptedSteps();
-
-        if (eggExtras.length) {
-            const existing = new Set(items.map(x => x.name.toLowerCase()));
-            eggExtras.forEach(ep => {
-                if (!existing.has(ep.name.toLowerCase())) {
-                    items.push(ep);
-                    existing.add(ep.name.toLowerCase());
-                }
+        const addActiveChips = activeStep && activeStep.master_id
+            && (window.ingredientTransforms?.special_transforms || []).some(function (t) {
+                return t.trigger_step === activeStep.master_id && hasMatchingIngredientForTransform(items, t);
             });
+        const derivedChips = addActiveChips
+            ? getSpecialTransformChipsForStep(activeStep.master_id)
+            : getDerivedChipsFromAcceptedSteps();
+
+        if (derivedChips.length) {
+            const existing = new Set(items.map(x => x.name.toLowerCase()));
+            const toInsert = derivedChips.filter(ep => !existing.has(ep.name.toLowerCase()));
+            if (toInsert.length) {
+                items.unshift(...toInsert);
+            }
         }
 
         return items;

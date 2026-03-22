@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -175,6 +176,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         StepIndex = s.StepIndex
                     })
                     .ToList() ?? new List<EditPostingStepRowViewModel>(),
+                ExistingSmartSteps = posting.Recipe.SmartSteps?
+                    .OrderBy(ss => ss.StepIndex)
+                    .Select(ss => new EditPostingSmartStepViewModel
+                    {
+                        MasterStepKey = ss.SmartRecipeStep.MasterStepKey,
+                        VariablesJson = ss.SmartRecipeStep.VariablesJson,
+                        StepIndex = ss.StepIndex
+                    })
+                    .ToList() ?? new List<EditPostingSmartStepViewModel>(),
                 SelectedKeywordIds = posting.Recipe.RecipeKeywords?
                     .Select(k => k.KeywordId)
                     .ToList() ?? new List<int>(),
@@ -401,6 +411,46 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ToList();
             await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
 
+            // Update smart steps
+            var existingSmartSteps = await _context.RecipeJoinSmartStep
+                .Where(ss => ss.RecipeId == postingToEdit.Recipe.Id)
+                .ToListAsync();
+            _context.RecipeJoinSmartStep.RemoveRange(existingSmartSteps);
+
+            var parsedSmartSteps = ExtractCreatePostingSmartStepsFromRequest(Request.Form);
+            foreach (var stepRef in parsedSmartSteps)
+            {
+                var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
+
+                var existingSmartStep = await _context.SmartRecipeStep
+                    .FirstOrDefaultAsync(x =>
+                        x.MasterStepKey == stepRef.MasterStepKey &&
+                        x.VariablesJson == parsed.variablesJson &&
+                        x.Phase == parsed.phase &&
+                        x.Equipment == parsed.equipment);
+
+                var smartStep = existingSmartStep;
+                if (smartStep == null)
+                {
+                    smartStep = new SmartRecipeStep
+                    {
+                        MasterStepKey = stepRef.MasterStepKey,
+                        VariablesJson = parsed.variablesJson,
+                        Phase = parsed.phase,
+                        Equipment = parsed.equipment
+                    };
+                    await _context.SmartRecipeStep.AddAsync(smartStep);
+                }
+
+                var join = new RecipeJoinSmartStep
+                {
+                    Recipe = postingToEdit.Recipe,
+                    SmartRecipeStep = smartStep,
+                    StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
+                };
+                await _context.RecipeJoinSmartStep.AddAsync(join);
+            }
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
@@ -576,6 +626,47 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
             return result;
+        }
+
+        private static (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
+        {
+            if (string.IsNullOrWhiteSpace(metadataJson))
+                return ("{}", null, null);
+
+            try
+            {
+                using var document = JsonDocument.Parse(metadataJson);
+                var root = document.RootElement;
+
+                var variablesJson = root.TryGetProperty("variables", out var variablesElement)
+                    ? variablesElement.GetRawText()
+                    : "{}";
+
+                int? phase = null;
+                if (root.TryGetProperty("phase_key", out var phaseElement))
+                {
+                    var phaseRaw = phaseElement.ValueKind == JsonValueKind.String
+                        ? phaseElement.GetString()
+                        : phaseElement.GetRawText();
+                    if (int.TryParse(phaseRaw, out var parsedPhase))
+                        phase = parsedPhase;
+                }
+
+                string? equipment = null;
+                if (root.TryGetProperty("equipment_key", out var equipmentElement))
+                {
+                    equipment = equipmentElement.ValueKind == JsonValueKind.String
+                        ? equipmentElement.GetString()
+                        : equipmentElement.GetRawText();
+                    equipment = string.IsNullOrWhiteSpace(equipment) ? null : equipment.Trim();
+                }
+
+                return (variablesJson, phase, equipment);
+            }
+            catch
+            {
+                return ("{}", null, null);
+            }
         }
 
         private bool TryConsumeUploadSlot(string userHash, out TimeSpan? retryAfter)

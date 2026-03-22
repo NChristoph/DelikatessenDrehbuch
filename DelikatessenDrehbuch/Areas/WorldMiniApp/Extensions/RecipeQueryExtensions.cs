@@ -60,7 +60,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions
                     .ThenInclude(r => r.Steps)
                         .ThenInclude(s => s.RecipePreparationStep)
                 .Include(x => x.Recipe)
-                    .ThenInclude(r => r.RecipeKeywords);
+                    .ThenInclude(r => r.RecipeKeywords)
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.SmartSteps)
+                        .ThenInclude(ss => ss.SmartRecipeStep);
         }
     }
 }

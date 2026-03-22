@@ -27,6 +27,7 @@
         var nextThemePreference = null;
         let tempStepIdCounter = -1;
         let ingredientArticleRules = null;
+        let ingredientTransforms = null;
         let activeIngredientConfigRow = null;
         const createPostingDraftStorageKey = 'createPostingDraft:v1';
         const createPostingDraftResetCookieName = 'createPostingDraftReset';
@@ -658,6 +659,15 @@
             }
         }
 
+        async function loadIngredientTransforms() {
+            try {
+                ingredientTransforms = await window.CreatePostingPageData.loadIngredientTransforms();
+                window.ingredientTransforms = ingredientTransforms;
+            } catch (_) {
+                ingredientTransforms = null;
+            }
+        }
+
         function normalizeGenusKey(genusRaw = '') {
             const value = (genusRaw || '').toString().trim().toLowerCase();
             if (!value) return '';
@@ -732,49 +742,6 @@
             ms: []
         };
 
-        const separatedEggPartsByLang = {
-            de: [
-                { key: 'egg_white', name: 'Eiklar', genus: 'n' },
-                { key: 'egg_yolk', name: 'Eigelb', genus: 'n' }
-            ],
-            en: [
-                { key: 'egg_white', name: 'egg white', genus: 'n' },
-                { key: 'egg_yolk', name: 'egg yolk', genus: 'n' }
-            ],
-            esp: [
-                { key: 'egg_white', name: 'clara de huevo', genus: 'f' },
-                { key: 'egg_yolk', name: 'yema de huevo', genus: 'f' }
-            ],
-            prt: [
-                { key: 'egg_white', name: 'clara de ovo', genus: 'f' },
-                { key: 'egg_yolk', name: 'gema de ovo', genus: 'f' }
-            ],
-            id: [
-                { key: 'egg_white', name: 'putih telur', genus: 'n' },
-                { key: 'egg_yolk', name: 'kuning telur', genus: 'n' }
-            ],
-            nl: [
-                { key: 'egg_white', name: 'eiwit', genus: 'n' },
-                { key: 'egg_yolk', name: 'eigeel', genus: 'n' }
-            ],
-            sv: [
-                { key: 'egg_white', name: 'Ã¤ggvita', genus: 'n' },
-                { key: 'egg_yolk', name: 'Ã¤ggula', genus: 'n' }
-            ],
-            da: [
-                { key: 'egg_white', name: 'Ã¦ggehvide', genus: 'n' },
-                { key: 'egg_yolk', name: 'Ã¦ggeblomme', genus: 'n' }
-            ],
-            no: [
-                { key: 'egg_white', name: 'eggehvite', genus: 'n' },
-                { key: 'egg_yolk', name: 'eggeplomme', genus: 'n' }
-            ],
-            ms: [
-                { key: 'egg_white', name: 'putih telur', genus: 'n' },
-                { key: 'egg_yolk', name: 'kuning telur', genus: 'n' }
-            ]
-        };
-
         function stripLeadingArticle(value, langKey = currentLang) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const raw = (value || '').toString().trim();
@@ -840,132 +807,23 @@
             }).get().filter(x => x.id || x.name);
         }
 
-        function getDerivedGermanAdjectiveForm(baseAdjective, genusRaw) {
-            const g = normalizeGenusKey(genusRaw || '');
-            if (g === 'f') return `${baseAdjective}e`;
-            if (g === 'n') return `${baseAdjective}es`;
-            return `${baseAdjective}er`;
-        }
-
         function buildDerivedIngredientName(baseName, transformType, langKey, genusRaw) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const noun = (baseName || '').toString().trim();
-            if (!noun) return '';
+            if (!noun || !ingredientTransforms) return noun;
 
-            const byLang = {
-                de: {
-                    mince: getDerivedGermanAdjectiveForm('gehackt', genusRaw) + ' ' + noun,
-                    grate: getDerivedGermanAdjectiveForm('gerieben', genusRaw) + ' ' + noun,
-                    dice: getDerivedGermanAdjectiveForm('gewÃ¼rfelt', genusRaw) + ' ' + noun,
-                    slice: `in Scheiben geschnittene ${noun}`,
-                    strip: `in Streifen geschnittene ${noun}`,
-                    wedge: `in Spalten geschnittene ${noun}`,
-                    ring: `in Ringe geschnittene ${noun}`,
-                    julienne: `in Julienne geschnittene ${noun}`,
-                    piece: `geschnittene ${noun}`
-                },
-                en: {
-                    mince: `minced ${noun}`,
-                    grate: `grated ${noun}`,
-                    dice: `diced ${noun}`,
-                    slice: `sliced ${noun}`,
-                    strip: `${noun} strips`,
-                    wedge: `${noun} wedges`,
-                    ring: `${noun} rings`,
-                    julienne: `${noun} julienne`,
-                    piece: `cut ${noun}`
-                },
-                esp: {
-                    mince: `${noun} picado`,
-                    grate: `${noun} rallado`,
-                    dice: `${noun} en cubos`,
-                    slice: `${noun} en rodajas`,
-                    strip: `${noun} en tiras`,
-                    wedge: `${noun} en gajos`,
-                    ring: `${noun} en anillos`,
-                    julienne: `${noun} en juliana`,
-                    piece: `${noun} troceado`
-                },
-                prt: {
-                    mince: `${noun} picado`,
-                    grate: `${noun} ralado`,
-                    dice: `${noun} em cubos`,
-                    slice: `${noun} em rodelas`,
-                    strip: `${noun} em tiras`,
-                    wedge: `${noun} em gomos`,
-                    ring: `${noun} em anÃ©is`,
-                    julienne: `${noun} em juliana`,
-                    piece: `${noun} cortado`
-                },
-                id: {
-                    mince: `${noun} cincang`,
-                    grate: `${noun} parut`,
-                    dice: `${noun} potong dadu`,
-                    slice: `${noun} iris`,
-                    strip: `${noun} iris memanjang`,
-                    wedge: `${noun} potong wedge`,
-                    ring: `${noun} iris cincin`,
-                    julienne: `${noun} iris julienne`,
-                    piece: `${noun} potong`
-                },
-                nl: {
-                    mince: `gehakte ${noun}`,
-                    grate: `geraspte ${noun}`,
-                    dice: `blokjes ${noun}`,
-                    slice: `gesneden ${noun}`,
-                    strip: `${noun} in reepjes`,
-                    wedge: `${noun} in partjes`,
-                    ring: `${noun} in ringen`,
-                    julienne: `${noun} in julienne`,
-                    piece: `gesneden ${noun}`
-                },
-                sv: {
-                    mince: `hackad ${noun}`,
-                    grate: `riven ${noun}`,
-                    dice: `tÃ¤rnad ${noun}`,
-                    slice: `skivad ${noun}`,
-                    strip: `${noun} i strimlor`,
-                    wedge: `${noun} i klyftor`,
-                    ring: `${noun} i ringar`,
-                    julienne: `${noun} i julienne`,
-                    piece: `skuren ${noun}`
-                },
-                da: {
-                    mince: `hakket ${noun}`,
-                    grate: `revet ${noun}`,
-                    dice: `${noun} i tern`,
-                    slice: `skÃ¥ret ${noun}`,
-                    strip: `${noun} i strimler`,
-                    wedge: `${noun} i bÃ¥de`,
-                    ring: `${noun} i ringe`,
-                    julienne: `${noun} i julienne`,
-                    piece: `skÃ¥ret ${noun}`
-                },
-                no: {
-                    mince: `hakket ${noun}`,
-                    grate: `revet ${noun}`,
-                    dice: `${noun} i terninger`,
-                    slice: `skivet ${noun}`,
-                    strip: `${noun} i strimler`,
-                    wedge: `${noun} i bÃ¥ter`,
-                    ring: `${noun} i ringer`,
-                    julienne: `${noun} i julienne`,
-                    piece: `skÃ¥ret ${noun}`
-                },
-                ms: {
-                    mince: `${noun} dicincang`,
-                    grate: `${noun} diparut`,
-                    dice: `${noun} dipotong dadu`,
-                    slice: `${noun} dihiris`,
-                    strip: `${noun} dihiris memanjang`,
-                    wedge: `${noun} dipotong baji`,
-                    ring: `${noun} dihiris cincin`,
-                    julienne: `${noun} dipotong julienne`,
-                    piece: `${noun} dipotong`
-                }
-            };
+            const pattern = ingredientTransforms.adjective_patterns?.[transformType]?.patterns?.[lang];
+            if (!pattern) return noun;
 
-            return byLang[lang]?.[transformType] || byLang.de[transformType] || noun;
+            let template;
+            if (typeof pattern === 'string') {
+                template = pattern;
+            } else {
+                const genusKey = { 'masc': 'm', 'fem': 'f', 'neut': 'n' }[normalizeGenusKey(genusRaw)] || 'm';
+                template = pattern[genusKey] || pattern.m || Object.values(pattern)[0];
+            }
+
+            return template.replace('{{noun}}', noun);
         }
 
         function getStepVariableDisplayValue(stableReference, key) {
@@ -977,12 +835,14 @@
         function resolveCutTransformationType(stableReference) {
             const shape = normalizeSearchText(getStepVariableDisplayValue(stableReference, 'shape'));
             if (!shape) return 'piece';
-            if (shape.includes('wurfel') || shape.includes('cubo') || shape.includes('dice')) return 'dice';
-            if (shape.includes('scheib') || shape.includes('rodaja') || shape.includes('slice')) return 'slice';
-            if (shape.includes('streif') || shape.includes('tira') || shape.includes('strip')) return 'strip';
-            if (shape.includes('spalt') || shape.includes('gajo') || shape.includes('wedge')) return 'wedge';
-            if (shape.includes('ring') || shape.includes('anillo')) return 'ring';
-            if (shape.includes('julienne') || shape.includes('juliana')) return 'julienne';
+
+            if (ingredientTransforms) {
+                const patterns = ingredientTransforms.adjective_patterns || {};
+                for (const [key, def] of Object.entries(patterns)) {
+                    if (!def.trigger_steps?.includes('PREP_CUT_01') || !def.shape_match) continue;
+                    if (def.shape_match.some(term => shape.includes(normalizeSearchText(term)))) return key;
+                }
+            }
             return 'piece';
         }
 
@@ -1014,45 +874,20 @@
             });
         }
 
-        function buildSeparatedEggItemsFromBase(item) {
-            const synthetic = [];
-            ['egg_white', 'egg_yolk'].forEach(function (partKey) {
-                const namesByLang = {
-                    de: separatedEggPartsByLang.de.find(x => x.key === partKey)?.name || '',
-                    en: separatedEggPartsByLang.en.find(x => x.key === partKey)?.name || '',
-                    esp: separatedEggPartsByLang.esp.find(x => x.key === partKey)?.name || '',
-                    prt: separatedEggPartsByLang.prt.find(x => x.key === partKey)?.name || '',
-                    id: separatedEggPartsByLang.id.find(x => x.key === partKey)?.name || '',
-                    nl: separatedEggPartsByLang.nl.find(x => x.key === partKey)?.name || '',
-                    sv: separatedEggPartsByLang.sv.find(x => x.key === partKey)?.name || '',
-                    da: separatedEggPartsByLang.da.find(x => x.key === partKey)?.name || '',
-                    no: separatedEggPartsByLang.no.find(x => x.key === partKey)?.name || '',
-                    ms: separatedEggPartsByLang.ms.find(x => x.key === partKey)?.name || ''
-                };
-                const genusByLang = {
-                    de: separatedEggPartsByLang.de.find(x => x.key === partKey)?.genus || 'n',
-                    en: separatedEggPartsByLang.en.find(x => x.key === partKey)?.genus || 'n',
-                    esp: separatedEggPartsByLang.esp.find(x => x.key === partKey)?.genus || 'f',
-                    prt: separatedEggPartsByLang.prt.find(x => x.key === partKey)?.genus || 'f',
-                    id: separatedEggPartsByLang.id.find(x => x.key === partKey)?.genus || 'n',
-                    nl: separatedEggPartsByLang.nl.find(x => x.key === partKey)?.genus || 'n',
-                    sv: separatedEggPartsByLang.sv.find(x => x.key === partKey)?.genus || 'n',
-                    da: separatedEggPartsByLang.da.find(x => x.key === partKey)?.genus || 'n',
-                    no: separatedEggPartsByLang.no.find(x => x.key === partKey)?.genus || 'n',
-                    ms: separatedEggPartsByLang.ms.find(x => x.key === partKey)?.genus || 'n'
-                };
-                synthetic.push({
-                    id: `${item.id || item.sourceBaseId || 'ingredient'}__${partKey}`,
-                    name: namesByLang[resolveLangKey(currentLang)] || namesByLang.de,
-                    namesByLang,
-                    genusDe: genusByLang.de,
-                    genusLocalized: genusByLang[resolveLangKey(currentLang)] || genusByLang.de,
+        function buildSpecialTransformItems(item, transformDef) {
+            return (transformDef.outputs || []).map(function (output) {
+                const genusByLang = output.genus || {};
+                return {
+                    id: `${item.id || item.sourceBaseId || 'ingredient'}__${output.key}`,
+                    name: output.names[resolveLangKey(currentLang)] || output.names.de,
+                    namesByLang: output.names,
+                    genusDe: genusByLang.de || 'n',
+                    genusLocalized: genusByLang[resolveLangKey(currentLang)] || genusByLang.de || 'n',
                     genusByLang,
-                    iconHtml: item.iconHtml || '',
+                    iconHtml: output.icon || item.iconHtml || '',
                     sourceBaseId: item.sourceBaseId || item.id || ''
-                });
+                };
             });
-            return synthetic;
         }
 
         function collectSelectedStepDerivationDescriptors() {
@@ -1077,32 +912,46 @@
             let items = Array.isArray(baseItems) ? [...baseItems] : [];
             const descriptors = Array.isArray(stepDescriptors) ? stepDescriptors : [];
             const lang = resolveLangKey(langKey || currentLang || 'de');
+            const allLangs = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
+
+            if (!ingredientTransforms) return items;
 
             descriptors.forEach(function (descriptor) {
                 const masterId = (descriptor?.masterId || '').toString();
                 if (!masterId) return;
 
-                if (masterId === 'PREP_SEPARATE_01') {
-                    const targets = items.filter(item => {
-                        const deName = (item.namesByLang?.de || item.name || '').toString();
-                        const normalized = normalizeIngredientMatchValue(deName, 'de');
-                        return normalized === 'ei' || normalized === 'egg' || normalized.includes('ei ') || normalized.includes('egg ');
+                // 1. Special transforms prüfen
+                const specialMatch = (ingredientTransforms.special_transforms || [])
+                    .find(function (t) { return t.trigger_step === masterId; });
+                if (specialMatch) {
+                    const matchTerms = specialMatch.match?.[lang] || specialMatch.match?.de || [];
+                    const targets = items.filter(function (item) {
+                        const name = normalizeIngredientMatchValue(
+                            item.namesByLang?.[lang] || item.name, lang);
+                        return matchTerms.some(function (t) { return name === t || name.includes(t); });
                     });
-                    if (!targets.length) return;
-
-                    const targetIds = new Set(targets.map(item => item.id));
-                    const replacements = targets.flatMap(buildSeparatedEggItemsFromBase);
-                    items = items.filter(item => !targetIds.has(item.id)).concat(replacements);
+                    if (targets.length) {
+                        const targetIds = new Set(targets.map(function (i) { return i.id; }));
+                        const replacements = targets.flatMap(function (i) { return buildSpecialTransformItems(i, specialMatch); });
+                        items = items.filter(function (i) { return !targetIds.has(i.id); }).concat(replacements);
+                    }
                     return;
                 }
 
-                const transformType =
-                    masterId === 'PREP_MINCE_01' ? 'mince' :
-                    masterId === 'PREP_GRATE_01' ? 'grate' :
-                    masterId === 'PREP_CUT_01' ? resolveCutTransformationType(descriptor?.stableReference || {}) :
-                    '';
+                // 2. Adjective transforms prüfen
+                const adjEntry = Object.entries(ingredientTransforms.adjective_patterns || {})
+                    .find(function (entry) {
+                        var def = entry[1];
+                        if (!def.trigger_steps || !def.trigger_steps.includes(masterId)) return false;
+                        if (masterId === 'PREP_CUT_01' && def.shape_match) {
+                            var shape = resolveCutTransformationType(descriptor?.stableReference || {});
+                            return entry[0] === shape;
+                        }
+                        return !def.shape_match;
+                    });
+                if (!adjEntry) return;
 
-                if (!transformType) return;
+                var transformType = adjEntry[0];
 
                 const matched = matchSandboxItemsByStep(items, {
                     data: function (key) {
@@ -1118,20 +967,16 @@
                 }, lang);
                 if (!matched.length) return;
 
-                const matchedIds = new Set(matched.map(item => item.id));
-                const replacements = matched.map(item => {
-                    const namesByLang = {
-                        de: buildDerivedIngredientName(item.namesByLang?.de || item.name, transformType, 'de', item.genusByLang?.de),
-                        en: buildDerivedIngredientName(item.namesByLang?.en || item.namesByLang?.de || item.name, transformType, 'en', item.genusByLang?.en || item.genusByLang?.de),
-                        esp: buildDerivedIngredientName(item.namesByLang?.esp || item.namesByLang?.de || item.name, transformType, 'esp', item.genusByLang?.esp || item.genusByLang?.de),
-                        prt: buildDerivedIngredientName(item.namesByLang?.prt || item.namesByLang?.de || item.name, transformType, 'prt', item.genusByLang?.prt || item.genusByLang?.de),
-                        id: buildDerivedIngredientName(item.namesByLang?.id || item.namesByLang?.de || item.name, transformType, 'id', item.genusByLang?.id || item.genusByLang?.de),
-                        nl: buildDerivedIngredientName(item.namesByLang?.nl || item.namesByLang?.de || item.name, transformType, 'nl', item.genusByLang?.nl || item.genusByLang?.de),
-                        sv: buildDerivedIngredientName(item.namesByLang?.sv || item.namesByLang?.de || item.name, transformType, 'sv', item.genusByLang?.sv || item.genusByLang?.de),
-                        da: buildDerivedIngredientName(item.namesByLang?.da || item.namesByLang?.de || item.name, transformType, 'da', item.genusByLang?.da || item.genusByLang?.de),
-                        no: buildDerivedIngredientName(item.namesByLang?.no || item.namesByLang?.de || item.name, transformType, 'no', item.genusByLang?.no || item.genusByLang?.de),
-                        ms: buildDerivedIngredientName(item.namesByLang?.ms || item.namesByLang?.de || item.name, transformType, 'ms', item.genusByLang?.ms || item.genusByLang?.de)
-                    };
+                const matchedIds = new Set(matched.map(function (item) { return item.id; }));
+                const replacements = matched.map(function (item) {
+                    const namesByLang = {};
+                    allLangs.forEach(function (l) {
+                        namesByLang[l] = buildDerivedIngredientName(
+                            item.namesByLang?.[l] || item.namesByLang?.de || item.name,
+                            transformType, l,
+                            item.genusByLang?.[l] || item.genusByLang?.de
+                        );
+                    });
                     return {
                         id: `${item.id || item.sourceBaseId || 'ingredient'}__${transformType}`,
                         name: namesByLang[lang] || namesByLang.de,
@@ -1144,7 +989,7 @@
                     };
                 });
 
-                items = items.filter(item => !matchedIds.has(item.id)).concat(replacements);
+                items = items.filter(function (item) { return !matchedIds.has(item.id); }).concat(replacements);
             });
 
             return items;
@@ -4209,7 +4054,7 @@
                 catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
             refreshDurationUnitControls();
-            loadIngredientArticleRules().finally(() => {
+            Promise.all([loadIngredientArticleRules(), loadIngredientTransforms()]).finally(() => {
                 const renderer = window.MasterStepRenderer;
                 if (!renderer || typeof renderer.load !== 'function') {
                     setMasterTemplateError('Template-Fehler: MasterStepRenderer ist nicht geladen.');

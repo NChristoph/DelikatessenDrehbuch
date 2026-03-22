@@ -1,0 +1,1511 @@
+{
+  "version": 1,
+  "adjective_patterns": {
+    "mince": {
+      "trigger_steps": ["PREP_MINCE_01"],
+      "patterns": {
+        "de": { "m": "gehackter {{noun}}", "f": "gehackte {{noun}}", "n": "gehacktes {{noun}}" },
+        "en": "minced {{noun}}",
+        "esp": "{{noun}} picado",
+        "prt": "{{noun}} picado",
+        "id": "{{noun}} cincang",
+        "nl": "gehakte {{noun}}",
+        "sv": "hackad {{noun}}",
+        "da": "hakket {{noun}}",
+        "no": "hakket {{noun}}",
+        "ms": "{{noun}} dicincang"
+      }
+    },
+    "grate": {
+      "trigger_steps": ["PREP_GRATE_01"],
+      "patterns": {
+        "de": { "m": "geriebener {{noun}}", "f": "geriebene {{noun}}", "n": "geriebenes {{noun}}" },
+        "en": "grated {{noun}}",
+        "esp": "{{noun}} rallado",
+        "prt": "{{noun}} ralado",
+        "id": "{{noun}} parut",
+        "nl": "geraspte {{noun}}",
+        "sv": "riven {{noun}}",
+        "da": "revet {{noun}}",
+        "no": "revet {{noun}}",
+        "ms": "{{noun}} diparut"
+      }
+    },
+    "dice": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": ["wurfel", "würfel", "cubo", "dice", "dadu"],
+      "patterns": {
+        "de": { "m": "gewürfelter {{noun}}", "f": "gewürfelte {{noun}}", "n": "gewürfeltes {{noun}}" },
+        "en": "diced {{noun}}",
+        "esp": "{{noun}} en cubos",
+        "prt": "{{noun}} em cubos",
+        "id": "{{noun}} potong dadu",
+        "nl": "blokjes {{noun}}",
+        "sv": "tärnad {{noun}}",
+        "da": "{{noun}} i tern",
+        "no": "{{noun}} i terninger",
+        "ms": "{{noun}} dipotong dadu"
+      }
+    },
+    "slice": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": ["scheib", "rodaja", "slice", "skivor", "skiver"],
+      "patterns": {
+        "de": "in Scheiben geschnittene {{noun}}",
+        "en": "sliced {{noun}}",
+        "esp": "{{noun}} en rodajas",
+        "prt": "{{noun}} em rodelas",
+        "id": "{{noun}} iris",
+        "nl": "gesneden {{noun}}",
+        "sv": "skivad {{noun}}",
+        "da": "skåret {{noun}}",
+        "no": "skivet {{noun}}",
+        "ms": "{{noun}} dihiris"
+      }
+    },
+    "strip": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": ["streif", "tira", "strip", "reep", "strimle"],
+      "patterns": {
+        "de": "in Streifen geschnittene {{noun}}",
+        "en": "{{noun}} strips",
+        "esp": "{{noun}} en tiras",
+        "prt": "{{noun}} em tiras",
+        "id": "{{noun}} iris memanjang",
+        "nl": "{{noun}} in reepjes",
+        "sv": "{{noun}} i strimlor",
+        "da": "{{noun}} i strimler",
+        "no": "{{noun}} i strimler",
+        "ms": "{{noun}} dihiris memanjang"
+      }
+    },
+    "wedge": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": ["spalt", "gajo", "wedge", "klyfta", "bade", "både", "båte"],
+      "patterns": {
+        "de": "in Spalten geschnittene {{noun}}",
+        "en": "{{noun}} wedges",
+        "esp": "{{noun}} en gajos",
+        "prt": "{{noun}} em gomos",
+        "id": "{{noun}} potong wedge",
+        "nl": "{{noun}} in partjes",
+        "sv": "{{noun}} i klyftor",
+        "da": "{{noun}} i både",
+        "no": "{{noun}} i båter",
+        "ms": "{{noun}} dipotong baji"
+      }
+    },
+    "ring": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": ["ring", "anillo", "anel"],
+      "patterns": {
+        "de": "in Ringe geschnittene {{noun}}",
+        "en": "{{noun}} rings",
+        "esp": "{{noun}} en anillos",
+        "prt": "{{noun}} em anéis",
+        "id": "{{noun}} iris cincin",
+        "nl": "{{noun}} in ringen",
+        "sv": "{{noun}} i ringar",
+        "da": "{{noun}} i ringe",
+        "no": "{{noun}} i ringer",
+        "ms": "{{noun}} dihiris cincin"
+      }
+    },
+    "julienne": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": ["julienne", "juliana"],
+      "patterns": {
+        "de": "in Julienne geschnittene {{noun}}",
+        "en": "{{noun}} julienne",
+        "esp": "{{noun}} en juliana",
+        "prt": "{{noun}} em juliana",
+        "id": "{{noun}} iris julienne",
+        "nl": "{{noun}} in julienne",
+        "sv": "{{noun}} i julienne",
+        "da": "{{noun}} i julienne",
+        "no": "{{noun}} i julienne",
+        "ms": "{{noun}} dipotong julienne"
+      }
+    },
+    "piece": {
+      "trigger_steps": ["PREP_CUT_01"],
+      "shape_match": null,
+      "patterns": {
+        "de": "geschnittene {{noun}}",
+        "en": "cut {{noun}}",
+        "esp": "{{noun}} troceado",
+        "prt": "{{noun}} cortado",
+        "id": "{{noun}} potong",
+        "nl": "gesneden {{noun}}",
+        "sv": "skuren {{noun}}",
+        "da": "skåret {{noun}}",
+        "no": "skåret {{noun}}",
+        "ms": "{{noun}} dipotong"
+      }
+    }
+  },
+  "special_transforms": [
+    {
+      "key": "egg_separate",
+      "trigger_step": "PREP_SEPARATE_01",
+      "match": {
+        "de": ["ei", "eier"],
+        "en": ["egg", "eggs"],
+        "esp": ["huevo", "huevos"],
+        "prt": ["ovo", "ovos"],
+        "id": ["telur"],
+        "nl": ["ei", "eieren"],
+        "sv": ["ägg"],
+        "da": ["æg"],
+        "no": ["egg"],
+        "ms": ["telur"]
+      },
+      "outputs": [
+        {
+          "key": "egg_white",
+          "icon": "🥚",
+          "names": {
+            "de": "Eiklar",
+            "en": "egg white",
+            "esp": "clara de huevo",
+            "prt": "clara de ovo",
+            "id": "putih telur",
+            "nl": "eiwit",
+            "sv": "äggvita",
+            "da": "æggehvide",
+            "no": "eggehvite",
+            "ms": "putih telur"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        },
+        {
+          "key": "egg_yolk",
+          "icon": "🥚",
+          "names": {
+            "de": "Eigelb",
+            "en": "egg yolk",
+            "esp": "yema de huevo",
+            "prt": "gema de ovo",
+            "id": "kuning telur",
+            "nl": "eigeel",
+            "sv": "äggula",
+            "da": "æggeblomme",
+            "no": "eggeplomme",
+            "ms": "kuning telur"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "beaten_egg_white",
+      "trigger_step": "PREP_BEAT_01",
+      "match": {
+        "de": ["eiklar", "eiweiss", "eiweiß", "eiwit"],
+        "en": ["egg white"],
+        "esp": ["clara de huevo"],
+        "prt": ["clara de ovo"],
+        "id": ["putih telur"],
+        "nl": ["eiwit"],
+        "sv": ["äggvita"],
+        "da": ["æggehvide"],
+        "no": ["eggehvite"],
+        "ms": ["putih telur"]
+      },
+      "outputs": [
+        {
+          "key": "beaten_egg_white",
+          "icon": "🥚",
+          "names": {
+            "de": "Eischnee",
+            "en": "beaten egg white",
+            "esp": "claras montadas",
+            "prt": "claras em neve",
+            "id": "putih telur kocok",
+            "nl": "opgeklopt eiwit",
+            "sv": "vispad äggvita",
+            "da": "pisket æggehvide",
+            "no": "pisket eggehvite",
+            "ms": "putih telur pukul"
+          },
+          "genus": {
+            "de": "m",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "melted_butter",
+      "trigger_step": "COOK_MELT_01",
+      "match": {
+        "de": ["butter"],
+        "en": ["butter"],
+        "esp": ["mantequilla"],
+        "prt": ["manteiga"],
+        "id": ["mentega"],
+        "nl": ["boter"],
+        "sv": ["smör"],
+        "da": ["smør"],
+        "no": ["smør"],
+        "ms": ["mentega"]
+      },
+      "outputs": [
+        {
+          "key": "melted_butter",
+          "icon": "🧈",
+          "names": {
+            "de": "geschmolzene Butter",
+            "en": "melted butter",
+            "esp": "mantequilla derretida",
+            "prt": "manteiga derretida",
+            "id": "mentega cair",
+            "nl": "gesmolten boter",
+            "sv": "smält smör",
+            "da": "smeltet smør",
+            "no": "smeltet smør",
+            "ms": "mentega cair"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "melted_chocolate",
+      "trigger_step": "COOK_MELT_01",
+      "match": {
+        "de": ["schokolade", "kuvertüre", "kuverture"],
+        "en": ["chocolate"],
+        "esp": ["chocolate"],
+        "prt": ["chocolate"],
+        "id": ["cokelat", "coklat"],
+        "nl": ["chocolade"],
+        "sv": ["choklad"],
+        "da": ["chokolade"],
+        "no": ["sjokolade"],
+        "ms": ["coklat"]
+      },
+      "outputs": [
+        {
+          "key": "melted_chocolate",
+          "icon": "🍫",
+          "names": {
+            "de": "geschmolzene Schokolade",
+            "en": "melted chocolate",
+            "esp": "chocolate derretido",
+            "prt": "chocolate derretido",
+            "id": "cokelat leleh",
+            "nl": "gesmolten chocolade",
+            "sv": "smält choklad",
+            "da": "smeltet chokolade",
+            "no": "smeltet sjokolade",
+            "ms": "coklat cair"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "caramelized_sugar",
+      "trigger_step": "COOK_CARAMELIZE_01",
+      "match": {
+        "de": ["zucker"],
+        "en": ["sugar"],
+        "esp": ["azúcar", "azucar"],
+        "prt": ["açúcar", "acucar"],
+        "id": ["gula"],
+        "nl": ["suiker"],
+        "sv": ["socker"],
+        "da": ["sukker"],
+        "no": ["sukker"],
+        "ms": ["gula"]
+      },
+      "outputs": [
+        {
+          "key": "caramel",
+          "icon": "🍬",
+          "names": {
+            "de": "Karamell",
+            "en": "caramel",
+            "esp": "caramelo",
+            "prt": "caramelo",
+            "id": "karamel",
+            "nl": "karamel",
+            "sv": "karamell",
+            "da": "karamel",
+            "no": "karamell",
+            "ms": "karamel"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "toasted_nuts",
+      "trigger_step": "COOK_TOAST_01",
+      "match": {
+        "de": ["nüsse", "nusse", "nuss", "mandel", "mandeln", "haselnüsse", "haselnusse", "walnüsse", "walnusse"],
+        "en": ["nuts", "almonds", "hazelnuts", "walnuts"],
+        "esp": ["nueces", "almendras", "avellanas"],
+        "prt": ["nozes", "amêndoas", "amendoas", "avelãs"],
+        "id": ["kacang", "almond"],
+        "nl": ["noten", "amandelen", "hazelnoten", "walnoten"],
+        "sv": ["nötter", "mandlar", "hasselnötter", "valnötter"],
+        "da": ["nødder", "mandler", "hasselnødder", "valnødder"],
+        "no": ["nøtter", "mandler", "hasselnøtter", "valnøtter"],
+        "ms": ["kacang", "badam"]
+      },
+      "outputs": [
+        {
+          "key": "toasted_nuts",
+          "icon": "🥜",
+          "names": {
+            "de": "geröstete Nüsse",
+            "en": "toasted nuts",
+            "esp": "frutos secos tostados",
+            "prt": "frutos secos torrados",
+            "id": "kacang panggang",
+            "nl": "geroosterde noten",
+            "sv": "rostade nötter",
+            "da": "ristede nødder",
+            "no": "ristede nøtter",
+            "ms": "kacang panggang"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "blanched_vegetables",
+      "trigger_step": "COOK_BLANCH_01",
+      "match": {
+        "de": ["gemüse", "gemuse", "brokkoli", "bohnen", "spargel"],
+        "en": ["vegetables", "broccoli", "beans", "asparagus"],
+        "esp": ["verduras", "brócoli", "brocoli", "judías", "espárragos"],
+        "prt": ["legumes", "brócolis", "brocolis", "feijão", "espargos"],
+        "id": ["sayuran", "brokoli", "kacang"],
+        "nl": ["groenten", "broccoli", "bonen", "asperges"],
+        "sv": ["grönsaker", "broccoli", "bönor", "sparris"],
+        "da": ["grøntsager", "broccoli", "bønner", "asparges"],
+        "no": ["grønnsaker", "brokkoli", "bønner", "asparges"],
+        "ms": ["sayur", "brokoli", "kacang"]
+      },
+      "outputs": [
+        {
+          "key": "blanched_vegetables",
+          "icon": "🥦",
+          "names": {
+            "de": "blanchiertes Gemüse",
+            "en": "blanched vegetables",
+            "esp": "verduras escaldadas",
+            "prt": "legumes branqueados",
+            "id": "sayuran rebus",
+            "nl": "geblancheerde groenten",
+            "sv": "blancherade grönsaker",
+            "da": "blancherede grøntsager",
+            "no": "blancherte grønnsaker",
+            "ms": "sayur celur"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "f",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "bechamel",
+      "trigger_step": "COOK_THICKEN_01",
+      "match": {
+        "de": ["butter", "mehl"],
+        "en": ["butter", "flour"],
+        "esp": ["mantequilla", "harina"],
+        "prt": ["manteiga", "farinha"],
+        "id": ["mentega", "tepung"],
+        "nl": ["boter", "bloem"],
+        "sv": ["smör", "mjöl"],
+        "da": ["smør", "mel"],
+        "no": ["smør", "mel"],
+        "ms": ["mentega", "tepung"]
+      },
+      "outputs": [
+        {
+          "key": "bechamel",
+          "icon": "🥛",
+          "names": {
+            "de": "Béchamelsauce",
+            "en": "béchamel sauce",
+            "esp": "salsa bechamel",
+            "prt": "molho bechamel",
+            "id": "saus béchamel",
+            "nl": "bechamelsaus",
+            "sv": "béchamelsås",
+            "da": "bechamelsauce",
+            "no": "bechamelsaus",
+            "ms": "sos béchamel"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "roux",
+      "trigger_step": "COOK_SAUTE_01",
+      "match": {
+        "de": ["butter", "mehl"],
+        "en": ["butter", "flour"],
+        "esp": ["mantequilla", "harina"],
+        "prt": ["manteiga", "farinha"],
+        "id": ["mentega", "tepung"],
+        "nl": ["boter", "bloem"],
+        "sv": ["smör", "mjöl"],
+        "da": ["smør", "mel"],
+        "no": ["smør", "mel"],
+        "ms": ["mentega", "tepung"]
+      },
+      "outputs": [
+        {
+          "key": "roux",
+          "icon": "🧈",
+          "names": {
+            "de": "Mehlschwitze",
+            "en": "roux",
+            "esp": "roux",
+            "prt": "roux",
+            "id": "roux",
+            "nl": "roux",
+            "sv": "redning",
+            "da": "jævning",
+            "no": "jevning",
+            "ms": "roux"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "soffritto",
+      "trigger_step": "COOK_SAUTE_01",
+      "match": {
+        "de": ["zwiebel", "karotte", "sellerie", "möhre", "mohre", "karotten", "zwiebeln"],
+        "en": ["onion", "carrot", "celery", "onions", "carrots"],
+        "esp": ["cebolla", "zanahoria", "apio"],
+        "prt": ["cebola", "cenoura", "aipo"],
+        "id": ["bawang", "wortel", "seledri"],
+        "nl": ["ui", "wortel", "selderij"],
+        "sv": ["lök", "morot", "selleri"],
+        "da": ["løg", "gulerod", "selleri"],
+        "no": ["løk", "gulrot", "selleri"],
+        "ms": ["bawang", "lobak merah", "saderi"]
+      },
+      "outputs": [
+        {
+          "key": "soffritto",
+          "icon": "🧅",
+          "names": {
+            "de": "Soffritto",
+            "en": "soffritto",
+            "esp": "sofrito",
+            "prt": "sofrito",
+            "id": "tumisan",
+            "nl": "soffritto",
+            "sv": "soffritto",
+            "da": "soffritto",
+            "no": "soffritto",
+            "ms": "tumisan"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "whipped_cream",
+      "trigger_step": "PREP_WHISK_01",
+      "match": {
+        "de": ["sahne", "rahm", "schlagsahne", "obers"],
+        "en": ["cream", "heavy cream", "whipping cream"],
+        "esp": ["nata", "crema"],
+        "prt": ["nata", "creme de leite"],
+        "id": ["krim"],
+        "nl": ["slagroom", "room"],
+        "sv": ["grädde", "vispgrädde"],
+        "da": ["fløde", "piskefløde"],
+        "no": ["fløte", "kremfløte"],
+        "ms": ["krim"]
+      },
+      "outputs": [
+        {
+          "key": "whipped_cream",
+          "icon": "🍦",
+          "names": {
+            "de": "Schlagsahne",
+            "en": "whipped cream",
+            "esp": "nata montada",
+            "prt": "nata batida",
+            "id": "krim kocok",
+            "nl": "slagroom",
+            "sv": "vispad grädde",
+            "da": "pisket fløde",
+            "no": "pisket fløte",
+            "ms": "krim pukul"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "melted_cheese",
+      "trigger_step": "COOK_MELT_01",
+      "match": {
+        "de": ["käse", "kase", "mozzarella", "gouda", "emmentaler", "gruyère", "gruyere", "cheddar"],
+        "en": ["cheese", "mozzarella", "cheddar", "gruyère", "gruyere"],
+        "esp": ["queso", "mozzarella"],
+        "prt": ["queijo", "mozzarella"],
+        "id": ["keju", "mozzarella"],
+        "nl": ["kaas", "mozzarella"],
+        "sv": ["ost", "mozzarella"],
+        "da": ["ost", "mozzarella"],
+        "no": ["ost", "mozzarella"],
+        "ms": ["keju", "mozzarella"]
+      },
+      "outputs": [
+        {
+          "key": "melted_cheese",
+          "icon": "🧀",
+          "names": {
+            "de": "geschmolzener Käse",
+            "en": "melted cheese",
+            "esp": "queso fundido",
+            "prt": "queijo derretido",
+            "id": "keju leleh",
+            "nl": "gesmolten kaas",
+            "sv": "smält ost",
+            "da": "smeltet ost",
+            "no": "smeltet ost",
+            "ms": "keju cair"
+          },
+          "genus": {
+            "de": "m",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "caramelized_onions",
+      "trigger_step": "COOK_CARAMELIZE_01",
+      "match": {
+        "de": ["zwiebel", "zwiebeln"],
+        "en": ["onion", "onions"],
+        "esp": ["cebolla", "cebollas"],
+        "prt": ["cebola", "cebolas"],
+        "id": ["bawang"],
+        "nl": ["ui", "uien"],
+        "sv": ["lök"],
+        "da": ["løg"],
+        "no": ["løk"],
+        "ms": ["bawang"]
+      },
+      "outputs": [
+        {
+          "key": "caramelized_onions",
+          "icon": "🧅",
+          "names": {
+            "de": "karamellisierte Zwiebeln",
+            "en": "caramelized onions",
+            "esp": "cebollas caramelizadas",
+            "prt": "cebolas caramelizadas",
+            "id": "bawang karamel",
+            "nl": "gekaramelliseerde uien",
+            "sv": "karamelliserad lök",
+            "da": "karamelliserede løg",
+            "no": "karamellisert løk",
+            "ms": "bawang karamel"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "browned_butter",
+      "trigger_step": "COOK_SAUTE_01",
+      "match": {
+        "de": ["butter"],
+        "en": ["butter"],
+        "esp": ["mantequilla"],
+        "prt": ["manteiga"],
+        "id": ["mentega"],
+        "nl": ["boter"],
+        "sv": ["smör"],
+        "da": ["smør"],
+        "no": ["smør"],
+        "ms": ["mentega"]
+      },
+      "outputs": [
+        {
+          "key": "browned_butter",
+          "icon": "🧈",
+          "names": {
+            "de": "Nussbutter",
+            "en": "browned butter",
+            "esp": "mantequilla tostada",
+            "prt": "manteiga tostada",
+            "id": "mentega cokelat",
+            "nl": "nootboter",
+            "sv": "brynt smör",
+            "da": "brunet smør",
+            "no": "brynt smør",
+            "ms": "mentega perang"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "toasted_breadcrumbs",
+      "trigger_step": "COOK_TOAST_01",
+      "match": {
+        "de": ["paniermehl", "semmelbrösel", "semmelbrosel", "brösel", "brosel", "breadcrumbs"],
+        "en": ["breadcrumbs", "panko"],
+        "esp": ["pan rallado", "panko"],
+        "prt": ["pão ralado", "pao ralado", "panko"],
+        "id": ["panir", "panko"],
+        "nl": ["paneermeel", "broodkruimels"],
+        "sv": ["ströbröd", "panko"],
+        "da": ["rasp", "panko"],
+        "no": ["brødsmuler", "panko"],
+        "ms": ["serbuk roti", "panko"]
+      },
+      "outputs": [
+        {
+          "key": "toasted_breadcrumbs",
+          "icon": "🍞",
+          "names": {
+            "de": "geröstete Semmelbrösel",
+            "en": "toasted breadcrumbs",
+            "esp": "pan rallado tostado",
+            "prt": "pão ralado torrado",
+            "id": "panir panggang",
+            "nl": "geroosterd paneermeel",
+            "sv": "rostat ströbröd",
+            "da": "ristet rasp",
+            "no": "ristet brødsmuler",
+            "ms": "serbuk roti panggang"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "toasted_sesame",
+      "trigger_step": "COOK_TOAST_01",
+      "match": {
+        "de": ["sesam", "sesamkörner"],
+        "en": ["sesame", "sesame seeds"],
+        "esp": ["sésamo", "sesamo", "ajonjolí"],
+        "prt": ["sésamo", "sesamo", "gergelim"],
+        "id": ["wijen"],
+        "nl": ["sesam", "sesamzaad"],
+        "sv": ["sesam", "sesamfrön"],
+        "da": ["sesam", "sesamfrø"],
+        "no": ["sesam", "sesamfrø"],
+        "ms": ["bijan"]
+      },
+      "outputs": [
+        {
+          "key": "toasted_sesame",
+          "icon": "🌾",
+          "names": {
+            "de": "gerösteter Sesam",
+            "en": "toasted sesame seeds",
+            "esp": "sésamo tostado",
+            "prt": "gergelim torrado",
+            "id": "wijen sangrai",
+            "nl": "geroosterd sesam",
+            "sv": "rostad sesam",
+            "da": "ristet sesam",
+            "no": "ristet sesam",
+            "ms": "bijan panggang"
+          },
+          "genus": {
+            "de": "m",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "toasted_coconut",
+      "trigger_step": "COOK_TOAST_01",
+      "match": {
+        "de": ["kokos", "kokosflocken", "kokosraspel"],
+        "en": ["coconut", "coconut flakes", "shredded coconut"],
+        "esp": ["coco", "coco rallado"],
+        "prt": ["coco", "coco ralado"],
+        "id": ["kelapa"],
+        "nl": ["kokos", "kokosrasp"],
+        "sv": ["kokos", "kokosflingor"],
+        "da": ["kokos", "kokosflager"],
+        "no": ["kokos", "kokosflak"],
+        "ms": ["kelapa"]
+      },
+      "outputs": [
+        {
+          "key": "toasted_coconut",
+          "icon": "🥥",
+          "names": {
+            "de": "geröstete Kokosflocken",
+            "en": "toasted coconut",
+            "esp": "coco tostado",
+            "prt": "coco torrado",
+            "id": "kelapa sangrai",
+            "nl": "geroosterde kokos",
+            "sv": "rostad kokos",
+            "da": "ristet kokos",
+            "no": "ristet kokos",
+            "ms": "kelapa panggang"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "reduced_wine",
+      "trigger_step": "COOK_REDUCE_01",
+      "match": {
+        "de": ["wein", "rotwein", "weißwein", "weisswein"],
+        "en": ["wine", "red wine", "white wine"],
+        "esp": ["vino", "vino tinto", "vino blanco"],
+        "prt": ["vinho", "vinho tinto", "vinho branco"],
+        "id": ["anggur"],
+        "nl": ["wijn", "rode wijn", "witte wijn"],
+        "sv": ["vin", "rödvin", "vitt vin"],
+        "da": ["vin", "rødvin", "hvidvin"],
+        "no": ["vin", "rødvin", "hvitvin"],
+        "ms": ["wain"]
+      },
+      "outputs": [
+        {
+          "key": "reduced_wine",
+          "icon": "🍷",
+          "names": {
+            "de": "reduzierter Wein",
+            "en": "reduced wine",
+            "esp": "vino reducido",
+            "prt": "vinho reduzido",
+            "id": "anggur reduksi",
+            "nl": "gereduceerde wijn",
+            "sv": "reducerat vin",
+            "da": "reduceret vin",
+            "no": "redusert vin",
+            "ms": "wain reduksi"
+          },
+          "genus": {
+            "de": "m",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "reduced_stock",
+      "trigger_step": "COOK_REDUCE_01",
+      "match": {
+        "de": ["brühe", "bruhe", "fond", "bouillon"],
+        "en": ["stock", "broth", "bouillon"],
+        "esp": ["caldo"],
+        "prt": ["caldo"],
+        "id": ["kaldu"],
+        "nl": ["bouillon"],
+        "sv": ["buljong", "fond"],
+        "da": ["bouillon", "fond"],
+        "no": ["buljong", "fond"],
+        "ms": ["stok"]
+      },
+      "outputs": [
+        {
+          "key": "reduced_stock",
+          "icon": "🍲",
+          "names": {
+            "de": "reduzierte Brühe",
+            "en": "reduced stock",
+            "esp": "caldo reducido",
+            "prt": "caldo reduzido",
+            "id": "kaldu reduksi",
+            "nl": "gereduceerde bouillon",
+            "sv": "reducerad buljong",
+            "da": "reduceret bouillon",
+            "no": "redusert buljong",
+            "ms": "stok reduksi"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "bloomed_gelatin",
+      "trigger_step": "PREP_BLOOM_01",
+      "match": {
+        "de": ["gelatine"],
+        "en": ["gelatin", "gelatine"],
+        "esp": ["gelatina"],
+        "prt": ["gelatina"],
+        "id": ["gelatin"],
+        "nl": ["gelatine"],
+        "sv": ["gelatin"],
+        "da": ["gelatine"],
+        "no": ["gelatin"],
+        "ms": ["gelatin"]
+      },
+      "outputs": [
+        {
+          "key": "bloomed_gelatin",
+          "icon": "🫧",
+          "names": {
+            "de": "eingeweichte Gelatine",
+            "en": "bloomed gelatin",
+            "esp": "gelatina hidratada",
+            "prt": "gelatina hidratada",
+            "id": "gelatin rendam",
+            "nl": "geweekte gelatine",
+            "sv": "blötlagd gelatin",
+            "da": "opblødt gelatine",
+            "no": "utbløtt gelatin",
+            "ms": "gelatin rendam"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "marinated_meat",
+      "trigger_step": "PREP_MARINATE_01",
+      "match": {
+        "de": ["fleisch", "hähnchen", "hahnchen", "huhn", "rind", "schwein", "lamm", "pute", "truthahn"],
+        "en": ["meat", "chicken", "beef", "pork", "lamb", "turkey"],
+        "esp": ["carne", "pollo", "ternera", "cerdo", "cordero", "pavo"],
+        "prt": ["carne", "frango", "vitela", "porco", "cordeiro", "peru"],
+        "id": ["daging", "ayam", "sapi", "babi", "domba"],
+        "nl": ["vlees", "kip", "rund", "varken", "lam", "kalkoen"],
+        "sv": ["kött", "kyckling", "nötkött", "fläsk", "lamm", "kalkon"],
+        "da": ["kød", "kylling", "oksekød", "svinekød", "lam", "kalkun"],
+        "no": ["kjøtt", "kylling", "storfekjøtt", "svinekjøtt", "lam", "kalkun"],
+        "ms": ["daging", "ayam", "lembu", "babi", "kambing"]
+      },
+      "outputs": [
+        {
+          "key": "marinated_meat",
+          "icon": "🥩",
+          "names": {
+            "de": "mariniertes Fleisch",
+            "en": "marinated meat",
+            "esp": "carne marinada",
+            "prt": "carne marinada",
+            "id": "daging marinade",
+            "nl": "gemarineerd vlees",
+            "sv": "marinerat kött",
+            "da": "marineret kød",
+            "no": "marinert kjøtt",
+            "ms": "daging perap"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "marinated_fish",
+      "trigger_step": "PREP_MARINATE_01",
+      "match": {
+        "de": ["fisch", "lachs", "thunfisch", "garnele", "garnelen", "shrimp"],
+        "en": ["fish", "salmon", "tuna", "shrimp", "prawns"],
+        "esp": ["pescado", "salmón", "atún", "gambas", "camarones"],
+        "prt": ["peixe", "salmão", "atum", "camarão", "gambas"],
+        "id": ["ikan", "salmon", "tuna", "udang"],
+        "nl": ["vis", "zalm", "tonijn", "garnaal", "garnalen"],
+        "sv": ["fisk", "lax", "tonfisk", "räka", "räkor"],
+        "da": ["fisk", "laks", "tun", "reje", "rejer"],
+        "no": ["fisk", "laks", "tunfisk", "reke", "reker"],
+        "ms": ["ikan", "salmon", "tuna", "udang"]
+      },
+      "outputs": [
+        {
+          "key": "marinated_fish",
+          "icon": "🐟",
+          "names": {
+            "de": "marinierter Fisch",
+            "en": "marinated fish",
+            "esp": "pescado marinado",
+            "prt": "peixe marinado",
+            "id": "ikan marinade",
+            "nl": "gemarineerde vis",
+            "sv": "marinerad fisk",
+            "da": "marineret fisk",
+            "no": "marinert fisk",
+            "ms": "ikan perap"
+          },
+          "genus": {
+            "de": "m",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "soaked_beans",
+      "trigger_step": "PREP_SOAK_01",
+      "match": {
+        "de": ["bohnen", "linsen", "kichererbsen", "hülsenfrüchte", "hulsenfruchte"],
+        "en": ["beans", "lentils", "chickpeas", "legumes"],
+        "esp": ["judías", "lentejas", "garbanzos", "legumbres"],
+        "prt": ["feijão", "lentilhas", "grão-de-bico", "leguminosas"],
+        "id": ["kacang", "lentil"],
+        "nl": ["bonen", "linzen", "kikkererwten", "peulvruchten"],
+        "sv": ["bönor", "linser", "kikärtor"],
+        "da": ["bønner", "linser", "kikærter"],
+        "no": ["bønner", "linser", "kikerter"],
+        "ms": ["kacang", "lentil"]
+      },
+      "outputs": [
+        {
+          "key": "soaked_beans",
+          "icon": "🫘",
+          "names": {
+            "de": "eingeweichte Hülsenfrüchte",
+            "en": "soaked beans",
+            "esp": "legumbres remojadas",
+            "prt": "leguminosas de molho",
+            "id": "kacang rendam",
+            "nl": "geweekte peulvruchten",
+            "sv": "blötlagda bönor",
+            "da": "udblødte bønner",
+            "no": "utbløtte bønner",
+            "ms": "kacang rendam"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "peeled_tomatoes",
+      "trigger_step": "PREP_PEEL_01",
+      "match": {
+        "de": ["tomate", "tomaten"],
+        "en": ["tomato", "tomatoes"],
+        "esp": ["tomate", "tomates"],
+        "prt": ["tomate", "tomates"],
+        "id": ["tomat"],
+        "nl": ["tomaat", "tomaten"],
+        "sv": ["tomat", "tomater"],
+        "da": ["tomat", "tomater"],
+        "no": ["tomat", "tomater"],
+        "ms": ["tomato"]
+      },
+      "outputs": [
+        {
+          "key": "peeled_tomatoes",
+          "icon": "🍅",
+          "names": {
+            "de": "geschälte Tomaten",
+            "en": "peeled tomatoes",
+            "esp": "tomates pelados",
+            "prt": "tomates pelados",
+            "id": "tomat kupas",
+            "nl": "gepelde tomaten",
+            "sv": "skalade tomater",
+            "da": "skrællede tomater",
+            "no": "skrelte tomater",
+            "ms": "tomato kupas"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "peeled_potatoes",
+      "trigger_step": "PREP_PEEL_01",
+      "match": {
+        "de": ["kartoffel", "kartoffeln"],
+        "en": ["potato", "potatoes"],
+        "esp": ["patata", "patatas", "papa", "papas"],
+        "prt": ["batata", "batatas"],
+        "id": ["kentang"],
+        "nl": ["aardappel", "aardappelen", "aardappels"],
+        "sv": ["potatis"],
+        "da": ["kartoffel", "kartofler"],
+        "no": ["potet", "poteter"],
+        "ms": ["kentang"]
+      },
+      "outputs": [
+        {
+          "key": "peeled_potatoes",
+          "icon": "🥔",
+          "names": {
+            "de": "geschälte Kartoffeln",
+            "en": "peeled potatoes",
+            "esp": "patatas peladas",
+            "prt": "batatas peladas",
+            "id": "kentang kupas",
+            "nl": "geschilde aardappelen",
+            "sv": "skalade potatisar",
+            "da": "skrællede kartofler",
+            "no": "skrelte poteter",
+            "ms": "kentang kupas"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "roasted_garlic",
+      "trigger_step": "COOK_ROAST_01",
+      "match": {
+        "de": ["knoblauch"],
+        "en": ["garlic"],
+        "esp": ["ajo"],
+        "prt": ["alho"],
+        "id": ["bawang putih"],
+        "nl": ["knoflook"],
+        "sv": ["vitlök"],
+        "da": ["hvidløg"],
+        "no": ["hvitløk"],
+        "ms": ["bawang putih"]
+      },
+      "outputs": [
+        {
+          "key": "roasted_garlic",
+          "icon": "🧄",
+          "names": {
+            "de": "gerösteter Knoblauch",
+            "en": "roasted garlic",
+            "esp": "ajo asado",
+            "prt": "alho assado",
+            "id": "bawang putih panggang",
+            "nl": "geroosterde knoflook",
+            "sv": "rostad vitlök",
+            "da": "ristet hvidløg",
+            "no": "ristet hvitløk",
+            "ms": "bawang putih panggang"
+          },
+          "genus": {
+            "de": "m",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "roasted_peppers",
+      "trigger_step": "COOK_ROAST_01",
+      "match": {
+        "de": ["paprika", "peperoni", "chili"],
+        "en": ["pepper", "peppers", "bell pepper", "chili"],
+        "esp": ["pimiento", "pimientos", "chile"],
+        "prt": ["pimentão", "pimentao", "piri-piri"],
+        "id": ["paprika", "cabai"],
+        "nl": ["paprika", "peper"],
+        "sv": ["paprika", "chili"],
+        "da": ["peberfrugt", "chili"],
+        "no": ["paprika", "chili"],
+        "ms": ["lada", "cili"]
+      },
+      "outputs": [
+        {
+          "key": "roasted_peppers",
+          "icon": "🌶️",
+          "names": {
+            "de": "geröstete Paprika",
+            "en": "roasted peppers",
+            "esp": "pimientos asados",
+            "prt": "pimentões assados",
+            "id": "paprika panggang",
+            "nl": "geroosterde paprika",
+            "sv": "rostad paprika",
+            "da": "ristet peberfrugt",
+            "no": "ristet paprika",
+            "ms": "lada panggang"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "f",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "confit_garlic",
+      "trigger_step": "COOK_CONFIT_01",
+      "match": {
+        "de": ["knoblauch"],
+        "en": ["garlic"],
+        "esp": ["ajo"],
+        "prt": ["alho"],
+        "id": ["bawang putih"],
+        "nl": ["knoflook"],
+        "sv": ["vitlök"],
+        "da": ["hvidløg"],
+        "no": ["hvitløk"],
+        "ms": ["bawang putih"]
+      },
+      "outputs": [
+        {
+          "key": "confit_garlic",
+          "icon": "🧄",
+          "names": {
+            "de": "Knoblauchconfit",
+            "en": "garlic confit",
+            "esp": "ajo confitado",
+            "prt": "alho confitado",
+            "id": "bawang putih confit",
+            "nl": "knoflookconfit",
+            "sv": "vitlöksconfit",
+            "da": "hvidløgsconfit",
+            "no": "hvitløksconfit",
+            "ms": "bawang putih confit"
+          },
+          "genus": {
+            "de": "n",
+            "en": "n",
+            "esp": "m",
+            "prt": "m",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    },
+    {
+      "key": "flambe_fruit",
+      "trigger_step": "COOK_FLAMBE_01",
+      "match": {
+        "de": ["banane", "bananen", "ananas", "pfirsich", "kirsche", "kirschen", "obst", "früchte", "fruchte"],
+        "en": ["banana", "bananas", "pineapple", "peach", "cherry", "cherries", "fruit"],
+        "esp": ["plátano", "piña", "melocotón", "cereza", "fruta"],
+        "prt": ["banana", "ananás", "pêssego", "cereja", "fruta"],
+        "id": ["pisang", "nanas", "buah"],
+        "nl": ["banaan", "ananas", "perzik", "kers", "fruit"],
+        "sv": ["banan", "ananas", "persika", "körsbär", "frukt"],
+        "da": ["banan", "ananas", "fersken", "kirsebær", "frugt"],
+        "no": ["banan", "ananas", "fersken", "kirsebær", "frukt"],
+        "ms": ["pisang", "nanas", "buah"]
+      },
+      "outputs": [
+        {
+          "key": "flambe_fruit",
+          "icon": "🔥",
+          "names": {
+            "de": "flambierte Früchte",
+            "en": "flambéed fruit",
+            "esp": "fruta flambeada",
+            "prt": "fruta flamejada",
+            "id": "buah flambé",
+            "nl": "geflambeerd fruit",
+            "sv": "flamberad frukt",
+            "da": "flamberet frugt",
+            "no": "flambért frukt",
+            "ms": "buah flambé"
+          },
+          "genus": {
+            "de": "f",
+            "en": "n",
+            "esp": "f",
+            "prt": "f",
+            "id": "n",
+            "nl": "n",
+            "sv": "n",
+            "da": "n",
+            "no": "n",
+            "ms": "n"
+          }
+        }
+      ]
+    }
+  ]
+}

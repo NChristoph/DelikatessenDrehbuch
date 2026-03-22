@@ -324,6 +324,10 @@
         {
             <img src="@Model.Images.First().Image" class="hero-image" alt="@Model.Title" />
         }
+        else if (ViewData["PostingThumbnailUrl"] is string thumbUrl && !string.IsNullOrWhiteSpace(thumbUrl))
+        {
+            <img src="@thumbUrl" class="hero-image" alt="@Model.Title" />
+        }
         else
         {
             <img src="https://cdn.pixabay.com/photo/2014/12/21/23/28/recipe-575434_640.png" class="hero-image" alt="Recipe" />

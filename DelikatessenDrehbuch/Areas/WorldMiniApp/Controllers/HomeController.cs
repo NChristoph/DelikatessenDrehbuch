@@ -103,13 +103,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var isSuperUser = userHash == SuperUserHash;
             ViewData["CanPublishToFeed"] = isSuperUser;
 
-            if (isSuperUser)
+            var posting = await _context.WorldUserPosting
+                .Where(x => x.Recipe != null && x.Recipe.Id == id)
+                .Select(x => new { x.Id, x.ThumbnailUrl, x.Source })
+                .FirstOrDefaultAsync();
+
+            if (posting != null)
             {
-                var existingPostingId = await _context.WorldUserPosting
-                    .Where(x => x.Recipe != null && x.Recipe.Id == id)
-                    .Select(x => (int?)x.Id)
-                    .FirstOrDefaultAsync();
-                ViewData["ExistingPostingId"] = existingPostingId;
+                ViewData["PostingThumbnailUrl"] = posting.ThumbnailUrl ?? posting.Source;
+                if (isSuperUser)
+                {
+                    ViewData["ExistingPostingId"] = (int?)posting.Id;
+                }
             }
 
             return View(model);

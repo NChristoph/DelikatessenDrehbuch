@@ -27,6 +27,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public List<RecipePreparationSteps> AvailableSteps { get; set; } = new();
         public List<Keyword> AvailableKeywords { get; set; } = new();
         public List<JoinIngredientPreparationStep> IngredientStepJoins { get; set; } = new();
+        public List<EditPostingSmartStepViewModel> ExistingSmartSteps { get; set; } = new();
+    }
+
+    public class EditPostingSmartStepViewModel
+    {
+        public string MasterStepKey { get; set; } = string.Empty;
+        public string VariablesJson { get; set; } = "{}";
+        public int StepIndex { get; set; }
     }
 
     public class EditPostingIngredientRowViewModel

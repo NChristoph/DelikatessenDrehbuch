@@ -5,7 +5,12 @@
         return await window.CreatePostingDataStore.load('ingredientArticleRules');
     }
 
+    async function loadIngredientTransforms() {
+        return await window.CreatePostingDataStore.load('ingredientTransforms');
+    }
+
     window.CreatePostingPageData = {
-        loadIngredientArticleRules: loadIngredientArticleRules
+        loadIngredientArticleRules: loadIngredientArticleRules,
+        loadIngredientTransforms: loadIngredientTransforms
     };
 })(window);
