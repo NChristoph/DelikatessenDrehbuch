@@ -43,6 +43,11 @@
     <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="gold">
         <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" id="clearCreatePostingDraftBtn" class="btn btn-sm btn-outline-light rounded-pill">
+                    Entwurf löschen
+                </button>
+            </div>
 
             <section class="creator-card mb-3" data-theme="gold" id="card-basics">
                 <div class="creator-card-head">
@@ -229,12 +234,15 @@
 
                 <div class="creator-preview-canvas">
                     <div class="mb-4">
-                        <div class="input-pill" data-theme="gold">
+                        <div class="input-pill ingredient-search-pill" data-theme="gold">
                             <i class="bi bi-search text-white-50"></i>
                             <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none lang-ph" placeholder="Zutat suchen..."
                                    data-ph-de="Zutat suchen..." data-ph-en="Search ingredient..." data-ph-esp="Buscar ingrediente..." data-ph-prt="Buscar ingrediente..."
                                    data-ph-id="Cari bahan..." data-ph-nl="Ingrediënt zoeken..." data-ph-sv="Sök ingrediens..." data-ph-da="Søg ingrediens..."
                                    data-ph-no="Søg ingrediens..." data-ph-ms="Cari bahan..." />
+                            <button type="button" id="clearIngredientSearch" class="ingredient-search-clear d-none" aria-label="Suche leeren" title="Suche leeren">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
                         </div>
                         <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
                     </div>
@@ -728,6 +736,33 @@
     }
 
     #card-ingredients #ingredientSearch {
+        color: var(--creator-text);
+    }
+
+    .ingredient-search-pill {
+        gap: 10px;
+    }
+
+    .ingredient-search-pill #ingredientSearch {
+        flex: 1 1 auto;
+    }
+
+    .ingredient-search-clear {
+        border: 0;
+        background: transparent;
+        color: var(--creator-sub);
+        padding: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        transition: background .16s ease, color .16s ease;
+    }
+
+    .ingredient-search-clear:hover {
+        background: rgba(255,255,255,0.12);
         color: var(--creator-text);
     }
 
@@ -2287,6 +2322,57 @@
         overflow-y: auto;
     }
 
+    .phase-header {
+        border-bottom: 2px solid var(--creator-border);
+        padding-bottom: 4px;
+    }
+
+    .phase-icon {
+        font-size: 1.15rem;
+    }
+
+    .phase-title {
+        font-weight: 700;
+        font-size: .92rem;
+        color: var(--creator-text);
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .sub-group-header {
+        text-align: center;
+        padding: 6px 0 4px;
+        border-top: 1px solid var(--creator-border);
+    }
+
+    .sub-group-icon {
+        font-size: 1.05rem;
+        display: block;
+        margin-bottom: 1px;
+    }
+
+    .sub-group-title {
+        display: block;
+        font-weight: 600;
+        font-size: 1.5rem;
+        color: var(--creator-text);
+        letter-spacing: .3px;
+        text-align: center;
+    }
+
+    .sub-group-desc {
+        display: block;
+        width: 100%;
+        max-width: none;
+        margin: 1px 0 0.25rem;
+        font-size: .8rem;
+        font-weight: 400;
+        color: var(--creator-sub);
+        line-height: 1.25;
+        text-align: center;
+        opacity: .72;
+    }
+
     .template-card {
         border: 1px solid var(--creator-border);
         border-radius: 14px;
@@ -2601,6 +2687,8 @@
             <select id="probVarDurationUnit" class="form-select" style="background:#fff;color:#212529;">
                 <option value="minute">Minuten</option>
                 <option value="hour">Stunden</option>
+                <option value="short">kurz</option>
+                <option value="per_package">laut Packungsanweisung</option>
             </select>
         </div>
     </div>

@@ -28,6 +28,152 @@
         let tempStepIdCounter = -1;
         let ingredientArticleRules = null;
         let activeIngredientConfigRow = null;
+        const createPostingDraftStorageKey = 'createPostingDraft:v1';
+        const createPostingDraftResetCookieName = 'createPostingDraftReset';
+        let createPostingDraftSaveTimer = null;
+        let isRestoringCreatePostingDraft = false;
+        let createPostingDraftAutosaveHandle = null;
+
+        function withCreatePostingDraftStorage(action, fallbackValue) {
+            try {
+                return action();
+            } catch (error) {
+                console.warn('CreatePosting draft storage unavailable', error);
+                return fallbackValue;
+            }
+        }
+
+        function readCreatePostingDraft() {
+            return withCreatePostingDraftStorage(function () {
+                const raw = localStorage.getItem(createPostingDraftStorageKey);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : null;
+            }, null);
+        }
+
+        function writeCreatePostingDraft(draft) {
+            return withCreatePostingDraftStorage(function () {
+                localStorage.setItem(createPostingDraftStorageKey, JSON.stringify(draft));
+                return true;
+            }, false);
+        }
+
+        function clearCreatePostingDraft() {
+            withCreatePostingDraftStorage(function () {
+                localStorage.removeItem(createPostingDraftStorageKey);
+            });
+        }
+
+        function clearCreatePostingDraftResetCookie() {
+            document.cookie = `${createPostingDraftResetCookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+        }
+
+        function consumeCreatePostingDraftResetFlag() {
+            if (getCookieValue(createPostingDraftResetCookieName) !== '1') return false;
+            clearCreatePostingDraft();
+            clearCreatePostingDraftResetCookie();
+            return true;
+        }
+
+        function syncSelectedKeywordButtonStates() {
+            const selectedIds = new Set($('#selectedKeywords .keyword-pill').map(function () {
+                return ($(this).data('keyword-id') || '').toString();
+            }).get().filter(Boolean));
+
+            $('.keyword-btn').each(function () {
+                const id = ($(this).data('keyword-id') || '').toString();
+                $(this)
+                    .toggleClass('btn-secondary', selectedIds.has(id))
+                    .toggleClass('btn-outline-secondary', !selectedIds.has(id));
+            });
+        }
+
+        function captureCreatePostingDraft() {
+            return {
+                updatedAt: new Date().toISOString(),
+                currentLang: resolveLangKey(currentLang),
+                basics: {
+                    title: ($('input[name="Title"]').val() || '').toString(),
+                    category: ($('select[name="Recipe.Category"]').val() || '').toString(),
+                    preferences: ($('select[name="Recipe.Preferences"]').val() || '').toString(),
+                    personCount: ($('input[name="Recipe.PersonCount"]').val() || '').toString(),
+                    preparationTime: ($('input[name="Recipe.PreparationTime"]').val() || '').toString(),
+                    ingredientSearch: ($('#ingredientSearch').val() || '').toString()
+                },
+                selectedIngredientsHtml: ($('#selectedIngredients').html() || '').toString(),
+                selectedStepsHtml: ($('#selectedSteps').html() || '').toString(),
+                selectedKeywordsHtml: ($('#selectedKeywords').html() || '').toString()
+            };
+        }
+
+        function persistCreatePostingDraftNow() {
+            if (isRestoringCreatePostingDraft) return;
+            writeCreatePostingDraft(captureCreatePostingDraft());
+        }
+
+        function scheduleCreatePostingDraftSave(delay) {
+            if (isRestoringCreatePostingDraft) return;
+            clearTimeout(createPostingDraftSaveTimer);
+            createPostingDraftSaveTimer = setTimeout(persistCreatePostingDraftNow, typeof delay === 'number' ? delay : 180);
+        }
+
+        function startCreatePostingFresh() {
+            clearTimeout(createPostingDraftSaveTimer);
+            clearCreatePostingDraft();
+            clearCreatePostingDraftResetCookie();
+            window.location.reload();
+        }
+
+        function hasMeaningfulCreatePostingDraft(draft) {
+            if (!draft) return false;
+            const basics = draft.basics || {};
+            return !!(
+                (basics.title || '').toString().trim() ||
+                (basics.category || '').toString().trim() ||
+                (basics.preferences || '').toString().trim() ||
+                (basics.personCount || '').toString().trim() ||
+                (basics.preparationTime || '').toString().trim() ||
+                (draft.selectedIngredientsHtml || '').toString().trim() ||
+                (draft.selectedStepsHtml || '').toString().trim() ||
+                (draft.selectedKeywordsHtml || '').toString().trim()
+            );
+        }
+
+        function restoreCreatePostingDraft() {
+            if (consumeCreatePostingDraftResetFlag()) return false;
+
+            const draft = readCreatePostingDraft();
+            if (!hasMeaningfulCreatePostingDraft(draft)) return false;
+
+            const basics = draft.basics || {};
+            isRestoringCreatePostingDraft = true;
+            try {
+                $('input[name="Title"]').val(basics.title || '');
+                $('select[name="Recipe.Category"]').val(basics.category || '');
+                $('select[name="Recipe.Preferences"]').val(basics.preferences || '');
+                $('input[name="Recipe.PersonCount"]').val(basics.personCount || '');
+                $('input[name="Recipe.PreparationTime"]').val(basics.preparationTime || '');
+                $('#ingredientSearch').val(basics.ingredientSearch || '');
+
+                $('#selectedIngredients').html((draft.selectedIngredientsHtml || '').toString());
+                $('#selectedSteps').html((draft.selectedStepsHtml || '').toString());
+                $('#selectedKeywords').html((draft.selectedKeywordsHtml || '').toString());
+
+                updateStepIndices();
+                applyDerivedIngredientRowVisuals();
+                renderIngredientChips();
+                syncIngredientSourceVisibility();
+                syncSelectedKeywordButtonStates();
+                updateLanguageLabels();
+                refreshMasterTemplateBuilder();
+                refreshIngredientProbabilityHints();
+            } finally {
+                isRestoringCreatePostingDraft = false;
+            }
+
+            return true;
+        }
 
         const fallbackUnitsLocal = [
             { de: 'Stk.', en: 'pcs.', esp: 'uds.', prt: 'un.' },
@@ -169,6 +315,7 @@
                     }
                 }
                 closeIngredientConfigPopup();
+                scheduleCreatePostingDraftSave();
                 return;
             }
         }
@@ -229,9 +376,12 @@
 
             } else if (varType === 'duration') {
                 const num = parseInt((currentVal || '').split(' ')[0], 10) || 5;
-                const isHour = (currentVal || '').toLowerCase().includes('stund') || (currentVal || '').toLowerCase().includes('hour');
+                const loweredCurrentVal = (currentVal || '').toLowerCase();
+                const isHour = loweredCurrentVal.includes('stund') || loweredCurrentVal.includes('hour');
+                const isShort = loweredCurrentVal === getDurationUnitLabel('short', currentLang).toLowerCase();
+                const isPerPackage = loweredCurrentVal === getDurationUnitLabel('per_package', currentLang).toLowerCase();
                 $('#probVarDurationVal').val(num);
-                $('#probVarDurationUnit').val(isHour ? 'hour' : 'minute');
+                $('#probVarDurationUnit').val(isPerPackage ? 'per_package' : isShort ? 'short' : isHour ? 'hour' : 'minute');
                 $('#probVarDurationArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
 
@@ -255,8 +405,7 @@
                     options = MasterStepRenderer.getVariablePresets(varKey, currentLang || 'de') || [];
                 }
                 if (!options.length && varType === 'heat' && typeof getHeatOptions === 'function') options = getHeatOptions();
-                if (!options.length && varType === 'mode') options = (modeOptionsByLang[resolveLangKey(currentLang)] || modeOptionsByLang.de || []);
-                if (!options.length && varType === 'tool' && typeof getToolOptions === 'function') options = getToolOptions();
+                if (!options.length && varType === 'mode') options = getModeOptions();
 
                 if (options.length) {
                     const chips = options.map(opt => {
@@ -307,10 +456,14 @@
                     value = `${probVarIngredientArticleValue} ${value}`.trim();
                 }
             } else if (!$('#probVarDurationArea').hasClass('d-none')) {
-                const num = parseInt($('#probVarDurationVal').val(), 10) || 1;
                 const unit = $('#probVarDurationUnit').val() || 'minute';
                 const label = typeof getDurationUnitLabel === 'function' ? getDurationUnitLabel(unit, currentLang) : unit;
-                value = `${num} ${label}`;
+                if (unit === 'short' || unit === 'per_package') {
+                    value = label;
+                } else {
+                    const num = parseInt($('#probVarDurationVal').val(), 10) || 1;
+                    value = `${num} ${label}`;
+                }
             } else if (!$('#probVarCountArea').hasClass('d-none')) {
                 value = (parseInt($('#probVarCountVal').val(), 10) || 1).toString();
             } else if (!$('#probVarTempArea').hasClass('d-none')) {
@@ -416,7 +569,7 @@
             if (flowMode === 'stateOnly') {
                 editorEl.dataset.selectedPronoun = (carriedPronoun || '').trim();
             }
-            if (varKey === 'pronoun') {
+            if (varKey === 'pronoun' || varKey === 'pronoun2') {
                 const $valueRow = $host.find('.js-value-btn-row');
                 if ($valueRow.length && !$valueRow.find('[data-pick-value="__none__"]').length) {
                     $valueRow.prepend('<button type="button" class="btn btn-sm creator-cta-secondary pill-like" data-pick-mode="value" data-pick-value="__none__">ohne</button>');
@@ -1345,34 +1498,34 @@
             temperatureValue: 180,
             temperatureUnit: 'celsius',
             activeHeatTokenId: '',
-            heatValue: 'mittlerer',
+            heatValue: '',
             activeModeTokenId: '',
-            modeValue: 'Ober- und Unterhitze',
+            modeValue: '',
             activePronounTokenId: '',
             pronounValue: '',
             pendingStateTokenId: '',
             pendingSc2StateTokenId: '',
             activeEquipmentTokenId: '',
-            equipmentValue: 'die Pfanne',
-            equipmentArticleValue: 'die',
+            equipmentValue: '',
+            equipmentArticleValue: '',
             activeStateTokenId: '',
-            stateValue: 'goldbraun',
+            stateValue: '',
             activeToolTokenId: '',
-            toolValue: 'Messer',
+            toolValue: '',
             toolArticleValue: '',
             activeShapeTokenId: '',
             activeGrindSizeTokenId: '',
             activeBaseTokenId: '',
-            grindSizeValue: 'feine',
-            shapeValue: 'Wuerfel',
+            grindSizeValue: '',
+            shapeValue: '',
             activeItemTokenId: '',
-            itemValue: 'Teig',
-            itemArticleValue: 'den',
-            baseValue: 'den Teig',
-            baseArticleValue: 'den',
+            itemValue: '',
+            itemArticleValue: '',
+            baseValue: '',
+            baseArticleValue: '',
             activeBalanceTokenId: '',
-            balanceValue: 'SÃ¤ure',
-            balanceArticleValue: 'die',
+            balanceValue: '',
+            balanceArticleValue: '',
             activeSeasoningsTokenId: '',
             seasoningsValue: 'Salz und Pfeffer'
         };
@@ -1436,10 +1589,10 @@
         function getSelectedIngredientNames() {
             const ingredients = getSelectedIngredientsForSandbox();
             if (!ingredients.length) return [];
-            const selectedIds = creatorState.selectedIngredientIds || [];
+            const selectedIds = (creatorState.selectedIngredientIds || []).map(x => (x || '').toString()).filter(Boolean);
             if (!selectedIds.length) return [];
-            const selected = ingredients.filter(x => selectedIds.includes(x.id));
-            return selected.map(x => x.name);
+            const byId = new Map(ingredients.map(x => [(x.id || '').toString(), x]));
+            return selectedIds.map(id => byId.get(id)?.name || '').filter(Boolean);
         }
 
         function getSelectedIngredientNamesWithArticle(langKey = currentLang) {
@@ -1447,23 +1600,24 @@
             const ingredients = getSelectedIngredientsForSandbox();
             if (!ingredients.length) return [];
 
-            const selectedIds = creatorState.selectedIngredientIds || [];
+            const selectedIds = (creatorState.selectedIngredientIds || []).map(x => (x || '').toString()).filter(Boolean);
             if (!selectedIds.length) return [];
 
-            return ingredients
-                .filter(x => selectedIds.includes(x.id))
-                .map(x => {
-                    const grammar = resolveGrammarForIngredient(x.name, x.genusByLang || {}, lang);
-                    return applyArticleToName(x.name, grammar.article, lang) || x.name;
-                });
+            const byId = new Map(ingredients.map(x => [(x.id || '').toString(), x]));
+            return selectedIds.map(id => {
+                const ingredient = byId.get(id);
+                if (!ingredient) return '';
+                const grammar = resolveGrammarForIngredient(ingredient.name, ingredient.genusByLang || {}, lang);
+                return applyArticleToName(ingredient.name, grammar.article, lang) || ingredient.name;
+            }).filter(Boolean);
         }
 
         function getSelectedIngredientForCreator() {
             const ingredients = getSelectedIngredientsForSandbox();
-            const selectedId = (creatorState.selectedIngredientIds || [])[0] || '';
+            const selectedId = ((creatorState.selectedIngredientIds || [])[0] || '').toString();
             if (!selectedId) return null;
 
-            const selected = ingredients.find(x => x.id === selectedId);
+            const selected = ingredients.find(x => (x.id || '').toString() === selectedId);
             if (!selected) return null;
 
             return {
@@ -1487,6 +1641,33 @@
             const head = list.slice(0, -1).join(', ');
             const tail = list[list.length - 1];
             return `${head}, und ${tail}`;
+        }
+
+        function prioritizeSelectedIngredient(id, options = {}) {
+            const ingredientId = (id || '').toString().trim();
+            if (!ingredientId) return [];
+
+            const keepOthers = options.keepOthers !== false;
+            const current = (creatorState.selectedIngredientIds || []).map(x => (x || '').toString()).filter(Boolean);
+            const rest = keepOthers ? current.filter(x => x !== ingredientId) : [];
+            creatorState.selectedIngredientIds = [ingredientId, ...rest];
+            return creatorState.selectedIngredientIds;
+        }
+
+        function assignIngredientPlaceholderValue(tokenId, ingredientId) {
+            const safeTokenId = (tokenId || '').toString().trim();
+            const safeIngredientId = (ingredientId || '').toString().trim();
+            if (!safeTokenId || !safeIngredientId) return false;
+
+            const ingredient = getSelectedIngredientsForSandbox().find(x => (x.id || '').toString() === safeIngredientId);
+            if (!ingredient || !ingredient.name) return false;
+
+            prioritizeSelectedIngredient(safeIngredientId);
+            creatorState.placeholderAssignments[safeTokenId] = ingredient.name.toString().trim();
+            creatorState.activePlaceholderTokenId = '';
+            creatorState.ingredientReplaceArmed = false;
+            $('#masterPreviewCard, #sc2MasterPreviewCard').removeClass('token-replace-active');
+            return true;
         }
 
         function syncGrammarAssignmentsForSelectedIngredient() {
@@ -1523,25 +1704,44 @@
             { type: 'ingredient', match: key => key === 'ingredient' || key === 'ingredients' || key === 'liquid' || key === 'fat' },
             { type: 'duration', match: key => key.includes('duration') },
             { type: 'count', match: key => key === 'count' || key === 'servings' || key.includes('count') },
-            { type: 'pronoun', match: key => key === 'pronoun' },
+            { type: 'pronoun', match: key => key === 'pronoun' || key === 'pronoun2' },
             { type: 'temperature', match: key => key === 'temp' || key === 'temperature' },
             { type: 'heat', match: key => key === 'heat' || key.includes('heat') },
             { type: 'mode', match: key => key === 'mode' || key.includes('mode') },
             { type: 'equipment', match: key => key === 'equipment' },
             { type: 'state', match: key => key === 'state' || key.includes('state') || key.includes('consistency') },
             { type: 'tool', match: key => key === 'tool' },
-            { type: 'grindSize', match: key => key === 'grind_size' || key === 'grindsize' || key.includes('grind') },
+            { type: 'grindSize', match: key => key === 'grind_size' || key.includes('grind') },
             { type: 'shape', match: key => key === 'shape' },
             { type: 'base', match: key => key === 'base' },
-            { type: 'item', match: key => key === 'item' || key === 'dish' || key.includes('item') },
+            { type: 'item', match: key => key === 'item' || key.includes('item') },
             { type: 'balance', match: key => key === 'balance' },
-            { type: 'seasonings', match: key => key === 'seasonings' || key === 'spices' }
+            { type: 'seasonings', match: key => key === 'seasonings' }
         ];
 
         function getPlaceholderType(key) {
             const normalizedKey = normalizePlaceholderKey(key);
             const matched = placeholderTypeMatchers.find(entry => entry.match(normalizedKey));
             return matched ? matched.type : '';
+        }
+
+        function getJsonVariableOptions(variableName, langKey = currentLang) {
+            if (!window.MasterStepRenderer || typeof window.MasterStepRenderer.getVariablePresets !== 'function') {
+                return [];
+            }
+
+            const options = window.MasterStepRenderer.getVariablePresets(variableName, resolveLangKey(langKey || currentLang || 'de'));
+            if (!Array.isArray(options)) {
+                return [];
+            }
+
+            return options
+                .map(x => (x || '').toString().trim())
+                .filter(Boolean);
+        }
+
+        function getFirstJsonVariableOption(variableName, langKey = currentLang) {
+            return getJsonVariableOptions(variableName, langKey)[0] || '';
         }
 
         const placeholderEditorDispatch = {
@@ -1565,19 +1765,9 @@
         const supportedLanguages = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
         const durationUnitLabels = {
             minute: { de: 'Minuten', en: 'minutes', esp: 'minutos', prt: 'minutos', id: 'menit', nl: 'minuten', sv: 'minuter', da: 'minutter', no: 'minutter', ms: 'minit' },
-            hour: { de: 'Stunden', en: 'hours', esp: 'horas', prt: 'horas', id: 'jam', nl: 'uur', sv: 'timmar', da: 'timer', no: 'timer', ms: 'jam' }
-        };
-        const modeOptionsByLang = {
-            de: ['Oberhitze', 'Unterhitze', 'Ober- und Unterhitze', 'Umluft'],
-            en: ['top heat', 'bottom heat', 'top and bottom heat', 'convection'],
-            esp: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecciÃ³n'],
-            prt: ['calor superior', 'calor inferior', 'calor superior e inferior', 'convecÃ§Ã£o'],
-            id: ['panas atas', 'panas bawah', 'panas atas dan bawah', 'konveksi'],
-            nl: ['bovenwarmte', 'onderwarmte', 'boven- en onderwarmte', 'hetelucht'],
-            sv: ['Ã¶vervÃ¤rme', 'undervÃ¤rme', 'Ã¶ver- och undervÃ¤rme', 'varmluft'],
-            da: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
-            no: ['overvarme', 'undervarme', 'over- og undervarme', 'varmluft'],
-            ms: ['haba atas', 'haba bawah', 'haba atas dan bawah', 'peredaran udara']
+            hour: { de: 'Stunden', en: 'hours', esp: 'horas', prt: 'horas', id: 'jam', nl: 'uur', sv: 'timmar', da: 'timer', no: 'timer', ms: 'jam' },
+            short: { de: 'kurz', en: 'briefly', esp: 'brevemente', prt: 'brevemente', id: 'sebentar', nl: 'kort', sv: 'kort', da: 'kort', no: 'kort', ms: 'sebentar' },
+            per_package: { de: 'laut Packungsanweisung', en: 'according to package instructions', esp: 'segun las instrucciones del paquete', prt: 'conforme as instrucoes da embalagem', id: 'sesuai petunjuk kemasan', nl: 'volgens de verpakkingsinstructies', sv: 'enligt forpackningens anvisningar', da: 'ifolge pakkens anvisninger', no: 'ifolge pakkens anvisninger', ms: 'mengikut arahan pembungkusan' }
         };
         const closeEditorHandlers = [
             closeDurationEditor,
@@ -1626,6 +1816,9 @@
         }
 
         function getDurationInsertText() {
+            if (creatorState.durationUnit === 'per_package' || creatorState.durationUnit === 'short') {
+                return getDurationUnitLabel(creatorState.durationUnit, currentLang);
+            }
             const value = parseInt(creatorState.durationValue, 10);
             const safeValue = Number.isFinite(value) && value > 0 ? value : 1;
             const unitLabel = getDurationUnitLabel(creatorState.durationUnit, currentLang);
@@ -1635,10 +1828,16 @@
         function refreshDurationUnitControls() {
             const minuteLabel = getDurationUnitLabel('minute', currentLang);
             const hourLabel = getDurationUnitLabel('hour', currentLang);
+            const shortLabel = getDurationUnitLabel('short', currentLang);
+            const perPackageLabel = getDurationUnitLabel('per_package', currentLang);
             const minuteOption = $('#durationUnitSelect option[value="minute"]');
             const hourOption = $('#durationUnitSelect option[value="hour"]');
+            const shortOption = $('#durationUnitSelect option[value="short"]');
+            const perPackageOption = $('#durationUnitSelect option[value="per_package"]');
             if (minuteOption.length) minuteOption.text(minuteLabel);
             if (hourOption.length) hourOption.text(hourLabel);
+            if (shortOption.length) shortOption.text(shortLabel);
+            if (perPackageOption.length) perPackageOption.text(perPackageLabel);
         }
 
         function openDurationEditorForToken(tokenId) {
@@ -1646,6 +1845,18 @@
             creatorState.activeDurationTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const parsed = currentText.match(/^(\d+)\s+/);
+            const loweredCurrentText = currentText.toLowerCase();
+            const shortLabel = getDurationUnitLabel('short', currentLang).toLowerCase();
+            const perPackageLabel = getDurationUnitLabel('per_package', currentLang).toLowerCase();
+            if (loweredCurrentText === shortLabel) {
+                creatorState.durationUnit = 'short';
+            } else if (loweredCurrentText === perPackageLabel) {
+                creatorState.durationUnit = 'per_package';
+            } else if ((currentText || '').toLowerCase().includes('stund') || (currentText || '').toLowerCase().includes('hour')) {
+                creatorState.durationUnit = 'hour';
+            } else if (parsed) {
+                creatorState.durationUnit = 'minute';
+            }
             if (parsed) creatorState.durationValue = parseInt(parsed[1], 10);
             $('#durationValueInput').val(creatorState.durationValue || 10);
             refreshDurationUnitControls();
@@ -1714,7 +1925,7 @@
                     return options;
                 }
             }
-            return ['niedriger', 'mittlerer', 'hoher'];
+            return getJsonVariableOptions('heat');
         }
 
         function renderInlineHeatOptions() {
@@ -1726,7 +1937,7 @@
             creatorState.activeHeatTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.heatValue || '').toString().trim().toLowerCase();
             const options = getHeatOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText) || options[1] || options[0] || 'mittlerer';
+            const selected = options.find(x => x.toLowerCase() === currentText) || options[0] || '';
             creatorState.heatValue = selected;
             renderInlineHeatOptions();
             placeEditorLikeTemperature('#heatEditor');
@@ -1740,7 +1951,7 @@
 
         function getModeOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
-            return modeOptionsByLang[lang] || modeOptionsByLang.de;
+            return getJsonVariableOptions('mode', lang);
         }
 
         function openModeEditorForToken(tokenId) {
@@ -1748,7 +1959,7 @@
             creatorState.activeModeTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.modeValue || '').toString().trim().toLowerCase();
             const options = getModeOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText) || options[2] || options[0] || 'Ober- und Unterhitze';
+            const selected = options.find(x => x.toLowerCase() === currentText) || options[0] || '';
             creatorState.modeValue = selected;
             renderInlineModeOptions();
             placeEditorLikeTemperature('#modeEditor');
@@ -1854,21 +2065,7 @@
         }
 
         function getEditorArticleOptions(langKey = currentLang) {
-            const lang = resolveLangKey(langKey || currentLang || 'de');
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('articles', lang);
-                if (Array.isArray(options) && options.length) {
-                    return options.filter(x => (x || '').toString().trim() !== '');
-                }
-            }
-            const map = {
-                de: ['der', 'die', 'das', 'den', 'dem', 'einen', 'einem', 'einer'],
-                en: ['the'],
-                esp: ['el', 'la', 'los', 'las'],
-                prt: ['o', 'a', 'os', 'as'],
-                nl: ['de', 'het']
-            };
-            return map[lang] || [];
+            return getJsonVariableOptions('articles', langKey);
         }
 
         function splitLeadingArticle(value, langKey = currentLang) {
@@ -1979,28 +2176,9 @@
 
         function getEquipmentOptions() {
             const lang = (currentLang || 'de').toString().toLowerCase();
-            const fallbackByLang = {
-                de: ['Pfanne', 'Topf', 'Backofen', 'RÃ¼hrschÃ¼ssel', 'Sieb', 'Mixer', 'PÃ¼rierstab', 'KÃ¼chenmaschine', 'BrÃ¤ter', 'Wok', 'Grill', 'Dampfgarer', 'Auflaufform', 'Zange', 'Schneidebrett'],
-                en: ['pan', 'pot', 'oven', 'mixing bowl', 'strainer', 'blender', 'immersion blender', 'food processor', 'roaster', 'wok', 'grill', 'steamer', 'baking dish', 'tongs', 'cutting board'],
-                esp: ['sartÃ©n', 'olla', 'horno', 'bol para mezclar', 'colador', 'batidora', 'batidora de mano', 'procesador de alimentos', 'asador', 'wok', 'parrilla', 'vaporera', 'fuente para horno', 'pinzas', 'tabla de cortar'],
-                prt: ['frigideira', 'panela', 'forno', 'tigela de mistura', 'coador', 'liquidificador', 'mixer de mÃ£o', 'processador de alimentos', 'assadeira', 'wok', 'grelha', 'cozedor a vapor', 'travessa de forno', 'pinÃ§a', 'tÃ¡bua de corte'],
-                id: ['wajan', 'panci', 'oven', 'mangkuk adonan', 'saringan', 'blender', 'blender tangan', 'food processor', 'loyang panggang', 'wok', 'pemanggang', 'kukusan', 'pinggan oven', 'penjepit', 'talenan'],
-                nl: ['pan', 'kookpot', 'oven', 'mengkom', 'zeef', 'blender', 'staafmixer', 'keukenmachine', 'braadslede', 'wok', 'grill', 'stoomkoker', 'ovenschaal', 'tang', 'snijplank'],
-                sv: ['stekpanna', 'gryta', 'ugn', 'blandningsskÃ¥l', 'sil', 'mixer', 'stavmixer', 'matberedare', 'stekgryta', 'wok', 'grill', 'Ã¥ngkokare', 'ugnsform', 'tÃ¥ng', 'skÃ¤rbrÃ¤da'],
-                da: ['pande', 'gryde', 'ovn', 'rÃ¸reskÃ¥l', 'si', 'blender', 'stavblender', 'foodprocessor', 'bradepande', 'wok', 'grill', 'dampkoger', 'ovnfast fad', 'tang', 'skÃ¦rebrÃ¦t'],
-                no: ['stekepanne', 'gryte', 'ovn', 'miksebolle', 'sil', 'blender', 'stavmikser', 'kjÃ¸kkenmaskin', 'stekeform', 'wok', 'grill', 'dampkoker', 'ildfast form', 'klype', 'skjÃ¦refjÃ¸l'],
-                ms: ['kuali', 'periuk', 'ketuhar', 'mangkuk adunan', 'penapis', 'pengisar', 'pengisar tangan', 'pemproses makanan', 'dulang pembakar', 'wok', 'pemanggang', 'pengukus', 'bekas pembakar', 'penyepit', 'papan pemotong']
-            };
-
-            const rendererOptions = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
-                ? MasterStepRenderer.getVariablePresets('equipment', lang)
-                : [];
-
-            const fallback = fallbackByLang[lang] || fallbackByLang.de;
-            const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
+            const merged = getJsonVariableOptions('equipment', lang)
                 .map(x => ensureEquipmentArticle((x || '').toString().trim(), lang))
                 .filter(Boolean);
-
             return Array.from(new Set(merged));
         }
 
@@ -2009,7 +2187,7 @@
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
             const options = getEquipmentOptions();
-            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'die Pfanne', mode: 'full' });
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: '', mode: 'full' });
             creatorState.equipmentArticleValue = selection.article;
             creatorState.equipmentValue = selection.selected;
             renderInlineEquipmentOptions();
@@ -2034,13 +2212,7 @@
         }
 
         function getStateOptions() {
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('state', currentLang || 'de');
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
-            }
-            return ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd'];
+            return getJsonVariableOptions('state');
         }
 
         function openStateEditorForToken(tokenId) {
@@ -2048,7 +2220,7 @@
             creatorState.activeStateTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
             const options = getStateOptions();
-            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || 'goldbraun';
+            const selected = options.find(x => x.toLowerCase() === (currentText || '').toLowerCase()) || options[0] || '';
             creatorState.stateValue = selected;
             renderInlineStateOptions();
             placeEditorLikeTemperature('#stateEditor');
@@ -2074,29 +2246,9 @@
         }
 
         function getToolOptions() {
-            const lang = (currentLang || 'de').toString().toLowerCase();
-            const fallbackByLang = {
-                de: ['Messer', 'SparschÃ¤ler', 'Reibe', 'Schneebesen', 'Spatel', 'HolzlÃ¶ffel', 'Suppenkelle', 'Messbecher', 'Nudelholz', 'Teigschaber'],
-                en: ['knife', 'peeler', 'grater', 'whisk', 'spatula', 'wooden spoon', 'ladle', 'measuring cup', 'rolling pin', 'dough scraper'],
-                esp: ['cuchillo', 'pelador', 'rallador', 'batidor', 'espÃ¡tula', 'cuchara de madera', 'cucharÃ³n', 'vaso medidor', 'rodillo', 'rasqueta de masa'],
-                prt: ['faca', 'descascador', 'ralador', 'batedor', 'espÃ¡tula', 'colher de pau', 'concha', 'copo medidor', 'rolo de massa', 'raspador de massa'],
-                id: ['pisau', 'pengupas', 'parutan', 'pengocok', 'spatula', 'sendok kayu', 'sendok sayur', 'gelas ukur', 'rolling pin', 'scraper adonan'],
-                nl: ['mes', 'dunschiller', 'rasp', 'garde', 'spatel', 'houten lepel', 'soeplepel', 'maatbeker', 'deegroller', 'deegschraper'],
-                sv: ['kniv', 'potatisskalare', 'rivjÃ¤rn', 'visp', 'stekspade', 'trÃ¤slev', 'slev', 'mÃ¥ttkopp', 'kavel', 'degskrapa'],
-                da: ['kniv', 'skrÃ¦ller', 'rivejern', 'piskeris', 'spatel', 'trÃ¦ske', 'suppeske', 'mÃ¥lebÃ¦ger', 'kagerulle', 'dejskraber'],
-                no: ['kniv', 'skreller', 'rivjern', 'visp', 'stekespade', 'tresleiv', 'Ã¸se', 'mÃ¥lebeger', 'kjevle', 'deigskrape'],
-                ms: ['pisau', 'pengupas', 'parut', 'pemukul', 'spatula', 'sudu kayu', 'senduk', 'cawan penyukat', 'penggelek doh', 'pengikis doh']
-            };
-
-            const rendererOptions = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
-                ? MasterStepRenderer.getVariablePresets('tool', lang)
-                : [];
-
-            const fallback = fallbackByLang[lang] || fallbackByLang.de;
-            const merged = [...(Array.isArray(rendererOptions) ? rendererOptions : []), ...fallback]
+            const merged = getJsonVariableOptions('tool')
                 .map(x => (x || '').toString().trim())
                 .filter(Boolean);
-
             return Array.from(new Set(merged));
         }
 
@@ -2105,7 +2257,7 @@
             creatorState.activeToolTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
             const options = getToolOptions();
-            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'Messer', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: '', mode: 'noun' });
             creatorState.toolArticleValue = selection.article;
             creatorState.toolValue = selection.noun;
             renderInlineToolOptions();
@@ -2129,25 +2281,7 @@
         }
 
         function getGrindSizeOptions() {
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('grind_size', currentLang || 'de');
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
-            }
-            const fallback = {
-                de: ['fein', 'feine', 'mittel', 'mittlere', 'grob', 'grobe', 'dÃ¼nn', 'dÃ¼nne', 'breit', 'breite', 'klein', 'kleine', 'groÃŸ', 'groÃŸe', 'ca. 1 cm groÃŸ', 'ca. 1 cm groÃŸe', 'ca. 0,5 mm groÃŸ', 'ca. 0,5 mm groÃŸe'],
-                en: ['fine', 'medium', 'coarse', 'thin', 'wide', 'small', 'large', 'about 3/8-inch', 'about 0.02-inch'],
-                esp: ['finas', 'medianas', 'gruesas', 'delgadas', 'anchas', 'pequeÃ±as', 'grandes'],
-                prt: ['finas', 'mÃ©dias', 'grossas', 'finas', 'largas', 'pequenas', 'grandes'],
-                id: ['halus', 'sedang', 'kasar', 'tipis', 'tebal', 'kecil', 'besar'],
-                nl: ['fijne', 'middelgrote', 'grove', 'dunne', 'brede', 'kleine', 'grote'],
-                sv: ['fina', 'medelgrova', 'grova', 'tunna', 'breda', 'smÃ¥', 'stora'],
-                da: ['fine', 'mellemstore', 'grove', 'tynde', 'brede', 'smÃ¥', 'store'],
-                no: ['fine', 'middels', 'grove', 'tynne', 'brede', 'smÃ¥', 'store'],
-                ms: ['halus', 'sederhana', 'kasar', 'nipis', 'lebar', 'kecil', 'besar']
-            };
-            return fallback[(currentLang || 'de').toLowerCase()] || fallback.de;
+            return getJsonVariableOptions('grind_size');
         }
 
         function openGrindSizeEditorForToken(tokenId) {
@@ -2155,7 +2289,7 @@
             creatorState.activeGrindSizeTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.grindSizeValue || '').toString().trim();
             const options = getGrindSizeOptions();
-            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || 'feine';
+            const selected = options.find(x => x.toLowerCase() === currentText.toLowerCase()) || options[0] || '';
             creatorState.grindSizeValue = selected;
             renderInlineGrindSizeOptions();
             placeEditorLikeTemperature('#grindSizeEditor');
@@ -2181,7 +2315,7 @@
         }
 
         function getShapeOptions() {
-            return ['gehackt', 'Wuerfel', 'Scheiben', 'Streifen', 'Spalten', 'Ringe', 'Julienne', 'Stifte'];
+            return getJsonVariableOptions('shape');
         }
 
         function openShapeEditorForToken(tokenId) {
@@ -2199,31 +2333,9 @@
             $('#shapeEditor').addClass('d-none');
         }
         function getBaseAndItemOptions() {
-            const lang = (currentLang || 'de').toString().toLowerCase();
-            const rendererBase = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
-                ? MasterStepRenderer.getVariablePresets('base', lang)
-                : [];
-            const rendererItem = window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function'
-                ? MasterStepRenderer.getVariablePresets('item', lang)
-                : [];
-
-            const fallbackByLang = {
-                de: ['den Teig', 'die Masse', 'den Eintopf', 'die Suppe'],
-                en: ['the dough', 'the mixture', 'the stew', 'the soup'],
-                esp: ['la masa', 'la mezcla', 'el estofado', 'la sopa'],
-                prt: ['a massa', 'a mistura', 'o ensopado', 'a sopa'],
-                id: ['adonan', 'campuran', 'semur', 'sup'],
-                nl: ['het deeg', 'het mengsel', 'de stoofpot', 'de soep'],
-                sv: ['degen', 'blandningen', 'grytan', 'soppan'],
-                da: ['dejen', 'blandingen', 'gryderetten', 'suppen'],
-                no: ['deigen', 'blandingen', 'gryteretten', 'suppen'],
-                ms: ['doh', 'campuran', 'rebusan', 'sup']
-            };
-
             const merged = [
-                ...(Array.isArray(rendererBase) ? rendererBase : []),
-                ...(Array.isArray(rendererItem) ? rendererItem : []),
-                ...((fallbackByLang[lang] || fallbackByLang.de))
+                ...getJsonVariableOptions('base'),
+                ...getJsonVariableOptions('item')
             ].map(x => (x || '').toString().trim()).filter(Boolean);
 
             const seen = new Set();
@@ -2244,7 +2356,7 @@
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
             const options = getBaseOptions();
-            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'den Teig', mode: 'full' });
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: '', mode: 'full' });
             creatorState.baseArticleValue = selection.article;
             creatorState.baseValue = selection.selected;
             renderInlineBaseOptions();
@@ -2275,7 +2387,7 @@
             creatorState.activeItemTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
             const options = getItemOptions();
-            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'Teig', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: '', mode: 'noun' });
             creatorState.itemArticleValue = selection.article || creatorState.itemArticleValue || '';
             creatorState.itemValue = selection.noun;
             renderInlineItemOptions();
@@ -2300,14 +2412,7 @@
         }
 
         function getBalanceOptions() {
-            const lang = (currentLang || 'de').toString().toLowerCase();
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('balance', lang);
-                if (Array.isArray(options) && options.length) {
-                    return getNounOptions(options, currentLang);
-                }
-            }
-            return ['SÃ¤ure', 'SÃ¼ÃŸe', 'SchÃ¤rfe'];
+            return getNounOptions(getJsonVariableOptions('balance'), currentLang);
         }
 
         function openBalanceEditorForToken(tokenId) {
@@ -2340,14 +2445,7 @@
         }
 
         function getSeasoningsOptions() {
-            const lang = (currentLang || 'de').toString().toLowerCase();
-            if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                const options = MasterStepRenderer.getVariablePresets('seasonings', lang);
-                if (Array.isArray(options) && options.length) {
-                    return options;
-                }
-            }
-            return ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'KrÃ¤uter', 'GewÃ¼rze'];
+            return getJsonVariableOptions('seasonings');
         }
 
         function openSeasoningsEditorForToken(tokenId) {
@@ -2406,103 +2504,54 @@
         }
 
         function getPronounSuggestionsForLang(langKey) {
-            const lang = (langKey || currentLang || 'de').toString().toLowerCase();
-            const map = {
-                de: ['ihn', 'sie', 'es'],
-                en: ['him', 'her', 'it', 'them'],
-                esp: ['lo', 'la', 'ellos', 'ellas'],
-                prt: ['o', 'a', 'eles', 'elas'],
-                id: ['dia', 'mereka'],
-                nl: ['hem', 'haar', 'het', 'hen'],
-                sv: ['honom', 'henne', 'den', 'det'],
-                da: ['ham', 'hende', 'den', 'det'],
-                no: ['ham', 'henne', 'den', 'det'],
-                ms: ['dia', 'mereka']
-            };
-            return map[lang] || map.de;
+            return getJsonVariableOptions('pronoun', langKey);
         }
 
         function getLocalizedFallbackForVariable(key, langKey) {
             const keyNorm = (key || '').toString().trim().toLowerCase();
             const lang = (langKey || currentLang || 'de').toString().toLowerCase();
-
-            if (keyNorm === 'base') {
-                const map = {
-                    de: 'den Teig',
-                    en: 'the dough',
-                    esp: 'la masa',
-                    prt: 'a massa',
-                    id: 'adonan',
-                    nl: 'het deeg',
-                    sv: 'degen',
-                    da: 'dejen',
-                    no: 'deigen',
-                    ms: 'doh'
-                };
-                return map[lang] || map.de;
+            if (keyNorm === 'article') {
+                return getFirstJsonVariableOption('articles', lang);
             }
-
-            if (keyNorm === 'dough') {
-                const map = {
-                    de: 'den Teig',
-                    en: 'the dough',
-                    esp: 'la masa',
-                    prt: 'a massa',
-                    id: 'adonan',
-                    nl: 'het deeg',
-                    sv: 'degen',
-                    da: 'dejen',
-                    no: 'deigen',
-                    ms: 'doh'
-                };
-                return map[lang] || map.de;
+            if (keyNorm === 'pronoun') {
+                return getFirstJsonVariableOption('pronoun', lang);
             }
-
-            if (keyNorm === 'step1') {
-                const map = {
-                    de: 'Mehl', en: 'flour', esp: 'harina', prt: 'farinha', id: 'tepung', nl: 'bloem', sv: 'mjÃ¶l', da: 'mel', no: 'mel', ms: 'tepung'
-                };
-                return map[lang] || map.de;
+            if (keyNorm === 'heat') {
+                return getFirstJsonVariableOption('heat', lang);
             }
-
-            if (keyNorm === 'step2') {
-                const map = {
-                    de: 'Ei', en: 'egg', esp: 'huevo', prt: 'ovo', id: 'telur', nl: 'ei', sv: 'Ã¤gg', da: 'Ã¦g', no: 'egg', ms: 'telur'
-                };
-                return map[lang] || map.de;
+            if (keyNorm === 'mode') {
+                return getFirstJsonVariableOption('mode', lang);
             }
-
-            if (keyNorm === 'step3') {
-                const map = {
-                    de: 'BrÃ¶sel', en: 'breadcrumbs', esp: 'pan rallado', prt: 'farinha de rosca', id: 'tepung roti', nl: 'paneermeel', sv: 'strÃ¶brÃ¶d', da: 'rasp', no: 'brÃ¸dsmuler', ms: 'serbuk roti'
-                };
-                return map[lang] || map.de;
-            }
-
             if (keyNorm === 'equipment') {
-                return getEquipmentOptions()[0] || 'die Pfanne';
+                return getEquipmentOptions()[0] || '';
             }
-
+            if (keyNorm === 'state') {
+                return getStateOptions()[0] || '';
+            }
             if (keyNorm === 'tool') {
-                return getToolOptions()[0] || 'Messer';
+                return getToolOptions()[0] || '';
             }
-
-            if (keyNorm === 'grind_size' || keyNorm === 'grindsize') {
-                return getGrindSizeOptions()[0] || 'feine';
+            if (keyNorm === 'grind_size') {
+                return getGrindSizeOptions()[0] || '';
             }
-
-            if (keyNorm === 'item' || keyNorm === 'dish') {
-                return getItemOptions()[0] || 'den Teig';
+            if (keyNorm === 'shape') {
+                return getShapeOptions()[0] || '';
             }
-
+            if (keyNorm === 'base') {
+                return getBaseOptions()[0] || '';
+            }
+            if (keyNorm === 'item') {
+                return getItemOptions()[0] || '';
+            }
             if (keyNorm === 'balance') {
-                return getBalanceOptions()[0] || 'SÃ¤ure';
+                return getBalanceOptions()[0] || '';
             }
-
-            if (keyNorm === 'seasonings' || keyNorm === 'spices') {
-                return getSeasoningsOptions()[2] || getSeasoningsOptions()[0] || 'Salz und Pfeffer';
+            if (keyNorm === 'seasonings') {
+                return getSeasoningsOptions()[0] || '';
             }
-
+            if (keyNorm === 'step1' || keyNorm === 'step2' || keyNorm === 'step3' || keyNorm === 'dough') {
+                return getFirstJsonVariableOption(keyNorm, lang);
+            }
             return '';
         }
 
@@ -2526,10 +2575,10 @@
             if (key === 'ingredient' || key === 'ingredients') {
                 return key; // always placeholder â€” user must choose
             }
-            if (key === 'pronoun') {
+            if (key === 'pronoun' || key === 'pronoun2') {
                 const selectedIngredient = getSelectedIngredientForCreator();
                 const grammar = resolveGrammarForIngredient(selectedIngredient?.name || '', selectedIngredient?.genusByLang || {}, lang);
-                return creatorState.advancedPronounOverride || creatorState.pronounValue || grammar.pronoun || getLocalizedFallbackForVariable('pronoun', lang) || 'it';
+                return creatorState.advancedPronounOverride || creatorState.pronounValue || grammar.pronoun || getLocalizedFallbackForVariable('pronoun', lang);
             }
             if (key === 'article') {
                 const selectedIngredient = getSelectedIngredientForCreator();
@@ -2542,14 +2591,14 @@
             }
             if (placeholderType === 'count') return getCountInsertText();
             if (placeholderType === 'temperature') return getTemperatureInsertText();
-            if (placeholderType === 'heat' || key.includes('heat')) return creatorState.heatValue || getLocalizedFallbackForVariable('heat', lang) || 'medium';
-            if (placeholderType === 'mode') return creatorState.modeValue || (modeOptionsByLang[lang] || modeOptionsByLang.de || [])[0] || '';
-            if (placeholderType === 'tool' || key.includes('tool')) return creatorState.toolValue || getToolOptions()[0] || getLocalizedFallbackForVariable('tool', lang) || 'knife';
-            if (placeholderType === 'grindSize' || key.includes('grind')) return creatorState.grindSizeValue || getGrindSizeOptions()[0] || getLocalizedFallbackForVariable('grind_size', lang) || '';
-            if (placeholderType === 'item') return creatorState.itemValue || getItemOptions()[0] || getLocalizedFallbackForVariable('item', lang) || '';
-            if (placeholderType === 'balance') return creatorState.balanceValue || getBalanceOptions()[0] || getLocalizedFallbackForVariable('balance', lang) || '';
-            if (placeholderType === 'seasonings') return creatorState.seasoningsValue || getSeasoningsOptions()[2] || getSeasoningsOptions()[0] || getLocalizedFallbackForVariable('seasonings', lang) || '';
-            if (placeholderType === 'shape' || key.includes('shape')) return getLocalizedFallbackForVariable('shape', lang) || 'pieces';
+            if (placeholderType === 'heat' || key.includes('heat')) return creatorState.heatValue || getLocalizedFallbackForVariable('heat', lang);
+            if (placeholderType === 'mode') return creatorState.modeValue || getModeOptions()[0] || getLocalizedFallbackForVariable('mode', lang);
+            if (placeholderType === 'tool' || key.includes('tool')) return creatorState.toolValue || getToolOptions()[0] || getLocalizedFallbackForVariable('tool', lang);
+            if (placeholderType === 'grindSize' || key.includes('grind')) return creatorState.grindSizeValue || getGrindSizeOptions()[0] || getLocalizedFallbackForVariable('grind_size', lang);
+            if (placeholderType === 'item') return creatorState.itemValue || getItemOptions()[0] || getLocalizedFallbackForVariable('item', lang);
+            if (placeholderType === 'balance') return creatorState.balanceValue || getBalanceOptions()[0] || getLocalizedFallbackForVariable('balance', lang);
+            if (placeholderType === 'seasonings') return creatorState.seasoningsValue || getSeasoningsOptions()[0] || getLocalizedFallbackForVariable('seasonings', lang);
+            if (placeholderType === 'shape' || key.includes('shape')) return getLocalizedFallbackForVariable('shape', lang);
             if (placeholderType === 'base') return creatorState.baseValue || getLocalizedFallbackForVariable('base', lang) || '';
             const localizedFallback = getLocalizedFallbackForVariable(key, lang);
             return localizedFallback || key;
@@ -2712,8 +2761,6 @@
             if (!creatorState.selectedIngredientIds.length) {
                 if (creatorState.isStepIngredientEditMode) {
                     creatorState.selectedIngredientIds = [];
-                } else {
-                    creatorState.selectedIngredientIds = ingredients.map(x => x.id).filter(Boolean);
                 }
             }
 
@@ -2768,6 +2815,7 @@
                 showMasterStepCreatorError,
                 currentLang: () => currentLang
             });
+        }
 
 
         function collectMasterVariables() {
@@ -3148,6 +3196,7 @@
             $('#uploadLabel').removeClass('d-none');
             $('#videoPreview').attr('src', '');
             $('#imagePreview').attr('src', '').addClass('d-none');
+            scheduleCreatePostingDraftSave();
         }
 
         function normalizeDecimalInputValue(value) {
@@ -3198,7 +3247,7 @@
             <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" data-group-icon="${escapeAttr(iconHtml)}" ${buildIngredientDataAttributes(localizedData)}>
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
-                <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metriks_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
+                <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metrics_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
 
                 <div class="ingredient-row-main">
                     <div class="fw-bold display-name-selected d-flex align-items-center gap-2"><span class="ingredient-group-icon">${iconHtml}</span><span class="ingredient-name-text">${escapeAttr(displayName)}</span></div>
@@ -3251,6 +3300,7 @@
                 syncIngredientSourceVisibility();
             }
             refreshIngredientProbabilityHints();
+            scheduleCreatePostingDraftSave();
         }
 
         function indexOfIgnoreCase(source, search) {
@@ -3402,6 +3452,7 @@
             refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
             refreshIngredientProbabilityHints();
+            scheduleCreatePostingDraftSave();
         }
 
         // Entfernt alle Steps die fÃ¼r dieselben Zutaten+Phase gebunden sind wie der neue Step
@@ -3569,6 +3620,7 @@
             updateStepIndices();
             applyDerivedIngredientRowVisuals();
             renderIngredientChips();
+            scheduleCreatePostingDraftSave();
 
         }
 
@@ -3577,6 +3629,7 @@
             updateStepIndices();
             applyDerivedIngredientRowVisuals();
             renderIngredientChips();
+            scheduleCreatePostingDraftSave();
         }
 
         function removeStepsByMasterTemplateId(masterId) {
@@ -3594,6 +3647,7 @@
             applyDerivedIngredientRowVisuals();
             renderIngredientChips();
             showCreatorToast('Step(s) entfernt');
+            scheduleCreatePostingDraftSave();
         }
 
 
@@ -3618,11 +3672,13 @@
                 <button type="button" class="btn btn-sm btn-light rounded-circle p-0" style="width:20px;height:20px;line-height:1;" onclick="removeKeyword('${id}')"><i class="bi bi-x"></i></button>
             </div>`);
             $(btn).removeClass('btn-outline-secondary').addClass('btn-secondary');
+            scheduleCreatePostingDraftSave();
         }
 
         function removeKeyword(id) {
             $('#selectedKeywords').find(`.keyword-pill[data-keyword-id="${id}"]`).remove();
             $(`.keyword-btn[data-keyword-id="${id}"]`).removeClass('btn-secondary').addClass('btn-outline-secondary');
+            scheduleCreatePostingDraftSave();
         }
 
         function renderAcceptedRecipeTextCard() {
@@ -3695,6 +3751,7 @@
                 if (next.length) next.after(row);
             }
             updateStepIndices();
+            scheduleCreatePostingDraftSave();
         }
 
         let draggedStepRow = null;
@@ -3844,7 +3901,7 @@
             if (!tokenId) return;
             creatorState.activeEquipmentTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.equipmentValue || '').toString().trim();
-            const selection = buildArticleChoiceSelectionState(currentText, getEquipmentOptions(), { fallback: 'die Pfanne', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, getEquipmentOptions(), { fallback: '', mode: 'noun' });
             creatorState.equipmentArticleValue = selection.article;
             creatorState.equipmentValue = selection.noun;
             renderArticleChoiceOptions({
@@ -3855,7 +3912,6 @@
                 currentValue: creatorState.equipmentValue,
                 optionClass: 'inline-equipment-opt'
             });
-            $('#sc2EquipmentEditor').removeClass('d-none');
         }
         function openSc2StateEditorForToken(tokenId) {
             if (!tokenId) return;
@@ -3867,7 +3923,7 @@
             if (!tokenId) return;
             creatorState.activeToolTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.toolValue || '').toString().trim();
-            const selection = buildArticleChoiceSelectionState(currentText, getToolOptions(), { fallback: 'Messer', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, getToolOptions(), { fallback: '', mode: 'noun' });
             creatorState.toolArticleValue = selection.article;
             creatorState.toolValue = selection.noun;
             renderArticleChoiceOptions({
@@ -3896,7 +3952,7 @@
             if (!tokenId) return;
             creatorState.activeBaseTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.baseValue || '').toString().trim();
-            const selection = buildArticleChoiceSelectionState(currentText, getBaseOptions(), { fallback: 'den Teig', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, getBaseOptions(), { fallback: '', mode: 'noun' });
             creatorState.baseArticleValue = selection.article;
             creatorState.baseValue = selection.noun;
             renderArticleChoiceOptions({
@@ -3913,7 +3969,7 @@
             if (!tokenId) return;
             creatorState.activeItemTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.itemValue || '').toString().trim();
-            const selection = buildArticleChoiceSelectionState(currentText, getItemOptions(), { fallback: 'Teig', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, getItemOptions(), { fallback: '', mode: 'noun' });
             creatorState.itemArticleValue = selection.article || creatorState.itemArticleValue || '';
             creatorState.itemValue = selection.noun;
             renderArticleChoiceOptions({
@@ -3930,7 +3986,7 @@
             if (!tokenId) return;
             creatorState.activeBalanceTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
-            const selection = buildArticleChoiceSelectionState(currentText, getBalanceOptions(), { fallback: 'SÃ¤ure', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, getBalanceOptions(), { fallback: '', mode: 'noun' });
             creatorState.balanceArticleValue = selection.article || creatorState.balanceArticleValue || '';
             creatorState.balanceValue = selection.noun;
             renderArticleChoiceOptions({
@@ -4032,6 +4088,7 @@
 
 
             window.setCreatePostingTheme(readStoredCreatePostingTheme(), { persist: false, refresh: false });
+            restoreCreatePostingDraft();
 
             $('.creator-topbar').on('click', '[data-create-posting-theme]', function () {
                 const nextTheme = ($(this).data('create-posting-theme') || '').toString();
@@ -4041,7 +4098,31 @@
             $('#ingredientSearch').on('input', function () {
                 clearTimeout(_ingredientSearchTimer);
                 _ingredientSearchTimer = setTimeout(syncIngredientSourceVisibility, 200);
+                $('#clearIngredientSearch').toggleClass('d-none', !($(this).val() || '').toString().trim());
+                scheduleCreatePostingDraftSave();
             });
+            $('#clearIngredientSearch').toggleClass('d-none', !(($('#ingredientSearch').val() || '').toString().trim()));
+            $('#clearIngredientSearch').on('click', function () {
+                $('#ingredientSearch').val('').trigger('input').trigger('focus');
+                syncIngredientSourceVisibility();
+            });
+            $('#clearCreatePostingDraftBtn').on('click', function () {
+                startCreatePostingFresh();
+            });
+            $('#recipeForm').on('input change', 'input, textarea, select', function () {
+                scheduleCreatePostingDraftSave();
+            });
+            $('#recipeForm').on('submit', function () {
+                persistCreatePostingDraftNow();
+            });
+            $(window).on('pagehide beforeunload', function () {
+                persistCreatePostingDraftNow();
+            });
+            if (!createPostingDraftAutosaveHandle) {
+                createPostingDraftAutosaveHandle = window.setInterval(function () {
+                    persistCreatePostingDraftNow();
+                }, 8000);
+            }
             refreshIngredientProbabilityHints();
 
             $('#recipeForm').on('input', '#ingredientConfigQty, .js-db-qty', function () {
@@ -4153,12 +4234,7 @@
             $("#currentStepIngredientButtons").on('click', '.ingredient-chip', function () {
                 const id = ($(this).data('id') || '').toString();
                 if (!id) return;
-                const selected = creatorState.selectedIngredientIds || [];
-                if (selected.includes(id)) {
-                    creatorState.selectedIngredientIds = selected.filter(x => x !== id);
-                } else {
-                    creatorState.selectedIngredientIds = [...selected, id];
-                }
+                prioritizeSelectedIngredient(id);
 
                 creatorState.advancedPronounOverride = '';
                 creatorState.advancedArticleOverride = '';
@@ -4167,13 +4243,9 @@
                 if (creatorState.activePlaceholderTokenId) {
                     const key = getPlaceholderKeyByTokenId(creatorState.activePlaceholderTokenId);
                     if (getPlaceholderType(key) === 'ingredient') {
-                        const selectedValue = getSelectedIngredientValueForInsert();
-                        if (selectedValue) creatorState.placeholderAssignments[creatorState.activePlaceholderTokenId] = selectedValue;
-                        creatorState.ingredientReplaceArmed = false;
-                        clearSelectedIngredientChips();
-                        creatorState.activePlaceholderTokenId = '';
-                        $("#masterPreviewCard").removeClass('token-replace-active');
-                        showCreatorToast('Platzhalter ersetzt');
+                        if (assignIngredientPlaceholderValue(creatorState.activePlaceholderTokenId, id)) {
+                            showCreatorToast('Platzhalter ersetzt');
+                        }
                     }
                 }
 
@@ -4208,10 +4280,9 @@
                     return;
                 }
 
-                const selectedValue = getSelectedIngredientValueForInsert();
-                if (selectedValue) {
-                    creatorState.placeholderAssignments[tokenId] = selectedValue;
-                    clearSelectedIngredientChips();
+                const selectedNames = getSelectedIngredientNames();
+                if (selectedNames.length === 1) {
+                    creatorState.placeholderAssignments[tokenId] = selectedNames[0];
                     creatorState.activePlaceholderTokenId = '';
                     creatorState.ingredientReplaceArmed = false;
                     $('#masterPreviewCard').removeClass('token-replace-active');
@@ -4219,7 +4290,7 @@
                     return;
                 }
 
-                showCreatorToast('Erst Zutaten auswÃ¤hlen');
+                showCreatorToast(selectedNames.length > 1 ? 'Zutat antippen zum Einsetzen' : 'Erst Zutaten auswÃ¤hlen');
             }
 
             function openEditorForPlaceholderToken(key, tokenId) {
@@ -4824,11 +4895,12 @@
             $('#sc2MasterIngredientButtons').on('click', '.ingredient-chip', function () {
                 const id = ($(this).data('id') || '').toString();
                 if (!id) return;
-                const selected = creatorState.selectedIngredientIds || [];
-                if (selected.includes(id)) {
-                    creatorState.selectedIngredientIds = selected.filter(x => x !== id);
-                } else {
-                    creatorState.selectedIngredientIds = [...selected, id];
+                prioritizeSelectedIngredient(id);
+                if (creatorState.activePlaceholderTokenId && creatorState.ingredientReplaceArmed) {
+                    const key = ($('#sc2MasterPreviewText .placeholder-token[data-placeholder-token-id="' + creatorState.activePlaceholderTokenId + '"]').data('placeholder-key') || '').toString();
+                    if (getPlaceholderType(key) === 'ingredient' && assignIngredientPlaceholderValue(creatorState.activePlaceholderTokenId, id)) {
+                        showSc2CreatorToast('Platzhalter ersetzt');
+                    }
                 }
                 syncGrammarAssignmentsForSelectedIngredient();
                 renderIngredientChips();
@@ -5189,3 +5261,7 @@
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
+
+
+
+

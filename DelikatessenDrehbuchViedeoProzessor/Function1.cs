@@ -96,43 +96,7 @@ namespace DelikatessenDrehbuchViedeoProzessor
 
                 if (OperatingSystem.IsLinux())
                 {
-                    // Ziel in /tmp (schreibbar)
-                    var tmpFfmpeg = "/tmp/ffmpeg";
-
-                    try
-                    {
-                        // Falls nicht vorhanden oder neu deployt: kopieren
-                        if (!File.Exists(tmpFfmpeg))
-                        {
-                           
-                            File.Copy(_ffmpegPath, tmpFfmpeg, overwrite: true);
-                        }
-
-                        // Execute-Rechte auf /tmp setzen
-                        _logger.LogInformation("🔐 Setze Execute-Rechte für ffmpeg in /tmp: {Path}", tmpFfmpeg);
-
-                        var chmod = Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "/bin/chmod",
-                            Arguments = $"+x \"{tmpFfmpeg}\"",
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            UseShellExecute = false
-                        });
-
-                        chmod!.WaitForExit();
-
-                        var chmodErr = chmod.StandardError.ReadToEnd();
-                        if (!string.IsNullOrWhiteSpace(chmodErr))
-                            _logger.LogWarning("chmod stderr: {err}", chmodErr);
-
-                        ffmpegToUse = tmpFfmpeg;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "❌ Konnte ffmpeg nicht nach /tmp vorbereiten");
-                        throw;
-                    }
+                    ffmpegToUse = await PrepareLinuxFfmpegAsync(_ffmpegPath, _logger);
                 }
 
            
@@ -207,9 +171,60 @@ namespace DelikatessenDrehbuchViedeoProzessor
             if (!string.IsNullOrWhiteSpace(configuredPath)) return configuredPath;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg.exe");
+            {
+                var windowsExePath = Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg.exe");
+                if (File.Exists(windowsExePath)) return windowsExePath;
+
+                var windowsPlainPath = Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg");
+                if (File.Exists(windowsPlainPath)) return windowsPlainPath;
+
+                return windowsExePath;
+            }
 
             return Path.Combine("/home/site/wwwroot", "Bins", "ffmpeg");
+        }
+
+        private static async Task<string> PrepareLinuxFfmpegAsync(string configuredPath, ILogger logger)
+        {
+            if (string.IsNullOrWhiteSpace(configuredPath))
+                throw new InvalidOperationException("FFMPEG path is empty.");
+
+            // If the path points to a real file, copy it to /tmp and make it executable.
+            if (File.Exists(configuredPath))
+            {
+                var tmpFfmpeg = "/tmp/ffmpeg";
+
+                if (!File.Exists(tmpFfmpeg))
+                {
+                    File.Copy(configuredPath, tmpFfmpeg, overwrite: true);
+                }
+
+                logger.LogInformation("🔐 Setze Execute-Rechte für ffmpeg in /tmp: {Path}", tmpFfmpeg);
+
+                var chmod = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "/bin/chmod",
+                    Arguments = $"+x \"{tmpFfmpeg}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false
+                });
+
+                if (chmod == null)
+                    throw new InvalidOperationException("chmod process could not be started.");
+
+                await chmod.WaitForExitAsync(CancellationToken.None);
+
+                var chmodErr = await chmod.StandardError.ReadToEndAsync();
+                if (!string.IsNullOrWhiteSpace(chmodErr))
+                    logger.LogWarning("chmod stderr: {err}", chmodErr);
+
+                return tmpFfmpeg;
+            }
+
+            // If the configured value is a command like 'ffmpeg', use it directly and rely on PATH.
+            logger.LogInformation("Using ffmpeg from PATH/command name: {Path}", configuredPath);
+            return configuredPath;
         }
     }
 }

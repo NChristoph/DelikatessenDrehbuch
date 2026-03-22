@@ -2,7 +2,7 @@
   "_meta": {
     "version": "2.0.0",
     "created_at": "2026-02-17",
-    "updated_at": "2026-03-12",
+    "updated_at": "2026-03-21",
     "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
     "usage": {
       "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
@@ -59,7 +59,17 @@
       "Added {{copula}} variable (ist/sind) to 19 templates, replacing hardcoded \"ist\". Fixes plural subject grammar.",
       "Fixed PREP_WHISK_01 de: added \"alles\" subject to \"bis\" clause.",
       "Fixed PREP_BREAD_3STEP_01 de: consistent imperative \"Wende\" instead of dangling infinitive \"wenden\".",
-      "Fixed COOK_BRAISE_01 de: \"an\" -> \"zu\" for idiomatic German."
+      "Fixed COOK_BRAISE_01 de: \"an\" -> \"zu\" for idiomatic German.",
+      "Added sub_groups top-level section with 15 sub-groups across 4 phases.",
+      "Added sub_group field and sub_group:xxx selection_tag to every step.",
+      "Moved PREP_ASSEMBLE_01 → SERVE_ASSEMBLE_01 (Phase 1→4, assembly).",
+      "Moved PREP_LAYER_01 → SERVE_LAYER_01 (Phase 1→4, assembly).",
+      "Moved FINISH_GLAZE_01 Phase 4→3 (finishing).",
+      "Moved FINISH_DECORATE_01 Phase 4→3 (finishing).",
+      "Added new steps: COOK_BLANCH_01, COOK_SEAR_01, COOK_TOAST_01, COOK_MELT_01.",
+      "Added new steps: FINISH_DRIZZLE_01, FINISH_SPRINKLE_01, FINISH_BRUSH_01, FINISH_CHILL_01.",
+      "Added new step: SERVE_SAUCE_01.",
+      "Bugfix: Added missing action field to PREP_MARINADE_MAKE_01."
     ]
   },
   "phases": {
@@ -137,6 +147,413 @@
         "ms": "Hidang"
       },
       "icon": "🍽️"
+    }
+  },
+  "sub_groups": {
+    "ingredient_prep": {
+      "label": {
+        "de": "Zutatenvorbereitung",
+        "en": "Ingredient Prep",
+        "esp": "Preparación de ingredientes",
+        "prt": "Preparação de ingredientes",
+        "id": "Persiapan bahan",
+        "nl": "Ingrediëntvoorbereiding",
+        "sv": "Ingrediensförberedelse",
+        "da": "Ingrediensforberedelse",
+        "no": "Ingrediensforberedelse",
+        "ms": "Persediaan bahan"
+      },
+      "icon": "🥕",
+      "description": {
+        "de": "Waschen, Schälen, Schneiden, Hacken und Zerkleinern von Zutaten",
+        "en": "Washing, peeling, cutting, chopping and preparing ingredients",
+        "esp": "Lavar, pelar, cortar, picar y preparar ingredientes",
+        "prt": "Lavar, descascar, cortar, picar e preparar ingredientes",
+        "id": "Mencuci, mengupas, memotong, mencincang dan menyiapkan bahan",
+        "nl": "Wassen, schillen, snijden, hakken en klaarmaken van ingrediënten",
+        "sv": "Tvätta, skala, skära, hacka och förbereda ingredienser",
+        "da": "Vaske, skrælle, skære, hakke og forberede ingredienser",
+        "no": "Vaske, skrelle, skjære, hakke og forberede ingredienser",
+        "ms": "Membasuh, mengupas, memotong, mencincang dan menyediakan bahan"
+      }
+    },
+    "equipment_prep": {
+      "label": {
+        "de": "Gerätevorbereitung",
+        "en": "Equipment Prep",
+        "esp": "Preparación de equipos",
+        "prt": "Preparação de equipamentos",
+        "id": "Persiapan peralatan",
+        "nl": "Apparatuurvoorbereiding",
+        "sv": "Utrustningsförberedelse",
+        "da": "Udstyrsforberedelse",
+        "no": "Utstyrsforberedelse",
+        "ms": "Persediaan peralatan"
+      },
+      "icon": "⚙️",
+      "description": {
+        "de": "Geräte vorheizen und Kochstellen vorbereiten",
+        "en": "Preheating equipment and preparing cooking stations",
+        "esp": "Precalentar equipos y preparar estaciones de cocina",
+        "prt": "Pré-aquecer equipamentos e preparar estações de cozinha",
+        "id": "Memanaskan peralatan dan menyiapkan tempat memasak",
+        "nl": "Apparatuur voorverwarmen en kookplekken klaarmaken",
+        "sv": "Förvärma utrustning och förbereda tillagningsstationer",
+        "da": "Forvarme udstyr og klargøre kogepladser",
+        "no": "Forvarme utstyr og klargjøre kokeplasser",
+        "ms": "Memanaskan peralatan dan menyediakan stesen memasak"
+      }
+    },
+    "mixing": {
+      "label": {
+        "de": "Mischen & Rühren",
+        "en": "Mixing & Stirring",
+        "esp": "Mezclar y remover",
+        "prt": "Misturar e mexer",
+        "id": "Mencampur & mengaduk",
+        "nl": "Mengen & roeren",
+        "sv": "Blanda & röra",
+        "da": "Blande & røre",
+        "no": "Blande & røre",
+        "ms": "Mencampur & mengacau"
+      },
+      "icon": "🥣",
+      "description": {
+        "de": "Zutaten verrühren, aufschlagen und zu Massen verarbeiten",
+        "en": "Stirring, whisking and combining ingredients into mixtures",
+        "esp": "Remover, batir y combinar ingredientes en mezclas",
+        "prt": "Mexer, bater e combinar ingredientes em misturas",
+        "id": "Mengaduk, mengocok dan menggabungkan bahan menjadi adonan",
+        "nl": "Roeren, kloppen en mengen van ingrediënten tot massa's",
+        "sv": "Röra, vispa och blanda ingredienser till smeter",
+        "da": "Røre, piske og blande ingredienser til masser",
+        "no": "Røre, vispe og blande ingredienser til masser",
+        "ms": "Mengacau, mempukul dan menggabungkan bahan menjadi adunan"
+      }
+    },
+    "dough": {
+      "label": {
+        "de": "Teigverarbeitung",
+        "en": "Dough Work",
+        "esp": "Trabajo de masa",
+        "prt": "Trabalho de massa",
+        "id": "Pengolahan adonan",
+        "nl": "Deegverwerking",
+        "sv": "Degarbete",
+        "da": "Dejarbejde",
+        "no": "Deigarbeid",
+        "ms": "Kerja doh"
+      },
+      "icon": "🫓",
+      "description": {
+        "de": "Teig kneten, gehen lassen, portionieren und ausrollen",
+        "en": "Kneading, proofing, portioning and rolling out dough",
+        "esp": "Amasar, leudar, porcionar y estirar la masa",
+        "prt": "Amassar, fermentar, porcionar e abrir a massa",
+        "id": "Menguleni, mengembangkan, membagi dan menggiling adonan",
+        "nl": "Deeg kneden, laten rijzen, portioneren en uitrollen",
+        "sv": "Knåda, jäsa, portionera och kavla ut deg",
+        "da": "Ælte, hæve, portionere og rulle dej ud",
+        "no": "Kna, heve, porsjonere og kjevle ut deig",
+        "ms": "Menguli, menaik, membahagi dan menggelek doh"
+      }
+    },
+    "marinating": {
+      "label": {
+        "de": "Marinieren & Einlegen",
+        "en": "Marinating & Soaking",
+        "esp": "Marinar y remojar",
+        "prt": "Marinar e demolhar",
+        "id": "Merendam & marinasi",
+        "nl": "Marineren & inweken",
+        "sv": "Marinera & blötlägga",
+        "da": "Marinere & udbløde",
+        "no": "Marinere & bløtlegge",
+        "ms": "Perapan & rendaman"
+      },
+      "icon": "🫙",
+      "description": {
+        "de": "Zutaten einlegen, marinieren und Aromen durchziehen lassen",
+        "en": "Soaking, marinating and infusing ingredients with flavour",
+        "esp": "Remojar, marinar e infundir sabores en los ingredientes",
+        "prt": "Demolhar, marinar e infundir sabores nos ingredientes",
+        "id": "Merendam, memarinasi dan meresapkan rasa pada bahan",
+        "nl": "Inweken, marineren en smaak laten intrekken",
+        "sv": "Blötlägga, marinera och låta smakerna dra in",
+        "da": "Udbløde, marinere og lade smagen trække ind",
+        "no": "Bløtlegge, marinere og la smakene trekke inn",
+        "ms": "Merendam, memarap dan meresapkan perisa pada bahan"
+      }
+    },
+    "coating": {
+      "label": {
+        "de": "Panieren & Umhüllen",
+        "en": "Coating & Wrapping",
+        "esp": "Empanizar y envolver",
+        "prt": "Empanar e envolver",
+        "id": "Melapisi & membungkus",
+        "nl": "Paneren & omhullen",
+        "sv": "Panera & linda",
+        "da": "Panere & indpakke",
+        "no": "Panere & pakke inn",
+        "ms": "Menyalut & membungkus"
+      },
+      "icon": "🌯",
+      "description": {
+        "de": "Zutaten panieren, füllen und einwickeln",
+        "en": "Breading, stuffing and wrapping ingredients",
+        "esp": "Empanizar, rellenar y envolver ingredientes",
+        "prt": "Empanar, rechear e envolver ingredientes",
+        "id": "Melapisi, mengisi dan membungkus bahan",
+        "nl": "Paneren, vullen en inwikkelen van ingrediënten",
+        "sv": "Panera, fylla och linda in ingredienser",
+        "da": "Panere, fylde og pakke ingredienser ind",
+        "no": "Panere, fylle og pakke inn ingredienser",
+        "ms": "Menyalut, mengisi dan membungkus bahan"
+      }
+    },
+    "dry_heat": {
+      "label": {
+        "de": "Trockene Hitze",
+        "en": "Dry Heat",
+        "esp": "Calor seco",
+        "prt": "Calor seco",
+        "id": "Panas kering",
+        "nl": "Droge hitte",
+        "sv": "Torr värme",
+        "da": "Tør varme",
+        "no": "Tørr varme",
+        "ms": "Haba kering"
+      },
+      "icon": "🔥",
+      "description": {
+        "de": "Braten, Grillen, Backen und Rösten ohne Flüssigkeit",
+        "en": "Frying, grilling, baking and roasting without liquid",
+        "esp": "Freír, asar, hornear y tostar sin líquido",
+        "prt": "Fritar, grelhar, assar e tostar sem líquido",
+        "id": "Menggoreng, memanggang dan membakar tanpa cairan",
+        "nl": "Bakken, grillen, braden en roosteren zonder vloeistof",
+        "sv": "Steka, grilla, baka och rosta utan vätska",
+        "da": "Stege, grille, bage og riste uden væske",
+        "no": "Steke, grille, bake og riste uten væske",
+        "ms": "Menggoreng, memanggang dan membakar tanpa cecair"
+      }
+    },
+    "wet_heat": {
+      "label": {
+        "de": "Feuchte Hitze",
+        "en": "Wet Heat",
+        "esp": "Calor húmedo",
+        "prt": "Calor húmido",
+        "id": "Panas basah",
+        "nl": "Natte hitte",
+        "sv": "Fuktig värme",
+        "da": "Fugtig varme",
+        "no": "Fuktig varme",
+        "ms": "Haba basah"
+      },
+      "icon": "💧",
+      "description": {
+        "de": "Kochen, Dünsten und Garen von Zutaten in Flüssigkeiten",
+        "en": "Boiling, steaming and cooking ingredients in liquids",
+        "esp": "Hervir, cocer al vapor y cocinar ingredientes en líquidos",
+        "prt": "Ferver, cozinhar a vapor e cozinhar ingredientes em líquidos",
+        "id": "Merebus, mengukus dan memasak bahan dalam cairan",
+        "nl": "Koken, stomen en garen van ingrediënten in vloeistoffen",
+        "sv": "Koka, ångkoka och tillaga ingredienser i vätskor",
+        "da": "Koge, dampe og tilberede ingredienser i væsker",
+        "no": "Koke, dampe og tilberede ingredienser i væsker",
+        "ms": "Merebus, mengukus dan memasak bahan dalam cecair"
+      }
+    },
+    "sauce_work": {
+      "label": {
+        "de": "Saucenarbeit",
+        "en": "Sauce Work",
+        "esp": "Trabajo de salsas",
+        "prt": "Trabalho de molhos",
+        "id": "Kerja saus",
+        "nl": "Sauswerk",
+        "sv": "Såsarbete",
+        "da": "Saucearbejde",
+        "no": "Sausarbeid",
+        "ms": "Kerja sos"
+      },
+      "icon": "🫕",
+      "description": {
+        "de": "Saucen aufbauen, ablöschen, reduzieren und binden",
+        "en": "Building sauces, deglazing, reducing and thickening",
+        "esp": "Preparar salsas, desglasar, reducir y espesar",
+        "prt": "Preparar molhos, deglacear, reduzir e engrossar",
+        "id": "Membuat saus, deglaze, mereduksi dan mengentalkan",
+        "nl": "Sauzen opbouwen, deglaceren, reduceren en binden",
+        "sv": "Bygga såser, deglacera, reducera och tjockna",
+        "da": "Opbygge saucer, deglacere, reducere og jævne",
+        "no": "Bygge sauser, deglasere, redusere og jevne",
+        "ms": "Membuat sos, deglaze, memekatkan dan mengikat"
+      }
+    },
+    "processing": {
+      "label": {
+        "de": "Verarbeiten",
+        "en": "Processing",
+        "esp": "Procesamiento",
+        "prt": "Processamento",
+        "id": "Pengolahan",
+        "nl": "Verwerking",
+        "sv": "Bearbetning",
+        "da": "Forarbejdning",
+        "no": "Bearbeiding",
+        "ms": "Pemprosesan"
+      },
+      "icon": "🔄",
+      "description": {
+        "de": "Umrühren, Zugeben, Pürieren und weitere Verarbeitungsschritte",
+        "en": "Stirring, adding, blending and other processing steps",
+        "esp": "Remover, añadir, triturar y otros pasos de procesamiento",
+        "prt": "Mexer, adicionar, triturar e outros passos de processamento",
+        "id": "Mengaduk, menambahkan, menghaluskan dan langkah pemrosesan lain",
+        "nl": "Roeren, toevoegen, pureren en andere verwerkingsstappen",
+        "sv": "Röra, tillsätta, mixa och andra bearbetningssteg",
+        "da": "Røre, tilsætte, blende og andre forarbejdningstrin",
+        "no": "Røre, tilsette, blende og andre bearbeidingssteg",
+        "ms": "Mengacau, menambah, mengisar dan langkah pemprosesan lain"
+      }
+    },
+    "seasoning": {
+      "label": {
+        "de": "Würzen & Abschmecken",
+        "en": "Seasoning",
+        "esp": "Sazonar",
+        "prt": "Temperar",
+        "id": "Membumbui",
+        "nl": "Op smaak brengen",
+        "sv": "Krydda",
+        "da": "Krydre",
+        "no": "Krydre",
+        "ms": "Perasa"
+      },
+      "icon": "🧂",
+      "description": {
+        "de": "Abschmecken, Nachwürzen und finale Geschmacksbalance",
+        "en": "Tasting, adjusting seasoning and final flavour balance",
+        "esp": "Probar, ajustar el sazón y equilibrio final de sabores",
+        "prt": "Provar, ajustar temperos e equilíbrio final de sabores",
+        "id": "Mencicipi, menyesuaikan bumbu dan keseimbangan rasa akhir",
+        "nl": "Proeven, nakruiden en de finale smaakbalans",
+        "sv": "Smaka av, justera kryddning och slutlig smakbalans",
+        "da": "Smage til, justere krydring og endelig smagsbalance",
+        "no": "Smake til, justere krydder og endelig smaksbalanse",
+        "ms": "Merasa, melaraskan perisa dan keseimbangan rasa akhir"
+      }
+    },
+    "resting": {
+      "label": {
+        "de": "Ruhen & Kühlen",
+        "en": "Resting & Cooling",
+        "esp": "Reposo y enfriamiento",
+        "prt": "Descanso e arrefecimento",
+        "id": "Istirahat & pendinginan",
+        "nl": "Rusten & afkoelen",
+        "sv": "Vila & kyla",
+        "da": "Hvile & afkøle",
+        "no": "Hvile & avkjøle",
+        "ms": "Rehat & penyejukan"
+      },
+      "icon": "❄️",
+      "description": {
+        "de": "Ruhen lassen, Abkühlen und Kaltstellen für optimale Textur",
+        "en": "Resting, cooling and chilling for optimal texture",
+        "esp": "Reposar, enfriar y refrigerar para textura óptima",
+        "prt": "Descansar, arrefecer e refrigerar para textura ideal",
+        "id": "Mengistirahatkan, mendinginkan untuk tekstur optimal",
+        "nl": "Laten rusten, afkoelen en koelen voor optimale textuur",
+        "sv": "Vila, kyla och kyla ner för optimal konsistens",
+        "da": "Hvile, afkøle og nedkøle for optimal konsistens",
+        "no": "Hvile, avkjøle og kjøle ned for optimal konsistens",
+        "ms": "Merehatkan, menyejukkan untuk tekstur optimum"
+      }
+    },
+    "finishing": {
+      "label": {
+        "de": "Veredeln",
+        "en": "Finishing Touches",
+        "esp": "Toques finales",
+        "prt": "Toques finais",
+        "id": "Sentuhan akhir",
+        "nl": "Afwerking",
+        "sv": "Finputsning",
+        "da": "Afsluttende touch",
+        "no": "Avsluttende detaljer",
+        "ms": "Sentuhan akhir"
+      },
+      "icon": "✨",
+      "description": {
+        "de": "Glasieren, Dekorieren und letzter Feinschliff",
+        "en": "Glazing, decorating and final touches",
+        "esp": "Glasear, decorar y toques finales",
+        "prt": "Glacear, decorar e toques finais",
+        "id": "Mengglasir, menghias dan sentuhan akhir",
+        "nl": "Glaceren, decoreren en laatste afwerking",
+        "sv": "Glasera, dekorera och sista finishen",
+        "da": "Glasere, dekorere og sidste finish",
+        "no": "Glasere, dekorere og siste finish",
+        "ms": "Mengglasir, menghias dan sentuhan terakhir"
+      }
+    },
+    "assembly": {
+      "label": {
+        "de": "Zusammenbauen & Anrichten",
+        "en": "Assembly & Plating",
+        "esp": "Montaje y emplatado",
+        "prt": "Montagem e empratamento",
+        "id": "Perakitan & penghidangan",
+        "nl": "Samenstellen & opmaken",
+        "sv": "Montering & uppläggning",
+        "da": "Samling & anretning",
+        "no": "Montering & anretning",
+        "ms": "Pemasangan & penghidangan"
+      },
+      "icon": "🍽️",
+      "description": {
+        "de": "Gerichte zusammenbauen, schichten und auf dem Teller anrichten",
+        "en": "Assembling, layering and plating dishes",
+        "esp": "Montar, capear y emplatar platos",
+        "prt": "Montar, camadas e empratar pratos",
+        "id": "Merakit, menyusun lapisan dan menata hidangan",
+        "nl": "Gerechten samenstellen, laagjes leggen en opmaken",
+        "sv": "Sätta ihop, varva och lägga upp rätter",
+        "da": "Samle, lægge i lag og anrette retter",
+        "no": "Sette sammen, legge i lag og anrette retter",
+        "ms": "Memasang, menyusun lapisan dan menghidang"
+      }
+    },
+    "serving": {
+      "label": {
+        "de": "Servieren",
+        "en": "Serving",
+        "esp": "Servir",
+        "prt": "Servir",
+        "id": "Penyajian",
+        "nl": "Serveren",
+        "sv": "Servering",
+        "da": "Servering",
+        "no": "Servering",
+        "ms": "Penghidangan"
+      },
+      "icon": "🤲",
+      "description": {
+        "de": "Das fertige Gericht servieren",
+        "en": "Serving the finished dish",
+        "esp": "Servir el plato terminado",
+        "prt": "Servir o prato finalizado",
+        "id": "Menghidangkan hidangan yang sudah jadi",
+        "nl": "Het afgewerkte gerecht serveren",
+        "sv": "Servera den färdiga rätten",
+        "da": "Servere den færdige ret",
+        "no": "Servere den ferdige retten",
+        "ms": "Menghidangkan hidangan yang telah siap"
+      }
     }
   },
   "equipment": {
@@ -806,6 +1223,7 @@
     {
       "master_id": "PREP_WASH_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "wash",
       "equipment": 0,
       "description": "Waschen und Trocknen von Zutaten",
@@ -851,12 +1269,14 @@
         "variable:ingredient",
         "variable:pronoun",
         "category:main",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_PEEL_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "peel",
       "equipment": 0,
       "description": "Schälen von Obst, Gemüse oder Knollen",
@@ -903,12 +1323,14 @@
         "variable:ingredient",
         "variable:tool",
         "category:main",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_CUT_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "cut",
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
@@ -956,12 +1378,14 @@
         "variable:grind_size",
         "variable:shape",
         "category:main",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_GRATE_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "grate",
       "Tag": "grate",
       "equipment": 0,
@@ -1007,12 +1431,14 @@
         "variable:ingredient",
         "variable:grind_size",
         "variable:tool",
-        "category:main"
+        "category:main",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_MINCE_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "mince",
       "equipment": 0,
       "description": "Fein hacken von Kräutern, Knoblauch etc.",
@@ -1052,12 +1478,14 @@
         "none",
         "variable:ingredient",
         "category:main",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_MARINATE_01",
       "phase": 1,
+      "sub_group": "marinating",
       "action": "marinate",
       "equipment": 9,
       "description": "Marinieren von Fleisch, Tofu, Gemüse",
@@ -1106,12 +1534,14 @@
         "variable:marinade",
         "variable:pronoun",
         "variable:duration",
-        "category:main"
+        "category:main",
+        "sub_group:marinating"
       ]
     },
     {
       "master_id": "PREP_SOAK_01",
       "phase": 1,
+      "sub_group": "marinating",
       "action": "soak",
       "equipment": 9,
       "description": "Einweichen von Hülsenfrüchten, Getreide, getrockneten Zutaten",
@@ -1157,12 +1587,14 @@
         "variable:ingredient",
         "variable:liquid",
         "variable:duration",
-        "category:main"
+        "category:main",
+        "sub_group:marinating"
       ]
     },
     {
       "master_id": "PREP_MIX_DRY_01",
       "phase": 1,
+      "sub_group": "mixing",
       "action": "mix_dry",
       "equipment": 9,
       "description": "Trockene Zutaten vermengen (Mehl, Gewürze, Backpulver etc.)",
@@ -1199,12 +1631,14 @@
         "bowl",
         "equipment_id:9",
         "variable:ingredients",
-        "category:main"
+        "category:main",
+        "sub_group:mixing"
       ]
     },
     {
       "master_id": "PREP_KNEAD_01",
       "phase": 1,
+      "sub_group": "dough",
       "action": "knead",
       "equipment": 9,
       "description": "Teig kneten, bis glatt/elastisch",
@@ -1258,12 +1692,14 @@
         "variable:pronoun",
         "category:main",
         "family:dough",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:dough"
       ]
     },
     {
       "master_id": "PREP_DOUGH_RISE_01",
       "phase": 1,
+      "sub_group": "dough",
       "action": "rise",
       "equipment": 9,
       "description": "Teig gehen lassen",
@@ -1309,12 +1745,14 @@
         "variable:dough",
         "variable:duration",
         "variable:state",
-        "category:main"
+        "category:main",
+        "sub_group:dough"
       ]
     },
     {
       "master_id": "PREP_REST_01",
       "phase": 1,
+      "sub_group": "dough",
       "action": "rest",
       "equipment": 9,
       "description": "Teig/Masse ruhen lassen (gehen, quellen, entspannen)",
@@ -1364,12 +1802,14 @@
         "variable:duration",
         "variable:state",
         "category:main",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:dough"
       ]
     },
     {
       "master_id": "PREP_PORTION_01",
       "phase": 1,
+      "sub_group": "dough",
       "action": "portion",
       "equipment": 0,
       "description": "Teig/Masse in Portionen teilen",
@@ -1410,12 +1850,14 @@
         "none",
         "variable:item",
         "variable:count",
-        "category:main"
+        "category:main",
+        "sub_group:dough"
       ]
     },
     {
       "master_id": "PREP_ROLL_OUT_01",
       "phase": 1,
+      "sub_group": "dough",
       "action": "roll_out",
       "equipment": 0,
       "description": "Teig ausrollen (Pizza, Naan, Mürbteig)",
@@ -1465,12 +1907,14 @@
         "variable:grind_size",
         "variable:shape",
         "category:main",
-        "family:dough"
+        "family:dough",
+        "sub_group:dough"
       ]
     },
     {
       "master_id": "PREP_BREAD_3STEP_01",
       "phase": 1,
+      "sub_group": "coating",
       "action": "bread_3step",
       "equipment": 9,
       "description": "Klassisches Panieren: Mehl → Ei → Brösel",
@@ -1523,12 +1967,14 @@
         "variable:step3",
         "category:main",
         "family:vegetable",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:coating"
       ]
     },
     {
       "master_id": "PREP_WHISK_01",
       "phase": 1,
+      "sub_group": "mixing",
       "action": "whisk",
       "equipment": 9,
       "description": "Flüssiges verrühren/aufschlagen (Ei, Milch, Sauce-Basis)",
@@ -1580,12 +2026,14 @@
         "variable:tool",
         "variable:state",
         "category:main",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:mixing"
       ]
     },
     {
       "master_id": "PREP_BEAT_01",
       "phase": 1,
+      "sub_group": "mixing",
       "action": "beat",
       "equipment": 9,
       "description": "Zutat mit Werkzeug bearbeiten bis Zustand erreicht (z.B. Eiklar schaumig schlagen)",
@@ -1642,12 +2090,14 @@
         "variable:state",
         "category:main",
         "family:egg",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:mixing"
       ]
     },
     {
       "master_id": "PREP_SEPARATE_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "separate",
       "equipment": 0,
       "description": "Trennen von Zutaten (z.B. Eier in Eigelb und Eiweiß)",
@@ -1690,12 +2140,14 @@
         "variable:ingredient",
         "variable:ingredient2",
         "category:main",
-        "family:egg"
+        "family:egg",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_FOLD_IN_01",
       "phase": 1,
+      "sub_group": "mixing",
       "action": "fold_in",
       "equipment": 9,
       "description": "Vorsichtig unterheben (Sahne, Eischnee, Schoko, Beeren)",
@@ -1741,12 +2193,14 @@
         "variable:ingredient",
         "variable:base",
         "variable:goal",
-        "category:main"
+        "category:main",
+        "sub_group:mixing"
       ]
     },
     {
       "master_id": "PREP_HEAT_01",
       "phase": 1,
+      "sub_group": "equipment_prep",
       "action": "preheat",
       "equipment": 1,
       "description": "Vorheizen von Küchengeräten",
@@ -1789,12 +2243,14 @@
         "variable:equipment",
         "variable:temp",
         "variable:mode",
-        "category:main"
+        "category:main",
+        "sub_group:equipment_prep"
       ]
     },
     {
       "master_id": "COOK_SAUTE_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "sauté",
       "equipment": 2,
       "description": "Anbraten/Dünsten von Basis-Zutaten",
@@ -1859,12 +2315,14 @@
         "variable:state",
         "family:vegetable",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_FRY_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "fry",
       "equipment": 2,
       "description": "Braten bei starker Hitze (Schnitzel, Steak, Bratkartoffeln)",
@@ -1924,12 +2382,14 @@
         "variable:pronoun",
         "variable:state",
         "category:pan",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_DEEPFRY_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "deep_fry",
       "equipment": 3,
       "description": "Frittieren in heißem Öl",
@@ -1991,12 +2451,14 @@
         "variable:state",
         "family:vegetable",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_BOIL_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "boil",
       "equipment": 3,
       "description": "Kochen in sprudelndem Wasser (Nudeln, Kartoffeln, Eier)",
@@ -2053,12 +2515,14 @@
         "variable:duration",
         "variable:state",
         "category:soup",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "COOK_SIMMER_02",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "simmer",
       "equipment": 3,
       "description": "Köcheln lassen, bis eine Zutat den Zielzustand erreicht",
@@ -2115,12 +2579,14 @@
         "variable:state",
         "variable:pronoun",
         "variable:copula",
-        "category:soup"
+        "category:soup",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "COOK_SIMMER_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "simmer",
       "equipment": 3,
       "description": "Köcheln bei niedriger Hitze (Saucen, Suppen, Eintöpfe)",
@@ -2177,12 +2643,14 @@
         "variable:state",
         "variable:pronoun",
         "category:soup",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "COOK_STEAM_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "steam",
       "equipment": 8,
       "description": "Dämpfen von Gemüse, Fisch, Dim Sum",
@@ -2239,12 +2707,14 @@
         "variable:state",
         "family:vegetable",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "COOK_BAKE_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "bake",
       "equipment": 1,
       "description": "Backen im Ofen (Aufläufe, Kuchen, Brot)",
@@ -2299,12 +2769,14 @@
         "variable:duration",
         "variable:state",
         "category:baked",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_ROAST_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "roast",
       "equipment": 1,
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
@@ -2364,12 +2836,14 @@
         "variable:pronoun",
         "category:baked",
         "diet:all",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_GRILL_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "grill",
       "equipment": 7,
       "description": "Grillen auf dem Rost oder in der Grillpfanne",
@@ -2425,12 +2899,14 @@
         "variable:state",
         "diet:all",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_DEGLAZE_01",
       "phase": 2,
+      "sub_group": "sauce_work",
       "action": "deglaze",
       "equipment": 2,
       "description": "Ablöschen und Bratensatz lösen",
@@ -2478,12 +2954,14 @@
         "dry_heat",
         "variable:liquid",
         "variable:equipment",
-        "family:liquid"
+        "family:liquid",
+        "sub_group:sauce_work"
       ]
     },
     {
       "master_id": "COOK_DEGLAZE_02",
       "phase": 2,
+      "sub_group": "sauce_work",
       "action": "deglaze",
       "equipment": 2,
       "description": "Ablöschen direkt an der Zutat (Variante ohne Equipment-Text)",
@@ -2528,12 +3006,14 @@
         "equipment_id:2",
         "dry_heat",
         "variable:ingredient",
-        "variable:liquid"
+        "variable:liquid",
+        "sub_group:sauce_work"
       ]
     },
     {
       "master_id": "COOK_REDUCE_01",
       "phase": 2,
+      "sub_group": "sauce_work",
       "action": "reduce",
       "equipment": 3,
       "description": "Flüssigkeit einkochen/reduzieren",
@@ -2590,12 +3070,14 @@
         "variable:state",
         "family:liquid",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:sauce_work"
       ]
     },
     {
       "master_id": "COOK_THICKEN_01",
       "phase": 2,
+      "sub_group": "sauce_work",
       "action": "thicken",
       "equipment": 3,
       "description": "Sauce/Suppe binden (Mehlschwitze, Stärke etc.)",
@@ -2649,12 +3131,14 @@
         "variable:thickener",
         "variable:state",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:sauce_work"
       ]
     },
     {
       "master_id": "COOK_STIR_01",
       "phase": 2,
+      "sub_group": "processing",
       "action": "stir",
       "equipment": 0,
       "description": "Unterheben/Einrühren einer Zutat in ein Gericht",
@@ -2707,12 +3191,14 @@
         "variable:method",
         "variable:base",
         "category:pan",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:processing"
       ]
     },
     {
       "master_id": "COOK_DRAIN_01",
       "phase": 2,
+      "sub_group": "processing",
       "action": "drain",
       "equipment": 10,
       "description": "Abgießen durch ein Sieb",
@@ -2757,12 +3243,14 @@
         "variable:ingredient",
         "variable:equipment",
         "variable:pronoun",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:processing"
       ]
     },
     {
       "master_id": "COOK_STRAIN_01",
       "phase": 2,
+      "sub_group": "processing",
       "action": "strain",
       "equipment": 10,
       "description": "Abseihen/Filtern und etwas auffangen",
@@ -2807,12 +3295,14 @@
         "variable:ingredient",
         "variable:equipment",
         "variable:keep",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:processing"
       ]
     },
     {
       "master_id": "COOK_COVER_01",
       "phase": 2,
+      "sub_group": "processing",
       "action": "cover",
       "equipment": 3,
       "description": "Mit Deckel abdecken",
@@ -2861,12 +3351,14 @@
         "variable:equipment",
         "variable:heat",
         "variable:duration",
-        "category:soup"
+        "category:soup",
+        "sub_group:processing"
       ]
     },
     {
       "master_id": "COOK_BLEND_01",
       "phase": 2,
+      "sub_group": "processing",
       "action": "blend",
       "equipment": 6,
       "description": "Pürieren/Mixen (Suppen, Saucen, Smoothies)",
@@ -2920,35 +3412,49 @@
         "variable:state",
         "category:soup",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:processing"
       ]
     },
     {
       "master_id": "COOK_ADD_01",
       "phase": 2,
+      "sub_group": "processing",
       "action": "add",
       "equipment": 0,
       "description": "Zutat hinzufügen",
       "templates": {
-        "de": "Gib {{ingredient}} dazu[ und {{method}}].",
-        "en": "Add {{ingredient}}[ and {{method}}].",
-        "esp": "Añade {{ingredient}}[ y {{method}}].",
-        "prt": "Adicione {{ingredient}}[ e {{method}}].",
-        "id": "Tambahkan {{ingredient}}[ lalu {{method}}].",
-        "nl": "Voeg {{ingredient}} toe[ en {{method}}].",
-        "sv": "Tillsätt {{ingredient}}[ och {{method}}].",
-        "da": "Tilsæt {{ingredient}}[ og {{method}}].",
-        "no": "Tilsett {{ingredient}}[ og {{method}}].",
-        "ms": "Masukkan {{ingredient}}[ dan {{method}}]."
+        "de": "Gib {{ingredient}} dazu[ und lasse {{pronoun}}][ {{duration}}][ {{action}}][, bis {{pronoun2}} {{state}}][ {{copula}}].",
+        "en": "Add {{ingredient}}[ and let it][ for {{duration}}][ {{action}}][ until {{state}}][ {{copula}}].",
+        "esp": "Añade {{ingredient}}[ y deja que {{pronoun}}][ durante {{duration}}][ {{action}}][ hasta {{state}}][ {{copula}}].",
+        "prt": "Adicione {{ingredient}}[ e deixe {{pronoun}}][ por {{duration}}][ {{action}}][ até {{state}}][ {{copula}}].",
+        "id": "Tambahkan {{ingredient}}[ lalu biarkan {{pronoun}}][ selama {{duration}}][ {{action}}][ hingga {{state}}][ {{copula}}].",
+        "nl": "Voeg {{ingredient}} toe[ en laat {{pronoun}}][ {{duration}}][ {{action}}][ tot {{state}}][ {{copula}}].",
+        "sv": "Tillsätt {{ingredient}}[ och låt {{pronoun}}][ i {{duration}}][ {{action}}][ tills {{state}}][ {{copula}}].",
+        "da": "Tilsæt {{ingredient}}[ og lad {{pronoun}}][ i {{duration}}][ {{action}}][ indtil {{state}}][ {{copula}}].",
+        "no": "Tilsett {{ingredient}}[ og la {{pronoun}}][ i {{duration}}][ {{action}}][ til {{state}}][ {{copula}}].",
+        "ms": "Masukkan {{ingredient}}[ dan biarkan {{pronoun}}][ selama {{duration}}][ {{action}}][ sehingga {{state}}][ {{copula}}]."
       },
       "variables": [
         "ingredient",
-        "method"
+        "pronoun",
+        "pronoun2",
+        "duration",
+        "action",
+        "state",
+        "copula"
       ],
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": "method",
+      "optional_variables": [
+        "pronoun",
+        "pronoun2",
+        "duration",
+        "action",
+        "state",
+        "copula"
+      ],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "vegetable"
@@ -2966,12 +3472,14 @@
         "none",
         "variable:ingredient",
         "variable:method",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:processing"
       ]
     },
     {
       "master_id": "COOK_BRAISE_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "braise",
       "equipment": 4,
       "description": "Schmoren im Bräter (Braten, Ragouts)",
@@ -3029,12 +3537,13 @@
         "variable:state",
         "diet:all",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:wet_heat"
       ]
     },
     {
-      "master_id": "PREP_LAYER_01",
-      "phase": 1,
+      "master_id": "SERVE_LAYER_01",
+      "phase": 4,
       "action": "layer",
       "equipment": 4,
       "description": "Schichten (Lasagne, Auflauf, Dessert im Glas)",
@@ -3066,8 +3575,8 @@
         "category_keys": "main"
       },
       "selection_tags": [
-        "phase:prep",
-        "step_group:prep",
+        "phase:serve",
+        "step_group:serve",
         "action:layer",
         "technique:layer",
         "schichten",
@@ -3080,12 +3589,15 @@
         "variable:components",
         "variable:equipment",
         "variable:finish",
-        "category:main"
-      ]
+        "category:main",
+        "sub_group:assembly"
+      ],
+      "sub_group": "assembly"
     },
     {
       "master_id": "COOK_GRATINATE_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "broil",
       "equipment": 1,
       "description": "Kurz unter starker Oberhitze gratinieren/überbacken",
@@ -3139,12 +3651,14 @@
         "variable:duration",
         "variable:state",
         "variable:pronoun",
-        "variable:copula"
+        "variable:copula",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "SEASON_ADJUST_01",
       "phase": 3,
+      "sub_group": "seasoning",
       "action": "season_adjust",
       "equipment": 0,
       "description": "Abschmecken und Nachwürzen",
@@ -3192,12 +3706,14 @@
         "variable:base",
         "variable:seasonings",
         "variable:balance",
-        "family:seasoning"
+        "family:seasoning",
+        "sub_group:seasoning"
       ]
     },
     {
       "master_id": "FINISH_COOL_01",
       "phase": 3,
+      "sub_group": "resting",
       "action": "cool",
       "equipment": 0,
       "description": "Abkühlen lassen (Desserts, Kuchen)",
@@ -3246,12 +3762,14 @@
         "variable:duration",
         "variable:state",
         "variable:copula",
-        "variable:pronoun"
+        "variable:pronoun",
+        "sub_group:resting"
       ]
     },
     {
       "master_id": "FINISH_REST_01",
       "phase": 3,
+      "sub_group": "resting",
       "action": "rest",
       "equipment": 0,
       "description": "Ruhen lassen nach dem Garen (Fleisch, Aufläufe)",
@@ -3293,12 +3811,14 @@
         "none",
         "variable:base",
         "variable:duration",
-        "variable:reason"
+        "variable:reason",
+        "sub_group:resting"
       ]
     },
     {
       "master_id": "FINISH_PORTION_01",
       "phase": 4,
+      "sub_group": "assembly",
       "action": "portion",
       "equipment": 0,
       "description": "Portionieren/Anrichten in Tellern oder Schüsseln",
@@ -3340,12 +3860,14 @@
         "none",
         "variable:base",
         "variable:count",
-        "category:main"
+        "category:main",
+        "sub_group:assembly"
       ]
     },
     {
       "master_id": "FINISH_SERVE_01",
       "phase": 4,
+      "sub_group": "serving",
       "action": "serve",
       "equipment": 0,
       "description": "Servieren",
@@ -3386,13 +3908,16 @@
         "none",
         "variable:base",
         "variable:extra",
-        "category:main"
+        "category:main",
+        "sub_group:serving"
       ]
     },
     {
       "master_id": "PREP_MARINADE_MAKE_01",
       "phase": 1,
+      "sub_group": "mixing",
       "equipment": 0,
+      "action": "make_marinade",
       "description": "Marinade aus Zutaten herstellen",
       "templates": {
         "de": "Stelle aus {{ingredients}} eine Marinade her.",
@@ -3424,12 +3949,14 @@
         "none",
         "variable:ingredients",
         "category:main",
-        "family:vegetable"
+        "family:vegetable",
+        "sub_group:mixing"
       ]
     },
     {
       "master_id": "PREP_FILLET_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "fillet",
       "equipment": 0,
       "description": "Filetieren von Fisch, Gräten entfernen",
@@ -3472,12 +3999,14 @@
         "none",
         "variable:ingredient",
         "variable:tool",
-        "family:fish"
+        "family:fish",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_DESCALE_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "descale",
       "equipment": 0,
       "description": "Entschuppen von ganzem Fisch",
@@ -3522,12 +4051,14 @@
         "variable:ingredient",
         "variable:tool",
         "variable:pronoun",
-        "family:fish"
+        "family:fish",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_DEVEIN_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "devein",
       "equipment": 0,
       "description": "Schälen und Entdarmen von Garnelen/Shrimps",
@@ -3569,12 +4100,14 @@
         "none",
         "variable:ingredient",
         "variable:tool",
-        "family:seafood"
+        "family:seafood",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "COOK_POACH_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "poach",
       "equipment": 3,
       "description": "Pochieren/Garziehen von Fisch oder Meeresfrüchten in Flüssigkeit",
@@ -3633,12 +4166,14 @@
         "variable:heat",
         "variable:duration",
         "variable:state",
-        "family:fish"
+        "family:fish",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "PREP_CLEAN_SEAFOOD_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "clean_seafood",
       "equipment": 0,
       "description": "Putzen und Vorbereiten von Meeresfrüchten (Muscheln, Tintenfisch etc.)",
@@ -3678,12 +4213,14 @@
         "none",
         "variable:ingredient",
         "variable:action",
-        "family:seafood"
+        "family:seafood",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_STUFF_01",
       "phase": 1,
+      "sub_group": "coating",
       "action": "stuff",
       "equipment": 0,
       "description": "Füllen (Paprika, Zucchini, Hähnchen, Cannelloni)",
@@ -3699,22 +4236,47 @@
         "no": "Fyll {{base}} jevnt med {{filling}} og sett {{pronoun}} i {{equipment}}.",
         "ms": "Isikan {{base}} secara rata dengan {{filling}} dan letakkan di {{equipment}}."
       },
-      "variables": ["base", "filling", "pronoun", "equipment"],
-      "required_variables": ["base", "filling", "pronoun", "equipment"],
+      "variables": [
+        "base",
+        "filling",
+        "pronoun",
+        "equipment"
+      ],
+      "required_variables": [
+        "base",
+        "filling",
+        "pronoun",
+        "equipment"
+      ],
       "optional_variables": null,
       "variable_types": {},
-      "stable_taxonomy_keys": { "category_keys": "main" },
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:stuff", "technique:stuff",
-        "füllen", "fuellen", "stuff", "fill",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:filling", "variable:pronoun", "variable:equipment",
-        "category:main"
+        "phase:prep",
+        "step_group:prep",
+        "action:stuff",
+        "technique:stuff",
+        "füllen",
+        "fuellen",
+        "stuff",
+        "fill",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:filling",
+        "variable:pronoun",
+        "variable:equipment",
+        "category:main",
+        "sub_group:coating"
       ]
     },
     {
       "master_id": "PREP_WRAP_01",
       "phase": 1,
+      "sub_group": "coating",
       "action": "wrap",
       "equipment": 0,
       "description": "Einwickeln/Einrollen (Frühlingsrollen, Krautwickel, Burek)",
@@ -3730,22 +4292,43 @@
         "no": "Legg {{filling}} på {{wrapper}} og rull {{pronoun}} godt sammen.",
         "ms": "Letakkan {{filling}} di atas {{wrapper}} dan gulung dengan ketat."
       },
-      "variables": ["filling", "wrapper", "pronoun"],
-      "required_variables": ["filling", "wrapper", "pronoun"],
+      "variables": [
+        "filling",
+        "wrapper",
+        "pronoun"
+      ],
+      "required_variables": [
+        "filling",
+        "wrapper",
+        "pronoun"
+      ],
       "optional_variables": null,
       "variable_types": {},
-      "stable_taxonomy_keys": { "category_keys": "main" },
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:wrap", "technique:wrap",
-        "einwickeln", "einrollen", "wrap", "roll",
-        "equipment_id:0", "keins", "none",
-        "variable:filling", "variable:wrapper", "variable:pronoun",
-        "category:main"
+        "phase:prep",
+        "step_group:prep",
+        "action:wrap",
+        "technique:wrap",
+        "einwickeln",
+        "einrollen",
+        "wrap",
+        "roll",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:filling",
+        "variable:wrapper",
+        "variable:pronoun",
+        "category:main",
+        "sub_group:coating"
       ]
     },
     {
-      "master_id": "PREP_ASSEMBLE_01",
-      "phase": 1,
+      "master_id": "SERVE_ASSEMBLE_01",
+      "phase": 4,
       "action": "assemble",
       "equipment": 0,
       "description": "Zusammenbauen (Burger, Sandwich, Taco)",
@@ -3761,22 +4344,43 @@
         "no": "Sett sammen {{base}} med {{components}} og avslutt med {{finish}}.",
         "ms": "Susun {{base}} dengan {{components}} dan akhiri dengan {{finish}}."
       },
-      "variables": ["base", "components", "finish"],
-      "required_variables": ["base", "components", "finish"],
+      "variables": [
+        "base",
+        "components",
+        "finish"
+      ],
+      "required_variables": [
+        "base",
+        "components",
+        "finish"
+      ],
       "optional_variables": null,
       "variable_types": {},
-      "stable_taxonomy_keys": { "category_keys": "main" },
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:assemble", "technique:assemble",
-        "zusammenbauen", "assemble",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:components", "variable:finish",
-        "category:main"
-      ]
+        "phase:serve",
+        "step_group:serve",
+        "action:assemble",
+        "technique:assemble",
+        "zusammenbauen",
+        "assemble",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:components",
+        "variable:finish",
+        "category:main",
+        "sub_group:assembly"
+      ],
+      "sub_group": "assembly"
     },
     {
       "master_id": "PREP_BLOOM_01",
       "phase": 1,
+      "sub_group": "marinating",
       "action": "bloom",
       "equipment": 0,
       "description": "Einweichen/Auflösen (Gelatine, Gewürze anrösten)",
@@ -3792,21 +4396,48 @@
         "no": "Løs opp {{ingredients}} i {{liquid}} og la {{pronoun}} {{state}} i {{duration}}.",
         "ms": "Larutkan {{ingredients}} dalam {{liquid}} dan biarkan {{state}} selama {{duration}}."
       },
-      "variables": ["ingredients", "liquid", "pronoun", "duration", "state"],
-      "required_variables": ["ingredients", "liquid", "pronoun", "duration", "state"],
+      "variables": [
+        "ingredients",
+        "liquid",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "ingredients",
+        "liquid",
+        "pronoun",
+        "duration",
+        "state"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:bloom", "technique:bloom",
-        "einweichen", "auflösen", "aufloesen", "bloom", "dissolve",
-        "equipment_id:0", "keins", "none",
-        "variable:ingredients", "variable:liquid", "variable:pronoun", "variable:duration", "variable:state"
+        "phase:prep",
+        "step_group:prep",
+        "action:bloom",
+        "technique:bloom",
+        "einweichen",
+        "auflösen",
+        "aufloesen",
+        "bloom",
+        "dissolve",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredients",
+        "variable:liquid",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "sub_group:marinating"
       ]
     },
     {
       "master_id": "PREP_TENDERIZE_01",
       "phase": 1,
+      "sub_group": "ingredient_prep",
       "action": "tenderize",
       "equipment": 0,
       "description": "Klopfen/Plattieren (Schnitzel, Roulade)",
@@ -3822,21 +4453,41 @@
         "no": "Bank {{base}} jevnt med {{tool}} til {{grind_size}} tykkelse.",
         "ms": "Ketuk {{base}} secara rata dengan {{tool}} hingga ketebalan {{grind_size}}."
       },
-      "variables": ["base", "tool", "grind_size"],
-      "required_variables": ["base", "tool", "grind_size"],
+      "variables": [
+        "base",
+        "tool",
+        "grind_size"
+      ],
+      "required_variables": [
+        "base",
+        "tool",
+        "grind_size"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:tenderize", "technique:tenderize",
-        "klopfen", "plattieren", "tenderize", "pound",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:tool", "variable:grind_size"
+        "phase:prep",
+        "step_group:prep",
+        "action:tenderize",
+        "technique:tenderize",
+        "klopfen",
+        "plattieren",
+        "tenderize",
+        "pound",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:tool",
+        "variable:grind_size",
+        "sub_group:ingredient_prep"
       ]
     },
     {
       "master_id": "PREP_LAMINATE_01",
       "phase": 1,
+      "sub_group": "dough",
       "action": "laminate",
       "equipment": 0,
       "description": "Tourieren (Blätterteig, Croissant-Teig)",
@@ -3852,21 +4503,46 @@
         "no": "Pakk {{fat}} inn i {{dough}}, brett {{pronoun}} {{folds}} og kjøl i {{duration}}.",
         "ms": "Bungkus {{fat}} dalam {{dough}}, lipat {{folds}} dan sejukkan selama {{duration}}."
       },
-      "variables": ["fat", "dough", "pronoun", "folds", "duration"],
-      "required_variables": ["fat", "dough", "pronoun", "folds", "duration"],
+      "variables": [
+        "fat",
+        "dough",
+        "pronoun",
+        "folds",
+        "duration"
+      ],
+      "required_variables": [
+        "fat",
+        "dough",
+        "pronoun",
+        "folds",
+        "duration"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:laminate", "technique:laminate",
-        "tourieren", "laminate", "fold",
-        "equipment_id:0", "keins", "none",
-        "variable:fat", "variable:dough", "variable:pronoun", "variable:folds", "variable:duration"
+        "phase:prep",
+        "step_group:prep",
+        "action:laminate",
+        "technique:laminate",
+        "tourieren",
+        "laminate",
+        "fold",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:fat",
+        "variable:dough",
+        "variable:pronoun",
+        "variable:folds",
+        "variable:duration",
+        "sub_group:dough"
       ]
     },
     {
       "master_id": "PREP_FERMENT_01",
       "phase": 1,
+      "sub_group": "marinating",
       "action": "ferment",
       "equipment": 0,
       "description": "Fermentieren (Sauerkraut, Kimchi, Sauerteig)",
@@ -3882,22 +4558,51 @@
         "no": "Legg {{base}} i {{equipment}} og la {{pronoun}} fermentere i {{duration}} ved {{temp}} til {{state}}.",
         "ms": "Masukkan {{base}} ke dalam {{equipment}} dan biarkan menapaikan pada {{temp}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": ["base", "equipment", "pronoun", "duration", "temp", "state", "copula"],
-      "required_variables": ["base", "equipment", "pronoun", "duration", "temp", "state", "copula"],
+      "variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "duration",
+        "temp",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "duration",
+        "temp",
+        "state",
+        "copula"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:ferment", "technique:ferment",
-        "fermentieren", "ferment",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:equipment", "variable:pronoun", "variable:duration",
-        "variable:temp", "variable:state", "variable:copula"
+        "phase:prep",
+        "step_group:prep",
+        "action:ferment",
+        "technique:ferment",
+        "fermentieren",
+        "ferment",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:temp",
+        "variable:state",
+        "variable:copula",
+        "sub_group:marinating"
       ]
     },
     {
       "master_id": "PREP_CURE_01",
       "phase": 1,
+      "sub_group": "marinating",
       "action": "cure",
       "equipment": 0,
       "description": "Beizen/Pökeln (Gravlax, Bacon, Räucherlachs)",
@@ -3913,21 +4618,44 @@
         "no": "Gni {{base}} jevnt inn med {{ingredients}} og la {{pronoun}} marinere i kjøleskapet i {{duration}}.",
         "ms": "Gosok {{base}} secara rata dengan {{ingredients}} dan biarkan {{pronoun}} memasin di dalam peti sejuk selama {{duration}}."
       },
-      "variables": ["base", "ingredients", "pronoun", "duration"],
-      "required_variables": ["base", "ingredients", "pronoun", "duration"],
+      "variables": [
+        "base",
+        "ingredients",
+        "pronoun",
+        "duration"
+      ],
+      "required_variables": [
+        "base",
+        "ingredients",
+        "pronoun",
+        "duration"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:prep", "step_group:prep", "action:cure", "technique:cure",
-        "beizen", "pökeln", "poekeln", "cure",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:ingredients", "variable:pronoun", "variable:duration"
+        "phase:prep",
+        "step_group:prep",
+        "action:cure",
+        "technique:cure",
+        "beizen",
+        "pökeln",
+        "poekeln",
+        "cure",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:ingredients",
+        "variable:pronoun",
+        "variable:duration",
+        "sub_group:marinating"
       ]
     },
     {
       "master_id": "COOK_RICE_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "cook_rice",
       "equipment": 2,
       "description": "Reis/Getreide nach Quellmethode kochen",
@@ -3943,21 +4671,48 @@
         "no": "Ha {{base}} med {{liquid}} i {{equipment}}, kok opp og la {{pronoun}} svelle i {{duration}} med lokk på.",
         "ms": "Masukkan {{base}} dengan {{liquid}} ke dalam {{equipment}}, didihkan dan biarkan menyerap selama {{duration}} dengan penutup ditutup."
       },
-      "variables": ["base", "liquid", "equipment", "pronoun", "duration"],
-      "required_variables": ["base", "liquid", "equipment", "pronoun", "duration"],
+      "variables": [
+        "base",
+        "liquid",
+        "equipment",
+        "pronoun",
+        "duration"
+      ],
+      "required_variables": [
+        "base",
+        "liquid",
+        "equipment",
+        "pronoun",
+        "duration"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:cook_rice", "technique:cook_rice",
-        "reis", "getreide", "rice", "grain", "quellen",
-        "equipment_id:2", "topf", "pot",
-        "variable:base", "variable:liquid", "variable:equipment", "variable:pronoun", "variable:duration"
+        "phase:cook",
+        "step_group:cook",
+        "action:cook_rice",
+        "technique:cook_rice",
+        "reis",
+        "getreide",
+        "rice",
+        "grain",
+        "quellen",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:liquid",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:duration",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "COOK_EMULSIFY_01",
       "phase": 2,
+      "sub_group": "sauce_work",
       "action": "emulsify",
       "equipment": 0,
       "description": "Emulgieren (Vinaigrette, Hollandaise, Mayonnaise)",
@@ -3973,21 +4728,40 @@
         "no": "Visp {{components}} kraftig med {{tool}} til {{state}} dannes.",
         "ms": "Pukul {{components}} dengan kuat menggunakan {{tool}} sehingga {{state}} terbentuk."
       },
-      "variables": ["components", "tool", "state"],
-      "required_variables": ["components", "tool", "state"],
+      "variables": [
+        "components",
+        "tool",
+        "state"
+      ],
+      "required_variables": [
+        "components",
+        "tool",
+        "state"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:emulsify", "technique:emulsify",
-        "emulgieren", "emulsify", "aufschlagen",
-        "equipment_id:0", "keins", "none",
-        "variable:components", "variable:tool", "variable:state"
+        "phase:cook",
+        "step_group:cook",
+        "action:emulsify",
+        "technique:emulsify",
+        "emulgieren",
+        "emulsify",
+        "aufschlagen",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:components",
+        "variable:tool",
+        "variable:state",
+        "sub_group:sauce_work"
       ]
     },
     {
       "master_id": "COOK_CARAMELIZE_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "caramelize",
       "equipment": 3,
       "description": "Karamellisieren (Zucker, Zwiebeln, Gemüse)",
@@ -4003,22 +4777,51 @@
         "no": "Varm opp {{base}} i {{equipment}} på {{heat}} varme og karamelliser i {{duration}} til {{state}}.",
         "ms": "Panaskan {{base}} dalam {{equipment}} dengan api {{heat}} dan karamelkan selama {{duration}} sehingga {{state}}."
       },
-      "variables": ["base", "equipment", "pronoun", "heat", "duration", "state", "copula"],
-      "required_variables": ["base", "equipment", "pronoun", "heat", "duration", "state", "copula"],
+      "variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "heat",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "heat",
+        "duration",
+        "state",
+        "copula"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:caramelize", "technique:caramelize",
-        "karamellisieren", "caramelize",
-        "equipment_id:3", "pfanne", "pan",
-        "variable:base", "variable:equipment", "variable:pronoun", "variable:heat",
-        "variable:duration", "variable:state", "variable:copula"
+        "phase:cook",
+        "step_group:cook",
+        "action:caramelize",
+        "technique:caramelize",
+        "karamellisieren",
+        "caramelize",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:base",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:heat",
+        "variable:duration",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_FLAMBE_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "flambe",
       "equipment": 3,
       "description": "Flambieren (Crêpe Suzette, Steak Diane)",
@@ -4034,21 +4837,42 @@
         "no": "Hell {{spirit}} over {{base}} i {{equipment}} og flamber {{pronoun}} forsiktig til flammen slukner.",
         "ms": "Tuangkan {{spirit}} ke atas {{base}} dalam {{equipment}} dan flambé dengan berhati-hati sehingga api padam."
       },
-      "variables": ["spirit", "base", "equipment", "pronoun"],
-      "required_variables": ["spirit", "base", "equipment", "pronoun"],
+      "variables": [
+        "spirit",
+        "base",
+        "equipment",
+        "pronoun"
+      ],
+      "required_variables": [
+        "spirit",
+        "base",
+        "equipment",
+        "pronoun"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:flambe", "technique:flambe",
-        "flambieren", "flambe",
-        "equipment_id:3", "pfanne", "pan",
-        "variable:spirit", "variable:base", "variable:equipment", "variable:pronoun"
+        "phase:cook",
+        "step_group:cook",
+        "action:flambe",
+        "technique:flambe",
+        "flambieren",
+        "flambe",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:spirit",
+        "variable:base",
+        "variable:equipment",
+        "variable:pronoun",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_SMOKE_01",
       "phase": 2,
+      "sub_group": "dry_heat",
       "action": "smoke",
       "equipment": 7,
       "description": "Räuchern (Lachs, Fleisch, Käse)",
@@ -4064,22 +4888,52 @@
         "no": "Røyk {{base}} ved {{temp}} med {{wood}} i {{duration}} til {{state}}.",
         "ms": "Salai {{base}} pada {{temp}} dengan {{wood}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": ["base", "temp", "wood", "duration", "pronoun", "state", "copula"],
-      "required_variables": ["base", "temp", "wood", "duration", "pronoun", "state", "copula"],
+      "variables": [
+        "base",
+        "temp",
+        "wood",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "temp",
+        "wood",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:smoke", "technique:smoke",
-        "räuchern", "raeuchern", "smoke",
-        "equipment_id:7", "smoker", "grill",
-        "variable:base", "variable:temp", "variable:wood", "variable:duration",
-        "variable:pronoun", "variable:state", "variable:copula"
+        "phase:cook",
+        "step_group:cook",
+        "action:smoke",
+        "technique:smoke",
+        "räuchern",
+        "raeuchern",
+        "smoke",
+        "equipment_id:7",
+        "smoker",
+        "grill",
+        "variable:base",
+        "variable:temp",
+        "variable:wood",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
       ]
     },
     {
       "master_id": "COOK_SOUS_VIDE_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "sous_vide",
       "equipment": 0,
       "description": "Sous-Vide-Garen (vakuumiert im Wasserbad)",
@@ -4095,22 +4949,49 @@
         "no": "Vakuumpakk {{base}} og tilbered {{pronoun}} i vannbad ved {{temp}} i {{duration}} til {{state}}.",
         "ms": "Vakum {{base}} dan masak {{pronoun}} dalam rendaman air pada {{temp}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": ["base", "pronoun", "temp", "duration", "state", "copula"],
-      "required_variables": ["base", "pronoun", "temp", "duration", "state", "copula"],
+      "variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "duration",
+        "state",
+        "copula"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:sous_vide", "technique:sous_vide",
-        "sous_vide", "vakuumgaren", "wasserbad",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:pronoun", "variable:temp", "variable:duration",
-        "variable:state", "variable:copula"
+        "phase:cook",
+        "step_group:cook",
+        "action:sous_vide",
+        "technique:sous_vide",
+        "sous_vide",
+        "vakuumgaren",
+        "wasserbad",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:pronoun",
+        "variable:temp",
+        "variable:duration",
+        "variable:state",
+        "variable:copula",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "COOK_CONFIT_01",
       "phase": 2,
+      "sub_group": "wet_heat",
       "action": "confit",
       "equipment": 2,
       "description": "Konfieren (Entenkeule, Knoblauch, Zitrone)",
@@ -4126,22 +5007,50 @@
         "no": "Tilbered {{base}} sakte i {{fat}} ved {{temp}} i {{duration}} til {{state}}.",
         "ms": "Masak {{base}} perlahan dalam {{fat}} pada {{temp}} selama {{duration}} sehingga {{state}}."
       },
-      "variables": ["base", "fat", "temp", "duration", "pronoun", "state", "copula"],
-      "required_variables": ["base", "fat", "temp", "duration", "pronoun", "state", "copula"],
+      "variables": [
+        "base",
+        "fat",
+        "temp",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "fat",
+        "temp",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:cook", "step_group:cook", "action:confit", "technique:confit",
-        "konfieren", "confit",
-        "equipment_id:2", "topf", "pot",
-        "variable:base", "variable:fat", "variable:temp", "variable:duration",
-        "variable:pronoun", "variable:state", "variable:copula"
+        "phase:cook",
+        "step_group:cook",
+        "action:confit",
+        "technique:confit",
+        "konfieren",
+        "confit",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:fat",
+        "variable:temp",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:wet_heat"
       ]
     },
     {
       "master_id": "FINISH_GLAZE_01",
-      "phase": 4,
+      "phase": 3,
       "action": "glaze",
       "equipment": 0,
       "description": "Glasieren (Kuchen, Gebäck, Schinken)",
@@ -4157,21 +5066,42 @@
         "no": "Pensl {{base}} jevnt med {{glaze}} og la {{pronoun}} {{state}}.",
         "ms": "Sapukan {{base}} secara rata dengan {{glaze}} dan biarkan {{state}}."
       },
-      "variables": ["base", "glaze", "pronoun", "state"],
-      "required_variables": ["base", "glaze", "pronoun", "state"],
+      "variables": [
+        "base",
+        "glaze",
+        "pronoun",
+        "state"
+      ],
+      "required_variables": [
+        "base",
+        "glaze",
+        "pronoun",
+        "state"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:serve", "step_group:serve", "action:glaze", "technique:glaze",
-        "glasieren", "glaze",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:glaze", "variable:pronoun", "variable:state"
-      ]
+        "phase:finish",
+        "step_group:finish",
+        "action:glaze",
+        "technique:glaze",
+        "glasieren",
+        "glaze",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:glaze",
+        "variable:pronoun",
+        "variable:state",
+        "sub_group:finishing"
+      ],
+      "sub_group": "finishing"
     },
     {
       "master_id": "FINISH_DECORATE_01",
-      "phase": 4,
+      "phase": 3,
       "action": "decorate",
       "equipment": 0,
       "description": "Dekorieren/Garnieren (Torten, Desserts, Festtagsgerichte)",
@@ -4187,16 +5117,506 @@
         "no": "Dekorer {{base}} med {{decoration}} og server {{pronoun}} {{extra}}.",
         "ms": "Hias {{base}} dengan {{decoration}} dan hidangkan {{extra}}."
       },
-      "variables": ["base", "decoration", "pronoun", "extra"],
-      "required_variables": ["base", "decoration", "pronoun", "extra"],
+      "variables": [
+        "base",
+        "decoration",
+        "pronoun",
+        "extra"
+      ],
+      "required_variables": [
+        "base",
+        "decoration",
+        "pronoun",
+        "extra"
+      ],
       "optional_variables": null,
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
-        "phase:serve", "step_group:serve", "action:decorate", "technique:decorate",
-        "dekorieren", "garnieren", "decorate", "garnish",
-        "equipment_id:0", "keins", "none",
-        "variable:base", "variable:decoration", "variable:pronoun", "variable:extra"
+        "phase:finish",
+        "step_group:finish",
+        "action:decorate",
+        "technique:decorate",
+        "dekorieren",
+        "garnieren",
+        "decorate",
+        "garnish",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:decoration",
+        "variable:pronoun",
+        "variable:extra",
+        "sub_group:finishing"
+      ],
+      "sub_group": "finishing"
+    },
+    {
+      "master_id": "COOK_BLANCH_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "blanch",
+      "equipment": 2,
+      "description": "Blanchieren in kochendem Wasser mit Eiswasser-Abschreckung",
+      "templates": {
+        "de": "Blanchiere {{base}} {{duration}} in kochendem Wasser und schrecke {{pronoun}} sofort in Eiswasser ab.",
+        "en": "Blanch {{base}} in boiling water for {{duration}} and immediately transfer to ice water.",
+        "esp": "Escalda {{base}} en agua hirviendo durante {{duration}} y transfiere inmediatamente a agua con hielo.",
+        "prt": "Branqueie {{base}} em água fervente por {{duration}} e transfira imediatamente para água com gelo.",
+        "id": "Rebus {{base}} dalam air mendidih selama {{duration}} dan segera pindahkan ke air es.",
+        "nl": "Blancheer {{base}} {{duration}} in kokend water en schrik {{pronoun}} direct af in ijswater.",
+        "sv": "Blanchera {{base}} i kokande vatten i {{duration}} och kyl genast i isvatten.",
+        "da": "Blanchér {{base}} i kogende vand i {{duration}} og afkøl straks i isvand.",
+        "no": "Blancher {{base}} i kokende vann i {{duration}} og avkjøl straks i isvann.",
+        "ms": "Celur {{base}} dalam air mendidih selama {{duration}} dan segera pindahkan ke air ais."
+      },
+      "variables": [
+        "base",
+        "duration",
+        "pronoun"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:blanch",
+        "technique:blanch",
+        "blanchieren",
+        "blanch",
+        "eiswasser",
+        "ice_water",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:duration",
+        "variable:pronoun",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_SEAR_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "sear",
+      "equipment": 3,
+      "description": "Scharf Anbraten bei höchster Hitze",
+      "templates": {
+        "de": "Erhitze {{equipment}} auf höchster Stufe und brate {{base}} {{duration}} scharf an, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Heat {{equipment}} on highest setting and sear {{base}} for {{duration}} until {{state}}.",
+        "esp": "Calienta {{equipment}} al máximo y sella {{base}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Aqueça {{equipment}} na potência máxima e sele {{base}} por {{duration}} até {{state}}.",
+        "id": "Panaskan {{equipment}} pada suhu tertinggi dan sear {{base}} selama {{duration}} hingga {{state}}.",
+        "nl": "Verhit {{equipment}} op het hoogste niveau en schroei {{base}} {{duration}} aan tot {{state}}.",
+        "sv": "Hetta upp {{equipment}} på högsta värme och bryn {{base}} i {{duration}} tills {{state}}.",
+        "da": "Opvarm {{equipment}} på højeste trin og brun {{base}} i {{duration}}, indtil {{state}}.",
+        "no": "Varm opp {{equipment}} på høyeste trinn og brun {{base}} i {{duration}} til {{state}}.",
+        "ms": "Panaskan {{equipment}} pada suhu tertinggi dan sear {{base}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": [
+        "equipment",
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "equipment",
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:sear",
+        "technique:sear",
+        "anbraten",
+        "scharf_anbraten",
+        "sear",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:equipment",
+        "variable:base",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_TOAST_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "toast",
+      "equipment": 3,
+      "description": "Toasten/Rösten ohne Fett",
+      "templates": {
+        "de": "Röste {{base}} ohne Fett in {{equipment}} bei {{heat}}er Hitze {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Toast {{base}} without oil in {{equipment}} over {{heat}} heat for {{duration}} until {{state}}.",
+        "esp": "Tuesta {{base}} sin aceite en {{equipment}} a fuego {{heat}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Torre {{base}} sem óleo em {{equipment}} em fogo {{heat}} por {{duration}} até {{state}}.",
+        "id": "Sangrai {{base}} tanpa minyak dalam {{equipment}} dengan api {{heat}} selama {{duration}} hingga {{state}}.",
+        "nl": "Rooster {{base}} zonder olie in {{equipment}} op {{heat}} vuur {{duration}} tot {{state}}.",
+        "sv": "Rosta {{base}} utan olja i {{equipment}} på {{heat}} värme i {{duration}} tills {{state}}.",
+        "da": "Rist {{base}} uden olie i {{equipment}} ved {{heat}} varme i {{duration}}, indtil {{state}}.",
+        "no": "Rist {{base}} uten olje i {{equipment}} på {{heat}} varme i {{duration}} til {{state}}.",
+        "ms": "Panggang {{base}} tanpa minyak dalam {{equipment}} pada api {{heat}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": [
+        "base",
+        "equipment",
+        "heat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "equipment",
+        "heat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:toast",
+        "technique:toast",
+        "rösten",
+        "toasten",
+        "roesten",
+        "toast",
+        "dry_roast",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:base",
+        "variable:equipment",
+        "variable:heat",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_MELT_01",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "melt",
+      "equipment": 2,
+      "description": "Schmelzen (Butter, Schokolade, Käse)",
+      "templates": {
+        "de": "Schmelze {{base}} bei {{heat}}er Hitze in {{equipment}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Melt {{base}} over {{heat}} heat in {{equipment}} until {{state}}.",
+        "esp": "Derrite {{base}} a fuego {{heat}} en {{equipment}} hasta que {{state}}.",
+        "prt": "Derreta {{base}} em fogo {{heat}} em {{equipment}} até {{state}}.",
+        "id": "Lelehkan {{base}} dengan api {{heat}} dalam {{equipment}} hingga {{state}}.",
+        "nl": "Smelt {{base}} op {{heat}} vuur in {{equipment}} tot {{state}}.",
+        "sv": "Smält {{base}} på {{heat}} värme i {{equipment}} tills {{state}}.",
+        "da": "Smelt {{base}} ved {{heat}} varme i {{equipment}}, indtil {{state}}.",
+        "no": "Smelt {{base}} på {{heat}} varme i {{equipment}} til {{state}}.",
+        "ms": "Cairkan {{base}} pada api {{heat}} dalam {{equipment}} sehingga {{state}}."
+      },
+      "variables": [
+        "base",
+        "heat",
+        "equipment",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "heat",
+        "equipment",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:melt",
+        "technique:melt",
+        "schmelzen",
+        "melt",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:heat",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "FINISH_DRIZZLE_01",
+      "phase": 3,
+      "sub_group": "seasoning",
+      "action": "drizzle",
+      "equipment": 0,
+      "description": "Beträufeln mit Öl, Sauce oder Dressing",
+      "templates": {
+        "de": "Beträufle {{base}} mit {{topping}}.",
+        "en": "Drizzle {{base}} with {{topping}}.",
+        "esp": "Rocía {{base}} con {{topping}}.",
+        "prt": "Regue {{base}} com {{topping}}.",
+        "id": "Teteskan {{topping}} di atas {{base}}.",
+        "nl": "Besprenkel {{base}} met {{topping}}.",
+        "sv": "Ringla {{topping}} över {{base}}.",
+        "da": "Dryp {{topping}} over {{base}}.",
+        "no": "Drypp {{topping}} over {{base}}.",
+        "ms": "Titiskan {{topping}} di atas {{base}}."
+      },
+      "variables": [
+        "base",
+        "topping"
+      ],
+      "required_variables": [
+        "base",
+        "topping"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:drizzle",
+        "technique:drizzle",
+        "beträufeln",
+        "betraeufeln",
+        "drizzle",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:topping",
+        "sub_group:seasoning"
+      ]
+    },
+    {
+      "master_id": "FINISH_SPRINKLE_01",
+      "phase": 3,
+      "sub_group": "seasoning",
+      "action": "sprinkle",
+      "equipment": 0,
+      "description": "Bestreuen mit Kräutern, Gewürzen oder Toppings",
+      "templates": {
+        "de": "Bestreue {{base}} mit {{topping}}.",
+        "en": "Sprinkle {{base}} with {{topping}}.",
+        "esp": "Espolvorea {{base}} con {{topping}}.",
+        "prt": "Polvilhe {{base}} com {{topping}}.",
+        "id": "Taburkan {{topping}} di atas {{base}}.",
+        "nl": "Bestrooi {{base}} met {{topping}}.",
+        "sv": "Strö {{topping}} över {{base}}.",
+        "da": "Drys {{topping}} over {{base}}.",
+        "no": "Dryss {{topping}} over {{base}}.",
+        "ms": "Taburkan {{topping}} di atas {{base}}."
+      },
+      "variables": [
+        "base",
+        "topping"
+      ],
+      "required_variables": [
+        "base",
+        "topping"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:sprinkle",
+        "technique:sprinkle",
+        "bestreuen",
+        "sprinkle",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:topping",
+        "sub_group:seasoning"
+      ]
+    },
+    {
+      "master_id": "FINISH_BRUSH_01",
+      "phase": 3,
+      "sub_group": "finishing",
+      "action": "brush",
+      "equipment": 0,
+      "description": "Einpinseln/Bestreichen (Glasur, Eigelb, Butter)",
+      "templates": {
+        "de": "Bestreiche {{base}} gleichmäßig mit {{topping}}.",
+        "en": "Brush {{base}} evenly with {{topping}}.",
+        "esp": "Pincela {{base}} uniformemente con {{topping}}.",
+        "prt": "Pincele {{base}} uniformemente com {{topping}}.",
+        "id": "Olesi {{base}} secara merata dengan {{topping}}.",
+        "nl": "Bestrijk {{base}} gelijkmatig met {{topping}}.",
+        "sv": "Pensla {{base}} jämnt med {{topping}}.",
+        "da": "Pensl {{base}} jævnt med {{topping}}.",
+        "no": "Pensl {{base}} jevnt med {{topping}}.",
+        "ms": "Sapukan {{base}} secara rata dengan {{topping}}."
+      },
+      "variables": [
+        "base",
+        "topping"
+      ],
+      "required_variables": [
+        "base",
+        "topping"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:brush",
+        "technique:brush",
+        "einpinseln",
+        "bestreichen",
+        "brush",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:topping",
+        "sub_group:finishing"
+      ]
+    },
+    {
+      "master_id": "FINISH_CHILL_01",
+      "phase": 3,
+      "sub_group": "resting",
+      "action": "chill",
+      "equipment": 0,
+      "description": "Kühlen/Kaltstellen (Desserts, Terrinen, Gelatine)",
+      "templates": {
+        "de": "Stelle {{base}} {{duration}} kalt, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Chill {{base}} for {{duration}} until {{state}}.",
+        "esp": "Refrigera {{base}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Refrigere {{base}} por {{duration}} até {{state}}.",
+        "id": "Dinginkan {{base}} selama {{duration}} hingga {{state}}.",
+        "nl": "Zet {{base}} {{duration}} koud tot {{state}}.",
+        "sv": "Kyl {{base}} i {{duration}} tills {{state}}.",
+        "da": "Køl {{base}} i {{duration}}, indtil {{state}}.",
+        "no": "Kjøl {{base}} i {{duration}} til {{state}}.",
+        "ms": "Sejukkan {{base}} selama {{duration}} sehingga {{state}}."
+      },
+      "variables": [
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:chill",
+        "technique:chill",
+        "kühlen",
+        "kuehlen",
+        "kaltstellen",
+        "chill",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:resting"
+      ]
+    },
+    {
+      "master_id": "SERVE_SAUCE_01",
+      "phase": 4,
+      "sub_group": "assembly",
+      "action": "sauce",
+      "equipment": 0,
+      "description": "Sauce anrichten/aufgießen",
+      "templates": {
+        "de": "Richte {{topping}} auf {{base}} an.",
+        "en": "Arrange {{topping}} on {{base}}.",
+        "esp": "Dispón {{topping}} sobre {{base}}.",
+        "prt": "Disponha {{topping}} sobre {{base}}.",
+        "id": "Tata {{topping}} di atas {{base}}.",
+        "nl": "Schik {{topping}} op {{base}}.",
+        "sv": "Arrangera {{topping}} på {{base}}.",
+        "da": "Anret {{topping}} på {{base}}.",
+        "no": "Anrett {{topping}} på {{base}}.",
+        "ms": "Susun {{topping}} di atas {{base}}."
+      },
+      "variables": [
+        "topping",
+        "base"
+      ],
+      "required_variables": [
+        "topping",
+        "base"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:sauce",
+        "technique:sauce",
+        "sauce_anrichten",
+        "sauce_plating",
+        "sauce",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:topping",
+        "variable:base",
+        "sub_group:assembly"
       ]
     }
   ],
@@ -4263,6 +5683,18 @@
       "da": "timer",
       "no": "timer",
       "ms": "jam"
+    },
+    "short": {
+      "de": "kurz",
+      "en": "briefly",
+      "esp": "brevemente",
+      "prt": "brevemente",
+      "id": "sebentar",
+      "nl": "kort",
+      "sv": "kort",
+      "da": "kort",
+      "no": "kort",
+      "ms": "sebentar"
     },
     "per_package": {
       "de": "laut Packungsanweisung",

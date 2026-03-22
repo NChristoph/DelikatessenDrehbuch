@@ -290,21 +290,11 @@
         }
 
         const presets = {
-            shape: ['Würfel', 'Scheiben', 'Streifen', 'Spalten', 'grobe Stücke'],
-            grind_size: ['fein', 'mittel', 'grob', 'ca. 1 cm große', 'ca. 0,5 mm große', 'about 3/8-inch', 'about 0.02-inch'],
-            item: ['den Teig', 'die Masse', 'die Mischung', 'das Gericht', 'die Suppe', 'die Soße', 'den Auflauf', 'the dough', 'the batter', 'the mixture', 'the dish', 'the soup', 'the sauce', 'the casserole', 'la masa', 'la mezcla', 'la preparación', 'el plato', 'la sopa', 'la salsa', 'el gratén', 'a massa', 'a mistura', 'a preparação', 'o prato', 'a sopa', 'o molho', 'a caçarola'],
-            tool: ['Messer', 'Sparschäler', 'Reibe', 'Schneebesen', 'Spatel', 'Holzlöffel', 'Suppenkelle', 'Messbecher', 'Nudelholz', 'Teigschaber'],
             duration: ['5 Minuten', '10 Minuten', '15 Minuten', '20 Minuten', '30 Minuten', '45 Minuten', '1 Stunde', '2 Stunden'],
-            temperature: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
-            temp: ['160°C', '180°C', '200°C', '220°C', '350°F', '400°F'],
-            liquid: ['Wasser', 'Gemüsebrühe', 'Milch', 'Kokosmilch'],
-            equipment: ['Pfanne', 'Topf', 'Backofen', 'Bräter', 'Kochfeld', 'Mixer', 'Grill', 'Dampfgarer', 'Schüssel', 'Sieb', 'Küchenmaschine', 'Zange', 'Schneidebrett'],
-            state: ['goldbraun', 'weich', 'glasig', 'gar', 'knusprig', 'cremig', 'bissfest', 'eingedickt', 'sprudelnd', 'durchgegart'],
-            garnish: ['frischen Kräutern', 'Sesam', 'Parmesan', 'Nüssen'],
-            base: ['den Eischnee', 'die Masse', 'den Teig', 'die Creme', 'die Sauce', 'die Glasur', 'die Füllung', 'die Marinade', 'die Emulsion', 'den Schaum'],
-            seasonings: ['Salz', 'Pfeffer', 'Salz und Pfeffer', 'Kräuter', 'Gewürze', 'salt', 'pepper', 'salt and pepper', 'herbs', 'spices'],
-            balance: ['die Säure', 'die Süße', 'die Schärfe', 'the acidity', 'the sweetness', 'the spiciness'],
-            copula: ['ist', 'sind']
+            temperature: ['160 C', '180 C', '200 C', '220 C', '350 F', '400 F'],
+            temp: ['160 C', '180 C', '200 C', '220 C', '350 F', '400 F'],
+            liquid: ['Wasser', 'Gemuesebruehe', 'Milch', 'Kokosmilch'],
+            garnish: ['frischen Kraeutern', 'Sesam', 'Parmesan', 'Nuessen']
         };
 
         return presets[variableName] || [];

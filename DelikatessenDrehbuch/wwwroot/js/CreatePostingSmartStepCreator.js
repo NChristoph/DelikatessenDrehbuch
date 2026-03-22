@@ -59,6 +59,7 @@
         shape:       { de: "Form",         en: "shape",        esp: "forma",        prt: "forma",        nl: "vorm",         sv: "form",         da: "form",         no: "form",         id: "bentuk",     ms: "bentuk"    },
         grind_size:  { de: "Größe",        en: "size",         esp: "tamaño",       prt: "tamanho",      nl: "grootte",      sv: "storlek",      da: "størrelse",    no: "størrelse",    id: "ukuran",     ms: "saiz"      },
         pronoun:     { de: "Pronomen",     en: "pronoun",      esp: "pronombre",    prt: "pronome",      nl: "voornaamwoord",sv: "pronomen",     da: "pronomen",     no: "pronomen",     id: "kata ganti", ms: "kata ganti"},
+        pronoun2:    { de: "Pronomen 2",   en: "pronoun 2",    esp: "pronombre 2",  prt: "pronome 2",    nl: "voornaamwoord 2",sv: "pronomen 2", da: "pronomen 2", no: "pronomen 2", id: "kata ganti 2", ms: "kata ganti 2"},
         action:      { de: "Aktion",       en: "action",       esp: "acción",       prt: "ação",         nl: "actie",        sv: "åtgärd",       da: "handling",     no: "handling",     id: "tindakan",   ms: "tindakan"  },
         liquid:      { de: "Flüssigkeit",  en: "liquid",       esp: "líquido",      prt: "líquido",      nl: "vloeistof",    sv: "vätska",       da: "væske",        no: "væske",        id: "cairan",     ms: "cecair"    },
         fat:         { de: "Fett",         en: "fat",          esp: "grasa",        prt: "gordura",      nl: "vet",          sv: "fett",         da: "fedt",         no: "fett",         id: "lemak",      ms: "lemak"     },
@@ -427,15 +428,18 @@
         if (!du) return [
             { key: "minute", label: "Minute(n)" },
             { key: "hour", label: "Stunde(n)" },
+            { key: "short", label: "kurz" },
             { key: "per_package", label: "laut Packungsanweisung" }
         ];
 
         const minuteLabel = du.minute?.[currentLang] ?? du.minute?.de ?? "Minuten";
         const hourLabel = du.hour?.[currentLang] ?? du.hour?.de ?? "Stunden";
+        const shortLabel = du.short?.[currentLang] ?? du.short?.de ?? "kurz";
         const perPackageLabel = du.per_package?.[currentLang] ?? du.per_package?.de ?? "laut Packungsanweisung";
         return [
             { key: "minute", label: minuteLabel },
             { key: "hour", label: hourLabel },
+            { key: "short", label: shortLabel },
             { key: "per_package", label: perPackageLabel }
         ];
     }
@@ -801,64 +805,103 @@
         return { label, icon };
     }
 
+    function getSubGroupMeta(subGroupKey) {
+        const meta = doc?.sub_groups?.[subGroupKey];
+        if (!meta) return { label: subGroupKey, icon: "", description: "" };
+        const label =
+            meta?.label?.[currentLang] ??
+            meta?.label?.[DEFAULT_LANG] ??
+            subGroupKey;
+        const icon = meta?.icon ?? "";
+        const description =
+            meta?.description?.[currentLang] ??
+            meta?.description?.[DEFAULT_LANG] ??
+            "";
+        return { label, icon, description };
+    }
+
     function renderStepButtons() {
         const container = insertContainer();
         if (!container) return;
 
         container.innerHTML = "";
 
-        // sortieren: phase -> master_id
+        // sortieren: phase -> sub_group -> master_id
         const sorted = [...steps].sort((a, b) => {
             const pa = a.phase ?? 0;
             const pb = b.phase ?? 0;
             if (pa !== pb) return pa - pb;
+            const sga = a.sub_group ?? "";
+            const sgb = b.sub_group ?? "";
+            if (sga !== sgb) return sga.localeCompare(sgb);
             return (a.master_id ?? "").localeCompare(b.master_id ?? "");
         });
 
-        // gruppieren
+        // gruppieren: phase -> sub_group -> steps
         const byPhase = new Map();
         for (const step of sorted) {
             const p = (step.phase ?? 0).toString();
-            if (!byPhase.has(p)) byPhase.set(p, []);
-            byPhase.get(p).push(step);
+            if (!byPhase.has(p)) byPhase.set(p, new Map());
+            const bySg = byPhase.get(p);
+            const sg = step.sub_group ?? "_none";
+            if (!bySg.has(sg)) bySg.set(sg, []);
+            bySg.get(sg).push(step);
         }
 
-        // render pro Phase
-        for (const [phaseKey, phaseSteps] of byPhase.entries()) {
+        const theme = window.CreatePostingCurrentTheme || document.querySelector('.smart-step-creator')?.getAttribute('data-theme') || 'gold';
+
+        // render pro Phase → Sub-Group
+        for (const [phaseKey, subGroups] of byPhase.entries()) {
             const meta = getPhaseMeta(phaseKey);
 
             // Header für Phase
             container.insertAdjacentHTML("beforeend", `
-                                          <div class="phase-header mt-3 mb-2">
-                                            <div class="d-flex align-items-center gap-2">
-                                              <span class="phase-icon">${escapeHtml(meta.icon)}</span>
-                                              <span class="phase-title">${escapeHtml(meta.label)}</span>
-                                            </div>
-                                          </div>
-                                        `);
+              <div class="phase-header mt-3 mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="phase-icon">${escapeHtml(meta.icon)}</span>
+                  <span class="phase-title">${escapeHtml(meta.label)}</span>
+                </div>
+              </div>
+            `);
 
-            // Steps in Phase
-            phaseSteps.forEach(step => {
-                const title = step.description ?? "";
-                const templateRaw = step.templates?.[currentLang] ?? "";
+            // Sub-Groups innerhalb der Phase
+            for (const [sgKey, sgSteps] of subGroups.entries()) {
+                const sgMeta = getSubGroupMeta(sgKey);
+
+                // Sub-Group Header
+                const sgDesc = sgMeta.description
+                    ? `<div class="sub-group-desc">${escapeHtml(sgMeta.description)}</div>`
+                    : "";
+                container.insertAdjacentHTML("beforeend", `
+                  <div class="sub-group-header mt-3 mb-1">
+                    <span class="sub-group-icon">${escapeHtml(sgMeta.icon)}</span>
+                    <span class="sub-group-title">${escapeHtml(sgMeta.label)}</span>
+                    ${sgDesc}
+                  </div>
+                `);
+
+                // Steps in Sub-Group
+                sgSteps.forEach(step => {
+                    const title = step.description ?? "";
+                    const templateRaw = step.templates?.[currentLang] ?? "";
 
                     container.insertAdjacentHTML("beforeend", `
-                                             <button type="button"
-                                                     class="template-card w-100 mb-2"
-                                                     data-theme="${window.CreatePostingCurrentTheme || document.querySelector('.smart-step-creator')?.getAttribute('data-theme') || 'gold'}"
-                                                     data-step-id="${escapeHtml(step.master_id ?? "")}"
-                                                     data-title="${escapeHtml(title)}"
-                                                     data-template-raw="${encodeAttr(templateRaw)}">
-                                                 <div class="template-title">
-                                                         ${escapeHtml(title)}
-                                                 </div>
-                                                 <div
-                                                     class="template-snippet">
-                                                         ${snippetPreview(templateRaw)}
-                                                 </div>
-                                             </button>       
+                      <button type="button"
+                              class="template-card w-100 mb-2"
+                              data-theme="${theme}"
+                              data-step-id="${escapeHtml(step.master_id ?? "")}"
+                              data-title="${escapeHtml(title)}"
+                              data-template-raw="${encodeAttr(templateRaw)}">
+                        <div class="template-title">
+                          ${escapeHtml(title)}
+                        </div>
+                        <div class="template-snippet">
+                          ${snippetPreview(templateRaw)}
+                        </div>
+                      </button>
                     `);
-            });
+                });
+            }
         }
     }
 
@@ -920,7 +963,7 @@
 
     function isNoArticleVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
-        return key === "state" || key === "duration" || key === "count" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronomen" || key === "shape" || key === "finish" || key === "marinade" || key === "method" || key === "thickener" || key === "action" || isGrindSizeVariable(varName);
+        return key === "state" || key === "duration" || key === "count" || key === "mode" || key === "component" || key === "components" || key === "pronoun" || key === "pronoun2" || key === "pronomen" || key === "shape" || key === "finish" || key === "marinade" || key === "method" || key === "thickener" || key === "action" || isGrindSizeVariable(varName);
     }
     function isStateVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
@@ -1711,10 +1754,10 @@
                 host.querySelectorAll("button[data-duration-unit]")?.forEach(b => b.classList.remove("active"));
                 du.classList.add("active");
 
-                // per_package: Zahlenfeld ausblenden; Minute/Stunde: einblenden
+                // per_package/short: Zahlenfeld ausblenden; Minute/Stunde: einblenden
                 const numInput = host.querySelector("#DurationValueInput");
                 if (numInput) {
-                    numInput.style.display = du.dataset.durationUnit === "per_package" ? "none" : "";
+                    numInput.style.display = (du.dataset.durationUnit === "per_package" || du.dataset.durationUnit === "short") ? "none" : "";
                 }
                 return;
             }
@@ -1728,6 +1771,8 @@
                 let composed;
                 if (host.dataset.durationUnit === "per_package") {
                     composed = labels.find(x => x.key === "per_package")?.label ?? "laut Packungsanweisung";
+                } else if (host.dataset.durationUnit === "short") {
+                    composed = labels.find(x => x.key === "short")?.label ?? "kurz";
                 } else {
                     const n = $("#DurationValueInput")?.value?.trim() || "";
                     const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
@@ -1879,6 +1924,9 @@
             const units = getDurationUnits();
             if (unit === 'per_package') {
                 return (units.find(x => x.key === 'per_package') || {}).label || 'laut Packungsanweisung';
+            }
+            if (unit === 'short') {
+                return (units.find(x => x.key === 'short') || {}).label || 'kurz';
             }
             const n = (editorEl.querySelector('#DurationValueInput') || {}).value?.trim() || '';
             const unitLabel = (units.find(x => x.key === unit) || {}).label || unit;

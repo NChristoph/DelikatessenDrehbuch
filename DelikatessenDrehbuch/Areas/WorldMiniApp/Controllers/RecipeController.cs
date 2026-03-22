@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
+using Microsoft.AspNetCore.Http;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -78,6 +79,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 },
                 Querys = posting.Recipe.Preferences,
                 IngredientMeasureQuantity = posting.IngredientMeasureQuantity,
+                RecipeJoinPreparationSteps = ExtractCreatePostingStepsFromRequest(Request.Form),
+                SmartStepReferences = ExtractCreatePostingSmartStepsFromRequest(Request.Form),
             };
             await _saveNewRecipeService.SaveNewAsync(recipeModel, true);
             var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(r => r.Title == posting.Title);
@@ -109,6 +112,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
                 await _context.SaveChangesAsync();
             }
+
+            Response.Cookies.Append("createPostingDraftReset", "1", new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = false,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
 
             return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
         }
@@ -428,6 +440,102 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return result.Any() ? result : fallback;
+        }
+
+        private static List<RecipeJoinPreparationSteps> ExtractCreatePostingStepsFromRequest(IFormCollection form)
+        {
+            var result = new List<RecipeJoinPreparationSteps>();
+
+            for (var i = 0; ; i++)
+            {
+                var stepIdKey = $"RecipePreperationSteps[{i}].PreperationStepId";
+                var indexKey = $"RecipePreperationSteps[{i}].StepIndex";
+                var stepDeKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_DE";
+                var stepEnKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_EN";
+                var stepEspKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_ESP";
+                var stepPrtKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_PRT";
+                var phaseKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Phase";
+                var equipmentKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Equipment";
+
+                if (!form.ContainsKey(stepIdKey)
+                    && !form.ContainsKey(stepDeKey)
+                    && !form.ContainsKey(stepEnKey)
+                    && !form.ContainsKey(stepEspKey)
+                    && !form.ContainsKey(stepPrtKey))
+                {
+                    break;
+                }
+
+                _ = int.TryParse(form[stepIdKey].FirstOrDefault(), out var preparationStepId);
+                _ = int.TryParse(form[indexKey].FirstOrDefault(), out var stepIndex);
+                _ = int.TryParse(form[phaseKey].FirstOrDefault(), out var phase);
+                _ = int.TryParse(form[equipmentKey].FirstOrDefault(), out var equipment);
+
+                var recipeStep = new RecipePreparationSteps
+                {
+                    Step_DE = (form[stepDeKey].FirstOrDefault() ?? string.Empty).Trim(),
+                    Step_EN = (form[stepEnKey].FirstOrDefault() ?? string.Empty).Trim(),
+                    Step_ESP = (form[stepEspKey].FirstOrDefault() ?? string.Empty).Trim(),
+                    Step_PRT = (form[stepPrtKey].FirstOrDefault() ?? string.Empty).Trim(),
+                    Phase = phase,
+                    Equipment = equipment
+                };
+
+                var hasAnyText =
+                    !string.IsNullOrWhiteSpace(recipeStep.Step_DE) ||
+                    !string.IsNullOrWhiteSpace(recipeStep.Step_EN) ||
+                    !string.IsNullOrWhiteSpace(recipeStep.Step_ESP) ||
+                    !string.IsNullOrWhiteSpace(recipeStep.Step_PRT);
+
+                if (!hasAnyText && preparationStepId <= 0)
+                {
+                    continue;
+                }
+
+                result.Add(new RecipeJoinPreparationSteps
+                {
+                    PreparationStepId = preparationStepId,
+                    RecipePreparationStep = recipeStep,
+                    StepIndex = stepIndex > 0 ? stepIndex : i + 1
+                });
+            }
+
+            return result;
+        }
+
+        private static List<SmartStepReferenceInput> ExtractCreatePostingSmartStepsFromRequest(IFormCollection form)
+        {
+            var result = new List<SmartStepReferenceInput>();
+
+            for (var i = 0; ; i++)
+            {
+                var masterKeyField = $"SmartStepReferences[{i}].MasterStepKey";
+                var metadataField = $"SmartStepReferences[{i}].MetadataJson";
+                var stepIndexField = $"RecipePreperationSteps[{i}].StepIndex";
+
+                if (!form.ContainsKey(masterKeyField) && !form.ContainsKey(metadataField))
+                {
+                    break;
+                }
+
+                var masterKey = (form[masterKeyField].FirstOrDefault() ?? string.Empty).Trim();
+                var metadataJson = (form[metadataField].FirstOrDefault() ?? string.Empty).Trim();
+                _ = int.TryParse(form[stepIndexField].FirstOrDefault(), out var stepIndex);
+
+                if (string.IsNullOrWhiteSpace(masterKey))
+                {
+                    continue;
+                }
+
+                result.Add(new SmartStepReferenceInput
+                {
+                    MasterStepKey = masterKey,
+                    MetadataJson = string.IsNullOrWhiteSpace(metadataJson) ? "{}" : metadataJson,
+                    StepIndex = stepIndex > 0 ? stepIndex : i + 1
+                });
+            }
+
+            return result;
         }
 
         private static List<EditPostingStepRowViewModel> ExtractStepRowsFromRequest(IFormCollection form)

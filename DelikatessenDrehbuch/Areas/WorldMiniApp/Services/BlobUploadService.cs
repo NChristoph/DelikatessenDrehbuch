@@ -45,11 +45,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             // Queue: optional eigener Key, fallback auf Storage-ConnString
             string queueConnectionString =
-                _configuration["BlobStorageConnection"] // falls du den so nennen willst
+                _configuration["QueueStorageConnection"]
+                ?? _configuration["BlobStorageConnection"]
                 ?? _configuration["Queue_Connection_String"]
                 ?? storageConnectionString;
 
-            string queueName = _configuration["VideoProcessingQueueName"] ?? "video-processing-queue";
+            string queueName =
+                _configuration["VideoProcessingQueue"]
+                ?? _configuration["VideoProcessingQueueName"]
+                ?? "video-processing";
 
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);

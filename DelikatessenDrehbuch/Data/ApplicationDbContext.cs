@@ -33,8 +33,10 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeBaseDataImage> RecipeBaseDataImage { get; set; }
         public DbSet<RecipeJoinIngredientMeasureQuantity> RecipeJoinIngredientMeasureQuantity { get; set; }
         public DbSet<RecipeJoinPreparationSteps> RecipeJoinPreparationSteps { get; set; }
+        public DbSet<RecipeJoinSmartStep> RecipeJoinSmartStep { get; set; }
         public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
         public DbSet<RecipePreparationSteps> RecipePreparationSteps { get; set; }
+        public DbSet<SmartRecipeStep> SmartRecipeStep { get; set; }
 
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
@@ -151,6 +153,9 @@ namespace DelikatessenDrehbuch.Data
             builder.Entity<RecipeBaseData>()
                 .HasIndex(x => x.Title);
 
+            builder.Entity<SmartRecipeStep>()
+                .HasIndex(x => new { x.MasterStepKey, x.Phase, x.Equipment });
+
             // MealPlanPurchase — Duplikatschutz via TxHash
             builder.Entity<MealPlanPurchase>()
                 .HasIndex(x => x.ReferenceTxHash)
@@ -190,6 +195,30 @@ namespace DelikatessenDrehbuch.Data
                 e.HasOne(x => x.RecipePreparationStep)
                     .WithMany()
                     .HasForeignKey("RecipePreperationStepId");
+            });
+
+            builder.Entity<SmartRecipeStep>(e =>
+            {
+                e.ToTable("SmartRecipeSteps");
+                e.Property(x => x.MasterStepKey).IsRequired().HasMaxLength(128);
+                e.Property(x => x.VariablesJson).IsRequired();
+                e.Property(x => x.Equipment).HasMaxLength(256);
+            });
+
+            builder.Entity<RecipeJoinSmartStep>(e =>
+            {
+                e.ToTable("RecipeJoinSmartSteps");
+                e.HasOne(x => x.Recipe)
+                    .WithMany(x => x.SmartSteps)
+                    .HasForeignKey(x => x.RecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.SmartRecipeStep)
+                    .WithMany(x => x.RecipeLinks)
+                    .HasForeignKey(x => x.SmartRecipeStepId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(x => new { x.RecipeId, x.StepIndex });
             });
 
             builder.Entity<Queries>().ToTable("Querys");

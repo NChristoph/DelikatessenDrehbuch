@@ -260,6 +260,106 @@
         }
       ]
     },
+    "pronoun2": {
+      "description": "Ausgelagerte Optionen f\u00fcr Variable \u0027pronoun2\u0027 mit Tag-Metadaten f\u00fcr die Creator-Auswahl.",
+      "options": [
+        {
+          "key": "er",
+          "labels": {
+            "de": "er",
+            "en": "he",
+            "esp": "\u00e9l",
+            "prt": "ele",
+            "id": "dia",
+            "nl": "hij",
+            "sv": "han",
+            "da": "han",
+            "no": "han",
+            "ms": "dia"
+          },
+          "tags": [
+            "variable:pronoun2",
+            "value:er"
+          ]
+        },
+        {
+          "key": "sie",
+          "labels": {
+            "de": "sie",
+            "en": "she",
+            "esp": "ella",
+            "prt": "ela",
+            "id": "ia",
+            "nl": "zij",
+            "sv": "hon",
+            "da": "hun",
+            "no": "hun",
+            "ms": "ia"
+          },
+          "tags": [
+            "variable:pronoun2",
+            "value:sie"
+          ]
+        },
+        {
+          "key": "es",
+          "labels": {
+            "de": "es",
+            "en": "it",
+            "esp": "ello",
+            "prt": "isso",
+            "id": "nya",
+            "nl": "het",
+            "sv": "den",
+            "da": "den",
+            "no": "den",
+            "ms": "nya"
+          },
+          "tags": [
+            "variable:pronoun2",
+            "value:es"
+          ]
+        },
+        {
+          "key": "ihn",
+          "labels": {
+            "de": "ihn",
+            "en": "them",
+            "esp": "los",
+            "prt": "os",
+            "id": "nya",
+            "nl": "hem",
+            "sv": "det",
+            "da": "det",
+            "no": "det",
+            "ms": "nya"
+          },
+          "tags": [
+            "variable:pronoun2",
+            "value:ihn"
+          ]
+        },
+        {
+          "key": "las",
+          "labels": {
+            "de": "sie",
+            "en": "them",
+            "esp": "las",
+            "prt": "as",
+            "id": "mereka",
+            "nl": "haar",
+            "sv": "dem",
+            "da": "dem",
+            "no": "dem",
+            "ms": "mereka"
+          },
+          "tags": [
+            "variable:pronoun2",
+            "value:las"
+          ]
+        }
+      ]
+    },
     "copula": {
       "description": "Ausgelagerte Optionen für Variable \u0027copula\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
       "options": [
@@ -584,6 +684,30 @@
           ]
         },
         {
+          "key": "reiben",
+          "labels": {
+            "de": "reiben",
+            "en": "grate",
+            "esp": "rallar",
+            "prt": "ralar",
+            "id": "memarut",
+            "nl": "raspen",
+            "sv": "riva",
+            "da": "rive",
+            "no": "rive",
+            "ms": "memarut"
+          },
+          "tags": [
+            "variable:action",
+            "value:reiben",
+            "tool:grater",
+            "reibe",
+            "grater",
+            "reiben",
+            "grate"
+          ]
+        },
+        {
           "key": "d_nste",
           "labels": {
             "de": "dünste",
@@ -603,6 +727,25 @@
           ]
         },
         {
+          "key": "duensten",
+          "labels": {
+            "de": "duensten",
+            "en": "saute",
+            "esp": "sofreir",
+            "prt": "refogar",
+            "id": "menumis",
+            "nl": "smoren",
+            "sv": "frasa",
+            "da": "svitse",
+            "no": "surre",
+            "ms": "menumis"
+          },
+          "tags": [
+            "variable:action",
+            "value:duensten"
+          ]
+        },
+        {
           "key": "brate",
           "labels": {
             "de": "brate",
@@ -619,6 +762,25 @@
           "tags": [
             "variable:action",
             "value:brate"
+          ]
+        },
+        {
+          "key": "braten",
+          "labels": {
+            "de": "braten",
+            "en": "fry",
+            "esp": "freir",
+            "prt": "fritar",
+            "id": "menggoreng",
+            "nl": "bakken",
+            "sv": "steka",
+            "da": "stege",
+            "no": "steke",
+            "ms": "menggoreng"
+          },
+          "tags": [
+            "variable:action",
+            "value:braten"
           ]
         },
         {
@@ -1704,6 +1866,31 @@
             "kochfeld",
             "heatplate",
             "family:liquid"
+          ]
+        },
+        {
+          "key": "duftet",
+          "labels": {
+            "de": "duftet",
+            "en": "fragrant",
+            "esp": "desprende aroma",
+            "prt": "está perfumado",
+            "id": "harum",
+            "nl": "geurt",
+            "sv": "doftar",
+            "da": "dufter",
+            "no": "dufter",
+            "ms": "wangi"
+          },
+          "tags": [
+            "variable:state",
+            "value:duftet",
+            "heat:wet",
+            "heat:dry",
+            "aroma",
+            "risotto",
+            "toast",
+            "stir"
           ]
         },
         {
