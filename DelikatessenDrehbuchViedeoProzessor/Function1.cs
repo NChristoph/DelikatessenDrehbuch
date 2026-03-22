@@ -96,11 +96,47 @@ namespace DelikatessenDrehbuchViedeoProzessor
 
                 if (OperatingSystem.IsLinux())
                 {
-                    ffmpegToUse = await PrepareLinuxFfmpegAsync(_ffmpegPath, _logger);
+                    // Ziel in /tmp (schreibbar)
+                    var tmpFfmpeg = "/tmp/ffmpeg";
+
+                    try
+                    {
+                        // Falls nicht vorhanden oder neu deployt: kopieren
+                        if (!File.Exists(tmpFfmpeg))
+                        {
+                           
+                            File.Copy(_ffmpegPath, tmpFfmpeg, overwrite: true);
+                        }
+
+                        // Execute-Rechte auf /tmp setzen
+                        _logger.LogInformation("🔐 Setze Execute-Rechte für ffmpeg in /tmp: {Path}", tmpFfmpeg);
+
+                        var chmod = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "/bin/chmod",
+                            Arguments = $"+x \"{tmpFfmpeg}\"",
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false
+                        });
+
+                        chmod!.WaitForExit();
+
+                        var chmodErr = chmod.StandardError.ReadToEnd();
+                        if (!string.IsNullOrWhiteSpace(chmodErr))
+                            _logger.LogWarning("chmod stderr: {err}", chmodErr);
+
+                        ffmpegToUse = tmpFfmpeg;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "❌ Konnte ffmpeg nicht nach /tmp vorbereiten");
+                        throw;
+                    }
                 }
 
            
-                var ffmpegArgs = $"-y -i \"{inputPath}\" -vf scale='min(1080,iw)':-2 -c:v libx264 -preset veryfast -crf 26 -tune fastdecode -movflags +faststart -c:a aac -b:a 128k -ac 2 \"{outputPath}\"";
+                var ffmpegArgs = $"-y -i \"{inputPath}\" -vf \"scale=720:1280:force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1\" -pix_fmt yuv420p -c:v libx264 -preset veryfast -crf 28 -profile:v high -level 4.1 -threads 2 -movflags +faststart -c:a aac -b:a 96k -ac 1 \"{outputPath}\"";
 
                 var startInfo = new ProcessStartInfo
                 {
@@ -116,13 +152,52 @@ namespace DelikatessenDrehbuchViedeoProzessor
                 if (process == null)
                     throw new InvalidOperationException("Failed to start ffmpeg process.");
 
-                var stdOutTask = process.StandardOutput.ReadToEndAsync();
-                var stdErrTask = process.StandardError.ReadToEndAsync();
+                // Nur die letzten Zeilen von stderr behalten (ffmpeg schreibt Progress dorthin)
+                const int maxStderrChars = 4000;
+                var stderrBuffer = new System.Text.StringBuilder(maxStderrChars + 200);
+                var stdoutBuffer = new System.Text.StringBuilder(1000);
 
-                await process.WaitForExitAsync(CancellationToken.None);
+                var stdOutTask = Task.Run(async () =>
+                {
+                    string? line;
+                    while ((line = await process.StandardOutput.ReadLineAsync()) != null)
+                    {
+                        if (stdoutBuffer.Length < 1000) stdoutBuffer.AppendLine(line);
+                    }
+                });
 
-                var stdOut = await stdOutTask;
-                var stdErr = await stdErrTask;
+                var stdErrTask = Task.Run(async () =>
+                {
+                    string? line;
+                    while ((line = await process.StandardError.ReadLineAsync()) != null)
+                    {
+                        stderrBuffer.AppendLine(line);
+                        // Ring-Buffer: nur die letzten Zeilen behalten
+                        if (stderrBuffer.Length > maxStderrChars * 2)
+                        {
+                            var s = stderrBuffer.ToString();
+                            stderrBuffer.Clear();
+                            stderrBuffer.Append(s.Substring(s.Length - maxStderrChars));
+                        }
+                    }
+                });
+
+                // Timeout: 8 Minuten pro Video (preset medium braucht mehr Zeit)
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(8));
+                try
+                {
+                    await process.WaitForExitAsync(cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    try { process.Kill(entireProcessTree: true); } catch { }
+                    _logger.LogError("❌ ffmpeg timeout after 8 minutes for blob: {Blob}", blobName);
+                    throw new TimeoutException($"ffmpeg timed out after 8 minutes for {blobName}");
+                }
+
+                await Task.WhenAll(stdOutTask, stdErrTask);
+                var stdOut = stdoutBuffer.ToString();
+                var stdErr = stderrBuffer.ToString();
 
                 if (process.ExitCode != 0)
                 {
@@ -171,60 +246,9 @@ namespace DelikatessenDrehbuchViedeoProzessor
             if (!string.IsNullOrWhiteSpace(configuredPath)) return configuredPath;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var windowsExePath = Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg.exe");
-                if (File.Exists(windowsExePath)) return windowsExePath;
-
-                var windowsPlainPath = Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg");
-                if (File.Exists(windowsPlainPath)) return windowsPlainPath;
-
-                return windowsExePath;
-            }
+                return Path.Combine(AppContext.BaseDirectory, "Bins", "ffmpeg.exe");
 
             return Path.Combine("/home/site/wwwroot", "Bins", "ffmpeg");
-        }
-
-        private static async Task<string> PrepareLinuxFfmpegAsync(string configuredPath, ILogger logger)
-        {
-            if (string.IsNullOrWhiteSpace(configuredPath))
-                throw new InvalidOperationException("FFMPEG path is empty.");
-
-            // If the path points to a real file, copy it to /tmp and make it executable.
-            if (File.Exists(configuredPath))
-            {
-                var tmpFfmpeg = "/tmp/ffmpeg";
-
-                if (!File.Exists(tmpFfmpeg))
-                {
-                    File.Copy(configuredPath, tmpFfmpeg, overwrite: true);
-                }
-
-                logger.LogInformation("🔐 Setze Execute-Rechte für ffmpeg in /tmp: {Path}", tmpFfmpeg);
-
-                var chmod = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "/bin/chmod",
-                    Arguments = $"+x \"{tmpFfmpeg}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false
-                });
-
-                if (chmod == null)
-                    throw new InvalidOperationException("chmod process could not be started.");
-
-                await chmod.WaitForExitAsync(CancellationToken.None);
-
-                var chmodErr = await chmod.StandardError.ReadToEndAsync();
-                if (!string.IsNullOrWhiteSpace(chmodErr))
-                    logger.LogWarning("chmod stderr: {err}", chmodErr);
-
-                return tmpFfmpeg;
-            }
-
-            // If the configured value is a command like 'ffmpeg', use it directly and rely on PATH.
-            logger.LogInformation("Using ffmpeg from PATH/command name: {Path}", configuredPath);
-            return configuredPath;
         }
     }
 }

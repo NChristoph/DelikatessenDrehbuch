@@ -7,7 +7,7 @@
     "BlobStorageConnection": "DefaultEndpointsProtocol=https;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;EndpointSuffix=core.windows.net",
     "QueueStorageConnection": "DefaultEndpointsProtocol=https;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;EndpointSuffix=core.windows.net",
     "VideoUploadContainer": "blob-world-mini-app",
-    "VideoProcessingQueue": "video-processing",
+    "VideoProcessingQueue": "video-processing-queue",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "FFMPEG_PATH": "ffmpeg"
   }

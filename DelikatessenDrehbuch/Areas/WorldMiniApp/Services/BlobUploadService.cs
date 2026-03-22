@@ -53,7 +53,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             string queueName =
                 _configuration["VideoProcessingQueue"]
                 ?? _configuration["VideoProcessingQueueName"]
-                ?? "video-processing";
+                ?? "video-processing-queue";
+
+            string queueConnectionSource =
+                !string.IsNullOrWhiteSpace(_configuration["QueueStorageConnection"]) ? "QueueStorageConnection" :
+                !string.IsNullOrWhiteSpace(_configuration["BlobStorageConnection"]) ? "BlobStorageConnection" :
+                !string.IsNullOrWhiteSpace(_configuration["Queue_Connection_String"]) ? "Queue_Connection_String" :
+                "Blob_Conection_String";
 
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -92,6 +98,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             // Nach Video-Upload: Queue-Job erstellen
             try
             {
+                _logger.LogInformation("Preparing video queue job. Queue={QueueName}, QueueConnectionSource={QueueConnectionSource}, Container={Container}, Blob={BlobName}",
+                    queueName, queueConnectionSource, containerName, videoResult.BlobName);
+
                 await EnqueueVideoJobAsync(
                     queueConnectionString,
                     queueName,
