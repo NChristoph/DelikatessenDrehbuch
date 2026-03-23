@@ -485,6 +485,7 @@
         // active step editor in SmartStepCreator.
         function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras, flowMode, carriedPronoun) {
             // Close all open inline editors first and restore their action buttons
+            $('.probability-template-wrap.editing').removeClass('editing');
             $('.prob-inline-editor-host').empty().addClass('d-none')
                 .closest('.probability-template-card').find('.probability-template-actions').removeClass('d-none');
 
@@ -564,6 +565,7 @@
                 masterId: masterId
             });
             $host.html(editorHtml).removeClass('d-none');
+            $anchor.addClass('editing');
             $actions.addClass('d-none');
             const editorEl = $host.find('.prob-inline-editor')[0];
             if (!editorEl) return;
@@ -579,6 +581,7 @@
 
             function closeEditor() {
                 $host.empty().addClass('d-none');
+                $anchor.removeClass('editing');
                 $actions.removeClass('d-none');
             }
 
@@ -992,6 +995,29 @@
                 items = items.filter(function (item) { return !matchedIds.has(item.id); }).concat(replacements);
             });
 
+            // auto_show transforms: show sub-ingredients even without trigger step
+            const triggeredKeys = new Set(descriptors.map(d => d?.masterId).filter(Boolean));
+            (ingredientTransforms.special_transforms || []).forEach(function (t) {
+                if (!t.auto_show) return;
+                if (triggeredKeys.has(t.trigger_step)) return; // already handled above
+                const matchTerms = t.match?.[lang] || t.match?.de || [];
+                const targets = items.filter(function (item) {
+                    const name = normalizeIngredientMatchValue(
+                        item.namesByLang?.[lang] || item.name, lang);
+                    return matchTerms.some(function (term) { return name === term || name.includes(term); });
+                });
+                if (!targets.length) return;
+                targets.forEach(function (target) {
+                    const subs = buildSpecialTransformItems(target, t);
+                    subs.forEach(function (sub) {
+                        sub.isAutoShowOptional = true;
+                        if (!items.some(function (i) { return i.id === sub.id; })) {
+                            items.push(sub);
+                        }
+                    });
+                });
+            });
+
             return items;
         }
 
@@ -1148,6 +1174,25 @@
                         row.after(derivedHtml);
                     });
                     return;
+                }
+
+                // auto_show optional sub-ingredients (e.g. Eiklar/Eigelb under Ei)
+                const autoShowItems = names.filter(item => item.isAutoShowOptional);
+                const regularItems = names.filter(item => !item.isAutoShowOptional);
+
+                if (autoShowItems.length) {
+                    row.removeClass('d-none').removeAttr('data-derived-hidden-source');
+                    setIngredientRowDisabled(row, false);
+                    autoShowItems.forEach(function (item) {
+                        const catalogRow = findCatalogIngredientRowByNames(item.namesByLang || {});
+                        let derivedHtml = buildDerivedIngredientRowHtml(row, item, catalogRow);
+                        derivedHtml = derivedHtml.replace(
+                            'class="dynamic-item ingredient-row shadow-sm"',
+                            'class="dynamic-item ingredient-row shadow-sm ingredient-optional-sub"'
+                        );
+                        row.after(derivedHtml);
+                    });
+                    if (!regularItems.length) return;
                 }
 
                 row.removeClass('d-none').removeAttr('data-derived-hidden-source');
@@ -3293,6 +3338,7 @@
         }
 
         function removeIngredientRow(btn) {
+            closeIngredientConfigPopup();
             $(btn).closest('.ingredient-row').remove();
             refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();

@@ -910,6 +910,13 @@
         padding: 16px;
         margin-bottom: 10px;
         box-shadow: 0 14px 30px rgba(0,0,0,0.2);
+        transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+    }
+
+    .probability-template-wrap.editing .probability-template-card {
+        border-color: rgba(141,99,255,.8);
+        box-shadow: 0 0 18px 4px rgba(141,99,255,.35), 0 14px 30px rgba(0,0,0,0.2);
+        background: rgba(141,99,255,.12);
     }
 
     /* header row inside each probability step card */
@@ -1169,6 +1176,19 @@
         box-shadow: none;
         margin: 0 !important;
         cursor: pointer;
+    }
+
+    .ingredient-row.ingredient-optional-sub {
+        border-style: dashed;
+        border-color: rgba(180, 140, 255, 0.5);
+        background: rgba(141, 99, 255, 0.08);
+        padding-left: 28px;
+        opacity: 0.82;
+    }
+
+    .ingredient-row.ingredient-optional-sub .ingredient-name-text::before {
+        content: "↳ ";
+        opacity: 0.5;
     }
 
     .display-name-selected {

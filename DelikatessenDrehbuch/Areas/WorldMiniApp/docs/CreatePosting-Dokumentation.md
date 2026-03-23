@@ -840,7 +840,7 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `getFractionOptions()` | 97 | Bruch-Optionen aus JSON lesen, lokalisiert zurückgeben |
-| `composeFractionText(fractionDef, ingredientName)` | 112 | z.B. `"die Hälfte Mehl"` erzeugen |
+| `composeFractionText(fractionDef, ingredientName, article)` | 112 | z.B. `"die Hälfte der Zwiebel"` erzeugen (Artikel optional zwischen Fraction und Zutat) |
 | `findMatchingFractionOption(num, den, opts)` | 117 | Passende Fraction-Option finden |
 | `getRemainderChipsFromAcceptedSteps()` | 123 | Akzeptierte Steps scannen, Rest-Chips berechnen |
 | `renderFractionPickerHtml(fractionOptions)` | 176 | Fraction-Picker UI rendern |
@@ -1255,7 +1255,7 @@ renderInlineXxxOptions()        → rendert Inline-Buttons
 | `startStepIngredientEdit(event, btn)` | 3231 | Zutat in Step bearbeiten starten |
 | `applyChipToStep(row, ingredientRow)` | 3245 | Ausgewählte Zutat auf Step anwenden |
 | `cancelStepIngredientEdit()` | 3287 | Zutat-Bearbeitung abbrechen |
-| `removeIngredientRow(btn)` | 3295 | Zutat aus Auswahl entfernen |
+| `removeIngredientRow(btn)` | 3295 | Zutat aus Auswahl entfernen (schließt offenes Config-Popup) |
 | `removeConflictingSteps(id)` | 3304 | Konfligierende Steps entfernen |
 
 ### Step-Verwaltung (Zeile 3334–3496)
@@ -1649,8 +1649,8 @@ Step 2: User tippt "die Hälfte (1/2)"
 
 Step 3: User klickt "Einsetzen"
     → applyCurrentEditorSelection()
-    → composeFractionText({label:"die Hälfte"}, "Mehl")
-    → activeStep.values.ingredient = "die Hälfte Mehl"
+    → composeFractionText({label:"die Hälfte"}, "Mehl", "des")
+    → activeStep.values.ingredient = "die Hälfte des Mehl"
     → activeStep._fractionData = {
         ingredientName: "Mehl",
         fractionKey: "1/2",

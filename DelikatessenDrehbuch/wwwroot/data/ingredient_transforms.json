@@ -148,6 +148,7 @@
     {
       "key": "egg_separate",
       "trigger_step": "PREP_SEPARATE_01",
+      "auto_show": true,
       "match": {
         "de": ["ei", "eier"],
         "en": ["egg", "eggs"],

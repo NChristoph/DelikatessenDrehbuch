@@ -109,9 +109,10 @@
         }));
     }
 
-    function composeFractionText(fractionDef, ingredientName) {
+    function composeFractionText(fractionDef, ingredientName, article) {
         if (!fractionDef || !ingredientName) return ingredientName || "";
-        return `${fractionDef.label} ${ingredientName}`.trim();
+        const art = (article && article !== "ohne") ? ` ${article}` : "";
+        return `${fractionDef.label}${art} ${ingredientName}`.trim();
     }
 
     function findMatchingFractionOption(numerator, denominator, fractionOptions) {
@@ -1507,7 +1508,7 @@
 
             let ingredientComposed;
             if (chosenFraction && selectedValues.length === 1) {
-                ingredientComposed = composeFractionText(chosenFraction, selectedValues[0]);
+                ingredientComposed = composeFractionText(chosenFraction, selectedValues[0], article);
                 activeStep._fractionData = {
                     ingredientName: selectedValues[0],
                     fractionKey: chosenFraction.key,
@@ -1517,10 +1518,10 @@
             } else {
                 ingredientComposed = formatSelectedIngredientList(selectedValues, currentLang);
                 activeStep._fractionData = null;
-            }
-            // Prepend selected article if chosen
-            if (article && article !== "ohne") {
-                ingredientComposed = `${article} ${ingredientComposed}`.trim();
+                // Prepend selected article if chosen (only without fraction)
+                if (article && article !== "ohne") {
+                    ingredientComposed = `${article} ${ingredientComposed}`.trim();
+                }
             }
             activeStep.values[varName] = ingredientComposed;
             rerenderAfterValueSet();
@@ -2123,15 +2124,15 @@
             const frOpts = getFractionOptions();
             const chosenFraction = fractionKey ? frOpts.find(o => o.key === fractionKey) : null;
 
+            const ingArticle = editorEl.dataset.selectedArticle || '';
             let ingredientResult;
             if (chosenFraction && selectedValues.length === 1) {
-                ingredientResult = composeFractionText(chosenFraction, selectedValues[0]);
+                ingredientResult = composeFractionText(chosenFraction, selectedValues[0], ingArticle);
             } else {
                 ingredientResult = formatSelectedIngredientList(selectedValues, currentLang);
-            }
-            const ingArticle = editorEl.dataset.selectedArticle || '';
-            if (ingArticle && ingArticle !== 'ohne') {
-                ingredientResult = `${ingArticle} ${ingredientResult}`.trim();
+                if (ingArticle && ingArticle !== 'ohne') {
+                    ingredientResult = `${ingArticle} ${ingredientResult}`.trim();
+                }
             }
             return ingredientResult;
         }

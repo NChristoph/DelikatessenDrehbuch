@@ -45,5 +45,10 @@ namespace DelikatessenDrehbuch.Models
         public decimal Salt_a_100g { get; set; }
         public decimal Protein_a_100g { get; set; }
         public decimal Fiber_a_100g { get; set; }
+
+        public bool is_liquid { get; set; }
+        public bool is_hard { get; set; }
+        public bool is_soft { get; set; }
+        public bool is_fat { get; set; }
     }
 }
