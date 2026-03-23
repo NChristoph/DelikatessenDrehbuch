@@ -5812,6 +5812,32 @@
           "tags": ["variable:decoration", "value:essbare_bl_ten", "technique:decorate"]
         }
       ]
+    },
+    "ingredient_fractions": {
+      "description": "Bruchteile für Zutaten-Aufteilung über mehrere Steps.",
+      "options": [
+        {
+          "key": "1/2", "numerator": 1, "denominator": 2,
+          "labels": { "de": "die Hälfte", "en": "half", "esp": "la mitad", "prt": "metade", "id": "setengah", "nl": "de helft", "sv": "hälften", "da": "halvdelen", "no": "halvparten", "ms": "separuh" },
+          "remainder_labels": { "de": "restlich", "en": "remaining", "esp": "restante", "prt": "restante", "id": "sisa", "nl": "overig", "sv": "resterande", "da": "resterende", "no": "resterende", "ms": "selebih" }
+        },
+        {
+          "key": "1/3", "numerator": 1, "denominator": 3,
+          "labels": { "de": "ein Drittel", "en": "one third", "esp": "un tercio", "prt": "um terço", "id": "sepertiga", "nl": "een derde", "sv": "en tredjedel", "da": "en tredjedel", "no": "en tredjedel", "ms": "satu pertiga" }
+        },
+        {
+          "key": "2/3", "numerator": 2, "denominator": 3,
+          "labels": { "de": "zwei Drittel", "en": "two thirds", "esp": "dos tercios", "prt": "dois terços", "id": "dua pertiga", "nl": "twee derde", "sv": "två tredjedelar", "da": "to tredjedele", "no": "to tredjedeler", "ms": "dua pertiga" }
+        },
+        {
+          "key": "1/4", "numerator": 1, "denominator": 4,
+          "labels": { "de": "ein Viertel", "en": "one quarter", "esp": "un cuarto", "prt": "um quarto", "id": "seperempat", "nl": "een kwart", "sv": "en fjärdedel", "da": "en fjerdedel", "no": "en fjerdedel", "ms": "satu perempat" }
+        },
+        {
+          "key": "3/4", "numerator": 3, "denominator": 4,
+          "labels": { "de": "drei Viertel", "en": "three quarters", "esp": "tres cuartos", "prt": "três quartos", "id": "tiga perempat", "nl": "drie kwart", "sv": "tre fjärdedelar", "da": "tre fjerdedele", "no": "tre fjerdedeler", "ms": "tiga perempat" }
+        }
+      ]
     }
   }
 }

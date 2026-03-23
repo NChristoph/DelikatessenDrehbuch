@@ -305,6 +305,34 @@
         background: rgba(141,99,255,.25);
     }
 
+    .ingredient-chip.fraction-remainder {
+        border-style: dashed;
+        border-color: rgba(255,180,50,0.6);
+    }
+
+    .fraction-picker-row {
+        border-top: 1px solid var(--creator-border);
+        padding-top: 8px;
+        margin-top: 6px;
+    }
+
+    .fraction-pick {
+        font-size: 0.78rem;
+        padding: 4px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--creator-border);
+        background: rgba(255,255,255,0.08);
+        color: var(--creator-text);
+        transition: all .18s ease;
+        cursor: pointer;
+    }
+
+    .fraction-pick.active {
+        border-color: rgba(141,99,255,.8);
+        box-shadow: 0 0 0 2px rgba(141,99,255,.28);
+        background: rgba(141,99,255,.25);
+    }
+
     /* ===== CTA button ===== */
     .creator-cta-primary {
         border: 0;

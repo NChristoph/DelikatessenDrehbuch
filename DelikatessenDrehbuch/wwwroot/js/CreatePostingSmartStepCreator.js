@@ -92,6 +92,102 @@
     }
 
     // -----------------------------
+    // FRACTION HELPERS
+    // -----------------------------
+    function getFractionOptions() {
+        const frDef = variableCatalog?.variables?.ingredient_fractions;
+        if (!frDef || !Array.isArray(frDef.options)) return [];
+        const lang = currentLang || DEFAULT_LANG;
+        return frDef.options.map(opt => ({
+            key: opt.key,
+            numerator: opt.numerator,
+            denominator: opt.denominator,
+            label: (opt.labels && (opt.labels[lang] || opt.labels[DEFAULT_LANG] || opt.labels.de)) || opt.key,
+            remainderLabel: opt.remainder_labels
+                ? (opt.remainder_labels[lang] || opt.remainder_labels[DEFAULT_LANG] || opt.remainder_labels.de || "")
+                : ""
+        }));
+    }
+
+    function composeFractionText(fractionDef, ingredientName) {
+        if (!fractionDef || !ingredientName) return ingredientName || "";
+        return `${fractionDef.label} ${ingredientName}`.trim();
+    }
+
+    function findMatchingFractionOption(numerator, denominator, fractionOptions) {
+        if (!numerator || !denominator) return null;
+        const opts = fractionOptions || getFractionOptions();
+        return opts.find(o => o.numerator * denominator === numerator * o.denominator) || null;
+    }
+
+    function getRemainderChipsFromAcceptedSteps() {
+        const stepRows = document.querySelectorAll('#selectedSteps .step-row[data-ingredient-fractions]');
+        if (!stepRows.length) return { remainderChips: [], fullyUsedNames: [] };
+
+        const usageMap = {};
+        stepRows.forEach(row => {
+            let frData;
+            try { frData = JSON.parse(row.dataset.ingredientFractions || "null"); } catch { return; }
+            if (!frData || !frData.ingredientName) return;
+            const key = frData.ingredientName.toLowerCase();
+            if (!usageMap[key]) usageMap[key] = { name: frData.ingredientName, used: 0 };
+            usageMap[key].used += (frData.numerator || 0) / (frData.denominator || 1);
+        });
+
+        const frOpts = getFractionOptions();
+        const remainderChips = [];
+        const fullyUsedNames = [];
+
+        Object.values(usageMap).forEach(entry => {
+            const remaining = 1 - entry.used;
+            if (remaining <= 0.001) {
+                fullyUsedNames.push(entry.name.toLowerCase());
+                return;
+            }
+            const matchedFraction = findMatchingFractionOption(
+                Math.round(remaining * 12), 12, frOpts
+            );
+            if (matchedFraction) {
+                remainderChips.push({
+                    name: composeFractionText(matchedFraction, entry.name),
+                    icon: "",
+                    isRemainder: true,
+                    originalName: entry.name,
+                    remainingNumerator: matchedFraction.numerator,
+                    remainingDenominator: matchedFraction.denominator
+                });
+            } else {
+                const fallback = frOpts.find(o => o.remainderLabel);
+                const label = fallback ? fallback.remainderLabel : "rest";
+                remainderChips.push({
+                    name: `${label} ${entry.name}`.trim(),
+                    icon: "",
+                    isRemainder: true,
+                    originalName: entry.name,
+                    remainingNumerator: Math.round(remaining * 12),
+                    remainingDenominator: 12
+                });
+            }
+        });
+
+        return { remainderChips, fullyUsedNames };
+    }
+
+    function renderFractionPickerHtml(fractionOptions) {
+        const opts = fractionOptions || getFractionOptions();
+        if (!opts.length) return "";
+        const wholeBtnLabel = { de: "Ganzes", en: "Whole", esp: "Entero", prt: "Inteiro", id: "Seluruh", nl: "Geheel", sv: "Hel", da: "Hel", no: "Hel", ms: "Keseluruhan" };
+        const wholeLabel = wholeBtnLabel[currentLang] || wholeBtnLabel[DEFAULT_LANG] || "Ganzes";
+        let html = `<div class="fraction-picker-row d-flex flex-wrap gap-2" id="FractionPickerRow" style="display:none !important;">`;
+        html += `<button type="button" class="fraction-pick active" data-pick-mode="fraction" data-fraction-key="" data-fraction-num="0" data-fraction-den="1">${escapeHtml(wholeLabel)} (1/1)</button>`;
+        opts.forEach(o => {
+            html += `<button type="button" class="fraction-pick" data-pick-mode="fraction" data-fraction-key="${escapeHtml(o.key)}" data-fraction-num="${o.numerator}" data-fraction-den="${o.denominator}">${escapeHtml(o.label)} (${escapeHtml(o.key)})</button>`;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    // -----------------------------
     // LOAD
     // -----------------------------
     async function loadJson() {
@@ -1074,6 +1170,21 @@
             }
         }
 
+        const { remainderChips, fullyUsedNames } = getRemainderChipsFromAcceptedSteps();
+        if (fullyUsedNames.length) {
+            items = items.filter(x => !fullyUsedNames.includes(x.name.toLowerCase()));
+        }
+        if (remainderChips.length) {
+            remainderChips.forEach(rc => {
+                const origIdx = items.findIndex(x => x.name.toLowerCase() === rc.originalName.toLowerCase());
+                if (origIdx >= 0) {
+                    items[origIdx] = { ...items[origIdx], ...rc, icon: items[origIdx].icon || rc.icon };
+                } else {
+                    items.push(rc);
+                }
+            });
+        }
+
         return items;
     }
 
@@ -1152,14 +1263,17 @@
         const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, null, scoringContext);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
-            ? ingredientItems.map(({ name, icon }) => {
+            ? ingredientItems.map(({ name, icon, isRemainder }) => {
                 const value = name.trim();
                 const active = selectedIngredientValues.includes(value) ? " active" : "";
+                const remainderCls = isRemainder ? " fraction-remainder" : "";
                 const safe = escapeHtml(value);
                 const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : "";
-                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
+                return `<button type="button" class="ingredient-chip${active}${remainderCls}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
             }).join("")
             : renderPillButtons(options, "value", currentVal);
+
+        const fractionPickerHtml = ingredientVar ? renderFractionPickerHtml() : "";
 
         // Spezial UI für duration/temp
         const specialBlock = renderSpecialEditor(varName, currentVal);
@@ -1191,6 +1305,8 @@
             : `<div class="text-muted small">Keine Optionen im JSON gefunden: master_step_variables.${escapeHtml(varName)}.${escapeHtml(currentLang)}</div>`)}
         </div>
 
+        ${fractionPickerHtml}
+
         ${ingredientVar ? "" : renderFallbackSection(varName, options, activeStep?.master_id || "", scoringContext)}
 
         <div class="d-flex gap-2 align-items-center mt-3">
@@ -1205,6 +1321,7 @@
         host.dataset.selectedPronoun = "";
         host.dataset.selectedValue = "";   // gewählter Wert
         host.dataset.selectedIngredientValues = JSON.stringify(selectedIngredientValues);
+        host.dataset.selectedFraction = "";
     }
 
     function renderFallbackSection(varName, filteredOptions, contextMasterId, context) {
@@ -1383,7 +1500,24 @@
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
             if (!Array.isArray(selectedValues) || !selectedValues.length) return;
-            let ingredientComposed = formatSelectedIngredientList(selectedValues, currentLang);
+
+            const fractionKey = (host.dataset.selectedFraction || "").trim();
+            const frOpts = getFractionOptions();
+            const chosenFraction = fractionKey ? frOpts.find(o => o.key === fractionKey) : null;
+
+            let ingredientComposed;
+            if (chosenFraction && selectedValues.length === 1) {
+                ingredientComposed = composeFractionText(chosenFraction, selectedValues[0]);
+                activeStep._fractionData = {
+                    ingredientName: selectedValues[0],
+                    fractionKey: chosenFraction.key,
+                    numerator: chosenFraction.numerator,
+                    denominator: chosenFraction.denominator
+                };
+            } else {
+                ingredientComposed = formatSelectedIngredientList(selectedValues, currentLang);
+                activeStep._fractionData = null;
+            }
             // Prepend selected article if chosen
             if (article && article !== "ohne") {
                 ingredientComposed = `${article} ${ingredientComposed}`.trim();
@@ -1595,7 +1729,8 @@
                 skipRender: true,
                 ingredientName,
                 masterTemplateId: payload.masterTemplateId,
-                stepData: payload
+                stepData: payload,
+                fractionData: activeStep._fractionData || null
             });
             if (typeof window.updateStepIndices === "function") {
                 window.updateStepIndices();
@@ -1729,6 +1864,16 @@
                 const mode = pickBtn.dataset.pickMode;
                 const val = pickBtn.dataset.pickValue ?? "";
 
+                if (mode === "fraction") {
+                    const frRow = host.querySelector("#FractionPickerRow");
+                    if (frRow) {
+                        frRow.querySelectorAll(".fraction-pick").forEach(b => b.classList.remove("active"));
+                        pickBtn.classList.add("active");
+                    }
+                    host.dataset.selectedFraction = pickBtn.dataset.fractionKey || "";
+                    return;
+                }
+
                 if (mode === "ingredient-value") {
                     const selected = JSON.parse(host.dataset.selectedIngredientValues || "[]");
                     const list = Array.isArray(selected) ? selected : [];
@@ -1742,6 +1887,17 @@
                     }
                     host.dataset.selectedIngredientValues = JSON.stringify(list);
                     host.dataset.selectedValue = list.join(", ");
+
+                    const frPicker = host.querySelector("#FractionPickerRow");
+                    if (frPicker) {
+                        frPicker.style.cssText = list.length === 1 ? "" : "display:none !important;";
+                        if (list.length !== 1) {
+                            host.dataset.selectedFraction = "";
+                            frPicker.querySelectorAll(".fraction-pick").forEach(b => b.classList.remove("active"));
+                            const wholeBtn = frPicker.querySelector('.fraction-pick[data-fraction-key=""]');
+                            if (wholeBtn) wholeBtn.classList.add("active");
+                        }
+                    }
                     return;
                 }
 
@@ -1901,17 +2057,19 @@
         const options = ingredientVar ? ingredientItems.map(x => x.name) : getVarOptions(varName, optionsMasterId, scoringCtx);
         const selectedIngredientValues = ingredientVar ? parseSelectedIngredientValues(currentVal, options) : [];
         const valueButtons = ingredientVar
-            ? ingredientItems.map(({ name, icon }) => {
+            ? ingredientItems.map(({ name, icon, isRemainder }) => {
                 const value = name.trim();
                 const active = selectedIngredientValues.includes(value) ? ' active' : '';
+                const remainderCls = isRemainder ? ' fraction-remainder' : '';
                 const safe = escapeHtml(value);
                 const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : '';
-                return `<button type="button" class="ingredient-chip${active}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
+                return `<button type="button" class="ingredient-chip${active}${remainderCls}" data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
             }).join('')
             : renderPillButtons(options, 'value', prefilledValue);
+        const fractionPickerHtml = ingredientVar ? renderFractionPickerHtml() : '';
         const specialBlock = renderSpecialEditor(varName, currentVal);
 
-        return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="${escapeHtml(prefilledArticle)}" data-selected-pronoun="${escapeHtml(prefilledPronoun)}" data-selected-value="${escapeHtml(prefilledValue)}" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}">
+        return `<div class="duration-editor prob-inline-editor" data-editor-for="${escapeHtml(varName)}" data-selected-article="${escapeHtml(prefilledArticle)}" data-selected-pronoun="${escapeHtml(prefilledPronoun)}" data-selected-value="${escapeHtml(prefilledValue)}" data-duration-unit="minute" data-selected-ingredient-values="${escapeHtml(JSON.stringify(selectedIngredientValues))}" data-selected-fraction="">
   <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
   ${specialBlock}
   ${showArticleButtons ? `<div class="small text-muted mt-2 mb-1">Artikel</div><div class="d-flex flex-wrap gap-2 mb-2 js-article-btn-row">${articleButtons}</div>` : ''}
@@ -1921,6 +2079,7 @@
         ? '<div class="text-muted small">Keine Zutaten ausgewählt.</div>'
         : `<div class="text-muted small">Keine Optionen: ${escapeHtml(getVarDisplayName(varName))}</div>`)}
   </div>
+  ${fractionPickerHtml}
   ${ingredientVar ? '' : renderFallbackSection(varName, options, optionsMasterId, scoringCtx)}
   <div class="d-flex gap-2 align-items-center mt-3">
     <button type="button" class="btn btn-sm creator-cta-primary js-prob-inline-apply">Einsetzen</button>
@@ -1959,7 +2118,17 @@
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
             if (!Array.isArray(selectedValues) || !selectedValues.length) return null;
-            let ingredientResult = formatSelectedIngredientList(selectedValues, currentLang);
+
+            const fractionKey = (editorEl.dataset.selectedFraction || '').trim();
+            const frOpts = getFractionOptions();
+            const chosenFraction = fractionKey ? frOpts.find(o => o.key === fractionKey) : null;
+
+            let ingredientResult;
+            if (chosenFraction && selectedValues.length === 1) {
+                ingredientResult = composeFractionText(chosenFraction, selectedValues[0]);
+            } else {
+                ingredientResult = formatSelectedIngredientList(selectedValues, currentLang);
+            }
             const ingArticle = editorEl.dataset.selectedArticle || '';
             if (ingArticle && ingArticle !== 'ohne') {
                 ingredientResult = `${ingArticle} ${ingredientResult}`.trim();

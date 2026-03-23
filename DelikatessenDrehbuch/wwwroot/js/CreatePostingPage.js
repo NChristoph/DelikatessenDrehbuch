@@ -3434,7 +3434,7 @@
             const templatePrt = buildIngredientTokenTemplate(normalizedStepData.prt, stepIngredientName);
             const visibleTemplate = ({ de: templateDe, en: templateEn, esp: templateEsp, prt: templatePrt })[currentLang] || templateDe;
 
-            $("#selectedSteps").append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-master-template-id="${$("<div>").text((normalizedStepData.masterTemplateId || options?.masterTemplateId || "")).html()}" data-step-reference-json="${stepReferenceEncoded}" data-ingredient-name="${$("<div>").text(stepIngredientName).html()}">
+            $("#selectedSteps").append(`<div class="dynamic-item d-flex align-items-center step-row" draggable="true" data-step-id="${id}" data-step-edited="false" data-master-template-id="${$("<div>").text((normalizedStepData.masterTemplateId || options?.masterTemplateId || "")).html()}" data-step-reference-json="${stepReferenceEncoded}" data-ingredient-name="${$("<div>").text(stepIngredientName).html()}" data-ingredient-fractions="${$("<div>").text(JSON.stringify(options?.fractionData || null)).html()}">
                 <input type="hidden" name="RecipePreperationSteps[INDEX].PreperationStepId" value="${postedStepId}" />
                 <input type="hidden" class="step-index-input" name="RecipePreperationSteps[INDEX].StepIndex" value="0" />
                 <input type="hidden" class="step-hidden-de" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Step_DE" value="${$('<div>').text(materializeStepTextFromTemplate(templateDe, stepIngredientName)).html()}" />
