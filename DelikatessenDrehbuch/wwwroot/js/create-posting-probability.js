@@ -1,6 +1,9 @@
 (function (window, $) {
     'use strict';
 
+    // Global storage for multi-ingredients in probability area
+    // Structure: { "masterId": { "varName": [{name, fraction, article}, ...] } }
+    window.ProbabilityMultiIngredients = window.ProbabilityMultiIngredients || {};
 
     const UI_TEXT = {
         selectIngredients: 'Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
@@ -42,6 +45,9 @@
             return '';
         }
 
+        // Get multi-ingredients data for this master
+        const multiIngredientsData = window.ProbabilityMultiIngredients[masterId] || {};
+
         return helpers.renderTemplateWithConfig(templateText, (masterId || 'template').toString(), vars || {}, {
             optionalValues: overrideVars || {},
             tokenWrapClass: 'probability-var-inline-wrap',
@@ -49,7 +55,9 @@
             pillExtraClasses: 'js-probability-var',
             includeVarKey: true,
             optionalVarAttrName: 'data-var',
-            pillTitlePrefix: 'Optional'
+            pillTitlePrefix: 'Optional',
+            enablePlusButtons: true,
+            multiIngredientsData: multiIngredientsData
         });
     }
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
@@ -170,7 +178,28 @@
         function getMergedVars(masterId) {
             const base = { ...(state.varsByTemplate[masterId] || deps.buildVariablesForTemplate(masterId, state.currentTypeId) || {}) };
             const overrides = state.inlineOverrides[masterId] || {};
-            return { ...base, ...overrides };
+            const merged = { ...base, ...overrides };
+
+            // Apply multi-ingredients from global storage
+            const multiIngredients = window.ProbabilityMultiIngredients && window.ProbabilityMultiIngredients[masterId];
+            if (multiIngredients) {
+                const helpers = window.MasterStepCreatorHelpers;
+                if (helpers && helpers.formatSelectedIngredientList) {
+                    // For each variable that has multi-ingredients, format them
+                    Object.keys(multiIngredients).forEach(varName => {
+                        const ingredientList = multiIngredients[varName];
+                        if (ingredientList && ingredientList.length > 0) {
+                            const formatted = helpers.formatSelectedIngredientList(ingredientList, getLang() || 'de');
+                            if (formatted) {
+                                merged[varName] = formatted;
+                                console.log("[getMergedVars] Applied multi-ingredients for", varName, ":", formatted);
+                            }
+                        }
+                    });
+                }
+            }
+
+            return merged;
         }
 
         function rerenderInlineText(masterId, wrap) {
@@ -226,17 +255,17 @@
                 const varKey = (chip.data('var-key') || '').toString();
                 if (!masterId || !varKey) return;
 
-                // Sequential editing: {state} clicked → pronoun first (if unfilled), then state
-                if (varKey === 'state' && deps.openProbVarEditor) {
-                    const pronounChip = wrap.find('.js-probability-var[data-var-key="pronoun"]')[0];
-                    if (pronounChip) {
-                        const pronounOverride = (state.inlineOverrides[masterId] || {})['pronoun'] || '';
-                        if (!pronounOverride) {
-                            openPronounThenState(masterId, wrap, chip[0]);
-                            return;
-                        }
-                    }
-                }
+                // Sequential editing DISABLED: Show combined pronoun+state editor instead
+                // if (varKey === 'state' && deps.openProbVarEditor) {
+                //     const pronounChip = wrap.find('.js-probability-var[data-var-key="pronoun"]')[0];
+                //     if (pronounChip) {
+                //         const pronounOverride = (state.inlineOverrides[masterId] || {})['pronoun'] || '';
+                //         if (!pronounOverride) {
+                //             openPronounThenState(masterId, wrap, chip[0]);
+                //             return;
+                //         }
+                //     }
+                // }
 
                 const currentVars = getMergedVars(masterId);
                 const currentVal = (currentVars[varKey] || '').toString();
@@ -247,14 +276,14 @@
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
                         state.inlineOverrides[masterId][varKey] = newVal;
                         rerenderInlineText(masterId, wrap);
-                        // Sequential editing: after {pronoun} is set, auto-open {state} if unfilled
-                        if (varKey === 'pronoun') {
-                            const stateOverride = (state.inlineOverrides[masterId] || {})['state'] || '';
-                            if (!stateOverride) {
-                                const stateChip = wrap.find('.js-probability-var[data-var-key="state"]')[0];
-                                if (stateChip) openProbStateEditor(masterId, wrap, stateChip);
-                            }
-                        }
+                        // Sequential editing DISABLED: User can fill pronoun and state independently
+                        // if (varKey === 'pronoun') {
+                        //     const stateOverride = (state.inlineOverrides[masterId] || {})['state'] || '';
+                        //     if (!stateOverride) {
+                        //         const stateChip = wrap.find('.js-probability-var[data-var-key="state"]')[0];
+                        //         if (stateChip) openProbStateEditor(masterId, wrap, stateChip);
+                        //     }
+                        // }
                     }, chip, function (extras) {
                         if (!extras || typeof extras !== 'object') return;
                         if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
@@ -373,6 +402,7 @@
     }
 
     window.CreatePostingProbability = {
-        create
+        create,
+        buildInlineTemplateText
     };
 })(window, window.jQuery);

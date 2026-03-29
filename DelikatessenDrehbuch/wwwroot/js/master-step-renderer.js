@@ -297,7 +297,8 @@
             garnish: ['frischen Kraeutern', 'Sesam', 'Parmesan', 'Nuessen']
         };
 
-        return presets[variableName] || [];
+        const result = presets[variableName] || [];
+        return result;
     }
 
     function getStepDefaults(masterId) {

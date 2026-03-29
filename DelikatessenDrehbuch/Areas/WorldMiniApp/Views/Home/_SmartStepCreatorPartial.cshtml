@@ -310,6 +310,21 @@
         border-color: rgba(255,180,50,0.6);
     }
 
+    .ingredient-chip.ingredient-chip-dimmed {
+        opacity: 0.4;
+        filter: grayscale(0.5);
+        order: 99;
+    }
+
+    .ingredient-chip-divider {
+        display: block;
+        width: 100%;
+        height: 1px;
+        background: var(--creator-border);
+        margin: 4px 0;
+        order: 98;
+    }
+
     .fraction-picker-row {
         border-top: 1px solid var(--creator-border);
         padding-top: 8px;

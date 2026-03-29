@@ -920,6 +920,72 @@
           ]
         },
         {
+          "key": "wasche",
+          "labels": {
+            "de": "wasche",
+            "en": "wash",
+            "esp": "lava",
+            "prt": "lave",
+            "id": "cuci",
+            "nl": "was",
+            "sv": "tvätta",
+            "da": "vask",
+            "no": "vask",
+            "ms": "basuh"
+          },
+          "tags": [
+            "variable:action",
+            "value:wasche",
+            "prep",
+            "wash",
+            "clean"
+          ]
+        },
+        {
+          "key": "spuele",
+          "labels": {
+            "de": "spüle",
+            "en": "rinse",
+            "esp": "enjuaga",
+            "prt": "enxágue",
+            "id": "bilas",
+            "nl": "spoel",
+            "sv": "skölj",
+            "da": "skyl",
+            "no": "skyll",
+            "ms": "bilas"
+          },
+          "tags": [
+            "variable:action",
+            "value:spuele",
+            "prep",
+            "wash",
+            "clean"
+          ]
+        },
+        {
+          "key": "reinige",
+          "labels": {
+            "de": "reinige",
+            "en": "clean",
+            "esp": "limpia",
+            "prt": "limpe",
+            "id": "bersihkan",
+            "nl": "reinig",
+            "sv": "rengör",
+            "da": "rens",
+            "no": "rengjør",
+            "ms": "bersihkan"
+          },
+          "tags": [
+            "variable:action",
+            "value:reinige",
+            "prep",
+            "wash",
+            "clean"
+          ]
+        },
+        {
           "key": "schuettele",
           "labels": {
             "de": "schüttle",
@@ -1340,6 +1406,167 @@
             "value:kleines_messer",
             "technique:devein",
             "devein"
+          ]
+        },
+        {
+          "key": "fleischklopfer",
+          "labels": {
+            "de": "🔨 Fleischklopfer",
+            "en": "🔨 meat tenderizer",
+            "esp": "🔨 mazo de carne",
+            "prt": "🔨 batedor de carne",
+            "id": "🔨 pemukul daging",
+            "nl": "🔨 vleeshamer",
+            "sv": "🔨 köttklubba",
+            "da": "🔨 kødbanker",
+            "no": "🔨 kjøttbanker",
+            "ms": "🔨 pengetuk daging"
+          },
+          "tags": [
+            "variable:tool",
+            "value:fleischklopfer",
+            "tool:tenderizer",
+            "technique:tenderize",
+            "tenderize",
+            "pound",
+            "fleischklopfer",
+            "hammer",
+            "klopfen",
+            "plattieren"
+          ]
+        }
+      ]
+    },
+    "liquid": {
+      "description": "Ausgelagerte Optionen für Variable 'liquid' mit Tag-Metadaten für die Creator-Auswahl. Hybrid: Zutaten mit is_liquid=true PLUS diese Optionen.",
+      "options": [
+        {
+          "key": "wasser",
+          "labels": {
+            "de": "💧 Wasser",
+            "en": "💧 water",
+            "esp": "💧 agua",
+            "prt": "💧 água",
+            "id": "💧 air",
+            "nl": "💧 water",
+            "sv": "💧 vatten",
+            "da": "💧 vand",
+            "no": "💧 vann",
+            "ms": "💧 air"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:wasser",
+            "liquid",
+            "water"
+          ]
+        },
+        {
+          "key": "brühe",
+          "labels": {
+            "de": "🍲 Brühe",
+            "en": "🍲 broth",
+            "esp": "🍲 caldo",
+            "prt": "🍲 caldo",
+            "id": "🍲 kaldu",
+            "nl": "🍲 bouillon",
+            "sv": "🍲 buljong",
+            "da": "🍲 bouillon",
+            "no": "🍲 buljong",
+            "ms": "🍲 sup pekat"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:brühe",
+            "liquid",
+            "broth",
+            "stock"
+          ]
+        },
+        {
+          "key": "milch",
+          "labels": {
+            "de": "🥛 Milch",
+            "en": "🥛 milk",
+            "esp": "🥛 leche",
+            "prt": "🥛 leite",
+            "id": "🥛 susu",
+            "nl": "🥛 melk",
+            "sv": "🥛 mjölk",
+            "da": "🥛 mælk",
+            "no": "🥛 melk",
+            "ms": "🥛 susu"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:milch",
+            "liquid",
+            "milk"
+          ]
+        },
+        {
+          "key": "sahne",
+          "labels": {
+            "de": "🥛 Sahne",
+            "en": "🥛 cream",
+            "esp": "🥛 nata",
+            "prt": "🥛 creme",
+            "id": "🥛 krim",
+            "nl": "🥛 room",
+            "sv": "🥛 grädde",
+            "da": "🥛 fløde",
+            "no": "🥛 fløte",
+            "ms": "🥛 krim"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:sahne",
+            "liquid",
+            "cream"
+          ]
+        },
+        {
+          "key": "wein",
+          "labels": {
+            "de": "🍷 Wein",
+            "en": "🍷 wine",
+            "esp": "🍷 vino",
+            "prt": "🍷 vinho",
+            "id": "🍷 anggur",
+            "nl": "🍷 wijn",
+            "sv": "🍷 vin",
+            "da": "🍷 vin",
+            "no": "🍷 vin",
+            "ms": "🍷 wain"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:wein",
+            "liquid",
+            "wine",
+            "alcohol"
+          ]
+        },
+        {
+          "key": "öl",
+          "labels": {
+            "de": "🫒 Öl",
+            "en": "🫒 oil",
+            "esp": "🫒 aceite",
+            "prt": "🫒 óleo",
+            "id": "🫒 minyak",
+            "nl": "🫒 olie",
+            "sv": "🫒 olja",
+            "da": "🫒 olie",
+            "no": "🫒 olje",
+            "ms": "🫒 minyak"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:öl",
+            "liquid",
+            "oil",
+            "fat"
           ]
         }
       ]
@@ -2927,6 +3154,86 @@
             "ground_meat",
             "mince"
           ]
+        },
+        {
+          "key": "salat",
+          "labels": {
+            "de": "Salat",
+            "en": "salad",
+            "esp": "ensalada",
+            "prt": "salada",
+            "id": "salad",
+            "nl": "salade",
+            "sv": "sallad",
+            "da": "salat",
+            "no": "salat",
+            "ms": "salad"
+          },
+          "tags": [
+            "variable:base",
+            "value:salat",
+            "salat",
+            "salad",
+            "technique:toss",
+            "technique:mix",
+            "cold",
+            "kalt",
+            "mischen"
+          ]
+        },
+        {
+          "key": "gericht",
+          "labels": {
+            "de": "Gericht",
+            "en": "dish",
+            "esp": "plato",
+            "prt": "prato",
+            "id": "hidangan",
+            "nl": "gerecht",
+            "sv": "rätt",
+            "da": "ret",
+            "no": "rett",
+            "ms": "hidangan"
+          },
+          "tags": [
+            "variable:base",
+            "value:gericht",
+            "gericht",
+            "dish",
+            "technique:assemble",
+            "technique:serve"
+          ]
+        },
+        {
+          "key": "lasagne",
+          "labels": {
+            "de": "Lasagne",
+            "en": "lasagna",
+            "esp": "lasaña",
+            "prt": "lasanha",
+            "id": "lasagna",
+            "nl": "lasagne",
+            "sv": "lasagne",
+            "da": "lasagne",
+            "no": "lasagne",
+            "ms": "lasagna"
+          },
+          "tags": [
+            "variable:base",
+            "value:lasagne",
+            "component:pasta",
+            "technique:layer",
+            "technique:bake",
+            "heat:dry",
+            "lasagne",
+            "lasagna",
+            "schichten",
+            "layer",
+            "backen",
+            "bake",
+            "auflauf",
+            "casserole"
+          ]
         }
       ]
     },
@@ -3819,6 +4126,71 @@
             "drain",
             "strain",
             "abgießen"
+          ]
+        },
+        {
+          "key": "backform",
+          "labels": {
+            "de": "🍰 Backform",
+            "en": "🍰 baking pan",
+            "esp": "🍰 el molde",
+            "prt": "🍰 a forma",
+            "id": "🍰 loyang",
+            "nl": "🍰 de bakvorm",
+            "sv": "🍰 bakformen",
+            "da": "🍰 bageformen",
+            "no": "🍰 bakeformen",
+            "ms": "🍰 acuan"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:backform",
+            "equipment:baking_pan",
+            "heat:dry",
+            "technique:bake",
+            "backform",
+            "baking_pan",
+            "backen",
+            "bake",
+            "füllen",
+            "fill",
+            "stuff",
+            "dry_heat"
+          ]
+        },
+        {
+          "key": "auflaufform",
+          "labels": {
+            "de": "🍲 Auflaufform",
+            "en": "🍲 casserole dish",
+            "esp": "🍲 la fuente de horno",
+            "prt": "🍲 a travessa de forno",
+            "id": "🍲 loyang casserole",
+            "nl": "🍲 de ovenschaal",
+            "sv": "🍲 gratängformen",
+            "da": "🍲 ovnfadet",
+            "no": "🍲 ildfast form",
+            "ms": "🍲 bekas casserole"
+          },
+          "tags": [
+            "variable:equipment",
+            "value:auflaufform",
+            "equipment:casserole",
+            "heat:dry",
+            "technique:bake",
+            "auflaufform",
+            "casserole",
+            "gratin",
+            "überbacken",
+            "ueberbacken",
+            "backen",
+            "bake",
+            "füllen",
+            "fill",
+            "stuff",
+            "schichten",
+            "layer",
+            "dry_heat"
           ]
         }
       ]
@@ -5836,6 +6208,139 @@
         {
           "key": "3/4", "numerator": 3, "denominator": 4,
           "labels": { "de": "drei Viertel", "en": "three quarters", "esp": "tres cuartos", "prt": "três quartos", "id": "tiga perempat", "nl": "drie kwart", "sv": "tre fjärdedelar", "da": "tre fjerdedele", "no": "tre fjerdedeler", "ms": "tiga perempat" }
+        }
+      ]
+    },
+    "removal": {
+      "description": "Optionen für Dinge die beim Waschen/Vorbereiten entfernt werden (Schale, Gräten, Hülle, etc.)",
+      "options": [
+        {
+          "key": "schale",
+          "labels": {
+            "de": "die Schale",
+            "en": "the peel",
+            "esp": "la cáscara",
+            "prt": "a casca",
+            "id": "kulitnya",
+            "nl": "de schil",
+            "sv": "skalet",
+            "da": "skallen",
+            "no": "skallet",
+            "ms": "kulitnya"
+          },
+          "tags": ["variable:removal", "value:schale", "prep", "wash", "clean"]
+        },
+        {
+          "key": "graeten",
+          "labels": {
+            "de": "die Gräten",
+            "en": "the bones",
+            "esp": "las espinas",
+            "prt": "as espinhas",
+            "id": "durinya",
+            "nl": "de graten",
+            "sv": "benen",
+            "da": "benene",
+            "no": "beinene",
+            "ms": "tulangnya"
+          },
+          "tags": ["variable:removal", "value:graeten", "prep", "fish", "clean"]
+        },
+        {
+          "key": "huelle",
+          "labels": {
+            "de": "die Hülle",
+            "en": "the hull",
+            "esp": "la vaina",
+            "prt": "a vagem",
+            "id": "kulitnya",
+            "nl": "de schil",
+            "sv": "skalet",
+            "da": "bælgen",
+            "no": "belgen",
+            "ms": "kulitnya"
+          },
+          "tags": ["variable:removal", "value:huelle", "prep", "wash", "clean"]
+        },
+        {
+          "key": "stiele",
+          "labels": {
+            "de": "die Stiele",
+            "en": "the stems",
+            "esp": "los tallos",
+            "prt": "os talos",
+            "id": "batangnya",
+            "nl": "de stelen",
+            "sv": "stjälkarna",
+            "da": "stilkene",
+            "no": "stilkene",
+            "ms": "tangkainya"
+          },
+          "tags": ["variable:removal", "value:stiele", "prep", "wash", "clean", "vegetable"]
+        },
+        {
+          "key": "kerne",
+          "labels": {
+            "de": "die Kerne",
+            "en": "the seeds",
+            "esp": "las semillas",
+            "prt": "as sementes",
+            "id": "bijinya",
+            "nl": "de pitten",
+            "sv": "kärnorna",
+            "da": "kernerne",
+            "no": "kjernene",
+            "ms": "bijinya"
+          },
+          "tags": ["variable:removal", "value:kerne", "prep", "wash", "clean"]
+        },
+        {
+          "key": "faeden",
+          "labels": {
+            "de": "die Fäden",
+            "en": "the strings",
+            "esp": "las hebras",
+            "prt": "os fios",
+            "id": "seratnya",
+            "nl": "de draden",
+            "sv": "trådarna",
+            "da": "trådene",
+            "no": "trådene",
+            "ms": "seratnya"
+          },
+          "tags": ["variable:removal", "value:faeden", "prep", "wash", "clean", "beans"]
+        },
+        {
+          "key": "sand",
+          "labels": {
+            "de": "den Sand",
+            "en": "the sand",
+            "esp": "la arena",
+            "prt": "a areia",
+            "id": "pasirnya",
+            "nl": "het zand",
+            "sv": "sanden",
+            "da": "sandet",
+            "no": "sanden",
+            "ms": "pasirnya"
+          },
+          "tags": ["variable:removal", "value:sand", "prep", "wash", "clean", "seafood", "mussels"]
+        },
+        {
+          "key": "innereien",
+          "labels": {
+            "de": "die Innereien",
+            "en": "the innards",
+            "esp": "las vísceras",
+            "prt": "as vísceras",
+            "id": "isi perutnya",
+            "nl": "de ingewanden",
+            "sv": "inälvorna",
+            "da": "indvoldene",
+            "no": "innvollene",
+            "ms": "isi perutnya"
+          },
+          "tags": ["variable:removal", "value:innereien", "prep", "clean", "fish", "seafood"]
         }
       ]
     }

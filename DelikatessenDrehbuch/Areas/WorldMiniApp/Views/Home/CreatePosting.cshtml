@@ -43,10 +43,53 @@
     <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="gold">
         <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
-            <div class="d-flex justify-content-end mb-2">
-                <button type="button" id="clearCreatePostingDraftBtn" class="btn btn-sm btn-outline-light rounded-pill">
-                    Entwurf löschen
-                </button>
+            <div id="draftRestoreBanner" class="draft-restore-banner d-none">
+                <div class="draft-restore-content">
+                    <span class="draft-restore-text">
+                        <i class="bi bi-clock-history me-1"></i>
+                        <span class="label-lang"
+                              data-de="Gespeicherte Session gefunden"
+                              data-en="Saved session found"
+                              data-esp="Sesión guardada encontrada"
+                              data-prt="Sessão guardada encontrada"
+                              data-id="Sesi tersimpan ditemukan"
+                              data-nl="Opgeslagen sessie gevonden"
+                              data-sv="Sparad session hittad"
+                              data-da="Gemt session fundet"
+                              data-no="Lagret økt funnet"
+                              data-ms="Sesi tersimpan ditemui">Gespeicherte Session gefunden</span>
+                    </span>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="restoreDraftBtn" class="btn btn-sm btn-outline-success rounded-pill">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+                            <span class="label-lang"
+                                  data-de="Wiederherstellen"
+                                  data-en="Restore"
+                                  data-esp="Restaurar"
+                                  data-prt="Restaurar"
+                                  data-id="Pulihkan"
+                                  data-nl="Herstellen"
+                                  data-sv="Återställ"
+                                  data-da="Gendan"
+                                  data-no="Gjenopprett"
+                                  data-ms="Pulihkan">Wiederherstellen</span>
+                        </button>
+                        <button type="button" id="discardDraftBtn" class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="bi bi-x-lg me-1"></i>
+                            <span class="label-lang"
+                                  data-de="Verwerfen"
+                                  data-en="Discard"
+                                  data-esp="Descartar"
+                                  data-prt="Descartar"
+                                  data-id="Buang"
+                                  data-nl="Verwerpen"
+                                  data-sv="Förkasta"
+                                  data-da="Kassér"
+                                  data-no="Forkast"
+                                  data-ms="Buang">Verwerfen</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <section class="creator-card mb-3" data-theme="gold" id="card-basics">
@@ -256,8 +299,30 @@
                                      data-ingredient-id="@item.Id"
                                      data-name-de="@item.Name_DE"
                                      data-name-en="@item.Name_EN"
+                                     data-name-esp="@item.Name_ESP"
+                                     data-name-prt="@item.Name_PRT"
+                                     data-name-id="@item.Name_ID"
+                                     data-name-nl="@item.Name_NL"
+                                     data-name-sv="@item.Name_SE"
+                                     data-name-da="@item.Name_DK"
+                                     data-name-no="@item.Name_NO"
+                                     data-name-ms="@item.Name_MS"
                                      data-genus-de="@item.Genus_DE"
+                                     data-genus-en="@item.Genus_EN"
+                                     data-genus-esp="@item.Genus_ESP"
+                                     data-genus-prt="@item.Genus_PRT"
+                                     data-genus-id="@item.Genus_ID"
+                                     data-genus-nl="@item.Genus_NL"
+                                     data-genus-sv="@item.Genus_SE"
+                                     data-genus-da="@item.Genus_DK"
+                                     data-genus-no="@item.Genus_NO"
+                                     data-genus-ms="@item.Genus_MS"
+                                     data-group-id="@item.GroupId"
                                      data-group-icon="@(item.Icon ?? item.Group?.Icon)"
+                                     data-is-liquid="@item.is_liquid.ToString().ToLower()"
+                                     data-is-fat="@item.is_fat.ToString().ToLower()"
+                                     data-is-hard="@item.is_hard.ToString().ToLower()"
+                                     data-is-soft="@item.is_soft.ToString().ToLower()"
                                      data-selected-qty="1"
                                      data-theme="gold"
                                      data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metrics_DE ?? "")">
@@ -2595,6 +2660,27 @@
             background: #182235;
             color: #fff;
         }
+
+        /* ---------- Draft-Restore Banner ---------- */
+        .draft-restore-banner {
+            background: rgba(40, 167, 69, 0.12);
+            border: 1px solid rgba(40, 167, 69, 0.35);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+        .draft-restore-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .draft-restore-text {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--creator-text, #f8f9ff);
+        }
 </style>
 
 
@@ -2662,6 +2748,12 @@
     </div>
     <div id="probVarOptionsArea" class="d-none">
         <div id="probVarOptionChips" class="d-flex flex-wrap gap-2"></div>
+    </div>
+    <div id="probVarPronounStateArea" class="d-none">
+        <div class="small text-white-50 mb-2">Pronomen</div>
+        <div id="probVarPronounChips" class="d-flex flex-wrap gap-2 mb-3"></div>
+        <div class="small text-white-50 mb-2">Zustand</div>
+        <div id="probVarStateChips" class="d-flex flex-wrap gap-2"></div>
     </div>
     <div class="d-flex gap-2 mt-3" id="probVarApplyRow">
         <button type="button" id="btnApplyProbVar" class="btn btn-sm creator-cta-primary flex-grow-1">

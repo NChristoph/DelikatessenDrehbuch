@@ -325,6 +325,10 @@ SelectedKeywordIds[i] → int
       <!-- Suche:               #ingredientSearch -->
       <!-- Katalog:             #ingredientsCatalog (height: 50vh) -->
       <!--   DB-Rows:           .preview-step-card.ingredient-db-row -->
+      <!--     data-Attribute:  data-ingredient-id, data-name-{lang}, data-genus-{lang},
+                                data-group-id, data-group-icon,
+                                data-is-liquid, data-is-fat, data-is-hard, data-is-soft,
+                                data-selected-qty, data-selected-unit -->
       <!--   Menge/Einheit:     .js-db-qty, .js-db-unit -->
       <!-- Ausgewählt:          #selectedIngredients (Drop-Zone) -->
       <!-- Vorschläge:          #selectedIngredientsSuggestions -->
@@ -474,15 +478,35 @@ Definiert in `_SmartStepCreatorPartial.cshtml` (Zeilen 1–477).
 | `.ingredient-chip` | 288 | Border 1px solid, border-radius 14px, padding 8px 12px, 0.82rem |
 | `.ingredient-chip.active` | 301 | Scale 1.06, lila box-shadow, lila background |
 | `.ingredient-chip.fraction-remainder` | 307 | Dashed border, orange Farbe rgba(255,180,50,0.6) |
+| `.ingredient-chip.ingredient-chip-dimmed` | 313 | Opacity 0.4, grayscale(0.5), order 99 — nicht-passende Zutaten bei gefilterter Anzeige |
+| `.ingredient-chip-divider` | 319 | Trennlinie (1px) zwischen passenden und restlichen Zutat-Chips |
 | `.chip-icon` | (inline) | Icon-Container innerhalb des Chips |
 
-#### Fraction-Picker (neu)
+#### Auto-Show Sub-Zutaten (CreatePosting.cshtml)
+
+| Klasse | Beschreibung |
+|--------|-------------|
+| `.ingredient-row.ingredient-optional-sub` | Optionale Sub-Zutat (z.B. Eiklar/Eigelb bei Ei). Dashed lila border, eingerückt (padding-left 28px), opacity 0.82, ↳ Prefix |
+
+#### Fraction-Picker (deprecated)
 
 | Klasse | Zeile | Eigenschaft |
 |--------|-------|-------------|
-| `.fraction-picker-row` | 311 | Border-top 1px solid, padding-top 8px, margin-top 6px |
-| `.fraction-pick` | 316 | Font-size 0.78rem, padding 4px 10px, border-radius 12px |
-| `.fraction-pick.active` | 323 | Lila border/shadow/background |
+| `.fraction-picker-row` | 311 | ⚠️ **DEPRECATED** - Border-top 1px solid, padding-top 8px, margin-top 6px |
+| `.fraction-pick` | 316 | ⚠️ **DEPRECATED** - Font-size 0.78rem, padding 4px 10px, border-radius 12px |
+| `.fraction-pick.active` | 323 | ⚠️ **DEPRECATED** - Lila border/shadow/background |
+
+#### Multi-Ingredient Plus-Button & Chip States (NEU - StyleSheet.css ~726-740)
+
+| Klasse | Zeile | Eigenschaft |
+|--------|-------|-------------|
+| `.ingredient-plus-btn` | 726 | Plus-Button im Step: inline-flex, border-radius 50%, width/height 26px, padding 0, font-size 1.1rem, font-weight 600, transition 0.2s |
+| `.ingredient-plus-btn:hover` | 734 | Hover: transform scale(1.1), box-shadow 0 2px 6px grün |
+| `.ingredient-chip-disabled` | 738 | Deaktivierter Chip (bereits ausgewählt): opacity 0.4, cursor not-allowed, pointer-events none, filter grayscale(0.7) |
+
+**Funktion:**
+- **Plus-Button:** Erscheint im Step neben Token `{{ingredient}} [+] [↻]` wenn Zutat einen Wert hat. Öffnet Editor wenn geschlossen, fügt Zutat hinzu wenn Editor offen ist
+- **Disabled Chips:** Zutaten, die bereits zur Multi-Ingredient-Liste hinzugefügt wurden, werden automatisch ausgegraut und deaktiviert
 
 #### Buttons & CTA
 
@@ -546,6 +570,18 @@ Enthält Master-Step-Templates mit Variablen-Platzhaltern.
 **Variablen-Syntax:** `{{variable_name}}` z.B. `{{ingredient}}`, `{{duration}}`, `{{temp}}`
 **Optionale Segmente:** `[optional text {{variable}}]` — wird ausgeblendet wenn Variable leer
 
+**Reihenfolge der PREP-Steps (bestimmt Anzeige im Smart Step Creator):**
+1. PREP_HEAT_01 (Vorheizen) — equipment_prep
+2. PREP_WASH_01 (Waschen) — ingredient_prep
+3. PREP_PEEL_01 (Schälen) — ingredient_prep, `[mit einem {{tool}}]` optional
+4. PREP_CUT_01, PREP_GRATE_01, PREP_MINCE_01 — ingredient_prep
+5. PREP_MARINATE_01, PREP_SOAK_01 — marinating
+6. Mixing, Dough, Coating Steps...
+
+**Wichtige Template-Änderungen:**
+- PREP_PEEL_01: Tool-Teil optional — `Schäle {{ingredient}}[ mit einem {{tool}}].`
+- PREP_STUFF_01: Variablen getauscht — `Fülle {{ingredient}} gleichmäßig mit {{base}} und setze {{pronoun}} in {{equipment}}.`
+
 ### master_step_variables.json
 Variablen-Katalog mit Optionen pro Variable.
 
@@ -558,6 +594,7 @@ Variablen-Katalog mit Optionen pro Variable.
     "state":    { "options": [{ "key": "fein","labels": {...}, "tags": [...] }] },
     "heat":     { "options": [{ "key": "mittlere", ... }] },
     "shape":    { "options": [{ "key": "würfel",   ... }] },
+    "equipment": { "options": [pfanne, topf, backofen, bräter, kochfeld, mixer, grill, dampfgarer, schüssel, sieb, backform, auflaufform] },
     "ingredient_fractions": {
       "options": [
         { "key": "1/2", "numerator": 1, "denominator": 2,
@@ -570,6 +607,8 @@ Variablen-Katalog mit Optionen pro Variable.
   }
 }
 ```
+
+**Equipment-Optionen:** Jede Option hat `labels` (10 Sprachen) und `tags` für kontextbasierte Filterung im Smart Step Creator (z.B. `technique:bake`, `heat:dry`).
 
 ### ingredient_transforms.json
 Definiert wie Zutaten nach bestimmten Steps transformiert werden.
@@ -772,6 +811,10 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 - `>= 35%` → Primär (blau)
 - `< 35%` → Niedrig
 
+**CSS-Klassen:**
+- `.probability-template-wrap.editing` → Lila Glow-Effekt auf Card wenn Inline-Editor offen (border-color + box-shadow + background)
+- `.probability-template-card` → Card-Container mit Transition für border/shadow/background
+
 ---
 
 ## 18. JS-Datei: ingredientmanager.js
@@ -835,15 +878,62 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 
 `ingredient`, `ingredient2`, `ingredients`, `state`, `equipment`, `tool`, `duration`, `temp`, `shape`, `grind_size`, `pronoun`, `pronoun2`, `action`, `liquid`, `fat`, `base`, `marinade`, `method`, `finish`, `seasonings`, `thickener`, `count`, `mode`, `components`, `dough`, `surface`, `heat`, `extra`, `item`, `position`, `reason`, `goal`, `balance`, `keep`
 
-#### Fraction-Helpers (NEU, Zeile 97–190)
+#### Fraction-Helpers (Zeile 95–189)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `getFractionOptions()` | 97 | Bruch-Optionen aus JSON lesen, lokalisiert zurückgeben |
-| `composeFractionText(fractionDef, ingredientName, article)` | 112 | z.B. `"die Hälfte der Zwiebel"` erzeugen (Artikel optional zwischen Fraction und Zutat) |
-| `findMatchingFractionOption(num, den, opts)` | 117 | Passende Fraction-Option finden |
-| `getRemainderChipsFromAcceptedSteps()` | 123 | Akzeptierte Steps scannen, Rest-Chips berechnen |
-| `renderFractionPickerHtml(fractionOptions)` | 176 | Fraction-Picker UI rendern |
+| `getFractionOptions()` | 95 | Bruch-Optionen aus JSON lesen, lokalisiert zurückgeben (Optionen: 1/2, 1/3, 2/3, 1/4, 3/4) |
+| `composeFractionText(fractionDef, ingredientName, article)` | 112 | **UPDATED:** Erzeugt Fraktion-Text mit automatischer Genitiv-Konvertierung. Wandelt Nominativ-Artikel automatisch zu Genitiv um: "der"→"des", "die"→"der", "das"→"des". Beispiel: `"die Hälfte des Zuckers"` |
+| `findMatchingFractionOption(num, den, opts)` | 127 | Passende Fraction-Option finden |
+| `getRemainderChipsFromAcceptedSteps()` | 133 | Akzeptierte Steps scannen, Rest-Chips berechnen. **UPDATED:** Unterstützt jetzt Array-Format für _fractionData (backward compatible mit alten single-object Format) |
+| `renderFractionPickerHtml(fractionOptions)` | 184 | **RESTORED:** Rendert Fraktions-Auswahl-Chips (Ganzes, 1/2, 1/3, 2/3, 1/4, 3/4) unter "Menge"-Überschrift |
+
+#### Ingredient-Helpers (Zeile 1267–1293)
+
+| Funktion | Zeile | Beschreibung |
+|----------|-------|-------------|
+| `getIngredientName(item)` | 1267 | Extrahiert Namen aus Zutat-Objekt oder String |
+| `getIngredientFraction(item)` | 1271 | Extrahiert Fraction-Key aus Zutat-Objekt |
+| `normalizeIngredientValues(values)` | 1275 | **UPDATED:** Normalisiert Zutat-Array zu `{name, fraction, article}` Format. Unterstützt backward compatibility mit String-Arrays und `{name, fraction}` Objekten |
+
+#### Multi-Ingredient Workflow mit Plus-Button (NEU)
+
+**Pattern:** Schrittweises Hinzufügen von Zutaten mit individuellen Fraktionen und Artikeln. Plus-Button erscheint **im Step selbst** (neben Token).
+
+**Datenstruktur:**
+```javascript
+activeStep._multiIngredients = [
+  { name: "Zucker", fraction: "1/2", article: "des" },
+  { name: "Butter", fraction: "1/3", article: "der" }
+]
+```
+
+**UI-Struktur:**
+- **Editor:** Artikel oben, Zutat-Chips mittig, Fraktions-Chips unten, nur "Einsetzen" & "Schließen"
+- **Editor-Boden:** Bereits hinzugefügte Zutaten als Bootstrap badge chips (blau) mit X-Button zum Entfernen
+- **Step:** `{{ingredient}} [+] [↻]` - Plus-Button erscheint neben Token wenn Zutat einen Wert hat
+- **Bereits ausgewählte Zutaten:** Werden automatisch ausgegraut/deaktiviert (`.ingredient-chip-disabled`)
+
+**Workflow:**
+1. User klickt Token → Editor öffnet
+2. User wählt Artikel (z.B. "des"), Zutat (z.B. "Zucker"), Fraktion (z.B. "1/2")
+3. User klickt "Einsetzen" → Editor schließt
+4. **Plus-Button [+] erscheint im Step** neben Token: `die Hälfte des Zuckers [+] [↻]`
+5. User klickt **[+] im Step** → Editor öffnet wieder
+6. "Zucker"-Chip ist jetzt ausgegraut (bereits verwendet)
+7. Am Boden des Editors: Chip "die Hälfte des Zuckers" mit X-Button
+8. User wählt weitere Zutat (z.B. "ein Drittel der Butter")
+9. User klickt **[+] im Step** → Zutat wird hinzugefügt
+10. Step zeigt: `die Hälfte des Zuckers und ein Drittel der Butter [+] [↻]`
+11. Am Boden des Editors: Zwei Chips, jede mit X-Button zum Entfernen
+12. User kann weitere Zutat hinzufügen oder "Einsetzen" klicken → Editor schließt, finaler Text eingefügt
+
+**Genitiv-Konvertierung:**
+Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
+- "der" (mask) → "des" → "die Hälfte **des** Zuckers"
+- "die" (fem) → "der" → "die Hälfte **der** Butter"
+- "das" (neut) → "des" → "die Hälfte **des** Mehls"
+- "des" bleibt "des" (bereits Genitiv)
 
 #### Variablen-Lookup
 
@@ -871,8 +961,8 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 | `getRankedVarOptionEntries(varName, ...)` | 382 | Gerankte Optionen |
 | `getRawVarOptions(varName, ...)` | 505 | Rohe Optionsliste |
 | `getVarOptions(varName, ...)` | 510 | Verarbeitete Optionsliste |
-| `getArticleOptions()` | 515 | Artikel-Optionen |
-| `getDurationUnits()` | 521 | Dauer-Einheiten |
+| `getArticleOptions()` | 526 | **UPDATED:** Artikel-Optionen aus Katalog, fügt automatisch "des" (Genitiv) hinzu falls nicht vorhanden. Standard: ["ohne", "der", "die", "das", "des"] |
+| `getDurationUnits()` | 532 | Dauer-Einheiten |
 
 #### Template-Rendering
 
@@ -913,17 +1003,19 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 | `getSpecialTransformChipsForStep(masterId)` | 1084 | Spezial-Transform-Chips holen |
 | `hasMatchingIngredientForTransform(items, t)` | 1101 | Prüft ob Zutat zum Transform passt |
 | `getDerivedChipsFromAcceptedSteps()` | 1110 | Abgeleitete Chips aus akzeptierten Steps |
-| `getSelectedIngredientsFromPage()` | 1139 | ALLE ausgewählten Zutaten (inkl. Remainder) |
-| `parseSelectedIngredientValues(rawValue, options)` | 1193 | Zutat-Werte parsen |
-| `formatSelectedIngredientList(names, langKey)` | 1216 | Zutaten-Liste formatieren ("X und Y") |
+| `getSelectedIngredientsFromPage()` | 1139 | ALLE ausgewählten Zutaten (inkl. Remainder, Genus-Daten für Auto-Artikel) |
+| `parseSelectedIngredientValues(rawValue, options)` | 1193 | Zutat-Werte parsen (backward compatible) |
+| `formatSelectedIngredientList(names, langKey)` | 1296 | **UPDATED:** Zutaten-Liste formatieren ("X und Y"). Unterstützt per-ingredient articles: Verwendet `item.article` wenn gesetzt, sonst auto-detect aus genus. Rendert Fraktionen mit individuellen Artikeln (z.B. "die Hälfte des Mehls und zwei Drittel der Butter"). Backward compatible mit String-Arrays |
 
 #### Variablen-Typ-Prüfung
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `isIngredientVariable(varName)` | 1050 | Prüft: ingredient, ingredient2, ingredients, liquid, fat |
+| `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** base, dough (zeigen Options-Chips). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
+| `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
+| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft. Fallback auf alle Items wenn keine Matches |
 | `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
-| `isNoArticleVariable(varName)` | 1060 | Prüft: ingredients, seasonings, components |
+| `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
 | `isStateVariable(varName)` | 1064 | Prüft: state |
 | `isCompactSpecialVariable(varName)` | 1071 | Prüft: duration, temp, count |
 
@@ -936,7 +1028,7 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 | `openInlineEditor(varName, tokenId)` | 1229 | Editor öffnen (Haupt-Funktion!) |
 | `renderPillButtons(list, mode, currentVal)` | 1344 | Pill-Buttons rendern |
 | `renderFallbackSection(varName, options, ...)` | 1327 | "Weitere anzeigen"-Bereich |
-| `renderSpecialEditor(varName, currentVal)` | 1362 | Spezial-Editor (duration/temp/count) |
+| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). Duration-Editor hat Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`). Parst Range-Werte wie "8-10" beim Öffnen. Output: "8-10 Minuten" wenn Bis-Feld gefüllt, sonst "10 Minuten". State-Editor zeigt Pronomen immer oben (wie Artikel), auch bei separatem `{{pronoun}}`-Token |
 
 #### Wert-Anwendung
 
@@ -1009,6 +1101,7 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 | `startCreatePostingFresh()` | 122 | Neu starten (Draft löschen + Reload) |
 | `hasMeaningfulCreatePostingDraft(draft)` | 129 | Prüft ob Draft Inhalt hat |
 | `restoreCreatePostingDraft()` | 144 | Draft wiederherstellen |
+| `showDraftRestoreBannerIfNeeded()` | 178 | Zeigt Draft-Restore-Banner wenn Draft vorhanden |
 
 ### Maßeinheiten (Zeile 208–260)
 
@@ -1033,10 +1126,10 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `renderProbVarIngredientArticleOptions()` | 329 | Artikel-Auswahl-Chips rendern |
-| `openProbVarEditor(masterId, varKey, ...)` | 353 | Variablen-Editor-Modal öffnen |
+| `openProbVarEditor(masterId, varKey, ...)` | 353 | Variablen-Editor-Modal öffnen. Speichert `probVarEditorCurrentVarKey` für Zutatenfilterung (liquid→nur isLiquid, fat→nur isFat, components→alle) |
 | `closeProbVarEditor()` | 442 | Editor schließen |
 | `applyProbVarEditor()` | 452 | Ausgewählten Wert anwenden |
-| `openProbVarInlineEditor(masterId, varKey, ...)` | 486 | Inline-Editor in Card öffnen |
+| `openProbVarInlineEditor(masterId, varKey, ...)` | 486 | Inline-Editor in Card öffnen. Setzt `.editing` auf `.probability-template-wrap` (Glow-Effekt) |
 
 ### Zutaten-Laden & Grammatik (Zeile 654–764)
 
@@ -1058,21 +1151,22 @@ Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `getBaseSandboxIngredients()` | 767 | Basis-Zutaten (nicht abgeleitet) |
+| `getBaseSandboxIngredients()` | 767 | Basis-Zutaten (nicht abgeleitet). Liefert `namesByLang`, `genusByLang`, `groupId`, `isLiquid`, `isFat`, `isHard`, `isSoft` |
 | `buildDerivedIngredientName(base, adjective)` | 810 | Abgeleitete Adjektiv-Form erstellen |
 | `getStepVariableDisplayValue(step, varName)` | 829 | Variablenwert aus Step-Metadaten |
 | `resolveCutTransformationType(step)` | 835 | Schnitt-Form aus Step-Variablen erkennen |
+| `matchesWholeWord(name, term)` | ~926 | Wortgrenzen-Match per Regex. Verhindert false-positives z.B. "ei" in "Rindfleisch" |
 | `matchSandboxItemsByStep(items, step)` | 849 | Zutaten zu Step-Variablen zuordnen |
 | `buildSpecialTransformItems(step)` | 877 | Spezial-Transform-Outputs erstellen |
 | `collectSelectedStepDerivationDescriptors()` | 893 | Alle Step-Transform-Descriptors sammeln |
-| `deriveIngredientsForSteps(baseItems, ...)` | 911 | Abgeleitete Zutaten generieren |
+| `deriveIngredientsForSteps(baseItems, ...)` | 937 | Abgeleitete Zutaten generieren. Nutzt `matchesWholeWord()` für Wortgrenzen-Matching. **Reihenfolge:** 1) auto_show-Transforms VOR descriptor-Loop (z.B. Ei → Eiklar/Eigelb), damit Sub-Zutaten für nachfolgende trigger_step-Transforms verfügbar sind (z.B. Eiklar → Eischnee). 2) Special transforms: Outputs werden nur EINMAL pro Transform generiert (nicht pro matchendem Target), alle matchenden Targets werden aber entfernt. 3) Adjective transforms. |
 | `deriveSandboxIngredients()` | 998 | Wrapper für Zutat-Derivation |
 | `getSelectedIngredientsForSandbox(langKey)` | 1005 | Ausgewählte Zutaten für Sandbox |
 | `localizeIngredientValueForSandbox(value, langKey, ...)` | 1020 | Zutat-Wert lokalisieren |
 | `findCatalogIngredientRowByNames(names)` | 1047 | Zutat-Zeile per Name finden |
 | `setIngredientRowDisabled(row, disabled)` | 1063 | Zutat-Zeile deaktivieren/aktivieren |
 | `buildDerivedIngredientRowHtml(item)` | 1067 | HTML für abgeleitete Zutat-Zeile |
-| `applyDerivedIngredientRowVisuals()` | 1119 | Alle abgeleiteten Zutat-Rows aktualisieren |
+| `applyDerivedIngredientRowVisuals()` | 1119 | Alle abgeleiteten Zutat-Rows aktualisieren. Auto-show-Items erhalten `.ingredient-optional-sub` CSS-Klasse (gestrichelte lila Umrandung, eingerückt, ↳ Prefix) |
 
 ### Theme-Management (Zeile 1186–1291)
 
@@ -1110,7 +1204,7 @@ window.setCreatePostingTheme(theme)   // Zeile 1284
 | `syncGrammarAssignmentsForSelectedIngredient()` | 1518 | Genus über alle Zuweisungen synchronisieren |
 | `getEffectiveTemplateId()` | 1540 | Aktive Template-ID |
 | `normalizePlaceholderKey(key)` | 1544 | Variable normalisieren |
-| `getPlaceholderType(key)` | 1567 | Variablen-Typ bestimmen |
+| `getPlaceholderType(key)` | 1567 | Variablen-Typ bestimmen via `placeholderTypeMatchers`: ingredient (ingredient, ingredients, liquid, fat, components), duration, count, pronoun, temperature |
 | `getJsonVariableOptions(varName)` | 1573 | Optionsliste aus JSON |
 | `getFirstJsonVariableOption(varName)` | 1588 | Erste gültige Option |
 | `getPlaceholderKeyByTokenId(tokenId)` | 1635 | Reverse-Lookup: tokenId → Variable |
@@ -1238,8 +1332,8 @@ renderInlineXxxOptions()        → rendert Inline-Buttons
 | `normalizeDecimalInputValue(input)` | 3047 | Dezimal normalisieren (,→.) |
 | `sanitizeQuantityInputValue(input)` | 3052 | Nicht-numerisch entfernen |
 | `escapeAttr(value)` | 3070 | HTML-Attribut escapen |
-| `getLocalizedIngredientData(row)` | 3074 | Zutat-Daten lokalisiert |
-| `buildIngredientDataAttributes(data)` | 3084 | Data-Attribute aus lokalen Daten |
+| `getLocalizedIngredientData(row)` | 3074 | Zutat-Daten lokalisiert (names, genus, groupId, isLiquid, isFat, isHard, isSoft) |
+| `buildIngredientDataAttributes(data)` | 3084 | Data-Attribute aus lokalen Daten (inkl. data-group-id, data-is-liquid, data-is-fat, data-is-hard, data-is-soft) |
 | `buildIngredientRowHtml(name, icon, ...)` | 3090 | Zutat-Zeile HTML generieren |
 
 ### Zutat-Verwaltung (Zeile 3112–3388)
@@ -1423,7 +1517,8 @@ window.MasterStepCreatorHelpers = {
 
 | Event | Selektor | Zeile | Beschreibung |
 |-------|----------|-------|-------------|
-| click | `#clearCreatePostingDraftBtn` | ~3954 | Draft löschen |
+| click | `#restoreDraftBtn` | ~4012 | Draft wiederherstellen, Banner ausblenden |
+| click | `#discardDraftBtn` | ~4015 | Draft löschen, Banner ausblenden |
 | input/change | `#recipeForm input, textarea, select` | ~3957 | Auto-Save triggern |
 | submit | `#recipeForm` | ~3960 | Form absenden |
 | pagehide/beforeunload | `window` | ~3963 | Draft speichern bei Verlassen |
@@ -1465,17 +1560,33 @@ window.MasterStepCreatorHelpers = {
 | click | `.js-toggle-fallback-options` | 1828 | "Weitere anzeigen" toggle |
 | click | `#btnAcceptStep` | 1840 | Step akzeptieren → `acceptActiveStep()` |
 | click | `#BtnCloseVar, #BtnCloseVarTop` | 1846 | Editor schließen |
-| click | `#BtnApplyVar` | 1852 | Wert einsetzen → `applyCurrentEditorSelection()` |
-| click | `[data-pick-mode="fraction"]` | 1866 | **Fraction wählen** |
-| click | `[data-pick-mode="ingredient-value"]` | 1880 | Zutat-Chip togglen + Fraction-Picker Show/Hide |
-| click | `[data-pick-mode="article"]` | 1922 | Artikel wählen |
+| click | `#BtnApplyVar` | ~2300 | Wert einsetzen → `applyCurrentEditorSelection()` |
+| click | `[data-pick-mode="fraction"]` | ~2314 | **Fraction wählen** (alte Picker-Logik, deprecated) |
+| click | `[data-pick-mode="article"]` | ~2380 | Artikel wählen (nicht für ingredient-vars) |
 | click | `[data-pick-mode="pronoun"]` | 1922 | Pronomen wählen |
 | click | `[data-pick-mode="value"]` | 1922 | Wert wählen |
 | click | `[data-duration-unit]` | 1930 | Dauer-Einheit wählen |
 | click | `#BtnPickDurationQuick` | 1947 | Dauer schnell einsetzen |
 | click | `#BtnPickCountQuick` | 1969 | Count schnell einsetzen |
-| click | `#BtnPickTempQuick` | 1977 | Temperatur schnell einsetzen |
-| change | `#LangSelect` | 1988 | Sprache wechseln |
+| click | `#BtnPickTempQuick` | ~2750 | Temperatur schnell einsetzen |
+| change | `#LangSelect` | ~2770 | Sprache wechseln |
+
+### Multi-Ingredient Plus-Button (NEU)
+
+| Event | Selektor | Zeile (SmartStepCreator.js) | Beschreibung |
+|-------|----------|----------------------------|-------------|
+| click | `.ingredient-plus-btn` | ~2229 | **Plus-Button im Step**: (1) Wenn Editor geschlossen → öffnet Editor. (2) Wenn Editor offen → fügt aktuell ausgewählte Zutat (Artikel + Fraktion) zur `_multiIngredients`-Liste hinzu und rendert Editor neu. Erscheint wenn Ingredient-Variable einen Wert hat |
+| click | `[data-remove-multi-ingredient]` | ~2284 | **Remove-Chip im Editor**: Entfernt Zutat an Index aus `_multiIngredients`-Array, aktualisiert Preview-Text, rendert Step und Editor neu |
+| click | `[data-pick-mode="fraction"]` | ~2360 | **Fraktions-Chip**: Wählt Fraktion (Ganzes, 1/2, 1/3, 2/3, 1/4, 3/4) aus, setzt `dataset.selectedFraction` |
+
+**Workflow-Logik:**
+- **activeStep._multiIngredients**: Array `[{name, fraction, article}, ...]` speichert hinzugefügte Zutaten
+- **dataset.selectedIngredientValues**: Aktuell ausgewählte Chips (für nächstes Hinzufügen)
+- **dataset.selectedArticle**: Aktuell ausgewählter Artikel (z.B. "des", "der")
+- **dataset.selectedFraction**: Aktuell ausgewählte Fraktion (z.B. "1/2")
+- **Plus-Button Anzeige**: `isIngredient && val.trim().length > 0` (wenn Ingredient-Variable Wert hat)
+- **Chip-Deaktivierung**: Chips in `_multiIngredients` bekommen `.ingredient-chip-disabled` Klasse
+- **Removable Chips**: Am Boden des Editors werden bereits hinzugefügte Zutaten als Bootstrap badge chips mit X-Button angezeigt
 
 ### Probability Inline-Editor
 
@@ -1673,6 +1784,39 @@ Step 5: Nächster Step
     → Chip hat CSS-Klasse: .ingredient-chip.fraction-remainder (dashed border)
 ```
 
+### Zutat-Chip-Filterung nach Variable-Typ
+
+```
+Wenn User einen Platzhalter anklickt (z.B. {{liquid}}, {{fat}}, {{seasonings}}):
+
+1. openInlineEditor() oder buildInlineEditorHtml()
+2. → getSelectedIngredientsFromPage()
+   → alle Zutaten mit isLiquid, isFat, isHard, isSoft, groupId
+3. → filterIngredientsByVarType(items, varName)
+   → Mapping:
+      {{liquid}}    → item.isLiquid === true
+      {{fat}}       → item.isFat === true
+      {{seasonings}}→ item.groupId === "5" (Gewürze)
+      {{base}} / {{dough}} / {{thickener}} → item.groupId === "8" (Grundnahrungsmittel)
+      {{ingredient}} / {{ingredients}} → kein Filter (alle)
+   → Rückgabe: { filtered: [...passend], rest: [...nicht passend] }
+
+4. Passende Chips: normal dargestellt
+5. Restliche Chips: nach Trennlinie (.ingredient-chip-divider), gedimmt (.ingredient-chip-dimmed)
+6. Wenn KEINE passende Zutat gefunden → Fallback: alle Zutaten normal anzeigen
+
+Datenquelle (data-* Attribute auf .ingredient-db-row):
+  data-is-liquid="true/false"   ← DB: is_liquid (bool)
+  data-is-fat="true/false"      ← DB: is_fat (bool)
+  data-is-hard="true/false"     ← DB: is_hard (bool)
+  data-is-soft="true/false"     ← DB: is_soft (bool)
+  data-group-id="1-9"           ← DB: GroupId (FK → Group)
+
+Gruppen-IDs: 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst,
+             5=Gewürze, 6=Fisch, 7=Sonstiges, 8=Grundnahrungsmittel,
+             9=Nüsse/Samen/Hülsenfrüchte
+```
+
 ---
 
 ## 26. Initialisierungs-Sequenz
@@ -1713,10 +1857,13 @@ Step 5: Nächster Step
    ├→ loadIngredientArticleRules()
    ├→ loadIngredientTransforms()
    ├→ Alle Event-Listener binden
-   ├→ consumeCreatePostingDraftResetFlag()
-   │   └→ Falls Flag: clearCreatePostingDraft()
-   ├→ hasMeaningfulCreatePostingDraft()
-   │   └→ Falls ja: restoreCreatePostingDraft()
+   ├→ showDraftRestoreBannerIfNeeded()
+   │   ├→ consumeCreatePostingDraftResetFlag()
+   │   │   └→ Falls Flag: clearCreatePostingDraft()
+   │   ├→ hasMeaningfulCreatePostingDraft()
+   │   │   └→ Falls ja: Banner #draftRestoreBanner einblenden
+   │   └→ User klickt "Wiederherstellen" → restoreCreatePostingDraft()
+   │       oder "Verwerfen" → clearCreatePostingDraft()
    └→ updateLanguageLabels()
 ```
 
@@ -1725,3 +1872,610 @@ Step 5: Nächster Step
 > **Externe Abhängigkeiten:** jQuery, Bootstrap 5, Bootstrap Icons
 > **Unterstützte Sprachen:** DE, EN, ESP, PRT, ID, NL, SV, DA, NO, MS (10 Sprachen)
 > **Tech-Stack:** ASP.NET Core 8.0 MVC · C# · JavaScript (Vanilla + jQuery) · CSS3
+
+---
+
+## 27. Changelog
+
+### 2026-03-27 — Ingredient-Filter & Variable-Updates
+
+#### JavaScript-Änderungen
+
+**CreatePostingSmartStepCreator.js & CreatePostingPage.js:**
+- ✅ **Neue Ingredient-Filter hinzugefügt:**
+  - `{{liquid}}` → filtert nur Zutaten mit `is_liquid = true`
+  - `{{fat}}` → filtert nur Zutaten mit `is_fat = true`
+  - `{{hard}}` → filtert nur Zutaten mit `is_hard = true`
+  - `{{soft}}` → filtert nur Zutaten mit `is_soft = true`
+
+- ✅ **Step-spezifischer Filter:**
+  - `{{ingredient}}` bei `PREP_TENDERIZE_01` (Klopfen/Plattieren) → nur `is_hard = true`
+  - Betrifft: Fleisch, Schnitzel, etc. die geklopft werden können
+
+- ✅ **Fallback entfernt:**
+  - Zeigt nun leere Liste bei 0 Filter-Treffern (statt alle Zutaten anzuzeigen)
+  - Verhindert irrelevante Zutaten-Vorschläge
+
+**CreatePostingPage.js — Pronomen+State UI:**
+- ✅ **Kombiniertes Pop-up für Pronomen & State:**
+  - Neue Funktion: Zeigt Pronomen UND State in einem Pop-up (wie Artikel+Ingredient)
+  - **Layout:** OBEN = Pronomen-Chips | UNTEN = State-Chips
+  - Event-Handler: `.js-prob-pronoun-chip` und `.js-prob-state-chip`
+  - Logik in `openProbVarEditor()` erweitert (Zeile ~416-458)
+
+#### JSON-Daten-Änderungen
+
+**master_steps.json:**
+- ✅ **PREP_TENDERIZE_01** (Klopfen/Plattieren):
+  - Variable geändert: `{{base}}` → `{{ingredient}}`
+  - Betrifft alle 10 Sprachen (DE, EN, ESP, PRT, ID, NL, SV, DA, NO, MS)
+
+- ✅ **PREP_WRAP_01** (Einwickeln/Einrollen):
+  - Variable geändert: `{{filling}}` → `{{basis}}`
+  - Betrifft alle 10 Sprachen
+
+- ✅ **COOK_CARAMELIZE_01** (Karamellisieren):
+  - Variable **entfernt:** `{{heat}}`
+  - Template vereinfacht: "bei {heat}er Hitze" → entfernt
+  - Betrifft alle 10 Sprachen
+
+- ✅ **COOK_FLAMBE_01** (Flambieren):
+  - Variable geändert: `{{spirit}}` → `{{liquid}}`
+  - Betrifft alle 10 Sprachen
+
+- ✅ **PREP_KNEAD_DOUGH_01** (Teig kneten):
+  - Variablen-Reihenfolge korrigiert: `pronoun` nun VOR `state` (grammatikalisch korrekt)
+
+**master_step_variables.json:**
+- ✅ **Tool-Variable erweitert:**
+  - Neue Option: `fleischklopfer` (🔨 Fleischklopfer)
+  - Labels in 10 Sprachen:
+    - DE: Fleischklopfer | EN: meat tenderizer | ESP: mazo de carne
+    - PRT: batedor de carne | ID: pemukul daging | NL: vleeshamer
+    - SV: köttklubba | DA: kødbanker | NO: kjøttbanker | MS: pengetuk daging
+  - Tags: `tool:tenderizer`, `technique:tenderize`, `pound`, `klopfen`
+
+- ✅ **Liquid-Variable NEU erstellt (Hybrid-Modus):**
+  - 6 Optionen mit Icons in 10 Sprachen:
+    - 💧 Wasser (water, agua, água, air, vatten, vand, vann)
+    - 🍲 Brühe (broth, caldo, kaldu, bouillon, buljong, sup pekat)
+    - 🥛 Milch (milk, leche, leite, susu, mjölk, mælk, melk)
+    - 🥛 Sahne (cream, nata, creme, krim, grädde, fløde, fløte)
+    - 🍷 Wein (wine, vino, vinho, anggur, vin, wain)
+    - 🫒 Öl (oil, aceite, óleo, minyak, olje, olie)
+  - Hybrid-Logik: Zeigt ausgewählte Zutaten mit `is_liquid=true` PLUS diese 6 Preset-Optionen
+
+#### HTML-Struktur-Änderungen
+
+**CreatePosting.cshtml:**
+- ✅ **Neuer Pop-up-Bereich hinzugefügt:**
+  ```html
+  <div id="probVarPronounStateArea" class="d-none">
+      <div class="small text-white-50 mb-2">Pronomen</div>
+      <div id="probVarPronounChips" class="d-flex flex-wrap gap-2 mb-3"></div>
+      <div class="small text-white-50 mb-2">Zustand</div>
+      <div id="probVarStateChips" class="d-flex flex-wrap gap-2"></div>
+  </div>
+  ```
+  - Ermöglicht getrennte Anzeige von Pronomen (oben) und State (unten)
+  - Ähnlich dem Artikel+Ingredient-Layout
+
+#### Betroffene Funktionen
+
+**CreatePostingSmartStepCreator.js:**
+- `filterIngredientsByVarType()` — Filter erweitert (hard, soft)
+- Fallback-Logik entfernt (Zeile ~1088-1089)
+
+**CreatePostingPage.js:**
+- `openProbVarEditor()` — Pronomen+State-Erkennung & UI-Rendering
+- `getBaseSandboxIngredients()` — Liest `data-is-fat`, `data-is-hard`, `data-is-soft` korrekt
+- `getSelectedIngredientsForSandbox()` — Mappt Boolean-Flags (`isFat`, `isHard`, `isSoft`)
+- Event-Handler hinzugefügt: `.js-prob-pronoun-chip`, `.js-prob-state-chip`
+
+#### Datenfluss: Ingredient-Flags
+
+```
+DB: IngredientsAndNutrients.is_fat (boolean)
+  ↓
+Controller: ToSelectIngredientsAndNutrients (EF Core Include)
+  ↓
+View: data-is-fat="true/false" (HTML data-attribute)
+  ↓
+JS: getBaseSandboxIngredients() → isFat: boolean
+  ↓
+Filter: ings.filter(i => i.isFat) bei {{fat}}-Variable
+```
+
+#### Migration & Datenbank
+
+**Wichtig:** Sicherstellen, dass `IngredientsAndNutrients`-Tabelle korrekte Flags hat:
+```sql
+-- Beispiel: Fett-Zutaten markieren
+UPDATE IngredientsAndNutrients
+SET is_fat = 1
+WHERE Name_DE IN ('Butter', 'Öl', 'Olivenöl', 'Schmalz', 'Margarine');
+
+-- Beispiel: Harte Zutaten markieren (zum Klopfen)
+UPDATE IngredientsAndNutrients
+SET is_hard = 1
+WHERE Name_DE IN ('Hähnchenbrust', 'Schweineschnitzel', 'Kalbsschnitzel');
+```
+
+#### UI/UX-Verbesserungen
+
+1. **Konsistente Filter-Logik:** Alle Ingredient-Variablen filtern nun korrekt
+2. **Klarere Zutat-Auswahl:** Keine irrelevanten Optionen mehr bei spezifischen Variablen
+3. **Verbessertes Pop-up-Layout:** Pronomen+State visuell getrennt (wie Artikel+Ingredient)
+4. **Erweiterte Tool-Auswahl:** Fleischklopfer für Klopf-Steps verfügbar
+5. **Hybrid-Liquid-Variable:** Kombination aus ausgewählten Zutaten + Preset-Optionen
+
+---
+
+## Änderungen 2026-03-28: Vereinheitlichtes Editor-System
+
+### Überblick
+Die Variable-Editoren für Pronomen und State wurden vereinheitlicht. Beide Bereiche (Wahrscheinlichkeits-Templates und Smart Step Creator) nutzen jetzt dasselbe Editor-System.
+
+### Hauptänderungen
+
+#### 1. Vereinheitlichtes Editor-System
+**Vorher:**
+- Wahrscheinlichkeitsbereich: Separater kombinierter Editor mit Auto-Close beim Klick
+- Smart Step Creator: `openInlineEditor()` mit "Einsetzen"-Button
+
+**Jetzt:**
+- **Beide Bereiche** nutzen `buildInlineEditorHtml()` + einheitliche Event-Handler
+- **Konsistentes Verhalten:** Immer "Einsetzen"-Button, kein Auto-Close
+- **Vereinfachte Codebasis:** Kein doppelter Editor-Code mehr
+
+**Betroffene Dateien:**
+- `CreatePostingPage.js` (Zeile ~588-704): Separater kombinierter Editor entfernt
+- `CreatePostingSmartStepCreator.js`: Logik für Pronomen/State-Speicherung erweitert
+
+#### 2. Alle Pronomen direkt sichtbar
+**Vorher:** Nur 3 Pronomen sichtbar, Rest in "Weitere anzeigen"
+**Jetzt:** Alle Pronomen (er, sie, es, ihn) direkt sichtbar
+
+**Code:**
+```javascript
+// CreatePostingSmartStepCreator.js - getVarOptions()
+const isPronoun = (varName || '').toLowerCase() === 'pronoun';
+const limit = isPronoun ? entries.length : VISIBLE_RANKED_OPTIONS;
+```
+
+#### 3. Intelligente Pronomen/State-Speicherung
+
+**Für {{pronoun}} Token:**
+```javascript
+// Fall 1: Template hat BEIDE Tokens ({{pronoun}} UND {{state}})
+if (hasSepState) {
+    activeStep.values["pronoun"] = pronoun;  // "sie"
+    activeStep.values["state"] = value;       // "geschmeidig"
+}
+// Fall 2: Template hat NUR {{pronoun}}
+else {
+    activeStep.values["pronoun"] = combined; // "sie geschmeidig"
+}
+```
+
+**Für {{state}} Token:**
+```javascript
+// Immer separate Speicherung
+activeStep.values["pronoun"] = pronoun;  // "sie" (falls {{pronoun}} existiert)
+activeStep.values["state"] = composed;    // "sie geschmeidig" oder nur "geschmeidig"
+```
+
+**Logik in:** `CreatePostingSmartStepCreator.js` - `applyCurrentEditorSelection()` (Zeile ~1647-1677)
+
+#### 4. Kombinierter Editor - HTML-Struktur
+
+**Template-Struktur:**
+```html
+<div id="InlineVarEditorHost">
+  <!-- Pronomen-Sektion (OBEN) -->
+  <div class="small text-muted mt-2 mb-1">Pronomen</div>
+  <div class="d-flex flex-wrap gap-2 mb-2" id="PronounBtnRow">
+    <button data-pick-mode="pronoun" data-pick-value="er">er</button>
+    <button data-pick-mode="pronoun" data-pick-value="sie">sie</button>
+    <button data-pick-mode="pronoun" data-pick-value="es">es</button>
+    <button data-pick-mode="pronoun" data-pick-value="ihn">ihn</button>
+  </div>
+
+  <!-- State-Sektion (UNTEN) -->
+  <div class="small text-muted mb-1">Zustand</div>
+  <div class="d-flex flex-wrap gap-2" id="ValueBtnRow">
+    <button data-pick-mode="value" data-pick-value="geschmeidig">geschmeidig</button>
+    <button data-pick-mode="value" data-pick-value="verdoppelt">verdoppelt</button>
+    <button data-pick-mode="value" data-pick-value="fluffig">fluffig</button>
+  </div>
+
+  <!-- Fallback-Sektion (Weitere anzeigen) -->
+  <div class="mt-2">
+    <button class="js-toggle-fallback-options">Weitere anzeigen ▼</button>
+    <div class="js-fallback-options-wrap">
+      <!-- Weitere State-Optionen -->
+    </div>
+  </div>
+
+  <!-- Einsetzen-Button -->
+  <button id="BtnPickValueQuick">Einsetzen</button>
+</div>
+```
+
+**Generiert durch:** `openInlineEditor()` in `CreatePostingSmartStepCreator.js` (Zeile ~1304-1380)
+
+#### 5. Event-Handler-System
+
+**Button-Klicks:**
+```javascript
+// Pronomen-Button geklickt
+if (mode === 'pronoun') {
+    host.dataset.selectedPronoun = val;  // "sie"
+}
+
+// State-Button geklickt
+if (mode === 'value') {
+    host.dataset.selectedValue = val;    // "geschmeidig"
+}
+
+// Einsetzen-Button geklickt
+applyCurrentEditorSelection();
+```
+
+**Handler-Registrierung:**
+- **Smart Step Creator:** Document-Level Event Delegation (Zeile ~1895-2020)
+- **Wahrscheinlichkeitsbereich:** Host-Level Event Binding (CreatePostingPage.js, Zeile ~645-697)
+
+### Datenfluss
+
+```
+User klickt {{pronoun}} Token
+  ↓
+openInlineEditor(varName='pronoun', tokenId)
+  ↓
+Erkennt isPronounOrState=true
+  ↓
+Lädt Pronomen-Optionen: getVarOptions('pronoun') → alle 4 Pronomen
+Lädt State-Optionen: getVarOptions('state') → gefilterte States
+  ↓
+Rendert kombiniertes HTML mit beiden Sektionen
+  ↓
+User wählt "sie" (Pronomen-Button)
+  → host.dataset.selectedPronoun = "sie"
+  ↓
+User wählt "geschmeidig" (State-Button)
+  → host.dataset.selectedValue = "geschmeidig"
+  ↓
+User klickt "Einsetzen"
+  ↓
+applyCurrentEditorSelection()
+  ↓
+Prüft: hasSepState = /{{state}}/i.test(template)
+  ↓
+Fall 1 (hasSepState=true):
+  activeStep.values["pronoun"] = "sie"
+  activeStep.values["state"] = "geschmeidig"
+  ↓
+Fall 2 (hasSepState=false):
+  activeStep.values["pronoun"] = "sie geschmeidig"
+  ↓
+rerenderAfterValueSet()
+  → Template wird neu gerendert mit aktualisierten Werten
+```
+
+### Entfernte Features
+
+**Separater kombinierter Editor (CreatePostingPage.js):**
+- ❌ Auto-Close beim Pronomen-Klick (varKey='pronoun')
+- ❌ Auto-Close beim State-Klick (beide ausgewählt)
+- ❌ Separate Event-Handler (`.js-prob-combined-pronoun`, `.js-prob-combined-state`)
+- ❌ Doppelte HTML-Generierung
+
+**Sequentielle Bearbeitung:**
+- ❌ Automatisches Öffnen des State-Editors nach Pronomen-Auswahl
+- ❌ Code in `create-posting-probability.js` (Zeile 229-239, 250-257)
+- ❌ Code in `CreatePostingPage.js` (Zeile ~5099-5117)
+- ❌ Code in `CreatePostingSmartStepCreator.js` (Zeile ~1634-1654)
+
+### Verbesserungen
+
+1. **Konsistenz:** Gleiche UX in beiden Bereichen (Wahrscheinlichkeit & Smart Step Creator)
+2. **Vollständigkeit:** Alle Pronomen direkt sichtbar, kein "Weitere anzeigen" nötig
+3. **Intelligenz:** Automatische Erkennung ob separate Tokens existieren
+4. **Wartbarkeit:** Ein Editor-System statt zwei parallele Implementierungen
+5. **Flexibilität:** Funktioniert mit Templates die {{pronoun}}, {{state}} oder beide haben
+
+### Betroffene Funktionen
+
+**CreatePostingSmartStepCreator.js:**
+- `getVarOptions()` - Zeile 511-517: Pronomen-Limit entfernt
+- `openInlineEditor()` - Zeile 1304-1380: Kombinierter Editor für isPronounOrState
+- `buildInlineEditorHtml()` - Zeile 2138-2216: Gleiche Logik wie openInlineEditor
+- `applyCurrentEditorSelection()` - Zeile 1529-1677: Intelligente Pronomen/State-Speicherung
+- `renderFallbackSection()` - Zeile 1379, 2216: Nutzt 'state' für isPronounOrState
+
+**CreatePostingPage.js:**
+- `openProbVarInlineEditor()` - Zeile 542-698: Separater Editor entfernt, nutzt buildInlineEditorHtml
+- `doApply()` - Zeile 618-643: Pronomen-Extras-Handling für beide Variablen
+
+**create-posting-probability.js:**
+- `bindInlineEvents()` - Zeile 219-275: Sequentielle Logik deaktiviert (auskommentiert)
+
+### Test-Szenarien
+
+✅ **Template nur mit {{pronoun}}:**
+- Auswahl: "sie" + "geschmeidig" → Ergebnis: {{pronoun}} = "sie geschmeidig"
+
+✅ **Template mit {{pronoun}} UND {{state}}:**
+- Auswahl: "sie" + "geschmeidig" → Ergebnis: {{pronoun}} = "sie", {{state}} = "geschmeidig"
+
+✅ **Template mit {{state}} (kein {{pronoun}}):**
+- Auswahl: "sie" + "geschmeidig" → Ergebnis: {{state}} = "sie geschmeidig"
+
+✅ **Nur Pronomen ausgewählt:**
+- {{pronoun}} Editor: Ergebnis: {{pronoun}} = "sie", {{state}} = leer
+- {{state}} Editor: Ergebnis: {{pronoun}} = "sie", {{state}} = leer
+
+✅ **Nur State ausgewählt:**
+- Ergebnis: {{state}} = "geschmeidig", {{pronoun}} = leer
+
+---
+
+## Änderungen 2026-03-28: PREP_WASH_01 erweitert mit {{removal}} Variable
+
+### Überblick
+Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, Gräten, Hülle etc. beim Waschen von Zutaten.
+
+### Hauptänderungen
+
+#### 1. Neue Variable {{removal}} erstellt
+
+**8 Optionen in allen 10 Sprachen:**
+
+| Key | DE | EN | ESP | PRT | ID | NL | SV | DA | NO | MS |
+|-----|----|----|-----|-----|----|----|----|----|----|----|
+| **schale** | die Schale | the peel | la cáscara | a casca | kulitnya | de schil | skalet | skallen | skallet | kulitnya |
+| **graeten** | die Gräten | the bones | las espinas | as espinhas | durinya | de graten | benen | benene | beinene | tulangnya |
+| **huelle** | die Hülle | the hull | la vaina | a vagem | kulitnya | de schil | skalet | bælgen | belgen | kulitnya |
+| **stiele** | die Stiele | the stems | los tallos | os talos | batangnya | de stelen | stjälkarna | stilkene | stilkene | tangkainya |
+| **kerne** | die Kerne | the seeds | las semillas | as sementes | bijinya | de pitten | kärnorna | kernerne | kjernene | bijinya |
+| **faeden** | die Fäden | the strings | las hebras | os fios | seratnya | de draden | trådarna | trådene | trådene | seratnya |
+| **sand** | den Sand | the sand | la arena | a areia | pasirnya | het zand | sanden | sandet | sanden | pasirnya |
+| **innereien** | die Innereien | the innards | las vísceras | as vísceras | isi perutnya | de ingewanden | inälvorna | indvoldene | innvollene | isi perutnya |
+
+**Tags:** `variable:removal`, jeweiliger Value-Tag, `prep`, `wash`, `clean`, plus spezifische Tags wie `fish`, `seafood`, `beans`, `vegetable`, `mussels`
+
+**Datei:** `master_step_variables.json` (Zeile ~6147-6246)
+
+#### 2. {{action}} Variable erweitert
+
+**Neu hinzugefügte Wasch-Aktionen:**
+
+| Key | DE | EN | ESP | PRT | ID | NL | SV | DA | NO | MS |
+|-----|----|----|-----|-----|----|----|----|----|----|----|
+| **wasche** | wasche | wash | lava | lave | cuci | was | tvätta | vask | vask | basuh |
+| **spuele** | spüle | rinse | enjuaga | enxágue | bilas | spoel | skölj | skyl | skyll | bilas |
+| **reinige** | reinige | clean | limpia | limpe | bersihkan | reinig | rengör | rens | rengjør | bersihkan |
+
+**Tags:** `variable:action`, jeweiliger Value-Tag, `prep`, `wash`, `clean`
+
+**Bereits vorhanden:**
+- **putze** (clean) - Tags: `variable:action`, `value:putze`
+- **tupfe** (pat) - Tags: `variable:action`, `value:tupfe`, `prep`, `dry`, `wash`
+
+**Datei:** `master_step_variables.json` (Zeile ~900-975)
+
+#### 3. PREP_WASH_01 Template aktualisiert
+
+**Vorher:**
+```json
+"de": "Wasche {{ingredient}} gründlich und {{action}} {{pronoun}} trocken."
+```
+
+**Jetzt:**
+```json
+"de": "{{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken."
+```
+
+**Änderungen:**
+- ✅ **{{action}}** Variable am Anfang (flexibel: wasche/spüle/reinige/putze)
+- ✅ **"unter kaltem Wasser"** hinzugefügt (Best Practice)
+- ✅ **[, entferne {{removal}}]** als optionales Segment
+- ✅ **"tupfe"** fest am Ende (spezifischer als {{action}})
+- ✅ Description erweitert: "Waschen, optionales Entfernen (Schale/Gräten/etc.) und Trocknen von Zutaten"
+
+**Variables-Konfiguration:**
+```json
+"variables": ["action", "ingredient", "removal", "pronoun"],
+"required_variables": ["action", "ingredient", "pronoun"],
+"optional_variables": ["removal"]
+```
+
+**Datei:** `master_steps.json` (Zeile ~1274-1302)
+
+#### 4. Alle 10 Sprachen aktualisiert
+
+| Sprache | Template |
+|---------|----------|
+| **DE** | {{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken. |
+| **EN** | {{action}} {{ingredient}} thoroughly under cold water[, remove {{removal}}] and pat {{pronoun}} dry. |
+| **ESP** | {{action}} {{ingredient}} a fondo bajo agua fría[, quita {{removal}}] y seca bien. |
+| **PRT** | {{action}} {{ingredient}} bem sob água fria[, remova {{removal}}] e seque bem. |
+| **ID** | {{action}} {{ingredient}} hingga bersih di bawah air dingin[, buang {{removal}}] lalu tepuk hingga kering. |
+| **NL** | {{action}} {{ingredient}} grondig onder koud water[, verwijder {{removal}}] en dep {{pronoun}} droog. |
+| **SV** | {{action}} {{ingredient}} noggrant under kallt vatten[, ta bort {{removal}}] och torka {{pronoun}} torr. |
+| **DA** | {{action}} {{ingredient}} grundigt under koldt vand[, fjern {{removal}}] og dup {{pronoun}} tør. |
+| **NO** | {{action}} {{ingredient}} grundig under kaldt vann[, fjern {{removal}}] og tork {{pronoun}} tørr. |
+| **MS** | {{action}} {{ingredient}} hingga bersih di bawah air sejuk[, buang {{removal}}] dan lap sehingga kering. |
+
+### Beispiel-Outputs
+
+**Szenario 1: Kartoffeln schälen**
+```
+Input:
+- action: "Wasche"
+- ingredient: "die Kartoffeln"
+- removal: "die Schale"
+- pronoun: "sie"
+
+Output (DE): "Wasche die Kartoffeln gründlich unter kaltem Wasser, entferne die Schale und tupfe sie trocken."
+Output (EN): "Wash the potatoes thoroughly under cold water, remove the peel and pat them dry."
+```
+
+**Szenario 2: Fisch entgräten**
+```
+Input:
+- action: "Spüle"
+- ingredient: "den Fisch"
+- removal: "die Gräten"
+- pronoun: "ihn"
+
+Output (DE): "Spüle den Fisch gründlich unter kaltem Wasser, entferne die Gräten und tupfe ihn trocken."
+Output (EN): "Rinse the fish thoroughly under cold water, remove the bones and pat it dry."
+```
+
+**Szenario 3: Salat ohne Entfernung**
+```
+Input:
+- action: "Wasche"
+- ingredient: "den Salat"
+- removal: null (leer)
+- pronoun: "ihn"
+
+Output (DE): "Wasche den Salat gründlich unter kaltem Wasser und tupfe ihn trocken."
+Output (EN): "Wash the lettuce thoroughly under cold water and pat it dry."
+```
+
+**Szenario 4: Bohnen mit Fäden**
+```
+Input:
+- action: "Reinige"
+- ingredient: "die Bohnen"
+- removal: "die Fäden"
+- pronoun: "sie"
+
+Output (DE): "Reinige die Bohnen gründlich unter kaltem Wasser, entferne die Fäden und tupfe sie trocken."
+Output (EN): "Clean the beans thoroughly under cold water, remove the strings and pat them dry."
+```
+
+### Anwendungsfälle
+
+**{{removal}} Optionen nach Zutat:**
+
+| Zutat | Empfohlene {{removal}} Option |
+|-------|------------------------------|
+| Kartoffeln, Karotten | **schale** (die Schale) |
+| Fisch (Filet) | **graeten** (die Gräten) |
+| Erbsen, Bohnen | **huelle** (die Hülle) oder **faeden** (die Fäden) |
+| Spinat, Mangold | **stiele** (die Stiele) |
+| Paprika, Tomaten | **kerne** (die Kerne) |
+| Muscheln | **sand** (den Sand) |
+| Ganzer Fisch | **innereien** (die Innereien) |
+
+### Technische Details
+
+**Optionales Segment:**
+```
+[, entferne {{removal}}]
+```
+- Wird nur angezeigt wenn `{{removal}}` gesetzt ist
+- Komma wird automatisch mit ausgegeben
+- Funktioniert durch Template-Rendering-Logik in `resolveOptionalTemplateSegments()` (CreatePostingSmartStepCreator.js)
+
+**Variable-Reihenfolge:**
+```json
+"variables": ["action", "ingredient", "removal", "pronoun"]
+```
+- Reihenfolge bestimmt Display-Reihenfolge im Smart Step Creator
+- `action` zuerst → User wählt erst die Wasch-Aktion
+- `ingredient` zweitens → dann die Zutat
+- `removal` drittens → optional: was entfernen
+- `pronoun` letztes → Pronomen für "tupfe {{pronoun}}"
+
+### Verbesserungen
+
+1. **Flexibilität:** User kann Wasch-Aktion wählen (wasche/spüle/reinige)
+2. **Präzision:** "unter kaltem Wasser" statt nur "gründlich"
+3. **Optionalität:** {{removal}} nur wenn nötig
+4. **Konsistenz:** "tupfe" statt generisches {{action}} am Ende
+5. **Vollständigkeit:** 8 häufige Entfernungs-Szenarien abgedeckt
+6. **Mehrsprachigkeit:** Alle Optionen in 10 Sprachen verfügbar
+
+### Betroffene Dateien
+
+1. **master_step_variables.json**
+   - {{action}} erweitert: +3 Optionen (wasche, spüle, reinige)
+   - {{removal}} neu: +8 Optionen (schale, graeten, huelle, stiele, kerne, faeden, sand, innereien)
+
+2. **master_steps.json**
+   - PREP_WASH_01: Templates in 10 Sprachen aktualisiert
+   - Variables: +1 (removal)
+   - Optional_variables: +1 (removal)
+   - Description erweitert
+
+---
+
+## Änderungen 2026-03-28: Entfernung des PREP_SEPARATE_01 Steps
+
+### Übersicht
+
+Der Step **PREP_SEPARATE_01** ("Trenne {{ingredient}} vorsichtig von {{ingredient2}}") wurde vollständig entfernt.
+
+**Grund:** Fragliche Nützlichkeit - das Trennen von Zutaten (z.B. Eigelb von Eiweiß) wird selten benötigt und kann durch andere Steps oder manuelle Beschreibung abgebildet werden.
+
+---
+
+### Entfernter Step
+
+**master_steps.json - PREP_SEPARATE_01**
+
+```json
+{
+  "master_id": "PREP_SEPARATE_01",
+  "phase": 1,
+  "sub_group": "ingredient_prep",
+  "action": "separate",
+  "equipment": 0,
+  "description": "Trennen von Zutaten (z.B. Eier in Eigelb und Eiweiß)",
+  "templates": {
+    "de": "Trenne {{ingredient}} vorsichtig von {{ingredient2}}.",
+    "en": "Carefully separate {{ingredient}} from {{ingredient2}}.",
+    "esp": "Separa {{ingredient}} de {{ingredient2}} con cuidado.",
+    "prt": "Separe {{ingredient}} de {{ingredient2}} com cuidado.",
+    "id": "Pisahkan {{ingredient}} dari {{ingredient2}} dengan hati-hati.",
+    "nl": "Scheid {{ingredient}} voorzichtig van {{ingredient2}}.",
+    "sv": "Separera {{ingredient}} försiktigt från {{ingredient2}}.",
+    "da": "Adskil {{ingredient}} forsigtigt fra {{ingredient2}}.",
+    "no": "Skill {{ingredient}} forsiktig fra {{ingredient2}}.",
+    "ms": "Asingkan {{ingredient}} daripada {{ingredient2}} dengan berhati-hati."
+  },
+  "variables": ["ingredient", "ingredient2"],
+  "required_variables": ["ingredient", "ingredient2"],
+  "selection_tags": ["phase:prep", "action:separate", "technique:separate", "trennen", "separate", ...]
+}
+```
+
+**Gelöscht:** Zeilen 2149-2198 (50 Zeilen)
+
+---
+
+### Betroffene Dateien
+
+| Datei | Änderungen |
+|-------|------------|
+| **master_steps.json** | PREP_SEPARATE_01 Step entfernt (50 Zeilen) |
+| **CreatePosting-Dokumentation.md** | Dokumentation aktualisiert |
+
+---
+
+### Alternative
+
+Falls das Trennen von Zutaten beschrieben werden soll, kann der User:
+- **Manuelle Beschreibung** verwenden (freier Text im Step Creator)
+- **PREP_CUT_01** verwenden mit passendem Text
+- **Bestehende Steps kombinieren** (z.B. "Knacke Ei" + "Entferne Eigelb")
+
+---
+
+> **Letzte Aktualisierung:** 2026-03-28
+> **Geänderte Dateien:** 2 (master_steps.json, CreatePosting-Dokumentation.md)

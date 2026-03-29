@@ -1221,35 +1221,88 @@
   },
   "master_steps": [
     {
+      "master_id": "PREP_HEAT_01",
+      "phase": 1,
+      "sub_group": "equipment_prep",
+      "action": "preheat",
+      "equipment": 1,
+      "description": "Vorheizen von Küchengeräten",
+      "templates": {
+        "de": "Heize {{equipment}} auf {{temp}}[ ({{mode}})] vor.",
+        "en": "Preheat {{equipment}} to {{temp}}[ ({{mode}})].",
+        "esp": "Precalienta {{equipment}} a {{temp}}[ ({{mode}})].",
+        "prt": "Pré-aqueça {{equipment}} a {{temp}}[ ({{mode}})].",
+        "id": "Panaskan {{equipment}} terlebih dahulu hingga {{temp}}[ ({{mode}})].",
+        "nl": "Verwarm {{equipment}} voor op {{temp}}[ ({{mode}})].",
+        "sv": "Värm upp {{equipment}} till {{temp}}[ ({{mode}})].",
+        "da": "Forvarm {{equipment}} til {{temp}}[ ({{mode}})].",
+        "no": "Forvarm {{equipment}} til {{temp}}[ ({{mode}})].",
+        "ms": "Panaskan {{equipment}} terlebih dahulu kepada {{temp}}[ ({{mode}})]."
+      },
+      "variables": [
+        "equipment",
+        "temp",
+        "mode"
+      ],
+      "required_variables": [
+        "equipment",
+        "temp"
+      ],
+      "optional_variables": "mode",
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:preheat",
+        "technique:preheat",
+        "vorheizen",
+        "preheat",
+        "backofen",
+        "oven",
+        "equipment_id:1",
+        "dry_heat",
+        "variable:equipment",
+        "variable:temp",
+        "variable:mode",
+        "category:main",
+        "sub_group:equipment_prep"
+      ]
+    },
+    {
       "master_id": "PREP_WASH_01",
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "wash",
       "equipment": 0,
-      "description": "Waschen und Trocknen von Zutaten",
+      "description": "Waschen, optionales Entfernen (Schale/Gräten/etc.) und Trocknen von Zutaten",
       "templates": {
-        "de": "Wasche {{ingredient}} gründlich und {{action}} {{pronoun}} trocken.",
-        "en": "Wash {{ingredient}} thoroughly and {{action}} {{pronoun}} dry.",
-        "esp": "Lava {{ingredient}} a fondo y {{action}} bien.",
-        "prt": "Lave {{ingredient}} bem e {{action}} bem.",
-        "id": "Cuci {{ingredient}} hingga bersih lalu {{action}} hingga kering.",
-        "nl": "Was {{ingredient}} grondig en {{action}} {{pronoun}} droog.",
-        "sv": "Tvätta {{ingredient}} noggrant och {{action}} {{pronoun}} torr.",
-        "da": "Vask {{ingredient}} grundigt og {{action}} {{pronoun}} tør.",
-        "no": "Vask {{ingredient}} grundig og {{action}} {{pronoun}} tørr.",
-        "ms": "Basuh {{ingredient}} hingga bersih dan {{action}} sehingga kering."
+        "de": "{{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken.",
+        "en": "{{action}} {{ingredient}} thoroughly under cold water[, remove {{removal}}] and pat {{pronoun}} dry.",
+        "esp": "{{action}} {{ingredient}} a fondo bajo agua fría[, quita {{removal}}] y seca bien.",
+        "prt": "{{action}} {{ingredient}} bem sob água fria[, remova {{removal}}] e seque bem.",
+        "id": "{{action}} {{ingredient}} hingga bersih di bawah air dingin[, buang {{removal}}] lalu tepuk hingga kering.",
+        "nl": "{{action}} {{ingredient}} grondig onder koud water[, verwijder {{removal}}] en dep {{pronoun}} droog.",
+        "sv": "{{action}} {{ingredient}} noggrant under kallt vatten[, ta bort {{removal}}] och torka {{pronoun}} torr.",
+        "da": "{{action}} {{ingredient}} grundigt under koldt vand[, fjern {{removal}}] og dup {{pronoun}} tør.",
+        "no": "{{action}} {{ingredient}} grundig under kaldt vann[, fjern {{removal}}] og tork {{pronoun}} tørr.",
+        "ms": "{{action}} {{ingredient}} hingga bersih di bawah air sejuk[, buang {{removal}}] dan lap sehingga kering."
       },
       "variables": [
-        "ingredient",
         "action",
+        "ingredient",
+        "removal",
         "pronoun"
       ],
       "required_variables": [
-        "ingredient",
         "action",
+        "ingredient",
         "pronoun"
       ],
-      "optional_variables": null,
+      "optional_variables": [
+        "removal"
+      ],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
@@ -1281,26 +1334,25 @@
       "equipment": 0,
       "description": "Schälen von Obst, Gemüse oder Knollen",
       "templates": {
-        "de": "Schäle {{ingredient}} mit einem {{tool}}.",
-        "en": "Peel {{ingredient}} using a {{tool}}.",
-        "esp": "Pela {{ingredient}} con un {{tool}}.",
-        "prt": "Descasque {{ingredient}} com um {{tool}}.",
-        "id": "Kupas {{ingredient}} dengan {{tool}}.",
-        "nl": "Schil {{ingredient}} met een {{tool}}.",
-        "sv": "Skala {{ingredient}} med en {{tool}}.",
-        "da": "Skræl {{ingredient}} med en {{tool}}.",
-        "no": "Skrell {{ingredient}} med en {{tool}}.",
-        "ms": "Kupas {{ingredient}} menggunakan {{tool}}."
+        "de": "Schäle {{ingredient}}[ mit einem {{tool}}].",
+        "en": "Peel {{ingredient}}[ using a {{tool}}].",
+        "esp": "Pela {{ingredient}}[ con un {{tool}}].",
+        "prt": "Descasque {{ingredient}}[ com um {{tool}}].",
+        "id": "Kupas {{ingredient}}[ dengan {{tool}}].",
+        "nl": "Schil {{ingredient}}[ met een {{tool}}].",
+        "sv": "Skala {{ingredient}}[ med en {{tool}}].",
+        "da": "Skræl {{ingredient}}[ med en {{tool}}].",
+        "no": "Skrell {{ingredient}}[ med en {{tool}}].",
+        "ms": "Kupas {{ingredient}}[ menggunakan {{tool}}]."
       },
       "variables": [
         "ingredient",
         "tool"
       ],
       "required_variables": [
-        "ingredient",
-        "tool"
+        "ingredient"
       ],
-      "optional_variables": null,
+      "optional_variables": ["tool"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
@@ -1657,15 +1709,15 @@
       "variables": [
         "dough",
         "duration",
-        "state",
         "pronoun",
+        "state",
         "copula"
       ],
       "required_variables": [
         "dough",
         "duration",
-        "state",
         "pronoun",
+        "state",
         "copula"
       ],
       "optional_variables": null,
@@ -2095,56 +2147,6 @@
       ]
     },
     {
-      "master_id": "PREP_SEPARATE_01",
-      "phase": 1,
-      "sub_group": "ingredient_prep",
-      "action": "separate",
-      "equipment": 0,
-      "description": "Trennen von Zutaten (z.B. Eier in Eigelb und Eiweiß)",
-      "templates": {
-        "de": "Trenne {{ingredient}} vorsichtig von {{ingredient2}}.",
-        "en": "Carefully separate {{ingredient}} from {{ingredient2}}.",
-        "esp": "Separa {{ingredient}} de {{ingredient2}} con cuidado.",
-        "prt": "Separe {{ingredient}} de {{ingredient2}} com cuidado.",
-        "id": "Pisahkan {{ingredient}} dari {{ingredient2}} dengan hati-hati.",
-        "nl": "Scheid {{ingredient}} voorzichtig van {{ingredient2}}.",
-        "sv": "Separera {{ingredient}} försiktigt från {{ingredient2}}.",
-        "da": "Adskil {{ingredient}} forsigtigt fra {{ingredient2}}.",
-        "no": "Skill {{ingredient}} forsiktig fra {{ingredient2}}.",
-        "ms": "Asingkan {{ingredient}} daripada {{ingredient2}} dengan berhati-hati."
-      },
-      "variables": [
-        "ingredient",
-        "ingredient2"
-      ],
-      "required_variables": [
-        "ingredient",
-        "ingredient2"
-      ],
-      "optional_variables": null,
-      "variable_types": {},
-      "stable_taxonomy_keys": {
-        "category_keys": "main",
-        "ingredient_family_keys": "egg"
-      },
-      "selection_tags": [
-        "phase:prep",
-        "step_group:prep",
-        "action:separate",
-        "technique:separate",
-        "trennen",
-        "separate",
-        "equipment_id:0",
-        "keins",
-        "none",
-        "variable:ingredient",
-        "variable:ingredient2",
-        "category:main",
-        "family:egg",
-        "sub_group:ingredient_prep"
-      ]
-    },
-    {
       "master_id": "PREP_FOLD_IN_01",
       "phase": 1,
       "sub_group": "mixing",
@@ -2195,56 +2197,6 @@
         "variable:goal",
         "category:main",
         "sub_group:mixing"
-      ]
-    },
-    {
-      "master_id": "PREP_HEAT_01",
-      "phase": 1,
-      "sub_group": "equipment_prep",
-      "action": "preheat",
-      "equipment": 1,
-      "description": "Vorheizen von Küchengeräten",
-      "templates": {
-        "de": "Heize {{equipment}} auf {{temp}}[ ({{mode}})] vor.",
-        "en": "Preheat {{equipment}} to {{temp}}[ ({{mode}})].",
-        "esp": "Precalienta {{equipment}} a {{temp}}[ ({{mode}})].",
-        "prt": "Pré-aqueça {{equipment}} a {{temp}}[ ({{mode}})].",
-        "id": "Panaskan {{equipment}} terlebih dahulu hingga {{temp}}[ ({{mode}})].",
-        "nl": "Verwarm {{equipment}} voor op {{temp}}[ ({{mode}})].",
-        "sv": "Värm upp {{equipment}} till {{temp}}[ ({{mode}})].",
-        "da": "Forvarm {{equipment}} til {{temp}}[ ({{mode}})].",
-        "no": "Forvarm {{equipment}} til {{temp}}[ ({{mode}})].",
-        "ms": "Panaskan {{equipment}} terlebih dahulu kepada {{temp}}[ ({{mode}})]."
-      },
-      "variables": [
-        "equipment",
-        "temp",
-        "mode"
-      ],
-      "required_variables": [
-        "equipment",
-        "temp"
-      ],
-      "optional_variables": "mode",
-      "stable_taxonomy_keys": {
-        "category_keys": "main"
-      },
-      "selection_tags": [
-        "phase:prep",
-        "step_group:prep",
-        "action:preheat",
-        "technique:preheat",
-        "vorheizen",
-        "preheat",
-        "backofen",
-        "oven",
-        "equipment_id:1",
-        "dry_heat",
-        "variable:equipment",
-        "variable:temp",
-        "variable:mode",
-        "category:main",
-        "sub_group:equipment_prep"
       ]
     },
     {
@@ -4225,26 +4177,26 @@
       "equipment": 0,
       "description": "Füllen (Paprika, Zucchini, Hähnchen, Cannelloni)",
       "templates": {
-        "de": "Fülle {{base}} gleichmäßig mit {{filling}} und setze {{pronoun}} in {{equipment}}.",
-        "en": "Fill {{base}} evenly with {{filling}} and place {{pronoun}} in {{equipment}}.",
-        "esp": "Rellena {{base}} uniformemente con {{filling}} y coloca en {{equipment}}.",
-        "prt": "Recheie {{base}} uniformemente com {{filling}} e coloque em {{equipment}}.",
-        "id": "Isi {{base}} secara merata dengan {{filling}} dan letakkan di {{equipment}}.",
-        "nl": "Vul {{base}} gelijkmatig met {{filling}} en zet {{pronoun}} in {{equipment}}.",
-        "sv": "Fyll {{base}} jämnt med {{filling}} och placera {{pronoun}} i {{equipment}}.",
-        "da": "Fyld {{base}} jævnt med {{filling}} og sæt {{pronoun}} i {{equipment}}.",
-        "no": "Fyll {{base}} jevnt med {{filling}} og sett {{pronoun}} i {{equipment}}.",
-        "ms": "Isikan {{base}} secara rata dengan {{filling}} dan letakkan di {{equipment}}."
+        "de": "Fülle {{ingredient}} gleichmäßig mit {{base}} und setze {{pronoun}} in {{equipment}}.",
+        "en": "Fill {{ingredient}} evenly with {{base}} and place {{pronoun}} in {{equipment}}.",
+        "esp": "Rellena {{ingredient}} uniformemente con {{base}} y coloca en {{equipment}}.",
+        "prt": "Recheie {{ingredient}} uniformemente com {{base}} e coloque em {{equipment}}.",
+        "id": "Isi {{ingredient}} secara merata dengan {{base}} dan letakkan di {{equipment}}.",
+        "nl": "Vul {{ingredient}} gelijkmatig met {{base}} en zet {{pronoun}} in {{equipment}}.",
+        "sv": "Fyll {{ingredient}} jämnt med {{base}} och placera {{pronoun}} i {{equipment}}.",
+        "da": "Fyld {{ingredient}} jævnt med {{base}} og sæt {{pronoun}} i {{equipment}}.",
+        "no": "Fyll {{ingredient}} jevnt med {{base}} og sett {{pronoun}} i {{equipment}}.",
+        "ms": "Isikan {{ingredient}} secara rata dengan {{base}} dan letakkan di {{equipment}}."
       },
       "variables": [
+        "ingredient",
         "base",
-        "filling",
         "pronoun",
         "equipment"
       ],
       "required_variables": [
+        "ingredient",
         "base",
-        "filling",
         "pronoun",
         "equipment"
       ],
@@ -4265,8 +4217,8 @@
         "equipment_id:0",
         "keins",
         "none",
+        "variable:ingredient",
         "variable:base",
-        "variable:filling",
         "variable:pronoun",
         "variable:equipment",
         "category:main",
@@ -4281,24 +4233,24 @@
       "equipment": 0,
       "description": "Einwickeln/Einrollen (Frühlingsrollen, Krautwickel, Burek)",
       "templates": {
-        "de": "Gib {{filling}} auf {{wrapper}} und rolle {{pronoun}} fest zusammen.",
-        "en": "Place {{filling}} on {{wrapper}} and roll {{pronoun}} up tightly.",
-        "esp": "Coloca {{filling}} sobre {{wrapper}} y enrolla bien.",
-        "prt": "Coloque {{filling}} sobre {{wrapper}} e enrole bem.",
-        "id": "Letakkan {{filling}} di atas {{wrapper}} dan gulung dengan rapat.",
-        "nl": "Leg {{filling}} op {{wrapper}} en rol {{pronoun}} stevig op.",
-        "sv": "Lägg {{filling}} på {{wrapper}} och rulla ihop {{pronoun}} ordentligt.",
-        "da": "Læg {{filling}} på {{wrapper}} og rul {{pronoun}} godt sammen.",
-        "no": "Legg {{filling}} på {{wrapper}} og rull {{pronoun}} godt sammen.",
-        "ms": "Letakkan {{filling}} di atas {{wrapper}} dan gulung dengan ketat."
+        "de": "Gib {{basis}} auf {{wrapper}} und rolle {{pronoun}} fest zusammen.",
+        "en": "Place {{basis}} on {{wrapper}} and roll {{pronoun}} up tightly.",
+        "esp": "Coloca {{basis}} sobre {{wrapper}} y enrolla bien.",
+        "prt": "Coloque {{basis}} sobre {{wrapper}} e enrole bem.",
+        "id": "Letakkan {{basis}} di atas {{wrapper}} dan gulung dengan rapat.",
+        "nl": "Leg {{basis}} op {{wrapper}} en rol {{pronoun}} stevig op.",
+        "sv": "Lägg {{basis}} på {{wrapper}} och rulla ihop {{pronoun}} ordentligt.",
+        "da": "Læg {{basis}} på {{wrapper}} og rul {{pronoun}} godt sammen.",
+        "no": "Legg {{basis}} på {{wrapper}} og rull {{pronoun}} godt sammen.",
+        "ms": "Letakkan {{basis}} di atas {{wrapper}} dan gulung dengan ketat."
       },
       "variables": [
-        "filling",
+        "basis",
         "wrapper",
         "pronoun"
       ],
       "required_variables": [
-        "filling",
+        "basis",
         "wrapper",
         "pronoun"
       ],
@@ -4319,7 +4271,7 @@
         "equipment_id:0",
         "keins",
         "none",
-        "variable:filling",
+        "variable:basis",
         "variable:wrapper",
         "variable:pronoun",
         "category:main",
@@ -4442,24 +4394,24 @@
       "equipment": 0,
       "description": "Klopfen/Plattieren (Schnitzel, Roulade)",
       "templates": {
-        "de": "Klopfe {{base}} mit {{tool}} gleichmäßig auf {{grind_size}} Dicke.",
-        "en": "Pound {{base}} evenly with {{tool}} to {{grind_size}} thickness.",
-        "esp": "Golpea {{base}} uniformemente con {{tool}} hasta un grosor {{grind_size}}.",
-        "prt": "Bata {{base}} uniformemente com {{tool}} até uma espessura {{grind_size}}.",
-        "id": "Pukul {{base}} secara merata dengan {{tool}} hingga ketebalan {{grind_size}}.",
-        "nl": "Klop {{base}} gelijkmatig met {{tool}} tot {{grind_size}} dikte.",
-        "sv": "Platta till {{base}} jämnt med {{tool}} till {{grind_size}} tjocklek.",
-        "da": "Bank {{base}} jævnt med {{tool}} til {{grind_size}} tykkelse.",
-        "no": "Bank {{base}} jevnt med {{tool}} til {{grind_size}} tykkelse.",
-        "ms": "Ketuk {{base}} secara rata dengan {{tool}} hingga ketebalan {{grind_size}}."
+        "de": "Klopfe {{ingredient}} mit {{tool}} gleichmäßig auf {{grind_size}} Dicke.",
+        "en": "Pound {{ingredient}} evenly with {{tool}} to {{grind_size}} thickness.",
+        "esp": "Golpea {{ingredient}} uniformemente con {{tool}} hasta un grosor {{grind_size}}.",
+        "prt": "Bata {{ingredient}} uniformemente com {{tool}} até uma espessura {{grind_size}}.",
+        "id": "Pukul {{ingredient}} secara merata dengan {{tool}} hingga ketebalan {{grind_size}}.",
+        "nl": "Klop {{ingredient}} gelijkmatig met {{tool}} tot {{grind_size}} dikte.",
+        "sv": "Platta till {{ingredient}} jämnt med {{tool}} till {{grind_size}} tjocklek.",
+        "da": "Bank {{ingredient}} jævnt med {{tool}} til {{grind_size}} tykkelse.",
+        "no": "Bank {{ingredient}} jevnt med {{tool}} til {{grind_size}} tykkelse.",
+        "ms": "Ketuk {{ingredient}} secara rata dengan {{tool}} hingga ketebalan {{grind_size}}."
       },
       "variables": [
-        "base",
+        "ingredient",
         "tool",
         "grind_size"
       ],
       "required_variables": [
-        "base",
+        "ingredient",
         "tool",
         "grind_size"
       ],
@@ -4478,7 +4430,7 @@
         "equipment_id:0",
         "keins",
         "none",
-        "variable:base",
+        "variable:ingredient",
         "variable:tool",
         "variable:grind_size",
         "sub_group:ingredient_prep"
@@ -4766,22 +4718,21 @@
       "equipment": 3,
       "description": "Karamellisieren (Zucker, Zwiebeln, Gemüse)",
       "templates": {
-        "de": "Erhitze {{base}} in {{equipment}} bei {{heat}}er Hitze und karamellisiere {{pronoun}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
-        "en": "Heat {{base}} in {{equipment}} over {{heat}} heat and caramelize for {{duration}} until {{state}}.",
-        "esp": "Calienta {{base}} en {{equipment}} a fuego {{heat}} y carameliza durante {{duration}} hasta que {{state}}.",
-        "prt": "Aqueça {{base}} em {{equipment}} em fogo {{heat}} e caramelize por {{duration}} até {{state}}.",
-        "id": "Panaskan {{base}} dalam {{equipment}} dengan api {{heat}} dan karamelkan selama {{duration}} hingga {{state}}.",
-        "nl": "Verhit {{base}} in {{equipment}} op {{heat}} vuur en karamelliseer {{pronoun}} {{duration}} tot {{state}}.",
-        "sv": "Hetta upp {{base}} i {{equipment}} på {{heat}} värme och karamellisera i {{duration}} tills {{state}}.",
-        "da": "Opvarm {{base}} i {{equipment}} ved {{heat}} varme og karamellisér i {{duration}} til {{state}}.",
-        "no": "Varm opp {{base}} i {{equipment}} på {{heat}} varme og karamelliser i {{duration}} til {{state}}.",
-        "ms": "Panaskan {{base}} dalam {{equipment}} dengan api {{heat}} dan karamelkan selama {{duration}} sehingga {{state}}."
+        "de": "Erhitze {{base}} in {{equipment}} und karamellisiere {{pronoun}} {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Heat {{base}} in {{equipment}} and caramelize for {{duration}} until {{state}}.",
+        "esp": "Calienta {{base}} en {{equipment}} y carameliza durante {{duration}} hasta que {{state}}.",
+        "prt": "Aqueça {{base}} em {{equipment}} e caramelize por {{duration}} até {{state}}.",
+        "id": "Panaskan {{base}} dalam {{equipment}} dan karamelkan selama {{duration}} hingga {{state}}.",
+        "nl": "Verhit {{base}} in {{equipment}} en karamelliseer {{pronoun}} {{duration}} tot {{state}}.",
+        "sv": "Hetta upp {{base}} i {{equipment}} och karamellisera i {{duration}} tills {{state}}.",
+        "da": "Opvarm {{base}} i {{equipment}} og karamellisér i {{duration}} til {{state}}.",
+        "no": "Varm opp {{base}} i {{equipment}} og karamelliser i {{duration}} til {{state}}.",
+        "ms": "Panaskan {{base}} dalam {{equipment}} dan karamelkan selama {{duration}} sehingga {{state}}."
       },
       "variables": [
         "base",
         "equipment",
         "pronoun",
-        "heat",
         "duration",
         "state",
         "copula"
@@ -4790,7 +4741,6 @@
         "base",
         "equipment",
         "pronoun",
-        "heat",
         "duration",
         "state",
         "copula"
@@ -4811,7 +4761,6 @@
         "variable:base",
         "variable:equipment",
         "variable:pronoun",
-        "variable:heat",
         "variable:duration",
         "variable:state",
         "variable:copula",
@@ -4826,25 +4775,25 @@
       "equipment": 3,
       "description": "Flambieren (Crêpe Suzette, Steak Diane)",
       "templates": {
-        "de": "Gieße {{spirit}} über {{base}} in {{equipment}} und flambiere {{pronoun}} vorsichtig, bis die Flamme erlischt.",
-        "en": "Pour {{spirit}} over {{base}} in {{equipment}} and carefully flambé until the flame dies out.",
-        "esp": "Vierte {{spirit}} sobre {{base}} en {{equipment}} y flambea con cuidado hasta que la llama se apague.",
-        "prt": "Despeje {{spirit}} sobre {{base}} em {{equipment}} e flambe com cuidado até a chama se apagar.",
-        "id": "Tuangkan {{spirit}} di atas {{base}} dalam {{equipment}} dan flambé dengan hati-hati hingga api padam.",
-        "nl": "Giet {{spirit}} over {{base}} in {{equipment}} en flambeer {{pronoun}} voorzichtig tot de vlam dooft.",
-        "sv": "Häll {{spirit}} över {{base}} i {{equipment}} och flambera {{pronoun}} försiktigt tills lågan slocknar.",
-        "da": "Hæld {{spirit}} over {{base}} i {{equipment}} og flambér {{pronoun}} forsigtigt til flammen slukker.",
-        "no": "Hell {{spirit}} over {{base}} i {{equipment}} og flamber {{pronoun}} forsiktig til flammen slukner.",
-        "ms": "Tuangkan {{spirit}} ke atas {{base}} dalam {{equipment}} dan flambé dengan berhati-hati sehingga api padam."
+        "de": "Gieße {{liquid}} über {{base}} in {{equipment}} und flambiere {{pronoun}} vorsichtig, bis die Flamme erlischt.",
+        "en": "Pour {{liquid}} over {{base}} in {{equipment}} and carefully flambé until the flame dies out.",
+        "esp": "Vierte {{liquid}} sobre {{base}} en {{equipment}} y flambea con cuidado hasta que la llama se apague.",
+        "prt": "Despeje {{liquid}} sobre {{base}} em {{equipment}} e flambe com cuidado até a chama se apagar.",
+        "id": "Tuangkan {{liquid}} di atas {{base}} dalam {{equipment}} dan flambé dengan hati-hati hingga api padam.",
+        "nl": "Giet {{liquid}} over {{base}} in {{equipment}} en flambeer {{pronoun}} voorzichtig tot de vlam dooft.",
+        "sv": "Häll {{liquid}} över {{base}} i {{equipment}} och flambera {{pronoun}} försiktigt tills lågan slocknar.",
+        "da": "Hæld {{liquid}} over {{base}} i {{equipment}} og flambér {{pronoun}} forsigtigt til flammen slukker.",
+        "no": "Hell {{liquid}} over {{base}} i {{equipment}} og flamber {{pronoun}} forsiktig til flammen slukner.",
+        "ms": "Tuangkan {{liquid}} ke atas {{base}} dalam {{equipment}} dan flambé dengan berhati-hati sehingga api padam."
       },
       "variables": [
-        "spirit",
+        "liquid",
         "base",
         "equipment",
         "pronoun"
       ],
       "required_variables": [
-        "spirit",
+        "liquid",
         "base",
         "equipment",
         "pronoun"
@@ -4862,7 +4811,7 @@
         "equipment_id:3",
         "pfanne",
         "pan",
-        "variable:spirit",
+        "variable:liquid",
         "variable:base",
         "variable:equipment",
         "variable:pronoun",
@@ -5268,19 +5217,19 @@
       "equipment": 3,
       "description": "Toasten/Rösten ohne Fett",
       "templates": {
-        "de": "Röste {{base}} ohne Fett in {{equipment}} bei {{heat}}er Hitze {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
-        "en": "Toast {{base}} without oil in {{equipment}} over {{heat}} heat for {{duration}} until {{state}}.",
-        "esp": "Tuesta {{base}} sin aceite en {{equipment}} a fuego {{heat}} durante {{duration}} hasta que {{state}}.",
-        "prt": "Torre {{base}} sem óleo em {{equipment}} em fogo {{heat}} por {{duration}} até {{state}}.",
-        "id": "Sangrai {{base}} tanpa minyak dalam {{equipment}} dengan api {{heat}} selama {{duration}} hingga {{state}}.",
-        "nl": "Rooster {{base}} zonder olie in {{equipment}} op {{heat}} vuur {{duration}} tot {{state}}.",
-        "sv": "Rosta {{base}} utan olja i {{equipment}} på {{heat}} värme i {{duration}} tills {{state}}.",
-        "da": "Rist {{base}} uden olie i {{equipment}} ved {{heat}} varme i {{duration}}, indtil {{state}}.",
-        "no": "Rist {{base}} uten olje i {{equipment}} på {{heat}} varme i {{duration}} til {{state}}.",
-        "ms": "Panggang {{base}} tanpa minyak dalam {{equipment}} pada api {{heat}} selama {{duration}} sehingga {{state}}."
+        "de": "Röste {{ingredient}} ohne Fett in {{equipment}} bei {{heat}}er Hitze {{duration}}, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Toast {{ingredient}} without oil in {{equipment}} over {{heat}} heat for {{duration}} until {{state}}.",
+        "esp": "Tuesta {{ingredient}} sin aceite en {{equipment}} a fuego {{heat}} durante {{duration}} hasta que {{state}}.",
+        "prt": "Torre {{ingredient}} sem óleo em {{equipment}} em fogo {{heat}} por {{duration}} até {{state}}.",
+        "id": "Sangrai {{ingredient}} tanpa minyak dalam {{equipment}} dengan api {{heat}} selama {{duration}} hingga {{state}}.",
+        "nl": "Rooster {{ingredient}} zonder olie in {{equipment}} op {{heat}} vuur {{duration}} tot {{state}}.",
+        "sv": "Rosta {{ingredient}} utan olja i {{equipment}} på {{heat}} värme i {{duration}} tills {{state}}.",
+        "da": "Rist {{ingredient}} uden olie i {{equipment}} ved {{heat}} varme i {{duration}}, indtil {{state}}.",
+        "no": "Rist {{ingredient}} uten olje i {{equipment}} på {{heat}} varme i {{duration}} til {{state}}.",
+        "ms": "Panggang {{ingredient}} tanpa minyak dalam {{equipment}} pada api {{heat}} selama {{duration}} sehingga {{state}}."
       },
       "variables": [
-        "base",
+        "ingredient",
         "equipment",
         "heat",
         "duration",
@@ -5289,7 +5238,7 @@
         "copula"
       ],
       "required_variables": [
-        "base",
+        "ingredient",
         "equipment",
         "heat",
         "duration",
@@ -5313,7 +5262,7 @@
         "equipment_id:3",
         "pfanne",
         "pan",
-        "variable:base",
+        "variable:ingredient",
         "variable:equipment",
         "variable:heat",
         "variable:duration",

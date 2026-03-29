@@ -176,6 +176,13 @@
             return true;
         }
 
+        function showDraftRestoreBannerIfNeeded() {
+            if (consumeCreatePostingDraftResetFlag()) return;
+            const draft = readCreatePostingDraft();
+            if (!hasMeaningfulCreatePostingDraft(draft)) return;
+            $('#draftRestoreBanner').removeClass('d-none');
+        }
+
         const fallbackUnitsLocal = [
             { de: 'Stk.', en: 'pcs.', esp: 'uds.', prt: 'un.' },
             { de: 'EL.', en: 'tbsp.', esp: 'cda.', prt: 'colh. sopa' },
@@ -325,6 +332,7 @@
         let probVarEditorCallback = null;
         let probVarEditorAnchor = null;
         let probVarIngredientArticleValue = '';
+        let probVarEditorCurrentVarKey = '';
 
         function renderProbVarIngredientArticleOptions(selectedArticle) {
             const wrap = $('#probVarIngredientArticleChips');
@@ -353,9 +361,10 @@
         function openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement) {
             probVarEditorCallback = onApply;
             probVarEditorAnchor = anchorElement ? $(anchorElement).closest('.probability-template-wrap') : null;
+            probVarEditorCurrentVarKey = (varKey || '').toString();
             const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
             $('#probVarEditorTitle').text((cleanKey || 'Wert') + ' auswÃ¤hlen');
-            $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea').addClass('d-none');
+            $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea, #probVarPronounStateArea').addClass('d-none');
             $('#probVarIngredientArticleChips').empty();
             $('#probVarApplyRow').addClass('d-none');
 
@@ -366,7 +375,12 @@
                 $('#probVarIngredientArticleChips').empty();
 
                 const selectedIds = (creatorState.selectedIngredientIds || []).map(x => x.toString());
-                const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
+                let ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
+                const lowerKey = (varKey || '').toLowerCase();
+                if (lowerKey === 'liquid') ings = ings.filter(i => i.isLiquid);
+                else if (lowerKey === 'fat') ings = ings.filter(i => i.isFat);
+                else if (lowerKey === 'hard') ings = ings.filter(i => i.isHard);
+                else if (lowerKey === 'soft') ings = ings.filter(i => i.isSoft);
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, selectedIds)
                     : '';
@@ -400,26 +414,68 @@
                 $('#probVarApplyRow').removeClass('d-none');
 
             } else {
-                // Options or text fallback â†’ try to get presets from MasterStepRenderer
-                let options = [];
-                if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
-                    options = MasterStepRenderer.getVariablePresets(varKey, currentLang || 'de') || [];
-                }
-                if (!options.length && varType === 'heat' && typeof getHeatOptions === 'function') options = getHeatOptions();
-                if (!options.length && varType === 'mode') options = getModeOptions();
+                // Check if this is pronoun or state â†' show combined pronoun+state area
+                const lowerVarKey = (varKey || '').toLowerCase();
+                const isPronounOrState = lowerVarKey === 'pronoun' || lowerVarKey === 'state' || lowerVarKey === 'pronoun2';
 
-                if (options.length) {
-                    const chips = options.map(opt => {
+                if (isPronounOrState && window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                    // Get pronoun options
+                    const pronounOptions = MasterStepRenderer.getVariablePresets('pronoun', currentLang || 'de') || [];
+                    console.log('[openProbVarEditor] pronounOptions:', pronounOptions);
+                    const pronounChips = pronounOptions.map(opt => {
                         const safe = $('<div>').text(opt).html();
-                        const active = opt === currentVal ? ' active' : '';
-                        return `<button type="button" class="btn btn-sm prob-var-chip js-prob-option-chip${active}" data-value="${safe}">${safe}</button>`;
+                        const active = lowerVarKey === 'pronoun' && opt === currentVal ? ' active' : '';
+                        return `<button type="button" class="btn btn-sm prob-var-chip js-prob-pronoun-chip${active}" data-value="${safe}">${safe}</button>`;
                     }).join('');
-                    $('#probVarOptionChips').html(chips);
-                    $('#probVarOptionsArea').removeClass('d-none');
+
+                    // Get state options
+                    const stateOptions = MasterStepRenderer.getVariablePresets('state', currentLang || 'de') || [];
+                    console.log('[openProbVarEditor] stateOptions:', stateOptions);
+                    const stateChips = stateOptions.map(opt => {
+                        const safe = $('<div>').text(opt).html();
+                        const active = lowerVarKey === 'state' && opt === currentVal ? ' active' : '';
+                        return `<button type="button" class="btn btn-sm prob-var-chip js-prob-state-chip${active}" data-value="${safe}">${safe}</button>`;
+                    }).join('');
+
+                    console.log('[openProbVarEditor] HTML generiert:', {
+                        pronounChipsLength: pronounChips.length,
+                        stateChipsLength: stateChips.length,
+                        varKey,
+                        lowerVarKey
+                    });
+
+                    if (pronounChips || stateChips) {
+                        $('#probVarPronounChips').html(pronounChips || '<span class="small text-white-50">Keine Optionen</span>');
+                        $('#probVarStateChips').html(stateChips || '<span class="small text-white-50">Keine Optionen</span>');
+                        $('#probVarPronounStateArea').removeClass('d-none');
+                    } else {
+                        // Fallback to text input
+                        $('#probVarTextVal').val(currentVal || '');
+                        $('#probVarTextArea').removeClass('d-none');
+                        $('#probVarApplyRow').removeClass('d-none');
+                    }
                 } else {
-                    $('#probVarTextVal').val(currentVal || '');
-                    $('#probVarTextArea').removeClass('d-none');
-                    $('#probVarApplyRow').removeClass('d-none');
+                    // Options or text fallback â†' try to get presets from MasterStepRenderer
+                    let options = [];
+                    if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
+                        options = MasterStepRenderer.getVariablePresets(varKey, currentLang || 'de') || [];
+                    }
+                    if (!options.length && varType === 'heat' && typeof getHeatOptions === 'function') options = getHeatOptions();
+                    if (!options.length && varType === 'mode') options = getModeOptions();
+
+                    if (options.length) {
+                        const chips = options.map(opt => {
+                            const safe = $('<div>').text(opt).html();
+                            const active = opt === currentVal ? ' active' : '';
+                            return `<button type="button" class="btn btn-sm prob-var-chip js-prob-option-chip${active}" data-value="${safe}">${safe}</button>`;
+                        }).join('');
+                        $('#probVarOptionChips').html(chips);
+                        $('#probVarOptionsArea').removeClass('d-none');
+                    } else {
+                        $('#probVarTextVal').val(currentVal || '');
+                        $('#probVarTextArea').removeClass('d-none');
+                        $('#probVarApplyRow').removeClass('d-none');
+                    }
                 }
             }
 
@@ -529,40 +585,19 @@
                 };
             };
 
-            if (varKey === 'state' && flowMode !== 'stateOnly') {
-                const splitState = splitPronounStateValue(currentVal);
-                return openProbVarInlineEditor(
-                    masterId,
-                    'pronoun',
-                    splitState.pronoun,
-                    function (selectedPronoun) {
-                        const normalizedPronoun = selectedPronoun === '__none__' ? '' : (selectedPronoun || '');
-                        if (typeof onApplyExtras === 'function') {
-                            onApplyExtras({ pronoun: normalizedPronoun });
-                        }
-                        openProbVarInlineEditor(
-                            masterId,
-                            'state',
-                            splitState.state,
-                            function (nextStateValue) {
-                                if (nextStateValue != null) onApply(nextStateValue);
-                            },
-                            $anchor[0],
-                            onApplyExtras,
-                            'stateOnly',
-                            normalizedPronoun
-                        );
-                    },
-                    $anchor[0],
-                    onApplyExtras,
-                    'pronounOnly'
-                );
-            }
-
+            // UNIFIED EDITOR SYSTEM: Always use buildInlineEditorHtml for consistent behavior
+            // Old separate combined editor removed - now both areas use the same system
             const hasSeparatePronounToken = !!$anchor.find('.js-probability-var[data-var-key="pronoun"]').length;
+            // Always show pronoun buttons for combined pronoun+state editor
+            const isPronounOrState = varKey === 'pronoun' || varKey === 'state';
+
+            // Get multi-ingredients for this master and variable
+            const multiIngredients = (window.ProbabilityMultiIngredients[masterId] || {})[varKey] || [];
+
             const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, {
-                suppressPronounButtons: hasSeparatePronounToken || flowMode === 'stateOnly',
-                masterId: masterId
+                suppressPronounButtons: false,  // Always show pronouns for unified editor
+                masterId: masterId,
+                multiIngredients: multiIngredients
             });
             $host.html(editorHtml).removeClass('d-none');
             $anchor.addClass('editing');
@@ -590,19 +625,127 @@
                 const scrollY = window.scrollY || window.pageYOffset || 0;
                 const editorVarName = (editorEl.dataset.editorFor || '').trim();
                 const selectedPronoun = (editorEl.dataset.selectedPronoun || carriedPronoun || '').trim();
-                let val = helpers.applyEditorValue(editorEl);
+
+                // Define extras early (used in multi-ingredient path)
                 let extras = (onApplyExtras && typeof helpers.applyEditorExtras === 'function')
                     ? helpers.applyEditorExtras(editorEl) : null;
+
+                // Check if there are existing multi-ingredients first
+                const existingMultiIngredients = (window.ProbabilityMultiIngredients[masterId] || {})[editorVarName];
+                const hasMultiIngredients = existingMultiIngredients && existingMultiIngredients.length > 0;
+
+                // Check if user selected NEW ingredients
+                const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+                const hasNewSelection = selectedValues && selectedValues.length > 0;
+
+                let val;
+                if (hasMultiIngredients && hasNewSelection && helpers) {
+                    // Multi-ingredients exist AND user selected new ingredients → ADD to list (like Step Creator!)
+                    console.log("[Probability doApply] Multi-ingredients exist + new selection → ADDING to list");
+
+                    const article = editorEl.dataset.selectedArticle || '';
+                    const fraction = editorEl.dataset.selectedFraction || '';
+
+                    // Normalize new selection
+                    const newNormalized = helpers.normalizeIngredientValues ? helpers.normalizeIngredientValues(selectedValues) : selectedValues;
+                    newNormalized.forEach(item => {
+                        if (!item.article || item.article === '') item.article = article;
+                        if (!item.fraction || item.fraction === '') item.fraction = fraction;
+                    });
+
+                    // Combine existing + new
+                    const combinedList = [...existingMultiIngredients, ...newNormalized];
+                    window.ProbabilityMultiIngredients[masterId][editorVarName] = combinedList;
+
+                    // Format combined list
+                    val = helpers.formatSelectedIngredientList ? helpers.formatSelectedIngredientList(combinedList, currentLang || 'de') : '';
+
+                    console.log("[Probability doApply] Combined list:", combinedList, "composed:", val);
+
+                    // Re-open editor to show updated chips (don't close!)
+                    closeEditor();
+                    if (val != null) onApply(val);
+                    if (extras && typeof onApplyExtras === 'function') onApplyExtras(extras);
+
+                    // Re-open editor with updated list
+                    const token = $anchor.find(`.js-probability-var[data-var="${editorVarName}"]`).first()[0];
+                    if (token && typeof openProbVarInlineEditor === 'function') {
+                        const dummyOnApply = function(newVal) {
+                            $(token).text(newVal || editorVarName);
+                            $(token).attr('data-has-value', newVal ? '1' : '0');
+                        };
+                        openProbVarInlineEditor(masterId, editorVarName, val, dummyOnApply, token);
+                    }
+
+                    window.requestAnimationFrame(function () { window.scrollTo(scrollX, scrollY); });
+                    return; // Don't continue to normal close logic
+                } else if (hasMultiIngredients && helpers && helpers.formatSelectedIngredientList) {
+                    // Multi-ingredients exist but no new selection → Just use existing list
+                    val = helpers.formatSelectedIngredientList(existingMultiIngredients, currentLang || 'de');
+                    console.log("[Probability doApply] Using multi-ingredients list (no new selection):", existingMultiIngredients, "composed:", val);
+                } else {
+                    // No multi-ingredients → Use single selection
+                    val = helpers.applyEditorValue(editorEl);
+                    console.log("[Probability doApply] Using single selection:", val);
+                }
 
                 if (editorVarName === 'pronoun' && val === '__none__') {
                     val = '__none__';
                 }
 
-                if (editorVarName === 'state' && selectedPronoun) {
-                    if (hasSeparatePronounToken) {
+                // Handle combined pronoun+state editor
+                if (editorVarName === 'pronoun' || editorVarName === 'state') {
+                    if (selectedPronoun) {
+                        // Always save pronoun via extras callback
                         extras = Object.assign({}, extras || {}, { pronoun: selectedPronoun });
-                    } else if (val) {
+                    }
+
+                    // If editing state and both pronoun and state are selected, compose them
+                    if (editorVarName === 'state' && selectedPronoun && val && !hasSeparatePronounToken) {
                         val = `${selectedPronoun} ${val}`.trim();
+                    }
+                }
+
+                // Store multi-ingredients for ingredient variables
+                // IMPORTANT: Only store if this is the FIRST time (no existing multi-ingredients)
+                // The Plus button handler manages adding to the list after the first time
+                if (helpers && typeof helpers.isIngredientVariable === 'function' && helpers.isIngredientVariable(editorVarName)) {
+                    const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+                    if (selectedValues && selectedValues.length > 0) {
+                        const article = editorEl.dataset.selectedArticle || '';
+                        const fraction = editorEl.dataset.selectedFraction || '';
+
+                        // Check if there are already multi-ingredients stored
+                        const existingMultiIngredients = (window.ProbabilityMultiIngredients[masterId] || {})[editorVarName];
+                        const isFirstTime = !existingMultiIngredients || existingMultiIngredients.length === 0;
+
+                        if (isFirstTime) {
+                            // First time: Store the ingredient
+                            const normalized = helpers.normalizeIngredientValues ? helpers.normalizeIngredientValues(selectedValues) : selectedValues;
+                            normalized.forEach(item => {
+                                if (!item.article || item.article === '') item.article = article;
+                                if (!item.fraction || item.fraction === '') item.fraction = fraction;
+                            });
+
+                            // Store in global multi-ingredients
+                            if (!window.ProbabilityMultiIngredients[masterId]) {
+                                window.ProbabilityMultiIngredients[masterId] = {};
+                            }
+                            window.ProbabilityMultiIngredients[masterId][editorVarName] = normalized;
+
+                            console.log("[Probability doApply] FIRST TIME - Stored multi-ingredients:", {
+                                masterId,
+                                editorVarName,
+                                normalized,
+                                storage: window.ProbabilityMultiIngredients
+                            });
+                        } else {
+                            console.log("[Probability doApply] NOT first time - skipping storage (Plus button manages this):", {
+                                masterId,
+                                editorVarName,
+                                existingMultiIngredients
+                            });
+                        }
                     }
                 }
 
@@ -620,36 +763,16 @@
                 .on('click.probinline', '#BtnPickTempQuick', doApply)
                 .on('click.probinline', '#BtnPickCountQuick', doApply)
                 .on('click.probinline', 'button[data-pick-mode]', function () {
-                    const btn = this;
-                    const mode = btn.dataset.pickMode;
-                    const val = btn.dataset.pickValue || '';
-
-                    if (mode === 'ingredient-value') {
-                        const selected = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
-                        const list = Array.isArray(selected) ? selected : [];
-                        const idx = list.indexOf(val);
-                        if (idx >= 0) { list.splice(idx, 1); btn.classList.remove('active'); }
-                        else { list.push(val); btn.classList.add('active'); }
-                        editorEl.dataset.selectedIngredientValues = JSON.stringify(list);
-                        editorEl.dataset.selectedValue = list[0] || '';
-                        return;
+                    // Use shared pick-mode handler from CreatePostingSmartStepCreator
+                    if (helpers && typeof helpers.handlePickModeClick === 'function') {
+                        helpers.handlePickModeClick(this, editorEl, true); // true = use class-based IDs for Probability Area
                     }
-
-                    const rowSel = mode === 'article' ? '.js-article-btn-row'
-                        : mode === 'pronoun' ? '.js-pronoun-btn-row' : '.js-value-btn-row';
-                    $host.find(rowSel).find('button[data-pick-mode]').removeClass('active');
-                    btn.classList.add('active');
-
-                    if (mode === 'article') editorEl.dataset.selectedArticle = val;
-                    if (mode === 'pronoun') editorEl.dataset.selectedPronoun = val;
-                    if (mode === 'value') editorEl.dataset.selectedValue = val;
                 })
                 .on('click.probinline', 'button[data-duration-unit]', function () {
-                    const btn = this;
-                    editorEl.dataset.durationUnit = btn.dataset.durationUnit;
-                    btn.parentElement && btn.parentElement.querySelectorAll('button[data-duration-unit]')
-                        .forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
+                    // Use shared duration-unit handler from CreatePostingSmartStepCreator
+                    if (helpers && typeof helpers.handleDurationUnitClick === 'function') {
+                        helpers.handleDurationUnitClick(this, editorEl);
+                    }
                 });
         }
         /* ===== End Probability Variable Editor ===== */
@@ -805,6 +928,11 @@
                     genusLocalized: genusByLang[resolveLangKey(currentLang)] || genusByLang.de || '',
                     genusByLang,
                     iconHtml: (row.data('group-icon') || '').toString(),
+                    groupId: (row.data('group-id') || '').toString(),
+                    isLiquid: row.data('is-liquid') === true || row.data('is-liquid') === 'true',
+                    isFat: row.data('is-fat') === true || row.data('is-fat') === 'true',
+                    isHard: row.data('is-hard') === true || row.data('is-hard') === 'true',
+                    isSoft: row.data('is-soft') === true || row.data('is-soft') === 'true',
                     sourceBaseId: id
                 };
             }).get().filter(x => x.id || x.name);
@@ -911,6 +1039,12 @@
             }).get().filter(Boolean);
         }
 
+        function matchesWholeWord(name, term) {
+            if (name === term) return true;
+            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return new RegExp('(?:^|[\\s,;/()\\-])' + escaped + '(?:$|[\\s,;/()\\-])', 'i').test(name);
+        }
+
         function deriveIngredientsForSteps(baseItems, stepDescriptors, langKey = currentLang) {
             let items = Array.isArray(baseItems) ? [...baseItems] : [];
             const descriptors = Array.isArray(stepDescriptors) ? stepDescriptors : [];
@@ -918,6 +1052,30 @@
             const allLangs = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
 
             if (!ingredientTransforms) return items;
+
+            // auto_show transforms FIRST: show sub-ingredients (e.g. Ei → Eiklar/Eigelb)
+            // so they are available for trigger_step transforms (e.g. Eiklar → Eischnee)
+            const triggeredKeys = new Set(descriptors.map(d => d?.masterId).filter(Boolean));
+            (ingredientTransforms.special_transforms || []).forEach(function (t) {
+                if (!t.auto_show) return;
+                if (triggeredKeys.has(t.trigger_step)) return; // will be handled in descriptor loop
+                const matchTerms = t.match?.[lang] || t.match?.de || [];
+                const targets = items.filter(function (item) {
+                    const name = normalizeIngredientMatchValue(
+                        item.namesByLang?.[lang] || item.name, lang);
+                    return matchTerms.some(function (term) { return matchesWholeWord(name, term); });
+                });
+                if (!targets.length) return;
+                targets.forEach(function (target) {
+                    const subs = buildSpecialTransformItems(target, t);
+                    subs.forEach(function (sub) {
+                        sub.isAutoShowOptional = true;
+                        if (!items.some(function (i) { return i.id === sub.id; })) {
+                            items.push(sub);
+                        }
+                    });
+                });
+            });
 
             descriptors.forEach(function (descriptor) {
                 const masterId = (descriptor?.masterId || '').toString();
@@ -931,11 +1089,12 @@
                     const targets = items.filter(function (item) {
                         const name = normalizeIngredientMatchValue(
                             item.namesByLang?.[lang] || item.name, lang);
-                        return matchTerms.some(function (t) { return name === t || name.includes(t); });
+                        return matchTerms.some(function (t) { return matchesWholeWord(name, t); });
                     });
                     if (targets.length) {
                         const targetIds = new Set(targets.map(function (i) { return i.id; }));
-                        const replacements = targets.flatMap(function (i) { return buildSpecialTransformItems(i, specialMatch); });
+                        // Build outputs only ONCE per transform (not per matching target)
+                        const replacements = buildSpecialTransformItems(targets[0], specialMatch);
                         items = items.filter(function (i) { return !targetIds.has(i.id); }).concat(replacements);
                     }
                     return;
@@ -995,29 +1154,6 @@
                 items = items.filter(function (item) { return !matchedIds.has(item.id); }).concat(replacements);
             });
 
-            // auto_show transforms: show sub-ingredients even without trigger step
-            const triggeredKeys = new Set(descriptors.map(d => d?.masterId).filter(Boolean));
-            (ingredientTransforms.special_transforms || []).forEach(function (t) {
-                if (!t.auto_show) return;
-                if (triggeredKeys.has(t.trigger_step)) return; // already handled above
-                const matchTerms = t.match?.[lang] || t.match?.de || [];
-                const targets = items.filter(function (item) {
-                    const name = normalizeIngredientMatchValue(
-                        item.namesByLang?.[lang] || item.name, lang);
-                    return matchTerms.some(function (term) { return name === term || name.includes(term); });
-                });
-                if (!targets.length) return;
-                targets.forEach(function (target) {
-                    const subs = buildSpecialTransformItems(target, t);
-                    subs.forEach(function (sub) {
-                        sub.isAutoShowOptional = true;
-                        if (!items.some(function (i) { return i.id === sub.id; })) {
-                            items.push(sub);
-                        }
-                    });
-                });
-            });
-
             return items;
         }
 
@@ -1039,6 +1175,11 @@
                 genusLocalized: item.genusByLang?.[lang] || item.genusLocalized || item.genusDe || '',
                 genusByLang: item.genusByLang || {},
                 iconHtml: item.iconHtml || '',
+                groupId: item.groupId || '',
+                isLiquid: !!item.isLiquid,
+                isFat: !!item.isFat,
+                isHard: !!item.isHard,
+                isSoft: !!item.isSoft,
                 sourceBaseId: item.sourceBaseId || item.id || ''
             }));
         }
@@ -1591,7 +1732,7 @@
         }
 
         const placeholderTypeMatchers = [
-            { type: 'ingredient', match: key => key === 'ingredient' || key === 'ingredients' || key === 'liquid' || key === 'fat' },
+            { type: 'ingredient', match: key => key === 'ingredient' || key === 'ingredients' || key === 'liquid' || key === 'fat' || key === 'components' },
             { type: 'duration', match: key => key.includes('duration') },
             { type: 'count', match: key => key === 'count' || key === 'servings' || key.includes('count') },
             { type: 'pronoun', match: key => key === 'pronoun' || key === 'pronoun2' },
@@ -1637,12 +1778,13 @@
         const placeholderEditorDispatch = {
             duration: { open: openDurationEditorForToken, toast: 'Zeit setzen' },
             count: { open: openCountEditorForToken, toast: 'Anzahl setzen' },
-            pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
+            // pronoun and state removed: use combined editor via openProbVarInlineEditor fallback
+            // pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
             temperature: { open: openTemperatureEditorForToken, toast: 'Temperatur setzen' },
             heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wÃ¤hlen' },
             mode: { open: openModeEditorForToken, toast: 'Ofenmodus wÃ¤hlen' },
             equipment: { open: openEquipmentEditorForToken, toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            state: { open: openStateEditorForToken, toast: 'Zustand wÃ¤hlen' },
+            // state: { open: openStateEditorForToken, toast: 'Zustand wÃ¤hlen' },
             tool: { open: openToolEditorForToken, toast: 'Tool / GerÃ¤t wÃ¤hlen' },
             grindSize: { open: openGrindSizeEditorForToken, toast: 'SchnittgrÃ¶ÃŸe wÃ¤hlen' },
             shape: { open: openShapeEditorForToken, toast: 'Schnittform wÃ¤hlen' },
@@ -3123,13 +3265,22 @@
                 names[lang] = (row.data('name-' + lang) || fallbackName || '').toString();
                 genus[lang] = (row.data('genus-' + lang) || '').toString().trim();
             });
-            return { names, genus };
+            return {
+                names,
+                genus,
+                groupId: (row.data('group-id') || '').toString(),
+                isLiquid: (row.data('is-liquid') === true || row.data('is-liquid') === 'true') ? 'true' : 'false',
+                isFat: (row.data('is-fat') === true || row.data('is-fat') === 'true') ? 'true' : 'false',
+                isHard: (row.data('is-hard') === true || row.data('is-hard') === 'true') ? 'true' : 'false',
+                isSoft: (row.data('is-soft') === true || row.data('is-soft') === 'true') ? 'true' : 'false'
+            };
         }
 
         function buildIngredientDataAttributes(localizedData) {
-            return supportedLanguages.map(lang =>
+            const langAttrs = supportedLanguages.map(lang =>
                 `data-name-${lang}="${escapeAttr(localizedData.names[lang])}" data-genus-${lang}="${escapeAttr(localizedData.genus[lang])}"`
             ).join(' ');
+            return `${langAttrs} data-group-id="${escapeAttr(localizedData.groupId || '')}" data-is-liquid="${localizedData.isLiquid || 'false'}" data-is-fat="${localizedData.isFat || 'false'}" data-is-hard="${localizedData.isHard || 'false'}" data-is-soft="${localizedData.isSoft || 'false'}"`;
         }
 
         function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName, iconHtml }) {
@@ -3900,12 +4051,13 @@
         const sc2EditorDispatch = {
             duration:    { open: openSc2DurationEditorForToken,    toast: 'Zeit setzen' },
             count:       { open: openSc2CountEditorForToken,       toast: 'Anzahl setzen' },
-            pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
+            // pronoun and state removed: use combined editor via openProbVarInlineEditor fallback
+            // pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
             temperature: { open: openSc2TemperatureEditorForToken, toast: 'Temperatur setzen' },
             heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wÃ¤hlen' },
             mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wÃ¤hlen' },
             equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wÃ¤hlen' },
+            // state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wÃ¤hlen' },
             tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / GerÃ¤t wÃ¤hlen' },
             grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'SchnittgrÃ¶ÃŸe wÃ¤hlen' },
             shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wÃ¤hlen' },
@@ -3922,19 +4074,20 @@
                 creatorState.ingredientReplaceArmed = false;
                 $('#sc2MasterPreviewCard').removeClass('token-replace-active');
                 const placeholderType = getPlaceholderType(key);
+                console.log('[openSc2EditorForPlaceholderToken]', { key, tokenId, placeholderType, hasDispatch: !!sc2EditorDispatch[placeholderType] });
 
-                // Sequential editing: clicking {state} when {pronoun} is unfilled â†’ open pronoun first
-                if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.triggerPronounBeforeState({
-                    placeholderType,
-                    containerSelector: '#sc2MasterPreviewText',
-                    assignments: creatorState.placeholderAssignments,
-                    onTriggered: function (pronounTokenId) {
-                        creatorState.pendingSc2StateTokenId = tokenId;
-                        openSc2PronounEditorForToken(pronounTokenId);
-                        showSc2CreatorToast('Zuerst Pronomen wÃ¤hlen');
-                        renderSc2TemplateCards();
-                    }
-                })) return;
+                // Sequential editing DISABLED: User can fill pronoun and state in any order
+                // if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.triggerPronounBeforeState({
+                //     placeholderType,
+                //     containerSelector: '#sc2MasterPreviewText',
+                //     assignments: creatorState.placeholderAssignments,
+                //     onTriggered: function (pronounTokenId) {
+                //         creatorState.pendingSc2StateTokenId = tokenId;
+                //         openSc2PronounEditorForToken(pronounTokenId);
+                //         showSc2CreatorToast('Zuerst Pronomen wÃ¤hlen');
+                //         renderSc2TemplateCards();
+                //     }
+                // })) return;
 
                 if (placeholderType === 'ingredient') {
                     creatorState.activePlaceholderTokenId = tokenId;
@@ -3946,6 +4099,7 @@
                     sc2EditorDispatch[placeholderType].open(tokenId);
                     showSc2CreatorToast(sc2EditorDispatch[placeholderType].toast);
                 } else if (typeof openProbVarInlineEditor === 'function') {
+                    console.log('[openSc2EditorForPlaceholderToken] Using openProbVarInlineEditor fallback for:', key);
                     creatorState.activePlaceholderTokenId = tokenId;
                     openProbVarInlineEditor(
                         creatorState.selectedTemplateId || '',
@@ -3979,7 +4133,7 @@
 
 
             window.setCreatePostingTheme(readStoredCreatePostingTheme(), { persist: false, refresh: false });
-            restoreCreatePostingDraft();
+            showDraftRestoreBannerIfNeeded();
 
             $('.creator-topbar').on('click', '[data-create-posting-theme]', function () {
                 const nextTheme = ($(this).data('create-posting-theme') || '').toString();
@@ -3997,8 +4151,13 @@
                 $('#ingredientSearch').val('').trigger('input').trigger('focus');
                 syncIngredientSourceVisibility();
             });
-            $('#clearCreatePostingDraftBtn').on('click', function () {
-                startCreatePostingFresh();
+            $('#restoreDraftBtn').on('click', function () {
+                restoreCreatePostingDraft();
+                $('#draftRestoreBanner').addClass('d-none');
+            });
+            $('#discardDraftBtn').on('click', function () {
+                clearCreatePostingDraft();
+                $('#draftRestoreBanner').addClass('d-none');
             });
             $('#recipeForm').on('input change', 'input, textarea, select', function () {
                 scheduleCreatePostingDraftSave();
@@ -4077,6 +4236,152 @@
                 renderTemplateCards();
                 updatePreviewText();
                 showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewÃ¤hlt');
+            });
+
+            // Multi-Ingredient Plus-Button in Probability Area
+            $('#recipeForm').on('click', '.probability-template-wrap .ingredient-plus-btn', function (e) {
+                e.stopPropagation();
+                const btn = this;
+                const varName = btn.dataset.var;
+                const masterId = btn.dataset.masterId;
+                if (!varName || !masterId) return;
+
+                const wrap = $(btn).closest('.probability-template-wrap');
+                const $host = wrap.find('.prob-inline-editor-host');
+                const editorEl = $host[0];
+
+                console.log("[Probability Plus Button]", { varName, masterId, editorEl });
+
+                // If editor is closed, open it directly (don't click token - that triggers template selection!)
+                if (!editorEl || $host.hasClass('d-none') || $host.html().trim() === '') {
+                    console.log("[Probability Plus Button] Editor is closed, opening directly");
+                    const token = wrap.find(`.js-probability-var[data-var="${varName}"]`).first()[0];
+                    if (token && typeof openProbVarInlineEditor === 'function') {
+                        // Get helpers from global
+                        const helpersGlobal = window.MasterStepCreatorHelpers;
+
+                        // Get current value from storage
+                        const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
+                        const currentVal = helpersGlobal && helpersGlobal.formatSelectedIngredientList
+                            ? helpersGlobal.formatSelectedIngredientList(existingList, currentLang || 'de')
+                            : '';
+
+                        // Open editor with dummy callback
+                        const dummyOnApply = function(val) {
+                            $(token).text(val || varName);
+                            $(token).attr('data-has-value', val ? '1' : '0');
+                        };
+
+                        openProbVarInlineEditor(masterId, varName, currentVal, dummyOnApply, token);
+                    }
+                    return;
+                }
+
+                // Editor is open - add current selection to list
+                const helpers = window.MasterStepCreatorHelpers;
+                if (!helpers) return;
+
+                const article = editorEl.dataset.selectedArticle || '';
+                const fraction = editorEl.dataset.selectedFraction || '';
+                const currentSelectedChips = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+
+                console.log("[Probability Plus Button] Selection:", { article, fraction, currentSelectedChips });
+
+                if (currentSelectedChips.length === 0) {
+                    alert("Bitte eine Zutat auswählen");
+                    return;
+                }
+
+                // Get existing list for this master and variable
+                if (!window.ProbabilityMultiIngredients[masterId]) {
+                    window.ProbabilityMultiIngredients[masterId] = {};
+                }
+                const existingList = window.ProbabilityMultiIngredients[masterId][varName] || [];
+
+                console.log("[Probability Plus Button] BEFORE adding - existingList:", JSON.parse(JSON.stringify(existingList)));
+
+                // Normalize and add
+                const normalized = helpers.normalizeIngredientValues ? helpers.normalizeIngredientValues(currentSelectedChips) : currentSelectedChips;
+                normalized.forEach(item => {
+                    item.article = article;
+                    item.fraction = fraction;
+                    existingList.push(item);
+                });
+
+                console.log("[Probability Plus Button] AFTER adding - existingList:", JSON.parse(JSON.stringify(existingList)));
+
+                // Store
+                window.ProbabilityMultiIngredients[masterId][varName] = existingList;
+
+                // Format and update display
+                const composed = helpers.formatSelectedIngredientList ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de') : '';
+
+                console.log("[Probability Plus Button] Composed:", composed, "existingList:", existingList);
+
+                // Re-open editor immediately to show updated chips
+                // The editor will display all multi-ingredients as removable chips
+                const token = wrap.find(`.js-probability-var[data-var="${varName}"]`).first()[0];
+                if (token) {
+                    // Call openProbVarInlineEditor with the updated value
+                    // This will re-render the editor with the new multi-ingredients list
+                    const dummyOnApply = function(val) {
+                        // Update token display
+                        $(token).text(val || varName);
+                        $(token).attr('data-has-value', val ? '1' : '0');
+                    };
+                    openProbVarInlineEditor(masterId, varName, composed, dummyOnApply, token);
+                }
+            });
+
+            // Remove Multi-Ingredient Chip in Probability Area
+            $('#recipeForm').on('click', '.prob-inline-editor-host button[data-remove-multi-ingredient]', function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                const btn = this;
+                const idx = parseInt(btn.dataset.removeMultiIngredient, 10);
+
+                console.log("[Probability Remove Chip] Button clicked!", { btn, idx });
+
+                const $host = $(btn).closest('.prob-inline-editor-host');
+                // editorFor is on the .prob-inline-editor or .duration-editor element inside the host
+                const editorEl = $host.find('.prob-inline-editor, .duration-editor').first()[0];
+                if (!editorEl) {
+                    console.log("[Probability Remove Chip] No editor element found!");
+                    return;
+                }
+
+                const varName = editorEl.dataset.editorFor;
+                const masterId = $host.closest('.probability-template-wrap').attr('data-master-id');
+
+                console.log("[Probability Remove Chip]", { idx, varName, masterId, editorEl });
+
+                if (!masterId || !varName || isNaN(idx)) return;
+
+                const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
+                if (idx < 0 || idx >= existingList.length) return;
+
+                // Remove item
+                existingList.splice(idx, 1);
+                window.ProbabilityMultiIngredients[masterId][varName] = existingList;
+
+                // Update display
+                const helpers = window.MasterStepCreatorHelpers;
+                const composed = helpers && helpers.formatSelectedIngredientList
+                    ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de')
+                    : '';
+
+                console.log("[Probability Remove Chip] New composed:", composed);
+
+                // Re-open editor to show updated chips
+                const wrap = $host.closest('.probability-template-wrap');
+                const token = wrap.find(`.js-probability-var[data-var="${varName}"]`).first();
+                if (token.length) {
+                    token.text(composed || varName);
+                    token.attr('data-has-value', composed ? '1' : '0');
+                }
+
+                const onApply = function () {};
+                openProbVarInlineEditor(masterId, varName, composed, onApply, token[0]);
             });
 
             // Vorgeschlagene Zutat hinzufÃ¼gen: findet die Zeile im Katalog und ruft addIngredient auf
@@ -4194,19 +4499,19 @@
 
                     const placeholderType = getPlaceholderType(key);
 
-                    // Sequential editing: clicking {state} when {pronoun} is unfilled â†’ open pronoun first
-                    if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.triggerPronounBeforeState({
-                        placeholderType,
-                        containerSelector: '#masterPreviewText',
-                        assignments: creatorState.placeholderAssignments,
-                        onTriggered: function (pronounTokenId) {
-                            creatorState.pendingStateTokenId = tokenId;
-                            creatorState.activePlaceholderTokenId = pronounTokenId;
-                            openPronounEditorForToken(pronounTokenId);
-                            showCreatorToast('Zuerst Pronomen wÃ¤hlen');
-                            renderTemplateCards();
-                        }
-                    })) return;
+                    // Sequential editing DISABLED: User can fill pronoun and state in any order
+                    // if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.triggerPronounBeforeState({
+                    //     placeholderType,
+                    //     containerSelector: '#masterPreviewText',
+                    //     assignments: creatorState.placeholderAssignments,
+                    //     onTriggered: function (pronounTokenId) {
+                    //         creatorState.pendingStateTokenId = tokenId;
+                    //         creatorState.activePlaceholderTokenId = pronounTokenId;
+                    //         openPronounEditorForToken(pronounTokenId);
+                    //         showCreatorToast('Zuerst Pronomen wählen');
+                    //         renderTemplateCards();
+                    //     }
+                    // })) return;
 
                     if (placeholderType === 'ingredient') {
                         handleIngredientPlaceholderSelection(tokenId);
@@ -4692,7 +4997,12 @@
                     creatorState.selectedIngredientIds = [...selected, id];
                 }
 
-                const ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
+                let ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
+                const lowerVarKey = (probVarEditorCurrentVarKey || '').toLowerCase();
+                if (lowerVarKey === 'liquid') ings = ings.filter(i => i.isLiquid);
+                else if (lowerVarKey === 'fat') ings = ings.filter(i => i.isFat);
+                else if (lowerVarKey === 'hard') ings = ings.filter(i => i.isHard);
+                else if (lowerVarKey === 'soft') ings = ings.filter(i => i.isSoft);
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
                     : '';
@@ -4707,8 +5017,22 @@
                 $(this).addClass('active btn-light text-dark').removeClass('btn-outline-light');
             });
 
-            // Option chip ? auto-apply and close
+            // Option chip → auto-apply and close
             $('#probVarEditorDock').on('click', '.js-prob-option-chip', function () {
+                const value = ($(this).data('value') || $(this).text()).toString();
+                if (probVarEditorCallback) probVarEditorCallback(value);
+                closeProbVarEditor();
+            });
+
+            // Pronoun chip → select and apply
+            $('#probVarEditorDock').on('click', '.js-prob-pronoun-chip', function () {
+                const value = ($(this).data('value') || $(this).text()).toString();
+                if (probVarEditorCallback) probVarEditorCallback(value);
+                closeProbVarEditor();
+            });
+
+            // State chip → select and apply
+            $('#probVarEditorDock').on('click', '.js-prob-state-chip', function () {
                 const value = ($(this).data('value') || $(this).text()).toString();
                 if (probVarEditorCallback) probVarEditorCallback(value);
                 closeProbVarEditor();
@@ -4803,6 +5127,7 @@
                     const token = $(this).hasClass('placeholder-token') ? $(this) : $(this).find('.placeholder-token').first();
                     const key = (token.data('placeholder-key') || '').toString();
                     const tokenId = (token.data('placeholder-token-id') || '').toString();
+                    console.log('[SC2 Token Click]', { key, tokenId });
                     openSc2EditorForPlaceholderToken(key, tokenId);
                 } catch (err) { console.error('SC2 token click error:', err); }
             });
@@ -4900,22 +5225,22 @@
                 closeSc2PronounEditor();
                 showSc2CreatorToast('Pronomen gesetzt');
                 renderTemplateCards();
-                // Sequential editing: open pending sc2 state token after DOM update
-                const pendingSc2StateId = creatorState.pendingSc2StateTokenId || '';
-                creatorState.pendingSc2StateTokenId = '';
-                setTimeout(function () {
-                    if (pendingSc2StateId) {
-                        openSc2StateEditorForToken(pendingSc2StateId);
-                    } else {
-                        const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
-                        if (sc2StateTokenEl) {
-                            const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
-                            if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
-                                openSc2StateEditorForToken(sc2StateTokenId);
-                            }
-                        }
-                    }
-                }, 50);
+                // Sequential editing DISABLED: User can fill pronoun and state independently
+                // const pendingSc2StateId = creatorState.pendingSc2StateTokenId || '';
+                // creatorState.pendingSc2StateTokenId = '';
+                // setTimeout(function () {
+                //     if (pendingSc2StateId) {
+                //         openSc2StateEditorForToken(pendingSc2StateId);
+                //     } else {
+                //         const sc2StateTokenEl = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="state"]');
+                //         if (sc2StateTokenEl) {
+                //             const sc2StateTokenId = sc2StateTokenEl.dataset.placeholderTokenId;
+                //             if (!(creatorState.placeholderAssignments[sc2StateTokenId] || '').toString().trim()) {
+                //                 openSc2StateEditorForToken(sc2StateTokenId);
+                //             }
+                //         }
+                //     }
+                // }, 50);
             });
 
             // SC2 Heat
