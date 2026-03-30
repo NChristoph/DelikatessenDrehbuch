@@ -4312,6 +4312,32 @@
                 // Kurz zum Katalog scrollen, damit der User die Zutat sehen kann
                 catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
+
+            // Helper functions for loading grammar rules
+            function loadIngredientArticleRules() {
+                if (!window.CreatePostingPageData || typeof window.CreatePostingPageData.loadArticleRules !== 'function') {
+                    return Promise.resolve(null);
+                }
+                return window.CreatePostingPageData.loadArticleRules()
+                    .then(rules => {
+                        window.articleRules = rules;
+                        return rules;
+                    })
+                    .catch(() => null);
+            }
+
+            function loadIngredientTransforms() {
+                if (!window.CreatePostingPageData || typeof window.CreatePostingPageData.loadIngredientTransforms !== 'function') {
+                    return Promise.resolve(null);
+                }
+                return window.CreatePostingPageData.loadIngredientTransforms()
+                    .then(transforms => {
+                        window.ingredientTransforms = transforms;
+                        return transforms;
+                    })
+                    .catch(() => null);
+            }
+
             refreshDurationUnitControls();
             Promise.all([loadIngredientArticleRules(), loadIngredientTransforms()]).finally(() => {
                 const renderer = window.MasterStepRenderer;
