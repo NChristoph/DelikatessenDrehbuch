@@ -1114,21 +1114,15 @@
     // RENDER: MasterText (aktueller Step + Editor Slot)
     // -----------------------------
         function renderMasterText() {
-        console.log("[renderMasterText] Called");
         const target = masterText();
-        if (!target) {
-            console.log("[renderMasterText] No target element found!");
-            return;
-        }
+        if (!target) return;
 
         if (!activeStep) {
             target.innerHTML = "Wähle eine Template.";
             return;
         }
 
-        console.log("[renderMasterText] Rendering with values:", JSON.parse(JSON.stringify(activeStep.values)));
         const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
-        console.log("[renderMasterText] Rendered HTML:", rendered);
 
         // Editor placeholder (wird beim Token-Klick gefüllt)
         target.innerHTML = `
@@ -2362,16 +2356,12 @@
      * Updates the value in the appropriate context (Step or Probability Token)
      */
     function updateContextValue(context, varName, value, extras) {
-        console.log('[updateContextValue] Updating:', { contextType: context.type, varName, value });
-
         if (context.type === 'step') {
             // Smart Step Creator: Update activeStep and re-render
             if (!activeStep) {
                 console.error('[updateContextValue] No activeStep available!');
                 return;
             }
-
-            console.log('[updateContextValue] Before:', JSON.parse(JSON.stringify(activeStep.values)));
 
             // Save value to activeStep
             activeStep.values[varName] = value;
@@ -2381,10 +2371,7 @@
                 activeStep.values['pronoun'] = extras.pronoun;
             }
 
-            console.log('[updateContextValue] After:', JSON.parse(JSON.stringify(activeStep.values)));
-
             // Re-render step text
-            console.log('[updateContextValue] Calling renderMasterText()');
             preserveWindowScroll(() => {
                 renderMasterText();
             });
@@ -2393,23 +2380,14 @@
             // Probability Area: Update token text in DOM
             const tokenElement = context.tokenElement;
             if (!tokenElement) {
-                console.error('[updateContextValue] No tokenElement in context!', context);
+                console.error('[updateContextValue] No tokenElement in context!');
                 return;
             }
 
-            console.log('[updateContextValue] Updating probability token text');
-            console.log('[updateContextValue] tokenElement:', tokenElement);
-            console.log('[updateContextValue] New value:', value);
-
             // Update token text using jQuery
             const $token = window.$(tokenElement);
-            console.log('[updateContextValue] $token:', $token, '$token.length:', $token.length);
-
             $token.text(value || varName);
             $token.attr('data-has-value', value ? '1' : '0');
-
-            console.log('[updateContextValue] Token text after update:', $token.text());
-            console.log('[updateContextValue] Token has-value after update:', $token.attr('data-has-value'));
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
@@ -2428,8 +2406,6 @@
                 window.updateProbabilityTemplatePreview($anchor, masterId);
             }
         }
-
-        console.log('[updateContextValue] Done');
     }
 
     /**
@@ -2640,13 +2616,11 @@
                 tokenId: tokenId
             },
             onApply: function(newVal, extras) {
-                console.log("[openInlineEditor] onApply called (custom logic):", { varName, newVal, extras });
-                // Context update is now handled by updateContextValue() in unified apply
+                // Context update is handled by updateContextValue() in unified apply
                 // Editor closing is handled by unified apply (closeUnifiedOverlay)
                 // This callback is only for custom extra logic if needed
             },
             onClose: function() {
-                console.log("[openInlineEditor] Unified onClose");
                 // Clean up activeToken when editor is closed
                 activeToken = null;
             }

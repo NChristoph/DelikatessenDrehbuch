@@ -4111,14 +4111,10 @@
                             templatePreviewHtml: templatePreviewHtml
                         },
                         onApply: function(newVal, extras) {
-                            console.log('[Probability Unified onApply] Custom logic (if needed):', newVal, extras);
-                            // Context update is now handled by updateContextValue() in unified apply
-                            // Token text update is done there
-                            // Template preview update is done there
+                            // Context update is handled by updateContextValue() in unified apply
                             // This callback is only for custom extra logic if needed
                         },
                         onClose: function() {
-                            console.log('[Probability Unified onClose]');
                             // Cleanup if needed
                         }
                     });
