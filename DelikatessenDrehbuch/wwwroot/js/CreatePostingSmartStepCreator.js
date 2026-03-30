@@ -2337,6 +2337,73 @@
     }
 
     /**
+     * Updates the value in the appropriate context (Step or Probability Token)
+     */
+    function updateContextValue(context, varName, value, extras) {
+        console.log('[updateContextValue] Updating:', { contextType: context.type, varName, value });
+
+        if (context.type === 'step') {
+            // Smart Step Creator: Update activeStep and re-render
+            if (!activeStep) {
+                console.error('[updateContextValue] No activeStep available!');
+                return;
+            }
+
+            console.log('[updateContextValue] Before:', JSON.parse(JSON.stringify(activeStep.values)));
+
+            // Save value to activeStep
+            activeStep.values[varName] = value;
+
+            // Handle extras (e.g., pronoun for state variables)
+            if (extras && extras.pronoun) {
+                activeStep.values['pronoun'] = extras.pronoun;
+            }
+
+            console.log('[updateContextValue] After:', JSON.parse(JSON.stringify(activeStep.values)));
+
+            // Re-render step text
+            console.log('[updateContextValue] Calling renderMasterText()');
+            preserveWindowScroll(() => {
+                renderMasterText();
+            });
+
+        } else if (context.type === 'probability') {
+            // Probability Area: Update token text in DOM
+            const tokenElement = context.tokenElement;
+            if (!tokenElement) {
+                console.error('[updateContextValue] No tokenElement in context!');
+                return;
+            }
+
+            console.log('[updateContextValue] Updating probability token text');
+
+            // Update token text using jQuery
+            const $token = window.$(tokenElement);
+            $token.text(value || varName);
+            $token.attr('data-has-value', value ? '1' : '0');
+
+            // Handle extras (e.g., pronoun for state variables)
+            if (extras && extras.pronoun) {
+                const $anchor = $token.closest('.probability-template-wrap');
+                const $pronounToken = $anchor.find('.js-probability-var[data-var-key="pronoun"]').first();
+                if ($pronounToken.length) {
+                    $pronounToken.text(extras.pronoun);
+                    $pronounToken.attr('data-has-value', '1');
+                }
+            }
+
+            // Update template preview (if available)
+            const masterId = context.probabilityMasterId || context.masterId;
+            const $anchor = $token.closest('.probability-template-wrap');
+            if (typeof window.updateProbabilityTemplatePreview === 'function') {
+                window.updateProbabilityTemplatePreview($anchor, masterId);
+            }
+        }
+
+        console.log('[updateContextValue] Done');
+    }
+
+    /**
      * Applies the current editor value (unified for both contexts)
      */
     function applyUnifiedEditorValue(editorEl, config) {
@@ -2390,7 +2457,10 @@
 
                     console.log('[Unified Apply] Combined list:', { combinedList, ingredientComposed });
 
-                    // Call onApply to update the value
+                    // UPDATE CONTEXT (Step or Probability Token)
+                    updateContextValue(context, varName, ingredientComposed, extras);
+
+                    // Call onApply callback for custom logic (optional)
                     if (typeof onApply === 'function') {
                         onApply(ingredientComposed, extras);
                     }
@@ -2405,7 +2475,7 @@
                     console.log('[Unified Apply] No new selection, closing with existing list');
                     const normalized = normalizeIngredientValues(existingMulti);
                     value = formatSelectedIngredientList(normalized, currentLang || 'de');
-                    // Continue to normal onApply + close below
+                    // Continue to normal context update + close below
                 }
             } else {
                 // First time - store initial selection
@@ -2426,9 +2496,17 @@
             }
         }
 
-        // Call onApply callback
+        // UPDATE CONTEXT (Step or Probability Token) - UNIFIED for all cases
+        updateContextValue(context, varName, value, extras);
+
+        // Call onApply callback for custom extra logic (optional)
         if (typeof onApply === 'function') {
             onApply(value, extras);
+        }
+
+        // Call onClose callback before closing
+        if (typeof onClose === 'function') {
+            onClose();
         }
 
         // Close overlay
@@ -2439,7 +2517,7 @@
      * Handles plus button click for multi-ingredients (unified)
      */
     function handleUnifiedPlusButtonClick(editorEl, config) {
-        const { varName, context, onApply } = config;
+        const { varName, context } = config;
 
         const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
         if (!selectedValues || !selectedValues.length) {
@@ -2465,10 +2543,8 @@
 
         console.log("[Unified Plus] Added ingredients:", { normalized, combinedList, composed });
 
-        // Call onApply to save the updated value
-        if (typeof onApply === 'function') {
-            onApply(composed, {});
-        }
+        // UPDATE CONTEXT (unified)
+        updateContextValue(context, varName, composed, {});
 
         // Re-open editor to show updated chips
         closeUnifiedOverlay();
@@ -2521,26 +2597,14 @@
                 tokenId: tokenId
             },
             onApply: function(newVal, extras) {
-                console.log("[openInlineEditor] onApply called:", { varName, newVal, extras });
-                console.log("[openInlineEditor] activeStep.values before:", JSON.parse(JSON.stringify(activeStep.values)));
-
-                // Save value to activeStep
-                activeStep.values[varName] = newVal;
-
-                console.log("[openInlineEditor] activeStep.values after:", JSON.parse(JSON.stringify(activeStep.values)));
-
-                // Handle extras (e.g., pronoun for state variables)
-                if (extras && extras.pronoun) {
-                    activeStep.values['pronoun'] = extras.pronoun;
-                }
-
-                // Re-render step text and close editor
-                console.log("[openInlineEditor] Calling rerenderAfterValueSet()");
-                rerenderAfterValueSet();
+                console.log("[openInlineEditor] onApply called (custom logic):", { varName, newVal, extras });
+                // Context update is now handled by updateContextValue() in unified apply
+                // Editor closing is handled by unified apply (closeUnifiedOverlay)
+                // This callback is only for custom extra logic if needed
             },
             onClose: function() {
                 console.log("[openInlineEditor] Unified onClose");
-                // Clean up activeToken
+                // Clean up activeToken when editor is closed
                 activeToken = null;
             }
         });

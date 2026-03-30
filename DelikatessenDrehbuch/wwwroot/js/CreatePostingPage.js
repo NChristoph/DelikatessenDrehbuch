@@ -4111,25 +4111,15 @@
                             templatePreviewHtml: templatePreviewHtml
                         },
                         onApply: function(newVal, extras) {
-                            console.log('[Probability Unified onApply] Setting value:', newVal, extras);
-                            token.text(newVal || varKey);
-                            token.attr('data-has-value', newVal ? '1' : '0');
-
-                            // Handle extras (e.g., pronoun for state)
-                            if (extras && extras.pronoun) {
-                                const pronounToken = token.closest('.probability-template-wrap')
-                                    .find('.js-probability-var[data-var-key="pronoun"]').first();
-                                if (pronounToken.length) {
-                                    pronounToken.text(extras.pronoun);
-                                    pronounToken.attr('data-has-value', '1');
-                                }
-                            }
-
-                            // Update template preview card
-                            updateProbabilityTemplatePreview($anchor, masterId);
+                            console.log('[Probability Unified onApply] Custom logic (if needed):', newVal, extras);
+                            // Context update is now handled by updateContextValue() in unified apply
+                            // Token text update is done there
+                            // Template preview update is done there
+                            // This callback is only for custom extra logic if needed
                         },
                         onClose: function() {
                             console.log('[Probability Unified onClose]');
+                            // Cleanup if needed
                         }
                     });
                 } else {
