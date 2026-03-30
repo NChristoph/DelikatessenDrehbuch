@@ -2193,18 +2193,52 @@
     }
 
     /**
-     * Creates the overlay HTML structure (UNIFIED - same for both Step & Probability)
+     * Creates the overlay HTML structure (3-section layout: Header Preview | Scrollable Content | Fixed Footer Buttons)
      */
     function createUnifiedOverlayHtml(editorHtml, context) {
         const theme = document.querySelector('.smart-step-creator')?.dataset?.theme || 'dark';
         const ownerType = context.type || 'step';
 
-        // UNIFIED Layout: Simple centered modal (Smart Step Creator style)
+        // Get preview HTML based on context
+        let previewHtml = '';
+        if (context.type === 'step') {
+            const currentStepWrap = document.querySelector(".current-step-wrap");
+            previewHtml = currentStepWrap ? currentStepWrap.innerHTML : "";
+        } else if (context.type === 'probability') {
+            previewHtml = context.templatePreviewHtml || "";
+        }
+
+        // Split editor HTML into content and buttons
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = editorHtml;
+        const buttonRow = tempDiv.querySelector('.d-flex.gap-2.align-items-center');
+        const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
+        if (buttonRow) buttonRow.remove(); // Remove from editor content
+        const editorContentHtml = tempDiv.innerHTML;
+
+        // 3-SECTION LAYOUT: Fixed Header (Preview) | Scrollable Middle (Editor) | Fixed Footer (Buttons)
         return `
             <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="${ownerType}"
-                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); padding: 20px;">
-                <div style="max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; background: var(--creator-sheet, rgba(255,255,255,0.05)); border-radius: 8px; padding: 24px;">
-                    ${editorHtml}
+                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
+                <!-- Fixed Header: Preview -->
+                <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${previewHtml}
+                    </div>
+                </div>
+
+                <!-- Scrollable Middle: Editor Content (without buttons) -->
+                <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${editorContentHtml}
+                    </div>
+                </div>
+
+                <!-- Fixed Footer: Buttons -->
+                <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${buttonsHtml}
+                    </div>
                 </div>
             </div>
         `;
