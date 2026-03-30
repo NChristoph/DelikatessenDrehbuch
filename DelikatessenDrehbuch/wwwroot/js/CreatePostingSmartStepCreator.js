@@ -2237,7 +2237,7 @@
     function bindUnifiedOverlayEventHandlers(overlayEl, editorEl, config) {
         const { varName, masterId, context, onApply, onClose } = config;
 
-        const $overlay = $(overlayEl);
+        const $overlay = window.$(overlayEl);  // Use jQuery, not local $ helper
 
         // Clean up previous handlers
         $overlay.off('.universal');
@@ -2306,7 +2306,7 @@
         });
 
         // ESC key to close
-        $(document).on('keydown.universal', function(e) {
+        window.$(document).on('keydown.universal', function(e) {  // Use jQuery
             if (e.key === 'Escape') {
                 closeUnifiedOverlay();
                 if (typeof onClose === 'function') onClose();
@@ -2417,7 +2417,7 @@
         document.body.style.overflow = '';
 
         // Remove ESC key handler
-        $(document).off('keydown.universal');
+        window.$(document).off('keydown.universal');  // Use jQuery
 
         console.log("[Unified Overlay] Closed");
     }
