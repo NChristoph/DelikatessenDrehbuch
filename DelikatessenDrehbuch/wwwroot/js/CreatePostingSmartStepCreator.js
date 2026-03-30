@@ -2371,16 +2371,23 @@
             // Probability Area: Update token text in DOM
             const tokenElement = context.tokenElement;
             if (!tokenElement) {
-                console.error('[updateContextValue] No tokenElement in context!');
+                console.error('[updateContextValue] No tokenElement in context!', context);
                 return;
             }
 
             console.log('[updateContextValue] Updating probability token text');
+            console.log('[updateContextValue] tokenElement:', tokenElement);
+            console.log('[updateContextValue] New value:', value);
 
             // Update token text using jQuery
             const $token = window.$(tokenElement);
+            console.log('[updateContextValue] $token:', $token, '$token.length:', $token.length);
+
             $token.text(value || varName);
             $token.attr('data-has-value', value ? '1' : '0');
+
+            console.log('[updateContextValue] Token text after update:', $token.text());
+            console.log('[updateContextValue] Token has-value after update:', $token.attr('data-has-value'));
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
