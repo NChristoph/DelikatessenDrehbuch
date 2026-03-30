@@ -2351,27 +2351,71 @@
 
         console.log("[Unified Apply] Extracted:", { value, extras });
 
-        // Handle multi-ingredients: check if we should store & format them
+        // Handle multi-ingredients with special "add to list" workflow
         if (isIngredientVariable(varName)) {
+            const existingMulti = getMultiIngredientsForContext(context, varName);
             const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
-            if (selectedValues && selectedValues.length > 0) {
-                const article = editorEl.dataset.selectedArticle || '';
-                const fraction = editorEl.dataset.selectedFraction || '';
 
-                const normalized = normalizeIngredientValues(selectedValues);
-                normalized.forEach(item => {
-                    if (!item.article || item.article === '') item.article = article;
-                    if (!item.fraction || item.fraction === '') item.fraction = fraction;
-                });
+            console.log('[Unified Apply] Multi-ingredient workflow:', {
+                existingMulti: existingMulti.length,
+                selectedValues: selectedValues.length
+            });
 
-                // Store in context-specific storage
-                const existingMulti = getMultiIngredientsForContext(context, varName);
-                const isFirstTime = !existingMulti || existingMulti.length === 0;
+            // If we already have ingredients in the list
+            if (existingMulti && existingMulti.length > 0) {
+                // User selected NEW ingredients to add
+                if (selectedValues && selectedValues.length > 0) {
+                    console.log('[Unified Apply] Adding new ingredients to existing list');
 
-                if (isFirstTime) {
+                    const article = editorEl.dataset.selectedArticle || '';
+                    const fraction = editorEl.dataset.selectedFraction || '';
+
+                    const newNormalized = normalizeIngredientValues(selectedValues);
+                    newNormalized.forEach(item => {
+                        if (!item.article) item.article = article;
+                        if (!item.fraction) item.fraction = fraction;
+                    });
+
+                    // Combine existing + new
+                    const combinedList = [...existingMulti, ...newNormalized];
+                    saveMultiIngredientsForContext(context, varName, combinedList);
+
+                    const ingredientComposed = formatSelectedIngredientList(combinedList, currentLang || 'de');
+
+                    console.log('[Unified Apply] Combined list:', { combinedList, ingredientComposed });
+
+                    // Call onApply to update the value
+                    if (typeof onApply === 'function') {
+                        onApply(ingredientComposed, extras);
+                    }
+
+                    // RE-OPEN editor to show updated chips (don't close!)
+                    closeUnifiedOverlay();
+                    config.currentVal = ingredientComposed;
+                    openUniversalVariableEditor(config);
+                    return;  // ← Important: Don't close, we re-opened!
+                } else {
+                    // No new selection - just use existing list and CLOSE
+                    console.log('[Unified Apply] No new selection, closing with existing list');
+                    const normalized = normalizeIngredientValues(existingMulti);
+                    value = formatSelectedIngredientList(normalized, currentLang || 'de');
+                    // Continue to normal onApply + close below
+                }
+            } else {
+                // First time - store initial selection
+                if (selectedValues && selectedValues.length > 0) {
+                    const article = editorEl.dataset.selectedArticle || '';
+                    const fraction = editorEl.dataset.selectedFraction || '';
+
+                    const normalized = normalizeIngredientValues(selectedValues);
+                    normalized.forEach(item => {
+                        if (!item.article || item.article === '') item.article = article;
+                        if (!item.fraction || item.fraction === '') item.fraction = fraction;
+                    });
+
                     saveMultiIngredientsForContext(context, varName, normalized);
                     value = formatSelectedIngredientList(normalized, currentLang || 'de');
-                    console.log("[Unified Apply] Stored multi-ingredients:", normalized);
+                    console.log("[Unified Apply] Stored initial multi-ingredients:", normalized);
                 }
             }
         }
@@ -2389,7 +2433,7 @@
      * Handles plus button click for multi-ingredients (unified)
      */
     function handleUnifiedPlusButtonClick(editorEl, config) {
-        const { varName, context } = config;
+        const { varName, context, onApply } = config;
 
         const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
         if (!selectedValues || !selectedValues.length) {
@@ -2411,13 +2455,17 @@
         const combinedList = [...existingList, ...normalized];
         saveMultiIngredientsForContext(context, varName, combinedList);
 
-        console.log("[Unified Plus] Added ingredients:", { normalized, combinedList });
+        const composed = formatSelectedIngredientList(combinedList, currentLang || 'de');
+
+        console.log("[Unified Plus] Added ingredients:", { normalized, combinedList, composed });
+
+        // Call onApply to save the updated value
+        if (typeof onApply === 'function') {
+            onApply(composed, {});
+        }
 
         // Re-open editor to show updated chips
         closeUnifiedOverlay();
-        const composed = formatSelectedIngredientList(combinedList, currentLang || 'de');
-
-        // Update the config with new currentVal before re-opening
         config.currentVal = composed;
         openUniversalVariableEditor(config);
     }
