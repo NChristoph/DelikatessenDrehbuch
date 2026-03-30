@@ -4408,18 +4408,45 @@
 
                 console.log('[Probability Var Click] Opening editor for:', { masterId, varKey, currentVal });
 
-                // Create onApply callback that updates the token
-                const onApply = function(newVal) {
-                    console.log('[Probability Var onApply] Setting value:', newVal);
-                    token.text(newVal || varKey);
-                    token.attr('data-has-value', newVal ? '1' : '0');
-                };
+                // Get template preview HTML for the overlay header
+                const templateCard = token.closest('.probability-template-wrap').find('.probability-template-card')[0];
+                const templatePreviewHtml = templateCard ? templateCard.innerHTML : '';
 
-                // Open editor
-                if (typeof openProbVarInlineEditor === 'function') {
-                    openProbVarInlineEditor(masterId, varKey, currentVal, onApply, token[0]);
+                // Use UNIFIED overlay system
+                const helpers = window.MasterStepCreatorHelpers;
+                if (helpers && typeof helpers.openUniversalVariableEditor === 'function') {
+                    helpers.openUniversalVariableEditor({
+                        varName: varKey,
+                        currentVal: currentVal,
+                        masterId: masterId,
+                        context: {
+                            type: 'probability',
+                            probabilityMasterId: masterId,
+                            masterId: masterId,
+                            tokenElement: token[0],
+                            templatePreviewHtml: templatePreviewHtml
+                        },
+                        onApply: function(newVal, extras) {
+                            console.log('[Probability Unified onApply] Setting value:', newVal, extras);
+                            token.text(newVal || varKey);
+                            token.attr('data-has-value', newVal ? '1' : '0');
+
+                            // Handle extras (e.g., pronoun for state)
+                            if (extras && extras.pronoun) {
+                                const pronounToken = token.closest('.probability-template-wrap')
+                                    .find('.js-probability-var[data-var-key="pronoun"]').first();
+                                if (pronounToken.length) {
+                                    pronounToken.text(extras.pronoun);
+                                    pronounToken.attr('data-has-value', '1');
+                                }
+                            }
+                        },
+                        onClose: function() {
+                            console.log('[Probability Unified onClose]');
+                        }
+                    });
                 } else {
-                    console.error('[Probability Var Click] openProbVarInlineEditor not available');
+                    console.error('[Probability Var Click] Unified system not available');
                 }
             });
 
