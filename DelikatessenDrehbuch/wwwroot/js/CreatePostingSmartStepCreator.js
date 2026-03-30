@@ -2224,14 +2224,16 @@
         console.log("[Unified Overlay] Binding event handlers for:", { varName, contextType: context.type });
 
         // Close button
-        $overlay.on('click.universal', '#BtnCloseVar, #BtnCloseVarTop', function() {
+        $overlay.on('click.universal', '#BtnCloseVar, #BtnCloseVarTop', function(e) {
+            e.stopPropagation();  // Prevent old document-level handler from firing
             console.log("[Unified Overlay] Close clicked");
             closeUnifiedOverlay();
             if (typeof onClose === 'function') onClose();
         });
 
         // Apply button
-        $overlay.on('click.universal', '#BtnApplyVar', function() {
+        $overlay.on('click.universal', '#BtnApplyVar', function(e) {
+            e.stopPropagation();  // Prevent old document-level handler from firing
             console.log("[Unified Overlay] Apply clicked");
             applyUnifiedEditorValue(editorEl, config);
         });
@@ -2250,7 +2252,8 @@
         });
 
         // Quick apply buttons for special editors
-        $overlay.on('click.universal', '#BtnPickDurationQuick, #BtnPickTempQuick, #BtnPickCountQuick', function() {
+        $overlay.on('click.universal', '#BtnPickDurationQuick, #BtnPickTempQuick, #BtnPickCountQuick', function(e) {
+            e.stopPropagation();  // Prevent old document-level handler from firing
             console.log("[Unified Overlay] Quick apply clicked");
             applyUnifiedEditorValue(editorEl, config);
         });
@@ -2405,99 +2408,50 @@
     // ── END UNIFIED OVERLAY SYSTEM ──
     // ══════════════════════════════════════════════════════════════════════════════
 
-    // ── Open Inline Editor (Step Creator) ──
+    // ── Open Inline Editor (Step Creator) ── PHASE 5: Migrated to Unified System
     function openInlineEditor(varName, tokenId) {
-        if (!activeStep) return;
+        if (!activeStep) {
+            console.warn("[openInlineEditor] No activeStep available");
+            return;
+        }
 
+        // Set activeToken for backward compatibility (used by old code)
         activeToken = { varName, tokenId };
 
         const currentVal = activeStep.values[varName] ?? "";
-        // Multi-ingredients stored per variable (not globally per step)
-        const multiIngredientsObj = activeStep._multiIngredients || {};
-        const multiIngredients = multiIngredientsObj[varName] || [];
+        const masterId = activeStep.master_id || "";
 
-        // Get previous selected values
-        let preSelectedValues = null;
-        const existingOverlay = document.getElementById("universalEditorOverlay");
-        if (existingOverlay) {
-            const editorEl = existingOverlay.querySelector('.duration-editor');
-            if (editorEl && editorEl.dataset.selectedIngredientValues) {
-                try {
-                    preSelectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues);
-                } catch {
-                    // ignore
+        console.log("[openInlineEditor] Opening unified editor for step:", { varName, tokenId, masterId });
+
+        // Call unified overlay system
+        openUniversalVariableEditor({
+            varName: varName,
+            currentVal: currentVal,
+            masterId: masterId,
+            context: {
+                type: 'step',
+                tokenId: tokenId
+            },
+            onApply: function(newVal, extras) {
+                console.log("[openInlineEditor] onApply called:", { newVal, extras });
+
+                // Save value to activeStep
+                activeStep.values[varName] = newVal;
+
+                // Handle extras (e.g., pronoun for state variables)
+                if (extras && extras.pronoun) {
+                    activeStep.values['pronoun'] = extras.pronoun;
                 }
+
+                // Re-render step text and close editor
+                rerenderAfterValueSet();
+            },
+            onClose: function() {
+                console.log("[openInlineEditor] Unified onClose");
+                // Clean up activeToken
+                activeToken = null;
             }
-        }
-
-        // Generate editor HTML using shared function
-        const result = _generateEditorHtml(varName, currentVal, {
-            multiIngredients,
-            masterId: activeStep.master_id || "",
-            selectedIngredientValues: preSelectedValues,
-            suppressPronounButtons: false,
-            useClassBasedIds: false
         });
-
-        // Get current step preview HTML (the actual step being edited)
-        const currentStepWrap = document.querySelector(".current-step-wrap");
-        const previewHtml = currentStepWrap ? currentStepWrap.innerHTML : "";
-
-        // Split editor HTML into content and buttons
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = result.html;
-        const buttonRow = tempDiv.querySelector('.d-flex.gap-2.align-items-center');
-        const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
-        if (buttonRow) buttonRow.remove(); // Remove from editor content
-        const editorContentHtml = tempDiv.innerHTML;
-
-        // Get theme from smart-step-creator
-        const creatorEl = document.querySelector('.smart-step-creator');
-        const theme = creatorEl ? creatorEl.dataset.theme || 'dark' : 'dark';
-
-        // Create full-screen overlay WITH theme context
-        const overlayHtml = `
-            <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="step" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
-                <!-- Fixed Header: Step Preview -->
-                <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        ${previewHtml}
-                    </div>
-                </div>
-
-                <!-- Scrollable Middle: Editor Content (without buttons) -->
-                <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        ${editorContentHtml}
-                    </div>
-                </div>
-
-                <!-- Fixed Footer: Buttons -->
-                <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        ${buttonsHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Remove existing overlay if any
-        const existing = document.getElementById("universalEditorOverlay");
-        if (existing) existing.remove();
-
-        // Append to body
-        document.body.insertAdjacentHTML('beforeend', overlayHtml);
-
-        // Set data attributes on editor element
-        const editorEl = document.querySelector('#universalEditorOverlay .duration-editor');
-        if (editorEl) {
-            Object.keys(result.dataAttributes).forEach(key => {
-                editorEl.dataset[key] = result.dataAttributes[key];
-            });
-        }
-
-        // Prevent body scroll
-        document.body.style.overflow = 'hidden';
     }
 
 
