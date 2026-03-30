@@ -4081,13 +4081,18 @@
                 }
 
                 const helpers = window.MasterStepCreatorHelpers;
-                if (!helpers || typeof helpers.renderTemplate !== 'function') {
-                    console.warn('[renderProbabilityTemplate] renderTemplate not available');
+                if (!helpers || typeof helpers.renderTemplateWithConfig !== 'function') {
+                    console.warn('[renderProbabilityTemplate] renderTemplateWithConfig not available');
                     return;
                 }
 
-                // Render template with values from object (wie Smart Step Creator)
-                const rendered = helpers.renderTemplate(prob.templateRaw, masterId, prob.values);
+                // Render template with config (WICHTIG: tokenExtraClasses für Event-Handler!)
+                const rendered = helpers.renderTemplateWithConfig(prob.templateRaw, masterId, prob.values, {
+                    tokenExtraClasses: 'js-probability-var',  // ← KRITISCH! Ohne diese Klasse funktioniert der Token-Click-Handler nicht!
+                    includeVarKey: true,
+                    enablePlusButtons: true,
+                    multiIngredientsData: prob._multiIngredients || {}
+                });
 
                 // Update DOM: Replace probability-template-text content
                 const $textContainer = $anchor.find('.probability-template-text').first();
@@ -4125,8 +4130,6 @@
                         values: {},
                         _multiIngredients: {}
                     };
-
-                    console.log('[Probability Var Click] Created state:', probabilityStates[masterId]);
                 }
 
                 // Get current value from probability state object (wie Smart Step Creator!)
@@ -4135,8 +4138,6 @@
                 if (prob && prob.values) {
                     currentVal = prob.values[varKey] || '';
                 }
-
-                console.log('[Probability Var Click] Opening editor for:', { masterId, varKey, currentVal });
 
                 // Get template preview HTML for the overlay header
                 const templateCard = token.closest('.probability-template-wrap').find('.probability-template-card')[0];
@@ -4187,8 +4188,6 @@
                         values: {},
                         _multiIngredients: {}
                     };
-
-                    console.log('[Probability Template Click] Created state:', probabilityStates[masterId]);
                 }
 
                 creatorState.selectedTemplateId = masterId;

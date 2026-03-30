@@ -779,8 +779,6 @@
             const hasValue = val.trim().length > 0;
             const showPlusBtn = isIngredient && hasValue;
 
-            console.log(`[renderTemplate] varName=${varName}, isIngredient=${isIngredient}, val="${val}", hasValue=${hasValue}, showPlusBtn=${showPlusBtn}`);
-
             const plusButton = showPlusBtn ? `<button type="button" class="btn btn-sm btn-outline-success ingredient-plus-btn" data-var="${escapeHtml(varName)}" title="Zutat hinzufügen" style="margin-left: 4px; padding: 2px 8px; font-size: 0.85rem; vertical-align: middle;">+</button>` : "";
 
             return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span>${plusButton}<button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
@@ -2137,8 +2135,6 @@
             return;
         }
 
-        console.log("[Unified Overlay] Opening editor:", { varName, currentVal, masterId, contextType: context.type });
-
         // Get multi-ingredients for this context
         const multiIngredients = getMultiIngredientsForContext(context, varName);
 
@@ -2180,8 +2176,6 @@
             editorEl.dataset[key] = dataAttributes[key];
         });
 
-        console.log("[Unified Overlay] Data attributes set:", dataAttributes);
-
         // Bind unified event handlers
         bindUnifiedOverlayEventHandlers(overlayEl, editorEl, {
             varName,
@@ -2199,13 +2193,21 @@
         const theme = document.querySelector('.smart-step-creator')?.dataset?.theme || 'dark';
         const ownerType = context.type || 'step';
 
-        // Get preview HTML based on context
+        // Get preview HTML based on context (LIVE from DOM for current values!)
         let previewHtml = '';
         if (context.type === 'step') {
             const currentStepWrap = document.querySelector(".current-step-wrap");
             previewHtml = currentStepWrap ? currentStepWrap.innerHTML : "";
         } else if (context.type === 'probability') {
-            previewHtml = context.templatePreviewHtml || "";
+            // LIVE aus DOM holen (wie bei Step Creator!) → zeigt immer aktuelle Werte
+            const masterId = context.probabilityMasterId || context.masterId;
+            if (masterId) {
+                const templateCard = document.querySelector(`.probability-template-wrap[data-master-id="${CSS.escape(masterId)}"] .probability-template-card`);
+                previewHtml = templateCard ? templateCard.innerHTML : "";
+            }
+            if (!previewHtml) {
+                previewHtml = context.templatePreviewHtml || ""; // Fallback
+            }
         }
 
         // Split editor HTML into content and buttons
@@ -2255,12 +2257,9 @@
         // Clean up previous handlers
         $overlay.off('.universal');
 
-        console.log("[Unified Overlay] Binding event handlers for:", { varName, contextType: context.type });
-
         // Close button
         $overlay.on('click.universal', '#BtnCloseVar, #BtnCloseVarTop', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
-            console.log("[Unified Overlay] Close clicked");
             closeUnifiedOverlay();
             if (typeof onClose === 'function') onClose();
         });
@@ -2268,7 +2267,6 @@
         // Apply button
         $overlay.on('click.universal', '#BtnApplyVar', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
-            console.log("[Unified Overlay] Apply clicked");
             applyUnifiedEditorValue(editorEl, config);
         });
 
@@ -2288,7 +2286,6 @@
         // Quick apply buttons for special editors
         $overlay.on('click.universal', '#BtnPickDurationQuick, #BtnPickTempQuick, #BtnPickCountQuick', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
-            console.log("[Unified Overlay] Quick apply clicked");
             applyUnifiedEditorValue(editorEl, config);
         });
 
@@ -2304,16 +2301,12 @@
             const idx = parseInt(this.dataset.removeMultiIngredient, 10);
             if (isNaN(idx)) return;
 
-            console.log('[Unified Overlay] Removing ingredient at index:', idx);
-
             const multiIngredients = getMultiIngredientsForContext(context, varName);
             multiIngredients.splice(idx, 1);
             saveMultiIngredientsForContext(context, varName, multiIngredients);
 
             // Format updated list
             const composed = formatSelectedIngredientList(multiIngredients, currentLang || 'de');
-
-            console.log('[Unified Overlay] After removal:', { multiIngredients, composed });
 
             // UPDATE CONTEXT (unified) - wichtig: Token/Step aktualisieren!
             updateContextValue(context, varName, composed, {});
@@ -2416,15 +2409,11 @@
             return;
         }
 
-        console.log("[Unified Apply] Applying value for:", varName);
-
         // Extract value using shared helper
         let value = applyEditorValue(editorEl);
 
         // Extract extras (pronoun for state vars, etc.)
         const extras = applyEditorExtras(editorEl);
-
-        console.log("[Unified Apply] Extracted:", { value, extras });
 
         // Handle multi-ingredients with special "add to list" workflow
         if (isIngredientVariable(varName)) {
@@ -2457,8 +2446,6 @@
 
                     const ingredientComposed = formatSelectedIngredientList(combinedList, currentLang || 'de');
 
-                    console.log('[Unified Apply] Combined list:', { combinedList, ingredientComposed });
-
                     // UPDATE CONTEXT (Step or Probability Token)
                     updateContextValue(context, varName, ingredientComposed, extras);
 
@@ -2477,11 +2464,7 @@
                         const templateCard = $token.closest('.probability-template-wrap').find('.probability-template-card')[0];
                         if (templateCard) {
                             config.context.templatePreviewHtml = templateCard.innerHTML;
-                            console.log('[Unified Apply] Updated templatePreviewHtml for re-open');
                         }
-                    } else if (context.type === 'step') {
-                        // For Step: Preview is fetched fresh from DOM in createUnifiedOverlayHtml
-                        console.log('[Unified Apply] Step preview will be fetched fresh');
                     }
 
                     openUniversalVariableEditor(config);
@@ -2537,7 +2520,6 @@
 
         const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
         if (!selectedValues || !selectedValues.length) {
-            console.log("[Unified Plus] No ingredients selected");
             return;
         }
 
@@ -2580,8 +2562,6 @@
 
         // Remove ESC key handler
         window.$(document).off('keydown.universal');  // Use jQuery
-
-        console.log("[Unified Overlay] Closed");
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
@@ -2600,8 +2580,6 @@
 
         const currentVal = activeStep.values[varName] ?? "";
         const masterId = activeStep.master_id || "";
-
-        console.log("[openInlineEditor] Opening unified editor for step:", { varName, tokenId, masterId });
 
         // Call unified overlay system
         openUniversalVariableEditor({

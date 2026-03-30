@@ -2,7 +2,7 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-03-23
+> **Stand:** 2026-03-27 · **BREAKING CHANGE:** Unified Overlay System + Objekt-basierte Probability Area
 
 ---
 
@@ -965,39 +965,91 @@ Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
 - "das" (neut) → "des" → "die Hälfte **des** Mehls"
 - "des" bleibt "des" (bereits Genitiv)
 
-#### Shared Editor System (Step Creator + Probability Area)
+#### Unified Overlay System (Step Creator + Probability Area)
 
-**Ab 2026-03-27:** Der Inline-Editor-Code wurde vollständig zwischen Step Creator (unterer Bereich) und Probability Area (oberer "Was könnte es sein"-Bereich) geteilt. Beide nutzen dieselben HTML-Generator- und Event-Handler-Funktionen.
+**Ab 2026-03-27:** Vollständig vereinheitlichtes Overlay-System für beide Bereiche mit objekt-basierter Architektur.
 
 **Architektur:**
 ```javascript
-// Shared HTML Generator
-_generateEditorHtml(varName, currentVal, opts = {})
-  → { html, dataAttributes }
-  → Parameter useClassBasedIds: false für Step Creator (IDs), true für Probability Area (Klassen)
+// ══════════════════════════════════════════════════════════════
+// UNIFIED OVERLAY SYSTEM - Gleiche Logik für beide Bereiche
+// ══════════════════════════════════════════════════════════════
 
-// Shared Event Handlers
-_handlePickModeClick(pickBtn, host, useClassBasedIds = false)
-  → Behandelt: fraction, ingredient-value, article, pronoun, value modes
+// 1. Objekt-basierte State-Verwaltung
+activeStep = {                    // Smart Step Creator (unten)
+  masterId, templateRaw, values, _multiIngredients
+}
 
-_handleDurationUnitClick(btn, host)
-  → Zeigt/versteckt Zahlenfelder je nach Unit (per_package, short, minute, hour)
+probabilityStates[masterId] = {   // Probability Area (oben)
+  masterId, templateRaw, values, _multiIngredients
+}
+// → Identische Datenstruktur! Einziger Unterschied: Dictionary vs. Single Object
+
+// 2. Einheitliche Overlay-Öffnung
+openUniversalVariableEditor({
+  varName, currentVal, masterId,
+  context: { type: 'step' | 'probability', masterId, ... },
+  onApply, onClose
+})
+
+// 3. Einheitliche Update-Logik
+updateContextValue(context, varName, value, extras) {
+  if (context.type === 'step') {
+    activeStep.values[varName] = value;
+    renderMasterText();  // Re-render step from object
+  } else if (context.type === 'probability') {
+    probabilityStates[masterId].values[varName] = value;
+    renderProbabilityTemplate(masterId);  // Re-render template from object
+  }
+}
+
+// 4. LIVE Preview-Updates im Overlay-Header
+createUnifiedOverlayHtml(editorHtml, context) {
+  if (context.type === 'step') {
+    // LIVE aus DOM holen
+    previewHtml = document.querySelector(".current-step-wrap").innerHTML;
+  } else if (context.type === 'probability') {
+    // LIVE aus DOM holen (zeigt immer aktuelle Werte!)
+    const card = document.querySelector(`.probability-template-wrap[data-master-id="${masterId}"] .probability-template-card`);
+    previewHtml = card.innerHTML;
+  }
+}
+```
+
+**Kritische CSS-Klassen für Event-Delegation:**
+```javascript
+// Probability Area: Tokens MÜSSEN diese Klasse haben!
+renderTemplateWithConfig(templateRaw, masterId, values, {
+  tokenExtraClasses: 'js-probability-var',  // ← Ohne diese Klasse funktioniert Klick nicht!
+  includeVarKey: true,
+  enablePlusButtons: true
+})
 ```
 
 **Vorteile:**
-- ✅ Keine Code-Duplikation mehr (vorher >400 Zeilen duplizierter Code)
+- ✅ **100% identische Business-Logik** für beide Bereiche (Step Creator + Probability Area)
+- ✅ Keine Code-Duplikation (vorher >400 Zeilen dupliziert)
+- ✅ Objekt-basiert statt DOM-basiert → Single Source of Truth
+- ✅ LIVE Preview-Updates: Overlay-Header zeigt immer aktuelle Werte
+- ✅ Multi-Ingredient-Workflow funktioniert identisch in beiden Bereichen
 - ✅ Bugs müssen nur an einer Stelle gefixt werden
-- ✅ Neue Features automatisch in beiden Bereichen verfügbar
-- ✅ Konsistentes Verhalten zwischen Step Creator und Probability Area
 
 **Implementierung:**
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `_generateEditorHtml(varName, currentVal, opts)` | 1434 | **Shared HTML Generator**. Erzeugt komplettes Editor-HTML inkl. Multi-Ingredients-Chips (oben), Fraction-Picker, Artikel-Buttons, Zutat-Chips (mit Disabled-State), Apply/Close-Buttons. Parameter `useClassBasedIds`: false → IDs (`#ArticleBtnRow`), true → Klassen (`.js-article-btn-row`). Nutzt Regex `/^(<div[^>]+)(>)/` für sichere data-Attribut-Insertion |
-| `_handlePickModeClick(pickBtn, host, useClassBasedIds)` | 1648 | **Shared Pick-Mode Handler**. Behandelt alle Pick-Modes: `fraction` (Menge-Chips), `ingredient-value` (Multi-Select Zutat-Chips), `article` (Artikel-Buttons), `pronoun` (Pronomen), `value` (generische Werte). Setzt `.active` Klasse und speichert Selektion in `host.dataset` |
-| `_handleDurationUnitClick(btn, host)` | 1629 | **Shared Duration-Unit Handler**. Zeigt Zahlenfelder (`#DurationValueInput`, `#DurationValueToInput`) bei `minute`/`hour`, versteckt bei `per_package`/`short` |
-| `renderFractionPickerHtml(fractionOptions, useClassBasedIds)` | 199 | **UPDATED:** Parameter `useClassBasedIds` hinzugefügt. Wenn true: fügt `.js-fraction-picker-row` Klasse hinzu und unterdrückt `id="FractionPickerRow"` |
+| `openUniversalVariableEditor(config)` | ~2120 | **Unified Overlay Entry Point**. Öffnet Editor-Overlay für beide Bereiche. Parameter: `{ varName, currentVal, masterId, context, onApply, onClose }`. Context: `{ type: 'step' \| 'probability', masterId, tokenElement, templatePreviewHtml }` |
+| `createUnifiedOverlayHtml(editorHtml, context)` | ~2192 | **3-Section Layout Builder**. Erzeugt Fullscreen-Overlay mit: Fixed Header (Preview), Scrollable Middle (Editor), Fixed Footer (Buttons). Preview wird **LIVE aus DOM** geholt für aktuelle Werte |
+| `bindUnifiedOverlayEventHandlers(overlayEl, editorEl, config)` | ~2248 | **Unified Event Binding**. Bindet alle Event-Handler mit `.universal` Namespace: Close, Apply, Quick-Apply, Pick-Mode, Duration-Unit, Plus-Button (Multi-Ingredient), Remove-Chip |
+| `applyUnifiedEditorValue(editorEl, config)` | ~2402 | **Unified Apply Logic**. Extrahiert Wert, behandelt Multi-Ingredient-Workflow (Add-to-List + Re-open), ruft `updateContextValue()` auf, schließt Overlay |
+| `handleUnifiedPlusButtonClick(editorEl, config)` | ~2510 | **Multi-Ingredient Plus Handler**. Fügt neue Zutat zu Liste hinzu, aktualisiert Context, re-öffnet Editor mit aktualisierten Chips |
+| `updateContextValue(context, varName, value, extras)` | ~2333 | **Unified Update Logic**. Aktualisiert `activeStep.values` oder `probabilityStates[masterId].values`, ruft passende Render-Funktion auf |
+| `closeUnifiedOverlay()` | ~2549 | **Overlay Cleanup**. Entfernt Overlay aus DOM, stellt Body-Scroll wieder her, entfernt ESC-Handler |
+| `_generateEditorHtml(varName, currentVal, opts)` | ~1434 | **Shared HTML Generator**. Erzeugt komplettes Editor-HTML inkl. Multi-Ingredients-Chips (oben), Fraction-Picker, Artikel-Buttons, Zutat-Chips (mit Disabled-State), Apply/Close-Buttons. Parameter `useClassBasedIds`: false → IDs (`#ArticleBtnRow`), true → Klassen (`.js-article-btn-row`) |
+| `_handlePickModeClick(pickBtn, host, useClassBasedIds)` | ~1648 | **Shared Pick-Mode Handler**. Behandelt alle Pick-Modes: `fraction` (Menge-Chips), `ingredient-value` (Multi-Select Zutat-Chips), `article` (Artikel-Buttons), `pronoun` (Pronomen), `value` (generische Werte). Setzt `.active` Klasse und speichert Selektion in `host.dataset` |
+| `_handleDurationUnitClick(btn, host)` | ~1629 | **Shared Duration-Unit Handler**. Zeigt Zahlenfelder (`#DurationValueInput`, `#DurationValueToInput`) bei `minute`/`hour`, versteckt bei `per_package`/`short` |
+| `getMultiIngredientsForContext(context, varName)` | ~2350 | **Multi-Ingredient Getter**. Holt Multi-Ingredient-Array für Step oder Probability basierend auf Context-Type |
+| `saveMultiIngredientsForContext(context, varName, list)` | ~2361 | **Multi-Ingredient Setter**. Speichert Multi-Ingredient-Array in `activeStep._multiIngredients` oder `probabilityStates[masterId]._multiIngredients` |
 
 **Verwendung in beiden Bereichen:**
 
@@ -1240,28 +1292,81 @@ if (mode === "article") {
 | `openProbVarInlineEditor(masterId, varKey, ...)` | 486 | Inline-Editor in Card öffnen. Setzt `.editing` auf `.probability-template-wrap` (Glow-Effekt) |
 | `doApply()` | 689 | **UPDATED (2026-03-27):** "Einsetzen"-Logik für Inline-Editor. **BUGFIX 1:** Re-fetched Editor-Element am Anfang (Zeile 693-698) um stale Referenzen zu vermeiden. **BUGFIX 2:** Formatiert `val` für ingredient-Variablen (Zeile 816) mit `formatSelectedIngredientList()` bevor `onApply` aufgerufen wird. Prüft ob Multi-Ingredients existieren UND neue Selektion vorhanden → fügt zur Liste hinzu |
 
-### Probability Area Multi-Ingredient Support (NEU 2026-03-27)
+### Probability Area - Objekt-basierte Architektur (VOLLSTÄNDIG UMGESTELLT 2026-03-27)
 
-**Status: ✅ VOLLSTÄNDIG IMPLEMENTIERT UND FUNKTIONSFÄHIG**
+**Status: ✅ 100% IDENTISCH MIT SMART STEP CREATOR**
 
-**Wichtige Bugfixes (2026-03-27):**
-1. **Stale Editor References:** doApply() re-fetched Editor-Element
-2. **Ingredient Value Formatting:** `val` wird mit `formatSelectedIngredientList` formatiert
-3. **Missing Click Handler:** `.js-probability-var` Token Handler hinzugefügt
-4. **Duplicate Event Handlers:** `e.stopImmediatePropagation()` + `data-overlay-owner` Guards
-5. **Artikel-Konvertierung:** "der" wird nicht mehr zu "des" konvertiert (feminin Genitiv bleibt)
-6. **Reset-Button:** Probability Area Reset-Button funktioniert jetzt
-7. **Form-Options:** "Würfel" immer in Form-Vorauswahlen (häufigste Verwendung)
-8. **Pronomen-Only Editor:** Bei Steps mit nur {{pronomen}} (ohne {{state}}) wird keine State-Auswahl mehr gezeigt (Zeile 1781-1787, 1911-1915)
-9. **Duration-Editor CSS-Klasse:** Special Editoren (duration/temp/count) erhalten jetzt `.prob-inline-editor` Klasse bei `useClassBasedIds: true` (Zeile 1760) - behebt "Editor element not found in overlay!"
-10. **Duration-Editor Layout:** Input-Felder bleiben im Content-Bereich, Action-Buttons im Footer (`.js-editor-action-row` Marker + Selector-Fix Zeile 617)
-11. **Pronomen Value:** Pronomen-Variable setzt jetzt `val = selectedPronoun` in doApply() (Zeile 786-788) - behebt "Klick auf Pronomen passiert garnichts"
-12. **No-Article für "teig":** Variable "teig" (und "dough") in No-Article-Liste aufgenommen (Zeile 1484) - zeigt keine Artikel-Auswahl mehr
+**BREAKING CHANGE (2026-03-27):** Probability Area wurde vollständig von DOM-basiert auf objekt-basiert umgestellt:
 
-**Auskommentierter alter Code (2026-03-27):**
-- `CreatePostingPage.js`: Alte Event-Handler (Zeilen 5157-5225) und Funktionen (Zeilen 361-537)
-- `CreatePosting.cshtml`: Altes HTML (#probVarEditorDock, ~60 Zeilen) und CSS (~81 Zeilen)
-- **Kann gelöscht werden, wenn alles funktioniert!**
+**Alte Architektur (❌ entfernt):**
+```javascript
+// DOM als Single Source of Truth
+token.text(newVal);  // Wert direkt im DOM gespeichert
+```
+
+**Neue Architektur (✅ aktiv):**
+```javascript
+// Object als Single Source of Truth
+window.probabilityStates = {
+  'PREP_MIX_DRY_01': {
+    masterId: 'PREP_MIX_DRY_01',
+    templateRaw: '{{action}} {{ingredient}} {{removal}} {{pronoun}}',
+    values: { ingredient: 'die Hälfte der Pasta', pronoun: 'sie' },
+    _multiIngredients: { ingredient: [{name: 'Pasta', fraction: '1/2', article: 'der'}] }
+  }
+}
+
+// DOM wird aus Object gerendert (wie Smart Step Creator!)
+renderProbabilityTemplate('PREP_MIX_DRY_01');
+```
+
+**Neue Funktionen:**
+
+| Funktion | Zeile | Beschreibung |
+|----------|-------|-------------|
+| `extractTemplateRaw($container)` | ~4046 | Extrahiert Template-String aus DOM. Ersetzt Tokens mit `{{varName}}` Placeholders. Entfernt Reset-Buttons. Beispiel: `"{{action}} {{ingredient}}"` |
+| `renderProbabilityTemplate(masterId)` | ~4070 | **Render-Funktion analog zu renderMasterText()!** Holt State aus `probabilityStates[masterId]`, ruft `helpers.renderTemplateWithConfig()` mit `tokenExtraClasses: 'js-probability-var'` auf, aktualisiert DOM. **KRITISCH:** Ohne `tokenExtraClasses` funktioniert Token-Click nicht! |
+| Token Click Handler | ~4103 | Initialisiert State falls nicht vorhanden, holt `currentVal` aus `prob.values[varKey]`, öffnet Unified Overlay via `helpers.openUniversalVariableEditor()` |
+| Template Click Handler | ~4172 | Initialisiert State-Object beim Template-Select, extrahiert `templateRaw` via `extractTemplateRaw()` |
+| Reset Button Handler | ~4188 | Löscht `prob.values[varName]` und `prob._multiIngredients[varName]`, ruft `renderProbabilityTemplate()` auf |
+
+**Kritischer CSS-Klassen-Fix (2026-03-27):**
+```javascript
+// PROBLEM: Nach Re-render hatten Tokens nicht mehr die Klasse .js-probability-var
+// → Event-Handler funktionierte nicht mehr!
+
+// LÖSUNG: renderTemplateWithConfig mit tokenExtraClasses aufrufen
+renderTemplateWithConfig(prob.templateRaw, masterId, prob.values, {
+  tokenExtraClasses: 'js-probability-var',  // ← OHNE DIESE KLASSE FUNKTIONIERT NICHTS!
+  includeVarKey: true,
+  enablePlusButtons: true,
+  multiIngredientsData: prob._multiIngredients || {}
+})
+```
+
+**LIVE Preview-Updates im Overlay-Header:**
+```javascript
+// VORHER (statisch): Preview nur einmal geholt
+previewHtml = context.templatePreviewHtml || "";
+
+// NACHHER (LIVE): Preview immer aktuell aus DOM
+const card = document.querySelector(`.probability-template-wrap[data-master-id="${masterId}"] .probability-template-card`);
+previewHtml = card.innerHTML;  // Zeigt aktuelle Werte!
+```
+
+**Vorteile der neuen Architektur:**
+- ✅ **100% identische Logik** mit Smart Step Creator
+- ✅ Single Source of Truth: Object statt DOM
+- ✅ State bleibt erhalten bei Template-Wechseln
+- ✅ Multi-Ingredient-Workflow funktioniert identisch
+- ✅ Preview im Overlay zeigt immer aktuelle Werte
+- ✅ Einfacheres Debugging (State in Object sichtbar)
+
+**Migration-Info:**
+- Alte DOM-basierte Logik vollständig ersetzt
+- `window.ProbabilityMultiIngredients` → `probabilityStates[masterId]._multiIngredients`
+- Alle Token-Updates via `updateContextValue()` → `renderProbabilityTemplate()`
+- Auskommentierter alter Code kann gelöscht werden
 
 ### Probability Area Multi-Ingredient Support (NEU 2026-03-27)
 
