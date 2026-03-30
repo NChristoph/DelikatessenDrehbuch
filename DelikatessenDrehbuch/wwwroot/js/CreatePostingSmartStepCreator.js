@@ -2475,6 +2475,20 @@
                     // RE-OPEN editor to show updated chips (don't close!)
                     closeUnifiedOverlay();
                     config.currentVal = ingredientComposed;
+
+                    // UPDATE PREVIEW HTML for re-opened editor (important for Probability Area!)
+                    if (context.type === 'probability' && context.tokenElement) {
+                        const $token = window.$(context.tokenElement);
+                        const templateCard = $token.closest('.probability-template-wrap').find('.probability-template-card')[0];
+                        if (templateCard) {
+                            config.context.templatePreviewHtml = templateCard.innerHTML;
+                            console.log('[Unified Apply] Updated templatePreviewHtml for re-open');
+                        }
+                    } else if (context.type === 'step') {
+                        // For Step: Preview is fetched fresh from DOM in createUnifiedOverlayHtml
+                        console.log('[Unified Apply] Step preview will be fetched fresh');
+                    }
+
                     openUniversalVariableEditor(config);
                     return;  // ← Important: Don't close, we re-opened!
                 } else {
