@@ -35,6 +35,10 @@
         let isRestoringCreatePostingDraft = false;
         let createPostingDraftAutosaveHandle = null;
 
+        // Probability States: Object-based data model (wie Smart Step Creator)
+        const probabilityStates = {};  // Dictionary: masterId → { masterId, templateRaw, values, _multiIngredients }
+        window.probabilityStates = probabilityStates;  // Export for use in CreatePostingSmartStepCreator.js
+
         function withCreatePostingDraftStorage(action, fallbackValue) {
             try {
                 return action();
@@ -4038,39 +4042,62 @@
                 await showProbabilityTemplateSuggestions(typeId, typeName, score);
             });
 
-            // Updates the template preview card after a variable is changed
-            function updateProbabilityTemplatePreview($anchor, masterId) {
-                console.log('[updateProbabilityTemplatePreview] Called for:', masterId);
+            /**
+             * Extrahiert den Template-Raw-Text aus dem DOM (konvertiert Tokens zu {{varName}})
+             */
+            function extractTemplateRaw($container) {
+                const clone = $container.clone();
 
-                // Collect all token values from the template
-                const values = {};
-                $anchor.find('.js-probability-var').each(function() {
+                // Replace tokens with {{varName}} placeholders
+                clone.find('.js-probability-var').each(function() {
                     const $token = $(this);
                     const varKey = ($token.data('var-key') || $token.data('var') || '').toString();
-                    const hasValue = $token.attr('data-has-value') === '1';
-                    if (hasValue) {
-                        values[varKey] = $token.text().trim();
+                    if (varKey) {
+                        $token.replaceWith(`{{${varKey}}}`);
                     }
                 });
 
-                console.log('[updateProbabilityTemplatePreview] Collected values:', values);
+                // Remove reset buttons
+                clone.find('.placeholder-reset').remove();
 
-                // Get the template raw text from the token's data attribute or reconstruct it
-                const templateText = $anchor.find('.probability-template-text').first().text();
+                // Get text content
+                return clone.text().trim();
+            }
 
-                // Render template with values using shared function
+            /**
+             * Renders a probability template from object state (analog zu renderMasterText)
+             */
+            function renderProbabilityTemplate(masterId) {
+                const prob = probabilityStates[masterId];
+                if (!prob) {
+                    console.warn('[renderProbabilityTemplate] No state found for:', masterId);
+                    return;
+                }
+
+                const $anchor = $(`.probability-template-wrap[data-master-id="${CSS.escape(masterId)}"]`).first();
+                if (!$anchor.length) {
+                    console.warn('[renderProbabilityTemplate] No anchor found for:', masterId);
+                    return;
+                }
+
                 const helpers = window.MasterStepCreatorHelpers;
-                if (helpers && typeof helpers.renderTemplate === 'function') {
-                    const rendered = helpers.renderTemplate(templateText, masterId, values);
-                    console.log('[updateProbabilityTemplatePreview] Rendered:', rendered);
+                if (!helpers || typeof helpers.renderTemplate !== 'function') {
+                    console.warn('[renderProbabilityTemplate] renderTemplate not available');
+                    return;
+                }
 
-                    // Update the preview text (keep tokens interactive)
-                    // We don't replace the HTML, just update the visual preview in the card header
-                    // The actual tokens remain unchanged for editing
-                } else {
-                    console.warn('[updateProbabilityTemplatePreview] renderTemplate not available');
+                // Render template with values from object (wie Smart Step Creator)
+                const rendered = helpers.renderTemplate(prob.templateRaw, masterId, prob.values);
+
+                // Update DOM: Replace probability-template-text content
+                const $textContainer = $anchor.find('.probability-template-text').first();
+                if ($textContainer.length) {
+                    $textContainer.html(rendered);
                 }
             }
+
+            // Export for use in CreatePostingSmartStepCreator.js
+            window.renderProbabilityTemplate = renderProbabilityTemplate;
 
             // Click on Probability Variable Token to edit
             $('#recipeForm').on('click', '.js-probability-var', function (e) {
@@ -4086,9 +4113,12 @@
                     return;
                 }
 
-                // Get current value from token text (or empty if it's the placeholder)
-                let currentVal = token.text().trim();
-                if (currentVal === varKey) currentVal = ''; // Reset if it's still the placeholder name
+                // Get current value from probability state object (wie Smart Step Creator!)
+                const prob = probabilityStates[masterId];
+                let currentVal = '';
+                if (prob && prob.values) {
+                    currentVal = prob.values[varKey] || '';
+                }
 
                 console.log('[Probability Var Click] Opening editor for:', { masterId, varKey, currentVal });
 
@@ -4130,6 +4160,21 @@
                 const masterId = ($(this).data('master-id') || '').toString();
                 if (!masterId) return;
 
+                // Initialize probability state object (like activeStep in Smart Creator)
+                if (!probabilityStates[masterId]) {
+                    const $textContainer = wrap.find('.probability-template-text').first();
+                    const templateRaw = extractTemplateRaw($textContainer);
+
+                    probabilityStates[masterId] = {
+                        masterId: masterId,
+                        templateRaw: templateRaw,
+                        values: {},
+                        _multiIngredients: {}
+                    };
+
+                    console.log('[Probability Template Click] Created state:', probabilityStates[masterId]);
+                }
+
                 creatorState.selectedTemplateId = masterId;
                 creatorState.activePlaceholderTokenId = '';
                 creatorState.placeholderAssignments = {};
@@ -4153,20 +4198,21 @@
 
                 console.log("[Probability Reset Button]", { varName, masterId, tokenId });
 
-                // Find the token
-                const token = $(btn).siblings(`.js-probability-var[data-var="${varName}"]`).first();
-                if (!token.length) return;
+                // Clear value in probability state object
+                const prob = probabilityStates[masterId];
+                if (prob) {
+                    delete prob.values[varName];
 
-                // Clear the token value
-                token.text(varName);
-                token.attr('data-has-value', '0');
+                    // Clear multi-ingredients storage
+                    if (prob._multiIngredients) {
+                        prob._multiIngredients[varName] = [];
+                    }
 
-                // Clear multi-ingredients storage
-                if (window.ProbabilityMultiIngredients[masterId]) {
-                    window.ProbabilityMultiIngredients[masterId][varName] = [];
+                    // Re-render template
+                    renderProbabilityTemplate(masterId);
+
+                    console.log("[Probability Reset Button] Cleared and re-rendered:", varName);
                 }
-
-                console.log("[Probability Reset Button] Cleared:", varName);
             });
 
             // Multi-Ingredient Plus-Button in Probability Area

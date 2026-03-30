@@ -2353,7 +2353,7 @@
     }
 
     /**
-     * Updates the value in the appropriate context (Step or Probability Token)
+     * Updates the value in the appropriate context (Step or Probability) - UNIFIED Object-based
      */
     function updateContextValue(context, varName, value, extras) {
         if (context.type === 'step') {
@@ -2377,33 +2377,30 @@
             });
 
         } else if (context.type === 'probability') {
-            // Probability Area: Update token text in DOM
-            const tokenElement = context.tokenElement;
-            if (!tokenElement) {
-                console.error('[updateContextValue] No tokenElement in context!');
+            // Probability Area: Update probability state object and re-render (UNIFIED!)
+            const masterId = context.probabilityMasterId || context.masterId;
+
+            // Get probability state from global dictionary (in CreatePostingPage.js)
+            if (!window.probabilityStates || !window.probabilityStates[masterId]) {
+                console.error('[updateContextValue] No probability state found for:', masterId);
                 return;
             }
 
-            // Update token text using jQuery
-            const $token = window.$(tokenElement);
-            $token.text(value || varName);
-            $token.attr('data-has-value', value ? '1' : '0');
+            const prob = window.probabilityStates[masterId];
+
+            // Save value to probability state (wie activeStep!)
+            prob.values[varName] = value;
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
-                const $anchor = $token.closest('.probability-template-wrap');
-                const $pronounToken = $anchor.find('.js-probability-var[data-var-key="pronoun"]').first();
-                if ($pronounToken.length) {
-                    $pronounToken.text(extras.pronoun);
-                    $pronounToken.attr('data-has-value', '1');
-                }
+                prob.values['pronoun'] = extras.pronoun;
             }
 
-            // Update template preview (if available)
-            const masterId = context.probabilityMasterId || context.masterId;
-            const $anchor = $token.closest('.probability-template-wrap');
-            if (typeof window.updateProbabilityTemplatePreview === 'function') {
-                window.updateProbabilityTemplatePreview($anchor, masterId);
+            // Re-render probability template (wie renderMasterText!)
+            if (typeof window.renderProbabilityTemplate === 'function') {
+                window.renderProbabilityTemplate(masterId);
+            } else {
+                console.error('[updateContextValue] renderProbabilityTemplate not available!');
             }
         }
     }
