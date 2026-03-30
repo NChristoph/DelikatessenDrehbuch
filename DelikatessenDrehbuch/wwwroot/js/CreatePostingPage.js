@@ -4038,6 +4038,40 @@
                 await showProbabilityTemplateSuggestions(typeId, typeName, score);
             });
 
+            // Updates the template preview card after a variable is changed
+            function updateProbabilityTemplatePreview($anchor, masterId) {
+                console.log('[updateProbabilityTemplatePreview] Called for:', masterId);
+
+                // Collect all token values from the template
+                const values = {};
+                $anchor.find('.js-probability-var').each(function() {
+                    const $token = $(this);
+                    const varKey = ($token.data('var-key') || $token.data('var') || '').toString();
+                    const hasValue = $token.attr('data-has-value') === '1';
+                    if (hasValue) {
+                        values[varKey] = $token.text().trim();
+                    }
+                });
+
+                console.log('[updateProbabilityTemplatePreview] Collected values:', values);
+
+                // Get the template raw text from the token's data attribute or reconstruct it
+                const templateText = $anchor.find('.probability-template-text').first().text();
+
+                // Render template with values using shared function
+                const helpers = window.MasterStepCreatorHelpers;
+                if (helpers && typeof helpers.renderTemplate === 'function') {
+                    const rendered = helpers.renderTemplate(templateText, masterId, values);
+                    console.log('[updateProbabilityTemplatePreview] Rendered:', rendered);
+
+                    // Update the preview text (keep tokens interactive)
+                    // We don't replace the HTML, just update the visual preview in the card header
+                    // The actual tokens remain unchanged for editing
+                } else {
+                    console.warn('[updateProbabilityTemplatePreview] renderTemplate not available');
+                }
+            }
+
             // Click on Probability Variable Token to edit
             $('#recipeForm').on('click', '.js-probability-var', function (e) {
                 e.stopPropagation(); // Prevent template selection
@@ -4090,6 +4124,9 @@
                                     pronounToken.attr('data-has-value', '1');
                                 }
                             }
+
+                            // Update template preview card
+                            updateProbabilityTemplatePreview($anchor, masterId);
                         },
                         onClose: function() {
                             console.log('[Probability Unified onClose]');
