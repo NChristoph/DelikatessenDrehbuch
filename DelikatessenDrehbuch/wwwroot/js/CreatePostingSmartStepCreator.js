@@ -2310,9 +2310,31 @@
             const idx = parseInt(this.dataset.removeMultiIngredient, 10);
             if (isNaN(idx)) return;
 
+            console.log('[Unified Overlay] Removing ingredient at index:', idx);
+
             const multiIngredients = getMultiIngredientsForContext(context, varName);
             multiIngredients.splice(idx, 1);
             saveMultiIngredientsForContext(context, varName, multiIngredients);
+
+            // Format updated list
+            const composed = formatSelectedIngredientList(multiIngredients, currentLang || 'de');
+
+            console.log('[Unified Overlay] After removal:', { multiIngredients, composed });
+
+            // UPDATE CONTEXT (unified) - wichtig: Token/Step aktualisieren!
+            updateContextValue(context, varName, composed, {});
+
+            // Update config before re-opening
+            config.currentVal = composed;
+
+            // UPDATE PREVIEW HTML for re-opened editor (important for Probability Area!)
+            if (context.type === 'probability' && context.tokenElement) {
+                const $token = window.$(context.tokenElement);
+                const templateCard = $token.closest('.probability-template-wrap').find('.probability-template-card')[0];
+                if (templateCard) {
+                    config.context.templatePreviewHtml = templateCard.innerHTML;
+                }
+            }
 
             // Re-open editor to show updated list
             closeUnifiedOverlay();
