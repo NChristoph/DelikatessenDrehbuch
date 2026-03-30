@@ -1114,15 +1114,21 @@
     // RENDER: MasterText (aktueller Step + Editor Slot)
     // -----------------------------
         function renderMasterText() {
+        console.log("[renderMasterText] Called");
         const target = masterText();
-        if (!target) return;
+        if (!target) {
+            console.log("[renderMasterText] No target element found!");
+            return;
+        }
 
         if (!activeStep) {
             target.innerHTML = "Wähle eine Template.";
             return;
         }
 
+        console.log("[renderMasterText] Rendering with values:", JSON.parse(JSON.stringify(activeStep.values)));
         const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
+        console.log("[renderMasterText] Rendered HTML:", rendered);
 
         // Editor placeholder (wird beim Token-Klick gefüllt)
         target.innerHTML = `
@@ -2515,10 +2521,13 @@
                 tokenId: tokenId
             },
             onApply: function(newVal, extras) {
-                console.log("[openInlineEditor] onApply called:", { newVal, extras });
+                console.log("[openInlineEditor] onApply called:", { varName, newVal, extras });
+                console.log("[openInlineEditor] activeStep.values before:", JSON.parse(JSON.stringify(activeStep.values)));
 
                 // Save value to activeStep
                 activeStep.values[varName] = newVal;
+
+                console.log("[openInlineEditor] activeStep.values after:", JSON.parse(JSON.stringify(activeStep.values)));
 
                 // Handle extras (e.g., pronoun for state variables)
                 if (extras && extras.pronoun) {
@@ -2526,6 +2535,7 @@
                 }
 
                 // Re-render step text and close editor
+                console.log("[openInlineEditor] Calling rerenderAfterValueSet()");
                 rerenderAfterValueSet();
             },
             onClose: function() {
