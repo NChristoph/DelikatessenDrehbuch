@@ -3689,6 +3689,7 @@
 
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
+        renderTemplate,  // ← Export für renderProbabilityTemplate
         renderTemplateWithConfig,
         renderAssignedPlaceholderTemplate,
         splitLeadingArticleByOptions,
