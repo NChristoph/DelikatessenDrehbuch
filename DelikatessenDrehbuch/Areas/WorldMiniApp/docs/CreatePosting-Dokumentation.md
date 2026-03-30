@@ -798,13 +798,15 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 ## 17. JS-Datei: create-posting-probability.js
 
 **Pfad:** `wwwroot/js/create-posting-probability.js` · **378 Zeilen**
-**Export:** `window.CreatePostingProbability`
+**Export:** `window.CreatePostingProbability`, `window.ProbabilityMultiIngredients`
 
 | Methode | Beschreibung |
 |---------|-------------|
 | `create(deps)` | Factory: erstellt Probability-Modul-Instanz |
 | → `.refresh()` | Analyse mit aktuellen Zutaten neu berechnen |
 | → `.showSuggestions()` | Template-Vorschläge nach erkanntem Rezepttyp zeigen |
+| `buildInlineTemplateText(masterId, template, lang, vars, overrideVars)` | **NEU (Zeile 38-58):** Template mit Inline-Tokens rendern. Aktiviert Plus-Buttons (`enablePlusButtons: true`) und übergibt Multi-Ingredients-Data aus `window.ProbabilityMultiIngredients[masterId]` |
+| `getMergedVars(masterId)` | **UPDATED (Zeile 178-201):** Merged Variablen für Template. **CRITICAL FIX:** Liest Multi-Ingredients aus `window.ProbabilityMultiIngredients[masterId]` und formatiert sie mit `helpers.formatSelectedIngredientList()` vor Template-Akzeptierung |
 
 **Schwellenwerte:**
 - `>= 60%` → Erfolg (grün)
@@ -814,6 +816,34 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 **CSS-Klassen:**
 - `.probability-template-wrap.editing` → Lila Glow-Effekt auf Card wenn Inline-Editor offen (border-color + box-shadow + background)
 - `.probability-template-card` → Card-Container mit Transition für border/shadow/background
+
+### Multi-Ingredient Support (NEU 2026-03-27)
+
+**Globaler Storage (Zeile 5-7):**
+```javascript
+// Structure: { "masterId": { "varName": [{name, fraction, article}, ...] } }
+window.ProbabilityMultiIngredients = window.ProbabilityMultiIngredients || {};
+```
+
+**Workflow:**
+1. User klickt Template-Token → Editor öffnet
+2. User wählt Zutat + Artikel + Fraktion → "Einsetzen"
+3. Plus-Button [+] erscheint im Template neben Token
+4. User klickt [+] → Editor öffnet wieder, bereits ausgewählte Zutaten sind ausgegraut
+5. User fügt weitere Zutat hinzu → "die Hälfte der Pasta und ein Drittel des Mehls"
+6. Chips mit X-Button am Boden des Editors zum Entfernen
+7. User klickt Template-Card → Alle Multi-Ingredients werden korrekt übernommen
+
+**Wichtige Funktionen:**
+
+| Funktion | Zeile | Beschreibung |
+|----------|-------|-------------|
+| `buildInlineTemplateText()` | 38 | Aktiviert Plus-Buttons durch `enablePlusButtons: true` in `renderTemplateWithConfig()`. Übergibt `multiIngredientsData` aus globalem Storage |
+| `getMergedVars()` | 178 | **CRITICAL:** Iteriert durch `window.ProbabilityMultiIngredients[masterId]` und formatiert jede Variable mit `helpers.formatSelectedIngredientList()`. Ohne diesen Fix werden nur Einzelzutaten übertragen! |
+
+**Event-Handler:**
+- Plus-Button Click: Siehe `CreatePostingPage.js` Zeile 4199–4254
+- Remove-Chip Click: Siehe `CreatePostingPage.js` Zeile 4319–4377
 
 ---
 
@@ -935,6 +965,79 @@ Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
 - "das" (neut) → "des" → "die Hälfte **des** Mehls"
 - "des" bleibt "des" (bereits Genitiv)
 
+#### Shared Editor System (Step Creator + Probability Area)
+
+**Ab 2026-03-27:** Der Inline-Editor-Code wurde vollständig zwischen Step Creator (unterer Bereich) und Probability Area (oberer "Was könnte es sein"-Bereich) geteilt. Beide nutzen dieselben HTML-Generator- und Event-Handler-Funktionen.
+
+**Architektur:**
+```javascript
+// Shared HTML Generator
+_generateEditorHtml(varName, currentVal, opts = {})
+  → { html, dataAttributes }
+  → Parameter useClassBasedIds: false für Step Creator (IDs), true für Probability Area (Klassen)
+
+// Shared Event Handlers
+_handlePickModeClick(pickBtn, host, useClassBasedIds = false)
+  → Behandelt: fraction, ingredient-value, article, pronoun, value modes
+
+_handleDurationUnitClick(btn, host)
+  → Zeigt/versteckt Zahlenfelder je nach Unit (per_package, short, minute, hour)
+```
+
+**Vorteile:**
+- ✅ Keine Code-Duplikation mehr (vorher >400 Zeilen duplizierter Code)
+- ✅ Bugs müssen nur an einer Stelle gefixt werden
+- ✅ Neue Features automatisch in beiden Bereichen verfügbar
+- ✅ Konsistentes Verhalten zwischen Step Creator und Probability Area
+
+**Implementierung:**
+
+| Funktion | Zeile | Beschreibung |
+|----------|-------|-------------|
+| `_generateEditorHtml(varName, currentVal, opts)` | 1434 | **Shared HTML Generator**. Erzeugt komplettes Editor-HTML inkl. Multi-Ingredients-Chips (oben), Fraction-Picker, Artikel-Buttons, Zutat-Chips (mit Disabled-State), Apply/Close-Buttons. Parameter `useClassBasedIds`: false → IDs (`#ArticleBtnRow`), true → Klassen (`.js-article-btn-row`). Nutzt Regex `/^(<div[^>]+)(>)/` für sichere data-Attribut-Insertion |
+| `_handlePickModeClick(pickBtn, host, useClassBasedIds)` | 1648 | **Shared Pick-Mode Handler**. Behandelt alle Pick-Modes: `fraction` (Menge-Chips), `ingredient-value` (Multi-Select Zutat-Chips), `article` (Artikel-Buttons), `pronoun` (Pronomen), `value` (generische Werte). Setzt `.active` Klasse und speichert Selektion in `host.dataset` |
+| `_handleDurationUnitClick(btn, host)` | 1629 | **Shared Duration-Unit Handler**. Zeigt Zahlenfelder (`#DurationValueInput`, `#DurationValueToInput`) bei `minute`/`hour`, versteckt bei `per_package`/`short` |
+| `renderFractionPickerHtml(fractionOptions, useClassBasedIds)` | 199 | **UPDATED:** Parameter `useClassBasedIds` hinzugefügt. Wenn true: fügt `.js-fraction-picker-row` Klasse hinzu und unterdrückt `id="FractionPickerRow"` |
+
+**Verwendung in beiden Bereichen:**
+
+```javascript
+// Step Creator (unterer Bereich) - Nutzt IDs
+const editorHtml = _generateEditorHtml(varName, currentVal, {
+  useClassBasedIds: false,  // IDs: #FractionPickerRow, #ArticleBtnRow
+  multiIngredients: activeStep._multiIngredients || []
+});
+
+// Probability Area (oberer Bereich) - Nutzt Klassen
+const editorHtml = helpers.buildInlineEditorHtml(varName, currentVal, {
+  useClassBasedIds: true,   // Klassen: .js-fraction-picker-row, .js-article-btn-row
+  multiIngredients: (window.ProbabilityMultiIngredients[masterId] || {})[varName] || []
+});
+
+// Event Handler - beide Bereiche
+$host.on('click', 'button[data-pick-mode]', function() {
+  helpers.handlePickModeClick(this, $host[0], useClassBasedIds);
+});
+```
+
+**HTML-Struktur-Unterschiede:**
+
+| Element | Step Creator (IDs) | Probability Area (Klassen) |
+|---------|-------------------|---------------------------|
+| Fraction Row | `<div id="FractionPickerRow">` | `<div class="js-fraction-picker-row">` |
+| Article Row | `<div id="ArticleBtnRow">` | `<div class="js-article-btn-row">` |
+| Pronoun Row | `<div id="PronounBtnRow">` | `<div class="js-pronoun-btn-row">` |
+| Value Row | `<div id="ValueBtnRow">` | `<div class="js-value-btn-row">` |
+
+**Selector-Logik im Handler:**
+```javascript
+if (mode === "article") {
+  row = useClassBasedIds
+    ? host.querySelector(".js-article-btn-row")   // Probability Area
+    : host.querySelector("#ArticleBtnRow");        // Step Creator
+}
+```
+
 #### Variablen-Lookup
 
 | Funktion | Zeile | Beschreibung |
@@ -1028,7 +1131,7 @@ Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
 | `openInlineEditor(varName, tokenId)` | 1229 | Editor öffnen (Haupt-Funktion!) |
 | `renderPillButtons(list, mode, currentVal)` | 1344 | Pill-Buttons rendern |
 | `renderFallbackSection(varName, options, ...)` | 1327 | "Weitere anzeigen"-Bereich |
-| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). Duration-Editor hat Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`). Parst Range-Werte wie "8-10" beim Öffnen. Output: "8-10 Minuten" wenn Bis-Feld gefüllt, sonst "10 Minuten". State-Editor zeigt Pronomen immer oben (wie Artikel), auch bei separatem `{{pronoun}}`-Token |
+| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). Duration-Editor hat Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`). Layout: Row 1 = Inputs, Row 2 = Unit-Chips (Minute/Stunde/Pro Packung), Row 3 = Actions (Einsetzen/Schließen). Parst Range-Werte wie "8-10" beim Öffnen. Output: "8-10 Minuten" wenn Bis-Feld gefüllt, sonst "10 Minuten". State-Editor zeigt Pronomen immer oben (wie Artikel), auch bei separatem `{{pronoun}}`-Token |
 
 #### Wert-Anwendung
 
@@ -1058,14 +1161,19 @@ Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
 | `setActiveButton(stepId)` | 1772 | Aktiven Button markieren |
 | `wireEvents()` | 1778 | ALLE Event-Listener binden |
 
-#### Exportierte Probability-Helpers (Zeile 2019–2180)
+#### Exportierte Probability-Helpers (Zeile 2019–2180, 2819–2837)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `buildInlineEditorHtml(varName, currentVal, opts)` | 2021 | Editor-HTML generieren (für Probability-View) |
-| `applyEditorValue(editorEl)` | 2089 | Editor-Wert auslesen und zusammensetzen |
+| `buildInlineEditorHtml(varName, currentVal, opts)` | 2021 | **UPDATED:** Editor-HTML generieren (für Probability-View). Wrapper um `_generateEditorHtml()` mit `useClassBasedIds: true`. Unterstützt `multiIngredients` Array in opts |
+| `applyEditorValue(editorEl)` | 2089 | **UPDATED:** Editor-Wert auslesen und zusammensetzen. Wendet globale Fraction + Artikel auf alle Ingredient-Items an (Zeile 2757–2784) |
 | `applyEditorExtras(editorEl)` | 2136 | Zusätzliche Werte (z.B. Pronomen) |
 | `triggerPronounBeforeState(config)` | 2148 | Pronomen-vor-State-Logik |
+| `handlePickModeClick(pickBtn, host, useClassBasedIds)` | 2819 | **NEU:** Shared Pick-Mode Handler (siehe "Shared Editor System") |
+| `handleDurationUnitClick(btn, host)` | 2819 | **NEU:** Shared Duration-Unit Handler (siehe "Shared Editor System") |
+| `normalizeIngredientValues(values)` | 2819 | **NEU:** Normalisiert Zutat-Array zu `{name, fraction, article}` Format |
+| `formatSelectedIngredientList(names, langKey)` | 2819 | **NEU:** Formatiert Multi-Ingredient-Liste mit individuellen Artikeln/Fraktionen |
+| `isIngredientVariable(varName)` | 2819 | **NEU:** Prüft ob Variable eine Zutat ist (ingredient, liquid, fat, etc.) |
 
 #### Zweites IIFE: Format/Chip-Helpers (Zeile 2182–2253)
 
@@ -1130,6 +1238,91 @@ Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
 | `closeProbVarEditor()` | 442 | Editor schließen |
 | `applyProbVarEditor()` | 452 | Ausgewählten Wert anwenden |
 | `openProbVarInlineEditor(masterId, varKey, ...)` | 486 | Inline-Editor in Card öffnen. Setzt `.editing` auf `.probability-template-wrap` (Glow-Effekt) |
+| `doApply()` | 689 | **UPDATED (2026-03-27):** "Einsetzen"-Logik für Inline-Editor. **BUGFIX 1:** Re-fetched Editor-Element am Anfang (Zeile 693-698) um stale Referenzen zu vermeiden. **BUGFIX 2:** Formatiert `val` für ingredient-Variablen (Zeile 816) mit `formatSelectedIngredientList()` bevor `onApply` aufgerufen wird. Prüft ob Multi-Ingredients existieren UND neue Selektion vorhanden → fügt zur Liste hinzu |
+
+### Probability Area Multi-Ingredient Support (NEU 2026-03-27)
+
+**Status: ✅ VOLLSTÄNDIG IMPLEMENTIERT UND FUNKTIONSFÄHIG**
+
+**Wichtige Bugfixes (2026-03-27):**
+1. **Stale Editor References:** doApply() re-fetched Editor-Element
+2. **Ingredient Value Formatting:** `val` wird mit `formatSelectedIngredientList` formatiert
+3. **Missing Click Handler:** `.js-probability-var` Token Handler hinzugefügt
+4. **Duplicate Event Handlers:** `e.stopImmediatePropagation()` + `data-overlay-owner` Guards
+5. **Artikel-Konvertierung:** "der" wird nicht mehr zu "des" konvertiert (feminin Genitiv bleibt)
+6. **Reset-Button:** Probability Area Reset-Button funktioniert jetzt
+7. **Form-Options:** "Würfel" immer in Form-Vorauswahlen (häufigste Verwendung)
+8. **Pronomen-Only Editor:** Bei Steps mit nur {{pronomen}} (ohne {{state}}) wird keine State-Auswahl mehr gezeigt (Zeile 1781-1787, 1911-1915)
+9. **Duration-Editor CSS-Klasse:** Special Editoren (duration/temp/count) erhalten jetzt `.prob-inline-editor` Klasse bei `useClassBasedIds: true` (Zeile 1760) - behebt "Editor element not found in overlay!"
+10. **Duration-Editor Layout:** Input-Felder bleiben im Content-Bereich, Action-Buttons im Footer (`.js-editor-action-row` Marker + Selector-Fix Zeile 617)
+11. **Pronomen Value:** Pronomen-Variable setzt jetzt `val = selectedPronoun` in doApply() (Zeile 786-788) - behebt "Klick auf Pronomen passiert garnichts"
+12. **No-Article für "teig":** Variable "teig" (und "dough") in No-Article-Liste aufgenommen (Zeile 1484) - zeigt keine Artikel-Auswahl mehr
+
+**Auskommentierter alter Code (2026-03-27):**
+- `CreatePostingPage.js`: Alte Event-Handler (Zeilen 5157-5225) und Funktionen (Zeilen 361-537)
+- `CreatePosting.cshtml`: Altes HTML (#probVarEditorDock, ~60 Zeilen) und CSS (~81 Zeilen)
+- **Kann gelöscht werden, wenn alles funktioniert!**
+
+### Probability Area Multi-Ingredient Support (NEU 2026-03-27)
+
+**Event-Handler:**
+
+| Event | Selektor | Zeile | Beschreibung |
+|-------|----------|-------|-------------|
+| click | `.js-probability-var` | 4363 | **NEU (2026-03-27):** Öffnet Editor für Probability-Variable. Ruft `e.stopPropagation()` auf um Template-Akzeptierung zu verhindern. Erstellt `onApply` Callback der Token-Text aktualisiert: `token.text(newVal \|\| varKey)` |
+| click | `.js-probability-template` | 4395 | Template-Click akzeptiert ganzen Step (nur wenn nicht auf Token geklickt) |
+| click | `.probability-template-wrap .ingredient-plus-btn` | 4412 | **Plus-Button im Template**: (1) Editor geschlossen → öffnet Editor direkt via `openProbVarInlineEditor()` (NICHT token.click() um Template-Akzeptierung zu vermeiden!). (2) Editor offen → fügt aktuell ausgewählte Zutat zur `window.ProbabilityMultiIngredients[masterId][varName]`-Liste hinzu und öffnet Editor neu |
+| click | `.prob-inline-editor-host button[data-remove-multi-ingredient]` | 4506 | **Remove-Chip im Probability Editor**: Entfernt Zutat an Index aus `window.ProbabilityMultiIngredients[masterId][varName]`-Array, formatiert neue Liste mit `helpers.formatSelectedIngredientList()`, öffnet Editor neu |
+| click | `button[data-pick-mode]` (in #universalEditorOverlay) | 845 | **Pick-Mode-Handler**: **BUGFIX 1:** Re-fetched Editor-Element statt stale Referenz. **BUGFIX 2:** `.off('.universal')` entfernt Smart Step Creator Handler um doppelte Events zu vermeiden (Zeile 839). Nutzt `helpers.handlePickModeClick(this, currentEditorEl, true)` |
+| click | `button[data-duration-unit]` (in #universalEditorOverlay) | 849 | **Duration-Unit-Handler**: **BUGFIX:** Re-fetched Editor-Element statt stale Referenz. Nutzt `helpers.handleDurationUnitClick(this, currentEditorEl)` - shared Handler |
+
+**Workflow identisch zum Step Creator:**
+1. User klickt Token → Editor öffnet
+2. User wählt Fraction + Artikel + Zutat → "Einsetzen"
+3. Plus-Button [+] erscheint im Template
+4. User klickt [+] → Editor öffnet wieder
+5. Bereits hinzugefügte Zutaten sind ausgegraut (`.ingredient-chip-disabled`)
+6. User fügt weitere Zutat hinzu → "die Hälfte der Pasta und ein Drittel des Mehls"
+7. Chips mit X-Button am Boden des Editors zum Entfernen
+8. User klickt Template-Card → `getMergedVars()` überträgt ALLE Multi-Ingredients korrekt
+
+**Plus-Button Handler (Zeile 4199-4254) - Wichtige Details:**
+```javascript
+// Editor geschlossen? → Direkt öffnen (NICHT token.click()!)
+if (!editorEl || $host.hasClass('d-none') || $host.html().trim() === '') {
+    openProbVarInlineEditor(masterId, varName, currentVal, dummyOnApply, token);
+    return;
+}
+
+// Editor offen → Zutat zur Liste hinzufügen
+const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
+normalized.forEach(item => {
+    item.article = article;
+    item.fraction = fraction;
+    existingList.push(item);
+});
+window.ProbabilityMultiIngredients[masterId][varName] = existingList;
+
+// Editor neu öffnen mit aktualisierter Liste
+openProbVarInlineEditor(masterId, varName, composed, dummyOnApply, token);
+```
+
+**Remove-Chip Handler (Zeile 4319-4377) - Wichtige Details:**
+```javascript
+// Index aus data-Attribut lesen
+const idx = parseInt(btn.dataset.removeMultiIngredient, 10);
+
+// Item entfernen
+const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
+existingList.splice(idx, 1);
+window.ProbabilityMultiIngredients[masterId][varName] = existingList;
+
+// Neue Liste formatieren
+const composed = helpers.formatSelectedIngredientList(existingList, currentLang || 'de');
+
+// Editor neu öffnen
+openProbVarInlineEditor(masterId, varName, composed, onApply, token);
+```
 
 ### Zutaten-Laden & Grammatik (Zeile 654–764)
 
@@ -1467,8 +1660,36 @@ window.MasterStepCreatorHelpers = {
 | `window.RecipeStepSuggest` | recipe-step-suggest.js | Rezepttyp-Erkennung |
 | `window.CreatePostingProbability` | create-posting-probability.js | Wahrscheinlichkeit |
 | `window.IngredientManager` | ingredientmanager.js | Maßeinheiten |
-| `window.MasterStepCreatorHelpers` | SmartStepCreator.js | Step-Creator-Helpers |
+| `window.MasterStepCreatorHelpers` | SmartStepCreator.js | **Step-Creator-Helpers** (siehe unten für vollständige Export-Liste) |
 | `window.CreatePostingIngredientHelpers` | CreatePostingPage.js | Zutat-Helpers |
+
+#### window.MasterStepCreatorHelpers - Vollständige Export-Liste (Zeile 2819–2837)
+
+**Template & Rendering:**
+- `renderTemplateWithConfig(templateRaw, stepId, values, config)` - Template mit erweiterten Optionen rendern
+- `renderAssignedPlaceholderTemplate(templateRaw, stepId, values, config)` - Template mit Zuweisungen rendern
+- `getVarDisplayName(varName)` - Mehrsprachiger Anzeigename für Variable
+
+**Text-Verarbeitung:**
+- `splitLeadingArticleByOptions(text, articleOptions)` - Artikel von Nomen trennen
+- `composeArticleAndNoun(article, noun)` - Artikel + Nomen zusammensetzen
+- `getNounOptionsFromValues(values, articleOptions)` - Nomen-Optionen ableiten
+- `splitEditorPrefillValue(value, config)` - Wert für Editor-Prefill aufteilen
+
+**Editor-System (Shared zwischen Step Creator + Probability Area):**
+- `buildInlineEditorHtml(varName, currentVal, opts)` - **SHARED** HTML für Inline-Editor generieren (Wrapper um `_generateEditorHtml` mit `useClassBasedIds: true`)
+- `applyEditorValue(editorEl)` - **SHARED** Editor-Wert auslesen und zusammensetzen
+- `applyEditorExtras(editorEl)` - **SHARED** Zusätzliche Werte (z.B. Pronomen)
+- `triggerPronounBeforeState(config)` - Pronomen-vor-State-Logik
+- `handlePickModeClick(pickBtn, host, useClassBasedIds)` - **NEU (2026-03-27)** Shared Pick-Mode Handler
+- `handleDurationUnitClick(btn, host)` - **NEU (2026-03-27)** Shared Duration-Unit Handler
+
+**Multi-Ingredient Helpers:**
+- `normalizeIngredientValues(values)` - **NEU (2026-03-27)** Normalisiert Zutat-Array zu `{name, fraction, article}` Format
+- `formatSelectedIngredientList(names, langKey)` - **NEU (2026-03-27)** Formatiert Multi-Ingredient-Liste mit individuellen Artikeln/Fraktionen
+- `isIngredientVariable(varName)` - **NEU (2026-03-27)** Prüft ob Variable eine Zutat ist
+
+**Siehe Section 19 für vollständige Dokumentation aller exportierten Funktionen.**
 
 ### Globale State-Variablen
 
@@ -1479,6 +1700,7 @@ window.MasterStepCreatorHelpers = {
 | `window.ingredientTransforms` | CreatePostingPage.js:665 | Gecachte Transforms |
 | `window.stepCatalog` | CreatePostingPage.js:701 | Gecachter Step-Katalog |
 | `window.stepIngredientBindings` | CreatePostingPage.js | Step↔Zutat-Bindungen |
+| `window.ProbabilityMultiIngredients` | **NEU** create-posting-probability.js:5 | **Multi-Ingredient Storage** für Probability Area. Struktur: `{ "masterId": { "varName": [{name, fraction, article}, ...] } }`. Persistent während Session |
 
 ### Globale Funktionen
 
@@ -1783,6 +2005,94 @@ Step 5: Nächster Step
         { name: "die Hälfte Mehl", isRemainder: true, originalName: "Mehl" }
     → Chip hat CSS-Klasse: .ingredient-chip.fraction-remainder (dashed border)
 ```
+
+### Multi-Ingredient-Flow (NEU 2026-03-27)
+
+**Mehrere Zutaten mit individuellen Fraktionen/Artikeln kombinieren:**
+
+```
+Step 1: User klickt Token {{ingredient}}
+    → openInlineEditor() oder openProbVarInlineEditor()
+    → Editor öffnet mit leerer _multiIngredients-Liste
+
+Step 2: User wählt: Artikel "des" + Zutat "Zucker" + Fraktion "1/2"
+    → host.dataset.selectedArticle = "des"
+    → host.dataset.selectedIngredientValues = '[{"name":"Zucker"}]'
+    → host.dataset.selectedFraction = "1/2"
+
+Step 3: User klickt "Einsetzen"
+    → applyCurrentEditorSelection() (Step Creator) oder doApply() (Probability Area)
+    → composeFractionText() → "die Hälfte des Zuckers"
+    → activeStep.values.ingredient = "die Hälfte des Zuckers"
+    → Editor schließt
+
+Step 4: Plus-Button [+] erscheint im Step/Template
+    → renderTemplateTokens() erkennt: isIngredient && hasValue
+    → HTML: `{{ingredient}} [+] [↻]`
+
+Step 5: User klickt Plus-Button [+]
+    WICHTIG: Unterschiedliches Verhalten je nach Editor-Status!
+
+    5a) Editor geschlossen:
+        → Öffnet Editor neu
+        → Zeigt bisherige Zutat: "die Hälfte des Zuckers"
+
+    5b) Editor offen:
+        → Fügt aktuelle Selektion zur _multiIngredients-Liste hinzu
+        → activeStep._multiIngredients = [{name: "Zucker", fraction: "1/2", article: "des"}]
+        → Editor bleibt offen, wird neu gerendert
+
+Step 6: Editor neu gerendert
+    → Multi-Ingredients-Chips am Boden des Editors:
+        [die Hälfte des Zuckers [X]]
+    → "Zucker"-Chip bekommt .ingredient-chip-disabled (ausgegraut, line-through)
+    → User wählt nun: Artikel "der" + Zutat "Butter" + Fraktion "1/3"
+
+Step 7: User klickt Plus-Button [+] erneut
+    → Fügt zweite Zutat hinzu
+    → activeStep._multiIngredients = [
+        {name: "Zucker", fraction: "1/2", article: "des"},
+        {name: "Butter", fraction: "1/3", article: "der"}
+      ]
+    → formatSelectedIngredientList() formatiert:
+        "die Hälfte des Zuckers und ein Drittel der Butter"
+    → activeStep.values.ingredient = "die Hälfte des Zuckers und ein Drittel der Butter"
+    → Step-Text wird aktualisiert
+
+Step 8: User klickt X-Button auf "Zucker"-Chip
+    → Remove-Handler entfernt Index 0 aus _multiIngredients
+    → Liste wird neu formatiert: "ein Drittel der Butter"
+    → Editor wird neu gerendert
+
+Step 9: User klickt "Einsetzen"
+    → Editor schließt
+    → activeStep behält _multiIngredients-Array für spätere Bearbeitung
+
+Step 10: Probability Area - Template akzeptieren
+    → User klickt Template-Card
+    → getMergedVars(masterId) wird aufgerufen
+    → Liest window.ProbabilityMultiIngredients[masterId][varName]
+    → Formatiert mit formatSelectedIngredientList()
+    → ALLE Multi-Ingredients werden korrekt in akzeptierten Step übertragen
+```
+
+**Storage-Unterschiede:**
+- **Step Creator:** `activeStep._multiIngredients` (Array direkt am Step-Objekt)
+- **Probability Area:** `window.ProbabilityMultiIngredients[masterId][varName]` (Global, per Master-ID + Variable)
+
+**Chip-Deaktivierung:**
+```javascript
+// Bereits hinzugefügte Zutaten werden ausgegraut
+multiIngredients.forEach(item => {
+    if (getIngredientName(item) === value) {
+        disabledCls = " ingredient-chip-disabled";
+    }
+});
+```
+
+**CSS:**
+- `.ingredient-chip-disabled` → opacity 0.4, grayscale(0.8), line-through, pointer-events none
+- `.ingredient-plus-btn` → Runder grüner Button, 26×26px, hover: scale(1.1)
 
 ### Zutat-Chip-Filterung nach Variable-Typ
 
@@ -2477,5 +2787,133 @@ Falls das Trennen von Zutaten beschrieben werden soll, kann der User:
 
 ---
 
-> **Letzte Aktualisierung:** 2026-03-28
-> **Geänderte Dateien:** 2 (master_steps.json, CreatePosting-Dokumentation.md)
+## Änderungen 2026-03-27: Duration-Editor CSS-Klassen-Bug behoben
+
+### Überblick
+
+Ein kritischer Bug verhinderte das Öffnen von Special Editoren (duration/temp/count) im Probability Area. Der Editor konnte nicht gefunden werden, weil die CSS-Klasse `.prob-inline-editor` fehlte.
+
+### Symptome:
+
+```javascript
+[Probability Var Click] Opening editor for: {masterId: 'PREP_KNEAD_01', varKey: 'duration', ...}
+[Probability Area] Editor element not found in overlay!
+```
+
+**Ursache:** In `_generateEditorHtml()` fehlte bei Special Editoren die bedingte `.prob-inline-editor` Klasse.
+
+### Root Cause Analysis:
+
+**Regular Editor (Zeile 1891):**
+```javascript
+const html = `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" ...>
+```
+✅ Fügt `.prob-inline-editor` hinzu wenn `useClassBasedIds: true`
+
+**Special Editor (Zeile 1760 - VORHER):**
+```javascript
+html: `<div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
+```
+❌ `.prob-inline-editor` fehlt komplett
+
+**Special Editor (Zeile 1760 - NACHHER):**
+```javascript
+html: `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" data-editor-for="${escapeHtml(varName)}">
+```
+✅ Konsistent mit Regular Editor
+
+### Fix:
+
+**CreatePostingSmartStepCreator.js (Zeile 1760):**
+
+Hinzugefügt: `${useClassBasedIds ? ' prob-inline-editor' : ''}` zur CSS-Klasse des Special Editor Wrappers.
+
+**Warum war das wichtig?**
+
+- `useClassBasedIds: true` wird von der Probability Area verwendet (CreatePostingPage.js, Zeile 611)
+- Der Probability Area Code sucht nach `.prob-inline-editor` (CreatePostingPage.js, Zeile 667, 704)
+- Ohne diese Klasse konnte der Editor nicht gefunden werden → "Editor element not found in overlay!"
+
+### Betroffene Dateien:
+
+| Datei | Zeilen | Änderungen |
+|-------|--------|------------|
+| **CreatePostingSmartStepCreator.js** | 1760 | `.prob-inline-editor` Klasse hinzugefügt bei `useClassBasedIds: true` |
+| **CreatePosting-Dokumentation.md** | 1255 | Bugfix #9 in Liste hinzugefügt |
+
+### Teste:
+
+1. Öffne Probability Area
+2. Klicke auf ein `{{duration}}` Token
+3. Editor sollte sich öffnen mit neuer 3-Row-Struktur (Inputs → Chips → Actions)
+4. Console sollte keine Fehler zeigen
+
+---
+
+## Änderungen 2026-03-27: Duration-Editor Layout optimiert
+
+### Überblick
+
+Das Duration-Editor-Overlay wurde umstrukturiert für eine klarere visuelle Hierarchie und bessere Benutzerführung.
+
+### Vorher (alte Struktur):
+```
+Row 1: [Input Von] [–] [Input Bis] [Einsetzen] [Schließen]  ← Inputs und Actions gemischt
+Row 2: [Minute] [Stunde]                                      ← Unit-Chips separat
+Row 3: [Pro Packung]                                          ← Per-Package separat
+```
+
+### Nachher (neue Struktur):
+```
+Row 1: [Input Von] [–] [Input Bis]                           ← Nur Inputs
+Row 2: [Minute] [Stunde] [Pro Packung]                       ← Alle Unit-Chips zusammen
+Row 3: [Einsetzen] [Schließen]                               ← Action-Buttons separat
+```
+
+### Vorteile:
+- **Klarere visuelle Trennung** zwischen Eingabe, Auswahl und Aktionen
+- **Alle Unit-Chips zusammen** für einfacheren Vergleich und Auswahl
+- **Action-Buttons am Ende** folgen dem natürlichen Lese- und Interaktionsfluss
+
+### Betroffene Dateien:
+
+| Datei | Zeilen | Änderungen |
+|-------|--------|------------|
+| **CreatePostingSmartStepCreator.js** | 2223-2248 | `renderSpecialEditor()` - Duration-Editor HTML-Struktur umstrukturiert: Input-Row, Chips-Row (inkl. Pro Packung), Action-Row. Alle Action-Rows erhalten `.js-editor-action-row` Klasse (duration/temp/count Zeile 2245/2267/2277, regular editor Zeile 1930) |
+| **CreatePostingPage.js** | 617 | Selector-Fix: `.js-editor-action-row` statt `.d-flex.gap-2.align-items-center` (verhindert, dass Input-Row als Button-Row extrahiert wird) |
+| **CreatePosting-Dokumentation.md** | - | Dokumentation dieser Änderung hinzugefügt |
+
+### Technische Details:
+
+**CreatePostingSmartStepCreator.js (Zeile 2223-2248):**
+
+```javascript
+// Row 1: Nur Input-Felder
+<div class="d-flex gap-2 align-items-center">
+  <input type="number" id="DurationValueInput" ... placeholder="Von" />
+  <span class="text-muted small">–</span>
+  <input type="number" id="DurationValueToInput" ... placeholder="Bis" />
+</div>
+
+// Row 2: Alle Unit-Chips zusammen (Minute/Stunde/Pro Packung)
+<div class="d-flex flex-wrap gap-2 mt-2">
+  ${unitBtns}  // Minute, Stunde
+  ${perPackage ? '<button ... js-duration-per-package ...>' : ''}
+</div>
+
+// Row 3: Action-Buttons (mit .js-editor-action-row Marker)
+<div class="d-flex gap-2 align-items-center mt-2 js-editor-action-row">
+  <button id="BtnPickDurationQuick">Einsetzen</button>
+  <button id="BtnCloseVarTop">Schließen</button>
+</div>
+```
+
+**Änderungen:**
+- Per-Package-Button ist jetzt inline mit den anderen Unit-Chips statt in separatem Block
+- `.js-editor-action-row` Klasse hinzugefügt zur Action-Button-Row (auch bei temp/count/regular editors)
+- **Probability Area Fix:** Zeile 617 in CreatePostingPage.js nutzt jetzt `.js-editor-action-row` Selector statt `.d-flex.gap-2.align-items-center` (verhindert, dass Input-Row als Button-Row extrahiert wird)
+
+---
+
+> **Letzte Aktualisierung:** 2026-03-27
+> **Geänderte Dateien:** 2 (CreatePostingSmartStepCreator.js, CreatePosting-Dokumentation.md)

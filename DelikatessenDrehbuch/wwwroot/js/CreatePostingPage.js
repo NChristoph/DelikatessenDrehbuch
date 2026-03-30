@@ -358,6 +358,13 @@
             wrap.html(noArticle + chips);
         }
 
+        /* ===== OLD PROBABILITY EDITOR FUNCTIONS - AUSKOMMENTIERT 2026-03-27 =====
+         * Diese Funktionen sind für das alte #probVarEditorDock System.
+         * Jetzt wird openProbVarInlineEditor und das Universal Overlay verwendet.
+         * Kann gelöscht werden, wenn alles funktioniert.
+         */
+
+        /*
         function openProbVarEditor(masterId, varKey, currentVal, onApply, anchorElement) {
             probVarEditorCallback = onApply;
             probVarEditorAnchor = anchorElement ? $(anchorElement).closest('.probability-template-wrap') : null;
@@ -535,6 +542,9 @@
             }
             closeProbVarEditor();
         }
+        */
+
+        /* ===== END OLD FUNCTIONS ===== */
 
         // Opens the SmartStepCreator-style inline editor inside the probability card.
         // Replaces the floating dock with an inline editor that looks identical to the
@@ -597,24 +607,90 @@
             const editorHtml = helpers.buildInlineEditorHtml(varKey, currentVal, {
                 suppressPronounButtons: false,  // Always show pronouns for unified editor
                 masterId: masterId,
-                multiIngredients: multiIngredients
+                multiIngredients: multiIngredients,
+                useClassBasedIds: true  // IMPORTANT: Probability Area uses classes not IDs!
             });
-            $host.html(editorHtml).removeClass('d-none');
-            $anchor.addClass('editing');
-            $actions.addClass('d-none');
-            const editorEl = $host.find('.prob-inline-editor')[0];
-            if (!editorEl) return;
+
+            // Split editor HTML into content and buttons
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = editorHtml;
+            const buttonRow = tempDiv.querySelector('.js-editor-action-row');
+            const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
+            if (buttonRow) buttonRow.remove();
+            const editorContentHtml = tempDiv.innerHTML;
+
+            // Get template preview HTML
+            const templateCard = $anchor.find('.probability-template-card')[0];
+            const previewHtml = templateCard ? templateCard.innerHTML : '';
+
+            // Get theme from smart-step-creator
+            const creatorEl = document.querySelector('.smart-step-creator');
+            const theme = creatorEl ? creatorEl.dataset.theme || 'dark' : 'dark';
+
+            // Create fullscreen overlay
+            const overlayHtml = `
+                <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-master-id="${masterId}" data-var-key="${varKey}" data-overlay-owner="probability" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
+                    <!-- Fixed Header: Template Preview -->
+                    <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
+                        <div style="max-width: 800px; margin: 0 auto;">
+                            ${previewHtml}
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Middle: Editor Content -->
+                    <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
+                        <div style="max-width: 800px; margin: 0 auto;">
+                            ${editorContentHtml}
+                        </div>
+                    </div>
+
+                    <!-- Fixed Footer: Buttons -->
+                    <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
+                        <div style="max-width: 800px; margin: 0 auto;">
+                            ${buttonsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing overlay if any
+            const existing = document.getElementById('universalEditorOverlay');
+            if (existing) existing.remove();
+
+            // Append to body
+            document.body.insertAdjacentHTML('beforeend', overlayHtml);
+
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+
+            // Get editor element from overlay
+            const editorEl = document.querySelector('#universalEditorOverlay .prob-inline-editor');
+            if (!editorEl) {
+                console.error("[Probability Area] Editor element not found in overlay!");
+                return;
+            }
+
             if (flowMode === 'stateOnly') {
                 editorEl.dataset.selectedPronoun = (carriedPronoun || '').trim();
             }
             if (varKey === 'pronoun' || varKey === 'pronoun2') {
-                const $valueRow = $host.find('.js-value-btn-row');
+                const $valueRow = $('#universalEditorOverlay .js-value-btn-row');
                 if ($valueRow.length && !$valueRow.find('[data-pick-value="__none__"]').length) {
                     $valueRow.prepend('<button type="button" class="btn btn-sm creator-cta-secondary pill-like" data-pick-mode="value" data-pick-value="__none__">ohne</button>');
                 }
             }
 
+            console.log("[Probability Area] Universal overlay opened successfully");
+
             function closeEditor() {
+                // Remove fullscreen overlay
+                const overlay = document.getElementById('universalEditorOverlay');
+                if (overlay) overlay.remove();
+
+                // Restore body scroll
+                document.body.style.overflow = '';
+
+                // Clear inline host (backward compatibility)
                 $host.empty().addClass('d-none');
                 $anchor.removeClass('editing');
                 $actions.removeClass('d-none');
@@ -623,19 +699,29 @@
             function doApply() {
                 const scrollX = window.scrollX || window.pageXOffset || 0;
                 const scrollY = window.scrollY || window.pageYOffset || 0;
-                const editorVarName = (editorEl.dataset.editorFor || '').trim();
-                const selectedPronoun = (editorEl.dataset.selectedPronoun || carriedPronoun || '').trim();
+
+                // Re-fetch editor element from overlay (might have been recreated)
+                const currentEditorEl = document.querySelector('#universalEditorOverlay .prob-inline-editor');
+                if (!currentEditorEl) {
+                    console.error("[Probability doApply] Editor element not found in overlay!");
+                    return;
+                }
+
+                const editorVarName = (currentEditorEl.dataset.editorFor || '').trim();
+                const selectedPronoun = (currentEditorEl.dataset.selectedPronoun || carriedPronoun || '').trim();
+
+                console.log("[Probability doApply] Applying value for:", editorVarName);
 
                 // Define extras early (used in multi-ingredient path)
                 let extras = (onApplyExtras && typeof helpers.applyEditorExtras === 'function')
-                    ? helpers.applyEditorExtras(editorEl) : null;
+                    ? helpers.applyEditorExtras(currentEditorEl) : null;
 
                 // Check if there are existing multi-ingredients first
                 const existingMultiIngredients = (window.ProbabilityMultiIngredients[masterId] || {})[editorVarName];
                 const hasMultiIngredients = existingMultiIngredients && existingMultiIngredients.length > 0;
 
                 // Check if user selected NEW ingredients
-                const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+                const selectedValues = JSON.parse(currentEditorEl.dataset.selectedIngredientValues || '[]');
                 const hasNewSelection = selectedValues && selectedValues.length > 0;
 
                 let val;
@@ -643,8 +729,8 @@
                     // Multi-ingredients exist AND user selected new ingredients → ADD to list (like Step Creator!)
                     console.log("[Probability doApply] Multi-ingredients exist + new selection → ADDING to list");
 
-                    const article = editorEl.dataset.selectedArticle || '';
-                    const fraction = editorEl.dataset.selectedFraction || '';
+                    const article = currentEditorEl.dataset.selectedArticle || '';
+                    const fraction = currentEditorEl.dataset.selectedFraction || '';
 
                     // Normalize new selection
                     const newNormalized = helpers.normalizeIngredientValues ? helpers.normalizeIngredientValues(selectedValues) : selectedValues;
@@ -685,8 +771,7 @@
                     console.log("[Probability doApply] Using multi-ingredients list (no new selection):", existingMultiIngredients, "composed:", val);
                 } else {
                     // No multi-ingredients → Use single selection
-                    val = helpers.applyEditorValue(editorEl);
-                    console.log("[Probability doApply] Using single selection:", val);
+                    val = helpers.applyEditorValue(currentEditorEl);
                 }
 
                 if (editorVarName === 'pronoun' && val === '__none__') {
@@ -700,6 +785,11 @@
                         extras = Object.assign({}, extras || {}, { pronoun: selectedPronoun });
                     }
 
+                    // If editing pronoun variable, use selectedPronoun as the value
+                    if (editorVarName === 'pronoun' && selectedPronoun) {
+                        val = selectedPronoun;
+                    }
+
                     // If editing state and both pronoun and state are selected, compose them
                     if (editorVarName === 'state' && selectedPronoun && val && !hasSeparatePronounToken) {
                         val = `${selectedPronoun} ${val}`.trim();
@@ -710,10 +800,10 @@
                 // IMPORTANT: Only store if this is the FIRST time (no existing multi-ingredients)
                 // The Plus button handler manages adding to the list after the first time
                 if (helpers && typeof helpers.isIngredientVariable === 'function' && helpers.isIngredientVariable(editorVarName)) {
-                    const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+                    const selectedValues = JSON.parse(currentEditorEl.dataset.selectedIngredientValues || '[]');
                     if (selectedValues && selectedValues.length > 0) {
-                        const article = editorEl.dataset.selectedArticle || '';
-                        const fraction = editorEl.dataset.selectedFraction || '';
+                        const article = currentEditorEl.dataset.selectedArticle || '';
+                        const fraction = currentEditorEl.dataset.selectedFraction || '';
 
                         // Check if there are already multi-ingredients stored
                         const existingMultiIngredients = (window.ProbabilityMultiIngredients[masterId] || {})[editorVarName];
@@ -733,10 +823,14 @@
                             }
                             window.ProbabilityMultiIngredients[masterId][editorVarName] = normalized;
 
+                            // IMPORTANT: Format the value for display!
+                            val = helpers.formatSelectedIngredientList ? helpers.formatSelectedIngredientList(normalized, currentLang || 'de') : val;
+
                             console.log("[Probability doApply] FIRST TIME - Stored multi-ingredients:", {
                                 masterId,
                                 editorVarName,
                                 normalized,
+                                formattedVal: val,
                                 storage: window.ProbabilityMultiIngredients
                             });
                         } else {
@@ -755,23 +849,95 @@
                 window.requestAnimationFrame(function () { window.scrollTo(scrollX, scrollY); });
             }
 
-            $host.off('.probinline')
+            // Bind events to fullscreen overlay
+            const $overlay = $('#universalEditorOverlay');
+            // IMPORTANT: Remove ALL handlers (including .universal from Smart Step Creator!)
+            $overlay.off('.probinline').off('.universal')
                 .on('click.probinline', '.js-prob-inline-close', closeEditor)
                 .on('click.probinline', '#BtnCloseVarTop', closeEditor)
                 .on('click.probinline', '.js-prob-inline-apply', doApply)
                 .on('click.probinline', '#BtnPickDurationQuick', doApply)
                 .on('click.probinline', '#BtnPickTempQuick', doApply)
                 .on('click.probinline', '#BtnPickCountQuick', doApply)
-                .on('click.probinline', 'button[data-pick-mode]', function () {
+                .on('click.probinline', 'button[data-pick-mode]', function (e) {
+                    // CRITICAL: Only handle if this is OUR overlay!
+                    const overlayEl = document.getElementById('universalEditorOverlay');
+                    if (!overlayEl || overlayEl.dataset.overlayOwner !== 'probability') return;
+
+                    // Stop other handlers from executing
+                    e.stopImmediatePropagation();
+
                     // Use shared pick-mode handler from CreatePostingSmartStepCreator
-                    if (helpers && typeof helpers.handlePickModeClick === 'function') {
-                        helpers.handlePickModeClick(this, editorEl, true); // true = use class-based IDs for Probability Area
+                    const currentEditorEl = document.querySelector('#universalEditorOverlay .prob-inline-editor');
+                    if (helpers && typeof helpers.handlePickModeClick === 'function' && currentEditorEl) {
+                        helpers.handlePickModeClick(this, currentEditorEl, true);
                     }
                 })
-                .on('click.probinline', 'button[data-duration-unit]', function () {
-                    // Use shared duration-unit handler from CreatePostingSmartStepCreator
-                    if (helpers && typeof helpers.handleDurationUnitClick === 'function') {
-                        helpers.handleDurationUnitClick(this, editorEl);
+                .on('click.probinline', 'button[data-duration-unit]', function (e) {
+                    const overlayEl = document.getElementById('universalEditorOverlay');
+                    if (!overlayEl || overlayEl.dataset.overlayOwner !== 'probability') return;
+
+                    e.stopImmediatePropagation();
+
+                    const currentEditorEl = document.querySelector('#universalEditorOverlay .prob-inline-editor');
+                    if (helpers && typeof helpers.handleDurationUnitClick === 'function' && currentEditorEl) {
+                        helpers.handleDurationUnitClick(this, currentEditorEl);
+                    }
+                })
+                .on('click.probinline', 'button[data-remove-multi-ingredient]', function (e) {
+                    // Remove multi-ingredient chip
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    const idx = parseInt(this.dataset.removeMultiIngredient, 10);
+                    if (isNaN(idx)) return;
+
+                    // Get current master and var from overlay
+                    const overlay = document.getElementById('universalEditorOverlay');
+                    const currentMasterId = overlay ? overlay.dataset.masterId : masterId;
+                    const currentVarKey = overlay ? overlay.dataset.varKey : varKey;
+
+                    // Get existing list
+                    const existingList = (window.ProbabilityMultiIngredients[currentMasterId] || {})[currentVarKey] || [];
+                    if (idx < 0 || idx >= existingList.length) return;
+
+                    // Remove item at index
+                    existingList.splice(idx, 1);
+                    if (!window.ProbabilityMultiIngredients[currentMasterId]) {
+                        window.ProbabilityMultiIngredients[currentMasterId] = {};
+                    }
+                    window.ProbabilityMultiIngredients[currentMasterId][currentVarKey] = existingList;
+
+                    // Format new list
+                    const composed = helpers && helpers.formatSelectedIngredientList
+                        ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de')
+                        : '';
+
+                    console.log("[Probability Remove Chip] Removed index", idx, "new list:", existingList, "composed:", composed);
+
+                    // Update token in template
+                    const templateWrap = document.querySelector(`.probability-template-wrap[data-master-id="${currentMasterId}"]`);
+                    const token = templateWrap ? templateWrap.querySelector(`.js-probability-var[data-var="${currentVarKey}"]`) : null;
+
+                    if (token) {
+                        token.textContent = composed || currentVarKey;
+                        token.dataset.hasValue = composed ? '1' : '0';
+                    }
+
+                    // Update overlay preview if it exists
+                    const probOverlay = document.getElementById('universalEditorOverlay');
+                    if (probOverlay && templateWrap) {
+                        const templateCard = templateWrap.querySelector('.probability-template-card');
+                        const previewSection = probOverlay.querySelector('.creator-preview-canvas > div');
+                        if (templateCard && previewSection) {
+                            previewSection.innerHTML = templateCard.innerHTML;
+                            console.log("[Probability Remove Chip] Updated overlay preview");
+                        }
+                    }
+
+                    // Re-open editor with updated list
+                    if (token && typeof openProbVarInlineEditor === 'function') {
+                        openProbVarInlineEditor(currentMasterId, currentVarKey, composed, onApply, token);
                     }
                 });
         }
@@ -4222,6 +4388,41 @@
                 await showProbabilityTemplateSuggestions(typeId, typeName, score);
             });
 
+            // Click on Probability Variable Token to edit
+            $('#recipeForm').on('click', '.js-probability-var', function (e) {
+                e.stopPropagation(); // Prevent template selection
+                e.preventDefault();
+
+                const token = $(this);
+                const varKey = (token.data('var-key') || token.data('var') || '').toString();
+                const masterId = token.closest('.probability-template-wrap').data('master-id') || '';
+
+                if (!varKey || !masterId) {
+                    console.error('[Probability Var Click] Missing varKey or masterId:', { varKey, masterId });
+                    return;
+                }
+
+                // Get current value from token text (or empty if it's the placeholder)
+                let currentVal = token.text().trim();
+                if (currentVal === varKey) currentVal = ''; // Reset if it's still the placeholder name
+
+                console.log('[Probability Var Click] Opening editor for:', { masterId, varKey, currentVal });
+
+                // Create onApply callback that updates the token
+                const onApply = function(newVal) {
+                    console.log('[Probability Var onApply] Setting value:', newVal);
+                    token.text(newVal || varKey);
+                    token.attr('data-has-value', newVal ? '1' : '0');
+                };
+
+                // Open editor
+                if (typeof openProbVarInlineEditor === 'function') {
+                    openProbVarInlineEditor(masterId, varKey, currentVal, onApply, token[0]);
+                } else {
+                    console.error('[Probability Var Click] openProbVarInlineEditor not available');
+                }
+            });
+
             $('#recipeForm').on('click', '.js-probability-template', function () {
                 const wrap = $(this).closest('.probability-template-wrap');
                 const swipeTs = parseInt(wrap.data('swipeJustHandled') || 0, 10);
@@ -4236,6 +4437,36 @@
                 renderTemplateCards();
                 updatePreviewText();
                 showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewÃ¤hlt');
+            });
+
+            // Reset Button in Probability Area
+            $('#recipeForm').on('click', '.probability-template-wrap .placeholder-reset', function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                const btn = this;
+                const varName = btn.dataset.var;
+                const tokenId = btn.dataset.tokenId;
+                const masterId = $(btn).closest('.probability-template-wrap').data('master-id');
+
+                if (!varName || !masterId) return;
+
+                console.log("[Probability Reset Button]", { varName, masterId, tokenId });
+
+                // Find the token
+                const token = $(btn).siblings(`.js-probability-var[data-var="${varName}"]`).first();
+                if (!token.length) return;
+
+                // Clear the token value
+                token.text(varName);
+                token.attr('data-has-value', '0');
+
+                // Clear multi-ingredients storage
+                if (window.ProbabilityMultiIngredients[masterId]) {
+                    window.ProbabilityMultiIngredients[masterId][varName] = [];
+                }
+
+                console.log("[Probability Reset Button] Cleared:", varName);
             });
 
             // Multi-Ingredient Plus-Button in Probability Area
@@ -4967,76 +5198,84 @@
                 applyIngredientConfigPopup();
             });
 
+            /* ===== OLD PROBABILITY EDITOR HANDLERS - AUSKOMMENTIERT 2026-03-27 =====
+             * Diese Handler sind für das alte #probVarEditorDock System.
+             * Jetzt wird das Universal Overlay System verwendet.
+             * Kann gelöscht werden, wenn alles funktioniert.
+             */
+
             // Close variable editor popups on layout change (resize/orientation)
-            window.addEventListener('resize', function () {
-                if ($('#probVarEditorDock').hasClass('ing-active')) closeProbVarEditor();
-            });
+            // window.addEventListener('resize', function () {
+            //     if ($('#probVarEditorDock').hasClass('ing-active')) closeProbVarEditor();
+            // });
 
-            // === Probability Variable Editor handlers ===
-            $('#btnCloseProbVarEditor, #btnCancelProbVar').on('click', function () {
-                closeProbVarEditor();
-            });
+            // // === Probability Variable Editor handlers ===
+            // $('#btnCloseProbVarEditor, #btnCancelProbVar').on('click', function () {
+            //     closeProbVarEditor();
+            // });
 
-            $('#btnApplyProbVar').on('click', function () {
-                applyProbVarEditor();
-            });
+            // $('#btnApplyProbVar').on('click', function () {
+            //     applyProbVarEditor();
+            // });
 
-            $('#probVarEditorOverlay').on('click', function (e) {
-                if (e.target === this) closeProbVarEditor();
-            });
+            // $('#probVarEditorOverlay').on('click', function (e) {
+            //     if (e.target === this) closeProbVarEditor();
+            // });
 
-            // Ingredient chip - toggle selection in editor (apply via Einsetzen)
-            $('#probVarEditorDock').on('click', '.js-prob-ingredient-chip', function () {
-                const id = ($(this).data('id') || '').toString();
-                if (!id) return;
+            // // Ingredient chip - toggle selection in editor (apply via Einsetzen)
+            // $('#probVarEditorDock').on('click', '.js-prob-ingredient-chip', function () {
+            //     const id = ($(this).data('id') || '').toString();
+            //     if (!id) return;
 
-                const selected = (creatorState.selectedIngredientIds || []).map(x => x.toString());
-                if (selected.includes(id)) {
-                    creatorState.selectedIngredientIds = selected.filter(x => x !== id);
-                } else {
-                    creatorState.selectedIngredientIds = [...selected, id];
-                }
+            //     const selected = (creatorState.selectedIngredientIds || []).map(x => x.toString());
+            //     if (selected.includes(id)) {
+            //         creatorState.selectedIngredientIds = selected.filter(x => x !== id);
+            //     } else {
+            //         creatorState.selectedIngredientIds = [...selected, id];
+            //     }
 
-                let ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
-                const lowerVarKey = (probVarEditorCurrentVarKey || '').toLowerCase();
-                if (lowerVarKey === 'liquid') ings = ings.filter(i => i.isLiquid);
-                else if (lowerVarKey === 'fat') ings = ings.filter(i => i.isFat);
-                else if (lowerVarKey === 'hard') ings = ings.filter(i => i.isHard);
-                else if (lowerVarKey === 'soft') ings = ings.filter(i => i.isSoft);
-                const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
-                    ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
-                    : '';
-                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
-            });
+            //     let ings = typeof getSelectedIngredientsForSandbox === 'function' ? getSelectedIngredientsForSandbox() : [];
+            //     const lowerVarKey = (probVarEditorCurrentVarKey || '').toLowerCase();
+            //     if (lowerVarKey === 'liquid') ings = ings.filter(i => i.isLiquid);
+            //     else if (lowerVarKey === 'fat') ings = ings.filter(i => i.isFat);
+            //     else if (lowerVarKey === 'hard') ings = ings.filter(i => i.isHard);
+            //     else if (lowerVarKey === 'soft') ings = ings.filter(i => i.isSoft);
+            //     const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
+            //         ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
+            //         : '';
+            //     $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+            // });
 
-            // Article chip for ingredient variable in prob editor
-            $('#probVarEditorDock').on('click', '.js-prob-ingredient-article-chip', function () {
-                const val = ($(this).data('value') || '').toString();
-                probVarIngredientArticleValue = val;
-                $('.js-prob-ingredient-article-chip').removeClass('active btn-light text-dark').addClass('btn-outline-light');
-                $(this).addClass('active btn-light text-dark').removeClass('btn-outline-light');
-            });
+            // // Article chip for ingredient variable in prob editor
+            // $('#probVarEditorDock').on('click', '.js-prob-ingredient-article-chip', function () {
+            //     const val = ($(this).data('value') || '').toString();
+            //     probVarIngredientArticleValue = val;
+            //     $('.js-prob-ingredient-article-chip').removeClass('active btn-light text-dark').addClass('btn-outline-light');
+            //     $(this).addClass('active btn-light text-dark').removeClass('btn-outline-light');
+            // });
 
-            // Option chip → auto-apply and close
-            $('#probVarEditorDock').on('click', '.js-prob-option-chip', function () {
-                const value = ($(this).data('value') || $(this).text()).toString();
-                if (probVarEditorCallback) probVarEditorCallback(value);
-                closeProbVarEditor();
-            });
+            // // Option chip → auto-apply and close
+            // $('#probVarEditorDock').on('click', '.js-prob-option-chip', function () {
+            //     const value = ($(this).data('value') || $(this).text()).toString();
+            //     if (probVarEditorCallback) probVarEditorCallback(value);
+            //     closeProbVarEditor();
+            // });
 
-            // Pronoun chip → select and apply
-            $('#probVarEditorDock').on('click', '.js-prob-pronoun-chip', function () {
-                const value = ($(this).data('value') || $(this).text()).toString();
-                if (probVarEditorCallback) probVarEditorCallback(value);
-                closeProbVarEditor();
-            });
+            // // Pronoun chip → select and apply
+            // $('#probVarEditorDock').on('click', '.js-prob-pronoun-chip', function () {
+            //     const value = ($(this).data('value') || $(this).text()).toString();
+            //     if (probVarEditorCallback) probVarEditorCallback(value);
+            //     closeProbVarEditor();
+            // });
 
-            // State chip → select and apply
-            $('#probVarEditorDock').on('click', '.js-prob-state-chip', function () {
-                const value = ($(this).data('value') || $(this).text()).toString();
-                if (probVarEditorCallback) probVarEditorCallback(value);
-                closeProbVarEditor();
-            });
+            // // State chip → select and apply
+            // $('#probVarEditorDock').on('click', '.js-prob-state-chip', function () {
+            //     const value = ($(this).data('value') || $(this).text()).toString();
+            //     if (probVarEditorCallback) probVarEditorCallback(value);
+            //     closeProbVarEditor();
+            // });
+
+            /* ===== END OLD HANDLERS ===== */
 
             $('#btnAddRenderedStep').on('click', async function () {
                 await addRenderedMasterStep();

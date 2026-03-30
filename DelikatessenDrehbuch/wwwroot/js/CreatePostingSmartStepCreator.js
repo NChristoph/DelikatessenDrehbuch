@@ -116,14 +116,27 @@
         // "die Hälfte DES Zuckers" (not "die Hälfte der Zucker")
         let genitiveArticle = article;
         if (article && article !== "ohne") {
-            const genitiveMap = {
-                "der": "des",  // masculine nominative → genitive
-                "die": "der",  // feminine nominative → genitive
-                "das": "des",  // neuter nominative → genitive
-                "des": "des",  // already genitive (mask/neut)
-                // "der" (genitive fem) stays as is
-            };
-            genitiveArticle = genitiveMap[article.toLowerCase()] || article;
+            const lowerArticle = article.toLowerCase();
+
+            // Check if article is already genitive - DON'T convert!
+            const alreadyGenitive = ["des", "eines"].includes(lowerArticle);
+
+            if (!alreadyGenitive) {
+                const genitiveMap = {
+                    "die": "der",  // feminine nominative → genitive
+                    "das": "des",  // neuter nominative → genitive
+                    "den": "des",  // masculine accusative → genitive
+                    "dem": "des",  // masculine/neuter dative → genitive
+                    "einen": "eines",  // indefinite masculine accusative → genitive
+                    "einem": "eines",  // indefinite masculine/neuter dative → genitive
+                    // NOTE: "der" can be:
+                    //   - masculine nominative → should become "des"
+                    //   - feminine genitive → should stay "der"
+                    // We assume if user selects "der" with fraction, they mean genitive (feminine)
+                    // So we DON'T convert "der" anymore!
+                };
+                genitiveArticle = genitiveMap[lowerArticle] || article;
+            }
         }
 
         const art = (genitiveArticle && genitiveArticle !== "ohne") ? ` ${genitiveArticle}` : "";
@@ -416,6 +429,17 @@
             optionEntries = Object.values(doc.equipment)
                 .map(value => ({ value: (value || "").toString().trim(), tags: [] }))
                 .filter(option => option.value);
+        }
+
+        // SPECIAL: Always include "Würfel" for "form" variable (most commonly used)
+        if (normalizedKey === "form" && optionEntries.length > 0) {
+            const hasWuerfel = optionEntries.some(opt =>
+                (opt.value || "").toLowerCase().includes("würfel") ||
+                (opt.value || "").toLowerCase().includes("wuerfel")
+            );
+            if (!hasWuerfel) {
+                optionEntries.unshift({ value: "Würfel", tags: [] });
+            }
         }
 
         const uniqueEntries = [];
@@ -1127,8 +1151,277 @@
         if (typeof work === "function") work();
         window.requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
     }
+    // ══════════════════════════════════════════════════════════════
+    // UNIVERSAL EDITOR OVERLAY SYSTEM (used by both areas)
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * Opens a universal fullscreen editor overlay.
+     * Used by both Smart Step Creator and Probability Area.
+     *
+     * @param {Object} config - Configuration object
+     * @param {string} config.type - 'step' or 'probability'
+     * @param {string} config.varName - Variable name being edited
+     * @param {string} config.currentVal - Current value
+     * @param {string} config.previewHtml - HTML for the preview section (top)
+     * @param {Array} config.multiIngredients - Multi-ingredient array
+     * @param {string} config.masterId - Master step ID (for probability area)
+     * @param {Function} config.onApply - Callback when applying value
+     * @param {Function} config.onClose - Callback when closing editor
+     * @param {Object} config.eventContext - Context for event handlers (activeStep, activeToken, etc.)
+     */
+    function openUniversalEditorOverlay(config) {
+        const {
+            type = 'step',
+            varName,
+            currentVal = '',
+            previewHtml = '',
+            multiIngredients = [],
+            masterId = '',
+            onApply,
+            onClose,
+            eventContext = {}
+        } = config;
+
+        console.log("[Universal Overlay] Opening:", { type, varName, masterId });
+
+        // Generate editor HTML using shared function
+        const useClassBasedIds = type === 'probability';
+        const result = _generateEditorHtml(varName, currentVal, {
+            multiIngredients,
+            masterId,
+            selectedIngredientValues: null,
+            suppressPronounButtons: false,
+            useClassBasedIds
+        });
+
+        // Split editor HTML into content and buttons
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = result.html;
+        const buttonRow = tempDiv.querySelector('.d-flex.gap-2.align-items-center');
+        const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
+        if (buttonRow) buttonRow.remove();
+        const editorContentHtml = tempDiv.innerHTML;
+
+        // Get theme
+        const creatorEl = document.querySelector('.smart-step-creator');
+        const theme = creatorEl ? creatorEl.dataset.theme || 'dark' : 'dark';
+
+        // Create fullscreen overlay HTML
+        const overlayHtml = `
+            <div id="universalEditorOverlay"
+                 class="smart-step-creator"
+                 data-theme="${theme}"
+                 data-overlay-owner="step"
+                 data-editor-type="${type}"
+                 data-var-name="${escapeHtml(varName)}"
+                 data-master-id="${escapeHtml(masterId)}"
+                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
+
+                <!-- Fixed Header: Preview -->
+                <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
+                    <div style="max-width: 800px; margin: 0 auto;" class="universal-overlay-preview">
+                        ${previewHtml}
+                    </div>
+                </div>
+
+                <!-- Scrollable Middle: Editor Content -->
+                <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${editorContentHtml}
+                    </div>
+                </div>
+
+                <!-- Fixed Footer: Buttons -->
+                <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${buttonsHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing overlay
+        const existing = document.getElementById('universalEditorOverlay');
+        if (existing) existing.remove();
+
+        // Append to body
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+
+        // Set data attributes on editor element
+        const editorEl = document.querySelector('#universalEditorOverlay .duration-editor, #universalEditorOverlay .prob-inline-editor');
+        if (editorEl) {
+            Object.keys(result.dataAttributes).forEach(key => {
+                editorEl.dataset[key] = result.dataAttributes[key];
+            });
+        }
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+
+        // Bind universal event handlers
+        _bindUniversalOverlayEvents(type, varName, masterId, onApply, onClose, eventContext);
+
+        console.log("[Universal Overlay] Opened successfully");
+    }
+
+    /**
+     * Closes the universal editor overlay
+     */
+    function closeUniversalEditorOverlay() {
+        const overlay = document.getElementById('universalEditorOverlay');
+        if (overlay) {
+            console.log("[Universal Overlay] Closing");
+            overlay.remove();
+        }
+
+        // Restore body scroll
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * Binds event handlers to the universal overlay
+     */
+    function _bindUniversalOverlayEvents(type, varName, masterId, onApply, onClose, eventContext) {
+        const $overlay = $('#universalEditorOverlay');
+        const editorEl = document.querySelector('#universalEditorOverlay .duration-editor, #universalEditorOverlay .prob-inline-editor');
+        const useClassBasedIds = type === 'probability';
+
+        if (!editorEl) {
+            console.error("[Universal Overlay] Editor element not found!");
+            return;
+        }
+
+        // IMPORTANT: Remove ALL previous handlers (from both areas!)
+        $overlay.off('.universal').off('.probinline');
+
+        // Close button
+        $overlay.on('click.universal', '.js-prob-inline-close, #BtnCloseVar', function() {
+            closeUniversalEditorOverlay();
+            if (typeof onClose === 'function') onClose();
+        });
+
+        // Apply button
+        $overlay.on('click.universal', '.js-prob-inline-apply, #BtnApplyVar', function() {
+            if (typeof onApply === 'function') {
+                const value = applyEditorValue(editorEl);
+                onApply(value, editorEl);
+            }
+        });
+
+        // Pick-mode buttons (article, ingredient, fraction, etc.)
+        $overlay.on('click.universal', 'button[data-pick-mode]', function(e) {
+            // Only handle if this is OUR overlay
+            const overlayEl = document.getElementById('universalEditorOverlay');
+            if (!overlayEl || overlayEl.dataset.overlayOwner !== 'step') return;
+
+            // Stop other handlers from executing
+            e.stopImmediatePropagation();
+
+            // Only handle if editorEl still exists and is valid
+            if (!editorEl || !editorEl.isConnected) return;
+
+            _handlePickModeClick(this, editorEl, useClassBasedIds);
+        });
+
+        // Duration unit buttons
+        $overlay.on('click.universal', 'button[data-duration-unit]', function(e) {
+            const overlayEl = document.getElementById('universalEditorOverlay');
+            if (!overlayEl || overlayEl.dataset.overlayOwner !== 'step') return;
+
+            e.stopImmediatePropagation();
+
+            if (!editorEl || !editorEl.isConnected) return;
+            _handleDurationUnitClick(this, editorEl);
+        });
+
+        // Remove multi-ingredient chip
+        $overlay.on('click.universal', 'button[data-remove-multi-ingredient]', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const idx = parseInt(this.dataset.removeMultiIngredient, 10);
+            if (isNaN(idx)) return;
+
+            console.log("[Universal Overlay] Remove chip at index:", idx);
+
+            if (type === 'step') {
+                // Smart Step Creator logic
+                if (!activeStep || !activeToken) return;
+
+                const multiIngredientsObj = activeStep._multiIngredients || {};
+                const existingList = multiIngredientsObj[activeToken.varName] || [];
+                if (idx < 0 || idx >= existingList.length) return;
+
+                existingList.splice(idx, 1);
+                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+                activeStep._multiIngredients[activeToken.varName] = existingList;
+
+                const composed = formatSelectedIngredientList(existingList, currentLang);
+                activeStep.values[activeToken.varName] = composed;
+
+                renderMasterText();
+
+                // Update overlay preview
+                const currentStepWrap = document.querySelector(".current-step-wrap");
+                const previewSection = document.querySelector('#universalEditorOverlay .universal-overlay-preview');
+                if (currentStepWrap && previewSection) {
+                    previewSection.innerHTML = currentStepWrap.innerHTML;
+                }
+
+                // Re-open overlay with updated data
+                openInlineEditor(activeToken.varName, activeToken.tokenId);
+
+            } else if (type === 'probability') {
+                // Probability Area logic
+                const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
+                if (idx < 0 || idx >= existingList.length) return;
+
+                existingList.splice(idx, 1);
+                if (!window.ProbabilityMultiIngredients[masterId]) {
+                    window.ProbabilityMultiIngredients[masterId] = {};
+                }
+                window.ProbabilityMultiIngredients[masterId][varName] = existingList;
+
+                const helpers = window.MasterStepCreatorHelpers;
+                const composed = helpers && helpers.formatSelectedIngredientList
+                    ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de')
+                    : '';
+
+                // Update template token
+                const templateWrap = document.querySelector(`.probability-template-wrap[data-master-id="${masterId}"]`);
+                const token = templateWrap ? templateWrap.querySelector(`.js-probability-var[data-var="${varName}"]`) : null;
+
+                if (token) {
+                    token.textContent = composed || varName;
+                    token.dataset.hasValue = composed ? '1' : '0';
+                }
+
+                // Update overlay preview
+                if (templateWrap) {
+                    const templateCard = templateWrap.querySelector('.probability-template-card');
+                    const previewSection = document.querySelector('#universalEditorOverlay .universal-overlay-preview');
+                    if (templateCard && previewSection) {
+                        previewSection.innerHTML = templateCard.innerHTML;
+                    }
+                }
+
+                // Re-open overlay (call the probability function)
+                if (typeof eventContext.reopenEditor === 'function') {
+                    eventContext.reopenEditor(varName, composed);
+                }
+            }
+        });
+
+        console.log("[Universal Overlay] Events bound for type:", type);
+    }
+
+    // Old closeInlineEditor - now calls universal function
     function closeInlineEditor() {
         activeToken = null;
+        closeUniversalEditorOverlay();
+
+        // Clear old inline host (backward compatibility)
         const host = $("#InlineVarEditorHost");
         if (host) host.innerHTML = "";
     }
@@ -1464,7 +1757,7 @@
         if (compactSpecialVar) {
             const specialBlockCompact = renderSpecialEditor(varName, currentVal);
             return {
-                html: `<div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}">
+                html: `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" data-editor-for="${escapeHtml(varName)}">
                     <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
                     ${specialBlockCompact}
                 </div>`,
@@ -1485,11 +1778,21 @@
         const pronounVar = (varName || '').toLowerCase() === 'pronoun';
         const isPronounOrState = pronounVar || stateVar;
 
+        // Check if template has BOTH pronoun AND state tokens
+        const templateRaw = activeStep?.templateRaw || "";
+        const hasPronounToken = /\{\{\s*pronoun\s*\}\}/i.test(templateRaw);
+        const hasStateToken = /\{\{\s*state\s*\}\}/i.test(templateRaw);
+        const hasBothTokens = hasPronounToken && hasStateToken;
+
+        // Only show combined editor if BOTH tokens exist
+        const showCombinedEditor = isPronounOrState && hasBothTokens;
+        const showOnlyPronoun = pronounVar && !hasStateToken;
+
         // Article buttons
         const articleButtons = noArticleVar ? "" : renderPillButtons(getArticleOptions(), "article", null);
 
         // Pronoun buttons (for pronoun/state variables)
-        const pronounButtons = (isPronounOrState && !suppressPronounButtons)
+        const pronounButtons = ((showCombinedEditor || showOnlyPronoun) && !suppressPronounButtons)
             ? renderPillButtons(getVarOptions("pronoun", masterId, scoringContext), "pronoun", null)
             : "";
 
@@ -1502,7 +1805,9 @@
         // Options for non-ingredient variables
         const options = ingredientVar
             ? ingredientItems.map(x => x.name)
-            : (isPronounOrState ? getVarOptions('state', masterId, scoringContext) : getVarOptions(varName, masterId, scoringContext));
+            : (showCombinedEditor ? getVarOptions('state', masterId, scoringContext)
+               : (showOnlyPronoun ? [] // No value buttons for pronoun-only
+                  : getVarOptions(varName, masterId, scoringContext)));
 
         // Parse selected ingredient values
         let selectedIngredientValues = [];
@@ -1582,6 +1887,17 @@
         const closeBtnClass = useClassBasedIds ? 'js-prob-inline-close' : '';
         const closeBtnId = useClassBasedIds ? '' : 'id="BtnCloseVar"';
 
+        // Extract prefill values from currentVal
+        const prefillConfig = {
+            articleOptions: getArticleOptions(),
+            pronounOptions: getVarOptions("pronoun", masterId, scoringContext),
+            stateVar: stateVar,
+            ingredientVar: ingredientVar,
+            noArticleVar: noArticleVar,
+            suppressPronounButtons: suppressPronounButtons
+        };
+        const prefilled = splitEditorPrefillValue(currentVal, prefillConfig);
+
         // Build HTML
         const html = `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" data-editor-for="${escapeHtml(varName)}" data-hybrid="${hybridVar ? "1" : "0"}">
             <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
@@ -1599,14 +1915,14 @@
             </div>
             `}
 
-            ${isPronounOrState ? `
+            ${(showCombinedEditor || showOnlyPronoun) ? `
             <div class="small text-muted mt-2 mb-1">Pronomen</div>
             <div ${pronounRowId}>
               ${pronounButtons}
             </div>
             ` : ""}
 
-            ${isPronounOrState ? `<div class="small text-muted mb-1">Zustand</div>` : `<div class="small text-muted mb-1">${escapeHtml(getVarDisplayName(varName))} einsetzen</div>`}
+            ${showCombinedEditor ? `<div class="small text-muted mb-1">Zustand</div>` : (showOnlyPronoun ? "" : `<div class="small text-muted mb-1">${escapeHtml(getVarDisplayName(varName))} einsetzen</div>`)}
             <div ${valueRowId}>
               ${valueButtons || (ingredientVar
                 ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
@@ -1620,9 +1936,9 @@
             </div>
             ` : ""}
 
-            ${ingredientVar && !hybridVar ? "" : (!ingredientVar ? renderFallbackSection(isPronounOrState ? 'state' : varName, hybridVar ? hybridOptions : options, masterId, scoringContext) : "")}
+            ${ingredientVar && !hybridVar ? "" : (!ingredientVar && !showOnlyPronoun ? renderFallbackSection(showCombinedEditor ? 'state' : varName, hybridVar ? hybridOptions : options, masterId, scoringContext) : "")}
 
-            <div class="d-flex gap-2 align-items-center mt-3">
+            <div class="d-flex gap-2 align-items-center mt-3 js-editor-action-row">
               <button type="button" class="btn btn-sm creator-cta-primary ${applyBtnClass}" ${applyBtnId}>Einsetzen</button>
               <button type="button" class="btn btn-sm btn-outline-secondary ${closeBtnClass}" ${closeBtnId}>Schließen</button>
             </div>
@@ -1631,13 +1947,47 @@
         return {
             html,
             dataAttributes: {
-                selectedArticle: "",
-                selectedPronoun: "",
-                selectedValue: "",
+                selectedArticle: prefilled.article || "",
+                selectedPronoun: prefilled.pronoun || "",
+                selectedValue: prefilled.value || "",
                 selectedIngredientValues: JSON.stringify(selectedIngredientValues),
                 selectedFraction: ""
             }
         };
+    }
+
+    // ── UNIFIED: Multi-Ingredients Management ──
+    // Manages multi-ingredients for both Step Creator and Probability Area
+    function getMultiIngredientsForContext(context, varName) {
+        if (!context || !varName) return [];
+
+        if (context.type === 'step') {
+            // Smart Step Creator: stored in activeStep._multiIngredients
+            return activeStep?._multiIngredients?.[varName] || [];
+        } else if (context.type === 'probability') {
+            // Probability Area: stored in window.ProbabilityMultiIngredients
+            const masterId = context.probabilityMasterId || context.masterId;
+            return window.ProbabilityMultiIngredients?.[masterId]?.[varName] || [];
+        }
+        return [];
+    }
+
+    function saveMultiIngredientsForContext(context, varName, values) {
+        if (!context || !varName) return;
+
+        if (context.type === 'step') {
+            // Smart Step Creator
+            if (!activeStep) return;
+            if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+            activeStep._multiIngredients[varName] = values;
+        } else if (context.type === 'probability') {
+            // Probability Area
+            const masterId = context.probabilityMasterId || context.masterId;
+            if (!masterId) return;
+            if (!window.ProbabilityMultiIngredients) window.ProbabilityMultiIngredients = {};
+            if (!window.ProbabilityMultiIngredients[masterId]) window.ProbabilityMultiIngredients[masterId] = {};
+            window.ProbabilityMultiIngredients[masterId][varName] = values;
+        }
     }
 
     // ── Shared Duration-Unit Click Handler ──
@@ -1757,44 +2107,418 @@
         }
     }
 
+    // ══════════════════════════════════════════════════════════════════════════════
+    // ── UNIFIED OVERLAY SYSTEM (for both Step Creator & Probability Area) ──
+    // ══════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Opens a unified variable editor overlay that works for both Step Creator and Probability Area.
+     * @param {Object} config - Configuration object
+     * @param {string} config.varName - Variable name (e.g., "item", "state", "duration")
+     * @param {string} config.currentVal - Current value for pre-filling
+     * @param {string} config.masterId - Master step ID (for scoring/options)
+     * @param {Object} config.context - Context object distinguishing between areas
+     * @param {string} config.context.type - Either 'step' or 'probability'
+     * @param {Function} config.onApply - Callback when value is applied (value, extras) => void
+     * @param {Function} config.onClose - Callback when editor is closed
+     */
+    function openUniversalVariableEditor(config) {
+        const {
+            varName,
+            currentVal = "",
+            masterId = "",
+            context,
+            onApply,
+            onClose
+        } = config;
+
+        if (!varName || !context) {
+            console.error("[openUniversalVariableEditor] Missing required params:", { varName, context });
+            return;
+        }
+
+        console.log("[Unified Overlay] Opening editor:", { varName, currentVal, masterId, contextType: context.type });
+
+        // Get multi-ingredients for this context
+        const multiIngredients = getMultiIngredientsForContext(context, varName);
+
+        // Generate editor HTML (unified for both areas)
+        const { html, dataAttributes } = _generateEditorHtml(varName, currentVal, {
+            masterId: masterId,
+            multiIngredients: multiIngredients,
+            useClassBasedIds: false, // Unified: always use IDs
+            suppressPronounButtons: false
+        });
+
+        // Create overlay HTML (different layouts for different contexts)
+        const overlayHtml = createUnifiedOverlayHtml(html, context);
+
+        // Remove existing overlay if any
+        const existing = document.getElementById('universalEditorOverlay');
+        if (existing) existing.remove();
+
+        // Insert overlay into DOM
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+        const overlayEl = document.getElementById('universalEditorOverlay');
+        if (!overlayEl) {
+            console.error("[Unified Overlay] Failed to create overlay element!");
+            return;
+        }
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+
+        // Get editor element and set data attributes
+        const editorEl = overlayEl.querySelector('.duration-editor');
+        if (!editorEl) {
+            console.error("[Unified Overlay] Editor element not found!");
+            return;
+        }
+
+        // Set data attributes for pre-filled values
+        Object.keys(dataAttributes).forEach(key => {
+            editorEl.dataset[key] = dataAttributes[key];
+        });
+
+        console.log("[Unified Overlay] Data attributes set:", dataAttributes);
+
+        // Bind unified event handlers
+        bindUnifiedOverlayEventHandlers(overlayEl, editorEl, {
+            varName,
+            masterId,
+            context,
+            onApply,
+            onClose
+        });
+    }
+
+    /**
+     * Creates the overlay HTML structure (different for Step vs Probability)
+     */
+    function createUnifiedOverlayHtml(editorHtml, context) {
+        const theme = document.querySelector('.smart-step-creator')?.dataset?.theme || 'dark';
+
+        if (context.type === 'probability' && context.templatePreviewHtml) {
+            // Probability Area: 3-section layout with template preview
+            return `
+                <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="probability"
+                     style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
+                    <!-- Fixed Header: Template Preview -->
+                    <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
+                        <div style="max-width: 800px; margin: 0 auto;">
+                            ${context.templatePreviewHtml}
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Middle: Editor Content -->
+                    <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
+                        <div style="max-width: 800px; margin: 0 auto;">
+                            ${editorHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Step Creator: Simple fullscreen layout
+            return `
+                <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="step"
+                     style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); padding: 20px;">
+                    <div style="max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; background: var(--creator-sheet, rgba(255,255,255,0.05)); border-radius: 8px; padding: 24px;">
+                        ${editorHtml}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Binds unified event handlers to the overlay (works for both contexts)
+     */
+    function bindUnifiedOverlayEventHandlers(overlayEl, editorEl, config) {
+        const { varName, masterId, context, onApply, onClose } = config;
+
+        const $overlay = $(overlayEl);
+
+        // Clean up previous handlers
+        $overlay.off('.universal');
+
+        console.log("[Unified Overlay] Binding event handlers for:", { varName, contextType: context.type });
+
+        // Close button
+        $overlay.on('click.universal', '#BtnCloseVar, #BtnCloseVarTop', function() {
+            console.log("[Unified Overlay] Close clicked");
+            closeUnifiedOverlay();
+            if (typeof onClose === 'function') onClose();
+        });
+
+        // Apply button
+        $overlay.on('click.universal', '#BtnApplyVar', function() {
+            console.log("[Unified Overlay] Apply clicked");
+            applyUnifiedEditorValue(editorEl, config);
+        });
+
+        // Pick-mode buttons (article, pronoun, value, ingredient, fraction)
+        $overlay.on('click.universal', 'button[data-pick-mode]', function(e) {
+            e.stopImmediatePropagation();
+            if (!editorEl || !editorEl.isConnected) return;
+            _handlePickModeClick(this, editorEl, false);
+        });
+
+        // Duration unit buttons
+        $overlay.on('click.universal', 'button[data-duration-unit]', function(e) {
+            e.stopImmediatePropagation();
+            _handleDurationUnitClick(this, editorEl);
+        });
+
+        // Quick apply buttons for special editors
+        $overlay.on('click.universal', '#BtnPickDurationQuick, #BtnPickTempQuick, #BtnPickCountQuick', function() {
+            console.log("[Unified Overlay] Quick apply clicked");
+            applyUnifiedEditorValue(editorEl, config);
+        });
+
+        // Plus button for multi-ingredients
+        $overlay.on('click.universal', '.js-add-ingredient-to-list', function(e) {
+            e.stopPropagation();
+            handleUnifiedPlusButtonClick(editorEl, config);
+        });
+
+        // Remove multi-ingredient chip
+        $overlay.on('click.universal', '[data-remove-multi-ingredient]', function(e) {
+            e.stopPropagation();
+            const idx = parseInt(this.dataset.removeMultiIngredient, 10);
+            if (isNaN(idx)) return;
+
+            const multiIngredients = getMultiIngredientsForContext(context, varName);
+            multiIngredients.splice(idx, 1);
+            saveMultiIngredientsForContext(context, varName, multiIngredients);
+
+            // Re-open editor to show updated list
+            closeUnifiedOverlay();
+            openUniversalVariableEditor(config);
+        });
+
+        // Close overlay when clicking outside
+        $overlay.on('click.universal', function(e) {
+            if (e.target === overlayEl) {
+                closeUnifiedOverlay();
+                if (typeof onClose === 'function') onClose();
+            }
+        });
+
+        // ESC key to close
+        $(document).on('keydown.universal', function(e) {
+            if (e.key === 'Escape') {
+                closeUnifiedOverlay();
+                if (typeof onClose === 'function') onClose();
+            }
+        });
+    }
+
+    /**
+     * Applies the current editor value (unified for both contexts)
+     */
+    function applyUnifiedEditorValue(editorEl, config) {
+        const { varName, masterId, context, onApply } = config;
+
+        if (!editorEl) {
+            console.error("[Unified Apply] Editor element not found!");
+            return;
+        }
+
+        console.log("[Unified Apply] Applying value for:", varName);
+
+        // Extract value using shared helper
+        let value = applyEditorValue(editorEl);
+
+        // Extract extras (pronoun for state vars, etc.)
+        const extras = applyEditorExtras(editorEl);
+
+        console.log("[Unified Apply] Extracted:", { value, extras });
+
+        // Handle multi-ingredients: check if we should store & format them
+        if (isIngredientVariable(varName)) {
+            const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+            if (selectedValues && selectedValues.length > 0) {
+                const article = editorEl.dataset.selectedArticle || '';
+                const fraction = editorEl.dataset.selectedFraction || '';
+
+                const normalized = normalizeIngredientValues(selectedValues);
+                normalized.forEach(item => {
+                    if (!item.article || item.article === '') item.article = article;
+                    if (!item.fraction || item.fraction === '') item.fraction = fraction;
+                });
+
+                // Store in context-specific storage
+                const existingMulti = getMultiIngredientsForContext(context, varName);
+                const isFirstTime = !existingMulti || existingMulti.length === 0;
+
+                if (isFirstTime) {
+                    saveMultiIngredientsForContext(context, varName, normalized);
+                    value = formatSelectedIngredientList(normalized, currentLang || 'de');
+                    console.log("[Unified Apply] Stored multi-ingredients:", normalized);
+                }
+            }
+        }
+
+        // Call onApply callback
+        if (typeof onApply === 'function') {
+            onApply(value, extras);
+        }
+
+        // Close overlay
+        closeUnifiedOverlay();
+    }
+
+    /**
+     * Handles plus button click for multi-ingredients (unified)
+     */
+    function handleUnifiedPlusButtonClick(editorEl, config) {
+        const { varName, context } = config;
+
+        const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
+        if (!selectedValues || !selectedValues.length) {
+            console.log("[Unified Plus] No ingredients selected");
+            return;
+        }
+
+        const article = editorEl.dataset.selectedArticle || '';
+        const fraction = editorEl.dataset.selectedFraction || '';
+
+        const normalized = normalizeIngredientValues(selectedValues);
+        normalized.forEach(item => {
+            if (!item.article || item.article === '') item.article = article;
+            if (!item.fraction || item.fraction === '') item.fraction = fraction;
+        });
+
+        // Get existing list and add new items
+        const existingList = getMultiIngredientsForContext(context, varName);
+        const combinedList = [...existingList, ...normalized];
+        saveMultiIngredientsForContext(context, varName, combinedList);
+
+        console.log("[Unified Plus] Added ingredients:", { normalized, combinedList });
+
+        // Re-open editor to show updated chips
+        closeUnifiedOverlay();
+        const composed = formatSelectedIngredientList(combinedList, currentLang || 'de');
+
+        // Update the config with new currentVal before re-opening
+        config.currentVal = composed;
+        openUniversalVariableEditor(config);
+    }
+
+    /**
+     * Closes the unified overlay
+     */
+    function closeUnifiedOverlay() {
+        const overlay = document.getElementById('universalEditorOverlay');
+        if (overlay) overlay.remove();
+
+        // Restore body scroll
+        document.body.style.overflow = '';
+
+        // Remove ESC key handler
+        $(document).off('keydown.universal');
+
+        console.log("[Unified Overlay] Closed");
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════════
+    // ── END UNIFIED OVERLAY SYSTEM ──
+    // ══════════════════════════════════════════════════════════════════════════════
+
     // ── Open Inline Editor (Step Creator) ──
     function openInlineEditor(varName, tokenId) {
         if (!activeStep) return;
 
         activeToken = { varName, tokenId };
 
-        const host = $("#InlineVarEditorHost");
-        if (!host) return;
-
         const currentVal = activeStep.values[varName] ?? "";
-        const multiIngredients = activeStep._multiIngredients || [];
+        // Multi-ingredients stored per variable (not globally per step)
+        const multiIngredientsObj = activeStep._multiIngredients || {};
+        const multiIngredients = multiIngredientsObj[varName] || [];
 
-        // Check if dataset has selected values (from previous editor state)
+        // Get previous selected values
         let preSelectedValues = null;
-        if (host.dataset.selectedIngredientValues) {
-            try {
-                preSelectedValues = JSON.parse(host.dataset.selectedIngredientValues);
-            } catch {
-                // ignore
+        const existingOverlay = document.getElementById("universalEditorOverlay");
+        if (existingOverlay) {
+            const editorEl = existingOverlay.querySelector('.duration-editor');
+            if (editorEl && editorEl.dataset.selectedIngredientValues) {
+                try {
+                    preSelectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues);
+                } catch {
+                    // ignore
+                }
             }
         }
 
-        // Generate HTML using shared function
+        // Generate editor HTML using shared function
         const result = _generateEditorHtml(varName, currentVal, {
             multiIngredients,
             masterId: activeStep.master_id || "",
             selectedIngredientValues: preSelectedValues,
             suppressPronounButtons: false,
-            useClassBasedIds: false // Use IDs for Step Creator
+            useClassBasedIds: false
         });
 
-        // Set HTML
-        host.innerHTML = result.html;
+        // Get current step preview HTML (the actual step being edited)
+        const currentStepWrap = document.querySelector(".current-step-wrap");
+        const previewHtml = currentStepWrap ? currentStepWrap.innerHTML : "";
 
-        // Set data attributes
-        Object.keys(result.dataAttributes).forEach(key => {
-            host.dataset[key] = result.dataAttributes[key];
-        });
+        // Split editor HTML into content and buttons
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = result.html;
+        const buttonRow = tempDiv.querySelector('.d-flex.gap-2.align-items-center');
+        const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
+        if (buttonRow) buttonRow.remove(); // Remove from editor content
+        const editorContentHtml = tempDiv.innerHTML;
+
+        // Get theme from smart-step-creator
+        const creatorEl = document.querySelector('.smart-step-creator');
+        const theme = creatorEl ? creatorEl.dataset.theme || 'dark' : 'dark';
+
+        // Create full-screen overlay WITH theme context
+        const overlayHtml = `
+            <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="step" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
+                <!-- Fixed Header: Step Preview -->
+                <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${previewHtml}
+                    </div>
+                </div>
+
+                <!-- Scrollable Middle: Editor Content (without buttons) -->
+                <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${editorContentHtml}
+                    </div>
+                </div>
+
+                <!-- Fixed Footer: Buttons -->
+                <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${buttonsHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing overlay if any
+        const existing = document.getElementById("universalEditorOverlay");
+        if (existing) existing.remove();
+
+        // Append to body
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+
+        // Set data attributes on editor element
+        const editorEl = document.querySelector('#universalEditorOverlay .duration-editor');
+        if (editorEl) {
+            Object.keys(result.dataAttributes).forEach(key => {
+                editorEl.dataset[key] = result.dataAttributes[key];
+            });
+        }
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
     }
 
 
@@ -1861,7 +2585,7 @@
             const toVal = rangeMatch ? rangeMatch[2] : "";
 
             return `
-        <div class="d-flex gap-2 align-items-center flex-wrap">
+        <div class="d-flex gap-2 align-items-center">
           <input type="number" min="1" step="1" id="DurationValueInput"
                  class="form-control form-control-sm"
                  style="max-width:80px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
@@ -1871,14 +2595,21 @@
                  class="form-control form-control-sm"
                  style="max-width:80px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(toVal)}" placeholder="Bis" />
-          <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-2">
           ${unitBtns}
+          ${perPackage ? `<button type="button"
+                  class="btn btn-sm btn-outline-warning pill-like js-duration-per-package"
+                  data-duration-unit="per_package">
+            ${escapeHtml(perPackage.label)}
+          </button>` : ''}
         </div>
-        ${perPackageBtn}
+
+        <div class="d-flex gap-2 align-items-center mt-2 js-editor-action-row">
+          <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
+        </div>
       `;
         }
 
@@ -1897,7 +2628,7 @@
           </select>
         </div>
 
-        <div class="d-flex gap-2 align-items-center mt-2">
+        <div class="d-flex gap-2 align-items-center mt-2 js-editor-action-row">
           <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
@@ -1907,7 +2638,7 @@
 
         if (varName === "count") {
             return `
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex gap-2 align-items-center js-editor-action-row">
           <input type="number" min="1" step="1" id="CountValueInput"
                  class="form-control form-control-sm"
                  style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
@@ -1934,7 +2665,9 @@
     function applyCurrentEditorSelection() {
         if (!activeStep || !activeToken) return;
 
-        const host = $("#InlineVarEditorHost");
+        // Get editor element from fullscreen overlay (or fallback to inline host)
+        let host = document.querySelector('#universalEditorOverlay .duration-editor');
+        if (!host) host = $("#InlineVarEditorHost");
         if (!host) return;
 
         const varName = activeToken.varName;
@@ -1983,8 +2716,9 @@
         const stateVar = isStateVariable(varName);
 
         if (isIngredientVariable(varName)) {
-            // Check if we have multi-ingredients from the "Hinzufügen" workflow
-            const multiIngredients = activeStep._multiIngredients;
+            // Check if we have multi-ingredients from the "Hinzufügen" workflow (per variable)
+            const multiIngredientsObj = activeStep._multiIngredients || {};
+            const multiIngredients = multiIngredientsObj[varName] || [];
             const article = host.dataset.selectedArticle ?? "";
             const fraction = host.dataset.selectedFraction ?? "";
             const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
@@ -2031,8 +2765,10 @@
                     }
 
                     activeStep.values[varName] = ingredientComposed;
-                    activeStep._multiIngredients = combinedList;
-                    console.log('[applyCurrentEditorSelection] Updated _multiIngredients:', activeStep._multiIngredients);
+                    // Store per variable
+                    if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+                    activeStep._multiIngredients[varName] = combinedList;
+                    console.log('[applyCurrentEditorSelection] Updated _multiIngredients for', varName, ':', activeStep._multiIngredients[varName]);
 
                     // Re-open editor to show updated chips (don't close!)
                     renderMasterText();
@@ -2063,7 +2799,9 @@
                     }
 
                     activeStep.values[varName] = ingredientComposed;
-                    activeStep._multiIngredients = normalized;
+                    // Store per variable
+                    if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+                    activeStep._multiIngredients[varName] = normalized;
 
                     rerenderAfterValueSet();
                     return;
@@ -2088,10 +2826,11 @@
 
                 console.log('[applyCurrentEditorSelection] normalized:', normalized);
 
-                // Check if we should ADD to existing multi-ingredients or create new
-                const existingMulti = activeStep._multiIngredients || [];
+                // Check if we should ADD to existing multi-ingredients or create new (per variable)
+                const multiIngredientsObj = activeStep._multiIngredients || {};
+                const existingMulti = multiIngredientsObj[varName] || [];
                 let combinedList = existingMulti.length > 0 ? [...existingMulti, ...normalized] : normalized;
-                console.log('[applyCurrentEditorSelection] existingMulti:', existingMulti, 'combinedList:', combinedList);
+                console.log('[applyCurrentEditorSelection] existingMulti for', varName, ':', existingMulti, 'combinedList:', combinedList);
 
                 // Format the ingredient list
                 let ingredientComposed = formatSelectedIngredientList(combinedList, currentLang);
@@ -2118,9 +2857,10 @@
 
                 activeStep.values[varName] = ingredientComposed;
 
-                // Store combined list in _multiIngredients for further additions via Plus button
-                activeStep._multiIngredients = combinedList;
-                console.log('[applyCurrentEditorSelection - Fallback] Stored in _multiIngredients:', activeStep._multiIngredients);
+                // Store combined list in _multiIngredients for further additions via Plus button (per variable)
+                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+                activeStep._multiIngredients[varName] = combinedList;
+                console.log('[applyCurrentEditorSelection - Fallback] Stored in _multiIngredients for', varName, ':', activeStep._multiIngredients[varName]);
 
                 rerenderAfterValueSet();
                 return;
@@ -2510,11 +3250,14 @@
                     return;
                 }
 
-                const host = $("#InlineVarEditorHost");
+                // Check fullscreen overlay first, then inline host
+                let host = document.querySelector('#universalEditorOverlay .duration-editor');
+                if (!host) host = $("#InlineVarEditorHost");
                 console.log("[Plus Button] varName:", varName, "host:", host, "activeToken:", activeToken);
 
                 // If editor is closed, open it
-                if (!activeToken || !host || host.innerHTML.trim() === "") {
+                const editorOpen = activeToken && (document.getElementById('universalEditorOverlay') || (host && host.innerHTML.trim() !== ""));
+                if (!editorOpen) {
                     // Find the token to get tokenId
                     const token = document.querySelector(`.template-var[data-var="${varName}"]`);
                     if (token) {
@@ -2536,9 +3279,10 @@
                     return;
                 }
 
-                // Get existing list
-                const existingList = activeStep._multiIngredients || [];
-                console.log("[Plus Button] existingList before:", existingList);
+                // Get existing list (per variable)
+                const multiIngredientsObj = activeStep._multiIngredients || {};
+                const existingList = multiIngredientsObj[activeToken.varName] || [];
+                console.log("[Plus Button] existingList before for", activeToken.varName, ":", existingList);
 
                 // Add currently selected chips with article/fraction
                 const normalized = normalizeIngredientValues(currentSelectedChips);
@@ -2550,8 +3294,9 @@
 
                 console.log("[Plus Button] existingList after:", existingList);
 
-                // Store in activeStep
-                activeStep._multiIngredients = existingList;
+                // Store in activeStep (per variable)
+                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+                activeStep._multiIngredients[activeToken.varName] = existingList;
 
                 // Update preview
                 const composed = formatSelectedIngredientList(existingList, currentLang);
@@ -2568,6 +3313,9 @@
             // ── Remove Multi-Ingredient Chip ──
             const removeChip = e.target.closest("button[data-remove-multi-ingredient]");
             if (removeChip) {
+                e.stopPropagation();
+                e.preventDefault();
+
                 console.log("[Remove Chip] Clicked!", removeChip);
                 const idx = parseInt(removeChip.dataset.removeMultiIngredient, 10);
                 console.log("[Remove Chip] idx:", idx, "activeStep:", activeStep, "activeToken:", activeToken);
@@ -2576,17 +3324,34 @@
                     return;
                 }
 
-                const existingList = activeStep._multiIngredients || [];
+                // Get list for current variable
+                const multiIngredientsObj = activeStep._multiIngredients || {};
+                const existingList = multiIngredientsObj[activeToken.varName] || [];
                 if (idx < 0 || idx >= existingList.length) return;
 
                 // Remove item at index
                 existingList.splice(idx, 1);
-                activeStep._multiIngredients = existingList;
+                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
+                activeStep._multiIngredients[activeToken.varName] = existingList;
 
                 // Update preview text
                 const composed = formatSelectedIngredientList(existingList, currentLang);
                 activeStep.values[activeToken.varName] = composed;
+
+                console.log("[Remove Chip] Updated value:", composed);
+
                 renderMasterText();
+
+                // Update overlay preview if it exists
+                const overlay = document.getElementById('universalEditorOverlay');
+                if (overlay) {
+                    const currentStepWrap = document.querySelector(".current-step-wrap");
+                    const previewSection = overlay.querySelector('.creator-preview-canvas > div');
+                    if (currentStepWrap && previewSection) {
+                        previewSection.innerHTML = currentStepWrap.innerHTML;
+                        console.log("[Remove Chip] Updated overlay preview");
+                    }
+                }
 
                 // Re-render editor to show updated list
                 openInlineEditor(activeToken.varName, activeToken.tokenId);
@@ -2597,7 +3362,9 @@
             // Artikel/Wert Button Picks
             const pickBtn = e.target.closest("button[data-pick-mode]");
             if (pickBtn) {
-                const host = $("#InlineVarEditorHost");
+                // Check fullscreen overlay first, then inline host
+                let host = document.querySelector('#universalEditorOverlay .duration-editor');
+                if (!host) host = $("#InlineVarEditorHost");
                 if (!host) return;
                 _handlePickModeClick(pickBtn, host, false); // false = use IDs (Step Creator)
                 return;
@@ -2606,7 +3373,8 @@
             // duration unit pick
             const du = e.target.closest("button[data-duration-unit]");
             if (du) {
-                const host = $("#InlineVarEditorHost");
+                let host = document.querySelector('#universalEditorOverlay .duration-editor');
+                if (!host) host = $("#InlineVarEditorHost");
                 if (!host) return;
                 _handleDurationUnitClick(du, host);
                 return;
@@ -2614,7 +3382,8 @@
 
             // quick duration apply
             if (e.target.id === "BtnPickDurationQuick") {
-                const host = $("#InlineVarEditorHost");
+                let host = document.querySelector('#universalEditorOverlay .duration-editor');
+                if (!host) host = $("#InlineVarEditorHost");
                 if (!host) return;
                 if (!host.dataset.durationUnit) host.dataset.durationUnit = "minute";
                 const labels = getDurationUnits();
@@ -2832,7 +3601,12 @@
         handleDurationUnitClick: _handleDurationUnitClick,
         normalizeIngredientValues,
         formatSelectedIngredientList,
-        isIngredientVariable
+        isIngredientVariable,
+        // Unified Overlay System (NEW)
+        openUniversalVariableEditor,
+        closeUnifiedOverlay,
+        getMultiIngredientsForContext,
+        saveMultiIngredientsForContext
     });
 
 

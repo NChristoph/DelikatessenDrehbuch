@@ -754,3 +754,96 @@ button.ingredient-chip.ingredient-chip-disabled {
     transform: scale(1.1);
     box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
 }
+
+/* Editor Content Scroll - Custom Scrollbar */
+.editor-content-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.editor-content-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.editor-content-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.editor-content-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.editor-content-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Fullscreen Editor Overlay - Custom Scrollbar */
+#fullscreenEditorContent {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+}
+
+#fullscreenEditorContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#fullscreenEditorContent::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#fullscreenEditorContent::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+#fullscreenEditorContent::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Fullscreen Probability Editor Overlay - Custom Scrollbar */
+#fullscreenProbabilityEditorContent {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+}
+
+#fullscreenProbabilityEditorContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#fullscreenProbabilityEditorContent::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#fullscreenProbabilityEditorContent::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+#fullscreenProbabilityEditorContent::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Universal Editor Overlay - Custom Scrollbar (replaces both above) */
+#universalEditorContent {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+}
+
+#universalEditorContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#universalEditorContent::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#universalEditorContent::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+#universalEditorContent::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

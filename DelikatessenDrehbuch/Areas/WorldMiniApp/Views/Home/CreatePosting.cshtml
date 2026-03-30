@@ -2556,6 +2556,13 @@
     }
 
     /* === Probability Variable Editor Bottom Sheet === */
+    /* ===== OLD PROBABILITY EDITOR CSS - AUSKOMMENTIERT 2026-03-27 =====
+       Diese CSS-Regeln sind für das alte #probVarEditorDock System.
+       Jetzt wird das Universal Overlay System verwendet.
+       Kann gelöscht werden, wenn alles funktioniert.
+    */
+
+    /*
     #probVarEditorOverlay {
         position: fixed;
         inset: 0;
@@ -2637,6 +2644,9 @@
             border-color: rgba(255,255,255,0.85);
             color: #ffffff;
         }
+    */
+
+    /* ===== END OLD CSS ===== */
 
     #ingredientConfigDock .form-control,
     #ingredientConfigDock .form-select {
@@ -2701,6 +2711,13 @@
     </div>
 </div>
 
+@* ===== OLD PROBABILITY EDITOR HTML - AUSKOMMENTIERT 2026-03-27 =====
+   Diese HTML-Elemente sind für das alte #probVarEditorDock System.
+   Jetzt wird das Universal Overlay System verwendet.
+   Kann gelöscht werden, wenn alles funktioniert.
+*@
+
+@*
 <div id="probVarEditorOverlay" aria-hidden="true"></div>
 <div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
     <div class="ing-sheet-handle"></div>
@@ -2761,6 +2778,9 @@
         </button>
     </div>
 </div>
+*@
+
+@* ===== END OLD HTML ===== *@
 
 <style>
     /* Performance: eliminate 300ms tap-delay on interactive elements */
