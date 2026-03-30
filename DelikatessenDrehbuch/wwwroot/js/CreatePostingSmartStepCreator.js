@@ -2193,42 +2193,21 @@
     }
 
     /**
-     * Creates the overlay HTML structure (different for Step vs Probability)
+     * Creates the overlay HTML structure (UNIFIED - same for both Step & Probability)
      */
     function createUnifiedOverlayHtml(editorHtml, context) {
         const theme = document.querySelector('.smart-step-creator')?.dataset?.theme || 'dark';
+        const ownerType = context.type || 'step';
 
-        if (context.type === 'probability' && context.templatePreviewHtml) {
-            // Probability Area: 3-section layout with template preview
-            return `
-                <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="probability"
-                     style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
-                    <!-- Fixed Header: Template Preview -->
-                    <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
-                        <div style="max-width: 800px; margin: 0 auto;">
-                            ${context.templatePreviewHtml}
-                        </div>
-                    </div>
-
-                    <!-- Scrollable Middle: Editor Content -->
-                    <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
-                        <div style="max-width: 800px; margin: 0 auto;">
-                            ${editorHtml}
-                        </div>
-                    </div>
+        // UNIFIED Layout: Simple centered modal (Smart Step Creator style)
+        return `
+            <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="${ownerType}"
+                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); padding: 20px;">
+                <div style="max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; background: var(--creator-sheet, rgba(255,255,255,0.05)); border-radius: 8px; padding: 24px;">
+                    ${editorHtml}
                 </div>
-            `;
-        } else {
-            // Step Creator: Simple fullscreen layout
-            return `
-                <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="step"
-                     style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); padding: 20px;">
-                    <div style="max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; background: var(--creator-sheet, rgba(255,255,255,0.05)); border-radius: 8px; padding: 24px;">
-                        ${editorHtml}
-                    </div>
-                </div>
-            `;
-        }
+            </div>
+        `;
     }
 
     /**
