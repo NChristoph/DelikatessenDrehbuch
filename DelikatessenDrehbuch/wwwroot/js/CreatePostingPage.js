@@ -4113,6 +4113,22 @@
                     return;
                 }
 
+                // Initialize probability state if not exists (wichtig!)
+                if (!probabilityStates[masterId]) {
+                    const $anchor = token.closest('.probability-template-wrap');
+                    const $textContainer = $anchor.find('.probability-template-text').first();
+                    const templateRaw = extractTemplateRaw($textContainer);
+
+                    probabilityStates[masterId] = {
+                        masterId: masterId,
+                        templateRaw: templateRaw,
+                        values: {},
+                        _multiIngredients: {}
+                    };
+
+                    console.log('[Probability Var Click] Created state:', probabilityStates[masterId]);
+                }
+
                 // Get current value from probability state object (wie Smart Step Creator!)
                 const prob = probabilityStates[masterId];
                 let currentVal = '';
