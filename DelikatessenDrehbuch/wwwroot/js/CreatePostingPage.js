@@ -871,14 +871,16 @@
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const allLangs = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
 
-            if (!ingredientTransforms) return items;
+            if (!ingredientTransforms) {
+                return items;
+            }
 
             // auto_show transforms FIRST: show sub-ingredients (e.g. Ei → Eiklar/Eigelb)
-            // so they are available for trigger_step transforms (e.g. Eiklar → Eischnee)
             const triggeredKeys = new Set(descriptors.map(d => d?.masterId).filter(Boolean));
+
             (ingredientTransforms.special_transforms || []).forEach(function (t) {
                 if (!t.auto_show) return;
-                if (triggeredKeys.has(t.trigger_step)) return; // will be handled in descriptor loop
+                if (triggeredKeys.has(t.trigger_step)) return;
                 const matchTerms = t.match?.[lang] || t.match?.de || [];
                 const targets = items.filter(function (item) {
                     const name = normalizeIngredientMatchValue(
@@ -913,7 +915,6 @@
                     });
                     if (targets.length) {
                         const targetIds = new Set(targets.map(function (i) { return i.id; }));
-                        // Build outputs only ONCE per transform (not per matching target)
                         const replacements = buildSpecialTransformItems(targets[0], specialMatch);
                         items = items.filter(function (i) { return !targetIds.has(i.id); }).concat(replacements);
                     }
@@ -1107,7 +1108,9 @@
             const selectedWrap = $('#selectedIngredients');
             if (!selectedWrap.length) return;
 
-            const derivedItems = deriveSandboxIngredients(getBaseSandboxIngredients());
+            const baseItems = getBaseSandboxIngredients();
+            const derivedItems = deriveSandboxIngredients(baseItems);
+
             const derivedBySourceId = derivedItems.reduce((map, item) => {
                 const sourceId = (item.sourceBaseId || item.id || '').toString();
                 if (!sourceId) return map;
@@ -3156,6 +3159,9 @@
 
             $('#selectedIngredients').append(newIngredient);
 
+            // ✅ FIX (2026-03-28): Alte System-Funktion aufrufen für Sub-Zutaten (Ei → Eiklar/Eigelb)
+            applyDerivedIngredientRowVisuals();
+
             refreshMasterTemplateBuilder();
             if (typeof syncIngredientSourceVisibility === "function") {
                 syncIngredientSourceVisibility();
@@ -4417,6 +4423,7 @@
                 return window.CreatePostingPageData.loadIngredientTransforms()
                     .then(transforms => {
                         window.ingredientTransforms = transforms;
+                        ingredientTransforms = transforms;  // ✅ FIX: Auch lokale Variable setzen!
                         return transforms;
                     })
                     .catch(() => null);

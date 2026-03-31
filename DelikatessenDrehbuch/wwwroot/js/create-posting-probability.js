@@ -176,9 +176,21 @@
         }
 
         function getMergedVars(masterId) {
+            // ✅ NEU (2026-03-28): Gemeinsame Funktion für Editor-Wert speichern
+            if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.saveCurrentEditorValueBeforeAccept) {
+                window.MasterStepCreatorHelpers.saveCurrentEditorValueBeforeAccept('probability', masterId);
+            }
+
             const base = { ...(state.varsByTemplate[masterId] || deps.buildVariablesForTemplate(masterId, state.currentTypeId) || {}) };
             const overrides = state.inlineOverrides[masterId] || {};
             const merged = { ...base, ...overrides };
+
+            // ✅ NEU (2026-03-28): Werte aus window.probabilityStates einbeziehen!
+            // Diese enthalten die im Unified Overlay bearbeiteten Werte
+            if (window.probabilityStates && window.probabilityStates[masterId]) {
+                const stateValues = window.probabilityStates[masterId].values || {};
+                Object.assign(merged, stateValues);
+            }
 
             // Apply multi-ingredients from global storage
             const multiIngredients = window.ProbabilityMultiIngredients && window.ProbabilityMultiIngredients[masterId];
@@ -192,7 +204,6 @@
                             const formatted = helpers.formatSelectedIngredientList(ingredientList, getLang() || 'de');
                             if (formatted) {
                                 merged[varName] = formatted;
-                                console.log("[getMergedVars] Applied multi-ingredients for", varName, ":", formatted);
                             }
                         }
                     });

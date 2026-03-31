@@ -431,8 +431,8 @@
                 .filter(option => option.value);
         }
 
-        // SPECIAL: Always include "Würfel" for "form" variable (most commonly used)
-        if (normalizedKey === "form" && optionEntries.length > 0) {
+        // SPECIAL: Always include "Würfel" for "shape" variable (most commonly used)
+        if (normalizedKey === "shape" && optionEntries.length > 0) {
             const hasWuerfel = optionEntries.some(opt =>
                 (opt.value || "").toLowerCase().includes("würfel") ||
                 (opt.value || "").toLowerCase().includes("wuerfel")
@@ -685,21 +685,9 @@
                                  varKey === "liquid" || varKey === "fat" || varKey === "seasonings" ||
                                  varKey === "marinade" || varKey === "thickener" || varKey === "components" || varKey === "extra";
 
-            // Show plus button if ingredient variable has a value (means at least one ingredient was added)
-            const hasValue = val.trim().length > 0;
-            const showPlusBtn = isIngredient && hasValue;
-
-            console.log(`[renderTemplateTokens] varName=${varName}, isIngredient=${isIngredient}, val="${val}", hasValue=${hasValue}, showPlusBtn=${showPlusBtn}`);
-
-            const plusButton = showPlusBtn ? `
-      <button type="button"
-              class="btn btn-sm btn-outline-success ingredient-plus-btn"
-              data-var="${escapeHtml(varName)}"
-              title="Zutat hinzufügen"
-              style="margin-left: 4px; padding: 2px 8px; font-size: 0.85rem; vertical-align: middle;">
-        +
-      </button>
-    ` : "";
+            // ✅ ENTFERNT (2026-03-28): Plus-Button nicht mehr nötig - alles wird im Overlay bearbeitet!
+            // Vorher: showPlusBtn für ingredient-Variablen mit Wert
+            // console.log(`[renderTemplateTokens] varName=${varName}, isIngredient=${isIngredient}, val="${val}", hasValue=${hasValue}, showPlusBtn=${showPlusBtn}`);
 
             return `
       <span class="token-highlight placeholder-token template-var"
@@ -709,7 +697,6 @@
             data-has-value="${val.trim().length > 0 ? "1" : "0"}">
         ${escapeHtml(display)}
       </span>
-      ${plusButton}
       <button type="button"
               class="placeholder-reset"
               data-token-id="${escapeHtml(tokenId)}"
@@ -775,13 +762,12 @@
                                  varKey === "liquid" || varKey === "fat" || varKey === "seasonings" ||
                                  varKey === "marinade" || varKey === "thickener" || varKey === "components" || varKey === "extra";
 
-            // Show plus button if ingredient variable has a value
-            const hasValue = val.trim().length > 0;
-            const showPlusBtn = isIngredient && hasValue;
+            // ✅ ENTFERNT (2026-03-28): Plus-Button nicht mehr nötig - alles wird im Overlay bearbeitet!
+            // Vorher: showPlusBtn für ingredient-Variablen mit Wert
+            // const showPlusBtn = isIngredient && hasValue;
+            // const plusButton = showPlusBtn ? `<button ...>+</button>` : "";
 
-            const plusButton = showPlusBtn ? `<button type="button" class="btn btn-sm btn-outline-success ingredient-plus-btn" data-var="${escapeHtml(varName)}" title="Zutat hinzufügen" style="margin-left: 4px; padding: 2px 8px; font-size: 0.85rem; vertical-align: middle;">+</button>` : "";
-
-            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span>${plusButton}<button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
+            return `<span class="token-highlight placeholder-token template-var" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tid)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
         });
 
         // Pass 3: replace pill markers with inline pill HTML
@@ -846,13 +832,14 @@
             }
             const varKeyAttr = tokenVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(varName));
 
-            // Add plus button for ingredient variables with values (multi-ingredient support)
-            let plusButtonHtml = "";
-            if (enablePlusButtons && isIngredientVariable(varName) && value.trim().length > 0) {
-                plusButtonHtml = `<button type="button" class="btn btn-sm btn-outline-success ingredient-plus-btn" data-var="${escapeHtml(varName)}" data-master-id="${escapeHtml(stepId)}" title="Zutat hinzufügen" style="margin-left: 4px; padding: 2px 8px; font-size: 0.85rem; vertical-align: middle;">+</button>`;
-            }
+            // ✅ ENTFERNT (2026-03-28): Plus-Button nicht mehr nötig - alles wird im Overlay bearbeitet!
+            // Vorher: plusButtonHtml für ingredient-Variablen mit Wert
+            // let plusButtonHtml = "";
+            // if (enablePlusButtons && isIngredientVariable(varName) && value.trim().length > 0) {
+            //     plusButtonHtml = `<button ...>+</button>`;
+            // }
 
-            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>${plusButtonHtml}`;
+            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span><button type="button" class="placeholder-reset" data-token-id="${escapeHtml(tokenId)}" data-var="${escapeHtml(varName)}" title="Zurücksetzen" aria-label="Zurücksetzen"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>`;
             if (!tokenWrapClass) return tokenHtml;
             return `<span class="${escapeHtml(tokenWrapClass)}">${tokenHtml}</span>`;
         });
@@ -2213,7 +2200,9 @@
         // Split editor HTML into content and buttons
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = editorHtml;
-        const buttonRow = tempDiv.querySelector('.d-flex.gap-2.align-items-center');
+        // ✅ FIX: Only select button row with .js-editor-action-row, not ALL .d-flex!
+        // Duration inputs also have .d-flex.gap-2.align-items-center, so we need to be specific
+        const buttonRow = tempDiv.querySelector('.js-editor-action-row');
         const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
         if (buttonRow) buttonRow.remove(); // Remove from editor content
         const editorContentHtml = tempDiv.innerHTML;
@@ -2267,32 +2256,42 @@
         // Apply button
         $overlay.on('click.universal', '#BtnApplyVar', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
-            applyUnifiedEditorValue(editorEl, config);
+            // ✅ Get fresh editor element (important after variable switch!)
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
+            applyUnifiedEditorValue(currentEditorEl, config);
         });
 
         // Pick-mode buttons (article, pronoun, value, ingredient, fraction)
         $overlay.on('click.universal', 'button[data-pick-mode]', function(e) {
             e.stopImmediatePropagation();
-            if (!editorEl || !editorEl.isConnected) return;
-            _handlePickModeClick(this, editorEl, false);
+            // ✅ Get fresh editor element
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
+            if (!currentEditorEl || !currentEditorEl.isConnected) return;
+            _handlePickModeClick(this, currentEditorEl, false);
         });
 
         // Duration unit buttons
         $overlay.on('click.universal', 'button[data-duration-unit]', function(e) {
             e.stopImmediatePropagation();
-            _handleDurationUnitClick(this, editorEl);
+            // ✅ Get fresh editor element
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
+            _handleDurationUnitClick(this, currentEditorEl);
         });
 
         // Quick apply buttons for special editors
         $overlay.on('click.universal', '#BtnPickDurationQuick, #BtnPickTempQuick, #BtnPickCountQuick', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
-            applyUnifiedEditorValue(editorEl, config);
+            // ✅ Get fresh editor element
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
+            applyUnifiedEditorValue(currentEditorEl, config);
         });
 
         // Plus button for multi-ingredients
         $overlay.on('click.universal', '.js-add-ingredient-to-list', function(e) {
             e.stopPropagation();
-            handleUnifiedPlusButtonClick(editorEl, config);
+            // ✅ Get fresh editor element
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
+            handleUnifiedPlusButtonClick(currentEditorEl, config);
         });
 
         // Remove multi-ingredient chip
@@ -2301,31 +2300,49 @@
             const idx = parseInt(this.dataset.removeMultiIngredient, 10);
             if (isNaN(idx)) return;
 
-            const multiIngredients = getMultiIngredientsForContext(context, varName);
+            // ✅ Use current varName from config (important after variable switch!)
+            const currentVarName = config.varName;
+
+            const multiIngredients = getMultiIngredientsForContext(context, currentVarName);
             multiIngredients.splice(idx, 1);
-            saveMultiIngredientsForContext(context, varName, multiIngredients);
+            saveMultiIngredientsForContext(context, currentVarName, multiIngredients);
 
             // Format updated list
             const composed = formatSelectedIngredientList(multiIngredients, currentLang || 'de');
 
             // UPDATE CONTEXT (unified) - wichtig: Token/Step aktualisieren!
-            updateContextValue(context, varName, composed, {});
+            updateContextValue(context, currentVarName, composed, {});
 
-            // Update config before re-opening
+            // ✅ NEU (2026-03-28): Preview aktualisieren nach Chip-Entfernung
+            updateOverlayPreview(context);
+
+            // ✅ NEU (2026-03-28): Switch editor statt Close+Reopen (Overlay bleibt offen!)
             config.currentVal = composed;
+            switchEditorVariable(currentVarName, config);
+        });
 
-            // UPDATE PREVIEW HTML for re-opened editor (important for Probability Area!)
-            if (context.type === 'probability' && context.tokenElement) {
-                const $token = window.$(context.tokenElement);
-                const templateCard = $token.closest('.probability-template-wrap').find('.probability-template-card')[0];
-                if (templateCard) {
-                    config.context.templatePreviewHtml = templateCard.innerHTML;
-                }
+        // ✅ NEU (2026-03-28): Token-Clicks im Preview zum Variable-Wechsel
+        // User kann Tokens im Preview klicken, um andere Variablen zu bearbeiten
+        $overlay.on('click.universal', '.creator-preview-canvas .template-var[data-var], .creator-preview-canvas .js-probability-var[data-var]', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const clickedToken = this;
+            const newVarName = clickedToken.dataset.var || clickedToken.dataset.varKey;
+
+            if (!newVarName) {
+                console.warn('[Preview Token Click] No var name found!');
+                return;
             }
 
-            // Re-open editor to show updated list
-            closeUnifiedOverlay();
-            openUniversalVariableEditor(config);
+            // Don't switch if it's the same variable
+            if (newVarName === config.varName) {
+                console.log('[Preview Token Click] Already editing this variable');
+                return;
+            }
+
+            console.log('[Preview Token Click] Switching to variable:', newVarName);
+            switchEditorVariable(newVarName, config);
         });
 
         // Close overlay when clicking outside
@@ -2399,6 +2416,49 @@
     }
 
     /**
+     * Updates the preview in the overlay header with fresh content from DOM
+     * NEU (2026-03-28): Preview soll nach Wert-Auswahl aktualisiert werden!
+     */
+    function updateOverlayPreview(context) {
+        const overlay = document.getElementById('universalEditorOverlay');
+        if (!overlay) {
+            return; // Overlay nicht offen
+        }
+
+        const previewSection = overlay.querySelector('.creator-preview-canvas > div');
+        if (!previewSection) {
+            console.warn('[updateOverlayPreview] Preview section not found in overlay');
+            return;
+        }
+
+        let sourcePreviewHtml = '';
+
+        if (context.type === 'step') {
+            // Get updated preview from Step Creator DOM
+            const currentStepWrap = document.querySelector(".current-step-wrap");
+            if (currentStepWrap) {
+                sourcePreviewHtml = currentStepWrap.innerHTML;
+            }
+        } else if (context.type === 'probability') {
+            // Get updated preview from Probability Area DOM
+            const masterId = context.probabilityMasterId || context.masterId;
+            if (masterId) {
+                const templateCard = document.querySelector(`.probability-template-wrap[data-master-id="${CSS.escape(masterId)}"] .probability-template-card`);
+                if (templateCard) {
+                    sourcePreviewHtml = templateCard.innerHTML;
+                }
+            }
+        }
+
+        if (sourcePreviewHtml) {
+            previewSection.innerHTML = sourcePreviewHtml;
+            console.log('[updateOverlayPreview] Preview updated for context:', context.type);
+        } else {
+            console.warn('[updateOverlayPreview] No source preview HTML found');
+        }
+    }
+
+    /**
      * Applies the current editor value (unified for both contexts)
      */
     function applyUnifiedEditorValue(editorEl, config) {
@@ -2449,26 +2509,18 @@
                     // UPDATE CONTEXT (Step or Probability Token)
                     updateContextValue(context, varName, ingredientComposed, extras);
 
+                    // ✅ NEU (2026-03-28): Preview aktualisieren nach Multi-Ingredient-Hinzufügen
+                    updateOverlayPreview(context);
+
                     // Call onApply callback for custom logic (optional)
                     if (typeof onApply === 'function') {
                         onApply(ingredientComposed, extras);
                     }
 
-                    // RE-OPEN editor to show updated chips (don't close!)
-                    closeUnifiedOverlay();
+                    // ✅ NEU (2026-03-28): Switch editor statt Close+Reopen (Overlay bleibt offen!)
                     config.currentVal = ingredientComposed;
-
-                    // UPDATE PREVIEW HTML for re-opened editor (important for Probability Area!)
-                    if (context.type === 'probability' && context.tokenElement) {
-                        const $token = window.$(context.tokenElement);
-                        const templateCard = $token.closest('.probability-template-wrap').find('.probability-template-card')[0];
-                        if (templateCard) {
-                            config.context.templatePreviewHtml = templateCard.innerHTML;
-                        }
-                    }
-
-                    openUniversalVariableEditor(config);
-                    return;  // ← Important: Don't close, we re-opened!
+                    switchEditorVariable(varName, config);
+                    return;  // ← Important: Overlay bleibt offen!
                 } else {
                     // No new selection - just use existing list and CLOSE
                     console.log('[Unified Apply] No new selection, closing with existing list');
@@ -2498,18 +2550,20 @@
         // UPDATE CONTEXT (Step or Probability Token) - UNIFIED for all cases
         updateContextValue(context, varName, value, extras);
 
+        // ✅ NEU (2026-03-28): Preview im Overlay-Header aktualisieren!
+        // Nach updateContextValue() wurde renderMasterText/renderProbabilityTemplate aufgerufen
+        // → DOM wurde aktualisiert → Preview aus DOM in Overlay kopieren
+        updateOverlayPreview(context);
+
         // Call onApply callback for custom extra logic (optional)
         if (typeof onApply === 'function') {
             onApply(value, extras);
         }
 
-        // Call onClose callback before closing
-        if (typeof onClose === 'function') {
-            onClose();
-        }
-
-        // Close overlay
-        closeUnifiedOverlay();
+        // ✅ NEU (2026-03-28): Overlay bleibt OFFEN!
+        // User kann jetzt andere Tokens im Preview klicken, um weitere Variablen zu bearbeiten
+        // "Schließen"-Button zum manuellen Beenden
+        // NOTE: onClose callback wird NICHT aufgerufen, da Overlay offen bleibt
     }
 
     /**
@@ -2544,10 +2598,82 @@
         // UPDATE CONTEXT (unified)
         updateContextValue(context, varName, composed, {});
 
-        // Re-open editor to show updated chips
-        closeUnifiedOverlay();
+        // ✅ NEU (2026-03-28): Preview aktualisieren nach Multi-Ingredient-Änderung
+        updateOverlayPreview(context);
+
+        // ✅ NEU (2026-03-28): Switch editor statt Close+Reopen (Overlay bleibt offen!)
         config.currentVal = composed;
-        openUniversalVariableEditor(config);
+        switchEditorVariable(varName, config);
+    }
+
+    /**
+     * Switches to a different variable in the overlay without closing
+     * NEU (2026-03-28): Tokens im Preview sind klickbar!
+     */
+    function switchEditorVariable(newVarName, config) {
+        const overlayEl = document.getElementById('universalEditorOverlay');
+        if (!overlayEl) {
+            console.error('[Switch Variable] Overlay not found!');
+            return;
+        }
+
+        const { context, masterId } = config;
+
+        // Get current value for new variable
+        let newVal = '';
+        if (context.type === 'step' && activeStep) {
+            newVal = activeStep.values[newVarName] || '';
+        } else if (context.type === 'probability') {
+            const prob = window.probabilityStates[masterId];
+            if (prob && prob.values) {
+                newVal = prob.values[newVarName] || '';
+            }
+        }
+
+        // Get multi-ingredients for new variable
+        const multiIngredients = getMultiIngredientsForContext(context, newVarName);
+
+        // Generate new editor HTML
+        const { html, dataAttributes } = _generateEditorHtml(newVarName, newVal, {
+            masterId: masterId,
+            multiIngredients: multiIngredients,
+            useClassBasedIds: false,
+            suppressPronounButtons: false
+        });
+
+        // Find editor container
+        const editorContainer = overlayEl.querySelector('#universalEditorContent');
+        if (!editorContainer) {
+            console.error('[Switch Variable] Editor container not found!');
+            return;
+        }
+
+        // Split editor HTML (remove buttons, they stay in footer)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const buttonRow = tempDiv.querySelector('.js-editor-action-row');
+        if (buttonRow) buttonRow.remove();
+        const editorContentHtml = tempDiv.innerHTML;
+
+        // Replace editor content
+        const innerDiv = editorContainer.querySelector(':scope > div');
+        if (innerDiv) {
+            innerDiv.innerHTML = editorContentHtml;
+        }
+
+        // Get new editor element and set data attributes
+        const newEditorEl = editorContainer.querySelector('.duration-editor');
+        if (newEditorEl) {
+            Object.keys(dataAttributes).forEach(key => {
+                newEditorEl.dataset[key] = dataAttributes[key];
+            });
+        }
+
+        // Update config
+        config.varName = newVarName;
+        config.currentVal = newVal;
+
+        console.log('[Switch Variable] Switched to:', newVarName);
     }
 
     /**
@@ -3169,8 +3295,57 @@
         return reference;
     }
 
+    /**
+     * Saves current editor value before accepting a step (shared for Step Creator & Probability)
+     * NEU (2026-03-28): Gemeinsame Funktion für beide Accept-Flows
+     */
+    function saveCurrentEditorValueBeforeAccept(contextType, contextId) {
+        const overlay = document.getElementById('universalEditorOverlay');
+        if (!overlay || overlay.dataset.overlayOwner !== contextType) return false;
+
+        const currentEditorEl = overlay.querySelector('.duration-editor');
+        if (!currentEditorEl) return false;
+
+        const varName = currentEditorEl.dataset.editorFor;
+        if (!varName) return false;
+
+        // Extract current editor value
+        const value = applyEditorValue(currentEditorEl);
+        const extras = applyEditorExtras(currentEditorEl);
+
+        // Save based on context type
+        if (contextType === 'step') {
+            if (!activeStep) return false;
+            activeStep.values[varName] = value;
+            if (extras && extras.pronoun) {
+                activeStep.values['pronoun'] = extras.pronoun;
+            }
+            preserveWindowScroll(() => {
+                renderMasterText();
+            });
+        } else if (contextType === 'probability') {
+            const masterId = contextId;
+            if (!window.probabilityStates || !window.probabilityStates[masterId]) return false;
+            window.probabilityStates[masterId].values[varName] = value;
+            if (extras && extras.pronoun) {
+                window.probabilityStates[masterId].values['pronoun'] = extras.pronoun;
+            }
+            if (typeof window.renderProbabilityTemplate === 'function') {
+                window.renderProbabilityTemplate(masterId);
+            }
+        }
+
+        return true; // Value was saved
+    }
+
     function acceptActiveStep() {
         if (!activeStep) return;
+
+        // ✅ NEU (2026-03-28): Gemeinsame Funktion für Editor-Wert speichern
+        const wasSaved = saveCurrentEditorValueBeforeAccept('step', null);
+        if (wasSaved) {
+            closeUnifiedOverlay();
+        }
 
         const step = steps.find(s => (s?.master_id || "") === (activeStep.master_id || ""));
         const payload = {
@@ -3203,6 +3378,12 @@
             } else if (typeof window.updateStoryProgress === "function") {
                 window.updateStoryProgress();
             }
+
+            // ✅ NEU (2026-03-28): Transformationen nach Step-Accept anwenden (z.B. Eiweiß → Eischnee)
+            if (typeof window.refreshMasterTemplateBuilder === "function") {
+                window.refreshMasterTemplateBuilder();
+            }
+
             return;
         }
 
@@ -3321,75 +3502,17 @@
                 return;
             }
 
+            // ✅ ENTFERNT (2026-03-28): Plus-Button Event-Handler nicht mehr nötig
+            // Alle Multi-Ingredient-Bearbeitung läuft jetzt über das Unified Overlay
+            // mit dem grünen Plus-Button im Overlay-Footer
+            /*
             // ── Plus Button: Open Editor or Add Ingredient ──
             const plusBtn = e.target.closest(".ingredient-plus-btn");
             if (plusBtn) {
-                console.log("[Plus Button] Clicked!", plusBtn);
-                const varName = plusBtn.dataset.var;
-                if (!varName || !activeStep) {
-                    console.log("[Plus Button] Missing varName or activeStep", { varName, activeStep });
-                    return;
-                }
-
-                // Check fullscreen overlay first, then inline host
-                let host = document.querySelector('#universalEditorOverlay .duration-editor');
-                if (!host) host = $("#InlineVarEditorHost");
-                console.log("[Plus Button] varName:", varName, "host:", host, "activeToken:", activeToken);
-
-                // If editor is closed, open it
-                const editorOpen = activeToken && (document.getElementById('universalEditorOverlay') || (host && host.innerHTML.trim() !== ""));
-                if (!editorOpen) {
-                    // Find the token to get tokenId
-                    const token = document.querySelector(`.template-var[data-var="${varName}"]`);
-                    if (token) {
-                        const tokenId = token.dataset.tokenId;
-                        openInlineEditor(varName, tokenId);
-                    }
-                    return;
-                }
-
-                // Editor is open - add current selection to list
-                const article = host.dataset.selectedArticle || "";
-                const fraction = host.dataset.selectedFraction || "";
-                const currentSelectedChips = JSON.parse(host.dataset.selectedIngredientValues || "[]");
-
-                console.log("[Plus Button] article:", article, "fraction:", fraction, "currentSelectedChips:", currentSelectedChips);
-
-                if (currentSelectedChips.length === 0) {
-                    alert("Bitte eine Zutat auswählen");
-                    return;
-                }
-
-                // Get existing list (per variable)
-                const multiIngredientsObj = activeStep._multiIngredients || {};
-                const existingList = multiIngredientsObj[activeToken.varName] || [];
-                console.log("[Plus Button] existingList before for", activeToken.varName, ":", existingList);
-
-                // Add currently selected chips with article/fraction
-                const normalized = normalizeIngredientValues(currentSelectedChips);
-                normalized.forEach(item => {
-                    item.article = article;
-                    item.fraction = fraction;
-                    existingList.push(item);
-                });
-
-                console.log("[Plus Button] existingList after:", existingList);
-
-                // Store in activeStep (per variable)
-                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-                activeStep._multiIngredients[activeToken.varName] = existingList;
-
-                // Update preview
-                const composed = formatSelectedIngredientList(existingList, currentLang);
-                console.log("[Plus Button] composed text:", composed);
-                activeStep.values[activeToken.varName] = composed;
-                renderMasterText();
-
-                // Re-render editor to update disabled chips and show updated list
-                openInlineEditor(activeToken.varName, activeToken.tokenId);
-
+                // ... (alter Code für Plus-Button)
                 return;
             }
+            */
 
             // ── Remove Multi-Ingredient Chip ──
             const removeChip = e.target.closest("button[data-remove-multi-ingredient]");
@@ -3647,9 +3770,15 @@
     function applyEditorExtras(editorEl) {
         if (!editorEl) return null;
         const varName = (editorEl.dataset.editorFor || '').trim();
-        if (!isStateVariable(varName)) return null;
-        const pronoun = (editorEl.dataset.selectedPronoun || '').trim();
-        return pronoun ? { pronoun } : null;
+        const varNameLower = varName.toLowerCase();
+
+        // Return pronoun extras for BOTH state AND pronoun variables
+        if (isStateVariable(varName) || varNameLower === 'pronoun' || varNameLower === 'pronoun2') {
+            const pronoun = (editorEl.dataset.selectedPronoun || '').trim();
+            return pronoun ? { pronoun } : null;
+        }
+
+        return null;
     }
 
     // Checks if sequential pronoun-before-state editing should be triggered.
@@ -3677,6 +3806,7 @@
         buildInlineEditorHtml,
         applyEditorValue,
         applyEditorExtras,
+        saveCurrentEditorValueBeforeAccept,  // ← NEU (2026-03-28): Gemeinsame Accept-Logik
         triggerPronounBeforeState,
         getVarDisplayName,
         handlePickModeClick: _handlePickModeClick,

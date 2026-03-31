@@ -2,7 +2,7 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-03-27 · **BREAKING CHANGE:** Unified Overlay System + Objekt-basierte Probability Area
+> **Stand:** 2026-03-28 · **BREAKING CHANGE:** Unified Overlay System + Overlay-offen-Workflow + Vereinheitlichte Accept-Logik
 
 ---
 
@@ -1071,6 +1071,95 @@ $host.on('click', 'button[data-pick-mode]', function() {
   helpers.handlePickModeClick(this, $host[0], useClassBasedIds);
 });
 ```
+
+---
+
+#### 🆕 UPDATE 2026-03-28: Overlay-offen-Workflow + Vereinheitlichte Accept-Logik
+
+**NEUE FEATURES:**
+1. ✅ **Overlay bleibt nach "Einsetzen" offen** - User kann mehrere Variablen nacheinander bearbeiten
+2. ✅ **Token-Klicks im Preview-Header** - Wechsel zwischen Variablen ohne Overlay zu schließen
+3. ✅ **Preview-Update im Overlay** - Header-Preview aktualisiert sich sofort nach Wertauswahl
+4. ✅ **Vereinheitlichte Accept-Logik** - Step Creator & Probability Area nutzen gemeinsame Funktion
+5. ✅ **Plus-Button entfernt** - Kein "+"-Button mehr neben Tokens (alles im Overlay)
+6. ✅ **"Würfel" in shape-Vorauswahl** - Bug-Fix: Würfel erscheint in Top-3 Quick-Select-Buttons
+
+**Neue Funktionen:**
+
+| Funktion | Zeile | Beschreibung |
+|----------|-------|-------------|
+| `switchEditorVariable(newVarName, config)` | ~2565 | **Variable Switcher**. Ersetzt Editor-Content mit neuem Variable-Editor ohne Overlay zu schließen. Holt aktuellen Wert aus `activeStep.values` oder `probabilityStates[masterId].values`, generiert neues Editor-HTML, aktualisiert DOM und config |
+| `updateOverlayPreview(context)` | ~2432 | **Preview Updater**. Kopiert frisch gerenderten Preview-HTML aus DOM (`.current-step-wrap` oder `.probability-template-card`) in Overlay-Header (`.creator-preview-canvas > div`). Wird nach jedem `updateContextValue()` aufgerufen |
+| `saveCurrentEditorValueBeforeAccept(contextType, contextId)` | ~3302 | **Shared Accept-Helper**. Gemeinsame Funktion für Step Creator (`acceptActiveStep`) und Probability Area (`getMergedVars`). Prüft ob Overlay offen, extrahiert aktuellen Editor-Wert, speichert in `activeStep.values` oder `probabilityStates[masterId].values`, rendert Update. Export via `window.MasterStepCreatorHelpers` |
+
+**Geänderte Funktionen:**
+
+| Funktion | Zeile | Änderung |
+|----------|-------|----------|
+| `applyUnifiedEditorValue(editorEl, config)` | ~2570 | **Overlay bleibt offen!** Entfernt `closeUnifiedOverlay()` nach Apply. Ruft `updateOverlayPreview(context)` auf für Preview-Update im Header |
+| `handleUnifiedPlusButtonClick(editorEl, config)` | ~2607 | Nutzt `switchEditorVariable()` statt Close+Reopen. Ruft `updateOverlayPreview(context)` auf |
+| **Remove-Chip Handler** | ~2312 | Nutzt `switchEditorVariable()` statt Close+Reopen. Ruft `updateOverlayPreview(context)` auf |
+| `acceptActiveStep()` | ~3341 | Nutzt gemeinsame Funktion `saveCurrentEditorValueBeforeAccept('step', null)` statt dupliziertem Code |
+| `getMergedVars(masterId)` (in create-posting-probability.js) | ~178 | Nutzt gemeinsame Funktion `window.MasterStepCreatorHelpers.saveCurrentEditorValueBeforeAccept('probability', masterId)` statt dupliziertem Code |
+| `getRankedVarOptionEntries(varName, ...)` | ~435 | Bug-Fix: Prüft jetzt auf `normalizedKey === "shape"` statt `"form"` für Würfel-Bevorzugung |
+
+**Entfernte Features:**
+
+| Feature | Grund |
+|---------|-------|
+| **Plus-Button neben Tokens** (`ingredient-plus-btn`) | Alle Multi-Ingredient-Bearbeitung läuft jetzt über Overlay. Plus-Button im Overlay-Footer bleibt. Entfernt aus: `renderTemplate()` (~782), `renderTemplateTokens()` (~694), `renderTemplateWithConfig()` (~835) |
+| **Plus-Button Event-Handler** | ~3481 | Auskommentiert, da Button nicht mehr existiert |
+
+**Neuer User-Flow:**
+
+```javascript
+// 1. User öffnet Overlay für Variable A
+openUniversalVariableEditor({ varName: 'size', ... });
+
+// 2. User wählt Wert "feine"
+_handlePickModeClick(btn, editorEl);  // Setzt dataset.selectedValue = "feine"
+
+// 3. User klickt "Einsetzen"
+applyUnifiedEditorValue(editorEl, config);
+// → updateContextValue() speichert in activeStep.values['size'] = "feine"
+// → updateOverlayPreview() aktualisiert Preview im Overlay-Header ✅ NEU!
+// → Overlay BLEIBT OFFEN ✅ NEU!
+
+// 4. User klickt Token "shape" im Preview-Header ✅ NEU!
+$overlay.on('click.universal', '.creator-preview-canvas .template-var[data-var]', ...);
+// → switchEditorVariable('shape', config) ersetzt Editor-Content
+// → Zeigt shape-Editor mit aktuellem Wert aus activeStep.values['shape']
+
+// 5. User wählt "Würfel"
+_handlePickModeClick(btn, editorEl);  // Setzt dataset.selectedValue = "Würfel"
+
+// 6. User klickt "Einsetzen"
+// → speichert "Würfel", Preview aktualisiert sich, Overlay bleibt offen
+
+// 7. User klickt "Schließen"-Button ODER
+//    User klickt "Step akzeptieren"
+acceptActiveStep();
+// → saveCurrentEditorValueBeforeAccept('step') ✅ NEU!
+//    speichert AUCH den aktuell im Editor sichtbaren Wert (falls nicht "Einsetzen" geklickt)
+// → closeUnifiedOverlay()
+// → ALLE Werte werden in finalen Step übernommen
+```
+
+**Event-Listener-Änderungen:**
+
+| Event | Selector | Handler | Beschreibung |
+|-------|----------|---------|-------------|
+| `click.universal` | `.creator-preview-canvas .template-var[data-var]` | Token-Click im Preview | ✅ NEU! Wechselt Variable im Editor via `switchEditorVariable()`. Overlay bleibt offen. |
+| `click.universal` | `.creator-preview-canvas .js-probability-var[data-var]` | Token-Click im Preview (Probability) | ✅ NEU! Identisch zu Step Creator Token-Click |
+
+**Vorteile:**
+
+- ✅ **Effizienterer Workflow** - Keine wiederholten Close/Open-Zyklen mehr
+- ✅ **Bessere UX** - User sieht Preview-Updates sofort im Overlay-Header
+- ✅ **Keine verlorenen Werte** - Auch ohne "Einsetzen"-Klick werden Werte beim Accept gespeichert
+- ✅ **Weniger Code-Duplikation** - `saveCurrentEditorValueBeforeAccept()` wird von beiden Bereichen genutzt
+- ✅ **Sauberere UI** - Kein "+"-Button mehr, der verwirren könnte
+- ✅ **Konsistente Vorauswahl** - "Würfel" erscheint korrekt in shape-Quick-Select
 
 **HTML-Struktur-Unterschiede:**
 
@@ -3020,5 +3109,41 @@ Row 3: [Einsetzen] [Schließen]                               ← Action-Buttons
 
 ---
 
-> **Letzte Aktualisierung:** 2026-03-27
-> **Geänderte Dateien:** 2 (CreatePostingSmartStepCreator.js, CreatePosting-Dokumentation.md)
+## 2026-03-28: Ingredient-Transformationen nach Step-Accept aktualisieren
+
+### Problem:
+Nach dem Akzeptieren eines Steps wurden Ingredient-Transformationen nicht angewendet. Die Ei-Aufteilung (Ei → Eiklar/Eigelb) funktionierte beim Hinzufügen von Eiern, aber wenn ein Step akzeptiert wurde, wurde `applyDerivedIngredientRowVisuals()` nicht aufgerufen.
+
+### Lösung:
+In `acceptActiveStep()` wird jetzt `refreshMasterTemplateBuilder()` aufgerufen, was wiederum `applyDerivedIngredientRowVisuals()` ausführt.
+
+**CreatePostingSmartStepCreator.js (Zeile 3376-3381):**
+```javascript
+if (typeof window.updateStepIndices === "function") {
+    window.updateStepIndices();
+} else if (typeof window.updateStoryProgress === "function") {
+    window.updateStoryProgress();
+}
+
+// ✅ NEU (2026-03-28): Transformationen nach Step-Accept anwenden
+if (typeof window.refreshMasterTemplateBuilder === "function") {
+    window.refreshMasterTemplateBuilder();
+}
+```
+
+### Verhalten:
+- Nach jedem Step-Accept werden Ingredient-Transformationen neu berechnet
+- Ei-Aufteilung (Ei → Eiklar/Eigelb) wird korrekt aktualisiert
+- Chips und Ingredient-List bleiben synchron
+
+### Betroffene Dateien:
+
+| Datei | Zeilen | Änderungen |
+|-------|--------|------------|
+| **CreatePostingSmartStepCreator.js** | 3381-3384 | `acceptActiveStep()` - Ruft `refreshMasterTemplateBuilder()` nach Step-Accept auf, um Transformationen anzuwenden |
+| **CreatePosting-Dokumentation.md** | - | Dokumentation aktualisiert |
+
+---
+
+> **Letzte Aktualisierung:** 2026-03-28
+> **Geänderte Dateien:** 1 (CreatePostingSmartStepCreator.js)

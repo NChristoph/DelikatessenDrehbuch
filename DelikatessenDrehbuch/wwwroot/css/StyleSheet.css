@@ -847,3 +847,20 @@ button.ingredient-chip.ingredient-chip-disabled {
 #universalEditorContent::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
 }
+
+/* Optionale abgeleitete Zutaten (z.B. Eiklar/Eigelb unter Ei) - 2026-03-28 */
+.ingredient-derived-optional {
+    opacity: 0.6;
+    background: rgba(128, 128, 128, 0.1) !important;
+}
+
+.ingredient-derived-optional:hover {
+    opacity: 0.8;
+    background: rgba(128, 128, 128, 0.15) !important;
+}
+
+.ingredient-derived-optional::before {
+    content: "↳ ";
+    color: #888;
+    margin-right: 4px;
+}
