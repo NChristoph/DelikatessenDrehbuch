@@ -2,7 +2,7 @@
   "_meta": {
     "version": "2.0.0",
     "created_at": "2026-02-17",
-    "updated_at": "2026-03-21",
+    "updated_at": "2026-03-27",
     "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
     "usage": {
       "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
@@ -36,6 +36,9 @@
       "ms": "Simpan hanya kunci semantik stabil daripada JSON ini, jangan sekali-kali simpan id pangkalan data atau input bebas pengguna sebagai rujukan."
     },
     "changes": [
+      "Added new steps: COOK_BASTE_01 (begießen), COOK_GRILL_FINISH_01 (Kruste unter Grill), PREP_FORM_DUMPLINGS_01 (Knödel formen), COOK_SIMMER_DUMPLINGS_01 (Knödel garen).",
+      "Modified PREP_CUT_01: made grind_size optional, added 'rautenförmig' shape option.",
+      "Added 'rautenförmig' (diamond pattern) to shape variable options in master_step_variables.json.",
       "Promoted schema to v2.0.0 with multilingual taxonomies and stable semantic key references.",
       "Added supported_languages and stable_key_policy to ensure no DB IDs or free-form user IDs are stored as references.",
       "Added multilingual variable type, step intent, category, diet, ingredient family, and quality rule definitions.",
@@ -1387,16 +1390,16 @@
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
       "templates": {
-        "de": "Schneide {{ingredient}} in {{grind_size}} {{shape}}.",
-        "en": "Cut {{ingredient}} into {{grind_size}} {{shape}}.",
-        "esp": "Corta {{ingredient}} en {{grind_size}} {{shape}}.",
-        "prt": "Corte {{ingredient}} em {{grind_size}} {{shape}}.",
-        "id": "Potong {{ingredient}} menjadi {{grind_size}} {{shape}}.",
-        "nl": "Snijd {{ingredient}} in {{grind_size}} {{shape}}.",
-        "sv": "Skär {{ingredient}} i {{grind_size}} {{shape}}.",
-        "da": "Skær {{ingredient}} i {{grind_size}} {{shape}}.",
-        "no": "Skjær {{ingredient}} i {{grind_size}} {{shape}}.",
-        "ms": "Potong {{ingredient}} kepada {{grind_size}} {{shape}}."
+        "de": "Schneide {{ingredient}}[ {{grind_size}}] {{shape}} ein.",
+        "en": "Cut {{ingredient}} into[ {{grind_size}}] {{shape}}.",
+        "esp": "Corta {{ingredient}} en[ {{grind_size}}] {{shape}}.",
+        "prt": "Corte {{ingredient}} em[ {{grind_size}}] {{shape}}.",
+        "id": "Potong {{ingredient}} menjadi[ {{grind_size}}] {{shape}}.",
+        "nl": "Snijd {{ingredient}} in[ {{grind_size}}] {{shape}}.",
+        "sv": "Skär {{ingredient}} i[ {{grind_size}}] {{shape}}.",
+        "da": "Skær {{ingredient}} i[ {{grind_size}}] {{shape}}.",
+        "no": "Skjær {{ingredient}} i[ {{grind_size}}] {{shape}}.",
+        "ms": "Potong {{ingredient}} kepada[ {{grind_size}}] {{shape}}."
       },
       "variables": [
         "ingredient",
@@ -1405,10 +1408,9 @@
       ],
       "required_variables": [
         "ingredient",
-        "grind_size",
         "shape"
       ],
-      "optional_variables": null,
+      "optional_variables": "grind_size",
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
@@ -5566,6 +5568,214 @@
         "variable:ingredient",
         "variable:base",
         "sub_group:assembly"
+      ]
+    },
+    {
+      "master_id": "COOK_BASTE_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "baste",
+      "equipment": 0,
+      "description": "Fleisch/Braten mit Flüssigkeit begießen",
+      "templates": {
+        "de": "Begieße {{ingredient}} alle {{interval}} mit {{liquid}}.",
+        "en": "Baste {{ingredient}} every {{interval}} with {{liquid}}.",
+        "esp": "Baña {{ingredient}} cada {{interval}} con {{liquid}}.",
+        "prt": "Regue {{ingredient}} a cada {{interval}} com {{liquid}}.",
+        "id": "Siram {{ingredient}} setiap {{interval}} dengan {{liquid}}.",
+        "nl": "Begie {{ingredient}} elke {{interval}} met {{liquid}}.",
+        "sv": "Ösa över {{ingredient}} var {{interval}} med {{liquid}}.",
+        "da": "Øs {{ingredient}} hver {{interval}} med {{liquid}}.",
+        "no": "Øs {{ingredient}} hver {{interval}} med {{liquid}}.",
+        "ms": "Siram {{ingredient}} setiap {{interval}} dengan {{liquid}}."
+      },
+      "variables": [
+        "ingredient",
+        "interval",
+        "liquid"
+      ],
+      "required_variables": [
+        "ingredient",
+        "interval",
+        "liquid"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:baste",
+        "technique:baste",
+        "begießen",
+        "begiessen",
+        "baste",
+        "übergießen",
+        "uebergiessen",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:interval",
+        "variable:liquid",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_GRILL_FINISH_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "grill_finish",
+      "equipment": 1,
+      "description": "Kruste unter dem Grill fertigstellen",
+      "templates": {
+        "de": "Drehe den Ofen auf {{temp}} Grillfunktion hoch[ und bestreiche {{ingredient}} mit {{coating}}]. Lasse {{pronoun}} {{duration}} unter dem Grill, bis {{state}}.",
+        "en": "Turn the oven to {{temp}} grill function[ and brush {{ingredient}} with {{coating}}]. Let {{pronoun}} cook for {{duration}} under the grill until {{state}}.",
+        "esp": "Sube el horno a {{temp}} función grill[ y pinta {{ingredient}} con {{coating}}]. Deja {{duration}} bajo el grill hasta que {{state}}.",
+        "prt": "Aumente o forno para {{temp}} função grill[ e pincele {{ingredient}} com {{coating}}]. Deixe {{duration}} sob o grill até que {{state}}.",
+        "id": "Naikkan oven ke {{temp}} fungsi grill[ dan oles {{ingredient}} dengan {{coating}}]. Biarkan {{duration}} di bawah grill hingga {{state}}.",
+        "nl": "Zet de oven op {{temp}} grillfunctie[ en bestrijk {{ingredient}} met {{coating}}]. Laat {{duration}} onder de grill tot {{state}}.",
+        "sv": "Höj ugnen till {{temp}} grillfunktion[ och pensla {{ingredient}} med {{coating}}]. Låt stå {{duration}} under grillen tills {{state}}.",
+        "da": "Skru ovnen op til {{temp}} grillfunktion[ og pensl {{ingredient}} med {{coating}}]. Lad stå {{duration}} under grillen, indtil {{state}}.",
+        "no": "Skru ovnen opp til {{temp}} grillfunksjon[ og pensle {{ingredient}} med {{coating}}]. La stå {{duration}} under grillen til {{state}}.",
+        "ms": "Naikkan ketuhar ke {{temp}} fungsi grill[ dan sapu {{ingredient}} dengan {{coating}}]. Biarkan {{duration}} di bawah grill sehingga {{state}}."
+      },
+      "variables": [
+        "temp",
+        "ingredient",
+        "coating",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "temp",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "optional_variables": "coating",
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:grill",
+        "technique:grill_finish",
+        "grill",
+        "kruste",
+        "crust",
+        "finish",
+        "backofen",
+        "oven",
+        "equipment_id:1",
+        "variable:temp",
+        "variable:ingredient",
+        "variable:coating",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "PREP_FORM_DUMPLINGS_01",
+      "phase": 1,
+      "sub_group": "shaping",
+      "action": "form_dumplings",
+      "equipment": 0,
+      "description": "Knödel/Klöße formen",
+      "templates": {
+        "de": "Forme mit nassen Händen {{count}} Knödel aus {{ingredient}}.",
+        "en": "Form {{count}} dumplings from {{ingredient}} with wet hands.",
+        "esp": "Forma {{count}} albóndigas con {{ingredient}} con las manos húmedas.",
+        "prt": "Forme {{count}} bolinhos com {{ingredient}} com as mãos molhadas.",
+        "id": "Bentuk {{count}} bola dari {{ingredient}} dengan tangan basah.",
+        "nl": "Vorm {{count}} knoedels van {{ingredient}} met natte handen.",
+        "sv": "Forma {{count}} knyten av {{ingredient}} med våta händer.",
+        "da": "Form {{count}} boller af {{ingredient}} med våde hænder.",
+        "no": "Form {{count}} boller av {{ingredient}} med våte hender.",
+        "ms": "Bentuk {{count}} bebola daripada {{ingredient}} dengan tangan basah."
+      },
+      "variables": [
+        "count",
+        "ingredient"
+      ],
+      "required_variables": [
+        "count",
+        "ingredient"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:form",
+        "technique:shaping",
+        "knödel",
+        "knoedel",
+        "klöße",
+        "kloesse",
+        "dumplings",
+        "formen",
+        "form",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:count",
+        "variable:ingredient",
+        "sub_group:shaping"
+      ]
+    },
+    {
+      "master_id": "COOK_SIMMER_DUMPLINGS_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "simmer_dumplings",
+      "equipment": 2,
+      "description": "Knödel in Wasser garen",
+      "templates": {
+        "de": "Gib die Knödel in leicht siedendes Salzwasser und lasse sie {{duration}} gar ziehen, bis sie an der Oberfläche schwimmen.",
+        "en": "Place the dumplings in gently simmering salted water and let them cook for {{duration}} until they float to the surface.",
+        "esp": "Coloca las albóndigas en agua con sal a fuego lento y cocina durante {{duration}} hasta que floten en la superficie.",
+        "prt": "Coloque os bolinhos em água salgada levemente fervente e deixe cozinhar por {{duration}} até flutuarem na superfície.",
+        "id": "Masukkan bola-bola ke dalam air garam yang mendidih perlahan dan masak selama {{duration}} hingga mengapung di permukaan.",
+        "nl": "Leg de knoedels in zacht kokend gezouten water en laat ze {{duration}} garen tot ze aan het oppervlak drijven.",
+        "sv": "Lägg knytnena i svagt sjudande saltvatten och låt koka i {{duration}} tills de flyter upp till ytan.",
+        "da": "Læg bollerne i let kogende saltvand og lad dem koge i {{duration}}, indtil de flyder op til overfladen.",
+        "no": "Legg bollene i lett kokende saltvann og la dem koke i {{duration}} til de flyter opp til overflaten.",
+        "ms": "Masukkan bebola ke dalam air masin yang mendidih perlahan dan masak selama {{duration}} sehingga terapung di permukaan."
+      },
+      "variables": [
+        "duration"
+      ],
+      "required_variables": [
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:simmer",
+        "technique:boil",
+        "knödel",
+        "knoedel",
+        "klöße",
+        "kloesse",
+        "dumplings",
+        "kochen",
+        "cook",
+        "siedend",
+        "simmer",
+        "topf",
+        "pot",
+        "equipment_id:2",
+        "variable:duration",
+        "sub_group:wet_heat"
       ]
     }
   ],

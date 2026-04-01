@@ -325,6 +325,17 @@
                         sourceRow.attr('data-selected-qty', qty);
                         sourceRow.attr('data-selected-unit', unitDe);
                     }
+
+                    // ✅ NEU: Wenn Ei bearbeitet wird, aktualisiere auch Eiklar/Eigelb Mengen
+                    $('#selectedIngredients .ingredient-row[data-derived-row="true"]').each(function() {
+                        const derivedRow = $(this);
+                        const sourceBaseId = derivedRow.attr('data-derived-source-base-id');
+                        if (sourceBaseId === ingredientId) {
+                            derivedRow.find('.ingredient-qty-hidden').val(qty);
+                            derivedRow.find('.ingredient-unit-hidden').val(unitDe);
+                            derivedRow.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
+                        }
+                    });
                 }
                 closeIngredientConfigPopup();
                 scheduleCreatePostingDraftSave();
@@ -975,6 +986,17 @@
                 items = items.filter(function (item) { return !matchedIds.has(item.id); }).concat(replacements);
             });
 
+            // ✅ Duplikate entfernen (gleicher Name) - bevorzuge Items mit Icon
+            const seenByName = new Map();
+            items.forEach(function (item) {
+                const key = (item.namesByLang?.[lang] || item.name || '').toLowerCase();
+                const existing = seenByName.get(key);
+                if (!existing || (item.iconHtml && !existing.iconHtml)) {
+                    seenByName.set(key, item);
+                }
+            });
+            items = Array.from(seenByName.values());
+
             return items;
         }
 
@@ -1104,6 +1126,31 @@
             return html;
         }
 
+        function buildTransformedIngredientDisplayRow(sourceRow, transformedItem) {
+            const qty = (sourceRow.find('.ingredient-qty-hidden').val() || '').toString();
+            const unitDe = (sourceRow.find('.ingredient-unit-hidden').val() || '').toString();
+            const unitObj = findUnitByDe(unitDe);
+            const unitLabel = getUnitLabel(unitObj, currentLang) || unitDe;
+            const displayName = transformedItem.namesByLang?.[resolveLangKey(currentLang)] || transformedItem.name || '';
+            const icon = transformedItem.iconHtml || sourceRow.data('group-icon') || '';
+
+            return `<div class="dynamic-item ingredient-row shadow-sm ingredient-transformed-display"
+                         data-transformed-from="${escapeAttr(transformedItem.sourceBaseId || '')}"
+                         data-transformed-key="${escapeAttr(transformedItem.id || '')}"
+                         style="opacity: 0.85; pointer-events: none;">
+                <div class="ingredient-row-main">
+                    <div class="fw-bold display-name-selected d-flex align-items-center gap-2">
+                        <span class="ingredient-group-icon">${icon}</span>
+                        <span class="ingredient-name-text">${escapeAttr(displayName)}</span>
+                        <span class="badge bg-secondary" style="font-size: 0.7em;">Transformiert</span>
+                    </div>
+                </div>
+                <div class="ingredient-row-right">
+                    <div class="ingredient-row-meta">${escapeAttr(qty)} ${escapeAttr(unitLabel)}</div>
+                </div>
+            </div>`;
+        }
+
         function applyDerivedIngredientRowVisuals() {
             const selectedWrap = $('#selectedIngredients');
             if (!selectedWrap.length) return;
@@ -1111,6 +1158,7 @@
             const baseItems = getBaseSandboxIngredients();
             const derivedItems = deriveSandboxIngredients(baseItems);
 
+            // Gruppiere derived items nach sourceBaseId
             const derivedBySourceId = derivedItems.reduce((map, item) => {
                 const sourceId = (item.sourceBaseId || item.id || '').toString();
                 if (!sourceId) return map;
@@ -1119,10 +1167,23 @@
                 return map;
             }, {});
 
-            selectedWrap.find('.ingredient-row[data-derived-row="true"]').remove();
+            // Entferne alte abgeleitete Rows
+            selectedWrap.find('.ingredient-row[data-derived-row="true"], .ingredient-transformed-display').remove();
+
+            // Entferne Grau-Markierung von allen Rows
+            selectedWrap.find('.ingredient-row').removeClass('ingredient-used-in-transform').css('opacity', '');
+
+            // Finde alle verwendeten Zutaten-IDs (die transformiert wurden)
+            const usedIngredientIds = new Set();
+            derivedItems.forEach(item => {
+                // Nur tatsächlich transformierte Items (keine auto-show)
+                if (item.sourceBaseId && item.id !== item.sourceBaseId && !item.isAutoShowOptional) {
+                    usedIngredientIds.add(item.sourceBaseId);
+                }
+            });
 
             selectedWrap.find('.ingredient-row').filter(function () {
-                return $(this).attr('data-derived-row') !== 'true';
+                return !$(this).hasClass('ingredient-transformed-display');
             }).each(function () {
                 const row = $(this);
                 const rowId = (row.find('input[name$="IngredientsAndNutrients.Id"]').val() || '').toString();
@@ -1156,18 +1217,29 @@
                         );
                         row.after(derivedHtml);
                     });
-                    if (!regularItems.length) return;
                 }
 
-                row.removeClass('d-none').removeAttr('data-derived-hidden-source');
-                setIngredientRowDisabled(row, false);
+                // ✅ NEU: Transformierte Zutaten (z.B. Eischnee) als Display-Only anzeigen
+                const transformedItems = regularItems.filter(item =>
+                    item.id !== rowId && item.sourceBaseId === rowId && !item.isAutoShowOptional
+                );
 
-                const visibleItem = names.length === 1 ? names[0] : null;
-                const fallbackName = (row.data('name-' + resolveLangKey(currentLang)) || row.data('name-de') || '').toString().trim();
-                const displayName = visibleItem
-                    ? (visibleItem.namesByLang?.[resolveLangKey(currentLang)] || visibleItem.namesByLang?.de || visibleItem.name || fallbackName)
-                    : fallbackName;
-                row.find('.ingredient-name-text').text(displayName || fallbackName);
+                if (transformedItems.length > 0) {
+                    // Original-Zutat ausgrauen (wurde verwendet)
+                    row.addClass('ingredient-used-in-transform').css('opacity', '0.5');
+
+                    // Display-Only Rows für transformierte Zutaten hinzufügen
+                    transformedItems.forEach(function (transformedItem) {
+                        const displayHtml = buildTransformedIngredientDisplayRow(row, transformedItem);
+                        row.after(displayHtml);
+                    });
+                }
+
+                // ✅ NEU: Basis-Zutat (z.B. Ei) ausgrauen, wenn eines ihrer Sub-Items verwendet wurde
+                const hasUsedSubItem = names.some(item => usedIngredientIds.has(item.id));
+                if (hasUsedSubItem) {
+                    row.addClass('ingredient-used-in-transform').css('opacity', '0.5');
+                }
             });
         }
 
@@ -2601,6 +2673,7 @@
             const stepsWrap = $("#stepsIngredientButtons");
             const mutedTextClass = window.getThemeMutedTextClass();
             const ingredients = getSelectedIngredientsForSandbox();
+
             wrap.empty();
             stepsWrap.empty();
 

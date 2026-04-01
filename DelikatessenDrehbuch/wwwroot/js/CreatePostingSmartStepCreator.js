@@ -3854,6 +3854,7 @@
     function buildIngredientChipsHtml(ingredients, selectedIds) {
         const selected = (selectedIds || []).map(x => (x || "").toString());
         const list = Array.isArray(ingredients) ? ingredients : [];
+
         if (!list.length) {
             return '<span class="small text-white-50">Keine Zutaten ausgewählt</span>';
         }

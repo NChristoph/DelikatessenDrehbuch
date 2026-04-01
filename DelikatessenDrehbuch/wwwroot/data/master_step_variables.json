@@ -1839,6 +1839,27 @@
             "value:fladen",
             "technique:roll_out"
           ]
+        },
+        {
+          "key": "rautenf_rmig",
+          "labels": {
+            "de": "rautenförmig",
+            "en": "diamond pattern",
+            "esp": "en forma de rombo",
+            "prt": "em forma de losango",
+            "id": "pola berlian",
+            "nl": "ruitvormig",
+            "sv": "rutmönster",
+            "da": "rudemønster",
+            "no": "rutemønster",
+            "ms": "corak berlian"
+          },
+          "tags": [
+            "variable:shape",
+            "value:rautenf_rmig",
+            "technique:cut",
+            "tool:knife"
+          ]
         }
       ]
     },
