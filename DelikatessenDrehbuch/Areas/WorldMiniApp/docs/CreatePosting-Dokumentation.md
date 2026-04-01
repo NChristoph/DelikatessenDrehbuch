@@ -2,7 +2,7 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-03-28 · **BREAKING CHANGE:** Unified Overlay System + Overlay-offen-Workflow + Vereinheitlichte Accept-Logik
+> **Stand:** 2026-04-02 · **NEU:** Smart Step Creator Filter UI (Phase 1) + PREP_CUT_01 Template-Verbesserungen
 
 ---
 
@@ -22,18 +22,20 @@
 12. [JS-Datei: create-posting-feedback.js](#12-js-datei-create-posting-feedbackjs)
 13. [JS-Datei: create-posting-page-data.js](#13-js-datei-create-posting-page-datajs)
 14. [JS-Datei: create-posting-template-builder.js](#14-js-datei-create-posting-template-builderjs)
-15. [JS-Datei: master-step-renderer.js](#15-js-datei-master-step-rendererjs)
-16. [JS-Datei: recipe-step-suggest.js](#16-js-datei-recipe-step-suggestjs)
-17. [JS-Datei: create-posting-probability.js](#17-js-datei-create-posting-probabilityjs)
-18. [JS-Datei: ingredientmanager.js](#18-js-datei-ingredientmanagerjs)
-19. [JS-Datei: CreatePostingSmartStepCreator.js](#19-js-datei-createpostingsmartstepcreatjs)
-20. [JS-Datei: CreatePostingPage.js](#20-js-datei-createpostingpagejs)
-21. [JS-Datei: create-posting-publish-checklist.js](#21-js-datei-create-posting-publish-checklistjs)
-22. [Window-API-Übersicht](#22-window-api-übersicht)
-23. [Event-Listener-Katalog](#23-event-listener-katalog)
-24. [DOM-Element-Verzeichnis](#24-dom-element-verzeichnis)
-25. [Datenfluss & User-Flow](#25-datenfluss--user-flow)
-26. [Initialisierungs-Sequenz](#26-initialisierungs-sequenz)
+15. [JS-Datei: create-posting-step-filter-ui.js](#15-js-datei-create-posting-step-filter-uijs) **NEU**
+16. [JS-Datei: master-step-renderer.js](#16-js-datei-master-step-rendererjs)
+17. [JS-Datei: recipe-step-suggest.js](#17-js-datei-recipe-step-suggestjs)
+18. [JS-Datei: create-posting-probability.js](#18-js-datei-create-posting-probabilityjs)
+19. [JS-Datei: ingredientmanager.js](#19-js-datei-ingredientmanagerjs)
+20. [JS-Datei: CreatePostingSmartStepCreator.js](#20-js-datei-createpostingsmartstepcreatjs)
+21. [JS-Datei: CreatePostingPage.js](#21-js-datei-createpostingpagejs)
+22. [JS-Datei: create-posting-publish-checklist.js](#22-js-datei-create-posting-publish-checklistjs)
+23. [CSS-Datei: create-posting-step-filter.css](#23-css-datei-create-posting-step-filtercss) **NEU**
+24. [Window-API-Übersicht](#24-window-api-übersicht)
+25. [Event-Listener-Katalog](#25-event-listener-katalog)
+26. [DOM-Element-Verzeichnis](#26-dom-element-verzeichnis)
+27. [Datenfluss & User-Flow](#27-datenfluss--user-flow)
+28. [Initialisierungs-Sequenz](#28-initialisierungs-sequenz)
 
 ---
 
@@ -80,7 +82,7 @@
 
 ## 2. Dateiverzeichnis
 
-### JavaScript-Dateien (12 Dateien, ~9.236 Zeilen)
+### JavaScript-Dateien (14 Dateien, ~9.330 Zeilen)
 
 | # | Datei | Pfad (unter `wwwroot/js/`) | Zeilen | Zweck |
 |---|-------|---------------------------|--------|-------|
@@ -89,14 +91,15 @@
 | 3 | `create-posting-data-store.js` | `wwwroot/js/` | 98 | Daten-Cache mit Deduplizierung & Validierung |
 | 4 | `create-posting-feedback.js` | `wwwroot/js/` | 41 | Toast-Nachrichten & Fehler-Reporting |
 | 5 | `create-posting-page-data.js` | `wwwroot/js/` | 17 | Async-Loader für Article-Rules & Transforms |
-| 6 | `create-posting-template-builder.js` | `wwwroot/js/` | 115 | Template-Card-UI-Builder |
-| 7 | `master-step-renderer.js` | `wwwroot/js/` | 478 | Template-Rendering-Engine mit Variablen-Substitution |
-| 8 | `recipe-step-suggest.js` | `wwwroot/js/` | 513 | Rezepttyp-Erkennung & Step-Vorschläge |
-| 9 | `create-posting-probability.js` | `wwwroot/js/` | 378 | Wahrscheinlichkeits-Analyse & Template-Vorschläge |
-| 10 | `ingredientmanager.js` | `wwwroot/js/` | 145 | Maßeinheiten-Verwaltung (mehrsprachig, 25 Units) |
-| 11 | `CreatePostingSmartStepCreator.js` | `wwwroot/js/` | 2.253 | Haupt-State-Machine des Step-Creators |
-| 12 | `CreatePostingPage.js` | `wwwroot/js/` | 5.112 | Haupt-Page-Controller |
-| 13 | `create-posting-publish-checklist.js` | `wwwroot/js/` | 307 | Fortschritts-Checkliste (5-Schritte-Tracker) |
+| 6 | `create-posting-template-builder.js` | `wwwroot/js/` | 62 | Template-Card-UI-Builder (nur für #masterTemplateCards) |
+| 7 | `create-posting-step-filter-ui.js` | `wwwroot/js/` | 86 | **NEU:** Smart Step Creator Filter-UI (Suchfeld + Phase-Tabs) |
+| 8 | `master-step-renderer.js` | `wwwroot/js/` | 478 | Template-Rendering-Engine mit Variablen-Substitution |
+| 9 | `recipe-step-suggest.js` | `wwwroot/js/` | 513 | Rezepttyp-Erkennung & Step-Vorschläge |
+| 10 | `create-posting-probability.js` | `wwwroot/js/` | 378 | Wahrscheinlichkeits-Analyse & Template-Vorschläge |
+| 11 | `ingredientmanager.js` | `wwwroot/js/` | 145 | Maßeinheiten-Verwaltung (mehrsprachig, 25 Units) |
+| 12 | `CreatePostingSmartStepCreator.js` | `wwwroot/js/` | 3.897 | Haupt-State-Machine des Step-Creators + Filter-Logik |
+| 13 | `CreatePostingPage.js` | `wwwroot/js/` | 5.590 | Haupt-Page-Controller |
+| 14 | `create-posting-publish-checklist.js` | `wwwroot/js/` | 307 | Fortschritts-Checkliste (5-Schritte-Tracker) |
 
 ### Views (3 Dateien)
 
@@ -125,6 +128,12 @@
 | `ingredient_article_rules.json` | `data/` | Grammatische Artikel-Zuordnung |
 | `ingredient_transforms.json` | `data/` | Zutaten-Transformation (adjektivisch) |
 | `probability_template_presets.json` | `data/` | Presets für Probability-Engine |
+
+### CSS-Dateien (1 Datei)
+
+| Datei | Pfad (unter `wwwroot/css/`) | Zeilen | Zweck |
+|-------|----------------------------|--------|-------|
+| `create-posting-step-filter.css` | `wwwroot/css/` | 247 | **NEU:** Styling für Smart Step Creator Filter UI (Suchfeld + Phase-Tabs) mit Theme-Support |
 
 ---
 
@@ -729,14 +738,13 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 14. JS-Datei: create-posting-template-builder.js
 
-**Pfad:** `wwwroot/js/create-posting-template-builder.js` · **115 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-template-builder.js` · **62 Zeilen**
 **Export:** `window.CreatePostingTemplateBuilder`
 
 | Methode | Beschreibung |
 |---------|-------------|
 | `setMasterTemplateError(message)` | Fehlermeldung im Template-Container anzeigen |
-| `renderTemplateCards(deps)` | Alle Master-Template-Karten rendern (mit aktuellem Theme) |
-| `renderSc2TemplateCards(deps)` | Template-Karten für zweiten Smart-Creator rendern |
+| `renderTemplateCards(deps)` | Alle Master-Template-Karten rendern (nur für #masterTemplateCards) |
 | `refreshMasterTemplateBuilder(deps)` | Komplettes Template-Builder-UI neu aufbauen |
 
 **Abhängigkeiten:**
@@ -744,6 +752,56 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 - `window.MasterStepRenderer.getLastLoadError()`
 - `window.getThemeMutedTextClass()`
 - `window.getCreatePostingTheme()`
+
+**WICHTIG:** `renderSc2TemplateCards()` wurde entfernt (2026-04-02). Der Smart Step Creator verwendet jetzt ausschließlich `renderStepButtons()` aus `CreatePostingSmartStepCreator.js` für komplexe Gruppierung.
+
+---
+
+## 15. JS-Datei: create-posting-step-filter-ui.js
+
+**Pfad:** `wwwroot/js/create-posting-step-filter-ui.js` · **86 Zeilen** · **NEU (2026-04-02)**
+**Export:** `window.CreatePostingStepFilterUI`
+
+**Zweck:** Filter-UI für Smart Step Creator (Phase 1 Optimierung)
+- Rendert Suchfeld + Phase-Tabs oberhalb der Step-Liste
+- Verbindet UI-Events mit Filter-Logik in `CreatePostingSmartStepCreator.js`
+- Theme-aware (dark, light, rosa, gold, navy)
+
+| Methode | Beschreibung |
+|---------|-------------|
+| `init()` | Filter-UI initialisieren (wird von CreatePostingPage.js aufgerufen) |
+| `injectFilterUI(containerSelector)` | HTML für Suchfeld + Phase-Tabs vor Container einfügen |
+| `attachFilterEventHandlers()` | Event-Listener für input/click an Filter-Controls binden |
+
+**DOM-Struktur:**
+```html
+<div class="step-filter-controls" data-theme="...">
+  <div class="step-search-wrapper">
+    <input class="step-search-input" placeholder="🔍 Step suchen...">
+  </div>
+  <div class="phase-tabs">
+    <button class="phase-tab active" data-phase="all">Alle</button>
+    <button class="phase-tab" data-phase="1">🔪 Vorbereitung</button>
+    <button class="phase-tab" data-phase="2">🔥 Kochen</button>
+    <button class="phase-tab" data-phase="3">✨ Finishing</button>
+    <button class="phase-tab" data-phase="4">🍽️ Servieren</button>
+  </div>
+</div>
+```
+
+**Event-Flow:**
+1. User tippt in `.step-search-input` → `input` Event
+2. Handler ruft `MasterStepCreatorHelpers.setSearchQuery(query)` auf
+3. MasterStepCreatorHelpers ruft intern `renderStepButtons()` auf
+4. Step-Liste wird gefiltert neu gerendert
+
+**Abhängigkeiten:**
+- `window.MasterStepCreatorHelpers.setSearchQuery(query)`
+- `window.MasterStepCreatorHelpers.setPhaseFilter(phase)`
+- `window.getCreatePostingTheme()`
+- jQuery
+
+**Stylesheet:** `create-posting-step-filter.css`
 
 ---
 
@@ -1838,7 +1896,48 @@ window.MasterStepCreatorHelpers = {
 
 ---
 
-## 22. Window-API-Übersicht
+## 22. CSS-Datei: create-posting-step-filter.css
+
+**Pfad:** `wwwroot/css/create-posting-step-filter.css` · **247 Zeilen** · **NEU (2026-04-02)**
+
+**Zweck:** Styling für Smart Step Creator Filter UI (Suchfeld + Phase-Tabs)
+
+**Haupt-Komponenten:**
+
+| Klasse | Beschreibung |
+|--------|-------------|
+| `.step-filter-controls` | Container für Suchfeld + Tabs (flex column, padding, border-radius) |
+| `.step-search-wrapper` | Wrapper für Suchfeld |
+| `.step-search-input` | Suchfeld (mit Focus-State: border-color, box-shadow) |
+| `.phase-tabs` | Flex-Container für Phase-Filter-Tabs |
+| `.phase-tab` | Einzelner Phase-Tab (border-radius 999px, hover/active states) |
+| `.phase-tab.active` | Aktiver Tab (gradient background, box-shadow) |
+
+**Theme-Support:**
+
+| Theme | data-theme | Beschreibung |
+|-------|-----------|-------------|
+| Dark (Default) | `data-theme="dark"` | Dunkler Hintergrund, weiße Schrift |
+| Light | `data-theme="light"` | Heller Hintergrund, dunkle Schrift |
+| Rosa | `data-theme="rosa"` | Rosa Gradient, text-shadow für Kontrast |
+| Gold | `data-theme="gold"` | Gold Gradient mit Navy-Blue Inputs |
+| Navy | `data-theme="navy"` | Navy Blue mit hellblauem Accent |
+
+**Responsive Breakpoints:**
+- `@media (max-width: 576px)` - Mobile: kleinere Tabs, kleineres Suchfeld
+- `@media (max-width: 768px)` - Tablet: reduzierte Paddings
+
+**CSS-Variablen (je Theme):**
+- `--creator-bg` - Hintergrund-Gradient
+- `--creator-border` - Border-Color
+- `--creator-text` - Text-Color
+- `--creator-accent` - Accent-Color für Active States
+
+**Verwendung in:** `CreatePosting.cshtml` (geladen via `<link rel="stylesheet">`)
+
+---
+
+## 23. Window-API-Übersicht
 
 ### Globale Objekte
 
@@ -1849,8 +1948,10 @@ window.MasterStepCreatorHelpers = {
 | `window.CreatePostingDataStore` | create-posting-data-store.js | Daten-Cache |
 | `window.CreatePostingFeedback` | create-posting-feedback.js | Feedback/Toast |
 | `window.CreatePostingPageData` | create-posting-page-data.js | Async-Loader |
-| `window.CreatePostingTemplateBuilder` | create-posting-template-builder.js | Template-Builder |
+| `window.CreatePostingTemplateBuilder` | create-posting-template-builder.js | Template-Builder (nur für #masterTemplateCards) |
+| `window.CreatePostingStepFilterUI` | create-posting-step-filter-ui.js | **NEU:** Filter-UI für Smart Step Creator |
 | `window.MasterStepRenderer` | master-step-renderer.js | Rendering-Engine |
+| `window.MasterStepCreatorHelpers` | CreatePostingSmartStepCreator.js | Smart Step Creator + Filter-Logik |
 | `window.RecipeStepSuggest` | recipe-step-suggest.js | Rezepttyp-Erkennung |
 | `window.CreatePostingProbability` | create-posting-probability.js | Wahrscheinlichkeit |
 | `window.IngredientManager` | ingredientmanager.js | Maßeinheiten |
