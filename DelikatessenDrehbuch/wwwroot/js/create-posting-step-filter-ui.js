@@ -32,18 +32,12 @@
         container.before(filterHTML);
     }
 
-    function attachFilterEventHandlers(deps) {
-        if (!deps || typeof deps.renderSc2TemplateCards !== 'function') {
-            console.warn('attachFilterEventHandlers: missing deps or renderSc2TemplateCards');
-            return;
-        }
-
+    function attachFilterEventHandlers() {
         // Search input handler
         $(document).on('input', '.step-search-input', function () {
             const query = $(this).val().trim();
-            if (window.CreatePostingTemplateBuilder && typeof window.CreatePostingTemplateBuilder.setSearchQuery === 'function') {
-                window.CreatePostingTemplateBuilder.setSearchQuery(query);
-                deps.renderSc2TemplateCards();
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.setSearchQuery === 'function') {
+                window.MasterStepCreatorHelpers.setSearchQuery(query);
             }
         });
 
@@ -56,19 +50,18 @@
             $(this).addClass('active');
 
             // Apply filter
-            if (window.CreatePostingTemplateBuilder && typeof window.CreatePostingTemplateBuilder.setPhaseFilter === 'function') {
-                window.CreatePostingTemplateBuilder.setPhaseFilter(phase);
-                deps.renderSc2TemplateCards();
+            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.setPhaseFilter === 'function') {
+                window.MasterStepCreatorHelpers.setPhaseFilter(phase);
             }
         });
     }
 
-    function initStepFilterUI(deps) {
+    function initStepFilterUI() {
         // Inject UI before #sc2MasterTemplateCards
         injectFilterUI('#sc2MasterTemplateCards');
 
         // Attach event handlers
-        attachFilterEventHandlers(deps);
+        attachFilterEventHandlers();
 
         // Update theme when theme changes
         if (window.getCreatePostingTheme) {

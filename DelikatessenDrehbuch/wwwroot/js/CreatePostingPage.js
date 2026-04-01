@@ -5581,9 +5581,7 @@
 
             // Initialize Smart Step Creator filter UI
             if (window.CreatePostingStepFilterUI && typeof window.CreatePostingStepFilterUI.init === 'function') {
-                window.CreatePostingStepFilterUI.init({
-                    renderSc2TemplateCards: renderSc2TemplateCards
-                });
+                window.CreatePostingStepFilterUI.init();
             }
 
             // Page fully ready â†’ hide overlay, show content

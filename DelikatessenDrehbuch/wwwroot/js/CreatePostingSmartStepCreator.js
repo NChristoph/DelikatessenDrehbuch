@@ -22,11 +22,15 @@
     let activeStep = null; // { master_id, title, templateRaw, values:{} }
     let activeToken = null; // { varName, tokenId }
 
+    // Filter state
+    let currentSearchQuery = '';
+    let currentPhaseFilter = 'all';
+
     // -----------------------------
     // DOM
     // -----------------------------
     const $ = (s) => document.querySelector(s);
-    const insertContainer = () => $("#insertContainer");
+    const insertContainer = () => $("#sc2MasterTemplateCards");
     const masterText = () => $("#MasterText");
     const langSelect = () => $("#LangSelect");
 
@@ -1010,14 +1014,65 @@
         return { label, icon, description };
     }
 
+    // -----------------------------
+    // FILTER FUNCTIONS
+    // -----------------------------
+    function matchesSearch(step, query) {
+        if (!query) return true;
+        const q = query.toLowerCase();
+        const searchText = [
+            step.description || '',
+            step.master_id || '',
+            step.action || '',
+            ...(step.selection_tags || [])
+        ].join(' ').toLowerCase();
+        return searchText.includes(q);
+    }
+
+    function filterSteps(stepsToFilter) {
+        return stepsToFilter.filter(step => {
+            // Phase filter
+            if (currentPhaseFilter !== 'all') {
+                const phaseNum = parseInt(currentPhaseFilter, 10);
+                if ((step.phase ?? 0) !== phaseNum) {
+                    return false;
+                }
+            }
+            // Search filter
+            if (!matchesSearch(step, currentSearchQuery)) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    function setSearchQuery(query) {
+        currentSearchQuery = query || '';
+        renderStepButtons();
+    }
+
+    function setPhaseFilter(phase) {
+        currentPhaseFilter = phase || 'all';
+        renderStepButtons();
+    }
+
     function renderStepButtons() {
         const container = insertContainer();
         if (!container) return;
 
         container.innerHTML = "";
 
+        // Apply filters first
+        const filteredSteps = filterSteps(steps);
+
+        // Show message if no results after filtering
+        if (!filteredSteps.length && steps.length > 0) {
+            container.innerHTML = '<div class="small text-white-50 text-center py-4">Keine Steps für diesen Filter gefunden.</div>';
+            return;
+        }
+
         // sortieren: phase -> sub_group -> master_id
-        const sorted = [...steps].sort((a, b) => {
+        const sorted = [...filteredSteps].sort((a, b) => {
             const pa = a.phase ?? 0;
             const pb = b.phase ?? 0;
             if (pa !== pb) return pa - pb;
@@ -3818,7 +3873,11 @@
         openUniversalVariableEditor,
         closeUnifiedOverlay,
         getMultiIngredientsForContext,
-        saveMultiIngredientsForContext
+        saveMultiIngredientsForContext,
+        // Filter functions (Phase 1)
+        setSearchQuery,
+        setPhaseFilter,
+        renderStepButtons
     });
 
 
