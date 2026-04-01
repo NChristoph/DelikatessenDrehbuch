@@ -1,7 +1,6 @@
 /* ===== Smart Step Creator Filter UI ===== */
 
 .step-filter-controls {
-    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -42,7 +41,6 @@
 /* ===== Phase Tabs ===== */
 .phase-tabs {
     display: flex;
-    gap: 8px;
     flex-wrap: wrap;
     gap: 8px;
 }
@@ -147,7 +145,6 @@
     border-color: rgba(255, 170, 220, 0.4);
 }
 
-/* ===== Rosa Theme Overrides ===== */
 .step-filter-controls[data-theme="rosa"] .phase-tab.active {
     background: linear-gradient(135deg, #ff7fcf 0%, #ff5fb8 100%);
     border-color: rgba(255, 127, 207, 0.8);
@@ -236,10 +233,8 @@
 @media (max-width: 576px) {
     .phase-tabs {
         gap: 6px;
-}
+    }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
     .phase-tab {
         padding: 6px 10px;
         font-size: 0.75rem;

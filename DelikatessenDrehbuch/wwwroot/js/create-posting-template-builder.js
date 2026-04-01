@@ -1,100 +1,6 @@
 (function (window) {
     'use strict';
 
-    // ✅ State für Filterung
-    let currentSearchQuery = '';
-    let currentPhaseFilter = 'all'; // 'all', 1, 2, 3, 4
-
-    // ✅ Icon-Mapping basierend auf action/phase
-    const ACTION_ICONS = {
-        'cut': '🔪',
-        'chop': '🔪',
-        'dice': '🔪',
-        'grate': '🧀',
-        'peel': '🥕',
-        'sear': '🔥',
-        'fry': '🍳',
-        'roast': '🔥',
-        'braise': '🫕',
-        'simmer': '🥘',
-        'boil': '💧',
-        'bake': '🔥',
-        'grill': '🔥',
-        'deglaze': '🍷',
-        'mix': '🥄',
-        'whisk': '🥄',
-        'stir': '🥄',
-        'fold': '🥄',
-        'knead': '👐',
-        'season': '🧂',
-        'sauce': '🥫',
-        'serve': '🍽️',
-        'baste': '🥄',
-        'grill_finish': '🔥',
-        'form_dumplings': '🥟',
-        'simmer_dumplings': '🥟',
-        'cure': '🧂'
-    };
-
-    const PHASE_ICONS = {
-        0: '📋', // Basis
-        1: '🔪', // Vorbereitung
-        2: '🔥', // Kochen
-        3: '✨', // Finishing
-        4: '🍽️'  // Servieren
-    };
-
-    function getStepIcon(step) {
-        const action = (step.action || '').toLowerCase();
-        return ACTION_ICONS[action] || PHASE_ICONS[step.phase] || '📝';
-    }
-
-    function getPhaseBadge(phase) {
-        const labels = {
-            0: 'Basis',
-            1: 'Vorbereitung',
-            2: 'Kochen',
-            3: 'Finishing',
-            4: 'Servieren'
-        };
-        const label = labels[phase] || '';
-        return label ? `<span class="phase-badge phase-${phase}">${label}</span>` : '';
-    }
-
-    function matchesSearch(step, query) {
-        if (!query) return true;
-        const q = query.toLowerCase();
-        const searchText = [
-            step.description || '',
-            step.master_id || '',
-            step.action || '',
-            ...(step.selection_tags || [])
-        ].join(' ').toLowerCase();
-        return searchText.includes(q);
-    }
-
-    function filterTemplates(templates) {
-        return templates.filter(step => {
-            // Phase-Filter
-            if (currentPhaseFilter !== 'all' && step.phase !== currentPhaseFilter) {
-                return false;
-            }
-            // Such-Filter
-            if (!matchesSearch(step, currentSearchQuery)) {
-                return false;
-            }
-            return true;
-        });
-    }
-
-    function setSearchQuery(query) {
-        currentSearchQuery = (query || '').trim();
-    }
-
-    function setPhaseFilter(phase) {
-        currentPhaseFilter = phase;
-    }
-
     function setMasterTemplateError(message) {
         const box = window.jQuery('#masterTemplateCards');
         if (!box.length) return;
@@ -118,19 +24,11 @@
             return;
         }
 
-        let templates = window.MasterStepRenderer.getAllTemplates();
+        const templates = window.MasterStepRenderer.getAllTemplates();
         if (!templates.length) {
             setMasterTemplateError('Keine Templates gefunden. Prüfe /data/master_steps.json.');
             deps.creatorState.selectedTemplateId = '';
             deps.updatePreviewText();
-            return;
-        }
-
-        // ✅ Filterung anwenden
-        templates = filterTemplates(templates);
-
-        if (!templates.length) {
-            box.html(`<div class="small ${window.getThemeMutedTextClass()}">Keine Steps gefunden für diesen Filter.</div>`);
             return;
         }
 
@@ -140,14 +38,13 @@
 
         templates.forEach((step, index) => {
             const active = step.master_id === deps.creatorState.selectedTemplateId ? 'active' : '';
-            const icon = getStepIcon(step); // ✅ Neues Icon-System
+            const icon = step.categoryIcon || (index % 3 === 0 ? '&#128293;' : index % 3 === 1 ? '&#128298;' : '&#129532;');
             const vars = deps.buildVariablesForTemplate(step.master_id);
             const snippet = window.MasterStepRenderer.render(step.master_id, vars, deps.currentLang()) || step.master_id;
             const title = (step.description || '').toString().trim() || `Template ${index + 1}`;
-            const phaseLabel = getPhaseBadge(step.phase); // ✅ Phase-Badge
 
-            box.append(`<button type="button" class="template-card ${active}" data-theme="${window.getCreatePostingTheme()}" data-id="${step.master_id}" data-title="${title}" data-phase="${step.phase}">
-                    <div class="template-title">${icon} ${title} ${phaseLabel}</div>
+            box.append(`<button type="button" class="template-card ${active}" data-theme="${window.getCreatePostingTheme()}" data-id="${step.master_id}" data-title="${title}">
+                    <div class="template-title">${icon} ${title}</div>
                     <div class="template-snippet">${snippet}</div>
                 </button>`);
         });

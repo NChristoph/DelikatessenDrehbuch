@@ -3,23 +3,6 @@
 
     const $ = window.jQuery;
 
-        // Event-Listener für Such-Inputs
-        $(document).on('input', '.step-search-input', function () {
-            const query = $(this).val();
-            window.CreatePostingTemplateBuilder.setSearchQuery(query);
-            refreshTemplates();
-        });
-
-        // Event-Listener für Phase-Tabs
-        $(document).on('click', '.phase-tab', function () {
-            $('.phase-tab').removeClass('active');
-            $(this).addClass('active');
-            const phase = $(this).data('phase');
-            window.CreatePostingTemplateBuilder.setPhaseFilter(phase);
-            refreshTemplates();
-        });
-    }
-
     function injectFilterUI(containerSelector) {
         const container = $(containerSelector);
         if (!container.length || container.prev('.step-filter-controls').length) {
@@ -69,7 +52,7 @@
             // Apply filter
             if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.setPhaseFilter === 'function') {
                 window.MasterStepCreatorHelpers.setPhaseFilter(phase);
-        }
+            }
         });
     }
 
