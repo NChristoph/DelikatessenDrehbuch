@@ -1,0 +1,247 @@
+/* ===== Smart Step Creator Filter UI ===== */
+
+.step-filter-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ===== Search Input ===== */
+.step-search-wrapper {
+    width: 100%;
+}
+
+.step-search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8f9ff;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.step-search-input::placeholder {
+    color: rgba(220, 228, 255, 0.5);
+}
+
+.step-search-input:focus {
+    outline: none;
+    border-color: rgba(141, 99, 255, 0.6);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 3px rgba(141, 99, 255, 0.15);
+}
+
+/* ===== Phase Tabs ===== */
+.phase-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.phase-tab {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8f9ff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.phase-tab:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.phase-tab.active {
+    background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
+    border-color: rgba(141, 99, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(141, 99, 255, 0.3);
+    color: #ffffff;
+}
+
+/* ===== Theme: Light ===== */
+.step-filter-controls[data-theme="light"] {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(26, 36, 56, 0.12);
+}
+
+.step-filter-controls[data-theme="light"] .step-search-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(26, 36, 56, 0.2);
+    color: #101828;
+}
+
+.step-filter-controls[data-theme="light"] .step-search-input::placeholder {
+    color: rgba(16, 24, 40, 0.5);
+}
+
+.step-filter-controls[data-theme="light"] .step-search-input:focus {
+    border-color: #5b6df9;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(91, 109, 249, 0.15);
+}
+
+.step-filter-controls[data-theme="light"] .phase-tab {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(26, 36, 56, 0.2);
+    color: #101828;
+}
+
+.step-filter-controls[data-theme="light"] .phase-tab:hover {
+    background: #ffffff;
+    border-color: rgba(26, 36, 56, 0.3);
+}
+
+.step-filter-controls[data-theme="light"] .phase-tab.active {
+    background: linear-gradient(135deg, #5b6df9 0%, #4758e8 100%);
+    color: #ffffff;
+}
+
+/* ===== Theme: Rosa ===== */
+.step-filter-controls[data-theme="rosa"] {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 170, 220, 0.22);
+}
+
+.step-filter-controls[data-theme="rosa"] .step-search-input {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 170, 220, 0.3);
+    color: #ffffff;
+    text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+}
+
+.step-filter-controls[data-theme="rosa"] .step-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+}
+
+.step-filter-controls[data-theme="rosa"] .step-search-input:focus {
+    border-color: #ff7fcf;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 127, 207, 0.25);
+}
+
+.step-filter-controls[data-theme="rosa"] .phase-tab {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 170, 220, 0.3);
+    color: #ffffff;
+    text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+}
+
+.step-filter-controls[data-theme="rosa"] .phase-tab:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 170, 220, 0.4);
+}
+
+.step-filter-controls[data-theme="rosa"] .phase-tab.active {
+    background: linear-gradient(135deg, #ff7fcf 0%, #ff5fb8 100%);
+    border-color: rgba(255, 127, 207, 0.8);
+    box-shadow: 0 2px 8px rgba(255, 127, 207, 0.4);
+}
+
+/* ===== Theme: Gold ===== */
+.step-filter-controls[data-theme="gold"] {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 220, 140, 0.25);
+}
+
+.step-filter-controls[data-theme="gold"] .step-search-input {
+    background: rgba(42, 55, 86, 0.6);
+    border-color: rgba(255, 220, 140, 0.3);
+    color: #ffffff;
+}
+
+.step-filter-controls[data-theme="gold"] .step-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.step-filter-controls[data-theme="gold"] .step-search-input:focus {
+    border-color: #e7b95a;
+    background: rgba(42, 55, 86, 0.8);
+    box-shadow: 0 0 0 3px rgba(231, 185, 90, 0.2);
+}
+
+.step-filter-controls[data-theme="gold"] .phase-tab {
+    background: rgba(42, 55, 86, 0.6);
+    border-color: rgba(255, 220, 140, 0.3);
+    color: #ffffff;
+}
+
+.step-filter-controls[data-theme="gold"] .phase-tab:hover {
+    background: rgba(42, 55, 86, 0.8);
+    border-color: rgba(255, 220, 140, 0.4);
+}
+
+.step-filter-controls[data-theme="gold"] .phase-tab.active {
+    background: linear-gradient(135deg, #e7b95a 0%, #d39903 100%);
+    border-color: rgba(231, 185, 90, 0.8);
+    box-shadow: 0 2px 8px rgba(231, 185, 90, 0.4);
+}
+
+/* ===== Theme: Navy ===== */
+.step-filter-controls[data-theme="navy"] {
+    background: rgba(7, 20, 46, 0.4);
+    border-color: rgba(163, 199, 255, 0.2);
+}
+
+.step-filter-controls[data-theme="navy"] .step-search-input {
+    background: rgba(7, 20, 46, 0.6);
+    border-color: rgba(173, 207, 255, 0.3);
+    color: #f7fbff;
+}
+
+.step-filter-controls[data-theme="navy"] .step-search-input::placeholder {
+    color: rgba(237, 245, 255, 0.5);
+}
+
+.step-filter-controls[data-theme="navy"] .step-search-input:focus {
+    border-color: #79aaff;
+    background: rgba(7, 20, 46, 0.8);
+    box-shadow: 0 0 0 3px rgba(121, 170, 255, 0.2);
+}
+
+.step-filter-controls[data-theme="navy"] .phase-tab {
+    background: rgba(7, 20, 46, 0.6);
+    border-color: rgba(173, 207, 255, 0.3);
+    color: #f7fbff;
+}
+
+.step-filter-controls[data-theme="navy"] .phase-tab:hover {
+    background: rgba(7, 20, 46, 0.8);
+    border-color: rgba(173, 207, 255, 0.4);
+}
+
+.step-filter-controls[data-theme="navy"] .phase-tab.active {
+    background: linear-gradient(135deg, #79aaff 0%, #5f85ff 100%);
+    border-color: rgba(121, 170, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(121, 170, 255, 0.4);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 576px) {
+    .phase-tabs {
+        gap: 6px;
+    }
+
+    .phase-tab {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .step-search-input {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+}

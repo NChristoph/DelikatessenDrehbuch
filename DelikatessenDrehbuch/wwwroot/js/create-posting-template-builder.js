@@ -1,6 +1,47 @@
 (function (window) {
     'use strict';
 
+    // ===== Filter State =====
+    let currentSearchQuery = '';
+    let currentPhaseFilter = 'all';
+
+    function matchesSearch(step, query) {
+        if (!query) return true;
+        const q = query.toLowerCase();
+        const searchText = [
+            step.description || '',
+            step.master_id || '',
+            step.action || '',
+            ...(step.selection_tags || [])
+        ].join(' ').toLowerCase();
+        return searchText.includes(q);
+    }
+
+    function filterTemplates(templates) {
+        return templates.filter(step => {
+            // Phase filter
+            if (currentPhaseFilter !== 'all') {
+                const phaseNum = parseInt(currentPhaseFilter, 10);
+                if (step.phase !== phaseNum) {
+                    return false;
+                }
+            }
+            // Search filter
+            if (!matchesSearch(step, currentSearchQuery)) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    function setSearchQuery(query) {
+        currentSearchQuery = query || '';
+    }
+
+    function setPhaseFilter(phase) {
+        currentPhaseFilter = phase || 'all';
+    }
+
     function setMasterTemplateError(message) {
         const box = window.jQuery('#masterTemplateCards');
         if (!box.length) return;
@@ -24,9 +65,18 @@
             return;
         }
 
-        const templates = window.MasterStepRenderer.getAllTemplates();
+        let templates = window.MasterStepRenderer.getAllTemplates();
+
+        // Apply filters
+        const originalLength = templates.length;
+        templates = filterTemplates(templates);
+
         if (!templates.length) {
-            setMasterTemplateError('Keine Templates gefunden. Prüfe /data/master_steps.json.');
+            if (originalLength > 0) {
+                box.html(`<div class="small ${window.getThemeMutedTextClass()}">Keine Steps für diesen Filter gefunden.</div>`);
+            } else {
+                setMasterTemplateError('Keine Templates gefunden. Prüfe /data/master_steps.json.');
+            }
             deps.creatorState.selectedTemplateId = '';
             deps.updatePreviewText();
             return;
@@ -71,9 +121,18 @@
             return;
         }
 
-        const templates = window.MasterStepRenderer.getAllTemplates();
+        let templates = window.MasterStepRenderer.getAllTemplates();
+
+        // Apply filters
+        const originalLength = templates.length;
+        templates = filterTemplates(templates);
+
         if (!templates.length) {
-            box.html(`<div class="small ${window.getThemeMutedTextClass()}">Keine Templates gefunden.</div>`);
+            if (originalLength > 0) {
+                box.html(`<div class="small ${window.getThemeMutedTextClass()}">Keine Steps für diesen Filter gefunden.</div>`);
+            } else {
+                box.html(`<div class="small ${window.getThemeMutedTextClass()}">Keine Templates gefunden.</div>`);
+            }
             return;
         }
 
@@ -109,6 +168,8 @@
         setMasterTemplateError: setMasterTemplateError,
         renderTemplateCards: renderTemplateCards,
         renderSc2TemplateCards: renderSc2TemplateCards,
-        refreshMasterTemplateBuilder: refreshMasterTemplateBuilder
+        refreshMasterTemplateBuilder: refreshMasterTemplateBuilder,
+        setSearchQuery: setSearchQuery,
+        setPhaseFilter: setPhaseFilter
     };
 })(window);
