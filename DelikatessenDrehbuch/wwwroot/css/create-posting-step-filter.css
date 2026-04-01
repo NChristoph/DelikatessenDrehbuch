@@ -1,0 +1,156 @@
+/* ===== Step Filter Controls ===== */
+.step-filter-controls {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.step-search-wrapper {
+    position: relative;
+}
+
+.step-search-input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.step-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.step-search-input:focus {
+    outline: none;
+    border-color: rgba(124, 140, 255, 0.5);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 3px rgba(124, 140, 255, 0.1);
+}
+
+/* ===== Phase Tabs ===== */
+.phase-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.phase-tab {
+    flex: 1;
+    min-width: 90px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.phase-tab:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.20);
+    color: #fff;
+}
+
+.phase-tab.active {
+    background: linear-gradient(135deg, #7c8cff 0%, #5b6df9 100%);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(124, 140, 255, 0.3);
+}
+
+/* ===== Phase Badges in Template Cards ===== */
+.phase-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: 6px;
+    opacity: 0.8;
+}
+
+.phase-badge.phase-0 {
+    background: rgba(128, 128, 128, 0.3);
+    color: #fff;
+}
+
+.phase-badge.phase-1 {
+    background: rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+}
+
+.phase-badge.phase-2 {
+    background: rgba(244, 67, 54, 0.3);
+    color: #ff5252;
+}
+
+.phase-badge.phase-3 {
+    background: rgba(156, 39, 176, 0.3);
+    color: #ce93d8;
+}
+
+.phase-badge.phase-4 {
+    background: rgba(76, 175, 80, 0.3);
+    color: #81c784;
+}
+
+/* ===== Light Theme Overrides ===== */
+.step-filter-controls[data-theme="light"] .step-search-input {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #101828;
+}
+
+.step-filter-controls[data-theme="light"] .step-search-input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+.step-filter-controls[data-theme="light"] .step-search-input:focus {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: #5b6df9;
+}
+
+.step-filter-controls[data-theme="light"] .phase-tab {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.10);
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.step-filter-controls[data-theme="light"] .phase-tab:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #000;
+}
+
+/* ===== Rosa Theme Overrides ===== */
+.step-filter-controls[data-theme="rosa"] .phase-tab.active {
+    background: linear-gradient(135deg, #ff7fcf 0%, #ff5cb8 100%);
+}
+
+.step-filter-controls[data-theme="rosa"] .step-search-input:focus {
+    border-color: rgba(255, 127, 207, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 127, 207, 0.1);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .phase-tab {
+        font-size: 11px;
+        padding: 6px 8px;
+        min-width: 70px;
+    }
+
+    .step-search-input {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+}
