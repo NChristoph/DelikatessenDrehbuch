@@ -1390,9 +1390,6 @@
             if (typeof refreshIngredientProbabilityHints === 'function') {
                 refreshIngredientProbabilityHints();
             }
-            if (typeof renderSc2TemplateCards === 'function') {
-                renderSc2TemplateCards();
-            }
             if (typeof updateLanguageLabels === 'function') {
                 updateLanguageLabels();
             }
@@ -2710,7 +2707,6 @@
                 creatorState,
                 buildVariablesForTemplate,
                 updatePreviewText,
-                renderSc2TemplateCards,
                 currentLang: () => currentLang
             });
         }
@@ -2734,7 +2730,6 @@
                 creatorState,
                 buildVariablesForTemplate,
                 updatePreviewText,
-                renderSc2TemplateCards,
                 applyCurrentThemeAttributes,
                 applyDerivedIngredientRowVisuals,
                 renderIngredientChips,
@@ -3743,14 +3738,6 @@
                 wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`);
             });
         }
-        function renderSc2TemplateCards() {
-            return window.CreatePostingTemplateBuilder.renderSc2TemplateCards({
-                creatorState,
-                buildVariablesForTemplate,
-                currentLang: () => currentLang
-            });
-        }
-
         function showSc2CreatorToast(message) {
             window.CreatePostingFeedback.showToast(message, {
                 selector: '#sc2CreatorToast',
@@ -4006,7 +3993,6 @@
                         creatorState.placeholderAssignments[tokenId] || '',
                         function (selectedValue) {
                             creatorState.placeholderAssignments[tokenId] = selectedValue;
-                            renderSc2TemplateCards();
                         },
                         null,
                         function (extras) {
@@ -4020,7 +4006,6 @@
                 } else {
                     creatorState.activePlaceholderTokenId = '';
                 }
-                renderSc2TemplateCards();
             } catch (err) {
                 console.error('SC2 openSc2EditorForPlaceholderToken error:', err);
             }
