@@ -1390,16 +1390,16 @@
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
       "templates": {
-        "de": "Schneide {{ingredient}}[ {{grind_size}}] {{shape}} ein.",
-        "en": "Cut {{ingredient}} into[ {{grind_size}}] {{shape}}.",
-        "esp": "Corta {{ingredient}} en[ {{grind_size}}] {{shape}}.",
-        "prt": "Corte {{ingredient}} em[ {{grind_size}}] {{shape}}.",
-        "id": "Potong {{ingredient}} menjadi[ {{grind_size}}] {{shape}}.",
-        "nl": "Snijd {{ingredient}} in[ {{grind_size}}] {{shape}}.",
-        "sv": "Skär {{ingredient}} i[ {{grind_size}}] {{shape}}.",
-        "da": "Skær {{ingredient}} i[ {{grind_size}}] {{shape}}.",
-        "no": "Skjær {{ingredient}} i[ {{grind_size}}] {{shape}}.",
-        "ms": "Potong {{ingredient}} kepada[ {{grind_size}}] {{shape}}."
+        "de": "Schneide {{ingredient}}[ in {{grind_size}}] {{shape}} ein.",
+        "en": "Cut {{ingredient}}[ into {{grind_size}}] {{shape}}.",
+        "esp": "Corta {{ingredient}}[ en {{grind_size}}] {{shape}}.",
+        "prt": "Corte {{ingredient}}[ em {{grind_size}}] {{shape}}.",
+        "id": "Potong {{ingredient}}[ menjadi {{grind_size}}] {{shape}}.",
+        "nl": "Snijd {{ingredient}}[ in {{grind_size}}] {{shape}}.",
+        "sv": "Skär {{ingredient}}[ i {{grind_size}}] {{shape}}.",
+        "da": "Skær {{ingredient}}[ i {{grind_size}}] {{shape}}.",
+        "no": "Skjær {{ingredient}}[ i {{grind_size}}] {{shape}}.",
+        "ms": "Potong {{ingredient}}[ kepada {{grind_size}}] {{shape}}."
       },
       "variables": [
         "ingredient",

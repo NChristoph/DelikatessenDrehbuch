@@ -542,15 +542,43 @@
                 const normalized = normalizeOptionValue(entry.value);
                 return normalized && !blocked.has(normalized);
             });
+
+            // Add "Würfel" as first option (most common)
+            const hasWuerfel = filtered.some(entry => {
+                const normalized = normalizeOptionValue(entry.value);
+                return normalized === "würfel" || normalized === "wuerfel";
+            });
+            if (!hasWuerfel) {
+                filtered.unshift({
+                    value: "Würfel",
+                    score: Number.MAX_SAFE_INTEGER + 1,
+                    matchedTagsCount: 0,
+                    originalIndex: -1
+                });
+            } else {
+                // Move Würfel to first position
+                const wuerfelIndex = filtered.findIndex(entry => {
+                    const normalized = normalizeOptionValue(entry.value);
+                    return normalized === "würfel" || normalized === "wuerfel";
+                });
+                if (wuerfelIndex > 0) {
+                    const wuerfelEntry = filtered.splice(wuerfelIndex, 1)[0];
+                    wuerfelEntry.score = Number.MAX_SAFE_INTEGER + 1;
+                    filtered.unshift(wuerfelEntry);
+                }
+            }
+
+            // Add "gehackt" as fallback option
             const hasGehackt = filtered.some(entry => normalizeOptionValue(entry.value) === "gehackt");
             if (!hasGehackt) {
-                filtered.unshift({
+                filtered.splice(1, 0, {
                     value: "gehackt",
                     score: Number.MAX_SAFE_INTEGER,
                     matchedTagsCount: 0,
                     originalIndex: -1
                 });
             }
+
             return filtered;
         }
 
