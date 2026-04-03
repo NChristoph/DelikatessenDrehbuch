@@ -48,6 +48,9 @@
         // Get multi-ingredients data for this master
         const multiIngredientsData = window.ProbabilityMultiIngredients[masterId] || {};
 
+        console.log(`[buildInlineTemplateText] "${masterId}" - vars.removal:`, vars?.removal);
+        console.log(`[buildInlineTemplateText] "${masterId}" - overrideVars:`, overrideVars);
+
         return helpers.renderTemplateWithConfig(templateText, (masterId || 'template').toString(), vars || {}, {
             optionalValues: overrideVars || {},
             tokenWrapClass: 'probability-var-inline-wrap',
@@ -63,7 +66,10 @@
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-        const inlineText = buildInlineTemplateText(masterId, template, lang, vars, {});
+
+        // ✅ FIX (2026-04-02): Einheitlich wie rerenderInlineText - nutze overrides explizit
+        const overrides = {};  // Initial render = keine User-Overrides
+        const inlineText = buildInlineTemplateText(masterId, template, lang, vars, overrides);
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card preview-step-card w-100 text-start">
@@ -119,8 +125,6 @@
         const state = {
             presets: null,
             presetsPromise: null,
-            varsByTemplate: {},
-            inlineOverrides: {},
             currentTypeId: ''
         };
 
@@ -144,20 +148,19 @@
             return state.presetsPromise;
         }
 
-        function buildPreferredCards(preferredTemplateIds, varsByTemplate) {
+        function buildPreferredCards(preferredTemplateIds) {
             const cards = [];
             (preferredTemplateIds || []).forEach(masterId => {
                 const template = deps.findTemplate(masterId);
                 if (!template) return;
                 const vars = deps.buildVariablesForTemplate(masterId, state.currentTypeId);
-                varsByTemplate[masterId] = vars;
                 const snippet = deps.renderTemplate(masterId, vars, getLang()) || masterId;
                 cards.push(buildTemplateCardHtml(masterId, snippet, template, vars, getLang()));
             });
             return cards;
         }
 
-        function buildFallbackCards(ingredientNames, varsByTemplate) {
+        function buildFallbackCards(ingredientNames) {
             const preview = deps.getMasterStepPreview(ingredientNames, { lang: getLang(), recipeType: state.currentTypeId }) || [];
             if (!preview.length) return [];
 
@@ -170,41 +173,27 @@
                 const template = deps.findTemplate(masterId);
                 const vars = deps.buildVariablesForTemplate(masterId, state.currentTypeId);
                 cards.push(buildTemplateCardHtml(masterId, item.text || masterId, template, vars, getLang()));
-                varsByTemplate[masterId] = vars;
             });
             return cards;
         }
 
         function getMergedVars(masterId) {
-            // ✅ NEU (2026-03-28): Gemeinsame Funktion für Editor-Wert speichern
-            if (window.MasterStepCreatorHelpers && window.MasterStepCreatorHelpers.saveCurrentEditorValueBeforeAccept) {
-                window.MasterStepCreatorHelpers.saveCurrentEditorValueBeforeAccept('probability', masterId);
-            }
+            // ✅ VEREINFACHT (2026-04-03): Nur noch unified System (window.probabilityStates)
+            // Alte state.varsByTemplate und state.inlineOverrides wurden entfernt
 
-            const base = { ...(state.varsByTemplate[masterId] || deps.buildVariablesForTemplate(masterId, state.currentTypeId) || {}) };
-            const overrides = state.inlineOverrides[masterId] || {};
-            const merged = { ...base, ...overrides };
+            // Werte aus unified System holen
+            const merged = { ...(window.probabilityStates?.[masterId]?.values || {}) };
 
-            // ✅ NEU (2026-03-28): Werte aus window.probabilityStates einbeziehen!
-            // Diese enthalten die im Unified Overlay bearbeiteten Werte
-            if (window.probabilityStates && window.probabilityStates[masterId]) {
-                const stateValues = window.probabilityStates[masterId].values || {};
-                Object.assign(merged, stateValues);
-            }
-
-            // Apply multi-ingredients from global storage
-            const multiIngredients = window.ProbabilityMultiIngredients && window.ProbabilityMultiIngredients[masterId];
+            // Multi-ingredients formatieren (falls vorhanden)
+            const multiIngredients = window.ProbabilityMultiIngredients?.[masterId];
             if (multiIngredients) {
                 const helpers = window.MasterStepCreatorHelpers;
-                if (helpers && helpers.formatSelectedIngredientList) {
-                    // For each variable that has multi-ingredients, format them
+                if (helpers?.formatSelectedIngredientList) {
                     Object.keys(multiIngredients).forEach(varName => {
                         const ingredientList = multiIngredients[varName];
-                        if (ingredientList && ingredientList.length > 0) {
+                        if (ingredientList?.length > 0) {
                             const formatted = helpers.formatSelectedIngredientList(ingredientList, getLang() || 'de');
-                            if (formatted) {
-                                merged[varName] = formatted;
-                            }
+                            if (formatted) merged[varName] = formatted;
                         }
                     });
                 }
@@ -213,107 +202,11 @@
             return merged;
         }
 
-        function rerenderInlineText(masterId, wrap) {
-            const merged = getMergedVars(masterId);
-            const overrides = state.inlineOverrides[masterId] || {};
-            const template = deps.findTemplate(masterId);
-            const nextHtml = buildInlineTemplateText(masterId, template, getLang(), merged, overrides);
-            const nextText = deps.renderTemplate(masterId, merged, getLang()) || masterId;
-            wrap.find('.probability-template-text').html(nextHtml || escapeHtml(nextText));
-        }
+        // ✅ (2026-04-03): Alte Event-Handler entfernt - werden jetzt vom unified System behandelt!
+        // Variable-Klicks: Unified Handler in CreatePostingPage.js (Zeile 4220)
+        // Accept/Dismiss: Unten neu definiert (ohne alte rerenderInlineText Logik)
 
-        // Opens the state editor for a specific chip in a probability card.
-        function openProbStateEditor(masterId, wrap, stateChip) {
-            if (!stateChip || !deps.openProbVarEditor) return;
-            const currentVars = getMergedVars(masterId);
-            const stateVal = (currentVars['state'] || '').toString();
-            deps.openProbVarEditor(masterId, 'state', stateVal, function (sv) {
-                if (sv == null) return;
-                if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                state.inlineOverrides[masterId]['state'] = sv;
-                rerenderInlineText(masterId, wrap);
-            }, $(stateChip));
-        }
-
-        // Opens pronoun editor first, then state editor sequentially.
-        function openPronounThenState(masterId, wrap, stateChip) {
-            if (!deps.openProbVarEditor) return;
-            const pronounChip = wrap.find('.js-probability-var[data-var-key="pronoun"]')[0];
-            if (!pronounChip) {
-                openProbStateEditor(masterId, wrap, stateChip);
-                return;
-            }
-            const currentVars = getMergedVars(masterId);
-            const pronounVal = (currentVars['pronoun'] || '').toString();
-            deps.openProbVarEditor(masterId, 'pronoun', pronounVal, function (pv) {
-                if (pv == null) return;
-                if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                state.inlineOverrides[masterId]['pronoun'] = pv;
-                rerenderInlineText(masterId, wrap);
-                // After pronoun is set, open state editor
-                const updatedStateChip = wrap.find('.js-probability-var[data-var-key="state"]')[0];
-                openProbStateEditor(masterId, wrap, updatedStateChip || stateChip);
-            }, $(pronounChip));
-        }
-
-        function bindInlineEvents() {
-            $(document).off('click.probabilityInlineVar').on('click.probabilityInlineVar', '.js-probability-var', function (event) {
-                event.preventDefault();
-                event.stopImmediatePropagation(); // verhindert dass js-probability-template-Handler feuert und Editor wieder schliesst
-                const chip = $(this);
-                const wrap = chip.closest('.probability-template-wrap');
-                const masterId = (wrap.data('master-id') || '').toString();
-                const varKey = (chip.data('var-key') || '').toString();
-                if (!masterId || !varKey) return;
-
-                // Sequential editing DISABLED: Show combined pronoun+state editor instead
-                // if (varKey === 'state' && deps.openProbVarEditor) {
-                //     const pronounChip = wrap.find('.js-probability-var[data-var-key="pronoun"]')[0];
-                //     if (pronounChip) {
-                //         const pronounOverride = (state.inlineOverrides[masterId] || {})['pronoun'] || '';
-                //         if (!pronounOverride) {
-                //             openPronounThenState(masterId, wrap, chip[0]);
-                //             return;
-                //         }
-                //     }
-                // }
-
-                const currentVars = getMergedVars(masterId);
-                const currentVal = (currentVars[varKey] || '').toString();
-
-                if (deps.openProbVarEditor) {
-                    deps.openProbVarEditor(masterId, varKey, currentVal, function (newVal) {
-                        if (newVal == null) return;
-                        if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                        state.inlineOverrides[masterId][varKey] = newVal;
-                        rerenderInlineText(masterId, wrap);
-                        // Sequential editing DISABLED: User can fill pronoun and state independently
-                        // if (varKey === 'pronoun') {
-                        //     const stateOverride = (state.inlineOverrides[masterId] || {})['state'] || '';
-                        //     if (!stateOverride) {
-                        //         const stateChip = wrap.find('.js-probability-var[data-var-key="state"]')[0];
-                        //         if (stateChip) openProbStateEditor(masterId, wrap, stateChip);
-                        //     }
-                        // }
-                    }, chip, function (extras) {
-                        if (!extras || typeof extras !== 'object') return;
-                        if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                        Object.keys(extras).forEach(function (k) {
-                            if (extras[k] != null) state.inlineOverrides[masterId][k] = extras[k];
-                        });
-                        rerenderInlineText(masterId, wrap);
-                    });
-                } else {
-                    const helpers = window.MasterStepCreatorHelpers || {};
-                    const displayKey = typeof helpers.getVarDisplayName === 'function' ? helpers.getVarDisplayName(varKey) : varKey;
-                    const nextVal = window.prompt(`Wert für ${displayKey}:`, currentVal);
-                    if (nextVal == null) return;
-                    if (!state.inlineOverrides[masterId]) state.inlineOverrides[masterId] = {};
-                    state.inlineOverrides[masterId][varKey] = nextVal;
-                    rerenderInlineText(masterId, wrap);
-                }
-            });
-
+        function bindAcceptDismissEvents() {
             $(document).off('click.probabilityAccept').on('click.probabilityAccept', '.js-probability-accept', async function (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -387,11 +280,10 @@
 
             await loadPresets();
             const preferredTemplateIds = getPreferredMasterTemplateIdsForType(typeId, state.presets);
-            const varsByTemplate = {};
-            let cards = buildPreferredCards(preferredTemplateIds, varsByTemplate);
+            let cards = buildPreferredCards(preferredTemplateIds);
 
             if (!cards.length) {
-                cards = buildFallbackCards(ingredients, varsByTemplate);
+                cards = buildFallbackCards(ingredients);
                 if (!cards.length) {
                     box.removeClass('d-none').html(`<div class="small text-white-50">${escapeHtml(UI_TEXT.noTemplates)}</div>`);
                     selectedIngredientSuggestionBox.empty();
@@ -399,11 +291,9 @@
                 }
             }
 
-            state.varsByTemplate = varsByTemplate;
-            state.inlineOverrides = {};
             box.removeClass('d-none').html(cards.join(''));
             selectedIngredientSuggestionBox.empty();
-            bindInlineEvents();
+            bindAcceptDismissEvents();
         }
 
         return {

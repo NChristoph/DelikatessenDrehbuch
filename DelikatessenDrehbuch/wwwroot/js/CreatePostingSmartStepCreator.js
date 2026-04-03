@@ -96,6 +96,21 @@
     }
 
     // -----------------------------
+    // GENUS TO ARTICLE CONVERSION
+    // -----------------------------
+    function genusToArticle(genus, lang = 'de') {
+        const g = (genus || '').toString().trim().toLowerCase();
+        if (lang === 'de') {
+            if (g === 'f' || g === 'fem' || g === 'feminine') return 'die';
+            if (g === 'n' || g === 'neut' || g === 'neuter') return 'das';
+            if (g === 'm' || g === 'masc' || g === 'masculine') return 'der';
+        }
+        // Für andere Sprachen: meistens "the" oder leer
+        if (lang === 'en') return 'the';
+        return '';
+    }
+
+    // -----------------------------
     // FRACTION HELPERS
     // -----------------------------
     function getFractionOptions() {
@@ -113,7 +128,7 @@
         }));
     }
 
-    function composeFractionText(fractionDef, ingredientName, article) {
+    function composeFractionText(fractionDef, ingredientName, article, genus) {
         if (!fractionDef || !ingredientName) return ingredientName || "";
 
         // Convert nominative articles to genitive for fraction constructions
@@ -133,13 +148,23 @@
                     "dem": "des",  // masculine/neuter dative → genitive
                     "einen": "eines",  // indefinite masculine accusative → genitive
                     "einem": "eines",  // indefinite masculine/neuter dative → genitive
-                    // NOTE: "der" can be:
-                    //   - masculine nominative → should become "des"
-                    //   - feminine genitive → should stay "der"
-                    // We assume if user selects "der" with fraction, they mean genitive (feminine)
-                    // So we DON'T convert "der" anymore!
                 };
-                genitiveArticle = genitiveMap[lowerArticle] || article;
+
+                // ✅ FIX (2026-04-02): "der" richtig konvertieren basierend auf Genus
+                if (lowerArticle === "der") {
+                    // "der" kann maskulin Nominativ ODER feminin Genitiv sein
+                    // Prüfe Genus um zu entscheiden
+                    const genusLower = (genus || '').toString().toLowerCase();
+                    if (genusLower === 'm' || genusLower === 'masc' || genusLower === 'masculine') {
+                        // Maskulin Nominativ → Genitiv "des"
+                        genitiveArticle = "des";
+                    } else {
+                        // Feminin (oder unbekannt) → bleibt "der" (feminin Genitiv)
+                        genitiveArticle = "der";
+                    }
+                } else {
+                    genitiveArticle = genitiveMap[lowerArticle] || article;
+                }
             }
         }
 
@@ -1778,7 +1803,10 @@
                 console.log('[formatSelectedIngredientList] Fraction def:', fractionDef);
 
                 // Compose with fraction
-                const result = composeFractionText(fractionDef, itemName, article);
+                // ✅ FIX (2026-04-02): Genus aus Katalog holen für korrekten Genitiv
+                const fullIngredient = allIngredients.find(ing => ing.name === itemName);
+                const genus = fullIngredient?.genusByLang?.[lang] || '';
+                const result = composeFractionText(fractionDef, itemName, article, genus);
                 console.log(`[formatSelectedIngredientList] Composed: ${result}`);
                 return result;
             });
@@ -1925,11 +1953,15 @@
 
         // Multi-ingredients chips (already added ingredients with remove buttons)
         const frOpts = getFractionOptions();
+        const allIngredients = getSelectedIngredientsFromPage(); // ✅ FIX (2026-04-02): Für Genus-Lookup
         const multiIngredientsChips = multiIngredients.length > 0
             ? multiIngredients.map((item, idx) => {
                 const frDef = frOpts.find(f => f.key === item.fraction);
+                // ✅ FIX (2026-04-02): Genus aus Katalog holen für korrekten Genitiv
+                const fullIngredient = allIngredients.find(ing => ing.name === item.name);
+                const genus = fullIngredient?.genusByLang?.[currentLang] || '';
                 const displayText = item.fraction && frDef
-                    ? composeFractionText(frDef, item.name, item.article)
+                    ? composeFractionText(frDef, item.name, item.article, genus)
                     : (item.article && item.article !== "ohne" ? `${item.article} ${item.name}` : item.name);
                 return `<span class="badge bg-primary me-1 mb-1" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
                     ${escapeHtml(displayText)}
@@ -1938,10 +1970,11 @@
             }).join("")
             : "";
 
-        const multiIngredientsSection = multiIngredientsChips
+        // ✅ FIX (2026-04-02): Immer Multi-Ingredient-Sektion zeigen (auch wenn leer)
+        const multiIngredientsSection = ingredientVar
             ? `<div class="mb-2 pb-2 border-bottom">
-                <div class="small text-muted mb-1"><strong>Bereits hinzugefügt:</strong></div>
-                <div>${multiIngredientsChips}</div>
+                <div class="small text-muted mb-1"><strong>Ausgewählte Zutaten:</strong></div>
+                <div>${multiIngredientsChips || '<span class="text-muted small">Noch keine Zutaten ausgewählt. Wähle unten mehrere Zutaten aus.</span>'}</div>
                </div>`
             : "";
 
@@ -2117,8 +2150,16 @@
                 list.splice(idx, 1);
                 pickBtn.classList.remove("active");
             } else {
-                list.push({ name: val, fraction: "", article: "" });
+                // ✅ FIX (2026-04-02): Artikel automatisch aus Katalog-Genus konvertieren
+                const allIngredients = getSelectedIngredientsFromPage();
+                const catalogItem = allIngredients.find(ing => ing.name === val);
+                const genusFromCatalog = catalogItem?.genusByLang?.[currentLang] || '';
+                const autoArticle = genusToArticle(genusFromCatalog, currentLang);
+
+                list.push({ name: val, fraction: "", article: autoArticle });
                 pickBtn.classList.add("active");
+
+                console.log("[Ingredient-Value Mode] Auto-article:", { genus: genusFromCatalog, article: autoArticle });
             }
             host.dataset.selectedIngredientValues = JSON.stringify(list);
             host.dataset.selectedValue = list.map(item => getIngredientName(item)).join(", ");
@@ -2332,6 +2373,18 @@
         // Close button
         $overlay.on('click.universal', '#BtnCloseVar, #BtnCloseVarTop', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
+            // ✅ FIX (2026-04-02): Auto-save current editor value before closing overlay
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
+            if (currentEditorEl && currentEditorEl.dataset.editorFor) {
+                const value = applyEditorValue(currentEditorEl);
+                const extras = applyEditorExtras(currentEditorEl);
+                const varName = currentEditorEl.dataset.editorFor;
+
+                // Only save if there's a value (don't save empty selections)
+                if (value !== null && value !== '') {
+                    updateContextValue(context, varName, value, extras);
+                }
+            }
             closeUnifiedOverlay();
             if (typeof onClose === 'function') onClose();
         });
@@ -2449,6 +2502,8 @@
      * Updates the value in the appropriate context (Step or Probability) - UNIFIED Object-based
      */
     function updateContextValue(context, varName, value, extras) {
+        console.log(`[updateContextValue] ━━━ CALLED ━━━`, { context: context.type, varName, value, extras });
+
         if (context.type === 'step') {
             // Smart Step Creator: Update activeStep and re-render
             if (!activeStep) {
@@ -2472,6 +2527,7 @@
         } else if (context.type === 'probability') {
             // Probability Area: Update probability state object and re-render (UNIFIED!)
             const masterId = context.probabilityMasterId || context.masterId;
+            console.log('[updateContextValue] Probability masterId:', masterId);
 
             // Get probability state from global dictionary (in CreatePostingPage.js)
             if (!window.probabilityStates || !window.probabilityStates[masterId]) {
@@ -2480,9 +2536,11 @@
             }
 
             const prob = window.probabilityStates[masterId];
+            console.log('[updateContextValue] Current prob.values BEFORE update:', prob.values);
 
             // Save value to probability state (wie activeStep!)
             prob.values[varName] = value;
+            console.log('[updateContextValue] prob.values AFTER update:', prob.values);
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
@@ -2491,6 +2549,7 @@
 
             // Re-render probability template (wie renderMasterText!)
             if (typeof window.renderProbabilityTemplate === 'function') {
+                console.log('[updateContextValue] Calling renderProbabilityTemplate...');
                 window.renderProbabilityTemplate(masterId);
             } else {
                 console.error('[updateContextValue] renderProbabilityTemplate not available!');
@@ -2583,8 +2642,26 @@
                         if (!item.fraction) item.fraction = fraction;
                     });
 
-                    // Combine existing + new
-                    const combinedList = [...existingMulti, ...newNormalized];
+                    // ✅ FIX (2026-04-02): Entferne Duplikate (gleicher Name, andere Fraktion)
+                    // Wenn neue Zutat mit Fraktion hinzugefügt wird, entferne alte Version ohne Fraktion
+                    console.log('[DEBUG] existingMulti BEFORE filter:', JSON.parse(JSON.stringify(existingMulti)));
+                    console.log('[DEBUG] newNormalized:', JSON.parse(JSON.stringify(newNormalized)));
+                    console.log('[DEBUG] fraction:', fraction);
+
+                    let filteredExisting = [...existingMulti];
+                    newNormalized.forEach(newItem => {
+                        // Entferne existierende Zutat mit gleichem Namen (unabhängig von Fraktion)
+                        filteredExisting = filteredExisting.filter(existing =>
+                            getIngredientName(existing) !== getIngredientName(newItem)
+                        );
+                    });
+
+                    console.log('[DEBUG] filteredExisting AFTER filter:', JSON.parse(JSON.stringify(filteredExisting)));
+
+                    // Combine filtered existing + new
+                    const combinedList = [...filteredExisting, ...newNormalized];
+                    console.log('[DEBUG] combinedList:', JSON.parse(JSON.stringify(combinedList)));
+
                     saveMultiIngredientsForContext(context, varName, combinedList);
 
                     const ingredientComposed = formatSelectedIngredientList(combinedList, currentLang || 'de');
@@ -2599,6 +2676,10 @@
                     if (typeof onApply === 'function') {
                         onApply(ingredientComposed, extras);
                     }
+
+                    // ✅ FIX (2026-04-02): Chips deselektieren nach Hinzufügen
+                    editorEl.dataset.selectedIngredientValues = "[]";
+                    editorEl.querySelectorAll('.ingredient-chip.active').forEach(btn => btn.classList.remove('active'));
 
                     // ✅ NEU (2026-03-28): Switch editor statt Close+Reopen (Overlay bleibt offen!)
                     config.currentVal = ingredientComposed;
@@ -2626,9 +2707,28 @@
                     saveMultiIngredientsForContext(context, varName, normalized);
                     value = formatSelectedIngredientList(normalized, currentLang || 'de');
                     console.log("[Unified Apply] Stored initial multi-ingredients:", normalized);
+
+                    // ✅ FIX (2026-04-02): UPDATE CONTEXT und neu laden (wie bei existingMulti)
+                    updateContextValue(context, varName, value, extras);
+                    updateOverlayPreview(context);
+
+                    if (typeof onApply === 'function') {
+                        onApply(value, extras);
+                    }
+
+                    // ✅ FIX (2026-04-02): Editor neu laden damit Badges erscheinen und Chips deselektiert werden
+                    config.currentVal = value;
+                    switchEditorVariable(varName, config);
+                    return;  // ← Important: Overlay bleibt offen aber wird neu geladen!
                 }
             }
         }
+
+        // ✅ WICHTIG: Wenn wir hier ankommen (kein Ingredient-Variable oder keine Selection),
+        // dann normale Logik verwenden
+
+        console.log('[applyUnifiedEditorValue] Normal path - calling updateContextValue');
+        console.log('[applyUnifiedEditorValue] varName:', varName, 'value:', value, 'extras:', extras);
 
         // UPDATE CONTEXT (Step or Probability Token) - UNIFIED for all cases
         updateContextValue(context, varName, value, extras);
@@ -2636,11 +2736,16 @@
         // ✅ NEU (2026-03-28): Preview im Overlay-Header aktualisieren!
         // Nach updateContextValue() wurde renderMasterText/renderProbabilityTemplate aufgerufen
         // → DOM wurde aktualisiert → Preview aus DOM in Overlay kopieren
+        console.log('[applyUnifiedEditorValue] Calling updateOverlayPreview...');
         updateOverlayPreview(context);
 
         // Call onApply callback for custom extra logic (optional)
+        console.log('[applyUnifiedEditorValue] Calling onApply callback...');
         if (typeof onApply === 'function') {
             onApply(value, extras);
+            console.log('[applyUnifiedEditorValue] ✅ onApply callback executed');
+        } else {
+            console.log('[applyUnifiedEditorValue] ⚠️ No onApply callback provided');
         }
 
         // ✅ NEU (2026-03-28): Overlay bleibt OFFEN!
@@ -3396,6 +3501,14 @@
         const value = applyEditorValue(currentEditorEl);
         const extras = applyEditorExtras(currentEditorEl);
 
+        // ✅ FIX (2026-04-02): Wenn value null ist, NICHT überschreiben (behält bestehenden Wert)
+        // Das passiert z.B. wenn "Step akzeptieren" geklickt wird während Overlay offen ist,
+        // aber selectedIngredientValues leer ist (weil bereits via "Einsetzen" gespeichert wurde)
+        if (value === null || value === '') {
+            console.log("[saveCurrentEditorValueBeforeAccept] Value is null/empty, skipping save to preserve existing value");
+            return false;
+        }
+
         // Save based on context type
         if (contextType === 'step') {
             if (!activeStep) return false;
@@ -3812,8 +3925,16 @@
             const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
             console.log("[applyEditorValue] Ingredient variable:", { varName, selectedValues });
 
-            // Hybrid: if no ingredient chips selected, fall through to regular value logic
+            // ✅ FIX (2026-04-02): Wenn selectedValues leer, prüfe ob Multi-Ingredients existieren
             if (!Array.isArray(selectedValues) || !selectedValues.length) {
+                // Check if we have existing multi-ingredients (already saved via "Einsetzen")
+                const existingMulti = activeStep?._multiIngredients?.[varName];
+                if (existingMulti && existingMulti.length > 0) {
+                    console.log("[applyEditorValue] Using existing multi-ingredients:", existingMulti);
+                    const normalized = normalizeIngredientValues(existingMulti);
+                    return formatSelectedIngredientList(normalized, currentLang);
+                }
+                // Hybrid: if no ingredient chips selected AND no multi-ingredients, fall through
                 if (!isHybridIngredientVariable(varName)) return null;
                 // fall through
             } else {
@@ -3827,8 +3948,12 @@
                 console.log("[applyEditorValue] Global values:", { globalArticle, globalFraction });
                 console.log("[applyEditorValue] Before applying global:", JSON.parse(JSON.stringify(normalized)));
 
+                // ✅ FIX (2026-04-02): Nutze globalArticle (vom User aus Chip gewählt) mit Priorität
                 normalized.forEach(item => {
-                    if (!item.article || item.article === '') item.article = globalArticle;
+                    // Wenn kein Artikel gesetzt, nutze globalArticle (User-Auswahl hat Priorität!)
+                    if (!item.article || item.article === '') {
+                        item.article = globalArticle;
+                    }
                     if (!item.fraction || item.fraction === '') item.fraction = globalFraction;
                 });
 

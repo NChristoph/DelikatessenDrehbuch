@@ -2,7 +2,7 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-02 · **NEU:** Smart Step Creator Filter UI (Phase 1) + PREP_CUT_01 Template-Verbesserungen
+> **Stand:** 2026-04-02 · **BUGFIXES:** 11 Fixes (Multi-Ingredients, Artikel-Grammatik, Optionale Variablen)
 
 ---
 
@@ -2481,6 +2481,179 @@ Gruppen-IDs: 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst,
 ---
 
 ## 27. Changelog
+
+### 2026-04-02 — Bugfixes: Multi-Ingredient-System & Artikel-Grammatik
+
+#### Kritische Bugfixes
+
+**1. CreatePostingPage.js — `localizeIngredientValueForSandbox()` (Zeile 1030-1059):**
+- 🐛 **Problem:** Funktion entfernte Artikel selbst bei gleicher Sprache (DE→DE)
+  - Beispiel: "die Tomaten, der Knoblauch" wurde zu "Tomaten und Knoblauch"
+  - Betraf Step-Akzeptierung: Zutaten kamen OHNE Artikel im Rezept an
+- ✅ **Fix:** Wenn Quell- und Zielsprache identisch sind, wird Originalwert zurückgegeben
+  - Neue Prüfung: `if (resolveLangKey(sourceLang) === resolveLangKey(targetLang)) return value;`
+  - Artikel bleiben erhalten: "die Tomaten" → "die Tomaten"
+- **Betroffene Variablen:** `{{ingredient}}`, `{{ingredient2}}`, `{{ingredients}}`, `{{liquid}}`, `{{fat}}`
+- **Impact:** Alle Steps die Zutaten verwenden, jetzt mit korrekten Artikeln
+
+**2. CreatePostingSmartStepCreator.js — Overlay Close Handler (Zeile 2332-2349):**
+- 🐛 **Problem:** Wenn Nutzer Zutaten auswählt aber Overlay OHNE "Einsetzen" schließt, gehen Werte verloren
+  - Workflow: Overlay öffnen → Chips klicken → "Schließen" → Step akzeptieren → LEER
+  - Grund: "Schließen"-Button speicherte nicht vor dem Schließen
+- ✅ **Fix:** Auto-Save beim Overlay-Schließen implementiert
+  - Liest aktuellen Editor-Wert via `applyEditorValue(currentEditorEl)`
+  - Speichert automatisch via `updateContextValue()` wenn Wert vorhanden
+  - Nur wenn `value !== null && value !== ''` (vermeidet leere Speicherungen)
+- **Impact:** Nutzer können Overlay schließen ohne explizit "Einsetzen" zu klicken
+
+**3. CreatePostingSmartStepCreator.js — Genus-zu-Artikel Konvertierung (Zeile 98-109, 2148-2159):**
+- 🐛 **Problem:** Falsche Artikel bei Multi-Ingredient-Auswahl
+  - Beispiel: "das Pasta und das Zucker" statt "die Pasta und der Zucker"
+  - Beispiel 2: "n mehl" statt "das Mehl" (Genus-Buchstabe direkt als Artikel)
+  - Grund: Genus (m/f/n) wurde nicht zu Artikel (der/die/das) konvertiert
+- ✅ **Fix:** Neue Funktion `genusToArticle(genus, lang)` hinzugefügt
+  - Konvertiert Genus → Artikel: m→der, f→die, n→das
+  - Automatischer Artikel-Lookup beim Ingredient-Chip-Klick
+  - `const autoArticle = genusToArticle(genusFromCatalog, currentLang)`
+- **Impact:** Jede Zutat erhält automatisch ihren korrekten Artikel basierend auf Genus
+
+**4. CreatePostingSmartStepCreator.js — Existing Multi-Ingredients nutzen (Zeile 3828-3844):**
+- 🐛 **Problem:** Variable wird gelöscht wenn "Step akzeptieren" im Overlay geklickt wird
+  - Workflow: Overlay öffnen → Zutaten auswählen → "Step akzeptieren" → Variable leer
+  - Grund: selectedValues war leer (bereits in multiIngredients gespeichert), null wurde überschrieben
+- ✅ **Fix:** Existierende multiIngredients verwenden wenn selectedValues leer ist
+  - Prüft `activeStep?._multiIngredients?.[varName]` bevor null zurückgegeben wird
+  - Verhindert null-Überschreibung in `saveCurrentEditorValueBeforeAccept()`
+- **Impact:** Zutaten bleiben erhalten beim Akzeptieren von Steps im Overlay
+
+**5. ingredient_transforms.json — Genus-basierte Adjektiv-Deklination:**
+- 🐛 **Problem:** Grammatikfehler bei transformierten Zutaten
+  - Beispiel: "geschnittene Salat" statt "geschnittener Salat" (maskulin)
+  - Grund: Statische Adjektiv-Strings ohne Genus-Varianten
+- ✅ **Fix:** 6 Transform-Patterns mit m/f/n-Varianten erweitert
+  - `piece`: "geschnittener (m) / geschnittene (f) / geschnittenes (n) {{noun}}"`
+  - `slice`: "geschnittener (m) / geschnittene (f) / geschnittenes (n) {{noun}}"`
+  - `strip`: "gestreifter (m) / gestreifte (f) / gestreiftes (n) {{noun}}"`
+  - `wedge`: "gevierteilter (m) / gevierteilte (f) / gevierteiltes (n) {{noun}}"`
+  - `ring`: "geringter (m) / geringte (f) / geringtes (n) {{noun}}"`
+  - `julienne`: "juliennierter (m) / juliennierte (f) / julienniertes (n) {{noun}}"`
+- **Impact:** Grammatikalisch korrekte Adjektive basierend auf Genus der Zutat
+
+**6. CreatePostingSmartStepCreator.js — Duplikat-Prävention (Zeile 2593-2612):**
+- 🐛 **Problem:** Doppelte Zutaten mit verschiedenen Fraktionen
+  - Beispiel: "die Garnelen" UND "die Hälfte der Garnelen" gleichzeitig in Liste
+  - Grund: Neue Zutaten wurden einfach zu existierenden hinzugefügt
+- ✅ **Fix:** Filter entfernt existierende Zutaten mit gleichem Namen vor Kombination
+  - `filteredExisting = filteredExisting.filter(existing => getIngredientName(existing) !== getIngredientName(newItem))`
+  - Neueste Version ersetzt alte (Fraktion kann geändert werden)
+- **Impact:** Keine Duplikate mehr, Fraktionen können überschrieben werden
+
+**7. CreatePostingSmartStepCreator.js — Genus-basierter Genitiv (Zeile 116-148):**
+- 🐛 **Problem:** Falscher Genitiv bei Fraktionen mit "der"-Artikel
+  - Beispiel: "die Hälfte der Zitronensaft" statt "des Zitronensafts"
+  - Grund: "der" kann maskulin-nominativ ODER feminin-genitiv sein
+- ✅ **Fix:** Genus-Parameter in `composeFractionText()` hinzugefügt
+  - Maskulin (m): "der" → "des" (Zitronensaft)
+  - Feminin (f): "der" → "der" (Zitrone)
+- **Impact:** Grammatikalisch korrekter Genitiv basierend auf Geschlecht
+
+**8. CreatePostingSmartStepCreator.js — Multi-Section immer sichtbar (Zeile 1954-1959):**
+- 🐛 **Problem:** Multi-Ingredient-Sektion erst sichtbar nach erster Zutat
+  - UX: Nutzer wussten nicht, dass Multi-Auswahl möglich ist
+- ✅ **Fix:** Sektion immer anzeigen mit Platzhalter-Text
+  - "Noch keine Zutaten ausgewählt. Wähle unten mehrere Zutaten aus."
+- **Impact:** Klarere UX, Multi-Modus von Anfang an erkennbar
+
+**9. CreatePostingSmartStepCreator.js — Auto-Artikel bei Chip-Klick (Zeile 2148-2159):**
+- 🐛 **Problem:** Multi-Ingredients bekamen alle denselben Artikel (globalArticle)
+- ✅ **Fix:** Artikel automatisch aus Katalog-Genus konvertieren beim Chip-Klick
+  - `const genusFromCatalog = catalogItem?.genusByLang?.[currentLang] || ''`
+  - `const autoArticle = genusToArticle(genusFromCatalog, currentLang)`
+  - Jede Zutat bekommt ihren eigenen genusspezifischen Artikel
+- **Impact:** Korrekte Artikel für jede Zutat, auch bei Multi-Auswahl (die Pasta, der Zucker, das Mehl)
+
+**10. CreatePostingSmartStepCreator.js — Editor-Reload nach erstem Einsetzen (Zeile 2654-2675):**
+- 🐛 **Problem:** Nach erster Zutat keine Badges und Chips bleiben markiert
+  - Workflow: "Garnelen" klicken → "Einsetzen" → Chip bleibt aktiv, kein Badge zum Entfernen
+  - Erst nach ZWEITER Zutat erscheinen Badges für beide
+  - Grund: UI wurde nicht aktualisiert nach erster Speicherung
+- ✅ **Fix:** `switchEditorVariable()` nach erstem Ingredient-Add aufrufen
+  - Lädt Editor neu mit aktuellem State
+  - Badges erscheinen, Chips werden deselektiert
+  - Overlay bleibt offen für weitere Zutaten
+- **Impact:** Konsistente UX ab erster Zutat, keine manuelle Deselektierung nötig
+
+**11. CreatePostingPage.js — Optionale Variablen leer lassen (Zeile 2604-2614):**
+- 🐛 **Problem:** Optionale Variablen im Probability-Bereich falsch gerendert
+  - Beispiel: "Wasche die Garnelen unter kaltem Wasserremoval..." (ohne Leerzeichen)
+  - `[, entferne {{removal}}]` wurde zu "removal" ohne ", entferne"
+  - Grund: `removal` bekam Key-Name als Default statt leer zu bleiben
+- ✅ **Fix:** Optionale Variablen bleiben leer wenn kein Wert vorhanden
+  - `const isOptional = template?.optional_variables.includes(key)`
+  - `if (isOptional) vars[key] = '';`
+  - Optional-Section wird korrekt als Plus-Button gerendert
+- **Impact:** Probability-Bereich zeigt Plus-Button für optionale Sections (wie Step Creator)
+
+#### Verhaltensänderungen
+
+**Smart Step Creator — Overlay Workflow:**
+- **ALT:**
+  1. Zutat auswählen
+  2. "Einsetzen" klicken (ERFORDERLICH!)
+  3. Overlay schließen
+  4. Step akzeptieren
+- **NEU:**
+  1. Zutat auswählen (Artikel wird automatisch aus Katalog geholt)
+  2. Optional: Weitere Zutaten hinzufügen (Badges erscheinen sofort)
+  3. Overlay schließen (Auto-Save!) ODER "Step akzeptieren" im Overlay
+- **"Einsetzen"-Button:** Bleibt verfügbar für explizites Speichern + Overlay-offen-halten
+
+**Multi-Ingredient-Auswahl — UX-Verbesserungen:**
+- **ALT:** Erste Zutat → kein Badge, Chip bleibt markiert → manuelle Deselektierung nötig
+- **NEU:** Erste Zutat → Badge erscheint sofort, Chip wird automatisch deselektiert
+- Multi-Ingredient-Sektion immer sichtbar (auch ohne ausgewählte Zutaten)
+- Platzhalter-Text: "Noch keine Zutaten ausgewählt. Wähle unten mehrere Zutaten aus."
+
+**Step-Akzeptierung — Artikel-Grammatik:**
+- **ALT:** "Schneide Tomaten in große Würfel" (ohne Artikel)
+- **NEU:** "Schneide die Tomaten in große Würfel" (mit Artikel)
+- **Multi-Ingredients:** "das Pasta und das Zucker" → "die Pasta und der Zucker" (genusspezifisch)
+- Betrifft: Alle Sprachen (DE/EN/ESP/PRT/ID/NL/SV/DA/NO/MS)
+
+**Transformierte Zutaten — Adjektiv-Deklination:**
+- **ALT:** "geschnittene Salat" (falsche Grammatik)
+- **NEU:** "geschnittener Salat" (maskulin), "geschnittene Zwiebel" (feminin)
+- Betrifft: piece, slice, strip, wedge, ring, julienne
+
+**Fraktionen — Genitiv-Kasus:**
+- **ALT:** "die Hälfte der Zitronensaft" (falscher Genitiv)
+- **NEU:** "die Hälfte des Zitronensafts" (maskulin-genitiv korrekt)
+- Genus-basierte Genitiv-Konversion: "der" (m) → "des", "der" (f) → "der"
+
+**Duplikat-Prävention:**
+- Zutaten mit gleichem Namen werden ersetzt (nicht doppelt gelistet)
+- Beispiel: "die Garnelen" → "die Hälfte der Garnelen" (alte Version wird entfernt)
+
+#### Betroffene Funktionen
+
+**CreatePostingPage.js:**
+- `localizeIngredientValueForSandbox()` (Zeile 1030-1059) — Early-Return bei gleicher Sprache
+- `buildVariablesForTemplate()` (Zeile 2604-2614) — Optionale Variablen leer lassen statt Key-Name
+
+**CreatePostingSmartStepCreator.js:**
+- `genusToArticle()` (Zeile 98-109) — **NEU:** Genus→Artikel Konvertierung (m→der, f→die, n→das)
+- `bindUnifiedOverlayEventHandlers()` (Zeile 2332-2349) — Close-Handler mit Auto-Save
+- `applyEditorValue()` (Zeile 3918-3931) — GlobalArticle-Anwendung (User-Auswahl hat Priorität)
+- `saveCurrentEditorValueBeforeAccept()` (Zeile 3411-3420) — Null-Überschreibung verhindert
+- `switchEditorVariable()` (Zeile 1954-1959) — Multi-Section immer sichtbar
+- `applyUnifiedEditorValue()` (Zeile 2593-2612, 2654-2675) — Duplikat-Filter & Editor-Reload
+- `composeFractionText()` (Zeile 116-148) — Genus-basierter Genitiv
+- Chip-Click-Handler (Zeile 2148-2159) — Auto-Artikel via genusToArticle()
+
+**ingredient_transforms.json:**
+- 6 Transform-Patterns erweitert mit m/f/n-Varianten:
+  - `piece`, `slice`, `strip`, `wedge`, `ring`, `julienne`
+- Betrifft alle 10 Sprachen (DE primär, EN/ESP/PRT/ID/NL/SV/DA/NO/MS teilweise)
 
 ### 2026-03-27 — Ingredient-Filter & Variable-Updates
 

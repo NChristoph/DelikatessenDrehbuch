@@ -1031,6 +1031,12 @@
             const value = (rawValue || '').toString().trim();
             if (!value) return '';
 
+            // ✅ FIX (2026-04-02): If source and target languages are the same, return original value
+            // to preserve articles and formatting
+            if (resolveLangKey(sourceLang) === resolveLangKey(targetLang)) {
+                return value;
+            }
+
             const sourceItems = getSelectedIngredientsForSandbox(sourceLang);
             const targetItems = getSelectedIngredientsForSandbox(targetLang);
             const byId = new Map(targetItems.map(item => [item.id, item]));
@@ -2570,6 +2576,8 @@
 
         function buildVariablesForTemplate(templateId, recipeType) {
             const template = MasterStepRenderer.findTemplate(templateId);
+            console.log(`[buildVariablesForTemplate] Template "${templateId}":`, template?.optional_variables);
+
             const selectedIngredient = getSelectedIngredientForCreator();
             const selectedNames = getSelectedIngredientNames();
             const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
@@ -2590,8 +2598,17 @@
 
             keys.forEach(key => {
                 if (key === 'ingredient' || key === 'ingredients') {
-                    // ingredient/ingredients: always placeholder â€” user must choose
+                    // ingredient/ingredients: always placeholder â€" user must choose
                     vars[key] = key;
+                    return;
+                }
+
+                // ✅ FIX (2026-04-02): Optionale Variablen IMMER leer lassen
+                const isOptional = Array.isArray(template?.optional_variables) && template.optional_variables.includes(key);
+                if (isOptional) {
+                    // Optionale Variablen: IMMER leer setzen (ignoriere Defaults)
+                    vars[key] = '';
+                    console.log(`[buildVariablesForTemplate] Optional variable "${key}" set to empty`);
                     return;
                 }
 
@@ -2779,6 +2796,7 @@
         }
 
         function resolveOptionalTemplateSegmentsForPersist(templateText, vars) {
+            console.log(`[resolveOptionalSegmentsForPersist] vars.removal:`, vars?.removal);
             let output = (templateText || '').toString();
             const optionalPattern = /\(([^()]*\{\{\s*[^}]+?\s*\}\}[^()]*)\)|\[([^\[\]]*\{\{\s*[^}]+?\s*\}\}[^\[\]]*)\]/g;
             let previous = null;
@@ -2790,8 +2808,11 @@
                     const keys = getTemplateVariablesForPersist(inner);
                     if (!keys.length) return inner;
                     const hasAnyValue = keys.some(function (key) {
-                        return ((vars && vars[key] != null ? String(vars[key]) : '').trim().length > 0);
+                        const val = (vars && vars[key] != null ? String(vars[key]) : '').trim();
+                        console.log(`[resolveOptionalSegments] key="${key}", val="${val}", hasValue=${val.length > 0}`);
+                        return val.length > 0;
                     });
+                    console.log(`[resolveOptionalSegments] inner="${inner}", hasAnyValue=${hasAnyValue}`);
                     return hasAnyValue ? inner : ' ';
                 });
             }
@@ -4132,6 +4153,7 @@
              * Renders a probability template from object state (analog zu renderMasterText)
              */
             function renderProbabilityTemplate(masterId) {
+                console.log(`[renderProbabilityTemplate] ━━━ RE-RENDERING "${masterId}" ━━━`);
                 const prob = probabilityStates[masterId];
                 if (!prob) {
                     console.warn('[renderProbabilityTemplate] No state found for:', masterId);
@@ -4144,24 +4166,32 @@
                     return;
                 }
 
-                const helpers = window.MasterStepCreatorHelpers;
-                if (!helpers || typeof helpers.renderTemplateWithConfig !== 'function') {
-                    console.warn('[renderProbabilityTemplate] renderTemplateWithConfig not available');
+                const template = window.MasterSteps?.find(t => t.id === masterId);
+                if (!template) {
+                    console.warn('[renderProbabilityTemplate] Template not found in MasterSteps:', masterId);
                     return;
                 }
 
-                // Render template with config (WICHTIG: tokenExtraClasses für Event-Handler!)
-                const rendered = helpers.renderTemplateWithConfig(prob.templateRaw, masterId, prob.values, {
-                    tokenExtraClasses: 'js-probability-var',  // ← KRITISCH! Ohne diese Klasse funktioniert der Token-Click-Handler nicht!
-                    includeVarKey: true,
-                    enablePlusButtons: true,
-                    multiIngredientsData: prob._multiIngredients || {}
-                });
+                const currentLang = $('html').attr('lang') || 'de';
+                const builder = window.CreatePostingProbability;
+                if (!builder || typeof builder.buildInlineTemplateText !== 'function') {
+                    console.warn('[renderProbabilityTemplate] buildInlineTemplateText not available');
+                    return;
+                }
 
-                // Update DOM: Replace probability-template-text content
+                // ✅ VEREINFACHT (2026-04-03): Nutze NUR prob.values (user-gesetzte Werte)
+                // Für fehlende Variablen zeigt buildInlineTemplateText automatisch Display-Namen
+                // buildInlineTemplateText(masterId, template, lang, vars, overrideVars)
+                //   vars = Werte für Token-Rendering
+                //   overrideVars = Werte für optionale Segmente (Pill vs gerendert)
+                const rendered = builder.buildInlineTemplateText(masterId, template, currentLang, prob.values, prob.values);
+                console.log('[renderProbabilityTemplate] rendered with prob.values:', prob.values);
+
+                // Update DOM
                 const $textContainer = $anchor.find('.probability-template-text').first();
                 if ($textContainer.length) {
                     $textContainer.html(rendered);
+                    console.log('[renderProbabilityTemplate] ✅ DOM updated');
                 }
             }
 
@@ -4173,9 +4203,14 @@
                 e.stopPropagation(); // Prevent template selection
                 e.preventDefault();
 
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('[PROBABILITY VAR CLICK] ━━━ UNIFIED HANDLER ━━━');
+
                 const token = $(this);
                 const varKey = (token.data('var-key') || token.data('var') || '').toString();
                 const masterId = token.closest('.probability-template-wrap').data('master-id') || '';
+
+                console.log('[PROBABILITY VAR CLICK] varKey:', varKey, 'masterId:', masterId);
 
                 if (!varKey || !masterId) {
                     console.error('[Probability Var Click] Missing varKey or masterId:', { varKey, masterId });
@@ -4184,16 +4219,26 @@
 
                 // Initialize probability state if not exists (wichtig!)
                 if (!probabilityStates[masterId]) {
-                    const $anchor = token.closest('.probability-template-wrap');
-                    const $textContainer = $anchor.find('.probability-template-text').first();
-                    const templateRaw = extractTemplateRaw($textContainer);
+                    console.log('[PROBABILITY VAR CLICK] Initializing new probability state');
+
+                    // ✅ FIX (2026-04-03): Template-String direkt aus window.MasterSteps holen!
+                    const template = window.MasterSteps?.find(t => t.id === masterId);
+                    const currentLang = $('html').attr('lang') || 'de';
+                    const templateRaw = template?.templates?.[currentLang] || template?.templates?.de || '';
+
+                    // ✅ FIX (2026-04-03): Defaults setzen wie beim initialen Rendering!
+                    // Sonst zeigt Re-Rendering nur Display-Namen statt Werte
+                    const currentTypeId = creatorState?.activeRecipeType || '';
+                    const defaultVars = buildVariablesForTemplate(masterId, currentTypeId);
+                    console.log('[PROBABILITY VAR CLICK] Default vars:', defaultVars);
 
                     probabilityStates[masterId] = {
                         masterId: masterId,
-                        templateRaw: templateRaw,
-                        values: {},
+                        templateRaw: templateRaw,  // ← Originaler Template-String mit [...]!
+                        values: defaultVars,  // ← MIT DEFAULTS! (wie initiales Rendering)
                         _multiIngredients: {}
                     };
+                    console.log('[PROBABILITY VAR CLICK] Created state with defaults:', probabilityStates[masterId]);
                 }
 
                 // Get current value from probability state object (wie Smart Step Creator!)
@@ -4202,6 +4247,8 @@
                 if (prob && prob.values) {
                     currentVal = prob.values[varKey] || '';
                 }
+                console.log('[PROBABILITY VAR CLICK] Current value:', currentVal);
+                console.log('[PROBABILITY VAR CLICK] Current state.values:', prob.values);
 
                 // Get template preview HTML for the overlay header
                 const templateCard = token.closest('.probability-template-wrap').find('.probability-template-card')[0];
@@ -4210,6 +4257,7 @@
                 // Use UNIFIED overlay system
                 const helpers = window.MasterStepCreatorHelpers;
                 if (helpers && typeof helpers.openUniversalVariableEditor === 'function') {
+                    console.log('[PROBABILITY VAR CLICK] Opening unified overlay...');
                     helpers.openUniversalVariableEditor({
                         varName: varKey,
                         currentVal: currentVal,
@@ -4222,10 +4270,12 @@
                             templatePreviewHtml: templatePreviewHtml
                         },
                         onApply: function(newVal, extras) {
+                            console.log('[PROBABILITY VAR CLICK onApply] ✅ CALLBACK FIRED!', { newVal, extras });
                             // Context update is handled by updateContextValue() in unified apply
                             // This callback is only for custom extra logic if needed
                         },
                         onClose: function() {
+                            console.log('[PROBABILITY VAR CLICK onClose] Overlay closed');
                             // Cleanup if needed
                         }
                     });
@@ -4243,13 +4293,19 @@
 
                 // Initialize probability state object (like activeStep in Smart Creator)
                 if (!probabilityStates[masterId]) {
-                    const $textContainer = wrap.find('.probability-template-text').first();
-                    const templateRaw = extractTemplateRaw($textContainer);
+                    // ✅ FIX (2026-04-03): Template-String direkt aus window.MasterSteps holen!
+                    const template = window.MasterSteps?.find(t => t.id === masterId);
+                    const currentLang = $('html').attr('lang') || 'de';
+                    const templateRaw = template?.templates?.[currentLang] || template?.templates?.de || '';
+
+                    // ✅ FIX (2026-04-03): Defaults setzen wie beim initialen Rendering!
+                    const currentTypeId = creatorState?.activeRecipeType || '';
+                    const defaultVars = buildVariablesForTemplate(masterId, currentTypeId);
 
                     probabilityStates[masterId] = {
                         masterId: masterId,
-                        templateRaw: templateRaw,
-                        values: {},
+                        templateRaw: templateRaw,  // ← Originaler Template-String mit [...]!
+                        values: defaultVars,  // ← MIT DEFAULTS!
                         _multiIngredients: {}
                     };
                 }

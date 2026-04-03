@@ -51,7 +51,7 @@
       "trigger_steps": ["PREP_CUT_01"],
       "shape_match": ["scheib", "rodaja", "slice", "skivor", "skiver"],
       "patterns": {
-        "de": "in Scheiben geschnittene {{noun}}",
+        "de": { "m": "in Scheiben geschnittener {{noun}}", "f": "in Scheiben geschnittene {{noun}}", "n": "in Scheiben geschnittenes {{noun}}" },
         "en": "sliced {{noun}}",
         "esp": "{{noun}} en rodajas",
         "prt": "{{noun}} em rodelas",
@@ -67,7 +67,7 @@
       "trigger_steps": ["PREP_CUT_01"],
       "shape_match": ["streif", "tira", "strip", "reep", "strimle"],
       "patterns": {
-        "de": "in Streifen geschnittene {{noun}}",
+        "de": { "m": "in Streifen geschnittener {{noun}}", "f": "in Streifen geschnittene {{noun}}", "n": "in Streifen geschnittenes {{noun}}" },
         "en": "{{noun}} strips",
         "esp": "{{noun}} en tiras",
         "prt": "{{noun}} em tiras",
@@ -83,7 +83,7 @@
       "trigger_steps": ["PREP_CUT_01"],
       "shape_match": ["spalt", "gajo", "wedge", "klyfta", "bade", "både", "båte"],
       "patterns": {
-        "de": "in Spalten geschnittene {{noun}}",
+        "de": { "m": "in Spalten geschnittener {{noun}}", "f": "in Spalten geschnittene {{noun}}", "n": "in Spalten geschnittenes {{noun}}" },
         "en": "{{noun}} wedges",
         "esp": "{{noun}} en gajos",
         "prt": "{{noun}} em gomos",
@@ -99,7 +99,7 @@
       "trigger_steps": ["PREP_CUT_01"],
       "shape_match": ["ring", "anillo", "anel"],
       "patterns": {
-        "de": "in Ringe geschnittene {{noun}}",
+        "de": { "m": "in Ringe geschnittener {{noun}}", "f": "in Ringe geschnittene {{noun}}", "n": "in Ringe geschnittenes {{noun}}" },
         "en": "{{noun}} rings",
         "esp": "{{noun}} en anillos",
         "prt": "{{noun}} em anéis",
@@ -115,7 +115,7 @@
       "trigger_steps": ["PREP_CUT_01"],
       "shape_match": ["julienne", "juliana"],
       "patterns": {
-        "de": "in Julienne geschnittene {{noun}}",
+        "de": { "m": "in Julienne geschnittener {{noun}}", "f": "in Julienne geschnittene {{noun}}", "n": "in Julienne geschnittenes {{noun}}" },
         "en": "{{noun}} julienne",
         "esp": "{{noun}} en juliana",
         "prt": "{{noun}} em juliana",
@@ -131,7 +131,7 @@
       "trigger_steps": ["PREP_CUT_01"],
       "shape_match": null,
       "patterns": {
-        "de": "geschnittene {{noun}}",
+        "de": { "m": "geschnittener {{noun}}", "f": "geschnittene {{noun}}", "n": "geschnittenes {{noun}}" },
         "en": "cut {{noun}}",
         "esp": "{{noun}} troceado",
         "prt": "{{noun}} cortado",
