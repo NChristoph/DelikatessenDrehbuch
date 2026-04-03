@@ -9,6 +9,7 @@
 (() => {
     const DEFAULT_LANG = "de";
     const VISIBLE_RANKED_OPTIONS = 3;
+    const draftEngine = window.CreatePostingTemplateDrafts || null;
 
     // -----------------------------
     // STATE
@@ -1203,35 +1204,151 @@
         }
     }
 
+    function getCurrentStepDraft() {
+        return (draftEngine && typeof draftEngine.getActiveStepDraft === 'function')
+            ? draftEngine.getActiveStepDraft()
+            : activeStep;
+    }
+
+    function ensureProbabilityDraftForEditing(masterId) {
+        const safeMasterId = (masterId || '').toString().trim();
+        if (!safeMasterId) return null;
+
+        if (typeof window.ensureCreatePostingProbabilityDraftState === 'function') {
+            return window.ensureCreatePostingProbabilityDraftState(safeMasterId);
+        }
+
+        if (draftEngine && typeof draftEngine.ensureProbabilityDraft === 'function') {
+            return draftEngine.ensureProbabilityDraft(safeMasterId, {
+                masterId: safeMasterId,
+                values: {},
+                _multiIngredients: {}
+            });
+        }
+
+        return window.probabilityStates?.[safeMasterId] || null;
+    }
+
+    function renderTemplateDraftHtml(draft, options = {}) {
+        const mode = (options.mode || 'step').toString();
+        if (!draft) return mode === 'step' ? "Wähle eine Template." : "";
+
+        if (mode === 'probability') {
+            const builder = window.CreatePostingProbability;
+            const template = window.MasterStepRenderer?.findTemplate
+                ? window.MasterStepRenderer.findTemplate(draft.masterId)
+                : null;
+            if (!builder || typeof builder.buildInlineTemplateText !== 'function' || !template) {
+                return '';
+            }
+
+            const lang = (options.lang || currentLang || DEFAULT_LANG).toString();
+            const renderVars = options.varsOverride || draft.values || {};
+            const optionalValues = options.optionalValues || draft.values || {};
+            return builder.buildInlineTemplateText(draft.masterId, template, lang, renderVars, optionalValues);
+        }
+
+        return renderTemplate(draft.templateRaw, draft.master_id || draft.masterId, draft.values || {});
+    }
+
+    function renderEditableStepPreview(draft, options = {}) {
+        const mode = (options.mode || 'step').toString();
+        const rendered = renderTemplateDraftHtml(draft, options);
+        const title = (options.title || (mode === 'probability' ? 'Erkannter Step' : 'AKTUELLER STEP')).toString();
+        const textId = (options.textId || '').toString().trim();
+        const hostId = (options.hostId || '').toString().trim();
+        const hostClass = (options.hostClass || '').toString().trim();
+        const bodyClasses = (options.bodyClasses || 'preview-step-text mt-2').toString().trim();
+        const actionHtml = (options.actionHtml || '').toString();
+        const wrapperClass = (options.wrapperClass || (mode === 'probability' ? 'probability-preview-wrap' : 'current-step-wrap')).toString();
+
+        const textIdAttr = textId ? ` id="${escapeHtml(textId)}"` : '';
+        const hostIdAttr = hostId ? ` id="${escapeHtml(hostId)}"` : '';
+        const hostClassAttr = hostClass ? ` class="${escapeHtml(hostClass)}"` : '';
+
+        return `
+      <div class="${escapeHtml(wrapperClass)}">
+        <div class="current-step-header d-flex justify-content-between align-items-center">
+          <div class="preview-step-title mb-0">${escapeHtml(title)}</div>
+          ${actionHtml}
+        </div>
+
+        <div class="${escapeHtml(bodyClasses)}"${textIdAttr}>
+          ${rendered}
+        </div>
+
+        <div${hostClassAttr}${hostIdAttr}></div>
+      </div>
+    `;
+    }
+
+    function renderOverlayPreviewForContext(context) {
+        if (!context) return '';
+
+        if (context.type === 'step') {
+            const stepDraft = getCurrentStepDraft();
+            if (!stepDraft) return '';
+            return renderEditableStepPreview(stepDraft, {
+                mode: 'step',
+                title: 'AKTUELLER STEP',
+                textId: 'CurrentStepText',
+                hostId: 'InlineVarEditorHost',
+                hostClass: 'mt-3',
+                bodyClasses: 'preview-step-text mt-2',
+                wrapperClass: 'current-step-wrap',
+                actionHtml: '<button type="button" class="btn btn-sm creator-cta-primary" id="BtnAcceptStepOverlay">Step akzeptieren</button>'
+            });
+        }
+
+        if (context.type === 'probability') {
+            const masterId = (context.probabilityMasterId || context.masterId || '').toString().trim();
+            const buildProbabilityPreviewDraft = window.buildCreatePostingProbabilityPreviewDraft;
+            const probabilityPreviewDraft = typeof buildProbabilityPreviewDraft === 'function'
+                ? buildProbabilityPreviewDraft(masterId)
+                : ensureProbabilityDraftForEditing(masterId);
+            if (!probabilityPreviewDraft) return '';
+
+            return renderEditableStepPreview({
+                masterId: masterId,
+                templateRaw: probabilityPreviewDraft.templateRaw || '',
+                values: probabilityPreviewDraft.values || {}
+            }, {
+                mode: 'step',
+                title: 'Erkannter Step',
+                bodyClasses: 'probability-template-text preview-step-text mt-2',
+                wrapperClass: 'current-step-wrap probability-preview-wrap',
+                actionHtml: masterId
+                    ? `<button type="button" class="btn btn-sm creator-cta-primary" id="BtnAcceptProbabilityStep" data-master-id="${escapeHtml(masterId)}">Step akzeptieren</button>`
+                    : ''
+            });
+        }
+
+        return '';
+    }
+
     // -----------------------------
     // RENDER: MasterText (aktueller Step + Editor Slot)
     // -----------------------------
-        function renderMasterText() {
+    function renderMasterText() {
         const target = masterText();
         if (!target) return;
 
-        if (!activeStep) {
+        const currentDraft = getCurrentStepDraft();
+        if (!currentDraft) {
             target.innerHTML = "Wähle eine Template.";
             return;
         }
 
-        const rendered = renderTemplate(activeStep.templateRaw, activeStep.master_id, activeStep.values);
-
-        // Editor placeholder (wird beim Token-Klick gefüllt)
-        target.innerHTML = `
-      <div class="current-step-wrap">
-        <div class="current-step-header d-flex justify-content-between align-items-center">
-          <div class="preview-step-title mb-0">AKTUELLER STEP</div>
-          <button type="button" class="btn btn-sm creator-cta-primary" id="btnAcceptStep">Step akzeptieren</button>
-        </div>
-
-        <div class="preview-step-text mt-2" id="CurrentStepText">
-          ${rendered}
-        </div>
-
-        <div class="mt-3" id="InlineVarEditorHost"></div>
-      </div>
-    `;
+        target.innerHTML = renderEditableStepPreview(currentDraft, {
+            mode: 'step',
+            title: 'AKTUELLER STEP',
+            textId: 'CurrentStepText',
+            hostId: 'InlineVarEditorHost',
+            hostClass: 'mt-3',
+            bodyClasses: 'preview-step-text mt-2',
+            wrapperClass: 'current-step-wrap',
+            actionHtml: '<button type="button" class="btn btn-sm creator-cta-primary" id="btnAcceptStep">Step akzeptieren</button>'
+        });
     }
 
 
@@ -1248,271 +1365,9 @@
     // UNIVERSAL EDITOR OVERLAY SYSTEM (used by both areas)
     // ══════════════════════════════════════════════════════════════
 
-    /**
-     * Opens a universal fullscreen editor overlay.
-     * Used by both Smart Step Creator and Probability Area.
-     *
-     * @param {Object} config - Configuration object
-     * @param {string} config.type - 'step' or 'probability'
-     * @param {string} config.varName - Variable name being edited
-     * @param {string} config.currentVal - Current value
-     * @param {string} config.previewHtml - HTML for the preview section (top)
-     * @param {Array} config.multiIngredients - Multi-ingredient array
-     * @param {string} config.masterId - Master step ID (for probability area)
-     * @param {Function} config.onApply - Callback when applying value
-     * @param {Function} config.onClose - Callback when closing editor
-     * @param {Object} config.eventContext - Context for event handlers (activeStep, activeToken, etc.)
-     */
-    function openUniversalEditorOverlay(config) {
-        const {
-            type = 'step',
-            varName,
-            currentVal = '',
-            previewHtml = '',
-            multiIngredients = [],
-            masterId = '',
-            onApply,
-            onClose,
-            eventContext = {}
-        } = config;
-
-        console.log("[Universal Overlay] Opening:", { type, varName, masterId });
-
-        // Generate editor HTML using shared function
-        const useClassBasedIds = type === 'probability';
-        const result = _generateEditorHtml(varName, currentVal, {
-            multiIngredients,
-            masterId,
-            selectedIngredientValues: null,
-            suppressPronounButtons: false,
-            useClassBasedIds
-        });
-
-        // Split editor HTML into content and buttons
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = result.html;
-        const buttonRow = tempDiv.querySelector('.d-flex.gap-2.align-items-center');
-        const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
-        if (buttonRow) buttonRow.remove();
-        const editorContentHtml = tempDiv.innerHTML;
-
-        // Get theme
-        const creatorEl = document.querySelector('.smart-step-creator');
-        const theme = creatorEl ? creatorEl.dataset.theme || 'dark' : 'dark';
-
-        // Create fullscreen overlay HTML
-        const overlayHtml = `
-            <div id="universalEditorOverlay"
-                 class="smart-step-creator"
-                 data-theme="${theme}"
-                 data-overlay-owner="step"
-                 data-editor-type="${type}"
-                 data-var-name="${escapeHtml(varName)}"
-                 data-master-id="${escapeHtml(masterId)}"
-                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
-
-                <!-- Fixed Header: Preview -->
-                <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
-                    <div style="max-width: 800px; margin: 0 auto;" class="universal-overlay-preview">
-                        ${previewHtml}
-                    </div>
-                </div>
-
-                <!-- Scrollable Middle: Editor Content -->
-                <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        ${editorContentHtml}
-                    </div>
-                </div>
-
-                <!-- Fixed Footer: Buttons -->
-                <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        ${buttonsHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Remove existing overlay
-        const existing = document.getElementById('universalEditorOverlay');
-        if (existing) existing.remove();
-
-        // Append to body
-        document.body.insertAdjacentHTML('beforeend', overlayHtml);
-
-        // Set data attributes on editor element
-        const editorEl = document.querySelector('#universalEditorOverlay .duration-editor, #universalEditorOverlay .prob-inline-editor');
-        if (editorEl) {
-            Object.keys(result.dataAttributes).forEach(key => {
-                editorEl.dataset[key] = result.dataAttributes[key];
-            });
-        }
-
-        // Prevent body scroll
-        document.body.style.overflow = 'hidden';
-
-        // Bind universal event handlers
-        _bindUniversalOverlayEvents(type, varName, masterId, onApply, onClose, eventContext);
-
-        console.log("[Universal Overlay] Opened successfully");
-    }
-
-    /**
-     * Closes the universal editor overlay
-     */
-    function closeUniversalEditorOverlay() {
-        const overlay = document.getElementById('universalEditorOverlay');
-        if (overlay) {
-            console.log("[Universal Overlay] Closing");
-            overlay.remove();
-        }
-
-        // Restore body scroll
-        document.body.style.overflow = '';
-    }
-
-    /**
-     * Binds event handlers to the universal overlay
-     */
-    function _bindUniversalOverlayEvents(type, varName, masterId, onApply, onClose, eventContext) {
-        const $overlay = $('#universalEditorOverlay');
-        const editorEl = document.querySelector('#universalEditorOverlay .duration-editor, #universalEditorOverlay .prob-inline-editor');
-        const useClassBasedIds = type === 'probability';
-
-        if (!editorEl) {
-            console.error("[Universal Overlay] Editor element not found!");
-            return;
-        }
-
-        // IMPORTANT: Remove ALL previous handlers (from both areas!)
-        $overlay.off('.universal').off('.probinline');
-
-        // Close button
-        $overlay.on('click.universal', '.js-prob-inline-close, #BtnCloseVar', function() {
-            closeUniversalEditorOverlay();
-            if (typeof onClose === 'function') onClose();
-        });
-
-        // Apply button
-        $overlay.on('click.universal', '.js-prob-inline-apply, #BtnApplyVar', function() {
-            if (typeof onApply === 'function') {
-                const value = applyEditorValue(editorEl);
-                onApply(value, editorEl);
-            }
-        });
-
-        // Pick-mode buttons (article, ingredient, fraction, etc.)
-        $overlay.on('click.universal', 'button[data-pick-mode]', function(e) {
-            // Only handle if this is OUR overlay
-            const overlayEl = document.getElementById('universalEditorOverlay');
-            if (!overlayEl || overlayEl.dataset.overlayOwner !== 'step') return;
-
-            // Stop other handlers from executing
-            e.stopImmediatePropagation();
-
-            // Only handle if editorEl still exists and is valid
-            if (!editorEl || !editorEl.isConnected) return;
-
-            _handlePickModeClick(this, editorEl, useClassBasedIds);
-        });
-
-        // Duration unit buttons
-        $overlay.on('click.universal', 'button[data-duration-unit]', function(e) {
-            const overlayEl = document.getElementById('universalEditorOverlay');
-            if (!overlayEl || overlayEl.dataset.overlayOwner !== 'step') return;
-
-            e.stopImmediatePropagation();
-
-            if (!editorEl || !editorEl.isConnected) return;
-            _handleDurationUnitClick(this, editorEl);
-        });
-
-        // Remove multi-ingredient chip
-        $overlay.on('click.universal', 'button[data-remove-multi-ingredient]', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-
-            const idx = parseInt(this.dataset.removeMultiIngredient, 10);
-            if (isNaN(idx)) return;
-
-            console.log("[Universal Overlay] Remove chip at index:", idx);
-
-            if (type === 'step') {
-                // Smart Step Creator logic
-                if (!activeStep || !activeToken) return;
-
-                const multiIngredientsObj = activeStep._multiIngredients || {};
-                const existingList = multiIngredientsObj[activeToken.varName] || [];
-                if (idx < 0 || idx >= existingList.length) return;
-
-                existingList.splice(idx, 1);
-                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-                activeStep._multiIngredients[activeToken.varName] = existingList;
-
-                const composed = formatSelectedIngredientList(existingList, currentLang);
-                activeStep.values[activeToken.varName] = composed;
-
-                renderMasterText();
-
-                // Update overlay preview
-                const currentStepWrap = document.querySelector(".current-step-wrap");
-                const previewSection = document.querySelector('#universalEditorOverlay .universal-overlay-preview');
-                if (currentStepWrap && previewSection) {
-                    previewSection.innerHTML = currentStepWrap.innerHTML;
-                }
-
-                // Re-open overlay with updated data
-                openInlineEditor(activeToken.varName, activeToken.tokenId);
-
-            } else if (type === 'probability') {
-                // Probability Area logic
-                const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
-                if (idx < 0 || idx >= existingList.length) return;
-
-                existingList.splice(idx, 1);
-                if (!window.ProbabilityMultiIngredients[masterId]) {
-                    window.ProbabilityMultiIngredients[masterId] = {};
-                }
-                window.ProbabilityMultiIngredients[masterId][varName] = existingList;
-
-                const helpers = window.MasterStepCreatorHelpers;
-                const composed = helpers && helpers.formatSelectedIngredientList
-                    ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de')
-                    : '';
-
-                // Update template token
-                const templateWrap = document.querySelector(`.probability-template-wrap[data-master-id="${masterId}"]`);
-                const token = templateWrap ? templateWrap.querySelector(`.js-probability-var[data-var="${varName}"]`) : null;
-
-                if (token) {
-                    token.textContent = composed || varName;
-                    token.dataset.hasValue = composed ? '1' : '0';
-                }
-
-                // Update overlay preview
-                if (templateWrap) {
-                    const templateCard = templateWrap.querySelector('.probability-template-card');
-                    const previewSection = document.querySelector('#universalEditorOverlay .universal-overlay-preview');
-                    if (templateCard && previewSection) {
-                        previewSection.innerHTML = templateCard.innerHTML;
-                    }
-                }
-
-                // Re-open overlay (call the probability function)
-                if (typeof eventContext.reopenEditor === 'function') {
-                    eventContext.reopenEditor(varName, composed);
-                }
-            }
-        });
-
-        console.log("[Universal Overlay] Events bound for type:", type);
-    }
-
-    // Old closeInlineEditor - now calls universal function
     function closeInlineEditor() {
         activeToken = null;
-        closeUniversalEditorOverlay();
+        closeUnifiedOverlay();
 
         // Clear old inline host (backward compatibility)
         const host = $("#InlineVarEditorHost");
@@ -2064,10 +1919,15 @@
 
         if (context.type === 'step') {
             // Smart Step Creator: stored in activeStep._multiIngredients
+            if (draftEngine && typeof draftEngine.getActiveStepDraft === 'function') {
+                return draftEngine.getActiveStepDraft()?._multiIngredients?.[varName] || [];
+            }
             return activeStep?._multiIngredients?.[varName] || [];
         } else if (context.type === 'probability') {
-            // Probability Area: stored in window.ProbabilityMultiIngredients
             const masterId = context.probabilityMasterId || context.masterId;
+            if (draftEngine && typeof draftEngine.getProbabilityMultiIngredients === 'function') {
+                return draftEngine.getProbabilityMultiIngredients(masterId, varName) || [];
+            }
             return window.ProbabilityMultiIngredients?.[masterId]?.[varName] || [];
         }
         return [];
@@ -2078,13 +1938,19 @@
 
         if (context.type === 'step') {
             // Smart Step Creator
-            if (!activeStep) return;
-            if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-            activeStep._multiIngredients[varName] = values;
+            const stepDraft = draftEngine && typeof draftEngine.getActiveStepDraft === 'function'
+                ? draftEngine.getActiveStepDraft()
+                : activeStep;
+            if (!stepDraft) return;
+            if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
+            stepDraft._multiIngredients[varName] = values;
         } else if (context.type === 'probability') {
-            // Probability Area
             const masterId = context.probabilityMasterId || context.masterId;
             if (!masterId) return;
+            if (draftEngine && typeof draftEngine.setProbabilityMultiIngredients === 'function') {
+                draftEngine.setProbabilityMultiIngredients(masterId, varName, values);
+                return;
+            }
             if (!window.ProbabilityMultiIngredients) window.ProbabilityMultiIngredients = {};
             if (!window.ProbabilityMultiIngredients[masterId]) window.ProbabilityMultiIngredients[masterId] = {};
             window.ProbabilityMultiIngredients[masterId][varName] = values;
@@ -2297,6 +2163,36 @@
         });
     }
 
+    function openStepDraftEditor(config) {
+        const {
+            source = 'manual',
+            varName,
+            currentVal = "",
+            masterId = "",
+            context,
+            onApply,
+            onClose
+        } = config || {};
+
+        if (!varName || !context) {
+            console.error("[openStepDraftEditor] Missing required params:", { source, varName, context });
+            return;
+        }
+
+        const normalizedContext = Object.assign({}, context, {
+            source: (source || context.source || '').toString() || 'manual'
+        });
+
+        openUniversalVariableEditor({
+            varName,
+            currentVal,
+            masterId,
+            context: normalizedContext,
+            onApply,
+            onClose
+        });
+    }
+
     /**
      * Creates the overlay HTML structure (3-section layout: Header Preview | Scrollable Content | Fixed Footer Buttons)
      */
@@ -2304,22 +2200,7 @@
         const theme = document.querySelector('.smart-step-creator')?.dataset?.theme || 'dark';
         const ownerType = context.type || 'step';
 
-        // Get preview HTML based on context (LIVE from DOM for current values!)
-        let previewHtml = '';
-        if (context.type === 'step') {
-            const currentStepWrap = document.querySelector(".current-step-wrap");
-            previewHtml = currentStepWrap ? currentStepWrap.innerHTML : "";
-        } else if (context.type === 'probability') {
-            // LIVE aus DOM holen (wie bei Step Creator!) → zeigt immer aktuelle Werte
-            const masterId = context.probabilityMasterId || context.masterId;
-            if (masterId) {
-                const templateCard = document.querySelector(`.probability-template-wrap[data-master-id="${CSS.escape(masterId)}"] .probability-template-card`);
-                previewHtml = templateCard ? templateCard.innerHTML : "";
-            }
-            if (!previewHtml) {
-                previewHtml = context.templatePreviewHtml || ""; // Fallback
-            }
-        }
+        const previewHtml = renderOverlayPreviewForContext(context) || context.templatePreviewHtml || '';
 
         // Split editor HTML into content and buttons
         const tempDiv = document.createElement('div');
@@ -2397,6 +2278,34 @@
             applyUnifiedEditorValue(currentEditorEl, config);
         });
 
+        $overlay.on('click.universal', '#BtnAcceptProbabilityStep', async function(e) {
+            e.stopPropagation();
+            if (context.type !== 'probability') return;
+
+            const acceptMasterId = (this.dataset.masterId || context.probabilityMasterId || context.masterId || '').toString().trim();
+            if (!acceptMasterId) return;
+
+            saveCurrentEditorValueBeforeAccept('probability', acceptMasterId);
+            closeUnifiedOverlay();
+
+            const helpers = window.MasterStepCreatorHelpers || {};
+            const probabilityVars = window.probabilityStates?.[acceptMasterId]?.values || {};
+            if (typeof helpers.acceptProbabilityTemplateStep === 'function') {
+                await helpers.acceptProbabilityTemplateStep(acceptMasterId, probabilityVars);
+            }
+
+            if (typeof onClose === 'function') onClose();
+        });
+
+        $overlay.on('click.universal', '#BtnAcceptStepOverlay', function(e) {
+            e.stopPropagation();
+            if (context.type !== 'step') return;
+
+            acceptActiveStep();
+
+            if (typeof onClose === 'function') onClose();
+        });
+
         // Pick-mode buttons (article, pronoun, value, ingredient, fraction)
         $overlay.on('click.universal', 'button[data-pick-mode]', function(e) {
             e.stopImmediatePropagation();
@@ -2459,12 +2368,12 @@
 
         // ✅ NEU (2026-03-28): Token-Clicks im Preview zum Variable-Wechsel
         // User kann Tokens im Preview klicken, um andere Variablen zu bearbeiten
-        $overlay.on('click.universal', '.creator-preview-canvas .template-var[data-var], .creator-preview-canvas .js-probability-var[data-var]', function(e) {
+        $overlay.on('click.universal', '.creator-preview-canvas .template-var[data-var], .creator-preview-canvas .js-probability-var[data-var], .creator-preview-canvas .js-optional-var-add[data-optional-var]', function(e) {
             e.stopPropagation();
             e.preventDefault();
 
             const clickedToken = this;
-            const newVarName = clickedToken.dataset.var || clickedToken.dataset.varKey;
+            const newVarName = clickedToken.dataset.optionalVar || clickedToken.dataset.var || clickedToken.dataset.varKey;
 
             if (!newVarName) {
                 console.warn('[Preview Token Click] No var name found!');
@@ -2506,17 +2415,18 @@
 
         if (context.type === 'step') {
             // Smart Step Creator: Update activeStep and re-render
-            if (!activeStep) {
+            const stepDraft = getCurrentStepDraft();
+            if (!stepDraft) {
                 console.error('[updateContextValue] No activeStep available!');
                 return;
             }
 
             // Save value to activeStep
-            activeStep.values[varName] = value;
+            stepDraft.values[varName] = value;
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
-                activeStep.values['pronoun'] = extras.pronoun;
+                stepDraft.values['pronoun'] = extras.pronoun;
             }
 
             // Re-render step text
@@ -2527,32 +2437,41 @@
         } else if (context.type === 'probability') {
             // Probability Area: Update probability state object and re-render (UNIFIED!)
             const masterId = context.probabilityMasterId || context.masterId;
-            console.log('[updateContextValue] Probability masterId:', masterId);
+            console.log('[updateContextValue] ━━━ PROBABILITY UPDATE ━━━');
+            console.log('[updateContextValue] masterId:', masterId);
+            console.log('[updateContextValue] varName:', varName);
+            console.log('[updateContextValue] value:', value);
+
+            ensureProbabilityDraftForEditing(masterId);
 
             // Get probability state from global dictionary (in CreatePostingPage.js)
             if (!window.probabilityStates || !window.probabilityStates[masterId]) {
-                console.error('[updateContextValue] No probability state found for:', masterId);
+                console.error('[updateContextValue] ❌ No probability state found for:', masterId);
+                console.log('[updateContextValue] Available states:', Object.keys(window.probabilityStates || {}));
                 return;
             }
 
-            const prob = window.probabilityStates[masterId];
-            console.log('[updateContextValue] Current prob.values BEFORE update:', prob.values);
+            const prob = ensureProbabilityDraftForEditing(masterId);
+            console.log('[updateContextValue] prob.values BEFORE:', JSON.stringify(prob.values));
 
             // Save value to probability state (wie activeStep!)
-            prob.values[varName] = value;
-            console.log('[updateContextValue] prob.values AFTER update:', prob.values);
-
-            // Handle extras (e.g., pronoun for state variables)
-            if (extras && extras.pronoun) {
-                prob.values['pronoun'] = extras.pronoun;
+            if (draftEngine && typeof draftEngine.setProbabilityValue === 'function') {
+                draftEngine.setProbabilityValue(masterId, varName, value, extras);
+            } else {
+                prob.values[varName] = value;
+                if (extras && extras.pronoun) {
+                    prob.values['pronoun'] = extras.pronoun;
+                }
             }
+            console.log('[updateContextValue] prob.values AFTER:', JSON.stringify(prob.values));
 
             // Re-render probability template (wie renderMasterText!)
             if (typeof window.renderProbabilityTemplate === 'function') {
-                console.log('[updateContextValue] Calling renderProbabilityTemplate...');
+                console.log('[updateContextValue] ✅ Calling renderProbabilityTemplate...');
                 window.renderProbabilityTemplate(masterId);
+                console.log('[updateContextValue] ✅ renderProbabilityTemplate completed');
             } else {
-                console.error('[updateContextValue] renderProbabilityTemplate not available!');
+                console.error('[updateContextValue] ❌ renderProbabilityTemplate not available!');
             }
         }
     }
@@ -2573,24 +2492,7 @@
             return;
         }
 
-        let sourcePreviewHtml = '';
-
-        if (context.type === 'step') {
-            // Get updated preview from Step Creator DOM
-            const currentStepWrap = document.querySelector(".current-step-wrap");
-            if (currentStepWrap) {
-                sourcePreviewHtml = currentStepWrap.innerHTML;
-            }
-        } else if (context.type === 'probability') {
-            // Get updated preview from Probability Area DOM
-            const masterId = context.probabilityMasterId || context.masterId;
-            if (masterId) {
-                const templateCard = document.querySelector(`.probability-template-wrap[data-master-id="${CSS.escape(masterId)}"] .probability-template-card`);
-                if (templateCard) {
-                    sourcePreviewHtml = templateCard.innerHTML;
-                }
-            }
-        }
+        const sourcePreviewHtml = renderOverlayPreviewForContext(context);
 
         if (sourcePreviewHtml) {
             previewSection.innerHTML = sourcePreviewHtml;
@@ -2809,10 +2711,12 @@
 
         // Get current value for new variable
         let newVal = '';
-        if (context.type === 'step' && activeStep) {
-            newVal = activeStep.values[newVarName] || '';
+        if (context.type === 'step' && getCurrentStepDraft()) {
+            newVal = getCurrentStepDraft().values[newVarName] || '';
         } else if (context.type === 'probability') {
-            const prob = window.probabilityStates[masterId];
+            const prob = draftEngine && typeof draftEngine.getProbabilityDraft === 'function'
+                ? draftEngine.getProbabilityDraft(masterId)
+                : window.probabilityStates[masterId];
             if (prob && prob.values) {
                 newVal = prob.values[newVarName] || '';
             }
@@ -2892,16 +2796,23 @@
         // Set activeToken for backward compatibility (used by old code)
         activeToken = { varName, tokenId };
 
-        const currentVal = activeStep.values[varName] ?? "";
-        const masterId = activeStep.master_id || "";
+        const stepDraft = getCurrentStepDraft();
+        if (!stepDraft) {
+            console.warn("[openInlineEditor] No active draft available");
+            return;
+        }
+        const currentVal = stepDraft.values[varName] ?? "";
+        const masterId = stepDraft.master_id || "";
 
-        // Call unified overlay system
-        openUniversalVariableEditor({
+        // Shared editor entry for manual step selection
+        openStepDraftEditor({
+            source: 'manual',
             varName: varName,
             currentVal: currentVal,
             masterId: masterId,
             context: {
                 type: 'step',
+                source: 'manual',
                 tokenId: tokenId
             },
             onApply: function(newVal, extras) {
@@ -3068,19 +2979,22 @@
         const varName = activeToken.varName;
 
         // Spezialfälle zuerst
+        const stepDraft = getCurrentStepDraft();
+        if (!stepDraft) return;
+
         if (varName === "duration") {
             const unit = host.dataset.durationUnit || "minute";
             const labels = getDurationUnits();
             if (unit === "per_package") {
                 const perPackageLabel = labels.find(x => x.key === "per_package")?.label ?? "laut Packungsanweisung";
-                activeStep.values[varName] = perPackageLabel;
+                stepDraft.values[varName] = perPackageLabel;
             } else {
                 const n = $("#DurationValueInput")?.value?.trim() || "";
                 const nTo = $("#DurationValueToInput")?.value?.trim() || "";
                 const unitLabel = labels.find(x => x.key === unit)?.label ?? unit;
                 const numPart = (n && nTo && nTo !== n) ? `${n}-${nTo}` : n;
                 const composed = numPart ? `${numPart} ${unitLabel}` : "";
-                if (composed) activeStep.values[varName] = composed;
+                if (composed) stepDraft.values[varName] = composed;
             }
             rerenderAfterValueSet();
             return;
@@ -3090,7 +3004,7 @@
             const n = $("#TempValueInput")?.value?.trim() || "";
             const u = $("#TempUnitSelect")?.value || "C";
             const composed = n ? `${n} ${u}` : "";
-            if (composed) activeStep.values[varName] = composed;
+            if (composed) stepDraft.values[varName] = composed;
             rerenderAfterValueSet();
             return;
         }
@@ -3099,7 +3013,7 @@
         if (varName === "count") {
             const n = $("#CountValueInput")?.value?.trim() || "1";
             const normalized = /^\d+$/.test(n) ? n : "1";
-            activeStep.values[varName] = normalized;
+            stepDraft.values[varName] = normalized;
             rerenderAfterValueSet();
             return;
         }
@@ -3112,7 +3026,7 @@
 
         if (isIngredientVariable(varName)) {
             // Check if we have multi-ingredients from the "Hinzufügen" workflow (per variable)
-            const multiIngredientsObj = activeStep._multiIngredients || {};
+            const multiIngredientsObj = stepDraft._multiIngredients || {};
             const multiIngredients = multiIngredientsObj[varName] || [];
             const article = host.dataset.selectedArticle ?? "";
             const fraction = host.dataset.selectedFraction ?? "";
@@ -3156,14 +3070,14 @@
                                 };
                             });
                     } else {
-                        activeStep._fractionData = null;
+                        stepDraft._fractionData = null;
                     }
 
-                    activeStep.values[varName] = ingredientComposed;
+                    stepDraft.values[varName] = ingredientComposed;
                     // Store per variable
-                    if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-                    activeStep._multiIngredients[varName] = combinedList;
-                    console.log('[applyCurrentEditorSelection] Updated _multiIngredients for', varName, ':', activeStep._multiIngredients[varName]);
+                    if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
+                    stepDraft._multiIngredients[varName] = combinedList;
+                    console.log('[applyCurrentEditorSelection] Updated _multiIngredients for', varName, ':', stepDraft._multiIngredients[varName]);
 
                     // Re-open editor to show updated chips (don't close!)
                     renderMasterText();
@@ -3178,7 +3092,7 @@
                     const hasFractions = normalized.some(item => item.fraction && item.fraction !== "");
                     if (hasFractions) {
                         const frOpts = getFractionOptions();
-                        activeStep._fractionData = normalized
+                        stepDraft._fractionData = normalized
                             .filter(item => item.fraction)
                             .map(item => {
                                 const fr = frOpts.find(f => f.key === item.fraction);
@@ -3190,13 +3104,13 @@
                                 };
                             });
                     } else {
-                        activeStep._fractionData = null;
+                        stepDraft._fractionData = null;
                     }
 
-                    activeStep.values[varName] = ingredientComposed;
+                    stepDraft.values[varName] = ingredientComposed;
                     // Store per variable
-                    if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-                    activeStep._multiIngredients[varName] = normalized;
+                    if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
+                    stepDraft._multiIngredients[varName] = normalized;
 
                     rerenderAfterValueSet();
                     return;
@@ -3222,7 +3136,7 @@
                 console.log('[applyCurrentEditorSelection] normalized:', normalized);
 
                 // Check if we should ADD to existing multi-ingredients or create new (per variable)
-                const multiIngredientsObj = activeStep._multiIngredients || {};
+                const multiIngredientsObj = stepDraft._multiIngredients || {};
                 const existingMulti = multiIngredientsObj[varName] || [];
                 let combinedList = existingMulti.length > 0 ? [...existingMulti, ...normalized] : normalized;
                 console.log('[applyCurrentEditorSelection] existingMulti for', varName, ':', existingMulti, 'combinedList:', combinedList);
@@ -3235,7 +3149,7 @@
                 const hasFractions = combinedList.some(item => item.fraction && item.fraction !== "");
                 if (hasFractions) {
                     const frOpts = getFractionOptions();
-                    activeStep._fractionData = combinedList
+                    stepDraft._fractionData = combinedList
                         .filter(item => item.fraction)
                         .map(item => {
                             const fr = frOpts.find(f => f.key === item.fraction);
@@ -3247,15 +3161,15 @@
                             };
                         });
                 } else {
-                    activeStep._fractionData = null;
+                    stepDraft._fractionData = null;
                 }
 
-                activeStep.values[varName] = ingredientComposed;
+                stepDraft.values[varName] = ingredientComposed;
 
                 // Store combined list in _multiIngredients for further additions via Plus button (per variable)
-                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-                activeStep._multiIngredients[varName] = combinedList;
-                console.log('[applyCurrentEditorSelection - Fallback] Stored in _multiIngredients for', varName, ':', activeStep._multiIngredients[varName]);
+                if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
+                stepDraft._multiIngredients[varName] = combinedList;
+                console.log('[applyCurrentEditorSelection - Fallback] Stored in _multiIngredients for', varName, ':', stepDraft._multiIngredients[varName]);
 
                 rerenderAfterValueSet();
                 return;
@@ -3275,21 +3189,21 @@
         // If editing pronoun variable directly
         if (pronounVar) {
             // Check if there's a separate {{state}} token in the template
-            const hasSepState = /\{\{\s*state\s*\}\}/i.test(activeStep?.templateRaw || "");
+            const hasSepState = /\{\{\s*state\s*\}\}/i.test(stepDraft?.templateRaw || "");
 
             // Save pronoun
             if (pronoun) {
-                activeStep.values["pronoun"] = pronoun;
+                stepDraft.values["pronoun"] = pronoun;
             }
 
             // If state selected AND there's a separate {{state}} token, save it there too
             if (value && hasSepState) {
-                activeStep.values["state"] = value;
+                stepDraft.values["state"] = value;
             }
             // If state selected but NO separate {{state}} token, combine them
             else if (value && !hasSepState) {
                 const combined = `${pronoun} ${value}`.trim();
-                activeStep.values["pronoun"] = combined;
+                stepDraft.values["pronoun"] = combined;
             }
 
             rerenderAfterValueSet();
@@ -3300,7 +3214,7 @@
         if (stateVar) {
             // Always save pronoun if selected (even without state)
             if (pronoun) {
-                activeStep.values["pronoun"] = pronoun;
+                stepDraft.values["pronoun"] = pronoun;
             }
 
             // If both pronoun and state selected, compose them
@@ -3328,11 +3242,11 @@
         //     /\{\{\s*state\s*\}\}/i.test(templateRaw) &&
         //     stateUnfilled;
 
-        activeStep.values[varName] = composed;
+        stepDraft.values[varName] = composed;
 
         // Auch {pronoun}-Token setzen falls im Template vorhanden
         if (stateVar && pronoun) {
-            activeStep.values["pronoun"] = pronoun;
+            stepDraft.values["pronoun"] = pronoun;
         }
 
         rerenderAfterValueSet();
@@ -3511,20 +3425,26 @@
 
         // Save based on context type
         if (contextType === 'step') {
-            if (!activeStep) return false;
-            activeStep.values[varName] = value;
+            const stepDraft = getCurrentStepDraft();
+            if (!stepDraft) return false;
+            stepDraft.values[varName] = value;
             if (extras && extras.pronoun) {
-                activeStep.values['pronoun'] = extras.pronoun;
+                stepDraft.values['pronoun'] = extras.pronoun;
             }
             preserveWindowScroll(() => {
                 renderMasterText();
             });
         } else if (contextType === 'probability') {
             const masterId = contextId;
+            ensureProbabilityDraftForEditing(masterId);
             if (!window.probabilityStates || !window.probabilityStates[masterId]) return false;
-            window.probabilityStates[masterId].values[varName] = value;
-            if (extras && extras.pronoun) {
-                window.probabilityStates[masterId].values['pronoun'] = extras.pronoun;
+            if (draftEngine && typeof draftEngine.setProbabilityValue === 'function') {
+                draftEngine.setProbabilityValue(masterId, varName, value, extras);
+            } else {
+                window.probabilityStates[masterId].values[varName] = value;
+                if (extras && extras.pronoun) {
+                    window.probabilityStates[masterId].values['pronoun'] = extras.pronoun;
+                }
             }
             if (typeof window.renderProbabilityTemplate === 'function') {
                 window.renderProbabilityTemplate(masterId);
@@ -3535,15 +3455,18 @@
     }
 
     function acceptActiveStep() {
-        if (!activeStep) return;
+        const stepDraft = getCurrentStepDraft();
+        if (!stepDraft) return;
 
         // ✅ NEU (2026-03-28): Gemeinsame Funktion für Editor-Wert speichern
-        const wasSaved = saveCurrentEditorValueBeforeAccept('step', null);
-        if (wasSaved) {
+        const overlay = document.getElementById('universalEditorOverlay');
+        const shouldCloseOverlay = !!overlay && overlay.dataset.overlayOwner === 'step';
+        saveCurrentEditorValueBeforeAccept('step', null);
+        if (shouldCloseOverlay) {
             closeUnifiedOverlay();
         }
 
-        const step = steps.find(s => (s?.master_id || "") === (activeStep.master_id || ""));
+        const step = steps.find(s => (s?.master_id || "") === (stepDraft.master_id || ""));
         const payload = {
             de: getRenderedTextForLang(step, "de"),
             en: getRenderedTextForLang(step, "en"),
@@ -3551,7 +3474,7 @@
             prt: getRenderedTextForLang(step, "prt"),
             phase: parseInt(step?.phase ?? 0, 10) || 0,
             equipment: parseInt(step?.equipment ?? 0, 10) || 0,
-            masterTemplateId: (step?.master_id || activeStep.master_id || "").toString(),
+            masterTemplateId: (step?.master_id || stepDraft.master_id || "").toString(),
             stableReference: buildStableStepReference(step)
         };
         const textCurrent = payload[currentLang] || payload.de || payload.en || "";
@@ -3567,7 +3490,7 @@
                 ingredientName,
                 masterTemplateId: payload.masterTemplateId,
                 stepData: payload,
-                fractionData: activeStep._fractionData || null
+                fractionData: stepDraft._fractionData || null
             });
             if (typeof window.updateStepIndices === "function") {
                 window.updateStepIndices();
@@ -3607,6 +3530,9 @@
             templateRaw,
             values: {}
         };
+        if (draftEngine && typeof draftEngine.setActiveStepDraft === 'function') {
+            draftEngine.setActiveStepDraft(activeStep);
+        }
 
         closeInlineEditor();
         renderMasterText();
@@ -3631,13 +3557,14 @@
                         // Token in MasterText
             const token = e.target.closest(".template-var");
             if (token) {
-                if (!activeStep) return;
+                const stepDraft = getCurrentStepDraft();
+                if (!stepDraft) return;
                 const varName = token.dataset.var || token.dataset.placeholderKey || token.dataset.var;
                 const tokenId = token.dataset.tokenId || token.dataset.placeholderTokenId || token.dataset.tokenId;
                 // Sequential editing: {state} clicked with separate unfilled {pronoun} → open pronoun first
-                if (isStateVariable(varName) && /\{\{\s*pronoun\s*\}\}/i.test(activeStep.templateRaw || "")) {
+                if (isStateVariable(varName) && /\{\{\s*pronoun\s*\}\}/i.test(stepDraft.templateRaw || "")) {
                     const pronounToken = document.querySelector("#CurrentStepText .placeholder-token[data-var='pronoun']");
-                    if (pronounToken && !((activeStep.values["pronoun"] || "").toString().trim())) {
+                    if (pronounToken && !((stepDraft.values["pronoun"] || "").toString().trim())) {
                         openInlineEditor("pronoun", pronounToken.dataset.tokenId);
                         return;
                     }
@@ -3648,7 +3575,7 @@
 
             const optionalAdd = e.target.closest(".js-optional-var-add");
             if (optionalAdd) {
-                if (!activeStep) return;
+                if (!getCurrentStepDraft()) return;
                 const varName = (optionalAdd.dataset.optionalVar || "").toString();
                 const tokenId = (optionalAdd.dataset.tokenId || uid("optional")).toString();
                 if (!varName) return;
@@ -3658,10 +3585,11 @@
 
             // Reset button near token
             const reset = e.target.closest(".placeholder-reset");
-            if (reset && activeStep) {
+            const stepDraft = getCurrentStepDraft();
+            if (reset && stepDraft) {
                 const varName = (reset.dataset.var || "").toString().trim();
                 if (varName) {
-                    delete activeStep.values[varName];
+                    delete stepDraft.values[varName];
                     renderMasterText();
                     closeInlineEditor();
                 }
@@ -3725,18 +3653,22 @@
                 }
 
                 // Get list for current variable
-                const multiIngredientsObj = activeStep._multiIngredients || {};
+                const stepDraft = getCurrentStepDraft();
+                if (!stepDraft) {
+                    return;
+                }
+                const multiIngredientsObj = stepDraft._multiIngredients || {};
                 const existingList = multiIngredientsObj[activeToken.varName] || [];
                 if (idx < 0 || idx >= existingList.length) return;
 
                 // Remove item at index
                 existingList.splice(idx, 1);
-                if (!activeStep._multiIngredients) activeStep._multiIngredients = {};
-                activeStep._multiIngredients[activeToken.varName] = existingList;
+                if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
+                stepDraft._multiIngredients[activeToken.varName] = existingList;
 
                 // Update preview text
                 const composed = formatSelectedIngredientList(existingList, currentLang);
-                activeStep.values[activeToken.varName] = composed;
+                stepDraft.values[activeToken.varName] = composed;
 
                 console.log("[Remove Chip] Updated value:", composed);
 
@@ -3801,7 +3733,9 @@
                 }
 
                 // direkt übernehmen:
-                if (composed) activeStep.values["duration"] = composed;
+                const stepDraft = getCurrentStepDraft();
+                if (!stepDraft) return;
+                if (composed) stepDraft.values["duration"] = composed;
                 rerenderAfterValueSet();
                 return;
             }
@@ -3809,7 +3743,9 @@
             if (e.target.id === "BtnPickCountQuick") {
                 const n = $("#CountValueInput")?.value?.trim() || "1";
                 const normalized = /^\d+$/.test(n) ? n : "1";
-                activeStep.values["count"] = normalized;
+                const stepDraft = getCurrentStepDraft();
+                if (!stepDraft) return;
+                stepDraft.values["count"] = normalized;
                 rerenderAfterValueSet();
                 return;
             }
@@ -3819,7 +3755,9 @@
                 const u = $("#TempUnitSelect")?.value || "C";
                 const composed = n ? `${n} ${u}` : "";
 
-                activeStep.values["temp"] = composed;
+                const stepDraft = getCurrentStepDraft();
+                if (!stepDraft) return;
+                stepDraft.values["temp"] = composed;
                 rerenderAfterValueSet();
                 return;
             }
@@ -3834,12 +3772,13 @@
                 renderStepButtons();
 
                 // wenn aktiv, template neu holen, aber values behalten (du kannst später language-values bauen)
-                if (activeStep) {
-                    const step = steps.find(s => s.master_id === activeStep.master_id);
-                    activeStep.templateRaw = step?.templates?.[currentLang] ?? "";
+                const stepDraft = getCurrentStepDraft();
+                if (stepDraft) {
+                    const step = steps.find(s => s.master_id === stepDraft.master_id);
+                    stepDraft.templateRaw = step?.templates?.[currentLang] ?? "";
                     closeInlineEditor();
                     renderMasterText();
-                    setActiveButton(activeStep.master_id);
+                    setActiveButton(stepDraft.master_id);
                 }
             });
         }
@@ -4005,6 +3944,8 @@
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
         renderTemplate,  // ← Export für renderProbabilityTemplate
+        renderTemplateDraftHtml,
+        renderEditableStepPreview,
         renderTemplateWithConfig,
         renderAssignedPlaceholderTemplate,
         splitLeadingArticleByOptions,
@@ -4023,6 +3964,7 @@
         formatSelectedIngredientList,
         isIngredientVariable,
         // Unified Overlay System (NEW)
+        openStepDraftEditor,
         openUniversalVariableEditor,
         closeUnifiedOverlay,
         getMultiIngredientsForContext,

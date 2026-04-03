@@ -1,9 +1,7 @@
 (function (window, $) {
     'use strict';
 
-    // Global storage for multi-ingredients in probability area
-    // Structure: { "masterId": { "varName": [{name, fraction, article}, ...] } }
-    window.ProbabilityMultiIngredients = window.ProbabilityMultiIngredients || {};
+    const draftEngine = window.CreatePostingTemplateDrafts || null;
 
     const UI_TEXT = {
         selectIngredients: 'Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.',
@@ -46,7 +44,9 @@
         }
 
         // Get multi-ingredients data for this master
-        const multiIngredientsData = window.ProbabilityMultiIngredients[masterId] || {};
+        const multiIngredientsData = draftEngine && typeof draftEngine.getProbabilityMultiIngredients === 'function'
+            ? draftEngine.getProbabilityMultiIngredients(masterId)
+            : {};
 
         console.log(`[buildInlineTemplateText] "${masterId}" - vars.removal:`, vars?.removal);
         console.log(`[buildInlineTemplateText] "${masterId}" - overrideVars:`, overrideVars);
@@ -66,24 +66,34 @@
     function buildTemplateCardHtml(masterId, displayText, template, vars, lang) {
         const safeId = escapeHtml(masterId || '');
         const safeText = escapeHtml(displayText || masterId || '');
-
-        // ✅ FIX (2026-04-02): Einheitlich wie rerenderInlineText - nutze overrides explizit
-        const overrides = {};  // Initial render = keine User-Overrides
-        const inlineText = buildInlineTemplateText(masterId, template, lang, vars, overrides);
+        const helpers = window.MasterStepCreatorHelpers || {};
+        const buildProbabilityPreviewDraft = window.buildCreatePostingProbabilityPreviewDraft;
+        const previewDraft = typeof buildProbabilityPreviewDraft === 'function'
+            ? buildProbabilityPreviewDraft(masterId)
+            : null;
+        const templateText = (previewDraft?.templateRaw || template?.templates?.[lang] || template?.templates?.de || '').toString();
+        const actionHtml = `<div class="probability-template-actions d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
+        <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
+      </div>`;
+        const draft = {
+            masterId: masterId,
+            templateRaw: templateText,
+            values: previewDraft?.values || vars || {}
+        };
+        const previewHtml = typeof helpers.renderEditableStepPreview === 'function'
+            ? helpers.renderEditableStepPreview(draft, {
+                mode: 'step',
+                title: 'Erkannter Step',
+                bodyClasses: 'probability-template-text preview-step-text mt-2',
+                wrapperClass: 'current-step-wrap probability-preview-wrap',
+                actionHtml
+            })
+            : `<div class="current-step-wrap probability-preview-wrap"><div class="current-step-header d-flex justify-content-between align-items-center"><div class="preview-step-title mb-0">Erkannter Step</div>${actionHtml}</div><div class="probability-template-text preview-step-text mt-2">${typeof helpers.renderTemplate === 'function' ? helpers.renderTemplate(templateText, masterId, vars || {}) : (buildInlineTemplateText(masterId, template, lang, vars, {}) || safeText)}</div></div>`;
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
   <div class="probability-template-card preview-step-card w-100 text-start">
-    <div class="prob-step-header">
-      <span class="prob-step-label">Erkannter Step</span>
-      <div class="probability-template-actions d-flex gap-2 align-items-center">
-        <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
-        <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
-      </div>
-    </div>
-    <div class="probability-template-select js-probability-template" data-master-id="${safeId}" role="button" tabindex="0">
-      <span class="probability-template-text preview-step-text">${inlineText || safeText}</span>
-    </div>
-    <div class="prob-inline-editor-host d-none"></div>
+    ${previewHtml}
   </div>
 </div>`;
     }
@@ -182,10 +192,15 @@
             // Alte state.varsByTemplate und state.inlineOverrides wurden entfernt
 
             // Werte aus unified System holen
-            const merged = { ...(window.probabilityStates?.[masterId]?.values || {}) };
+            const probabilityDraft = draftEngine && typeof draftEngine.getProbabilityDraft === 'function'
+                ? draftEngine.getProbabilityDraft(masterId)
+                : window.probabilityStates?.[masterId];
+            const merged = { ...(probabilityDraft?.values || {}) };
 
             // Multi-ingredients formatieren (falls vorhanden)
-            const multiIngredients = window.ProbabilityMultiIngredients?.[masterId];
+            const multiIngredients = draftEngine && typeof draftEngine.getProbabilityMultiIngredients === 'function'
+                ? draftEngine.getProbabilityMultiIngredients(masterId)
+                : null;
             if (multiIngredients) {
                 const helpers = window.MasterStepCreatorHelpers;
                 if (helpers?.formatSelectedIngredientList) {

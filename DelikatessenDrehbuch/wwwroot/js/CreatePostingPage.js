@@ -1,4 +1,4 @@
-// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
+﻿// Extracted from CreatePosting.cshtml inline scripts (Smart Creator + page behavior)
         window.onerror = function(msg, url, line, col, error) {
             // Suppress benign errors: screen lock, tab close, ResizeObserver, Script error (CORS)
             if (line === 0 && col === 0) return true;
@@ -34,10 +34,86 @@
         let createPostingDraftSaveTimer = null;
         let isRestoringCreatePostingDraft = false;
         let createPostingDraftAutosaveHandle = null;
+        const draftEngine = window.CreatePostingTemplateDrafts || null;
 
         // Probability States: Object-based data model (wie Smart Step Creator)
-        const probabilityStates = {};  // Dictionary: masterId → { masterId, templateRaw, values, _multiIngredients }
+        const probabilityStates = {};  // Dictionary: masterId â†’ { masterId, templateRaw, values, _multiIngredients }
         window.probabilityStates = probabilityStates;  // Export for use in CreatePostingSmartStepCreator.js
+
+        if (draftEngine && typeof draftEngine.getProbabilityStates === 'function') {
+            Object.assign(probabilityStates, draftEngine.getProbabilityStates());
+            window.probabilityStates = draftEngine.getProbabilityStates();
+        }
+
+        function ensureProbabilityDraftState(masterId) {
+            const safeMasterId = (masterId || '').toString().trim();
+            if (!safeMasterId) return null;
+
+            if (draftEngine && typeof draftEngine.ensureProbabilityDraft === 'function') {
+                const draft = draftEngine.ensureProbabilityDraft(safeMasterId, function () {
+                    const template = MasterStepRenderer.findTemplate(safeMasterId);
+                    const activeLang = $('html').attr('lang') || 'de';
+                    const templateRaw = template?.templates?.[activeLang] || template?.templates?.de || '';
+                    const currentTypeId = creatorState?.activeRecipeType || '';
+                    const defaultVars = buildVariablesForTemplate(safeMasterId, currentTypeId);
+                    return {
+                        masterId: safeMasterId,
+                        templateRaw: templateRaw,
+                        values: defaultVars,
+                        _multiIngredients: {}
+                    };
+                });
+                probabilityStates[safeMasterId] = draft;
+                return draft;
+            }
+
+            if (!probabilityStates[safeMasterId]) {
+                const template = MasterStepRenderer.findTemplate(safeMasterId);
+                const activeLang = $('html').attr('lang') || 'de';
+                const templateRaw = template?.templates?.[activeLang] || template?.templates?.de || '';
+                const currentTypeId = creatorState?.activeRecipeType || '';
+                const defaultVars = buildVariablesForTemplate(safeMasterId, currentTypeId);
+                probabilityStates[safeMasterId] = {
+                    masterId: safeMasterId,
+                    templateRaw: templateRaw,
+                    values: defaultVars,
+                    _multiIngredients: {}
+                };
+            }
+
+            return probabilityStates[safeMasterId];
+        }
+
+        function buildProbabilityPreviewDraft(masterId) {
+            const safeMasterId = (masterId || '').toString().trim();
+            if (!safeMasterId) return null;
+
+            const draft = ensureProbabilityDraftState(safeMasterId);
+            if (!draft) return null;
+
+            const resolvedLang = resolveLangKey(currentLang || 'de');
+            const masterTemplate = MasterStepRenderer.findTemplate(safeMasterId);
+            const templateRaw = (
+                masterTemplate?.templates?.[resolvedLang] ||
+                masterTemplate?.templates?.de ||
+                draft.templateRaw ||
+                ''
+            ).toString();
+            const defaultVars = buildVariablesForTemplate(safeMasterId, creatorState?.activeRecipeType || '');
+
+            return {
+                masterId: safeMasterId,
+                templateRaw,
+                values: {
+                    ...(defaultVars || {}),
+                    ...(draft.values || {})
+                },
+                _multiIngredients: draft._multiIngredients || {}
+            };
+        }
+
+        window.ensureCreatePostingProbabilityDraftState = ensureProbabilityDraftState;
+        window.buildCreatePostingProbabilityPreviewDraft = buildProbabilityPreviewDraft;
 
         function withCreatePostingDraftStorage(action, fallbackValue) {
             try {
@@ -202,8 +278,8 @@
             { de: 'Becher', en: 'cup', esp: 'taza', prt: 'copo' },
             { de: 'Scheiben', en: 'slices', esp: 'rebanadas', prt: 'fatias' },
             { de: 'Blatt', en: 'leaf', esp: 'hoja', prt: 'folha' },
-            { de: 'BlÃ¤tter', en: 'leaves', esp: 'hojas', prt: 'folhas' },
-            { de: 'Handvoll', en: 'handful', esp: 'puÃ±ado', prt: 'punhado' },
+            { de: 'BlÃƒÂ¤tter', en: 'leaves', esp: 'hojas', prt: 'folhas' },
+            { de: 'Handvoll', en: 'handful', esp: 'puÃƒÂ±ado', prt: 'punhado' },
             { de: 'cm', en: 'cm', esp: 'cm', prt: 'cm' },
             { de: 'Zweig', en: 'sprig', esp: 'rama', prt: 'ramo' },
             { de: 'ml', en: 'ml', esp: 'ml', prt: 'ml' },
@@ -213,7 +289,7 @@
             { de: 'Glas', en: 'glass', esp: 'vaso', prt: 'copo' },
             { de: 'kcal', en: 'kcal', esp: 'kcal', prt: 'kcal' },
             { de: 'mg', en: 'mg', esp: 'mg', prt: 'mg' },
-            { de: 'Âµg', en: 'ug', esp: 'ug', prt: 'ug' }
+            { de: 'Ã‚Âµg', en: 'ug', esp: 'ug', prt: 'ug' }
         ];
 
         function getAvailableUnits() {
@@ -326,7 +402,7 @@
                         sourceRow.attr('data-selected-unit', unitDe);
                     }
 
-                    // ✅ NEU: Wenn Ei bearbeitet wird, aktualisiere auch Eiklar/Eigelb Mengen
+                    // âœ… NEU: Wenn Ei bearbeitet wird, aktualisiere auch Eiklar/Eigelb Mengen
                     $('#selectedIngredients .ingredient-row[data-derived-row="true"]').each(function() {
                         const derivedRow = $(this);
                         const sourceBaseId = derivedRow.attr('data-derived-source-base-id');
@@ -374,9 +450,9 @@
         }
 
         /* ===== OLD PROBABILITY EDITOR FUNCTIONS - AUSKOMMENTIERT 2026-03-27 =====
-         * Diese Funktionen sind für das alte #probVarEditorDock System.
+         * Diese Funktionen sind fÃ¼r das alte #probVarEditorDock System.
          * Jetzt wird openProbVarInlineEditor und das Universal Overlay verwendet.
-         * Kann gelöscht werden, wenn alles funktioniert.
+         * Kann gelÃ¶scht werden, wenn alles funktioniert.
          */
 
         /*
@@ -385,7 +461,7 @@
             probVarEditorAnchor = anchorElement ? $(anchorElement).closest('.probability-template-wrap') : null;
             probVarEditorCurrentVarKey = (varKey || '').toString();
             const cleanKey = (varKey || '').toLowerCase().replace(/_/g, ' ');
-            $('#probVarEditorTitle').text((cleanKey || 'Wert') + ' auswÃ¤hlen');
+            $('#probVarEditorTitle').text((cleanKey || 'Wert') + ' auswÃƒÂ¤hlen');
             $('#probVarIngredientArea, #probVarDurationArea, #probVarCountArea, #probVarTempArea, #probVarOptionsArea, #probVarTextArea, #probVarPronounStateArea').addClass('d-none');
             $('#probVarIngredientArticleChips').empty();
             $('#probVarApplyRow').addClass('d-none');
@@ -406,7 +482,7 @@
                 const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
                     ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, selectedIds)
                     : '';
-                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+                $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃƒÂ¤hlt</span>');
                 renderProbVarIngredientArticleOptions('');
                 $('#probVarIngredientArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
@@ -429,14 +505,14 @@
 
             } else if (varType === 'temperature') {
                 const tempNum = parseInt(currentVal, 10) || 180;
-                const isFahr = (currentVal || '').includes('Â°F') || (currentVal || '').includes('F');
+                const isFahr = (currentVal || '').includes('Ã‚Â°F') || (currentVal || '').includes('F');
                 $('#probVarTempVal').val(tempNum);
                 $('#probVarTempUnit').val(isFahr ? 'fahrenheit' : 'celsius');
                 $('#probVarTempArea').removeClass('d-none');
                 $('#probVarApplyRow').removeClass('d-none');
 
             } else {
-                // Check if this is pronoun or state â†' show combined pronoun+state area
+                // Check if this is pronoun or state Ã¢â€ ' show combined pronoun+state area
                 const lowerVarKey = (varKey || '').toLowerCase();
                 const isPronounOrState = lowerVarKey === 'pronoun' || lowerVarKey === 'state' || lowerVarKey === 'pronoun2';
 
@@ -477,7 +553,7 @@
                         $('#probVarApplyRow').removeClass('d-none');
                     }
                 } else {
-                    // Options or text fallback â†' try to get presets from MasterStepRenderer
+                    // Options or text fallback Ã¢â€ ' try to get presets from MasterStepRenderer
                     let options = [];
                     if (window.MasterStepRenderer && typeof MasterStepRenderer.getVariablePresets === 'function') {
                         options = MasterStepRenderer.getVariablePresets(varKey, currentLang || 'de') || [];
@@ -547,7 +623,7 @@
                 value = (parseInt($('#probVarCountVal').val(), 10) || 1).toString();
             } else if (!$('#probVarTempArea').hasClass('d-none')) {
                 const num = $('#probVarTempVal').val() || '180';
-                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? 'Â°F' : 'Â°C';
+                const unit = $('#probVarTempUnit').val() === 'fahrenheit' ? 'Ã‚Â°F' : 'Ã‚Â°C';
                 value = `${num} ${unit}`;
             } else if (!$('#probVarTextArea').hasClass('d-none')) {
                 value = ($('#probVarTextVal').val() || '').toString().trim();
@@ -561,19 +637,14 @@
 
         /* ===== END OLD FUNCTIONS ===== */
 
-        // ══════════════════════════════════════════════════════════════════════════════
-        // WRAPPER: openProbVarInlineEditor → Uses Unified Overlay System
-        // ══════════════════════════════════════════════════════════════════════════════
-        // This function is now a thin wrapper around the unified overlay system.
-        // All existing calls to openProbVarInlineEditor automatically use the unified system.
-        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras, flowMode, carriedPronoun) {
+        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        function buildProbabilityEditorConfig(masterId, varKey, currentVal, anchorEl, extraContext, callbacks) {
             const helpers = window.MasterStepCreatorHelpers;
-            if (!helpers || typeof helpers.openUniversalVariableEditor !== 'function') {
-                console.error("[openProbVarInlineEditor] Unified system not available!");
-                return;
+            if (!helpers || typeof helpers.openStepDraftEditor !== 'function') {
+                console.error("[Probability Editor] Unified system not available!");
+                return null;
             }
 
-            // Get template preview HTML for the overlay header
             const escapedMasterId = (window.CSS && typeof window.CSS.escape === 'function')
                 ? CSS.escape(masterId)
                 : String(masterId || '').replace(/"/g, '\\"');
@@ -581,47 +652,63 @@
             const templateCard = $anchor.find('.probability-template-card')[0];
             const templatePreviewHtml = templateCard ? templateCard.innerHTML : '';
 
-            console.log("[openProbVarInlineEditor] Wrapper calling unified system for:", { masterId, varKey, currentVal });
-
-            // Call unified system
-            helpers.openUniversalVariableEditor({
+            return {
+                helpers,
+                source: 'suggested',
                 varName: varKey,
                 currentVal: currentVal || '',
                 masterId: masterId,
-                context: {
+                context: Object.assign({
                     type: 'probability',
+                    source: 'suggested',
                     probabilityMasterId: masterId,
                     masterId: masterId,
                     tokenElement: anchorEl,
-                    templatePreviewHtml: templatePreviewHtml,
+                    templatePreviewHtml: templatePreviewHtml
+                }, extraContext || {}),
+                onApply: callbacks && callbacks.onApply,
+                onClose: callbacks && callbacks.onClose
+            };
+        }
+
+        // WRAPPER: openProbVarInlineEditor â†’ Uses Unified Overlay System
+        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // This function is now a thin wrapper around the unified overlay system.
+        // All existing calls to openProbVarInlineEditor automatically use the unified system.
+        function openProbVarInlineEditor(masterId, varKey, currentVal, onApply, anchorEl, onApplyExtras, flowMode, carriedPronoun) {
+            const config = buildProbabilityEditorConfig(
+                masterId,
+                varKey,
+                currentVal,
+                anchorEl,
+                {
                     flowMode: flowMode,
                     carriedPronoun: carriedPronoun
                 },
-                onApply: function (newVal, extras) {
-                    console.log("[openProbVarInlineEditor] Unified onApply:", { newVal, extras });
-
-                    // Call original onApply
-                    if (typeof onApply === 'function') {
-                        onApply(newVal);
-                    }
-
-                    // Call onApplyExtras if provided
-                    if (extras && typeof onApplyExtras === 'function') {
-                        onApplyExtras(extras);
-                    }
-
-                    // Handle extras.pronoun (for state variables)
-                    if (extras && extras.pronoun && $anchor.length) {
-                        const pronounToken = $anchor.find('.js-probability-var[data-var-key="pronoun"]').first();
-                        if (pronounToken.length) {
-                            pronounToken.text(extras.pronoun);
-                            pronounToken.attr('data-has-value', '1');
+                {
+                    onApply: function (newVal, extras) {
+                        if (typeof onApply === 'function') {
+                            onApply(newVal);
+                        }
+                        if (extras && typeof onApplyExtras === 'function') {
+                            onApplyExtras(extras);
                         }
                     }
-                },
-                onClose: function () {
-                    console.log("[openProbVarInlineEditor] Unified onClose");
                 }
+            );
+
+            if (!config) {
+                return;
+            }
+
+            config.helpers.openStepDraftEditor({
+                source: config.source,
+                varName: config.varName,
+                currentVal: config.currentVal,
+                masterId: config.masterId,
+                context: config.context,
+                onApply: config.onApply,
+                onClose: config.onClose
             });
         }
 
@@ -664,7 +751,7 @@
             const map = {
                 1: { text: 'Vorb.', cls: 'phase-badge-1' },
                 2: { text: 'Kochen', cls: 'phase-badge-2' },
-                3: { text: 'WÃ¼rzen', cls: 'phase-badge-3' },
+                3: { text: 'WÃƒÂ¼rzen', cls: 'phase-badge-3' },
                 4: { text: 'Finish', cls: 'phase-badge-4' }
             };
             const info = map[phase];
@@ -673,7 +760,7 @@
         }
 
 
-        // Hilfsfunktion: Gibt die Zutat-IDs zurÃ¼ck, an die ein Step gebunden ist
+        // Hilfsfunktion: Gibt die Zutat-IDs zurÃƒÂ¼ck, an die ein Step gebunden ist
         function getStepBoundIngredientIds(stepId) {
             const bindings = window.stepIngredientBindings || {};
             return (bindings[stepId] ?? bindings[stepId?.toString?.()] ?? []).map(x => parseInt(x, 10));
@@ -886,7 +973,7 @@
                 return items;
             }
 
-            // auto_show transforms FIRST: show sub-ingredients (e.g. Ei → Eiklar/Eigelb)
+            // auto_show transforms FIRST: show sub-ingredients (e.g. Ei â†’ Eiklar/Eigelb)
             const triggeredKeys = new Set(descriptors.map(d => d?.masterId).filter(Boolean));
 
             (ingredientTransforms.special_transforms || []).forEach(function (t) {
@@ -914,7 +1001,7 @@
                 const masterId = (descriptor?.masterId || '').toString();
                 if (!masterId) return;
 
-                // 1. Special transforms prüfen
+                // 1. Special transforms prÃ¼fen
                 const specialMatch = (ingredientTransforms.special_transforms || [])
                     .find(function (t) { return t.trigger_step === masterId; });
                 if (specialMatch) {
@@ -932,7 +1019,7 @@
                     return;
                 }
 
-                // 2. Adjective transforms prüfen
+                // 2. Adjective transforms prÃ¼fen
                 const adjEntry = Object.entries(ingredientTransforms.adjective_patterns || {})
                     .find(function (entry) {
                         var def = entry[1];
@@ -986,7 +1073,7 @@
                 items = items.filter(function (item) { return !matchedIds.has(item.id); }).concat(replacements);
             });
 
-            // ✅ Duplikate entfernen (gleicher Name) - bevorzuge Items mit Icon
+            // âœ… Duplikate entfernen (gleicher Name) - bevorzuge Items mit Icon
             const seenByName = new Map();
             items.forEach(function (item) {
                 const key = (item.namesByLang?.[lang] || item.name || '').toLowerCase();
@@ -1031,7 +1118,7 @@
             const value = (rawValue || '').toString().trim();
             if (!value) return '';
 
-            // ✅ FIX (2026-04-02): If source and target languages are the same, return original value
+            // âœ… FIX (2026-04-02): If source and target languages are the same, return original value
             // to preserve articles and formatting
             if (resolveLangKey(sourceLang) === resolveLangKey(targetLang)) {
                 return value;
@@ -1182,7 +1269,7 @@
             // Finde alle verwendeten Zutaten-IDs (die transformiert wurden)
             const usedIngredientIds = new Set();
             derivedItems.forEach(item => {
-                // Nur tatsächlich transformierte Items (keine auto-show)
+                // Nur tatsÃ¤chlich transformierte Items (keine auto-show)
                 if (item.sourceBaseId && item.id !== item.sourceBaseId && !item.isAutoShowOptional) {
                     usedIngredientIds.add(item.sourceBaseId);
                 }
@@ -1225,7 +1312,7 @@
                     });
                 }
 
-                // ✅ NEU: Transformierte Zutaten (z.B. Eischnee) als Display-Only anzeigen
+                // âœ… NEU: Transformierte Zutaten (z.B. Eischnee) als Display-Only anzeigen
                 const transformedItems = regularItems.filter(item =>
                     item.id !== rowId && item.sourceBaseId === rowId && !item.isAutoShowOptional
                 );
@@ -1234,14 +1321,14 @@
                     // Original-Zutat ausgrauen (wurde verwendet)
                     row.addClass('ingredient-used-in-transform').css('opacity', '0.5');
 
-                    // Display-Only Rows für transformierte Zutaten hinzufügen
+                    // Display-Only Rows fÃ¼r transformierte Zutaten hinzufÃ¼gen
                     transformedItems.forEach(function (transformedItem) {
                         const displayHtml = buildTransformedIngredientDisplayRow(row, transformedItem);
                         row.after(displayHtml);
                     });
                 }
 
-                // ✅ NEU: Basis-Zutat (z.B. Ei) ausgrauen, wenn eines ihrer Sub-Items verwendet wurde
+                // âœ… NEU: Basis-Zutat (z.B. Ei) ausgrauen, wenn eines ihrer Sub-Items verwendet wurde
                 const hasUsedSubItem = names.some(item => usedIngredientIds.has(item.id));
                 if (hasUsedSubItem) {
                     row.addClass('ingredient-used-in-transform').css('opacity', '0.5');
@@ -1485,8 +1572,8 @@
             if (lang === 'de') {
                 const known = {
                     m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
-                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soÃŸe', 'sauce'],
-                    n: ['salz', 'Ã¶l', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
+                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soÃƒÅ¸e', 'sauce'],
+                    n: ['salz', 'ÃƒÂ¶l', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
                 };
                 if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };
                 if (hasAny(['n', 'neu', 'neut', 'das'])) return { pronoun: 'es', article: 'das' };
@@ -1677,19 +1764,19 @@
             duration: { open: openDurationEditorForToken, toast: 'Zeit setzen' },
             count: { open: openCountEditorForToken, toast: 'Anzahl setzen' },
             // pronoun and state removed: use combined editor via openProbVarInlineEditor fallback
-            // pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
+            // pronoun: { open: openPronounEditorForToken, toast: 'Pronomen wÃƒÂ¤hlen', keepTokenActive: true },
             temperature: { open: openTemperatureEditorForToken, toast: 'Temperatur setzen' },
-            heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wÃ¤hlen' },
-            mode: { open: openModeEditorForToken, toast: 'Ofenmodus wÃ¤hlen' },
-            equipment: { open: openEquipmentEditorForToken, toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            // state: { open: openStateEditorForToken, toast: 'Zustand wÃ¤hlen' },
-            tool: { open: openToolEditorForToken, toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            grindSize: { open: openGrindSizeEditorForToken, toast: 'SchnittgrÃ¶ÃŸe wÃ¤hlen' },
-            shape: { open: openShapeEditorForToken, toast: 'Schnittform wÃ¤hlen' },
-            base: { open: openBaseEditorForToken, toast: 'Basis wÃ¤hlen' },
-            item: { open: openItemEditorForToken, toast: 'Item wÃ¤hlen' },
-            balance: { open: openBalanceEditorForToken, toast: 'Balance wÃ¤hlen' },
-            seasonings: { open: openSeasoningsEditorForToken, toast: 'Seasonings wÃ¤hlen' }
+            heat: { open: openHeatEditorForToken, toast: 'Hitze-Stufe wÃƒÂ¤hlen' },
+            mode: { open: openModeEditorForToken, toast: 'Ofenmodus wÃƒÂ¤hlen' },
+            equipment: { open: openEquipmentEditorForToken, toast: 'Tool / GerÃƒÂ¤t wÃƒÂ¤hlen' },
+            // state: { open: openStateEditorForToken, toast: 'Zustand wÃƒÂ¤hlen' },
+            tool: { open: openToolEditorForToken, toast: 'Tool / GerÃƒÂ¤t wÃƒÂ¤hlen' },
+            grindSize: { open: openGrindSizeEditorForToken, toast: 'SchnittgrÃƒÂ¶ÃƒÅ¸e wÃƒÂ¤hlen' },
+            shape: { open: openShapeEditorForToken, toast: 'Schnittform wÃƒÂ¤hlen' },
+            base: { open: openBaseEditorForToken, toast: 'Basis wÃƒÂ¤hlen' },
+            item: { open: openItemEditorForToken, toast: 'Item wÃƒÂ¤hlen' },
+            balance: { open: openBalanceEditorForToken, toast: 'Balance wÃƒÂ¤hlen' },
+            seasonings: { open: openSeasoningsEditorForToken, toast: 'Seasonings wÃƒÂ¤hlen' }
         };
 
         const supportedLanguages = ['de', 'en', 'esp', 'prt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
@@ -1823,7 +1910,7 @@
         function getTemperatureInsertText() {
             const value = parseInt(creatorState.temperatureValue, 10);
             const safeValue = Number.isFinite(value) && value > 0 ? value : 180;
-            const unit = creatorState.temperatureUnit === 'fahrenheit' ? 'Â°F' : 'Â°C';
+            const unit = creatorState.temperatureUnit === 'fahrenheit' ? 'Ã‚Â°F' : 'Ã‚Â°C';
             return `${safeValue}${unit}`;
         }
 
@@ -1831,7 +1918,7 @@
             if (!tokenId) return;
             creatorState.activeTemperatureTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-            const parsed = currentText.match(/^(\d+)\s*Â°?\s*(C|F)?/i);
+            const parsed = currentText.match(/^(\d+)\s*Ã‚Â°?\s*(C|F)?/i);
             if (parsed) {
                 creatorState.temperatureValue = parseInt(parsed[1], 10);
                 if (parsed[2] && parsed[2].toUpperCase() === 'F') {
@@ -1950,9 +2037,9 @@
                 de: {
                     'backofen': 'den',
                     'pfanne': 'die',
-                    'brÃ¤ter': 'den',
+                    'brÃƒÂ¤ter': 'den',
                     'topf': 'den',
-                    'kÃ¼chenmaschine': 'die',
+                    'kÃƒÂ¼chenmaschine': 'die',
                     'auflaufform': 'die'
                 },
                 en: {
@@ -1965,7 +2052,7 @@
                 },
                 esp: {
                     'horno': 'el',
-                    'sartÃ©n': 'la',
+                    'sartÃƒÂ©n': 'la',
                     'asador': 'el',
                     'olla': 'la',
                     'procesador de alimentos': 'el',
@@ -2252,7 +2339,7 @@
             if (!tokenId) return;
             creatorState.activeShapeTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.shapeValue || '').toString().trim();
-            creatorState.shapeValue = currentText || 'WÃ¼rfel';
+            creatorState.shapeValue = currentText || 'WÃƒÂ¼rfel';
             renderInlineShapeOptions();
             placeEditorLikeTemperature('#shapeEditor');
             $('#shapeEditor').removeClass('d-none');
@@ -2350,7 +2437,7 @@
             creatorState.activeBalanceTokenId = tokenId;
             const currentText = (creatorState.placeholderAssignments[tokenId] || creatorState.balanceValue || '').toString().trim();
             const options = getBalanceOptions();
-            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'SÃ¤ure', mode: 'noun' });
+            const selection = buildArticleChoiceSelectionState(currentText, options, { fallback: 'SÃƒÂ¤ure', mode: 'noun' });
             creatorState.balanceArticleValue = selection.article || creatorState.balanceArticleValue || '';
             creatorState.balanceValue = selection.noun;
             renderInlineBalanceOptions();
@@ -2503,7 +2590,7 @@
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const placeholderType = getPlaceholderType(key);
             if (key === 'ingredient' || key === 'ingredients') {
-                return key; // always placeholder â€” user must choose
+                return key; // always placeholder Ã¢â‚¬â€ user must choose
             }
             if (key === 'pronoun' || key === 'pronoun2') {
                 const selectedIngredient = getSelectedIngredientForCreator();
@@ -2598,12 +2685,12 @@
 
             keys.forEach(key => {
                 if (key === 'ingredient' || key === 'ingredients') {
-                    // ingredient/ingredients: always placeholder â€" user must choose
+                    // ingredient/ingredients: always placeholder Ã¢â‚¬" user must choose
                     vars[key] = key;
                     return;
                 }
 
-                // ✅ FIX (2026-04-02): Optionale Variablen IMMER leer lassen
+                // âœ… FIX (2026-04-02): Optionale Variablen IMMER leer lassen
                 const isOptional = Array.isArray(template?.optional_variables) && template.optional_variables.includes(key);
                 if (isOptional) {
                     // Optionale Variablen: IMMER leer setzen (ignoriere Defaults)
@@ -2623,6 +2710,8 @@
             return applyTokenAssignmentsToVariables(vars);
         }
 
+        window.createPostingBuildVariablesForTemplate = buildVariablesForTemplate;
+
         function animatePreview() {
             const card = $('#masterPreviewCard');
             card.addClass('preview-animate');
@@ -2632,7 +2721,7 @@
         function updatePreviewText() {
             const templateId = getEffectiveTemplateId();
             if (!templateId || !window.MasterStepRenderer) {
-                creatorState.previewText = 'WÃ¤hle eine Zutat und ein Template.';
+                creatorState.previewText = 'WÃƒÂ¤hle eine Zutat und ein Template.';
                 $('#masterPreviewText').text(creatorState.previewText);
                 return;
             }
@@ -2647,8 +2736,8 @@
                 })
                 : (tpl || '');
 
-            $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfÃ¼gbar.');
-            creatorState.previewText = $('#masterPreviewText').text().trim() || 'Keine Vorschau verfÃ¼gbar.';
+            $('#masterPreviewText').html(previewHtml || 'Keine Vorschau verfÃƒÂ¼gbar.');
+            creatorState.previewText = $('#masterPreviewText').text().trim() || 'Keine Vorschau verfÃƒÂ¼gbar.';
 
             if (!creatorState.ingredientReplaceArmed) { $('#masterPreviewCard').removeClass('token-replace-active'); }
             animatePreview();
@@ -2957,7 +3046,7 @@
             });
         }
 
-        // PrÃ¼ft ob ein Step bereits in der Auswahl ist
+        // PrÃƒÂ¼ft ob ein Step bereits in der Auswahl ist
         function isStepAlreadySelected(stepId) {
             return $('#selectedSteps .step-row').filter(function () {
                 return $(this).data('step-id')?.toString() === stepId.toString();
@@ -2989,7 +3078,7 @@
             const aliases = {
                 g: ['g', 'gr', 'gramm', 'gram'],
                 ml: ['ml', 'milliliter', 'millilitre'],
-                piece: ['stk', 'stk.', 'stueck', 'stÃ¼ck', 'piece', 'pieces', 'pcs', 'pcs.', 'unit', 'units', 'uds', 'un']
+                piece: ['stk', 'stk.', 'stueck', 'stÃƒÂ¼ck', 'piece', 'pieces', 'pcs', 'pcs.', 'unit', 'units', 'uds', 'un']
             };
             const accepted = aliases[key] || [key];
             const match = options.find(opt => accepted.includes(normalize(opt.value)) || accepted.includes(normalize(opt.text)));
@@ -3065,7 +3154,23 @@
         });
 
         window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
-            deriveIngredientsForSteps: deriveIngredientsForSteps
+            deriveIngredientsForSteps: deriveIngredientsForSteps,
+            acceptProbabilityTemplateStep: async function (masterId, probabilityVars) {
+                if (!masterId) return;
+                creatorState.selectedTemplateId = masterId;
+                const beforeCount = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`).length;
+                await addRenderedMasterStep(masterId, probabilityVars);
+
+                const rows = $(`#selectedSteps .step-row[data-master-template-id="${CSS.escape(masterId)}"]`);
+                const targetRow = rows.last();
+                if (targetRow.length) {
+                    targetRow.addClass('preview-animate');
+                    setTimeout(() => targetRow.removeClass('preview-animate'), 350);
+                }
+
+                const afterCount = rows.length;
+                showCreatorToast(afterCount > beforeCount ? 'Step akzeptiert' : 'Step bereits vorhanden');
+            }
         });
 
         async function refreshIngredientProbabilityHints() {
@@ -3248,7 +3353,7 @@
 
             $('#selectedIngredients').append(newIngredient);
 
-            // ✅ FIX (2026-03-28): Alte System-Funktion aufrufen für Sub-Zutaten (Ei → Eiklar/Eigelb)
+            // âœ… FIX (2026-03-28): Alte System-Funktion aufrufen fÃ¼r Sub-Zutaten (Ei â†’ Eiklar/Eigelb)
             applyDerivedIngredientRowVisuals();
 
             refreshMasterTemplateBuilder();
@@ -3350,7 +3455,7 @@
             creatorState.selectedIngredientIds = [];
             renderIngredientChips();
             $('#stepsChipStrip').removeClass('d-none');
-            showCreatorToast('Chip auswÃ¤hlen â†’ dann Einsetzen tippen');
+            showCreatorToast('Chip auswÃƒÂ¤hlen Ã¢â€ â€™ dann Einsetzen tippen');
         }
 
         function applyChipToStep() {
@@ -3358,7 +3463,7 @@
             if (!row) { cancelStepIngredientEdit(); return; }
 
             const selectedNames = getSelectedIngredientNames();
-            if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswÃ¤hlen'); return; }
+            if (!selectedNames.length) { showCreatorToast('Bitte zuerst eine Zutat auswÃƒÂ¤hlen'); return; }
 
             const newName = (typeof getSelectedIngredientValueForInsert === 'function' ? getSelectedIngredientValueForInsert() : selectedNames.join(', '));
             const oldName = (row.data('ingredient-name') || row.find('.template-var[data-var="ingredient"], .step-ingredient-anchor').first().text() || '').toString().trim();
@@ -3412,7 +3517,7 @@
             scheduleCreatePostingDraftSave();
         }
 
-        // Entfernt alle Steps die fÃ¼r dieselben Zutaten+Phase gebunden sind wie der neue Step
+        // Entfernt alle Steps die fÃƒÂ¼r dieselben Zutaten+Phase gebunden sind wie der neue Step
         function removeConflictingSteps(newStepId) {
             const newStep = getAllStepRows().find(x => x && x.id?.toString() === newStepId.toString());
             if (!newStep) return;
@@ -3434,7 +3539,7 @@
                 const rowPhase = parseInt(rowStep.phase ?? 0, 10);
                 if (rowPhase !== newStepPhase) return;
 
-                // PrÃ¼fe ob der bestehende Step mindestens eine gemeinsame Zutat hat
+                // PrÃƒÂ¼fe ob der bestehende Step mindestens eine gemeinsame Zutat hat
                 const rowBoundIds = getStepBoundIngredientIds(rowStepId).map(x => x.toString());
                 const hasOverlap = rowBoundIds.some(id => newStepBoundIds.includes(id));
                 if (hasOverlap) {
@@ -3715,14 +3820,14 @@
 
 
         // =========================================================
-        // SC2 â†’ Eingebetteter Smart Step Creator im Steps-Bereich
+        // SC2 Ã¢â€ â€™ Eingebetteter Smart Step Creator im Steps-Bereich
         // Shares creatorState with the main creator; separate DOM
         // =========================================================
 
         function updateSc2PreviewText() {
             const templateId = getEffectiveTemplateId();
             if (!templateId || !window.MasterStepRenderer) {
-                $('#sc2MasterPreviewText').text('WÃ¤hle eine Zutat und ein Template.');
+                $('#sc2MasterPreviewText').text('WÃƒÂ¤hle eine Zutat und ein Template.');
                 return;
             }
             const template = MasterStepRenderer.findTemplate(templateId);
@@ -3734,7 +3839,7 @@
                     activeTokenId: creatorState.activePlaceholderTokenId
                 })
                 : (tpl || '');
-            $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfÃ¼gbar.');
+            $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfÃƒÂ¼gbar.');
             if (!creatorState.ingredientReplaceArmed) { $('#sc2MasterPreviewCard').removeClass('token-replace-active'); }
             const sc2Card = $('#sc2MasterPreviewCard');
             sc2Card.addClass('preview-animate');
@@ -3747,7 +3852,7 @@
             const ingredients = getSelectedIngredientsForSandbox();
             wrap.empty();
             if (!ingredients.length) {
-                wrap.append('<div class="small text-white-50">WÃ¤hle zuerst Zutaten aus.</div>');
+                wrap.append('<div class="small text-white-50">WÃƒÂ¤hle zuerst Zutaten aus.</div>');
                 return;
             }
             creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
@@ -3821,7 +3926,7 @@
             const parsed = currentText.match(/^(\d+)/);
             if (parsed) {
                 creatorState.temperatureValue = parseInt(parsed[1], 10);
-                creatorState.temperatureUnit = currentText.includes('Â°F') ? 'fahrenheit' : 'celsius';
+                creatorState.temperatureUnit = currentText.includes('Ã‚Â°F') ? 'fahrenheit' : 'celsius';
             }
             $('#sc2TemperatureValueInput').val(creatorState.temperatureValue || 180);
             $('#sc2TemperatureUnitSelect').val(creatorState.temperatureUnit || 'celsius');
@@ -3959,19 +4064,19 @@
             duration:    { open: openSc2DurationEditorForToken,    toast: 'Zeit setzen' },
             count:       { open: openSc2CountEditorForToken,       toast: 'Anzahl setzen' },
             // pronoun and state removed: use combined editor via openProbVarInlineEditor fallback
-            // pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wÃ¤hlen', keepTokenActive: true },
+            // pronoun:     { open: openSc2PronounEditorForToken,     toast: 'Pronomen wÃƒÂ¤hlen', keepTokenActive: true },
             temperature: { open: openSc2TemperatureEditorForToken, toast: 'Temperatur setzen' },
-            heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wÃ¤hlen' },
-            mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wÃ¤hlen' },
-            equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            // state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wÃ¤hlen' },
-            tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / GerÃ¤t wÃ¤hlen' },
-            grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'SchnittgrÃ¶ÃŸe wÃ¤hlen' },
-            shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wÃ¤hlen' },
-            base:        { open: openSc2BaseEditorForToken,        toast: 'Basis wÃ¤hlen' },
-            item:        { open: openSc2ItemEditorForToken,        toast: 'Item wÃ¤hlen' },
-            balance:     { open: openSc2BalanceEditorForToken,     toast: 'Balance wÃ¤hlen' },
-            seasonings:  { open: openSc2SeasoningsEditorForToken,  toast: 'Seasonings wÃ¤hlen' }
+            heat:        { open: openSc2HeatEditorForToken,        toast: 'Hitze-Stufe wÃƒÂ¤hlen' },
+            mode:        { open: openSc2ModeEditorForToken,        toast: 'Ofenmodus wÃƒÂ¤hlen' },
+            equipment:   { open: openSc2EquipmentEditorForToken,   toast: 'Tool / GerÃƒÂ¤t wÃƒÂ¤hlen' },
+            // state:       { open: openSc2StateEditorForToken,       toast: 'Zustand wÃƒÂ¤hlen' },
+            tool:        { open: openSc2ToolEditorForToken,        toast: 'Tool / GerÃƒÂ¤t wÃƒÂ¤hlen' },
+            grindSize:   { open: openSc2GrindSizeEditorForToken,   toast: 'SchnittgrÃƒÂ¶ÃƒÅ¸e wÃƒÂ¤hlen' },
+            shape:       { open: openSc2ShapeEditorForToken,       toast: 'Schnittform wÃƒÂ¤hlen' },
+            base:        { open: openSc2BaseEditorForToken,        toast: 'Basis wÃƒÂ¤hlen' },
+            item:        { open: openSc2ItemEditorForToken,        toast: 'Item wÃƒÂ¤hlen' },
+            balance:     { open: openSc2BalanceEditorForToken,     toast: 'Balance wÃƒÂ¤hlen' },
+            seasonings:  { open: openSc2SeasoningsEditorForToken,  toast: 'Seasonings wÃƒÂ¤hlen' }
         };
 
         function openSc2EditorForPlaceholderToken(key, tokenId) {
@@ -3991,7 +4096,7 @@
                 //     onTriggered: function (pronounTokenId) {
                 //         creatorState.pendingSc2StateTokenId = tokenId;
                 //         openSc2PronounEditorForToken(pronounTokenId);
-                //         showSc2CreatorToast('Zuerst Pronomen wÃ¤hlen');
+                //         showSc2CreatorToast('Zuerst Pronomen wÃƒÂ¤hlen');
                 //         renderSc2TemplateCards();
                 //     }
                 // })) return;
@@ -4000,7 +4105,7 @@
                     creatorState.activePlaceholderTokenId = tokenId;
                     creatorState.ingredientReplaceArmed = true;
                     $('#sc2MasterPreviewCard').addClass('token-replace-active');
-                    showSc2CreatorToast('Zutat auswÃ¤hlen');
+                    showSc2CreatorToast('Zutat auswÃƒÂ¤hlen');
                 } else if (sc2EditorDispatch[placeholderType]) {
                     creatorState.activePlaceholderTokenId = sc2EditorDispatch[placeholderType].keepTokenActive ? tokenId : '';
                     sc2EditorDispatch[placeholderType].open(tokenId);
@@ -4128,195 +4233,140 @@
             });
 
             /**
-             * Extrahiert den Template-Raw-Text aus dem DOM (konvertiert Tokens zu {{varName}})
-             */
-            function extractTemplateRaw($container) {
-                const clone = $container.clone();
-
-                // Replace tokens with {{varName}} placeholders
-                clone.find('.js-probability-var').each(function() {
-                    const $token = $(this);
-                    const varKey = ($token.data('var-key') || $token.data('var') || '').toString();
-                    if (varKey) {
-                        $token.replaceWith(`{{${varKey}}}`);
-                    }
-                });
-
-                // Remove reset buttons
-                clone.find('.placeholder-reset').remove();
-
-                // Get text content
-                return clone.text().trim();
-            }
-
-            /**
              * Renders a probability template from object state (analog zu renderMasterText)
              */
             function renderProbabilityTemplate(masterId) {
-                console.log(`[renderProbabilityTemplate] ━━━ RE-RENDERING "${masterId}" ━━━`);
-                const prob = probabilityStates[masterId];
+                console.log(`[renderProbabilityTemplate] â”â”â” RE-RENDERING "${masterId}" â”â”â”`);
+                const prob = ensureProbabilityDraftState(masterId);
                 if (!prob) {
-                    console.warn('[renderProbabilityTemplate] No state found for:', masterId);
+                    console.warn('[renderProbabilityTemplate] âŒ No state found for:', masterId);
                     return;
                 }
+
+                console.log('[renderProbabilityTemplate] prob.values:', JSON.stringify(prob.values, null, 2));
+                console.log('[renderProbabilityTemplate] prob.templateRaw:', prob.templateRaw?.substring(0, 100));
 
                 const $anchor = $(`.probability-template-wrap[data-master-id="${CSS.escape(masterId)}"]`).first();
                 if (!$anchor.length) {
-                    console.warn('[renderProbabilityTemplate] No anchor found for:', masterId);
-                    return;
-                }
-
-                const template = window.MasterSteps?.find(t => t.id === masterId);
-                if (!template) {
-                    console.warn('[renderProbabilityTemplate] Template not found in MasterSteps:', masterId);
+                    console.warn('[renderProbabilityTemplate] âŒ No anchor found for:', masterId);
                     return;
                 }
 
                 const currentLang = $('html').attr('lang') || 'de';
-                const builder = window.CreatePostingProbability;
-                if (!builder || typeof builder.buildInlineTemplateText !== 'function') {
-                    console.warn('[renderProbabilityTemplate] buildInlineTemplateText not available');
+                const rendererHelpers = window.MasterStepCreatorHelpers;
+                if (!rendererHelpers || typeof rendererHelpers.renderEditableStepPreview !== 'function') {
+                    console.warn('[renderProbabilityTemplate] âŒ renderEditableStepPreview not available');
                     return;
                 }
 
-                // ✅ VEREINFACHT (2026-04-03): Nutze NUR prob.values (user-gesetzte Werte)
-                // Für fehlende Variablen zeigt buildInlineTemplateText automatisch Display-Namen
-                // buildInlineTemplateText(masterId, template, lang, vars, overrideVars)
-                //   vars = Werte für Token-Rendering
-                //   overrideVars = Werte für optionale Segmente (Pill vs gerendert)
-                const rendered = builder.buildInlineTemplateText(masterId, template, currentLang, prob.values, prob.values);
-                console.log('[renderProbabilityTemplate] rendered with prob.values:', prob.values);
+                const defaultVars = buildVariablesForTemplate(masterId, creatorState?.activeRecipeType || '');
+                const mergedVars = {
+                    ...(defaultVars || {}),
+                    ...(prob.values || {})
+                };
+
+                console.log('[renderProbabilityTemplate] Calling renderEditableStepPreview with:');
+                console.log('  - masterId:', masterId);
+                console.log('  - lang:', currentLang);
+                console.log('  - vars (merged):', mergedVars);
+                console.log('  - optionalValues (user-set):', prob.values);
+                console.log('  - draft:', prob);
+
+                const rendered = rendererHelpers.renderEditableStepPreview({
+                    masterId: masterId,
+                    templateRaw: prob.templateRaw || '',
+                    values: mergedVars
+                }, {
+                    mode: 'step',
+                    title: 'Erkannter Step',
+                    bodyClasses: 'probability-template-text preview-step-text mt-2',
+                    wrapperClass: 'current-step-wrap probability-preview-wrap',
+                    actionHtml: `<div class="probability-template-actions d-flex gap-2 align-items-center">
+          <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${masterId}">Akzeptieren</button>
+          <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${masterId}">LÃ¶schen</button>
+        </div>`
+                });
+
+                console.log('[renderProbabilityTemplate] Rendered HTML (first 300 chars):', rendered?.substring(0, 300));
 
                 // Update DOM
-                const $textContainer = $anchor.find('.probability-template-text').first();
-                if ($textContainer.length) {
-                    $textContainer.html(rendered);
-                    console.log('[renderProbabilityTemplate] ✅ DOM updated');
+                const $card = $anchor.find('.probability-template-card').first();
+                if ($card.length) {
+                    console.log('[renderProbabilityTemplate] Updating DOM...');
+                    $card.html(rendered);
+                    console.log('[renderProbabilityTemplate] âœ… DOM updated');
+                } else {
+                    console.warn('[renderProbabilityTemplate] âŒ Card container not found!');
                 }
             }
 
             // Export for use in CreatePostingSmartStepCreator.js
             window.renderProbabilityTemplate = renderProbabilityTemplate;
 
+            function openProbabilityOverlayForVar(masterId, varKey, currentVal, tokenElement) {
+                const safeMasterId = (masterId || '').toString().trim();
+                const safeVarKey = (varKey || '').toString().trim();
+                if (!safeMasterId || !safeVarKey) return;
+
+                const prob = ensureProbabilityDraftState(safeMasterId);
+                if (!prob) {
+                    console.warn('[Probability Overlay] Could not initialize draft for:', safeMasterId);
+                    return;
+                }
+
+                const resolvedValue = typeof currentVal === 'string'
+                    ? currentVal
+                    : ((prob.values || {})[safeVarKey] || '');
+
+                const config = buildProbabilityEditorConfig(
+                    safeMasterId,
+                    safeVarKey,
+                    resolvedValue,
+                    tokenElement || null,
+                    null,
+                    {
+                        onApply: function(newVal, extras) {
+                            console.log('[Probability Overlay onApply]', { masterId: safeMasterId, varKey: safeVarKey, newVal, extras });
+                        },
+                        onClose: function() {
+                            console.log('[Probability Overlay onClose]', { masterId: safeMasterId, varKey: safeVarKey });
+                        }
+                    }
+                );
+
+                if (!config) {
+                    return;
+                }
+
+                config.helpers.openStepDraftEditor({
+                    source: config.source,
+                    varName: config.varName,
+                    currentVal: config.currentVal,
+                    masterId: config.masterId,
+                    context: config.context,
+                    onApply: config.onApply,
+                    onClose: config.onClose
+                });
+            }
+
             // Click on Probability Variable Token to edit
-            $('#recipeForm').on('click', '.js-probability-var', function (e) {
-                e.stopPropagation(); // Prevent template selection
+            $('#recipeForm').on('click', '.probability-template-wrap .template-var, .probability-template-wrap .js-optional-var-add, .probability-template-wrap .js-probability-var', function (e) {
+                e.stopImmediatePropagation();
+                e.stopPropagation();
                 e.preventDefault();
 
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('[PROBABILITY VAR CLICK] ━━━ UNIFIED HANDLER ━━━');
-
                 const token = $(this);
-                const varKey = (token.data('var-key') || token.data('var') || '').toString();
+                const varKey = (token.data('optional-var') || token.data('var-key') || token.data('var') || '').toString();
                 const masterId = token.closest('.probability-template-wrap').data('master-id') || '';
-
-                console.log('[PROBABILITY VAR CLICK] varKey:', varKey, 'masterId:', masterId);
 
                 if (!varKey || !masterId) {
                     console.error('[Probability Var Click] Missing varKey or masterId:', { varKey, masterId });
                     return;
                 }
 
-                // Initialize probability state if not exists (wichtig!)
-                if (!probabilityStates[masterId]) {
-                    console.log('[PROBABILITY VAR CLICK] Initializing new probability state');
-
-                    // ✅ FIX (2026-04-03): Template-String direkt aus window.MasterSteps holen!
-                    const template = window.MasterSteps?.find(t => t.id === masterId);
-                    const currentLang = $('html').attr('lang') || 'de';
-                    const templateRaw = template?.templates?.[currentLang] || template?.templates?.de || '';
-
-                    // ✅ FIX (2026-04-03): Defaults setzen wie beim initialen Rendering!
-                    // Sonst zeigt Re-Rendering nur Display-Namen statt Werte
-                    const currentTypeId = creatorState?.activeRecipeType || '';
-                    const defaultVars = buildVariablesForTemplate(masterId, currentTypeId);
-                    console.log('[PROBABILITY VAR CLICK] Default vars:', defaultVars);
-
-                    probabilityStates[masterId] = {
-                        masterId: masterId,
-                        templateRaw: templateRaw,  // ← Originaler Template-String mit [...]!
-                        values: defaultVars,  // ← MIT DEFAULTS! (wie initiales Rendering)
-                        _multiIngredients: {}
-                    };
-                    console.log('[PROBABILITY VAR CLICK] Created state with defaults:', probabilityStates[masterId]);
-                }
-
-                // Get current value from probability state object (wie Smart Step Creator!)
-                const prob = probabilityStates[masterId];
-                let currentVal = '';
-                if (prob && prob.values) {
-                    currentVal = prob.values[varKey] || '';
-                }
-                console.log('[PROBABILITY VAR CLICK] Current value:', currentVal);
-                console.log('[PROBABILITY VAR CLICK] Current state.values:', prob.values);
-
-                // Get template preview HTML for the overlay header
-                const templateCard = token.closest('.probability-template-wrap').find('.probability-template-card')[0];
-                const templatePreviewHtml = templateCard ? templateCard.innerHTML : '';
-
-                // Use UNIFIED overlay system
-                const helpers = window.MasterStepCreatorHelpers;
-                if (helpers && typeof helpers.openUniversalVariableEditor === 'function') {
-                    console.log('[PROBABILITY VAR CLICK] Opening unified overlay...');
-                    helpers.openUniversalVariableEditor({
-                        varName: varKey,
-                        currentVal: currentVal,
-                        masterId: masterId,
-                        context: {
-                            type: 'probability',
-                            probabilityMasterId: masterId,
-                            masterId: masterId,
-                            tokenElement: token[0],
-                            templatePreviewHtml: templatePreviewHtml
-                        },
-                        onApply: function(newVal, extras) {
-                            console.log('[PROBABILITY VAR CLICK onApply] ✅ CALLBACK FIRED!', { newVal, extras });
-                            // Context update is handled by updateContextValue() in unified apply
-                            // This callback is only for custom extra logic if needed
-                        },
-                        onClose: function() {
-                            console.log('[PROBABILITY VAR CLICK onClose] Overlay closed');
-                            // Cleanup if needed
-                        }
-                    });
-                } else {
-                    console.error('[Probability Var Click] Unified system not available');
-                }
-            });
-
-            $('#recipeForm').on('click', '.js-probability-template', function () {
-                const wrap = $(this).closest('.probability-template-wrap');
-                const swipeTs = parseInt(wrap.data('swipeJustHandled') || 0, 10);
-                if (swipeTs && (Date.now() - swipeTs) < 350) return;
-                const masterId = ($(this).data('master-id') || '').toString();
-                if (!masterId) return;
-
-                // Initialize probability state object (like activeStep in Smart Creator)
-                if (!probabilityStates[masterId]) {
-                    // ✅ FIX (2026-04-03): Template-String direkt aus window.MasterSteps holen!
-                    const template = window.MasterSteps?.find(t => t.id === masterId);
-                    const currentLang = $('html').attr('lang') || 'de';
-                    const templateRaw = template?.templates?.[currentLang] || template?.templates?.de || '';
-
-                    // ✅ FIX (2026-04-03): Defaults setzen wie beim initialen Rendering!
-                    const currentTypeId = creatorState?.activeRecipeType || '';
-                    const defaultVars = buildVariablesForTemplate(masterId, currentTypeId);
-
-                    probabilityStates[masterId] = {
-                        masterId: masterId,
-                        templateRaw: templateRaw,  // ← Originaler Template-String mit [...]!
-                        values: defaultVars,  // ← MIT DEFAULTS!
-                        _multiIngredients: {}
-                    };
-                }
-
-                creatorState.selectedTemplateId = masterId;
-                creatorState.activePlaceholderTokenId = '';
-                creatorState.placeholderAssignments = {};
-                closeAllEditors();
-                renderTemplateCards();
-                updatePreviewText();
-                showCreatorToast('Template aus Wahrscheinlichkeits-Hinweis gewÃ¤hlt');
+                const prob = ensureProbabilityDraftState(masterId);
+                const currentVal = prob && prob.values ? (prob.values[varKey] || '') : '';
+                openProbabilityOverlayForVar(masterId, varKey, currentVal, token[0]);
             });
 
             // Reset Button in Probability Area
@@ -4326,307 +4376,42 @@
 
                 const btn = this;
                 const varName = btn.dataset.var;
-                const tokenId = btn.dataset.tokenId;
                 const masterId = $(btn).closest('.probability-template-wrap').data('master-id');
 
                 if (!varName || !masterId) return;
 
-                console.log("[Probability Reset Button]", { varName, masterId, tokenId });
+                console.log("[Probability Reset Button]", { varName, masterId });
 
-                // Clear value in probability state object
-                const prob = probabilityStates[masterId];
+                const prob = ensureProbabilityDraftState(masterId);
                 if (prob) {
-                    delete prob.values[varName];
-
-                    // Clear multi-ingredients storage
-                    if (prob._multiIngredients) {
-                        prob._multiIngredients[varName] = [];
+                    if (draftEngine && typeof draftEngine.resetProbabilityValue === 'function') {
+                        draftEngine.resetProbabilityValue(masterId, varName);
+                    } else {
+                        delete prob.values[varName];
+                        if (prob._multiIngredients) {
+                            prob._multiIngredients[varName] = [];
+                        }
                     }
 
-                    // Re-render template
                     renderProbabilityTemplate(masterId);
-
-                    console.log("[Probability Reset Button] Cleared and re-rendered:", varName);
                 }
             });
 
             // Multi-Ingredient Plus-Button in Probability Area
             $('#recipeForm').on('click', '.probability-template-wrap .ingredient-plus-btn', function (e) {
+                e.preventDefault();
                 e.stopPropagation();
                 const btn = this;
                 const varName = btn.dataset.var;
                 const masterId = btn.dataset.masterId;
                 if (!varName || !masterId) return;
 
-                const wrap = $(btn).closest('.probability-template-wrap');
-                const $host = wrap.find('.prob-inline-editor-host');
-                const editorEl = $host[0];
-
-                console.log("[Probability Plus Button]", { varName, masterId, editorEl });
-
-                // If editor is closed, open it directly (don't click token - that triggers template selection!)
-                if (!editorEl || $host.hasClass('d-none') || $host.html().trim() === '') {
-                    console.log("[Probability Plus Button] Editor is closed, opening directly");
-                    const token = wrap.find(`.js-probability-var[data-var="${varName}"]`).first()[0];
-                    if (token && typeof openProbVarInlineEditor === 'function') {
-                        // Get helpers from global
-                        const helpersGlobal = window.MasterStepCreatorHelpers;
-
-                        // Get current value from storage
-                        const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
-                        const currentVal = helpersGlobal && helpersGlobal.formatSelectedIngredientList
-                            ? helpersGlobal.formatSelectedIngredientList(existingList, currentLang || 'de')
-                            : '';
-
-                        // Open editor with dummy callback
-                        const dummyOnApply = function(val) {
-                            $(token).text(val || varName);
-                            $(token).attr('data-has-value', val ? '1' : '0');
-                        };
-
-                        openProbVarInlineEditor(masterId, varName, currentVal, dummyOnApply, token);
-                    }
-                    return;
-                }
-
-                // Editor is open - add current selection to list
-                const helpers = window.MasterStepCreatorHelpers;
-                if (!helpers) return;
-
-                const article = editorEl.dataset.selectedArticle || '';
-                const fraction = editorEl.dataset.selectedFraction || '';
-                const currentSelectedChips = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
-
-                console.log("[Probability Plus Button] Selection:", { article, fraction, currentSelectedChips });
-
-                if (currentSelectedChips.length === 0) {
-                    alert("Bitte eine Zutat auswählen");
-                    return;
-                }
-
-                // Get existing list for this master and variable
-                if (!window.ProbabilityMultiIngredients[masterId]) {
-                    window.ProbabilityMultiIngredients[masterId] = {};
-                }
-                const existingList = window.ProbabilityMultiIngredients[masterId][varName] || [];
-
-                console.log("[Probability Plus Button] BEFORE adding - existingList:", JSON.parse(JSON.stringify(existingList)));
-
-                // Normalize and add
-                const normalized = helpers.normalizeIngredientValues ? helpers.normalizeIngredientValues(currentSelectedChips) : currentSelectedChips;
-                normalized.forEach(item => {
-                    item.article = article;
-                    item.fraction = fraction;
-                    existingList.push(item);
-                });
-
-                console.log("[Probability Plus Button] AFTER adding - existingList:", JSON.parse(JSON.stringify(existingList)));
-
-                // Store
-                window.ProbabilityMultiIngredients[masterId][varName] = existingList;
-
-                // Format and update display
-                const composed = helpers.formatSelectedIngredientList ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de') : '';
-
-                console.log("[Probability Plus Button] Composed:", composed, "existingList:", existingList);
-
-                // Re-open editor immediately to show updated chips
-                // The editor will display all multi-ingredients as removable chips
-                const token = wrap.find(`.js-probability-var[data-var="${varName}"]`).first()[0];
-                if (token) {
-                    // Call openProbVarInlineEditor with the updated value
-                    // This will re-render the editor with the new multi-ingredients list
-                    const dummyOnApply = function(val) {
-                        // Update token display
-                        $(token).text(val || varName);
-                        $(token).attr('data-has-value', val ? '1' : '0');
-                    };
-                    openProbVarInlineEditor(masterId, varName, composed, dummyOnApply, token);
-                }
+                const currentValue = ensureProbabilityDraftState(masterId)?.values?.[varName] || '';
+                console.log("[Probability Plus Button]", { varName, masterId, currentValue });
+                openProbabilityOverlayForVar(masterId, varName, currentValue, btn);
             });
 
-            // Remove Multi-Ingredient Chip in Probability Area
-            $('#recipeForm').on('click', '.prob-inline-editor-host button[data-remove-multi-ingredient]', function (e) {
-                e.stopPropagation();
-                e.preventDefault();
-                const btn = this;
-                const idx = parseInt(btn.dataset.removeMultiIngredient, 10);
 
-                console.log("[Probability Remove Chip] Button clicked!", { btn, idx });
-
-                const $host = $(btn).closest('.prob-inline-editor-host');
-                // editorFor is on the .prob-inline-editor or .duration-editor element inside the host
-                const editorEl = $host.find('.prob-inline-editor, .duration-editor').first()[0];
-                if (!editorEl) {
-                    console.log("[Probability Remove Chip] No editor element found!");
-                    return;
-                }
-
-                const varName = editorEl.dataset.editorFor;
-                const masterId = $host.closest('.probability-template-wrap').attr('data-master-id');
-
-                console.log("[Probability Remove Chip]", { idx, varName, masterId, editorEl });
-
-                if (!masterId || !varName || isNaN(idx)) return;
-
-                const existingList = (window.ProbabilityMultiIngredients[masterId] || {})[varName] || [];
-                if (idx < 0 || idx >= existingList.length) return;
-
-                // Remove item
-                existingList.splice(idx, 1);
-                window.ProbabilityMultiIngredients[masterId][varName] = existingList;
-
-                // Update display
-                const helpers = window.MasterStepCreatorHelpers;
-                const composed = helpers && helpers.formatSelectedIngredientList
-                    ? helpers.formatSelectedIngredientList(existingList, currentLang || 'de')
-                    : '';
-
-                console.log("[Probability Remove Chip] New composed:", composed);
-
-                // Re-open editor to show updated chips
-                const wrap = $host.closest('.probability-template-wrap');
-                const token = wrap.find(`.js-probability-var[data-var="${varName}"]`).first();
-                if (token.length) {
-                    token.text(composed || varName);
-                    token.attr('data-has-value', composed ? '1' : '0');
-                }
-
-                const onApply = function () {};
-                openProbVarInlineEditor(masterId, varName, composed, onApply, token[0]);
-            });
-
-            // Vorgeschlagene Zutat hinzufÃ¼gen: findet die Zeile im Katalog und ruft addIngredient auf
-            $('#recipeForm').on('click', '.js-typical-ingredient-chip', function () {
-                const ingId = ($(this).data('ingredient-id') || '').toString();
-                if (!ingId) return;
-
-                const catalogRow = $(`.ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
-                if (!catalogRow.length) {
-                    showCreatorToast('Zutat nicht im Katalog gefunden');
-                    return;
-                }
-
-                addIngredient(ingId, catalogRow[0]);
-                showCreatorToast(`Zutat hinzugefÃ¼gt`);
-
-                // Chip deaktivieren nach dem HinzufÃ¼gen
-                $(this).prop('disabled', true).addClass('opacity-50');
-
-                // Kurz zum Katalog scrollen, damit der User die Zutat sehen kann
-                catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            });
-
-            // Helper functions for loading grammar rules
-            function loadIngredientArticleRules() {
-                if (!window.CreatePostingPageData || typeof window.CreatePostingPageData.loadArticleRules !== 'function') {
-                    return Promise.resolve(null);
-                }
-                return window.CreatePostingPageData.loadArticleRules()
-                    .then(rules => {
-                        window.articleRules = rules;
-                        return rules;
-                    })
-                    .catch(() => null);
-            }
-
-            function loadIngredientTransforms() {
-                if (!window.CreatePostingPageData || typeof window.CreatePostingPageData.loadIngredientTransforms !== 'function') {
-                    return Promise.resolve(null);
-                }
-                return window.CreatePostingPageData.loadIngredientTransforms()
-                    .then(transforms => {
-                        window.ingredientTransforms = transforms;
-                        ingredientTransforms = transforms;  // ✅ FIX: Auch lokale Variable setzen!
-                        return transforms;
-                    })
-                    .catch(() => null);
-            }
-
-            refreshDurationUnitControls();
-            Promise.all([loadIngredientArticleRules(), loadIngredientTransforms()]).finally(() => {
-                const renderer = window.MasterStepRenderer;
-                if (!renderer || typeof renderer.load !== 'function') {
-                    setMasterTemplateError('Template-Fehler: MasterStepRenderer ist nicht geladen.');
-                    return;
-                }
-
-                renderer.load().then((result) => {
-                    if (!result) {
-                        const loadError = typeof renderer.getLastLoadError === 'function'
-                            ? renderer.getLastLoadError()
-                            : 'Template-Datei konnte nicht geladen werden.';
-                        setMasterTemplateError(`Template-Fehler: ${loadError}`);
-                        return;
-                    }
-                    refreshMasterTemplateBuilder();
-                }).catch((error) => {
-                    const msg = error && error.message ? error.message : 'Unbekannter Fehler beim Laden.';
-                    setMasterTemplateError(`Template-Fehler: ${msg}`);
-                });
-            });
-
-            $("#currentStepIngredientButtons").on('click', '.ingredient-chip', function () {
-                const id = ($(this).data('id') || '').toString();
-                if (!id) return;
-                prioritizeSelectedIngredient(id);
-
-                creatorState.advancedPronounOverride = '';
-                creatorState.advancedArticleOverride = '';
-                syncGrammarAssignmentsForSelectedIngredient();
-
-                if (creatorState.activePlaceholderTokenId) {
-                    const key = getPlaceholderKeyByTokenId(creatorState.activePlaceholderTokenId);
-                    if (getPlaceholderType(key) === 'ingredient') {
-                        if (assignIngredientPlaceholderValue(creatorState.activePlaceholderTokenId, id)) {
-                            showCreatorToast('Platzhalter ersetzt');
-                        }
-                    }
-                }
-
-                renderIngredientChips();
-                renderTemplateCards();
-            });
-
-            $('#masterTemplateCards').on('click', '.template-card', function () {
-                const id = ($(this).data('id') || '').toString();
-                if (!id) return;
-                creatorState.selectedTemplateId = id;
-                creatorState.activePlaceholderTokenId = '';
-                creatorState.placeholderAssignments = {};
-                closeAllEditors();
-                $('.template-card').removeClass('active');
-                $(this).addClass('active template-tap');
-                setTimeout(() => $(this).removeClass('template-tap'), 180);
-                animateTemplateToPreview($(this).data('title'));
-                updatePreviewText();
-                showCreatorToast('Template gewÃ¤hlt');
-            });
-
-            function handleIngredientPlaceholderSelection(tokenId) {
-                creatorState.activePlaceholderTokenId = tokenId;
-                creatorState.ingredientReplaceArmed = true;
-                $('#masterPreviewCard').addClass('token-replace-active');
-
-                const hasExistingAssignment = !!(creatorState.placeholderAssignments[tokenId] || '').toString().trim();
-                if (hasExistingAssignment) {
-                    clearSelectedIngredientChips();
-                    showCreatorToast('Neue Zutat auswÃ¤hlen zum Ersetzen');
-                    return;
-                }
-
-                const selectedNames = getSelectedIngredientNames();
-                if (selectedNames.length === 1) {
-                    creatorState.placeholderAssignments[tokenId] = selectedNames[0];
-                    creatorState.activePlaceholderTokenId = '';
-                    creatorState.ingredientReplaceArmed = false;
-                    $('#masterPreviewCard').removeClass('token-replace-active');
-                    showCreatorToast('Platzhalter ersetzt');
-                    return;
-                }
-
-                showCreatorToast(selectedNames.length > 1 ? 'Zutat antippen zum Einsetzen' : 'Erst Zutaten auswÃ¤hlen');
-            }
 
             function openEditorForPlaceholderToken(key, tokenId) {
                 try {
@@ -4647,7 +4432,7 @@
                     //         creatorState.pendingStateTokenId = tokenId;
                     //         creatorState.activePlaceholderTokenId = pronounTokenId;
                     //         openPronounEditorForToken(pronounTokenId);
-                    //         showCreatorToast('Zuerst Pronomen wählen');
+                    //         showCreatorToast('Zuerst Pronomen wÃ¤hlen');
                     //         renderTemplateCards();
                     //     }
                     // })) return;
@@ -4683,7 +4468,7 @@
 
                     renderTemplateCards();
                 } catch (err) {
-                    window.CreatePostingFeedback.reportError('Fehler beim Ã–ffnen des Platzhalter-Editors', err, {
+                    window.CreatePostingFeedback.reportError('Fehler beim Ãƒâ€“ffnen des Platzhalter-Editors', err, {
                         prefix: 'CreatePostingPage',
                         selector: '#creatorToast'
                     });
@@ -4705,6 +4490,48 @@
                     });
                 }
             });
+
+            // Vorgeschlagene Zutat hinzufügen: findet die Zeile im Katalog und ruft addIngredient auf
+            $('#recipeForm').on('click', '.js-typical-ingredient-chip', function () {
+                const ingId = ($(this).data('ingredient-id') || '').toString();
+                if (!ingId) return;
+
+                const catalogRow = $(`.ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
+                if (!catalogRow.length) {
+                    showCreatorToast('Zutat nicht im Katalog gefunden');
+                    return;
+                }
+
+                addIngredient(ingId, catalogRow[0]);
+                showCreatorToast('Zutat hinzugefügt');
+                $(this).prop('disabled', true).addClass('opacity-50');
+                catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+
+            function loadIngredientArticleRules() {
+                if (!window.CreatePostingPageData || typeof window.CreatePostingPageData.loadArticleRules !== 'function') {
+                    return Promise.resolve(null);
+                }
+                return window.CreatePostingPageData.loadArticleRules()
+                    .then(rules => {
+                        window.articleRules = rules;
+                        return rules;
+                    })
+                    .catch(() => null);
+            }
+
+            function loadIngredientTransforms() {
+                if (!window.CreatePostingPageData || typeof window.CreatePostingPageData.loadIngredientTransforms !== 'function') {
+                    return Promise.resolve(null);
+                }
+                return window.CreatePostingPageData.loadIngredientTransforms()
+                    .then(transforms => {
+                        window.ingredientTransforms = transforms;
+                        ingredientTransforms = transforms;
+                        return transforms;
+                    })
+                    .catch(() => null);
+            }
 
             $("#currentStepIngredientButtons").on('dragstart', '.ingredient-chip', function (e) {
                 const name = ($(this).data('name') || '').toString();
@@ -4734,7 +4561,7 @@
                 const dropped = e.originalEvent.dataTransfer.getData('text/plain') || creatorState.dragIngredientName || '';
                 if (!tokenId || !dropped) return;
                 if (getPlaceholderType(key) !== 'ingredient') {
-                    showCreatorToast('Drag & Drop nur fÃ¼r ingredient/ingredients');
+                    showCreatorToast('Drag & Drop nur fÃƒÂ¼r ingredient/ingredients');
                     return;
                 }
                 creatorState.activePlaceholderTokenId = tokenId;
@@ -4765,7 +4592,7 @@
                     $('#masterPreviewCard').removeClass('token-replace-active');
                 }
                 closeAllEditors();
-                showCreatorToast('Platzhalter zurÃ¼ckgesetzt');
+                showCreatorToast('Platzhalter zurÃƒÂ¼ckgesetzt');
                 renderIngredientChips();
                 renderTemplateCards();
             });
@@ -4974,7 +4801,7 @@
                 applyButton: '#btnApplyEquipment',
                 activeTokenKey: 'activeEquipmentTokenId',
                 closeEditor: closeEquipmentEditor,
-                toast: 'Tool / GerÃƒÂ¤t eingesetzt',
+                toast: 'Tool / GerÃƒÆ’Ã‚Â¤t eingesetzt',
                 composeDuringSelection: true,
                 composeOnApply: false
             });
@@ -5060,7 +4887,7 @@
                 applyButton: '#btnApplyGrindSize',
                 activeTokenKey: 'activeGrindSizeTokenId',
                 closeEditor: closeGrindSizeEditor,
-                toast: 'SchnittgrÃ¶ÃŸe eingesetzt'
+                toast: 'SchnittgrÃƒÂ¶ÃƒÅ¸e eingesetzt'
             });
 
             bindSimpleEditorOptionHandlers({
@@ -5107,9 +4934,9 @@
             });
 
             /* ===== OLD PROBABILITY EDITOR HANDLERS - AUSKOMMENTIERT 2026-03-27 =====
-             * Diese Handler sind für das alte #probVarEditorDock System.
+             * Diese Handler sind fÃ¼r das alte #probVarEditorDock System.
              * Jetzt wird das Universal Overlay System verwendet.
-             * Kann gelöscht werden, wenn alles funktioniert.
+             * Kann gelÃ¶scht werden, wenn alles funktioniert.
              */
 
             // Close variable editor popups on layout change (resize/orientation)
@@ -5151,7 +4978,7 @@
             //     const chips = (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.buildIngredientChipsHtml === 'function')
             //         ? window.MasterStepCreatorHelpers.buildIngredientChipsHtml(ings, creatorState.selectedIngredientIds)
             //         : '';
-            //     $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃ¤hlt</span>');
+            //     $('#probVarIngredientChips').html(chips || '<span class="small text-white-50">Keine Zutaten ausgewÃƒÂ¤hlt</span>');
             // });
 
             // // Article chip for ingredient variable in prob editor
@@ -5162,21 +4989,21 @@
             //     $(this).addClass('active btn-light text-dark').removeClass('btn-outline-light');
             // });
 
-            // // Option chip → auto-apply and close
+            // // Option chip â†’ auto-apply and close
             // $('#probVarEditorDock').on('click', '.js-prob-option-chip', function () {
             //     const value = ($(this).data('value') || $(this).text()).toString();
             //     if (probVarEditorCallback) probVarEditorCallback(value);
             //     closeProbVarEditor();
             // });
 
-            // // Pronoun chip → select and apply
+            // // Pronoun chip â†’ select and apply
             // $('#probVarEditorDock').on('click', '.js-prob-pronoun-chip', function () {
             //     const value = ($(this).data('value') || $(this).text()).toString();
             //     if (probVarEditorCallback) probVarEditorCallback(value);
             //     closeProbVarEditor();
             // });
 
-            // // State chip → select and apply
+            // // State chip â†’ select and apply
             // $('#probVarEditorDock').on('click', '.js-prob-state-chip', function () {
             //     const value = ($(this).data('value') || $(this).text()).toString();
             //     if (probVarEditorCallback) probVarEditorCallback(value);
@@ -5251,7 +5078,7 @@
                 void ghost[0]?.offsetWidth;
                 ghost.addClass('fly');
                 updatePreviewText();
-                showSc2CreatorToast('Template gewÃ¤hlt');
+                showSc2CreatorToast('Template gewÃƒÂ¤hlt');
             });
 
             $('#sc2MasterIngredientButtons').on('click', '.ingredient-chip', function () {
@@ -5292,7 +5119,7 @@
                     $('#sc2MasterPreviewCard').removeClass('token-replace-active');
                 }
                 closeSc2AllEditors();
-                showSc2CreatorToast('Platzhalter zurÃ¼ckgesetzt');
+                showSc2CreatorToast('Platzhalter zurÃƒÂ¼ckgesetzt');
                 renderIngredientChips();
                 renderTemplateCards();
             });
@@ -5502,7 +5329,7 @@
                 if (!tokenId || !val) return;
                 creatorState.placeholderAssignments[tokenId] = val;
                 closeSc2GrindSizeEditor();
-                showSc2CreatorToast('SchnittgrÃ¶ÃŸe eingesetzt');
+                showSc2CreatorToast('SchnittgrÃƒÂ¶ÃƒÅ¸e eingesetzt');
                 renderTemplateCards();
             });
 
@@ -5625,11 +5452,32 @@
                 window.CreatePostingStepFilterUI.init();
             }
 
-            // Page fully ready â†’ hide overlay, show content
+            refreshDurationUnitControls();
+            Promise.all([loadIngredientArticleRules(), loadIngredientTransforms()]).finally(() => {
+                const renderer = window.MasterStepRenderer;
+                if (!renderer || typeof renderer.load !== 'function') {
+                    setMasterTemplateError('Template-Fehler: MasterStepRenderer ist nicht geladen.');
+                    return;
+                }
+
+                renderer.load().then((result) => {
+                    if (!result) {
+                        const loadError = typeof renderer.getLastLoadError === 'function'
+                            ? renderer.getLastLoadError()
+                            : 'Template-Datei konnte nicht geladen werden.';
+                        setMasterTemplateError(`Template-Fehler: ${loadError}`);
+                        return;
+                    }
+                    refreshMasterTemplateBuilder();
+                    refreshIngredientProbabilityHints();
+                }).catch((error) => {
+                    const msg = error && error.message ? error.message : 'Unbekannter Fehler beim Laden.';
+                    setMasterTemplateError(`Template-Fehler: ${msg}`);
+                });
+            });
+
+            // Page fully ready Ã¢â€ â€™ hide overlay, show content
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });
-
-
-
 
