@@ -1,21 +1,21 @@
-﻿# CreatePosting â€" VollstÃ¤ndige technische Dokumentation
+﻿# CreatePosting – Vollständige technische Dokumentation
 
-> **WorldMiniApp** Â· Rezept-Erstellungs-Modul
+> **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-03 Â· **REFACTORING:** Unified System + Draft-Engine Integration
+> **Stand:** 2026-04-03 · **REFACTORING:** Unified System + Draft-Engine Integration
 >
-> **Letzte Ã„nderungen:**
-> - âœ… Probability Area auf Unified Overlay System umgestellt
-> - âœ… Draft-Engine fÃ¼r Probability-Steps integriert
-> - âœ… Alter Code entfernt (rerenderInlineText, bindInlineEvents, state.inlineOverrides)
-> - âœ… Template-String aus window.MasterSteps statt DOM-Extraktion
-> - âœ… Einheitliches Rendering mit renderEditableStepPreview
+> **Letzte Änderungen:**
+> - ✅ Probability Area auf Unified Overlay System umgestellt
+> - ✅ Draft-Engine für Probability-Steps integriert
+> - ✅ Alter Code entfernt (rerenderInlineText, bindInlineEvents, state.inlineOverrides)
+> - ✅ Template-String aus window.MasterSteps statt DOM-Extraktion
+> - ✅ Einheitliches Rendering mit renderEditableStepPreview
 
 ---
 
 ## Inhaltsverzeichnis
 
-1. [Architektur-Ãœberblick](#1-architektur-Ã¼berblick)
+1. [Architektur-Überblick](#1-architektur-überblick)
 2. [Dateiverzeichnis](#2-dateiverzeichnis)
 3. [Lade-Reihenfolge der Scripts](#3-lade-reihenfolge-der-scripts)
 4. [Dependency-Graph](#4-dependency-graph)
@@ -38,7 +38,7 @@
 21. [JS-Datei: CreatePostingPage.js](#21-js-datei-createpostingpagejs)
 22. [JS-Datei: create-posting-publish-checklist.js](#22-js-datei-create-posting-publish-checklistjs)
 23. [CSS-Datei: create-posting-step-filter.css](#23-css-datei-create-posting-step-filtercss) **NEU**
-24. [Window-API-Ãœbersicht](#24-window-api-Ã¼bersicht)
+24. [Window-API-Übersicht](#24-window-api-übersicht)
 25. [Event-Listener-Katalog](#25-event-listener-katalog)
 26. [DOM-Element-Verzeichnis](#26-dom-element-verzeichnis)
 27. [Datenfluss & User-Flow](#27-datenfluss--user-flow)
@@ -46,7 +46,7 @@
 
 ---
 
-## 1. Architektur-Ãœberblick
+## 1. Architektur-Überblick
 
 ```
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -60,25 +60,25 @@
 â”‚                    _SmartStepCreatorPartial.cshtml             â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
          â”‚                    â”‚                    â”‚
-    â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”         â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”         â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”
+    â”Œâ”€â”€â”€â”€▼â”€â”€â”€â”€â”         â”Œâ”€â”€â”€â”€▼â”€â”€â”€â”€â”         â”Œâ”€â”€â”€â”€▼â”€â”€â”€â”€â”
     â”‚ Create  â”‚         â”‚ Smart   â”‚         â”‚ Publish â”‚
     â”‚ Posting â”‚         â”‚ Step    â”‚         â”‚ Check-  â”‚
     â”‚ Page.js â”‚         â”‚Creator.jsâ”‚        â”‚ list.js â”‚
     â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”˜         â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”˜         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
          â”‚                   â”‚
-    â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”Œâ”€â”€â”€â”€▼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€▼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
     â”‚              Infrastruktur-Layer                      â”‚
-    â”‚  utils Â· data-urls Â· data-store Â· feedback           â”‚
-    â”‚  page-data Â· template-builder Â· renderer             â”‚
-    â”‚  recipe-step-suggest Â· probability Â· ingredientmgr   â”‚
+    â”‚  utils · data-urls · data-store · feedback           â”‚
+    â”‚  page-data · template-builder · renderer             â”‚
+    â”‚  recipe-step-suggest · probability · ingredientmgr   â”‚
     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
                                â”‚
-                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€▼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
                     â”‚  JSON Data Files    â”‚
                     â”‚  /wwwroot/data/*.jsonâ”‚
                     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
                                â”‚
-                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€▼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
                     â”‚ RecipeController.cs  â”‚
                     â”‚ UploadNewVideoAsync  â”‚
                     â”‚ UpdateRecipe         â”‚
@@ -97,13 +97,13 @@
 | 2 | `create-posting-data-urls.js` | `wwwroot/js/` | 11 | URL-Konfiguration aller JSON-Endpunkte |
 | 3 | `create-posting-data-store.js` | `wwwroot/js/` | 98 | Daten-Cache mit Deduplizierung & Validierung |
 | 4 | `create-posting-feedback.js` | `wwwroot/js/` | 41 | Toast-Nachrichten & Fehler-Reporting |
-| 5 | `create-posting-page-data.js` | `wwwroot/js/` | 17 | Async-Loader fÃ¼r Article-Rules & Transforms |
-| 6 | `create-posting-template-builder.js` | `wwwroot/js/` | 62 | Template-Card-UI-Builder (nur fÃ¼r #masterTemplateCards) |
+| 5 | `create-posting-page-data.js` | `wwwroot/js/` | 17 | Async-Loader für Article-Rules & Transforms |
+| 6 | `create-posting-template-builder.js` | `wwwroot/js/` | 62 | Template-Card-UI-Builder (nur für #masterTemplateCards) |
 | 7 | `create-posting-step-filter-ui.js` | `wwwroot/js/` | 86 | **NEU:** Smart Step Creator Filter-UI (Suchfeld + Phase-Tabs) |
 | 8 | `master-step-renderer.js` | `wwwroot/js/` | 478 | Template-Rendering-Engine mit Variablen-Substitution |
-| 9 | `recipe-step-suggest.js` | `wwwroot/js/` | 513 | Rezepttyp-Erkennung & Step-VorschlÃ¤ge |
-| 10 | `create-posting-probability.js` | `wwwroot/js/` | 378 | Wahrscheinlichkeits-Analyse & Template-VorschlÃ¤ge |
-| 11 | `ingredientmanager.js` | `wwwroot/js/` | 145 | MaÃŸeinheiten-Verwaltung (mehrsprachig, 25 Units) |
+| 9 | `recipe-step-suggest.js` | `wwwroot/js/` | 513 | Rezepttyp-Erkennung & Step-Vorschläge |
+| 10 | `create-posting-probability.js` | `wwwroot/js/` | 378 | Wahrscheinlichkeits-Analyse & Template-Vorschläge |
+| 11 | `ingredientmanager.js` | `wwwroot/js/` | 145 | Maßeinheiten-Verwaltung (mehrsprachig, 25 Units) |
 | 12 | `CreatePostingSmartStepCreator.js` | `wwwroot/js/` | 3.897 | Haupt-State-Machine des Step-Creators + Filter-Logik |
 | 13 | `CreatePostingPage.js` | `wwwroot/js/` | 5.590 | Haupt-Page-Controller |
 | 14 | `create-posting-publish-checklist.js` | `wwwroot/js/` | 307 | Fortschritts-Checkliste (5-Schritte-Tracker) |
@@ -114,13 +114,13 @@
 |-------|-----------------------------------------------|-------|
 | `CreatePosting.cshtml` | `Views/Home/` | Haupt-View: Rezept-Erstellung |
 | `EditRecipe.cshtml` | `Views/Home/` | Rezept-Bearbeitung |
-| `_SmartStepCreatorPartial.cshtml` | `Views/Home/` | Shared Partial: CSS + HTML fÃ¼r Step-Creator |
+| `_SmartStepCreatorPartial.cshtml` | `Views/Home/` | Shared Partial: CSS + HTML für Step-Creator |
 
 ### Controller (1 Datei)
 
 | Datei | Pfad | Zweck |
 |-------|------|-------|
-| `RecipeController.cs` | `Areas/WorldMiniApp/Controllers/` | Server-Endpunkte fÃ¼r Upload & Edit |
+| `RecipeController.cs` | `Areas/WorldMiniApp/Controllers/` | Server-Endpunkte für Upload & Edit |
 
 ### JSON-Daten (9 Dateien)
 
@@ -128,19 +128,19 @@
 |-------|------------------------------|-------|
 | `master_steps.json` | `data/` | Master-Step-Templates mit Variablen |
 | `master_step_variables.json` | `data/` | Variablen-Katalog (articles, fractions, etc.) |
-| `master_step_option_rules.json` | `data/` | Regel-Engine fÃ¼r Variablen-Optionen |
+| `master_step_option_rules.json` | `data/` | Regel-Engine für Variablen-Optionen |
 | `recipe_step_mapping.json` | `data/` | Step-zu-Rezepttyp-Zuordnung |
 | `recipe_type_step_variables.json` | `data/` | Variablen-Overrides nach Rezepttyp |
-| `recipe_category_scoring.json` | `data/` | Scoring fÃ¼r Rezepttyp-Erkennung |
+| `recipe_category_scoring.json` | `data/` | Scoring für Rezepttyp-Erkennung |
 | `ingredient_article_rules.json` | `data/` | Grammatische Artikel-Zuordnung |
 | `ingredient_transforms.json` | `data/` | Zutaten-Transformation (adjektivisch) |
-| `probability_template_presets.json` | `data/` | Presets fÃ¼r Probability-Engine |
+| `probability_template_presets.json` | `data/` | Presets für Probability-Engine |
 
 ### CSS-Dateien (1 Datei)
 
 | Datei | Pfad (unter `wwwroot/css/`) | Zeilen | Zweck |
 |-------|----------------------------|--------|-------|
-| `create-posting-step-filter.css` | `wwwroot/css/` | 247 | **NEU:** Styling fÃ¼r Smart Step Creator Filter UI (Suchfeld + Phase-Tabs) mit Theme-Support |
+| `create-posting-step-filter.css` | `wwwroot/css/` | 247 | **NEU:** Styling für Smart Step Creator Filter UI (Suchfeld + Phase-Tabs) mit Theme-Support |
 
 ---
 
@@ -170,7 +170,7 @@ Definiert in `CreatePosting.cshtml` (Zeilen 2679â€“2695):
 ## 4. Dependency-Graph
 
 ```
-window.CreatePostingUtils          â† Basis fÃ¼r alle
+window.CreatePostingUtils          â† Basis für alle
     â†“
 window.CreatePostingDataUrls       â† URL-Registry
     â†“
@@ -210,7 +210,7 @@ CreatePostingPage.js (Haupt-Einstiegspunkt)
     â”œâ”€â”€ Setzt: Theme-Funktionen (getCreatePostingTheme, etc.)
     â””â”€â”€ Setzt: Globale Event-Listener
     â†“
-window.IngredientManager           â† unabhÃ¤ngig, DOMContentLoaded
+window.IngredientManager           â† unabhängig, DOMContentLoaded
 ```
 
 ---
@@ -222,38 +222,38 @@ window.IngredientManager           â† unabhÃ¤ngig, DOMContentLoaded
 **Pfad:** `Areas/WorldMiniApp/Controllers/RecipeController.cs`
 **Route:** `[Route("WorldMiniApp/Home/{action}")]`
 
-#### Ã–ffentliche Actions
+#### Öffentliche Actions
 
-| Action | HTTP | Zeile | Parameter | RÃ¼ckgabe | Beschreibung |
+| Action | HTTP | Zeile | Parameter | Rückgabe | Beschreibung |
 |--------|------|-------|-----------|----------|-------------|
-| `Upload` | GET | 40 | `userHash` | View | LÃ¤dt CreatePosting.cshtml mit Zutaten, MaÃŸeinheiten, Keywords |
+| `Upload` | GET | 40 | `userHash` | View | Lädt CreatePosting.cshtml mit Zutaten, Maßeinheiten, Keywords |
 | `UploadNewVideoAsync` | POST | 55 | `WorldUserPosting posting, userHash` | IActionResult | Rezept speichern (Rate-Limit: 5/10min) |
-| `EditRecipe` | GET | 129 | `postingId, userHash` | View | LÃ¤dt EditRecipe.cshtml mit vollem Rezept |
+| `EditRecipe` | GET | 129 | `postingId, userHash` | View | Lädt EditRecipe.cshtml mit vollem Rezept |
 | `UpsertStep` | POST | 205 | `[FromBody] UpsertStepRequest, userHash` | JSON | Neuen Step anlegen â†’ `{ id, reused }` |
 | `UpdateRecipe` | POST | 257 | `EditPostingRecipeViewModel, userHash` | IActionResult | Rezept aktualisieren |
 
 #### Private Helfer-Methoden
 
-| Methode | Zeile | RÃ¼ckgabe | Beschreibung |
+| Methode | Zeile | Rückgabe | Beschreibung |
 |---------|-------|----------|-------------|
 | `ExtractIngredientRowsFromRequest()` | 459 | `List<IngredientRow>` | Parst Zutatzeilen aus Form |
 | `ExtractCreatePostingStepsFromRequest()` | 495 | `List<RecipeJoinPreparationSteps>` | Parst Zubereitungsschritte (DE/EN/ESP/PRT) |
 | `ExtractCreatePostingSmartStepsFromRequest()` | 556 | `List<SmartStepReferenceInput>` | Parst Smart-Step-Referenzen mit Metadaten |
-| `ExtractStepRowsFromRequest()` | 591 | `List<StepRow>` | Parst Step-Rows fÃ¼r EditRecipe |
-| `ExtractKeywordIdsFromRequest()` | 617 | `List<int>` | Parst ausgewÃ¤hlte Keyword-IDs |
+| `ExtractStepRowsFromRequest()` | 591 | `List<StepRow>` | Parst Step-Rows für EditRecipe |
+| `ExtractKeywordIdsFromRequest()` | 617 | `List<int>` | Parst ausgewählte Keyword-IDs |
 
 #### UploadNewVideoAsync â€” Ablauf (Zeile 55â€“127)
 
 ```
-1. Rate-Limit prÃ¼fen (5 Uploads / 10 Minuten)
-   â””â”€ Bei Ãœberschreitung: HTTP 429
+1. Rate-Limit prüfen (5 Uploads / 10 Minuten)
+   â””â”€ Bei Überschreitung: HTTP 429
 2. Blob-Upload: _blobUpload.UploadContentToBlob(posting.Content)
 3. Rezept anlegen: SaveNewRecipeModel mit Titel, Kategorie, Personen, Bild
 4. Zutaten verarbeiten: posting.IngredientMeasureQuantity
 5. Steps extrahieren: ExtractCreatePostingStepsFromRequest(Request.Form)
 6. Smart Steps extrahieren: ExtractCreatePostingSmartStepsFromRequest(Request.Form)
-7. Keywords verknÃ¼pfen: RecipeBaseKeyword-EintrÃ¤ge erstellen
-8. Cookie setzen: createPostingDraftReset=1 (fÃ¼r Draft-LÃ¶schung)
+7. Keywords verknüpfen: RecipeBaseKeyword-Einträge erstellen
+8. Cookie setzen: createPostingDraftReset=1 (für Draft-Löschung)
 9. Redirect â†’ Home/Index
 ```
 
@@ -307,7 +307,7 @@ SelectedKeywordIds[i] â†’ int
   <!-- Top-Bar -->
   <div class="creator-topbar">
     <!-- Theme-Switcher Buttons -->
-    <!-- Fortschritts-ZÃ¤hler -->
+    <!-- Fortschritts-Zähler -->
     <!-- Publish-Button -->
   </div>
 
@@ -321,7 +321,7 @@ SelectedKeywordIds[i] â†’ int
       <!-- Titel Input:        asp-for="Title" -->
       <!-- Kategorie Select:   asp-for="Recipe.Category" -->
       <!--   Options: Appetizer, Main, Dessert -->
-      <!-- PrÃ¤ferenz Select:   asp-for="Recipe.Preferences" -->
+      <!-- Präferenz Select:   asp-for="Recipe.Preferences" -->
       <!--   Options: Vegan, Vegetarian, Fish, Pork, Beef, OtherMeat -->
       <!-- Personen Input:     asp-for="Recipe.PersonCount" (number) -->
       <!-- Zeit Input:         asp-for="Recipe.PreparationTime" (number, Min.) -->
@@ -346,32 +346,32 @@ SelectedKeywordIds[i] â†’ int
                                 data-is-liquid, data-is-fat, data-is-hard, data-is-soft,
                                 data-selected-qty, data-selected-unit -->
       <!--   Menge/Einheit:     .js-db-qty, .js-db-unit -->
-      <!-- AusgewÃ¤hlt:          #selectedIngredients (Drop-Zone) -->
-      <!-- VorschlÃ¤ge:          #selectedIngredientsSuggestions -->
+      <!-- Ausgewählt:          #selectedIngredients (Drop-Zone) -->
+      <!-- Vorschläge:          #selectedIngredientsSuggestions -->
     </section>
 
     <!-- â•â•â•â•â•â• SECTION 4: Wahrscheinlichkeit (card-probability) â•â•â•â•â•â• -->
     <section class="smart-step-creator" data-theme="dark" id="card-probability">
       <!-- Typ-Badges:          #ingredientProbabilityBadges -->
       <!-- Templates:           #ingredientProbabilityTemplates -->
-      <!-- Rolle:               System erkennt Rezepttyp und Ã¶ffnet vorgeschlagene Steps -->
+      <!-- Rolle:               System erkennt Rezepttyp und öffnet vorgeschlagene Steps -->
       <!-- Bearbeitung:         Nutzt denselben Overlay-/Draft-Workflow wie card-steps -->
     </section>
 
     <!-- â•â•â•â•â•â• SECTION 5: Steps (card-steps) â€” Partial â•â•â•â•â•â• -->
     @await Html.PartialAsync("_SmartStepCreatorPartial.cshtml")
-    <!-- EnthÃ¤lt:
+    <!-- Enthält:
       <section class="smart-step-creator" data-theme="rosa" id="card-steps">
         #sc2MasterPreviewCanvas    â†’ Vorschau-Canvas
         #sc2MasterPreviewCard      â†’ Vorschau-Karte (theme: gold)
         #MasterText                â†’ Aktueller Step-Text
         #insertContainer           â†’ Template-Bibliothek (50vh)
         #stepsChipStrip            â†’ Zutaten-Chip-Streifen
-        #stepsIngredientButtons    â†’ Zutat-Chips fÃ¼r aktuellen Step
+        #stepsIngredientButtons    â†’ Zutat-Chips für aktuellen Step
         #btnApplyStepIngredient    â†’ "Anwenden"-Button
         #btnCancelStepIngredient   â†’ "Abbrechen"-Button
         #selectedSteps             â†’ Akzeptierte Steps (Drop-Zone)
-        Rolle                      â†’ Manuelle Auswahl aller verfÃ¼gbaren Master-Steps
+        Rolle                      â†’ Manuelle Auswahl aller verfügbaren Master-Steps
         Bearbeitung                â†’ Nutzt denselben Overlay-/Draft-Workflow wie card-probability
       </section>
     -->
@@ -379,7 +379,7 @@ SelectedKeywordIds[i] â†’ int
     <!-- â•â•â•â•â•â• SECTION 6: Keywords (card-keywords) â•â•â•â•â•â• -->
     <section class="creator-card" data-theme="gold" id="card-keywords">
       <!-- Keyword-Buttons:     .keyword-btn (Mehrfachauswahl) -->
-      <!-- AusgewÃ¤hlt:          #selectedKeywords -->
+      <!-- Ausgewählt:          #selectedKeywords -->
     </section>
 
     <!-- Publish-Button -->
@@ -403,7 +403,7 @@ SelectedKeywordIds[i] â†’ int
   <!-- Vorschau-Canvas -->
   <div class="creator-preview-canvas" id="sc2MasterPreviewCanvas">
     <div class="preview-step-card" data-theme="gold" id="sc2MasterPreviewCard">
-      <div class="preview-step-text" id="MasterText">Template auswÃ¤hlen.</div>
+      <div class="preview-step-text" id="MasterText">Template auswählen.</div>
     </div>
     <div id="InlineVarEditorHost"></div>     <!-- Inline-Editor Container -->
     <div id="insertContainer"                <!-- Template-Bibliothek -->
@@ -437,7 +437,7 @@ Definiert in `_SmartStepCreatorPartial.cshtml` (Zeilen 1â€“477).
 
 | Variable | Zweck |
 |----------|-------|
-| `--creator-sheet` | Hintergrund der Sheet-FlÃ¤che |
+| `--creator-sheet` | Hintergrund der Sheet-Fläche |
 | `--creator-border` | Rahmenfarbe |
 | `--creator-text` | Textfarbe |
 | `--creator-sub` | Untertitel-/Hilfstext-Farbe |
@@ -450,7 +450,7 @@ Definiert in `_SmartStepCreatorPartial.cshtml` (Zeilen 1â€“477).
 |-------|-------------|-------------|------|-------------|
 | **Dark** (Default) | `dark` | Radial #244a88â†’#081528 | #f8f9ff | Standard-Dunkel |
 | **Light** | `light` | Linear #e8f0ffâ†’#ffffff | #101828 | Helle Variante |
-| **Rosa** | `rosa` | Linear #ff9adfâ†’#8a3f75 | #ffffff | Text-Shadow fÃ¼r Lesbarkeit |
+| **Rosa** | `rosa` | Linear #ff9adfâ†’#8a3f75 | #ffffff | Text-Shadow für Lesbarkeit |
 | **Gold** | `gold` | Radial #f0c97aâ†’#9a6b24â†’#FDE383 | #ffffff | Sheet: #FDEB9Eâ†’#C68F18 |
 | **Navy** | `navy` | Radial #244a88â†’#0f234dâ†’#081528 | #f8f9ff | Sheet: #0f234dâ†’#1f4d92 |
 
@@ -506,7 +506,7 @@ Definiert in `_SmartStepCreatorPartial.cshtml` (Zeilen 1â€“477).
 
 | Klasse | Beschreibung |
 |--------|-------------|
-| `.ingredient-row.ingredient-optional-sub` | Optionale Sub-Zutat (z.B. Eiklar/Eigelb bei Ei). Dashed lila border, eingerÃ¼ckt (padding-left 28px), opacity 0.82, â†³ Prefix |
+| `.ingredient-row.ingredient-optional-sub` | Optionale Sub-Zutat (z.B. Eiklar/Eigelb bei Ei). Dashed lila border, eingerückt (padding-left 28px), opacity 0.82, â†³ Prefix |
 
 #### Fraction-Picker (deprecated)
 
@@ -521,19 +521,19 @@ Definiert in `_SmartStepCreatorPartial.cshtml` (Zeilen 1â€“477).
 | Klasse | Zeile | Eigenschaft |
 |--------|-------|-------------|
 | `.ingredient-plus-btn` | 726 | Plus-Button im Step: inline-flex, border-radius 50%, width/height 26px, padding 0, font-size 1.1rem, font-weight 600, transition 0.2s |
-| `.ingredient-plus-btn:hover` | 734 | Hover: transform scale(1.1), box-shadow 0 2px 6px grÃ¼n |
-| `.ingredient-chip-disabled` | 738 | Deaktivierter Chip (bereits ausgewÃ¤hlt): opacity 0.4, cursor not-allowed, pointer-events none, filter grayscale(0.7) |
+| `.ingredient-plus-btn:hover` | 734 | Hover: transform scale(1.1), box-shadow 0 2px 6px grün |
+| `.ingredient-chip-disabled` | 738 | Deaktivierter Chip (bereits ausgewählt): opacity 0.4, cursor not-allowed, pointer-events none, filter grayscale(0.7) |
 
 **Funktion:**
-- **Plus-Button:** Erscheint im Step neben Token `{{ingredient}} [+] [â†»]` wenn Zutat einen Wert hat. Ã–ffnet Editor wenn geschlossen, fÃ¼gt Zutat hinzu wenn Editor offen ist
-- **Disabled Chips:** Zutaten, die bereits zur Multi-Ingredient-Liste hinzugefÃ¼gt wurden, werden automatisch ausgegraut und deaktiviert
+- **Plus-Button:** Erscheint im Step neben Token `{{ingredient}} [+] [â†»]` wenn Zutat einen Wert hat. Öffnet Editor wenn geschlossen, fügt Zutat hinzu wenn Editor offen ist
+- **Disabled Chips:** Zutaten, die bereits zur Multi-Ingredient-Liste hinzugefügt wurden, werden automatisch ausgegraut und deaktiviert
 
 #### Buttons & CTA
 
 | Klasse | Zeile | Eigenschaft |
 |--------|-------|-------------|
 | `.creator-cta-primary` | 330 | Gradient-Button #8d63ffâ†’#5f85ff, border-radius 999px |
-| `.pill-like` | (JS) | Pill-Form-Button fÃ¼r Variablen-Auswahl |
+| `.pill-like` | (JS) | Pill-Form-Button für Variablen-Auswahl |
 | `.btn-outline-light.pill-like` | (JS) | Standard-Auswahl-Pill |
 | `.pill-like.active` | (JS) | Aktive Pill-Auswahl |
 
@@ -566,7 +566,7 @@ Definiert in `_SmartStepCreatorPartial.cshtml` (Zeilen 1â€“477).
 ## 8. JSON-Datendateien
 
 ### master_steps.json
-EnthÃ¤lt Master-Step-Templates mit Variablen-Platzhaltern.
+Enthält Master-Step-Templates mit Variablen-Platzhaltern.
 
 ```json
 {
@@ -575,7 +575,7 @@ EnthÃ¤lt Master-Step-Templates mit Variablen-Platzhaltern.
       "master_id": "PREP_WASH_01",
       "title": "Waschen",
       "templates": {
-        "de": "{{ingredient}} grÃ¼ndlich waschen.",
+        "de": "{{ingredient}} gründlich waschen.",
         "en": "Wash {{ingredient}} thoroughly."
       },
       "phase": 1,
@@ -593,14 +593,14 @@ EnthÃ¤lt Master-Step-Templates mit Variablen-Platzhaltern.
 **Reihenfolge der PREP-Steps (bestimmt Anzeige im Smart Step Creator):**
 1. PREP_HEAT_01 (Vorheizen) â€” equipment_prep
 2. PREP_WASH_01 (Waschen) â€” ingredient_prep
-3. PREP_PEEL_01 (SchÃ¤len) â€” ingredient_prep, `[mit einem {{tool}}]` optional
+3. PREP_PEEL_01 (Schälen) â€” ingredient_prep, `[mit einem {{tool}}]` optional
 4. PREP_CUT_01, PREP_GRATE_01, PREP_MINCE_01 â€” ingredient_prep
 5. PREP_MARINATE_01, PREP_SOAK_01 â€” marinating
 6. Mixing, Dough, Coating Steps...
 
-**Wichtige Template-Ã„nderungen:**
-- PREP_PEEL_01: Tool-Teil optional â€” `SchÃ¤le {{ingredient}}[ mit einem {{tool}}].`
-- PREP_STUFF_01: Variablen getauscht â€” `FÃ¼lle {{ingredient}} gleichmÃ¤ÃŸig mit {{base}} und setze {{pronoun}} in {{equipment}}.`
+**Wichtige Template-Änderungen:**
+- PREP_PEEL_01: Tool-Teil optional â€” `Schäle {{ingredient}}[ mit einem {{tool}}].`
+- PREP_STUFF_01: Variablen getauscht â€” `Fülle {{ingredient}} gleichmäßig mit {{base}} und setze {{pronoun}} in {{equipment}}.`
 
 ### master_step_variables.json
 Variablen-Katalog mit Optionen pro Variable.
@@ -613,12 +613,12 @@ Variablen-Katalog mit Optionen pro Variable.
     "pronoun":  { "options": [{ "key": "es",  "labels": {...}, "tags": [...] }] },
     "state":    { "options": [{ "key": "fein","labels": {...}, "tags": [...] }] },
     "heat":     { "options": [{ "key": "mittlere", ... }] },
-    "shape":    { "options": [{ "key": "wÃ¼rfel",   ... }] },
-    "equipment": { "options": [pfanne, topf, backofen, brÃ¤ter, kochfeld, mixer, grill, dampfgarer, schÃ¼ssel, sieb, backform, auflaufform] },
+    "shape":    { "options": [{ "key": "würfel",   ... }] },
+    "equipment": { "options": [pfanne, topf, backofen, bräter, kochfeld, mixer, grill, dampfgarer, schüssel, sieb, backform, auflaufform] },
     "ingredient_fractions": {
       "options": [
         { "key": "1/2", "numerator": 1, "denominator": 2,
-          "labels": { "de": "die HÃ¤lfte", ... },
+          "labels": { "de": "die Hälfte", ... },
           "remainder_labels": { "de": "restlich", ... } },
         { "key": "1/3", "numerator": 1, "denominator": 3, ... },
         { "key": "2/3", ... }, { "key": "1/4", ... }, { "key": "3/4", ... }
@@ -628,7 +628,7 @@ Variablen-Katalog mit Optionen pro Variable.
 }
 ```
 
-**Equipment-Optionen:** Jede Option hat `labels` (10 Sprachen) und `tags` fÃ¼r kontextbasierte Filterung im Smart Step Creator (z.B. `technique:bake`, `heat:dry`).
+**Equipment-Optionen:** Jede Option hat `labels` (10 Sprachen) und `tags` für kontextbasierte Filterung im Smart Step Creator (z.B. `technique:bake`, `heat:dry`).
 
 ### ingredient_transforms.json
 Definiert wie Zutaten nach bestimmten Steps transformiert werden.
@@ -638,9 +638,9 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
   "adjective_patterns": {
     "diced": {
       "trigger_steps": ["PREP_CUT_01"],
-      "shape_match": ["wÃ¼rfel", "diced"],
+      "shape_match": ["würfel", "diced"],
       "patterns": {
-        "de": { "m": "gewÃ¼rfelter {{noun}}", "f": "gewÃ¼rfelte {{noun}}" }
+        "de": { "m": "gewürfelter {{noun}}", "f": "gewürfelte {{noun}}" }
       }
     }
   },
@@ -659,9 +659,9 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 | Datei | Inhalt |
 |-------|--------|
 | `master_step_option_rules.json` | Konditionale Regeln: welche Optionen bei welchem Step/Zutat erscheinen |
-| `recipe_step_mapping.json` | Welche Steps zu welchem Rezepttyp gehÃ¶ren |
+| `recipe_step_mapping.json` | Welche Steps zu welchem Rezepttyp gehören |
 | `recipe_type_step_variables.json` | Variablen-Standardwerte pro Rezepttyp |
-| `recipe_category_scoring.json` | Scoring-Regeln fÃ¼r Rezepttyp-Erkennung anhand Zutaten |
+| `recipe_category_scoring.json` | Scoring-Regeln für Rezepttyp-Erkennung anhand Zutaten |
 | `ingredient_article_rules.json` | Grammatik: welcher Artikel zu welcher Zutat (der/die/das) |
 | `probability_template_presets.json` | Vorgefertigte Step-Kombinationen pro Rezepttyp |
 
@@ -669,7 +669,7 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 9. JS-Datei: create-posting-utils.js
 
-**Pfad:** `wwwroot/js/create-posting-utils.js` Â· **74 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-utils.js` · **74 Zeilen**
 **Export:** `window.CreatePostingUtils`
 
 | Methode | Beschreibung |
@@ -678,14 +678,14 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 | `resolveLangKey(value)` | Sprach-Codes normalisieren: `es`â†’`esp`, `pt`â†’`prt`, `se`â†’`sv`, `dk`â†’`da` |
 | `getDataUrl(key)` | URL aus `window.CreatePostingDataUrls` abrufen |
 | `fetchJson(key, options)` | JSON von konfigurierter URL laden |
-| `showTransientMessage(message, options)` | TemporÃ¤re Toast-Nachricht anzeigen |
+| `showTransientMessage(message, options)` | Temporäre Toast-Nachricht anzeigen |
 | `reportError(message, error, options)` | Fehler loggen und anzeigen |
 
 ---
 
 ## 10. JS-Datei: create-posting-data-urls.js
 
-**Pfad:** `wwwroot/js/create-posting-data-urls.js` Â· **11 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-data-urls.js` · **11 Zeilen**
 **Export:** `window.CreatePostingDataUrls` (Object.freeze)
 
 | Key | URL |
@@ -704,17 +704,17 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 11. JS-Datei: create-posting-data-store.js
 
-**Pfad:** `wwwroot/js/create-posting-data-store.js` Â· **98 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-data-store.js` · **98 Zeilen**
 **Export:** `window.CreatePostingDataStore`
 
 | Methode | Beschreibung |
 |---------|-------------|
 | `load(key, options)` | Einzelnen Datensatz laden (mit Cache & Deduplizierung) |
-| `loadMany(keys, options)` | Mehrere DatensÃ¤tze parallel laden |
+| `loadMany(keys, options)` | Mehrere Datensätze parallel laden |
 | `get(key)` | Gecachte Daten abrufen (wirft Fehler wenn nicht geladen) |
 | `peek(key)` | Gecachte Daten sicher abrufen (null wenn nicht geladen) |
-| `has(key)` | PrÃ¼fen ob Daten gecacht |
-| `clear(key)` | Cache fÃ¼r Key oder komplett leeren |
+| `has(key)` | Prüfen ob Daten gecacht |
+| `clear(key)` | Cache für Key oder komplett leeren |
 
 **Internes Verhalten:**
 - In-Memory-Cache mit `Map`
@@ -725,7 +725,7 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 12. JS-Datei: create-posting-feedback.js
 
-**Pfad:** `wwwroot/js/create-posting-feedback.js` Â· **41 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-feedback.js` · **41 Zeilen**
 **Export:** `window.CreatePostingFeedback`
 
 | Methode | Beschreibung |
@@ -737,7 +737,7 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 13. JS-Datei: create-posting-page-data.js
 
-**Pfad:** `wwwroot/js/create-posting-page-data.js` Â· **17 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-page-data.js` · **17 Zeilen**
 **Export:** `window.CreatePostingPageData`
 
 | Methode | Beschreibung |
@@ -749,31 +749,31 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 14. JS-Datei: create-posting-template-builder.js
 
-**Pfad:** `wwwroot/js/create-posting-template-builder.js` Â· **62 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-template-builder.js` · **62 Zeilen**
 **Export:** `window.CreatePostingTemplateBuilder`
 
 | Methode | Beschreibung |
 |---------|-------------|
 | `setMasterTemplateError(message)` | Fehlermeldung im Template-Container anzeigen |
-| `renderTemplateCards(deps)` | Alle Master-Template-Karten rendern (nur fÃ¼r #masterTemplateCards) |
+| `renderTemplateCards(deps)` | Alle Master-Template-Karten rendern (nur für #masterTemplateCards) |
 | `refreshMasterTemplateBuilder(deps)` | Komplettes Template-Builder-UI neu aufbauen |
 
-**AbhÃ¤ngigkeiten:**
+**Abhängigkeiten:**
 - `window.MasterStepRenderer.getAllTemplates()`
 - `window.MasterStepRenderer.getLastLoadError()`
 - `window.getThemeMutedTextClass()`
 - `window.getCreatePostingTheme()`
 
-**WICHTIG:** `renderSc2TemplateCards()` wurde entfernt (2026-04-02). Der Smart Step Creator verwendet jetzt ausschlieÃŸlich `renderStepButtons()` aus `CreatePostingSmartStepCreator.js` fÃ¼r komplexe Gruppierung.
+**WICHTIG:** `renderSc2TemplateCards()` wurde entfernt (2026-04-02). Der Smart Step Creator verwendet jetzt ausschließlich `renderStepButtons()` aus `CreatePostingSmartStepCreator.js` für komplexe Gruppierung.
 
 ---
 
 ## 15. JS-Datei: create-posting-step-filter-ui.js
 
-**Pfad:** `wwwroot/js/create-posting-step-filter-ui.js` Â· **86 Zeilen** Â· **NEU (2026-04-02)**
+**Pfad:** `wwwroot/js/create-posting-step-filter-ui.js` · **86 Zeilen** · **NEU (2026-04-02)**
 **Export:** `window.CreatePostingStepFilterUI`
 
-**Zweck:** Filter-UI fÃ¼r Smart Step Creator (Phase 1 Optimierung)
+**Zweck:** Filter-UI für Smart Step Creator (Phase 1 Optimierung)
 - Rendert Suchfeld + Phase-Tabs oberhalb der Step-Liste
 - Verbindet UI-Events mit Filter-Logik in `CreatePostingSmartStepCreator.js`
 - Theme-aware (dark, light, rosa, gold, navy)
@@ -781,8 +781,8 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 | Methode | Beschreibung |
 |---------|-------------|
 | `init()` | Filter-UI initialisieren (wird von CreatePostingPage.js aufgerufen) |
-| `injectFilterUI(containerSelector)` | HTML fÃ¼r Suchfeld + Phase-Tabs vor Container einfÃ¼gen |
-| `attachFilterEventHandlers()` | Event-Listener fÃ¼r input/click an Filter-Controls binden |
+| `injectFilterUI(containerSelector)` | HTML für Suchfeld + Phase-Tabs vor Container einfügen |
+| `attachFilterEventHandlers()` | Event-Listener für input/click an Filter-Controls binden |
 
 **DOM-Struktur:**
 ```html
@@ -806,7 +806,7 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 3. MasterStepCreatorHelpers ruft intern `renderStepButtons()` auf
 4. Step-Liste wird gefiltert neu gerendert
 
-**AbhÃ¤ngigkeiten:**
+**Abhängigkeiten:**
 - `window.MasterStepCreatorHelpers.setSearchQuery(query)`
 - `window.MasterStepCreatorHelpers.setPhaseFilter(phase)`
 - `window.getCreatePostingTheme()`
@@ -818,44 +818,44 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 
 ## 15. JS-Datei: master-step-renderer.js
 
-**Pfad:** `wwwroot/js/master-step-renderer.js` Â· **478 Zeilen**
+**Pfad:** `wwwroot/js/master-step-renderer.js` · **478 Zeilen**
 **Export:** `window.MasterStepRenderer`
 
 | Methode | Beschreibung |
 |---------|-------------|
-| `load()` | Master-Steps und zugehÃ¶rige Daten laden |
-| `getAllTemplates()` | Alle verfÃ¼gbaren Master-Step-Templates abrufen |
+| `load()` | Master-Steps und zugehörige Daten laden |
+| `getAllTemplates()` | Alle verfügbaren Master-Step-Templates abrufen |
 | `render(masterId, vars, lang)` | Template mit Variablen-Substitution rendern |
 | `renderAll(masterIds, langKey)` | Mehrere Templates rendern |
-| `getSmartDefaults(masterId, ingredients, langKey)` | Vorgeschlagene Variablen fÃ¼r Template |
-| `suggestForIngredient(ingredientName, masterId, langKey)` | VorschlÃ¤ge fÃ¼r Zutat |
-| `getVariablePresets(masterId)` | Preset-Werte fÃ¼r Template-Variablen |
+| `getSmartDefaults(masterId, ingredients, langKey)` | Vorgeschlagene Variablen für Template |
+| `suggestForIngredient(ingredientName, masterId, langKey)` | Vorschläge für Zutat |
+| `getVariablePresets(masterId)` | Preset-Werte für Template-Variablen |
 | `getLastLoadError()` | Letzte Lade-Fehlermeldung |
 | `findTemplate(masterId)` | Template per ID finden |
-| `getRecipeTypeStepVars(typeId)` | Step-Variablen fÃ¼r Rezepttyp |
-| `resolveParentType(typeId)` | Typ-Hierarchie auflÃ¶sen |
+| `getRecipeTypeStepVars(typeId)` | Step-Variablen für Rezepttyp |
+| `resolveParentType(typeId)` | Typ-Hierarchie auflösen |
 | `getOptionRulesData()` | Alle Optionsregeln abrufen |
-| `getOptionRulesForAction(masterId, lang)` | Regeln fÃ¼r Action-Variable |
-| `getOptionRulesForFamily(masterId, lang)` | Regeln fÃ¼r Family-Variable |
-| `getOptionRulesForStep(masterId, varName, lang)` | Regeln fÃ¼r spezifische Variable |
+| `getOptionRulesForAction(masterId, lang)` | Regeln für Action-Variable |
+| `getOptionRulesForFamily(masterId, lang)` | Regeln für Family-Variable |
+| `getOptionRulesForStep(masterId, varName, lang)` | Regeln für spezifische Variable |
 
 ---
 
 ## 16. JS-Datei: recipe-step-suggest.js
 
-**Pfad:** `wwwroot/js/recipe-step-suggest.js` Â· **513 Zeilen**
+**Pfad:** `wwwroot/js/recipe-step-suggest.js` · **513 Zeilen**
 **Export:** `window.RecipeStepSuggest`
 
 | Methode | Beschreibung |
 |---------|-------------|
 | `loadMapping()` | Rezept-Mapping-Daten laden (mit Cache) |
 | `detectRecipeTypes(ingredients, threshold)` | Rezepttypen aus Zutaten erkennen |
-| `suggestStepsForIngredients(ingredients, lang)` | Step-VorschlÃ¤ge basierend auf Zutaten |
+| `suggestStepsForIngredients(ingredients, lang)` | Step-Vorschläge basierend auf Zutaten |
 | `renderRecipeTypeBadges(recipeTypes, langKey)` | Rezepttyp-Badges rendern |
-| `getMasterStepPreview(masterId, ingredients, lang)` | Vorschau-Text fÃ¼r Master-Step |
+| `getMasterStepPreview(masterId, ingredients, lang)` | Vorschau-Text für Master-Step |
 | `getCategoryById(categoryId)` | Kategorie per ID abrufen |
-| `hasMasterSteps()` | PrÃ¼fen ob Master-Steps geladen |
-| `isLoaded()` | PrÃ¼fen ob Mapping-Daten geladen |
+| `hasMasterSteps()` | Prüfen ob Master-Steps geladen |
+| `isLoaded()` | Prüfen ob Mapping-Daten geladen |
 
 **Zutat-Alias-Gruppen:**
 - Zwiebeln: IDs 11, 12, 83, 248
@@ -872,30 +872,30 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 | Methode | Beschreibung |
 |---------|-------------|
 | â†’ `.refresh()` | Analyse mit aktuellen Zutaten neu berechnen |
-| â†’ `.showSuggestions()` | Template-VorschlÃ¤ge nach erkanntem Rezepttyp zeigen |
-| `create(deps)` | Factory: erstellt Probability-Modul-Instanz fÃ¼r Rezepttyp-Erkennung und Vorschlagskarten |
+| â†’ `.showSuggestions()` | Template-Vorschläge nach erkanntem Rezepttyp zeigen |
+| `create(deps)` | Factory: erstellt Probability-Modul-Instanz für Rezepttyp-Erkennung und Vorschlagskarten |
 | `buildTemplateCardHtml(template, lang, vars, preferredIds)` | Baut Vorschlagskarten mit shared Preview-Renderer aus `CreatePostingSmartStepCreator.js` |
-| `getMergedVars(masterId)` | Merged Variablen fÃ¼r Template. Nutzt den gemeinsamen Draft-/Multi-Ingredient-State statt separatem Global-Storage |
+| `getMergedVars(masterId)` | Merged Variablen für Template. Nutzt den gemeinsamen Draft-/Multi-Ingredient-State statt separatem Global-Storage |
 
 **Schwellenwerte:**
-- `>= 60%` â†’ Erfolg (grÃ¼n)
-- `>= 35%` â†’ PrimÃ¤r (blau)
+- `>= 60%` â†’ Erfolg (grün)
+- `>= 35%` â†’ Primär (blau)
 - `< 35%` â†’ Niedrig
 
 **CSS-Klassen:**
 - `.probability-template-wrap.editing` â†’ Lila Glow-Effekt auf Card wenn Inline-Editor offen (border-color + box-shadow + background)
-- `.probability-template-card` â†’ Card-Container mit Transition fÃ¼r border/shadow/background
+- `.probability-template-card` â†’ Card-Container mit Transition für border/shadow/background
 
 ### Unified System Integration (2026-04-03 Refactoring)
 
-**âœ… Entfernter alter Code:**
+**✅ Entfernter alter Code:**
 - `state.inlineOverrides` - ersetzt durch `window.probabilityStates` und Draft-Engine
 - `state.varsByTemplate` - nicht mehr nötig, Defaults werden bei Initialisierung gesetzt
 - `rerenderInlineText()` - ersetzt durch `window.renderProbabilityTemplate()`
 - `bindInlineEvents()` - Variable-Klicks jetzt vom unified Handler in CreatePostingPage.js
 - `openProbStateEditor()`, `openPronounThenState()` - unified Overlay System
 
-**âœ… Dual-Source-System fÃ¼r Werte:**
+**✅ Dual-Source-System für Werte:**
 
 ```javascript
 // getMergedVars() verwendet BEIDE Quellen:
@@ -908,22 +908,22 @@ const merged = { ...(probabilityDraft?.values || {}) };
 1. **Draft-Engine** (`window.CreatePostingTemplateDrafts`):
    - Persistiert Drafts (optional)
    - Verwaltet Multi-Ingredients zentral
-   - Gibt Draft-Objekt zurÃ¼ck: `{ masterId, templateRaw, values, _multiIngredients }`
+   - Gibt Draft-Objekt zurück: `{ masterId, templateRaw, values, _multiIngredients }`
 
 2. **probabilityStates** (Fallback):
    - Leichtgewichtig, kein Persistence
    - Wird bei Token-Klick initialisiert (mit Defaults aus `buildVariablesForTemplate`)
    - Struktur: `{ masterId, templateRaw, values, _multiIngredients }`
 
-**âœ… Rendering-Flow:**
-1. User klickt Token â†' Unified Handler (CreatePostingPage.js Zeile 4220)
+**✅ Rendering-Flow:**
+1. User klickt Token → Unified Handler (CreatePostingPage.js Zeile 4220)
 2. `probabilityStates[masterId]` wird initialisiert (falls nicht existiert) **mit Defaults**
-3. Overlay Ã¶ffnet â†' User Ã¤ndert Wert
-4. `updateContextValue` â†' `prob.values[varName] = value` â†' `renderProbabilityTemplate(masterId)`
+3. Overlay öffnet → User ändert Wert
+4. `updateContextValue` → `prob.values[varName] = value` → `renderProbabilityTemplate(masterId)`
 5. `renderProbabilityTemplate` ruft `buildInlineTemplateText(masterId, template, lang, prob.values, prob.values)`
 6. DOM wird aktualisiert
 
-**âœ… Einheitliches Preview-Rendering:**
+**✅ Einheitliches Preview-Rendering:**
 ```javascript
 // buildTemplateCardHtml verwendet jetzt renderEditableStepPreview:
 helpers.renderEditableStepPreview(draft, {
@@ -936,17 +936,17 @@ helpers.renderEditableStepPreview(draft, {
 ```
 
 **Workflow:**
-1. Zutaten Ã¤ndern â†' Probability-Modul erkennt wahrscheinliche Rezepttypen
-2. User klickt Badge oder Vorschlag â†' passende Master-Step-Karten werden gezeigt
-3. User klickt Token â†' Unified Overlay Ã¶ffnet (shared mit Smart Step Creator)
-4. Ã„nderungen landen in Draft/probabilityStates und rendern Preview + Overlay-Header neu
-5. `Step akzeptieren` Ã¼bernimmt den Step in die untere Step-Liste
+1. Zutaten ändern → Probability-Modul erkennt wahrscheinliche Rezepttypen
+2. User klickt Badge oder Vorschlag → passende Master-Step-Karten werden gezeigt
+3. User klickt Token → Unified Overlay öffnet (shared mit Smart Step Creator)
+4. Änderungen landen in Draft/probabilityStates und rendern Preview + Overlay-Header neu
+5. `Step akzeptieren` übernimmt den Step in die untere Step-Liste
 
 ---
 
 ## 18. JS-Datei: ingredientmanager.js
 
-**Pfad:** `wwwroot/js/ingredientmanager.js` Â· **145 Zeilen**
+**Pfad:** `wwwroot/js/ingredientmanager.js` · **145 Zeilen**
 **Export:** `window.IngredientManager`
 
 | Methode | Beschreibung |
@@ -956,7 +956,7 @@ helpers.renderEditableStepPreview(draft, {
 | `findUnitByDe(unitDe)` | Unit per deutschem Namen finden |
 | `getDefaultUnitDe()` | Standard-Unit (erste in Liste) |
 | `getUnitLabel(unitObj, langKey)` | Lokalisiertes Unit-Label |
-| `buildUnitOptionsHtml(selectedDe, langKey)` | HTML-Optionen fÃ¼r Select generieren |
+| `buildUnitOptionsHtml(selectedDe, langKey)` | HTML-Optionen für Select generieren |
 
 **25 Fallback-Units:** Stk., EL., TL., g., ml., l., Prise, Tasse, Scheibe, etc.
 
@@ -964,8 +964,8 @@ helpers.renderEditableStepPreview(draft, {
 
 ## 19. JS-Datei: CreatePostingSmartStepCreator.js
 
-**Pfad:** `wwwroot/js/CreatePostingSmartStepCreator.js` Â· **2.253 Zeilen**
-**Export:** `window.MasterStepCreatorHelpers` (Object.assign, 2 BlÃ¶cke)
+**Pfad:** `wwwroot/js/CreatePostingSmartStepCreator.js` · **2.253 Zeilen**
+**Export:** `window.MasterStepCreatorHelpers` (Object.assign, 2 Blöcke)
 **Pattern:** IIFE (Immediately Invoked Function Expression)
 
 ### State-Variablen (Zeile 16â€“23)
@@ -994,14 +994,14 @@ let activeToken = null;              // { varName, tokenId }
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `escapeHtml()` | 36 | Von window.CreatePostingUtils |
-| `encodeAttr(str)` | 38 | URL-encode fÃ¼r Attribute |
+| `encodeAttr(str)` | 38 | URL-encode für Attribute |
 | `decodeAttr(str)` | 41 | URL-decode |
 | `uid(prefix)` | 45 | Einzigartige ID generieren |
-| `getVarDisplayName(varName)` | 87 | Mehrsprachiger Anzeigename fÃ¼r Variable |
+| `getVarDisplayName(varName)` | 87 | Mehrsprachiger Anzeigename für Variable |
 
 #### Variablen-Display-Namen (VAR_DISPLAY_NAMES, Zeile 50â€“85)
 
-UnterstÃ¼tzte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no, ms):
+Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no, ms):
 
 `ingredient`, `ingredient2`, `ingredients`, `state`, `equipment`, `tool`, `duration`, `temp`, `shape`, `grind_size`, `pronoun`, `pronoun2`, `action`, `liquid`, `fat`, `base`, `marinade`, `method`, `finish`, `seasonings`, `thickener`, `count`, `mode`, `components`, `dough`, `surface`, `heat`, `extra`, `item`, `position`, `reason`, `goal`, `balance`, `keep`
 
@@ -1009,11 +1009,11 @@ UnterstÃ¼tzte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, 
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `getFractionOptions()` | 95 | Bruch-Optionen aus JSON lesen, lokalisiert zurÃ¼ckgeben (Optionen: 1/2, 1/3, 2/3, 1/4, 3/4) |
-| `composeFractionText(fractionDef, ingredientName, article)` | 112 | **UPDATED:** Erzeugt Fraktion-Text mit automatischer Genitiv-Konvertierung. Wandelt Nominativ-Artikel automatisch zu Genitiv um: "der"â†’"des", "die"â†’"der", "das"â†’"des". Beispiel: `"die HÃ¤lfte des Zuckers"` |
+| `getFractionOptions()` | 95 | Bruch-Optionen aus JSON lesen, lokalisiert zurückgeben (Optionen: 1/2, 1/3, 2/3, 1/4, 3/4) |
+| `composeFractionText(fractionDef, ingredientName, article)` | 112 | **UPDATED:** Erzeugt Fraktion-Text mit automatischer Genitiv-Konvertierung. Wandelt Nominativ-Artikel automatisch zu Genitiv um: "der"â†’"des", "die"â†’"der", "das"â†’"des". Beispiel: `"die Hälfte des Zuckers"` |
 | `findMatchingFractionOption(num, den, opts)` | 127 | Passende Fraction-Option finden |
-| `getRemainderChipsFromAcceptedSteps()` | 133 | Akzeptierte Steps scannen, Rest-Chips berechnen. **UPDATED:** UnterstÃ¼tzt jetzt Array-Format fÃ¼r _fractionData (backward compatible mit alten single-object Format) |
-| `renderFractionPickerHtml(fractionOptions)` | 184 | **RESTORED:** Rendert Fraktions-Auswahl-Chips (Ganzes, 1/2, 1/3, 2/3, 1/4, 3/4) unter "Menge"-Ãœberschrift |
+| `getRemainderChipsFromAcceptedSteps()` | 133 | Akzeptierte Steps scannen, Rest-Chips berechnen. **UPDATED:** Unterstützt jetzt Array-Format für _fractionData (backward compatible mit alten single-object Format) |
+| `renderFractionPickerHtml(fractionOptions)` | 184 | **RESTORED:** Rendert Fraktions-Auswahl-Chips (Ganzes, 1/2, 1/3, 2/3, 1/4, 3/4) unter "Menge"-Überschrift |
 
 #### Ingredient-Helpers (Zeile 1267â€“1293)
 
@@ -1021,11 +1021,11 @@ UnterstÃ¼tzte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, 
 |----------|-------|-------------|
 | `getIngredientName(item)` | 1267 | Extrahiert Namen aus Zutat-Objekt oder String |
 | `getIngredientFraction(item)` | 1271 | Extrahiert Fraction-Key aus Zutat-Objekt |
-| `normalizeIngredientValues(values)` | 1275 | **UPDATED:** Normalisiert Zutat-Array zu `{name, fraction, article}` Format. UnterstÃ¼tzt backward compatibility mit String-Arrays und `{name, fraction}` Objekten |
+| `normalizeIngredientValues(values)` | 1275 | **UPDATED:** Normalisiert Zutat-Array zu `{name, fraction, article}` Format. Unterstützt backward compatibility mit String-Arrays und `{name, fraction}` Objekten |
 
 #### Multi-Ingredient Workflow mit Plus-Button (NEU)
 
-**Pattern:** Schrittweises HinzufÃ¼gen von Zutaten mit individuellen Fraktionen und Artikeln. Plus-Button erscheint **im Step selbst** (neben Token).
+**Pattern:** Schrittweises Hinzufügen von Zutaten mit individuellen Fraktionen und Artikeln. Plus-Button erscheint **im Step selbst** (neben Token).
 
 **Datenstruktur:**
 ```javascript
@@ -1036,30 +1036,30 @@ activeStep._multiIngredients = [
 ```
 
 **UI-Struktur:**
-- **Editor:** Artikel oben, Zutat-Chips mittig, Fraktions-Chips unten, nur "Einsetzen" & "SchlieÃŸen"
-- **Editor-Boden:** Bereits hinzugefÃ¼gte Zutaten als Bootstrap badge chips (blau) mit X-Button zum Entfernen
+- **Editor:** Artikel oben, Zutat-Chips mittig, Fraktions-Chips unten, nur "Einsetzen" & "Schließen"
+- **Editor-Boden:** Bereits hinzugefügte Zutaten als Bootstrap badge chips (blau) mit X-Button zum Entfernen
 - **Step:** `{{ingredient}} [+] [â†»]` - Plus-Button erscheint neben Token wenn Zutat einen Wert hat
-- **Bereits ausgewÃ¤hlte Zutaten:** Werden automatisch ausgegraut/deaktiviert (`.ingredient-chip-disabled`)
+- **Bereits ausgewählte Zutaten:** Werden automatisch ausgegraut/deaktiviert (`.ingredient-chip-disabled`)
 
 **Workflow:**
-1. User klickt Token â†’ Editor Ã¶ffnet
-2. User wÃ¤hlt Artikel (z.B. "des"), Zutat (z.B. "Zucker"), Fraktion (z.B. "1/2")
-3. User klickt "Einsetzen" â†’ Editor schlieÃŸt
-4. **Plus-Button [+] erscheint im Step** neben Token: `die HÃ¤lfte des Zuckers [+] [â†»]`
-5. User klickt **[+] im Step** â†’ Editor Ã¶ffnet wieder
+1. User klickt Token â†’ Editor öffnet
+2. User wählt Artikel (z.B. "des"), Zutat (z.B. "Zucker"), Fraktion (z.B. "1/2")
+3. User klickt "Einsetzen" â†’ Editor schließt
+4. **Plus-Button [+] erscheint im Step** neben Token: `die Hälfte des Zuckers [+] [â†»]`
+5. User klickt **[+] im Step** â†’ Editor öffnet wieder
 6. "Zucker"-Chip ist jetzt ausgegraut (bereits verwendet)
-7. Am Boden des Editors: Chip "die HÃ¤lfte des Zuckers" mit X-Button
-8. User wÃ¤hlt weitere Zutat (z.B. "ein Drittel der Butter")
-9. User klickt **[+] im Step** â†’ Zutat wird hinzugefÃ¼gt
-10. Step zeigt: `die HÃ¤lfte des Zuckers und ein Drittel der Butter [+] [â†»]`
+7. Am Boden des Editors: Chip "die Hälfte des Zuckers" mit X-Button
+8. User wählt weitere Zutat (z.B. "ein Drittel der Butter")
+9. User klickt **[+] im Step** â†’ Zutat wird hinzugefügt
+10. Step zeigt: `die Hälfte des Zuckers und ein Drittel der Butter [+] [â†»]`
 11. Am Boden des Editors: Zwei Chips, jede mit X-Button zum Entfernen
-12. User kann weitere Zutat hinzufÃ¼gen oder "Einsetzen" klicken â†’ Editor schlieÃŸt, finaler Text eingefÃ¼gt
+12. User kann weitere Zutat hinzufügen oder "Einsetzen" klicken â†’ Editor schließt, finaler Text eingefügt
 
 **Genitiv-Konvertierung:**
-Das System konvertiert Nominativ-Artikel automatisch zu Genitiv fÃ¼r Fraktionen:
-- "der" (mask) â†’ "des" â†’ "die HÃ¤lfte **des** Zuckers"
-- "die" (fem) â†’ "der" â†’ "die HÃ¤lfte **der** Butter"
-- "das" (neut) â†’ "des" â†’ "die HÃ¤lfte **des** Mehls"
+Das System konvertiert Nominativ-Artikel automatisch zu Genitiv für Fraktionen:
+- "der" (mask) â†’ "des" â†’ "die Hälfte **des** Zuckers"
+- "die" (fem) â†’ "der" â†’ "die Hälfte **der** Butter"
+- "das" (neut) â†’ "des" â†’ "die Hälfte **des** Mehls"
 - "des" bleibt "des" (bereits Genitiv)
 
 #### Unified Overlay System (Step Creator + Probability Area)
@@ -1137,89 +1137,89 @@ openStepDraftEditor({
 #### ðŸ†• UPDATE 2026-03-28: Overlay-offen-Workflow + Vereinheitlichte Accept-Logik
 
 **NEUE FEATURES:**
-1. âœ… **Overlay bleibt nach "Einsetzen" offen** - User kann mehrere Variablen nacheinander bearbeiten
-2. âœ… **Token-Klicks im Preview-Header** - Wechsel zwischen Variablen ohne Overlay zu schlieÃŸen
-3. âœ… **Preview-Update im Overlay** - Header-Preview aktualisiert sich sofort nach Wertauswahl
-4. âœ… **Vereinheitlichte Accept-Logik** - Step Creator & Probability Area nutzen gemeinsame Funktion
-5. âœ… **Plus-Button entfernt** - Kein "+"-Button mehr neben Tokens (alles im Overlay)
-6. âœ… **"WÃ¼rfel" in shape-Vorauswahl** - Bug-Fix: WÃ¼rfel erscheint in Top-3 Quick-Select-Buttons
+1. ✅ **Overlay bleibt nach "Einsetzen" offen** - User kann mehrere Variablen nacheinander bearbeiten
+2. ✅ **Token-Klicks im Preview-Header** - Wechsel zwischen Variablen ohne Overlay zu schließen
+3. ✅ **Preview-Update im Overlay** - Header-Preview aktualisiert sich sofort nach Wertauswahl
+4. ✅ **Vereinheitlichte Accept-Logik** - Step Creator & Probability Area nutzen gemeinsame Funktion
+5. ✅ **Plus-Button entfernt** - Kein "+"-Button mehr neben Tokens (alles im Overlay)
+6. ✅ **"Würfel" in shape-Vorauswahl** - Bug-Fix: Würfel erscheint in Top-3 Quick-Select-Buttons
 
 **Neue Funktionen:**
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `switchEditorVariable(newVarName, config)` | ~2565 | **Variable Switcher**. Ersetzt Editor-Content mit neuem Variable-Editor ohne Overlay zu schlieÃŸen. Holt aktuellen Wert aus `activeStep.values` oder `probabilityStates[masterId].values`, generiert neues Editor-HTML, aktualisiert DOM und config |
+| `switchEditorVariable(newVarName, config)` | ~2565 | **Variable Switcher**. Ersetzt Editor-Content mit neuem Variable-Editor ohne Overlay zu schließen. Holt aktuellen Wert aus `activeStep.values` oder `probabilityStates[masterId].values`, generiert neues Editor-HTML, aktualisiert DOM und config |
 | `updateOverlayPreview(context)` | ~2432 | **Preview Updater**. Kopiert frisch gerenderten Preview-HTML aus DOM (`.current-step-wrap` oder `.probability-template-card`) in Overlay-Header (`.creator-preview-canvas > div`). Wird nach jedem `updateContextValue()` aufgerufen |
-| `saveCurrentEditorValueBeforeAccept(contextType, contextId)` | ~3302 | **Shared Accept-Helper**. Gemeinsame Funktion fÃ¼r Step Creator (`acceptActiveStep`) und Probability Area (`getMergedVars`). PrÃ¼ft ob Overlay offen, extrahiert aktuellen Editor-Wert, speichert in `activeStep.values` oder `probabilityStates[masterId].values`, rendert Update. Export via `window.MasterStepCreatorHelpers` |
+| `saveCurrentEditorValueBeforeAccept(contextType, contextId)` | ~3302 | **Shared Accept-Helper**. Gemeinsame Funktion für Step Creator (`acceptActiveStep`) und Probability Area (`getMergedVars`). Prüft ob Overlay offen, extrahiert aktuellen Editor-Wert, speichert in `activeStep.values` oder `probabilityStates[masterId].values`, rendert Update. Export via `window.MasterStepCreatorHelpers` |
 
-**GeÃ¤nderte Funktionen:**
+**Geänderte Funktionen:**
 
-| Funktion | Zeile | Ã„nderung |
+| Funktion | Zeile | Änderung |
 |----------|-------|----------|
-| `applyUnifiedEditorValue(editorEl, config)` | ~2570 | **Overlay bleibt offen!** Entfernt `closeUnifiedOverlay()` nach Apply. Ruft `updateOverlayPreview(context)` auf fÃ¼r Preview-Update im Header |
+| `applyUnifiedEditorValue(editorEl, config)` | ~2570 | **Overlay bleibt offen!** Entfernt `closeUnifiedOverlay()` nach Apply. Ruft `updateOverlayPreview(context)` auf für Preview-Update im Header |
 | `handleUnifiedPlusButtonClick(editorEl, config)` | ~2607 | Nutzt `switchEditorVariable()` statt Close+Reopen. Ruft `updateOverlayPreview(context)` auf |
 | **Remove-Chip Handler** | ~2312 | Nutzt `switchEditorVariable()` statt Close+Reopen. Ruft `updateOverlayPreview(context)` auf |
 | `acceptActiveStep()` | ~3341 | Nutzt gemeinsame Funktion `saveCurrentEditorValueBeforeAccept('step', null)` statt dupliziertem Code |
 | `getMergedVars(masterId)` (in create-posting-probability.js) | ~178 | Nutzt gemeinsame Funktion `window.MasterStepCreatorHelpers.saveCurrentEditorValueBeforeAccept('probability', masterId)` statt dupliziertem Code |
-| `getRankedVarOptionEntries(varName, ...)` | ~435 | Bug-Fix: PrÃ¼ft jetzt auf `normalizedKey === "shape"` statt `"form"` fÃ¼r WÃ¼rfel-Bevorzugung |
+| `getRankedVarOptionEntries(varName, ...)` | ~435 | Bug-Fix: Prüft jetzt auf `normalizedKey === "shape"` statt `"form"` für Würfel-Bevorzugung |
 
 **Entfernte Features:**
 
 | Feature | Grund |
 |---------|-------|
-| **Plus-Button neben Tokens** (`ingredient-plus-btn`) | Alle Multi-Ingredient-Bearbeitung lÃ¤uft jetzt Ã¼ber Overlay. Plus-Button im Overlay-Footer bleibt. Entfernt aus: `renderTemplate()` (~782), `renderTemplateTokens()` (~694), `renderTemplateWithConfig()` (~835) |
+| **Plus-Button neben Tokens** (`ingredient-plus-btn`) | Alle Multi-Ingredient-Bearbeitung läuft jetzt über Overlay. Plus-Button im Overlay-Footer bleibt. Entfernt aus: `renderTemplate()` (~782), `renderTemplateTokens()` (~694), `renderTemplateWithConfig()` (~835) |
 | **Plus-Button Event-Handler** | ~3481 | Auskommentiert, da Button nicht mehr existiert |
 
 **Neuer User-Flow:**
 
 ```javascript
-// 1. User Ã¶ffnet Overlay fÃ¼r Variable A
+// 1. User öffnet Overlay für Variable A
 openUniversalVariableEditor({ varName: 'size', ... });
 
-// 2. User wÃ¤hlt Wert "feine"
+// 2. User wählt Wert "feine"
 _handlePickModeClick(btn, editorEl);  // Setzt dataset.selectedValue = "feine"
 
 // 3. User klickt "Einsetzen"
 applyUnifiedEditorValue(editorEl, config);
 // â†’ updateContextValue() speichert in activeStep.values['size'] = "feine"
-// â†’ updateOverlayPreview() aktualisiert Preview im Overlay-Header âœ… NEU!
-// â†’ Overlay BLEIBT OFFEN âœ… NEU!
+// â†’ updateOverlayPreview() aktualisiert Preview im Overlay-Header ✅ NEU!
+// â†’ Overlay BLEIBT OFFEN ✅ NEU!
 
-// 4. User klickt Token "shape" im Preview-Header âœ… NEU!
+// 4. User klickt Token "shape" im Preview-Header ✅ NEU!
 $overlay.on('click.universal', '.creator-preview-canvas .template-var[data-var]', ...);
 // â†’ switchEditorVariable('shape', config) ersetzt Editor-Content
 // â†’ Zeigt shape-Editor mit aktuellem Wert aus activeStep.values['shape']
 
-// 5. User wÃ¤hlt "WÃ¼rfel"
-_handlePickModeClick(btn, editorEl);  // Setzt dataset.selectedValue = "WÃ¼rfel"
+// 5. User wählt "Würfel"
+_handlePickModeClick(btn, editorEl);  // Setzt dataset.selectedValue = "Würfel"
 
 // 6. User klickt "Einsetzen"
-// â†’ speichert "WÃ¼rfel", Preview aktualisiert sich, Overlay bleibt offen
+// â†’ speichert "Würfel", Preview aktualisiert sich, Overlay bleibt offen
 
-// 7. User klickt "SchlieÃŸen"-Button ODER
+// 7. User klickt "Schließen"-Button ODER
 //    User klickt "Step akzeptieren"
 acceptActiveStep();
-// â†’ saveCurrentEditorValueBeforeAccept('step') âœ… NEU!
+// â†’ saveCurrentEditorValueBeforeAccept('step') ✅ NEU!
 //    speichert AUCH den aktuell im Editor sichtbaren Wert (falls nicht "Einsetzen" geklickt)
 // â†’ closeUnifiedOverlay()
-// â†’ ALLE Werte werden in finalen Step Ã¼bernommen
+// â†’ ALLE Werte werden in finalen Step übernommen
 ```
 
-**Event-Listener-Ã„nderungen:**
+**Event-Listener-Änderungen:**
 
 | Event | Selector | Handler | Beschreibung |
 |-------|----------|---------|-------------|
-| `click.universal` | `.creator-preview-canvas .template-var[data-var]` | Token-Click im Preview | âœ… NEU! Wechselt Variable im Editor via `switchEditorVariable()`. Overlay bleibt offen. |
-| `click.universal` | `.creator-preview-canvas .js-probability-var[data-var]` | Token-Click im Preview (Probability) | âœ… NEU! Identisch zu Step Creator Token-Click |
+| `click.universal` | `.creator-preview-canvas .template-var[data-var]` | Token-Click im Preview | ✅ NEU! Wechselt Variable im Editor via `switchEditorVariable()`. Overlay bleibt offen. |
+| `click.universal` | `.creator-preview-canvas .js-probability-var[data-var]` | Token-Click im Preview (Probability) | ✅ NEU! Identisch zu Step Creator Token-Click |
 
 **Vorteile:**
 
-- âœ… **Effizienterer Workflow** - Keine wiederholten Close/Open-Zyklen mehr
-- âœ… **Bessere UX** - User sieht Preview-Updates sofort im Overlay-Header
-- âœ… **Keine verlorenen Werte** - Auch ohne "Einsetzen"-Klick werden Werte beim Accept gespeichert
-- âœ… **Weniger Code-Duplikation** - `saveCurrentEditorValueBeforeAccept()` wird von beiden Bereichen genutzt
-- âœ… **Sauberere UI** - Kein "+"-Button mehr, der verwirren kÃ¶nnte
-- âœ… **Konsistente Vorauswahl** - "WÃ¼rfel" erscheint korrekt in shape-Quick-Select
+- ✅ **Effizienterer Workflow** - Keine wiederholten Close/Open-Zyklen mehr
+- ✅ **Bessere UX** - User sieht Preview-Updates sofort im Overlay-Header
+- ✅ **Keine verlorenen Werte** - Auch ohne "Einsetzen"-Klick werden Werte beim Accept gespeichert
+- ✅ **Weniger Code-Duplikation** - `saveCurrentEditorValueBeforeAccept()` wird von beiden Bereichen genutzt
+- ✅ **Sauberere UI** - Kein "+"-Button mehr, der verwirren könnte
+- ✅ **Konsistente Vorauswahl** - "Würfel" erscheint korrekt in shape-Quick-Select
 
 **HTML-Struktur-Unterschiede:**
 
@@ -1245,27 +1245,27 @@ if (mode === "article") {
 |----------|-------|-------------|
 | `normalizeVarKey(value)` | 209 | Variable normalisieren (mit Alias-Map) |
 | `normalizeOptionValue(value)` | 219 | Optionswert normalisieren |
-| `isSemanticTag(tag)` | 225 | PrÃ¼ft ob Tag semantisch ist |
+| `isSemanticTag(tag)` | 225 | Prüft ob Tag semantisch ist |
 | `getStepById(masterId)` | 230 | Step per ID finden |
-| `getStepSelectionTags(masterId)` | 235 | Selection-Tags fÃ¼r Step |
+| `getStepSelectionTags(masterId)` | 235 | Selection-Tags für Step |
 | `getComparableTags(rawTags)` | 254 | Vergleichbare Tag-Varianten |
-| `getVariableCatalogEntry(varName)` | 268 | Katalog-Eintrag fÃ¼r Variable |
+| `getVariableCatalogEntry(varName)` | 268 | Katalog-Eintrag für Variable |
 | `getLocalizedOptionLabel(option)` | 280 | Lokalisiertes Label |
-| `getCatalogOptionEntries(varName)` | 291 | Optionen fÃ¼r Variable |
+| `getCatalogOptionEntries(varName)` | 291 | Optionen für Variable |
 | `filterOptionEntriesByStepTags(entries, stepTags)` | 302 | Optionen nach Tags filtern |
-| `getStepAction(masterId)` | 324 | Action-Label fÃ¼r Step |
+| `getStepAction(masterId)` | 324 | Action-Label für Step |
 
 #### Scoring & Ranking
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `getOptionRulesContext(masterId)` | 329 | Kontext fÃ¼r Optionsregeln |
+| `getOptionRulesContext(masterId)` | 329 | Kontext für Optionsregeln |
 | `buildCurrentScoringContext()` | 344 | Aktuellen Scoring-Kontext aufbauen |
 | `detectIngredientFamily()` | 352 | Zutat-Familie erkennen |
 | `getRankedVarOptionEntries(varName, ...)` | 382 | Gerankte Optionen |
 | `getRawVarOptions(varName, ...)` | 505 | Rohe Optionsliste |
 | `getVarOptions(varName, ...)` | 510 | Verarbeitete Optionsliste |
-| `getArticleOptions()` | 526 | **UPDATED:** Artikel-Optionen aus Katalog, fÃ¼gt automatisch "des" (Genitiv) hinzu falls nicht vorhanden. Standard: ["ohne", "der", "die", "das", "des"] |
+| `getArticleOptions()` | 526 | **UPDATED:** Artikel-Optionen aus Katalog, fügt automatisch "des" (Genitiv) hinzu falls nicht vorhanden. Standard: ["ohne", "der", "die", "das", "des"] |
 | `getDurationUnits()` | 532 | Dauer-Einheiten |
 
 #### Template-Rendering
@@ -1273,7 +1273,7 @@ if (mode === "article") {
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `getTemplateVariables(templateRaw)` | 546 | Variablen aus Template extrahieren |
-| `resolveOptionalTemplateSegments(templateRaw, values)` | 556 | Optionale Segmente auflÃ¶sen |
+| `resolveOptionalTemplateSegments(templateRaw, values)` | 556 | Optionale Segmente auflösen |
 | `buildOptionalSegmentButtons(templateRaw, values)` | 576 | Optional-Buttons bauen |
 | `renderTemplateTokens(templateRaw, stepId, values)` | 611 | Variablen-Tokens rendern |
 | `renderTemplate(templateRaw, stepId, values)` | 643 | Komplettes Template rendern |
@@ -1288,7 +1288,7 @@ if (mode === "article") {
 | `splitLeadingArticleByOptions(text, articleOptions)` | 796 | Artikel von Nomen trennen |
 | `composeArticleAndNoun(article, noun)` | 809 | Artikel + Nomen zusammensetzen |
 | `getNounOptionsFromValues(values, articleOptions)` | 816 | Nomen-Optionen ableiten |
-| `splitEditorPrefillValue(value, config)` | 823 | Wert fÃ¼r Editor-Prefill aufteilen |
+| `splitEditorPrefillValue(value, config)` | 823 | Wert für Editor-Prefill aufteilen |
 
 #### Step-Button-Rendering
 
@@ -1305,40 +1305,40 @@ if (mode === "article") {
 |----------|-------|-------------|
 | `getSelectedIngredientNamesFromPage()` | 1076 | Zutat-Namen von Seite lesen |
 | `getSpecialTransformChipsForStep(masterId)` | 1084 | Spezial-Transform-Chips holen |
-| `hasMatchingIngredientForTransform(items, t)` | 1101 | PrÃ¼ft ob Zutat zum Transform passt |
+| `hasMatchingIngredientForTransform(items, t)` | 1101 | Prüft ob Zutat zum Transform passt |
 | `getDerivedChipsFromAcceptedSteps()` | 1110 | Abgeleitete Chips aus akzeptierten Steps |
-| `getSelectedIngredientsFromPage()` | 1139 | ALLE ausgewÃ¤hlten Zutaten (inkl. Remainder, Genus-Daten fÃ¼r Auto-Artikel) |
+| `getSelectedIngredientsFromPage()` | 1139 | ALLE ausgewählten Zutaten (inkl. Remainder, Genus-Daten für Auto-Artikel) |
 | `parseSelectedIngredientValues(rawValue, options)` | 1193 | Zutat-Werte parsen (backward compatible) |
-| `formatSelectedIngredientList(names, langKey)` | 1296 | **UPDATED:** Zutaten-Liste formatieren ("X und Y"). UnterstÃ¼tzt per-ingredient articles: Verwendet `item.article` wenn gesetzt, sonst auto-detect aus genus. Rendert Fraktionen mit individuellen Artikeln (z.B. "die HÃ¤lfte des Mehls und zwei Drittel der Butter"). Backward compatible mit String-Arrays |
+| `formatSelectedIngredientList(names, langKey)` | 1296 | **UPDATED:** Zutaten-Liste formatieren ("X und Y"). Unterstützt per-ingredient articles: Verwendet `item.article` wenn gesetzt, sonst auto-detect aus genus. Rendert Fraktionen mit individuellen Artikeln (z.B. "die Hälfte des Mehls und zwei Drittel der Butter"). Backward compatible mit String-Arrays |
 
-#### Variablen-Typ-PrÃ¼fung
+#### Variablen-Typ-Prüfung
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `isIngredientVariable(varName)` | 1051 | PrÃ¼ft: ingredient, ingredient2, ingredients, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** base, dough (zeigen Options-Chips). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
-| `isHybridIngredientVariable(varName)` | 1056 | PrÃ¼ft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
+| `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** base, dough (zeigen Options-Chips). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
+| `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
 | `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquidâ†’isLiquid, fatâ†’isFat, seasoningsâ†’GroupId 5, thickenerâ†’GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredientâ†’isHard\|\|isSoft. Fallback auf alle Items wenn keine Matches |
-| `isGrindSizeVariable(varName)` | 1055 | PrÃ¼ft: grind_size |
-| `isNoArticleVariable(varName)` | 1060 | PrÃ¼ft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
-| `isStateVariable(varName)` | 1064 | PrÃ¼ft: state |
-| `isCompactSpecialVariable(varName)` | 1071 | PrÃ¼ft: duration, temp, count |
+| `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
+| `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
+| `isStateVariable(varName)` | 1064 | Prüft: state |
+| `isCompactSpecialVariable(varName)` | 1071 | Prüft: duration, temp, count |
 
 #### Inline-Editor
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `preserveWindowScroll(callback)` | 1038 | Scroll-Position bewahren |
-| `closeInlineEditor()` | 1044 | Editor schlieÃŸen |
-| `openInlineEditor(varName, tokenId)` | 1229 | Editor Ã¶ffnen (Haupt-Funktion!) |
+| `closeInlineEditor()` | 1044 | Editor schließen |
+| `openInlineEditor(varName, tokenId)` | 1229 | Editor öffnen (Haupt-Funktion!) |
 | `renderPillButtons(list, mode, currentVal)` | 1344 | Pill-Buttons rendern |
 | `renderFallbackSection(varName, options, ...)` | 1327 | "Weitere anzeigen"-Bereich |
-| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). Duration-Editor hat Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`). Layout: Row 1 = Inputs, Row 2 = Unit-Chips (Minute/Stunde/Pro Packung), Row 3 = Actions (Einsetzen/SchlieÃŸen). Parst Range-Werte wie "8-10" beim Ã–ffnen. Output: "8-10 Minuten" wenn Bis-Feld gefÃ¼llt, sonst "10 Minuten". State-Editor zeigt Pronomen immer oben (wie Artikel), auch bei separatem `{{pronoun}}`-Token |
+| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). Duration-Editor hat Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`). Layout: Row 1 = Inputs, Row 2 = Unit-Chips (Minute/Stunde/Pro Packung), Row 3 = Actions (Einsetzen/Schließen). Parst Range-Werte wie "8-10" beim Öffnen. Output: "8-10 Minuten" wenn Bis-Feld gefüllt, sonst "10 Minuten". State-Editor zeigt Pronomen immer oben (wie Artikel), auch bei separatem `{{pronoun}}`-Token |
 
 #### Wert-Anwendung
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `extractLeadingNumber(text)` | 1443 | FÃ¼hrende Zahl extrahieren |
+| `extractLeadingNumber(text)` | 1443 | Führende Zahl extrahieren |
 | `applyCurrentEditorSelection()` | 1451 | Editor-Auswahl anwenden (inkl. Fraction!) |
 | `rerenderAfterValueSet()` | 1568 | Nach Wert-Setzung neu rendern |
 
@@ -1346,11 +1346,11 @@ if (mode === "article") {
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `getRenderedTextForLang(step, lang)` | 1578 | Gerenderter Text fÃ¼r Sprache |
-| `resolveAcceptedIngredientName()` | 1596 | Zutat-Name fÃ¼r akzeptierten Step |
+| `getRenderedTextForLang(step, lang)` | 1578 | Gerenderter Text für Sprache |
+| `resolveAcceptedIngredientName()` | 1596 | Zutat-Name für akzeptierten Step |
 | `slugifyStableKey(value)` | 1612 | Stabilen Slug erstellen |
 | `normalizeToArray(value)` | 1623 | Zu Array normalisieren |
-| `getStableOptionReference(varName, value)` | 1630 | Stabile Referenz fÃ¼r Option |
+| `getStableOptionReference(varName, value)` | 1630 | Stabile Referenz für Option |
 | `buildStableStepReference(step)` | 1669 | Komplette stabile Step-Referenz |
 
 #### Step-Annahme & Events
@@ -1366,15 +1366,15 @@ if (mode === "article") {
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `buildInlineEditorHtml(varName, currentVal, opts)` | 2021 | **UPDATED:** Editor-HTML generieren (fÃ¼r Probability-View). Wrapper um `_generateEditorHtml()` mit `useClassBasedIds: true`. UnterstÃ¼tzt `multiIngredients` Array in opts |
+| `buildInlineEditorHtml(varName, currentVal, opts)` | 2021 | **UPDATED:** Editor-HTML generieren (für Probability-View). Wrapper um `_generateEditorHtml()` mit `useClassBasedIds: true`. Unterstützt `multiIngredients` Array in opts |
 | `applyEditorValue(editorEl)` | 2089 | **UPDATED:** Editor-Wert auslesen und zusammensetzen. Wendet globale Fraction + Artikel auf alle Ingredient-Items an (Zeile 2757â€“2784) |
-| `applyEditorExtras(editorEl)` | 2136 | ZusÃ¤tzliche Werte (z.B. Pronomen) |
+| `applyEditorExtras(editorEl)` | 2136 | Zusätzliche Werte (z.B. Pronomen) |
 | `triggerPronounBeforeState(config)` | 2148 | Pronomen-vor-State-Logik |
 | `handlePickModeClick(pickBtn, host, useClassBasedIds)` | 2819 | **NEU:** Shared Pick-Mode Handler (siehe "Shared Editor System") |
 | `handleDurationUnitClick(btn, host)` | 2819 | **NEU:** Shared Duration-Unit Handler (siehe "Shared Editor System") |
 | `normalizeIngredientValues(values)` | 2819 | **NEU:** Normalisiert Zutat-Array zu `{name, fraction, article}` Format |
 | `formatSelectedIngredientList(names, langKey)` | 2819 | **NEU:** Formatiert Multi-Ingredient-Liste mit individuellen Artikeln/Fraktionen |
-| `isIngredientVariable(varName)` | 2819 | **NEU:** PrÃ¼ft ob Variable eine Zutat ist (ingredient, liquid, fat, etc.) |
+| `isIngredientVariable(varName)` | 2819 | **NEU:** Prüft ob Variable eine Zutat ist (ingredient, liquid, fat, etc.) |
 
 #### Zweites IIFE: Format/Chip-Helpers (Zeile 2182â€“2253)
 
@@ -1382,13 +1382,13 @@ if (mode === "article") {
 |----------|-------|-------------|
 | `formatIngredientList(names, langKey)` | 2185 | Zutatenliste formatieren |
 | `buildIngredientChipsHtml(ingredients, selectedNames, langKey)` | 2200 | Chip-HTML bauen |
-| `resolveIngredientInsertValue(selectedNames, langKey, fallback)` | 2220 | Einsetzwert auflÃ¶sen |
+| `resolveIngredientInsertValue(selectedNames, langKey, fallback)` | 2220 | Einsetzwert auflösen |
 
 ---
 
 ## 20. JS-Datei: CreatePostingPage.js
 
-**Pfad:** `wwwroot/js/CreatePostingPage.js` Â· **5.112 Zeilen**
+**Pfad:** `wwwroot/js/CreatePostingPage.js` · **5.112 Zeilen**
 **Pattern:** jQuery Document Ready IIFE
 **Haupt-Einstiegspunkt** der gesamten CreatePosting-Seite
 
@@ -1400,19 +1400,19 @@ if (mode === "article") {
 | `withCreatePostingDraftStorage(action, fallback)` | 38 | localStorage-Wrapper mit Error-Handling |
 | `readCreatePostingDraft()` | 47 | Draft aus localStorage lesen |
 | `writeCreatePostingDraft(draft)` | 56 | Draft in localStorage speichern |
-| `clearCreatePostingDraft()` | 63 | Draft lÃ¶schen |
-| `clearCreatePostingDraftResetCookie()` | 69 | Reset-Cookie lÃ¶schen |
-| `consumeCreatePostingDraftResetFlag()` | 73 | Reset-Flag prÃ¼fen und lÃ¶schen |
+| `clearCreatePostingDraft()` | 63 | Draft löschen |
+| `clearCreatePostingDraftResetCookie()` | 69 | Reset-Cookie löschen |
+| `consumeCreatePostingDraftResetFlag()` | 73 | Reset-Flag prüfen und löschen |
 | `syncSelectedKeywordButtonStates()` | 80 | Keyword-Button-States synchronisieren |
 | `captureCreatePostingDraft()` | 93 | Kompletten Form-State als Draft erfassen |
 | `persistCreatePostingDraftNow()` | 111 | Draft sofort speichern |
 | `scheduleCreatePostingDraftSave(delay)` | 116 | Draft-Save debounced (180ms) |
-| `startCreatePostingFresh()` | 122 | Neu starten (Draft lÃ¶schen + Reload) |
-| `hasMeaningfulCreatePostingDraft(draft)` | 129 | PrÃ¼ft ob Draft Inhalt hat |
+| `startCreatePostingFresh()` | 122 | Neu starten (Draft löschen + Reload) |
+| `hasMeaningfulCreatePostingDraft(draft)` | 129 | Prüft ob Draft Inhalt hat |
 | `restoreCreatePostingDraft()` | 144 | Draft wiederherstellen |
 | `showDraftRestoreBannerIfNeeded()` | 178 | Zeigt Draft-Restore-Banner wenn Draft vorhanden |
 
-### MaÃŸeinheiten (Zeile 208â€“260)
+### Maßeinheiten (Zeile 208â€“260)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
@@ -1426,26 +1426,26 @@ if (mode === "article") {
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `dockIngredientConfigUnder(row)` | 261 | Config-Panel unter Zutat positionieren |
-| `openIngredientConfigPopup(row)` | 278 | Zutaten-Mengen/Einheit-Editor Ã¶ffnen |
-| `closeIngredientConfigPopup()` | 291 | Config-Popup schlieÃŸen |
-| `applyIngredientConfigPopup()` | 298 | Config-Ã„nderungen speichern |
+| `openIngredientConfigPopup(row)` | 278 | Zutaten-Mengen/Einheit-Editor öffnen |
+| `closeIngredientConfigPopup()` | 291 | Config-Popup schließen |
+| `applyIngredientConfigPopup()` | 298 | Config-Änderungen speichern |
 
 ### Probability Variable Editor (Zeile 329â€“652)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `renderProbVarIngredientArticleOptions()` | 329 | Artikel-Auswahl-Chips rendern |
-| `openProbVarEditor(masterId, varKey, ...)` | 353 | Variablen-Editor-Modal Ã¶ffnen. Speichert `probVarEditorCurrentVarKey` fÃ¼r Zutatenfilterung (liquidâ†’nur isLiquid, fatâ†’nur isFat, componentsâ†’alle) |
-| `closeProbVarEditor()` | 442 | Editor schlieÃŸen |
-| `applyProbVarEditor()` | 452 | AusgewÃ¤hlten Wert anwenden |
-| `openProbVarInlineEditor(masterId, varKey, ...)` | 486 | Inline-Editor in Card Ã¶ffnen. Setzt `.editing` auf `.probability-template-wrap` (Glow-Effekt) |
-| `doApply()` | 689 | **UPDATED (2026-03-27):** "Einsetzen"-Logik fÃ¼r Inline-Editor. **BUGFIX 1:** Re-fetched Editor-Element am Anfang (Zeile 693-698) um stale Referenzen zu vermeiden. **BUGFIX 2:** Formatiert `val` fÃ¼r ingredient-Variablen (Zeile 816) mit `formatSelectedIngredientList()` bevor `onApply` aufgerufen wird. PrÃ¼ft ob Multi-Ingredients existieren UND neue Selektion vorhanden â†’ fÃ¼gt zur Liste hinzu |
+| `openProbVarEditor(masterId, varKey, ...)` | 353 | Variablen-Editor-Modal öffnen. Speichert `probVarEditorCurrentVarKey` für Zutatenfilterung (liquidâ†’nur isLiquid, fatâ†’nur isFat, componentsâ†’alle) |
+| `closeProbVarEditor()` | 442 | Editor schließen |
+| `applyProbVarEditor()` | 452 | Ausgewählten Wert anwenden |
+| `openProbVarInlineEditor(masterId, varKey, ...)` | 486 | Inline-Editor in Card öffnen. Setzt `.editing` auf `.probability-template-wrap` (Glow-Effekt) |
+| `doApply()` | 689 | **UPDATED (2026-03-27):** "Einsetzen"-Logik für Inline-Editor. **BUGFIX 1:** Re-fetched Editor-Element am Anfang (Zeile 693-698) um stale Referenzen zu vermeiden. **BUGFIX 2:** Formatiert `val` für ingredient-Variablen (Zeile 816) mit `formatSelectedIngredientList()` bevor `onApply` aufgerufen wird. Prüft ob Multi-Ingredients existieren UND neue Selektion vorhanden â†’ fügt zur Liste hinzu |
 
-### Probability Area - Objekt-basierte Architektur (VOLLSTÃ„NDIG UMGESTELLT 2026-03-27)
+### Probability Area - Objekt-basierte Architektur (VOLLSTÄNDIG UMGESTELLT 2026-03-27)
 
-**Status: âœ… 100% IDENTISCH MIT SMART STEP CREATOR**
+**Status: ✅ 100% IDENTISCH MIT SMART STEP CREATOR**
 
-**BREAKING CHANGE (2026-03-27):** Probability Area wurde vollstÃ¤ndig von DOM-basiert auf objekt-basiert umgestellt:
+**BREAKING CHANGE (2026-03-27):** Probability Area wurde vollständig von DOM-basiert auf objekt-basiert umgestellt:
 
 **Alte Architektur (âŒ entfernt):**
 ```javascript
@@ -1453,14 +1453,14 @@ if (mode === "article") {
 token.text(newVal);  // Wert direkt im DOM gespeichert
 ```
 
-**Neue Architektur (âœ… aktiv):**
+**Neue Architektur (✅ aktiv):**
 ```javascript
 // Object als Single Source of Truth
 window.probabilityStates = {
   'PREP_MIX_DRY_01': {
     masterId: 'PREP_MIX_DRY_01',
     templateRaw: '{{action}} {{ingredient}} {{removal}} {{pronoun}}',
-    values: { ingredient: 'die HÃ¤lfte der Pasta', pronoun: 'sie' },
+    values: { ingredient: 'die Hälfte der Pasta', pronoun: 'sie' },
     _multiIngredients: { ingredient: [{name: 'Pasta', fraction: '1/2', article: 'der'}] }
   }
 }
@@ -1475,16 +1475,16 @@ renderProbabilityTemplate('PREP_MIX_DRY_01');
 |----------|-------|-------------|
 | `extractTemplateRaw($container)` | ~4046 | Extrahiert Template-String aus DOM. Ersetzt Tokens mit `{{varName}}` Placeholders. Entfernt Reset-Buttons. Beispiel: `"{{action}} {{ingredient}}"` |
 | `renderProbabilityTemplate(masterId)` | ~4070 | **Render-Funktion analog zu renderMasterText()!** Holt State aus `probabilityStates[masterId]`, ruft `helpers.renderTemplateWithConfig()` mit `tokenExtraClasses: 'js-probability-var'` auf, aktualisiert DOM. **KRITISCH:** Ohne `tokenExtraClasses` funktioniert Token-Click nicht! |
-| Token Click Handler | ~4103 | Initialisiert State falls nicht vorhanden, holt `currentVal` aus `prob.values[varKey]`, Ã¶ffnet Unified Overlay via `helpers.openUniversalVariableEditor()` |
+| Token Click Handler | ~4103 | Initialisiert State falls nicht vorhanden, holt `currentVal` aus `prob.values[varKey]`, öffnet Unified Overlay via `helpers.openUniversalVariableEditor()` |
 | Template Click Handler | ~4172 | Initialisiert State-Object beim Template-Select, extrahiert `templateRaw` via `extractTemplateRaw()` |
-| Reset Button Handler | ~4188 | LÃ¶scht `prob.values[varName]` und `prob._multiIngredients[varName]`, ruft `renderProbabilityTemplate()` auf |
+| Reset Button Handler | ~4188 | Löscht `prob.values[varName]` und `prob._multiIngredients[varName]`, ruft `renderProbabilityTemplate()` auf |
 
 **Kritischer CSS-Klassen-Fix (2026-03-27):**
 ```javascript
 // PROBLEM: Nach Re-render hatten Tokens nicht mehr die Klasse .js-probability-var
 // â†’ Event-Handler funktionierte nicht mehr!
 
-// LÃ–SUNG: renderTemplateWithConfig mit tokenExtraClasses aufrufen
+// LÖSUNG: renderTemplateWithConfig mit tokenExtraClasses aufrufen
 renderTemplateWithConfig(prob.templateRaw, masterId, prob.values, {
   tokenExtraClasses: 'js-probability-var',  // â† OHNE DIESE KLASSE FUNKTIONIERT NICHTS!
   includeVarKey: true,
@@ -1504,18 +1504,18 @@ previewHtml = card.innerHTML;  // Zeigt aktuelle Werte!
 ```
 
 **Vorteile der neuen Architektur:**
-- âœ… **100% identische Logik** mit Smart Step Creator
-- âœ… Single Source of Truth: Object statt DOM
-- âœ… State bleibt erhalten bei Template-Wechseln
-- âœ… Multi-Ingredient-Workflow funktioniert identisch
-- âœ… Preview im Overlay zeigt immer aktuelle Werte
-- âœ… Einfacheres Debugging (State in Object sichtbar)
+- ✅ **100% identische Logik** mit Smart Step Creator
+- ✅ Single Source of Truth: Object statt DOM
+- ✅ State bleibt erhalten bei Template-Wechseln
+- ✅ Multi-Ingredient-Workflow funktioniert identisch
+- ✅ Preview im Overlay zeigt immer aktuelle Werte
+- ✅ Einfacheres Debugging (State in Object sichtbar)
 
 **Migration-Info:**
-- Alte DOM-basierte Logik vollstÃ¤ndig ersetzt
+- Alte DOM-basierte Logik vollständig ersetzt
 - Separater Probability-Multi-Ingredient-Storage entfernt â†’ gemeinsamer Draft-State pro `masterId`
 - Alle Token-Updates via `updateContextValue()` â†’ `renderProbabilityTemplate()`
-- Auskommentierter alter Code kann gelÃ¶scht werden
+- Auskommentierter alter Code kann gelöscht werden
 
 ### Probability Area Multi-Ingredient Support (NEU 2026-03-27)
 
@@ -1530,12 +1530,12 @@ previewHtml = card.innerHTML;  // Zeigt aktuelle Werte!
 | click | `button[data-duration-unit]` (in `#universalEditorOverlay`) | current | Shared Duration-Unit-Handler aus `CreatePostingSmartStepCreator.js` |
 
 **Workflow identisch zum Step Creator:**
-1. User klickt Token â†’ Editor Ã¶ffnet
-2. User wÃ¤hlt Fraction + Artikel + Zutat â†’ "Einsetzen"
+1. User klickt Token â†’ Editor öffnet
+2. User wählt Fraction + Artikel + Zutat â†’ "Einsetzen"
 3. Plus-Button [+] erscheint im Template
-4. User klickt [+] â†’ Editor Ã¶ffnet wieder
-5. Bereits hinzugefÃ¼gte Zutaten sind ausgegraut (`.ingredient-chip-disabled`)
-6. User fÃ¼gt weitere Zutat hinzu â†’ "die HÃ¤lfte der Pasta und ein Drittel des Mehls"
+4. User klickt [+] â†’ Editor öffnet wieder
+5. Bereits hinzugefügte Zutaten sind ausgegraut (`.ingredient-chip-disabled`)
+6. User fügt weitere Zutat hinzu â†’ "die Hälfte der Pasta und ein Drittel des Mehls"
 7. Chips mit X-Button am Boden des Editors zum Entfernen
 8. User klickt `Step akzeptieren` im Overlay-Header oder auf der Karte â†’ der gemeinsame Probability-Draft wird in die Step-Liste unten uebernommen
 
@@ -1554,11 +1554,11 @@ previewHtml = card.innerHTML;  // Zeigt aktuelle Werte!
 | `normalizeGenusKey(key)` | 671 | Genus normalisieren (m/f/n) |
 | `applyArticleToName(name, genus)` | 680 | Artikel vor Zutat setzen |
 | `getAllStepRows()` | 699 | Alle Step-Katalog-Zeilen holen |
-| `getPhaseLabel(phase)` | 706 | HTML-Badge fÃ¼r Koch-Phase (1â€“4) |
+| `getPhaseLabel(phase)` | 706 | HTML-Badge für Koch-Phase (1â€“4) |
 | `getStepBoundIngredientIds(stepId)` | 720 | An Step gebundene Zutat-IDs |
-| `getSelectedIngredientIds()` | 726 | IDs ausgewÃ¤hlter Zutaten |
+| `getSelectedIngredientIds()` | 726 | IDs ausgewählter Zutaten |
 | `stripLeadingArticle(text)` | 745 | Artikel-Prefix entfernen |
-| `normalizeIngredientMatchValue(text)` | 755 | Text fÃ¼r Zutat-Matching normalisieren |
+| `normalizeIngredientMatchValue(text)` | 755 | Text für Zutat-Matching normalisieren |
 | `splitIngredientNames(text)` | 759 | Komma/Konjunktion-getrennte Namen aufteilen |
 
 ### Zutat-Derivation & Transforms (Zeile 767â€“1185)
@@ -1573,14 +1573,14 @@ previewHtml = card.innerHTML;  // Zeigt aktuelle Werte!
 | `matchSandboxItemsByStep(items, step)` | 849 | Zutaten zu Step-Variablen zuordnen |
 | `buildSpecialTransformItems(step)` | 877 | Spezial-Transform-Outputs erstellen |
 | `collectSelectedStepDerivationDescriptors()` | 893 | Alle Step-Transform-Descriptors sammeln |
-| `deriveIngredientsForSteps(baseItems, ...)` | 937 | Abgeleitete Zutaten generieren. Nutzt `matchesWholeWord()` fÃ¼r Wortgrenzen-Matching. **Reihenfolge:** 1) auto_show-Transforms VOR descriptor-Loop (z.B. Ei â†’ Eiklar/Eigelb), damit Sub-Zutaten fÃ¼r nachfolgende trigger_step-Transforms verfÃ¼gbar sind (z.B. Eiklar â†’ Eischnee). 2) Special transforms: Outputs werden nur EINMAL pro Transform generiert (nicht pro matchendem Target), alle matchenden Targets werden aber entfernt. 3) Adjective transforms. |
-| `deriveSandboxIngredients()` | 998 | Wrapper fÃ¼r Zutat-Derivation |
-| `getSelectedIngredientsForSandbox(langKey)` | 1005 | AusgewÃ¤hlte Zutaten fÃ¼r Sandbox |
+| `deriveIngredientsForSteps(baseItems, ...)` | 937 | Abgeleitete Zutaten generieren. Nutzt `matchesWholeWord()` für Wortgrenzen-Matching. **Reihenfolge:** 1) auto_show-Transforms VOR descriptor-Loop (z.B. Ei â†’ Eiklar/Eigelb), damit Sub-Zutaten für nachfolgende trigger_step-Transforms verfügbar sind (z.B. Eiklar â†’ Eischnee). 2) Special transforms: Outputs werden nur EINMAL pro Transform generiert (nicht pro matchendem Target), alle matchenden Targets werden aber entfernt. 3) Adjective transforms. |
+| `deriveSandboxIngredients()` | 998 | Wrapper für Zutat-Derivation |
+| `getSelectedIngredientsForSandbox(langKey)` | 1005 | Ausgewählte Zutaten für Sandbox |
 | `localizeIngredientValueForSandbox(value, langKey, ...)` | 1020 | Zutat-Wert lokalisieren |
 | `findCatalogIngredientRowByNames(names)` | 1047 | Zutat-Zeile per Name finden |
 | `setIngredientRowDisabled(row, disabled)` | 1063 | Zutat-Zeile deaktivieren/aktivieren |
-| `buildDerivedIngredientRowHtml(item)` | 1067 | HTML fÃ¼r abgeleitete Zutat-Zeile |
-| `applyDerivedIngredientRowVisuals()` | 1119 | Alle abgeleiteten Zutat-Rows aktualisieren. Auto-show-Items erhalten `.ingredient-optional-sub` CSS-Klasse (gestrichelte lila Umrandung, eingerÃ¼ckt, â†³ Prefix) |
+| `buildDerivedIngredientRowHtml(item)` | 1067 | HTML für abgeleitete Zutat-Zeile |
+| `applyDerivedIngredientRowVisuals()` | 1119 | Alle abgeleiteten Zutat-Rows aktualisieren. Auto-show-Items erhalten `.ingredient-optional-sub` CSS-Klasse (gestrichelte lila Umrandung, eingerückt, â†³ Prefix) |
 
 ### Theme-Management (Zeile 1186â€“1291)
 
@@ -1603,24 +1603,24 @@ window.getThemeMutedTextClass()       // Zeile 1243
 window.setCreatePostingTheme(theme)   // Zeile 1284
 ```
 
-### Grammatik & Variablen-AuflÃ¶sung (Zeile 1382â€“1655)
+### Grammatik & Variablen-Auflösung (Zeile 1382â€“1655)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `resolveGrammarForIngredient(ingredientName)` | 1382 | Genus/Artikel fÃ¼r Zutat bestimmen |
+| `resolveGrammarForIngredient(ingredientName)` | 1382 | Genus/Artikel für Zutat bestimmen |
 | `getPlaceholderKeysFromTemplate(template)` | 1423 | `{{variable}}`-Namen extrahieren |
-| `getSelectedIngredientNames()` | 1434 | Namen ausgewÃ¤hlter Zutaten |
+| `getSelectedIngredientNames()` | 1434 | Namen ausgewählter Zutaten |
 | `getSelectedIngredientNamesWithArticle()` | 1443 | Namen mit Artikeln |
-| `getSelectedIngredientForCreator()` | 1460 | Zutat-Wert fÃ¼r Step-Creator |
-| `getSelectedIngredientValueForInsert()` | 1477 | Wert fÃ¼r Template-Einsetzung |
-| `prioritizeSelectedIngredient(ingredientName)` | 1491 | Zutat als primÃ¤r setzen |
+| `getSelectedIngredientForCreator()` | 1460 | Zutat-Wert für Step-Creator |
+| `getSelectedIngredientValueForInsert()` | 1477 | Wert für Template-Einsetzung |
+| `prioritizeSelectedIngredient(ingredientName)` | 1491 | Zutat als primär setzen |
 | `assignIngredientPlaceholderValue(tokenId, value)` | 1502 | Zutat an Token binden |
-| `syncGrammarAssignmentsForSelectedIngredient()` | 1518 | Genus Ã¼ber alle Zuweisungen synchronisieren |
+| `syncGrammarAssignmentsForSelectedIngredient()` | 1518 | Genus über alle Zuweisungen synchronisieren |
 | `getEffectiveTemplateId()` | 1540 | Aktive Template-ID |
 | `normalizePlaceholderKey(key)` | 1544 | Variable normalisieren |
 | `getPlaceholderType(key)` | 1567 | Variablen-Typ bestimmen via `placeholderTypeMatchers`: ingredient (ingredient, ingredients, liquid, fat, components), duration, count, pronoun, temperature |
 | `getJsonVariableOptions(varName)` | 1573 | Optionsliste aus JSON |
-| `getFirstJsonVariableOption(varName)` | 1588 | Erste gÃ¼ltige Option |
+| `getFirstJsonVariableOption(varName)` | 1588 | Erste gültige Option |
 | `getPlaceholderKeyByTokenId(tokenId)` | 1635 | Reverse-Lookup: tokenId â†’ Variable |
 | `applyTokenAssignmentsToVariables()` | 1640 | Alle Token-Zuweisungen anwenden |
 
@@ -1632,22 +1632,22 @@ window.setCreatePostingTheme(theme)   // Zeile 1284
 | `getDurationUnitLabel(unit)` | Unit-Label (min/hour/per_package) |
 | `getDurationInsertText(value, unit)` | Duration formatieren |
 | `refreshDurationUnitControls()` | Duration-UI aktualisieren |
-| `openDurationEditorForToken(tokenId)` | Duration-Editor Ã¶ffnen |
-| `closeDurationEditor()` | Duration-Editor schlieÃŸen |
+| `openDurationEditorForToken(tokenId)` | Duration-Editor öffnen |
+| `closeDurationEditor()` | Duration-Editor schließen |
 
 #### Count (Zeile 1717)
 | Funktion | Beschreibung |
 |----------|-------------|
 | `getCountInsertText(value)` | Count formatieren |
-| `openCountEditorForToken(tokenId)` | Count-Editor Ã¶ffnen |
-| `closeCountEditor()` | Count-Editor schlieÃŸen |
+| `openCountEditorForToken(tokenId)` | Count-Editor öffnen |
+| `closeCountEditor()` | Count-Editor schließen |
 
 #### Temperature (Zeile 1738)
 | Funktion | Beschreibung |
 |----------|-------------|
 | `getTemperatureInsertText(value, unit)` | Temperatur formatieren (Â°C/Â°F) |
-| `openTemperatureEditorForToken(tokenId)` | Temperatur-Editor Ã¶ffnen |
-| `closeTemperatureEditor()` | Temperatur-Editor schlieÃŸen |
+| `openTemperatureEditorForToken(tokenId)` | Temperatur-Editor öffnen |
+| `closeTemperatureEditor()` | Temperatur-Editor schließen |
 
 #### Weitere Variablen-Editoren
 
@@ -1668,8 +1668,8 @@ window.setCreatePostingTheme(theme)   // Zeile 1284
 
 Jeder Editor folgt dem gleichen Pattern:
 ```
-openXxxEditorForToken(tokenId)  â†’ Ã¶ffnet UI
-closeXxxEditor()                â†’ schlieÃŸt UI
+openXxxEditorForToken(tokenId)  â†’ öffnet UI
+closeXxxEditor()                â†’ schließt UI
 getXxxOptions()                 â†’ liefert Optionsliste
 renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 ```
@@ -1678,13 +1678,13 @@ renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `ensureEquipmentArticle(name)` | 1847 | Artikel zu Equipment hinzufÃ¼gen |
-| `getEditorArticleOptions()` | 1912 | Artikel-Optionen fÃ¼r Editor |
-| `splitLeadingArticle(text)` | 1916 | FÃ¼hrenden Artikel abtrennen |
+| `ensureEquipmentArticle(name)` | 1847 | Artikel zu Equipment hinzufügen |
+| `getEditorArticleOptions()` | 1912 | Artikel-Optionen für Editor |
+| `splitLeadingArticle(text)` | 1916 | Führenden Artikel abtrennen |
 | `composeArticleAndNoun(article, noun)` | 1929 | Artikel + Nomen zusammensetzen |
 | `getNounOptions(values, articleOptions)` | 1939 | Nomen-Optionen aus Werten |
 | `renderArticleOptions(options)` | 1949 | Artikel-Chips rendern |
-| `buildArticleChoiceSelectionState()` | 1978 | Auswahl-State fÃ¼r Artikel aufbauen |
+| `buildArticleChoiceSelectionState()` | 1978 | Auswahl-State für Artikel aufbauen |
 | `renderArticleChoiceOptions(options)` | 2006 | Artikel-Choice-UI rendern |
 
 ### Template & Vorschau (Zeile 2530â€“2765)
@@ -1694,7 +1694,7 @@ renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 | `animatePreview()` | 2530 | Vorschau animieren |
 | `updatePreviewText()` | 2536 | Master-Step-Vorschau aktualisieren |
 | `clearSelectedIngredientChips()` | 2562 | Zutat-Chip-Auswahl leeren |
-| `updateStoryProgress()` | 2567 | Fortschritts-ZÃ¤hler aktualisieren |
+| `updateStoryProgress()` | 2567 | Fortschritts-Zähler aktualisieren |
 | `showCreatorToast(msg)` | 2573 | Toast-Nachricht anzeigen |
 | `animateTemplateToPreview()` | 2582 | Template â†’ Vorschau animieren |
 | `renderIngredientChips()` | 2589 | Zutat-Chips rendern |
@@ -1702,33 +1702,33 @@ renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 | `showMasterStepCreatorError(msg)` | 2636 | Fehler anzeigen |
 | `refreshMasterTemplateBuilder()` | 2649 | Template-Builder komplett erneuern |
 | `collectMasterVariables()` | 2666 | Alle Template-Variablen sammeln |
-| `normalizeVariablesForPersist()` | 2672 | Variablen fÃ¼r Speicherung normalisieren |
-| `resolveOptionalTemplateSegmentsForPersist()` | 2703 | Optionale Segmente fÃ¼r Speicherung |
-| `renderTemplateForPersist(template, vars)` | 2724 | Template fÃ¼r Persistierung rendern |
+| `normalizeVariablesForPersist()` | 2672 | Variablen für Speicherung normalisieren |
+| `resolveOptionalTemplateSegmentsForPersist()` | 2703 | Optionale Segmente für Speicherung |
+| `renderTemplateForPersist(template, vars)` | 2724 | Template für Persistierung rendern |
 | `buildRenderedPayloadFromTemplate()` | 2746 | Kompletten Step-Payload bauen |
 
 ### Server-Integration (Zeile 2753â€“2830)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `getCurrentUserHashForRequests()` | 2753 | User-Hash fÃ¼r Requests |
+| `getCurrentUserHashForRequests()` | 2753 | User-Hash für Requests |
 | `createFallbackStepId()` | 2765 | Fallback Step-ID generieren |
-| `addRenderedMasterStep()` | 2770 | Gerenderten Step zum Form hinzufÃ¼gen |
+| `addRenderedMasterStep()` | 2770 | Gerenderten Step zum Form hinzufügen |
 
 ### Zutat-Suche & Sichtbarkeit (Zeile 2833â€“2880)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `normalizeSearchText(text)` | 2833 | Text fÃ¼r Suche normalisieren |
+| `normalizeSearchText(text)` | 2833 | Text für Suche normalisieren |
 | `syncIngredientSourceVisibility()` | 2845 | Zutaten nach Suche ein-/ausblenden |
-| `isStepAlreadySelected(id)` | 2862 | PrÃ¼ft ob Step schon ausgewÃ¤hlt |
+| `isStepAlreadySelected(id)` | 2862 | Prüft ob Step schon ausgewählt |
 
 ### Sprach-Aktualisierung (Zeile 2879â€“3010)
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `getCommonUnitChipLabel(unit, langKey)` | 2879 | Unit-Chip-Label |
-| `resolveSelectUnitValueByKey(key)` | 2884 | Unit per Key auflÃ¶sen |
+| `resolveSelectUnitValueByKey(key)` | 2884 | Unit per Key auflösen |
 | `updateCommonUnitChipLabels()` | 2900 | Unit-Chip-Labels aktualisieren |
 | `updateLanguageLabels()` | 2982 | Alle Sprach-Labels aktualisieren |
 
@@ -1737,7 +1737,7 @@ renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `handleVideoUpload(event)` | 3011 | Video/Bild-Upload verarbeiten |
-| `resetVideo()` | 3034 | Video-Upload zurÃ¼cksetzen |
+| `resetVideo()` | 3034 | Video-Upload zurücksetzen |
 
 ### Daten-Formatierung (Zeile 3047â€“3110)
 
@@ -1754,16 +1754,16 @@ renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `addIngredient(id, btn)` | 3112 | Zutat zur Auswahl hinzufÃ¼gen |
+| `addIngredient(id, btn)` | 3112 | Zutat zur Auswahl hinzufügen |
 | `indexOfIgnoreCase(text, search)` | 3151 | Case-insensitive Suche |
 | `buildIngredientTokenTemplate(text, ingredientName)` | 3160 | Template mit Zutat-Token |
 | `materializeStepTextFromTemplate(template, ingredientName)` | 3181 | Token durch echte Zutat ersetzen |
 | `renderStepTextWithIngredientToken(template, name, id)` | 3189 | Step mit klickbarem Zutat-Token |
-| `ensureStepLanguageTemplate(row, lang)` | 3213 | Template fÃ¼r Sprache sicherstellen |
+| `ensureStepLanguageTemplate(row, lang)` | 3213 | Template für Sprache sicherstellen |
 | `startStepIngredientEdit(event, btn)` | 3231 | Zutat in Step bearbeiten starten |
-| `applyChipToStep(row, ingredientRow)` | 3245 | AusgewÃ¤hlte Zutat auf Step anwenden |
+| `applyChipToStep(row, ingredientRow)` | 3245 | Ausgewählte Zutat auf Step anwenden |
 | `cancelStepIngredientEdit()` | 3287 | Zutat-Bearbeitung abbrechen |
-| `removeIngredientRow(btn)` | 3295 | Zutat aus Auswahl entfernen (schlieÃŸt offenes Config-Popup) |
+| `removeIngredientRow(btn)` | 3295 | Zutat aus Auswahl entfernen (schließt offenes Config-Popup) |
 | `removeConflictingSteps(id)` | 3304 | Konfligierende Steps entfernen |
 
 ### Step-Verwaltung (Zeile 3334â€“3496)
@@ -1773,7 +1773,7 @@ renderInlineXxxOptions()        â†’ rendert Inline-Buttons
 | `slugifyStableStepKey(value)` | 3334 | Stabilen Key-Slug erstellen |
 | `normalizeStableKeyArray(value)` | 3345 | Key-Array normalisieren |
 | `sanitizeStableReferenceMetadata(stepData, options)` | 3353 | Step-Metadaten bereinigen |
-| `addStep(id, btn, manualText, options)` | 3390 | **Step zur Auswahl hinzufÃ¼gen** |
+| `addStep(id, btn, manualText, options)` | 3390 | **Step zur Auswahl hinzufügen** |
 | `removeStep(btn)` | 3472 | Step entfernen |
 | `removeStepsByMasterTemplateId(masterId)` | 3480 | Steps per Template-ID entfernen |
 
@@ -1791,7 +1791,7 @@ Options: {
 }
 
 Ablauf:
-1. Duplikat-PrÃ¼fung (isStepAlreadySelected)
+1. Duplikat-Prüfung (isStepAlreadySelected)
 2. Optionale Konflikt-Entfernung
 3. StepData normalisieren (alle Sprachen)
 4. StableReference bereinigen
@@ -1803,7 +1803,7 @@ Ablauf:
    - data-step-reference-json
    - data-ingredient-name
    - data-ingredient-fractions  â† NEU (Fraction-Daten)
-   - Hidden inputs fÃ¼r Form-Binding
+   - Hidden inputs für Form-Binding
 7. updateStepIndices()
 8. applyDerivedIngredientRowVisuals()
 9. renderIngredientChips()
@@ -1833,15 +1833,15 @@ window.MasterStepCreatorHelpers = {
 
 ## 21. JS-Datei: create-posting-publish-checklist.js
 
-**Pfad:** `wwwroot/js/create-posting-publish-checklist.js` Â· **307 Zeilen**
+**Pfad:** `wwwroot/js/create-posting-publish-checklist.js` · **307 Zeilen**
 **Pattern:** IIFE mit DOMContentLoaded Auto-Init
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `rafThrottle(fn)` | 4 | requestAnimationFrame-Throttle |
 | `debounce(fn, delay)` | 16 | Debounce mit Timer |
-| `injectStyles()` | 24 | CSS fÃ¼r Toolbar/Checklist injizieren |
-| `hasMeaningfulChildren(container)` | 90 | Sichtbare Kinder prÃ¼fen |
+| `injectStyles()` | 24 | CSS für Toolbar/Checklist injizieren |
+| `hasMeaningfulChildren(container)` | 90 | Sichtbare Kinder prüfen |
 | `hasMediaSelected(fileInput, imagePreview, videoPreview)` | 94 | Media validieren |
 | `initChecklist()` | 110 | Haupt-Initialisierung |
 | `buildChecklistState()` | 174 | Completion-Status je Section |
@@ -1861,24 +1861,24 @@ window.MasterStepCreatorHelpers = {
 | `steps` | `card-steps` | Steps |
 | `keywords` | `card-keywords` | Keywords |
 
-**Publish-Bedingung:** Mindestens 4 von 5 Sections mÃ¼ssen "done" sein.
+**Publish-Bedingung:** Mindestens 4 von 5 Sections müssen "done" sein.
 
 ---
 
 ## 22. CSS-Datei: create-posting-step-filter.css
 
-**Pfad:** `wwwroot/css/create-posting-step-filter.css` Â· **247 Zeilen** Â· **NEU (2026-04-02)**
+**Pfad:** `wwwroot/css/create-posting-step-filter.css` · **247 Zeilen** · **NEU (2026-04-02)**
 
-**Zweck:** Styling fÃ¼r Smart Step Creator Filter UI (Suchfeld + Phase-Tabs)
+**Zweck:** Styling für Smart Step Creator Filter UI (Suchfeld + Phase-Tabs)
 
 **Haupt-Komponenten:**
 
 | Klasse | Beschreibung |
 |--------|-------------|
-| `.step-filter-controls` | Container fÃ¼r Suchfeld + Tabs (flex column, padding, border-radius) |
-| `.step-search-wrapper` | Wrapper fÃ¼r Suchfeld |
+| `.step-filter-controls` | Container für Suchfeld + Tabs (flex column, padding, border-radius) |
+| `.step-search-wrapper` | Wrapper für Suchfeld |
 | `.step-search-input` | Suchfeld (mit Focus-State: border-color, box-shadow) |
-| `.phase-tabs` | Flex-Container fÃ¼r Phase-Filter-Tabs |
+| `.phase-tabs` | Flex-Container für Phase-Filter-Tabs |
 | `.phase-tab` | Einzelner Phase-Tab (border-radius 999px, hover/active states) |
 | `.phase-tab.active` | Aktiver Tab (gradient background, box-shadow) |
 
@@ -1886,9 +1886,9 @@ window.MasterStepCreatorHelpers = {
 
 | Theme | data-theme | Beschreibung |
 |-------|-----------|-------------|
-| Dark (Default) | `data-theme="dark"` | Dunkler Hintergrund, weiÃŸe Schrift |
+| Dark (Default) | `data-theme="dark"` | Dunkler Hintergrund, weiße Schrift |
 | Light | `data-theme="light"` | Heller Hintergrund, dunkle Schrift |
-| Rosa | `data-theme="rosa"` | Rosa Gradient, text-shadow fÃ¼r Kontrast |
+| Rosa | `data-theme="rosa"` | Rosa Gradient, text-shadow für Kontrast |
 | Gold | `data-theme="gold"` | Gold Gradient mit Navy-Blue Inputs |
 | Navy | `data-theme="navy"` | Navy Blue mit hellblauem Accent |
 
@@ -1900,13 +1900,13 @@ window.MasterStepCreatorHelpers = {
 - `--creator-bg` - Hintergrund-Gradient
 - `--creator-border` - Border-Color
 - `--creator-text` - Text-Color
-- `--creator-accent` - Accent-Color fÃ¼r Active States
+- `--creator-accent` - Accent-Color für Active States
 
 **Verwendung in:** `CreatePosting.cshtml` (geladen via `<link rel="stylesheet">`)
 
 ---
 
-## 23. Window-API-Ãœbersicht
+## 23. Window-API-Übersicht
 
 ### Globale Objekte
 
@@ -1917,33 +1917,33 @@ window.MasterStepCreatorHelpers = {
 | `window.CreatePostingDataStore` | create-posting-data-store.js | Daten-Cache |
 | `window.CreatePostingFeedback` | create-posting-feedback.js | Feedback/Toast |
 | `window.CreatePostingPageData` | create-posting-page-data.js | Async-Loader |
-| `window.CreatePostingTemplateBuilder` | create-posting-template-builder.js | Template-Builder (nur fÃ¼r #masterTemplateCards) |
-| `window.CreatePostingStepFilterUI` | create-posting-step-filter-ui.js | **NEU:** Filter-UI fÃ¼r Smart Step Creator |
+| `window.CreatePostingTemplateBuilder` | create-posting-template-builder.js | Template-Builder (nur für #masterTemplateCards) |
+| `window.CreatePostingStepFilterUI` | create-posting-step-filter-ui.js | **NEU:** Filter-UI für Smart Step Creator |
 | `window.MasterStepRenderer` | master-step-renderer.js | Rendering-Engine |
 | `window.MasterStepCreatorHelpers` | CreatePostingSmartStepCreator.js | Smart Step Creator + Filter-Logik |
 | `window.RecipeStepSuggest` | recipe-step-suggest.js | Rezepttyp-Erkennung |
 | `window.CreatePostingProbability` | create-posting-probability.js | Wahrscheinlichkeit |
-| `window.IngredientManager` | ingredientmanager.js | MaÃŸeinheiten |
-| `window.MasterStepCreatorHelpers` | SmartStepCreator.js | **Step-Creator-Helpers** (siehe unten fÃ¼r vollstÃ¤ndige Export-Liste) |
+| `window.IngredientManager` | ingredientmanager.js | Maßeinheiten |
+| `window.MasterStepCreatorHelpers` | SmartStepCreator.js | **Step-Creator-Helpers** (siehe unten für vollständige Export-Liste) |
 | `window.CreatePostingIngredientHelpers` | CreatePostingPage.js | Zutat-Helpers |
 
-#### window.MasterStepCreatorHelpers - VollstÃ¤ndige Export-Liste (Zeile 2819â€“2837)
+#### window.MasterStepCreatorHelpers - Vollständige Export-Liste (Zeile 2819â€“2837)
 
 **Template & Rendering:**
 - `renderTemplateWithConfig(templateRaw, stepId, values, config)` - Template mit erweiterten Optionen rendern
 - `renderAssignedPlaceholderTemplate(templateRaw, stepId, values, config)` - Template mit Zuweisungen rendern
-- `getVarDisplayName(varName)` - Mehrsprachiger Anzeigename fÃ¼r Variable
+- `getVarDisplayName(varName)` - Mehrsprachiger Anzeigename für Variable
 
 **Text-Verarbeitung:**
 - `splitLeadingArticleByOptions(text, articleOptions)` - Artikel von Nomen trennen
 - `composeArticleAndNoun(article, noun)` - Artikel + Nomen zusammensetzen
 - `getNounOptionsFromValues(values, articleOptions)` - Nomen-Optionen ableiten
-- `splitEditorPrefillValue(value, config)` - Wert fÃ¼r Editor-Prefill aufteilen
+- `splitEditorPrefillValue(value, config)` - Wert für Editor-Prefill aufteilen
 
 **Editor-System (Shared zwischen Step Creator + Probability Area):**
-- `buildInlineEditorHtml(varName, currentVal, opts)` - **SHARED** HTML fÃ¼r Inline-Editor generieren (Wrapper um `_generateEditorHtml` mit `useClassBasedIds: true`)
+- `buildInlineEditorHtml(varName, currentVal, opts)` - **SHARED** HTML für Inline-Editor generieren (Wrapper um `_generateEditorHtml` mit `useClassBasedIds: true`)
 - `applyEditorValue(editorEl)` - **SHARED** Editor-Wert auslesen und zusammensetzen
-- `applyEditorExtras(editorEl)` - **SHARED** ZusÃ¤tzliche Werte (z.B. Pronomen)
+- `applyEditorExtras(editorEl)` - **SHARED** Zusätzliche Werte (z.B. Pronomen)
 - `triggerPronounBeforeState(config)` - Pronomen-vor-State-Logik
 - `handlePickModeClick(pickBtn, host, useClassBasedIds)` - **NEU (2026-03-27)** Shared Pick-Mode Handler
 - `handleDurationUnitClick(btn, host)` - **NEU (2026-03-27)** Shared Duration-Unit Handler
@@ -1951,9 +1951,9 @@ window.MasterStepCreatorHelpers = {
 **Multi-Ingredient Helpers:**
 - `normalizeIngredientValues(values)` - **NEU (2026-03-27)** Normalisiert Zutat-Array zu `{name, fraction, article}` Format
 - `formatSelectedIngredientList(names, langKey)` - **NEU (2026-03-27)** Formatiert Multi-Ingredient-Liste mit individuellen Artikeln/Fraktionen
-- `isIngredientVariable(varName)` - **NEU (2026-03-27)** PrÃ¼ft ob Variable eine Zutat ist
+- `isIngredientVariable(varName)` - **NEU (2026-03-27)** Prüft ob Variable eine Zutat ist
 
-**Siehe Section 19 fÃ¼r vollstÃ¤ndige Dokumentation aller exportierten Funktionen.**
+**Siehe Section 19 für vollständige Dokumentation aller exportierten Funktionen.**
 
 ### Globale State-Variablen
 
@@ -1964,7 +1964,7 @@ window.MasterStepCreatorHelpers = {
 | `window.ingredientTransforms` | CreatePostingPage.js:665 | Gecachte Transforms |
 | `window.stepCatalog` | CreatePostingPage.js:701 | Gecachter Step-Katalog |
 | `window.stepIngredientBindings` | CreatePostingPage.js | Stepâ†”Zutat-Bindungen |
-| `Probability Draft State` | shared draft engine | Gemeinsamer Multi-Ingredient- und Variablen-State fÃ¼r den oberen Vorschlagsbereich pro `masterId` |
+| `Probability Draft State` | shared draft engine | Gemeinsamer Multi-Ingredient- und Variablen-State für den oberen Vorschlagsbereich pro `masterId` |
 
 ### Globale Funktionen
 
@@ -1972,14 +1972,14 @@ window.MasterStepCreatorHelpers = {
 |----------|--------|-------------|
 | `window.getCreatePostingTheme()` | CreatePostingPage.js:1235 | Theme-Name |
 | `window.getCreatePostingVisualTheme()` | CreatePostingPage.js:1239 | Visuelles Theme |
-| `window.getThemeMutedTextClass()` | CreatePostingPage.js:1243 | CSS-Klasse fÃ¼r gedÃ¤mpften Text |
+| `window.getThemeMutedTextClass()` | CreatePostingPage.js:1243 | CSS-Klasse für gedämpften Text |
 | `window.setCreatePostingTheme(theme)` | CreatePostingPage.js:1284 | Theme setzen + persistieren |
-| `window.addStep(id, btn, text, options)` | CreatePostingPage.js:3390 | Step hinzufÃ¼gen |
+| `window.addStep(id, btn, text, options)` | CreatePostingPage.js:3390 | Step hinzufügen |
 | `window.removeStep(btn)` | CreatePostingPage.js:3472 | Step entfernen |
 | `window.createFallbackStepId()` | CreatePostingPage.js:2765 | Fallback-ID generieren |
 | `window.updateStepIndices()` | CreatePostingPage.js | Step-Indizes aktualisieren |
 | `window.updateStoryProgress()` | CreatePostingPage.js:2567 | Fortschritt aktualisieren |
-| `window.moveStepRow(btn, direction)` | CreatePostingPage.js | Step-Reihenfolge Ã¤ndern |
+| `window.moveStepRow(btn, direction)` | CreatePostingPage.js | Step-Reihenfolge ändern |
 | `window.startStepIngredientEdit(e, btn)` | CreatePostingPage.js:3231 | Zutat-Edit starten |
 
 ---
@@ -2004,7 +2004,7 @@ window.MasterStepCreatorHelpers = {
 | Event | Selektor | Zeile | Beschreibung |
 |-------|----------|-------|-------------|
 | click | `#restoreDraftBtn` | ~4012 | Draft wiederherstellen, Banner ausblenden |
-| click | `#discardDraftBtn` | ~4015 | Draft lÃ¶schen, Banner ausblenden |
+| click | `#discardDraftBtn` | ~4015 | Draft löschen, Banner ausblenden |
 | input/change | `#recipeForm input, textarea, select` | ~3957 | Auto-Save triggern |
 | submit | `#recipeForm` | ~3960 | Form absenden |
 | pagehide/beforeunload | `window` | ~3963 | Draft speichern bei Verlassen |
@@ -2013,45 +2013,45 @@ window.MasterStepCreatorHelpers = {
 
 | Event | Selektor | Zeile | Beschreibung |
 |-------|----------|-------|-------------|
-| input | `#ingredientConfigQty, .js-db-qty` | ~3973 | Menge Ã¤ndern |
-| click | `.js-common-unit-chip` | ~3980 | Schnell-Einheit wÃ¤hlen |
-| click | `.js-config-unit-chip` | ~3993 | Config-Einheit wÃ¤hlen |
-| click | `.ingredient-db-row` | ~4599 | Zutat aus Katalog wÃ¤hlen |
-| click | `#btnCloseIngredientConfig` | ~4610 | Config schlieÃŸen |
+| input | `#ingredientConfigQty, .js-db-qty` | ~3973 | Menge ändern |
+| click | `.js-common-unit-chip` | ~3980 | Schnell-Einheit wählen |
+| click | `.js-config-unit-chip` | ~3993 | Config-Einheit wählen |
+| click | `.ingredient-db-row` | ~4599 | Zutat aus Katalog wählen |
+| click | `#btnCloseIngredientConfig` | ~4610 | Config schließen |
 | click | `#btnApplyIngredientConfig` | ~4615 | Config anwenden |
 
 ### Probability/Rezepttyp
 
 | Event | Selektor | Zeile | Beschreibung |
 |-------|----------|-------|-------------|
-| click | `.js-probability-type` | ~4013 | Rezepttyp auswÃ¤hlen |
+| click | `.js-probability-type` | ~4013 | Rezepttyp auswählen |
 | click | `.js-probability-template` | ~4037 | Template-Vorschlag annehmen |
-| click | `.js-typical-ingredient-chip` | ~4037 | Typische Zutat hinzufÃ¼gen |
+| click | `.js-typical-ingredient-chip` | ~4037 | Typische Zutat hinzufügen |
 
 ### Template-Auswahl
 
 | Event | Selektor | Zeile | Beschreibung |
 |-------|----------|-------|-------------|
-| click | `.ingredient-chip` (in `#currentStepIngredientButtons`) | ~4079 | Zutat-Chip auswÃ¤hlen |
-| click | `.template-card` (in `#masterTemplateCards`) | ~4101 | Template-Karte auswÃ¤hlen |
+| click | `.ingredient-chip` (in `#currentStepIngredientButtons`) | ~4079 | Zutat-Chip auswählen |
+| click | `.template-card` (in `#masterTemplateCards`) | ~4101 | Template-Karte auswählen |
 
 ### Step-Editor (SmartStepCreator wireEvents)
 
 | Event | Selektor | Zeile (SmartStepCreator.js) | Beschreibung |
 |-------|----------|----------------------------|-------------|
-| click | `.template-card` | 1780 | Step-Karte auswÃ¤hlen â†’ `onStepCardClick()` |
+| click | `.template-card` | 1780 | Step-Karte auswählen â†’ `onStepCardClick()` |
 | click | `.template-var` | 1788 | Token klicken â†’ `openInlineEditor()` |
-| click | `.js-optional-var-add` | 1805 | Optional-Variable hinzufÃ¼gen |
-| click | `.placeholder-reset` | 1816 | Variable zurÃ¼cksetzen |
+| click | `.js-optional-var-add` | 1805 | Optional-Variable hinzufügen |
+| click | `.placeholder-reset` | 1816 | Variable zurücksetzen |
 | click | `.js-toggle-fallback-options` | 1828 | "Weitere anzeigen" toggle |
 | click | `#btnAcceptStep` | 1840 | Step akzeptieren â†’ `acceptActiveStep()` |
-| click | `#BtnCloseVar, #BtnCloseVarTop` | 1846 | Editor schlieÃŸen |
+| click | `#BtnCloseVar, #BtnCloseVarTop` | 1846 | Editor schließen |
 | click | `#BtnApplyVar` | ~2300 | Wert einsetzen â†’ `applyCurrentEditorSelection()` |
-| click | `[data-pick-mode="fraction"]` | ~2314 | **Fraction wÃ¤hlen** (alte Picker-Logik, deprecated) |
-| click | `[data-pick-mode="article"]` | ~2380 | Artikel wÃ¤hlen (nicht fÃ¼r ingredient-vars) |
-| click | `[data-pick-mode="pronoun"]` | 1922 | Pronomen wÃ¤hlen |
-| click | `[data-pick-mode="value"]` | 1922 | Wert wÃ¤hlen |
-| click | `[data-duration-unit]` | 1930 | Dauer-Einheit wÃ¤hlen |
+| click | `[data-pick-mode="fraction"]` | ~2314 | **Fraction wählen** (alte Picker-Logik, deprecated) |
+| click | `[data-pick-mode="article"]` | ~2380 | Artikel wählen (nicht für ingredient-vars) |
+| click | `[data-pick-mode="pronoun"]` | 1922 | Pronomen wählen |
+| click | `[data-pick-mode="value"]` | 1922 | Wert wählen |
+| click | `[data-duration-unit]` | 1930 | Dauer-Einheit wählen |
 | click | `#BtnPickDurationQuick` | 1947 | Dauer schnell einsetzen |
 | click | `#BtnPickCountQuick` | 1969 | Count schnell einsetzen |
 | click | `#BtnPickTempQuick` | ~2750 | Temperatur schnell einsetzen |
@@ -2061,24 +2061,24 @@ window.MasterStepCreatorHelpers = {
 
 | Event | Selektor | Zeile (SmartStepCreator.js) | Beschreibung |
 |-------|----------|----------------------------|-------------|
-| click | `.ingredient-plus-btn` | ~2229 | **Plus-Button im Step**: (1) Wenn Editor geschlossen â†’ Ã¶ffnet Editor. (2) Wenn Editor offen â†’ fÃ¼gt aktuell ausgewÃ¤hlte Zutat (Artikel + Fraktion) zur `_multiIngredients`-Liste hinzu und rendert Editor neu. Erscheint wenn Ingredient-Variable einen Wert hat |
+| click | `.ingredient-plus-btn` | ~2229 | **Plus-Button im Step**: (1) Wenn Editor geschlossen â†’ öffnet Editor. (2) Wenn Editor offen â†’ fügt aktuell ausgewählte Zutat (Artikel + Fraktion) zur `_multiIngredients`-Liste hinzu und rendert Editor neu. Erscheint wenn Ingredient-Variable einen Wert hat |
 | click | `[data-remove-multi-ingredient]` | ~2284 | **Remove-Chip im Editor**: Entfernt Zutat an Index aus `_multiIngredients`-Array, aktualisiert Preview-Text, rendert Step und Editor neu |
-| click | `[data-pick-mode="fraction"]` | ~2360 | **Fraktions-Chip**: WÃ¤hlt Fraktion (Ganzes, 1/2, 1/3, 2/3, 1/4, 3/4) aus, setzt `dataset.selectedFraction` |
+| click | `[data-pick-mode="fraction"]` | ~2360 | **Fraktions-Chip**: Wählt Fraktion (Ganzes, 1/2, 1/3, 2/3, 1/4, 3/4) aus, setzt `dataset.selectedFraction` |
 
 **Workflow-Logik:**
-- **activeStep._multiIngredients**: Array `[{name, fraction, article}, ...]` speichert hinzugefÃ¼gte Zutaten
-- **dataset.selectedIngredientValues**: Aktuell ausgewÃ¤hlte Chips (fÃ¼r nÃ¤chstes HinzufÃ¼gen)
-- **dataset.selectedArticle**: Aktuell ausgewÃ¤hlter Artikel (z.B. "des", "der")
-- **dataset.selectedFraction**: Aktuell ausgewÃ¤hlte Fraktion (z.B. "1/2")
+- **activeStep._multiIngredients**: Array `[{name, fraction, article}, ...]` speichert hinzugefügte Zutaten
+- **dataset.selectedIngredientValues**: Aktuell ausgewählte Chips (für nächstes Hinzufügen)
+- **dataset.selectedArticle**: Aktuell ausgewählter Artikel (z.B. "des", "der")
+- **dataset.selectedFraction**: Aktuell ausgewählte Fraktion (z.B. "1/2")
 - **Plus-Button Anzeige**: `isIngredient && val.trim().length > 0` (wenn Ingredient-Variable Wert hat)
 - **Chip-Deaktivierung**: Chips in `_multiIngredients` bekommen `.ingredient-chip-disabled` Klasse
-- **Removable Chips**: Am Boden des Editors werden bereits hinzugefÃ¼gte Zutaten als Bootstrap badge chips mit X-Button angezeigt
+- **Removable Chips**: Am Boden des Editors werden bereits hinzugefügte Zutaten als Bootstrap badge chips mit X-Button angezeigt
 
 ### Probability Inline-Editor
 
 | Event | Selektor | Zeile (Page.js) | Beschreibung |
 |-------|----------|-----------------|-------------|
-| click | `.js-prob-inline-close` | ~613 | Inline-Editor schlieÃŸen |
+| click | `.js-prob-inline-close` | ~613 | Inline-Editor schließen |
 | click | `#BtnCloseVarTop` | ~614 | Top-Close-Button |
 | click | `.js-prob-inline-apply` | ~615 | Wert anwenden |
 | click | `#BtnPickDurationQuick` | ~616 | Duration schnell |
@@ -2093,10 +2093,10 @@ window.MasterStepCreatorHelpers = {
 |-------|----------|-------|-------------|
 | click | `.placeholder-token` | ~4203 | Token klicken |
 | dragstart | `.ingredient-chip` | ~4219 | Zutat-Chip ziehen starten |
-| dragover | `.placeholder-token` | ~4227 | Ãœber Token ziehen |
+| dragover | `.placeholder-token` | ~4227 | Über Token ziehen |
 | dragleave | `.placeholder-token` | ~4235 | Token verlassen |
 | drop | `.placeholder-token` | ~4239 | Auf Token fallen lassen |
-| click | `.placeholder-reset` | ~4265 | Variable zurÃ¼cksetzen |
+| click | `.placeholder-reset` | ~4265 | Variable zurücksetzen |
 
 ---
 
@@ -2115,21 +2115,21 @@ window.MasterStepCreatorHelpers = {
 | `card-keywords` | `<section>` | form | Keywords |
 | `ingredientSearch` | `<input>` | card-ingredients | Zutat-Suchfeld |
 | `ingredientsCatalog` | `<div>` | card-ingredients | Zutat-Katalog (scrollbar) |
-| `selectedIngredients` | `<div>` | card-ingredients | AusgewÃ¤hlte Zutaten |
-| `selectedIngredientsSuggestions` | `<div>` | card-ingredients | VorschlÃ¤ge |
+| `selectedIngredients` | `<div>` | card-ingredients | Ausgewählte Zutaten |
+| `selectedIngredientsSuggestions` | `<div>` | card-ingredients | Vorschläge |
 | `ingredientProbabilityBadges` | `<div>` | card-probability | Typ-Badges |
-| `ingredientProbabilityTemplates` | `<div>` | card-probability | Template-VorschlÃ¤ge |
+| `ingredientProbabilityTemplates` | `<div>` | card-probability | Template-Vorschläge |
 | `sc2MasterPreviewCanvas` | `<div>` | card-steps | Vorschau-Canvas |
 | `sc2MasterPreviewCard` | `<div>` | card-steps | Vorschau-Karte |
 | `MasterText` | `<div>` | card-steps | Step-Text-Anzeige |
 | `InlineVarEditorHost` | `<div>` | card-steps | Inline-Editor-Container |
 | `insertContainer` | `<div>` | card-steps | Template-Bibliothek |
 | `stepsChipStrip` | `<div>` | card-steps | Zutat-Chip-Streifen |
-| `stepsIngredientButtons` | `<div>` | card-steps | Zutat-Chips fÃ¼r Step |
+| `stepsIngredientButtons` | `<div>` | card-steps | Zutat-Chips für Step |
 | `btnApplyStepIngredient` | `<button>` | card-steps | Zutat-Anwenden |
 | `btnCancelStepIngredient` | `<button>` | card-steps | Zutat-Abbrechen |
 | `selectedSteps` | `<div>` | card-steps | Akzeptierte Steps |
-| `selectedKeywords` | `<div>` | card-keywords | AusgewÃ¤hlte Keywords |
+| `selectedKeywords` | `<div>` | card-keywords | Ausgewählte Keywords |
 | `videoInput` | `<input>` | card-media | Datei-Input |
 | `videoPreviewContainer` | `<div>` | card-media | Preview-Container |
 | `videoPreview` | `<video>` | card-media | Video-Preview |
@@ -2146,13 +2146,13 @@ window.MasterStepCreatorHelpers = {
 | Selektor | Erzeugt durch | Beschreibung |
 |----------|---------------|-------------|
 | `.ingredient-db-row` | Server (cshtml) | Zutat-Katalog-Zeile |
-| `.ingredient-row` | `addIngredient()` | AusgewÃ¤hlte Zutat-Zeile |
+| `.ingredient-row` | `addIngredient()` | Ausgewählte Zutat-Zeile |
 | `.step-row` | `addStep()` | Akzeptierter Step |
 | `.template-card` | `renderStepButtons()` | Template-Auswahl-Karte |
 | `.ingredient-chip` | `openInlineEditor()` | Zutat-Chip im Editor |
 | `.fraction-pick` | `renderFractionPickerHtml()` | Fraction-Button |
 | `.pill-like` | `renderPillButtons()` | Variablen-Auswahl-Pill |
-| `.keyword-pill` | `toggleKeyword()` | AusgewÃ¤hltes Keyword |
+| `.keyword-pill` | `toggleKeyword()` | Ausgewähltes Keyword |
 | `.placeholder-token` | `renderTemplateTokens()` | Klickbarer Platzhalter im Text |
 | `.placeholder-reset` | `renderTemplateTokens()` | Variable-Reset-Button |
 | `#FractionPickerRow` | `renderFractionPickerHtml()` | Fraction-Picker-Container |
@@ -2175,15 +2175,15 @@ window.MasterStepCreatorHelpers = {
 ### Rezept erstellen
 
 ```
-User Ã¶ffnet CreatePosting
+User öffnet CreatePosting
     â”‚
-    â”œâ”€1. Basics ausfÃ¼llen (Titel, Kategorie, Personen, Zeit)
+    â”œâ”€1. Basics ausfüllen (Titel, Kategorie, Personen, Zeit)
     â”‚   â””â†’ scheduleCreatePostingDraftSave()
     â”‚
     â”œâ”€2. Media hochladen (Video/Bild)
     â”‚   â””â†’ handleVideoUpload() â†’ Preview anzeigen
     â”‚
-    â”œâ”€3. Zutaten auswÃ¤hlen
+    â”œâ”€3. Zutaten auswählen
     â”‚   â”œâ†’ ingredientSearch â†’ syncIngredientSourceVisibility()
     â”‚   â”œâ†’ Click .ingredient-db-row â†’ addIngredient()
     â”‚   â”‚   â”œâ†’ buildIngredientRowHtml() â†’ #selectedIngredients
@@ -2200,7 +2200,7 @@ User Ã¶ffnet CreatePosting
     â”‚   â”œâ†’ Platzhalter klicken â†’ openInlineEditor()
     â”‚   â”‚   â”œâ†’ Zutat-Chips anzeigen (getSelectedIngredientsFromPage)
     â”‚   â”‚   â”‚   â””â†’ inkl. Remainder-Chips (getRemainderChipsFromAcceptedSteps)
-    â”‚   â”‚   â”œâ†’ Fraction-Picker anzeigen (wenn 1 Zutat ausgewÃ¤hlt)
+    â”‚   â”‚   â”œâ†’ Fraction-Picker anzeigen (wenn 1 Zutat ausgewählt)
     â”‚   â”‚   â”œâ†’ Variablen-Optionen anzeigen (getRankedVarOptionEntries)
     â”‚   â”‚   â””â†’ Spezial-Editoren (duration/temp/count)
     â”‚   â”‚
@@ -2214,40 +2214,40 @@ User Ã¶ffnet CreatePosting
     â”‚           ingredientName, masterTemplateId,
     â”‚           stepData, fractionData
     â”‚       })
-    â”‚           â”œâ†’ HTML in #selectedSteps einfÃ¼gen
+    â”‚           â”œâ†’ HTML in #selectedSteps einfügen
     â”‚           â”‚   â””â†’ data-ingredient-fractions Attribut
     â”‚           â”œâ†’ updateStepIndices()
     â”‚           â”œâ†’ applyDerivedIngredientRowVisuals()
     â”‚           â””â†’ renderIngredientChips()
     â”‚
-    â”œâ”€5. Keywords auswÃ¤hlen
+    â”œâ”€5. Keywords auswählen
     â”‚   â””â†’ toggleKeyword() â†’ .keyword-pill in #selectedKeywords
     â”‚
-    â””â”€6. VerÃ¶ffentlichen
+    â””â”€6. Veröffentlichen
         â””â†’ <form> submit â†’ prepareBinding()
             â””â†’ POST /WorldMiniApp/Home/UploadNewVideoAsync
-                â”œâ†’ Rate-Limit prÃ¼fen
+                â”œâ†’ Rate-Limit prüfen
                 â”œâ†’ Blob-Upload
                 â”œâ†’ Rezept erstellen
                 â”œâ†’ Steps extrahieren
                 â”œâ†’ Smart Steps extrahieren
-                â”œâ†’ Keywords verknÃ¼pfen
+                â”œâ†’ Keywords verknüpfen
                 â””â†’ Redirect â†’ Home/Index
 ```
 
 ### Fraction-Flow (Zutaten-Aufteilung)
 
 ```
-Step 1: User wÃ¤hlt 1 Zutat-Chip ("Mehl")
+Step 1: User wählt 1 Zutat-Chip ("Mehl")
     â†’ Fraction-Picker erscheint (#FractionPickerRow)
 
-Step 2: User tippt "die HÃ¤lfte (1/2)"
+Step 2: User tippt "die Hälfte (1/2)"
     â†’ host.dataset.selectedFraction = "1/2"
 
 Step 3: User klickt "Einsetzen"
     â†’ applyCurrentEditorSelection()
-    â†’ composeFractionText({label:"die HÃ¤lfte"}, "Mehl", "des")
-    â†’ activeStep.values.ingredient = "die HÃ¤lfte des Mehl"
+    â†’ composeFractionText({label:"die Hälfte"}, "Mehl", "des")
+    â†’ activeStep.values.ingredient = "die Hälfte des Mehl"
     â†’ activeStep._fractionData = {
         ingredientName: "Mehl",
         fractionKey: "1/2",
@@ -2259,14 +2259,14 @@ Step 4: User akzeptiert Step
     â†’ acceptActiveStep() â†’ window.addStep(..., { fractionData })
     â†’ Step-Row bekommt: data-ingredient-fractions='{"ingredientName":"Mehl",...}'
 
-Step 5: NÃ¤chster Step
+Step 5: Nächster Step
     â†’ getSelectedIngredientsFromPage() aufgerufen
     â†’ getRemainderChipsFromAcceptedSteps()
         â†’ scannt data-ingredient-fractions auf Step-Rows
         â†’ berechnet: 1 - 0.5 = 0.5 Rest
-        â†’ findet Fraction "1/2" â†’ Label "die HÃ¤lfte"
+        â†’ findet Fraction "1/2" â†’ Label "die Hälfte"
     â†’ Original "Mehl" Chip wird ersetzt durch:
-        { name: "die HÃ¤lfte Mehl", isRemainder: true, originalName: "Mehl" }
+        { name: "die Hälfte Mehl", isRemainder: true, originalName: "Mehl" }
     â†’ Chip hat CSS-Klasse: .ingredient-chip.fraction-remainder (dashed border)
 ```
 
@@ -2277,18 +2277,18 @@ Step 5: NÃ¤chster Step
 ```
 Step 1: User klickt Token {{ingredient}}
     â†’ openStepDraftEditor() mit `source: 'manual'` oder `source: 'suggested'`
-    â†’ Editor Ã¶ffnet mit leerer _multiIngredients-Liste
+    â†’ Editor öffnet mit leerer _multiIngredients-Liste
 
-Step 2: User wÃ¤hlt: Artikel "des" + Zutat "Zucker" + Fraktion "1/2"
+Step 2: User wählt: Artikel "des" + Zutat "Zucker" + Fraktion "1/2"
     â†’ host.dataset.selectedArticle = "des"
     â†’ host.dataset.selectedIngredientValues = '[{"name":"Zucker"}]'
     â†’ host.dataset.selectedFraction = "1/2"
 
 Step 3: User klickt "Einsetzen"
     â†’ applyCurrentEditorSelection() (Step Creator) oder doApply() (Probability Area)
-    â†’ composeFractionText() â†’ "die HÃ¤lfte des Zuckers"
-    â†’ activeStep.values.ingredient = "die HÃ¤lfte des Zuckers"
-    â†’ Editor schlieÃŸt
+    â†’ composeFractionText() â†’ "die Hälfte des Zuckers"
+    â†’ activeStep.values.ingredient = "die Hälfte des Zuckers"
+    â†’ Editor schließt
 
 Step 4: Plus-Button [+] erscheint im Step/Template
     â†’ renderTemplateTokens() erkennt: isIngredient && hasValue
@@ -2298,29 +2298,29 @@ Step 5: User klickt Plus-Button [+]
     WICHTIG: Unterschiedliches Verhalten je nach Editor-Status!
 
     5a) Editor geschlossen:
-        â†’ Ã–ffnet Editor neu
-        â†’ Zeigt bisherige Zutat: "die HÃ¤lfte des Zuckers"
+        â†’ Öffnet Editor neu
+        â†’ Zeigt bisherige Zutat: "die Hälfte des Zuckers"
 
     5b) Editor offen:
-        â†’ FÃ¼gt aktuelle Selektion zur _multiIngredients-Liste hinzu
+        â†’ Fügt aktuelle Selektion zur _multiIngredients-Liste hinzu
         â†’ activeStep._multiIngredients = [{name: "Zucker", fraction: "1/2", article: "des"}]
         â†’ Editor bleibt offen, wird neu gerendert
 
 Step 6: Editor neu gerendert
     â†’ Multi-Ingredients-Chips am Boden des Editors:
-        [die HÃ¤lfte des Zuckers [X]]
+        [die Hälfte des Zuckers [X]]
     â†’ "Zucker"-Chip bekommt .ingredient-chip-disabled (ausgegraut, line-through)
-    â†’ User wÃ¤hlt nun: Artikel "der" + Zutat "Butter" + Fraktion "1/3"
+    â†’ User wählt nun: Artikel "der" + Zutat "Butter" + Fraktion "1/3"
 
 Step 7: User klickt Plus-Button [+] erneut
-    â†’ FÃ¼gt zweite Zutat hinzu
+    â†’ Fügt zweite Zutat hinzu
     â†’ activeStep._multiIngredients = [
         {name: "Zucker", fraction: "1/2", article: "des"},
         {name: "Butter", fraction: "1/3", article: "der"}
       ]
     â†’ formatSelectedIngredientList() formatiert:
-        "die HÃ¤lfte des Zuckers und ein Drittel der Butter"
-    â†’ activeStep.values.ingredient = "die HÃ¤lfte des Zuckers und ein Drittel der Butter"
+        "die Hälfte des Zuckers und ein Drittel der Butter"
+    â†’ activeStep.values.ingredient = "die Hälfte des Zuckers und ein Drittel der Butter"
     â†’ Step-Text wird aktualisiert
 
 Step 8: User klickt X-Button auf "Zucker"-Chip
@@ -2329,15 +2329,15 @@ Step 8: User klickt X-Button auf "Zucker"-Chip
     â†’ Editor wird neu gerendert
 
 Step 9: User klickt "Einsetzen"
-    â†’ Editor schlieÃŸt
-    â†’ activeStep behÃ¤lt _multiIngredients-Array fÃ¼r spÃ¤tere Bearbeitung
+    â†’ Editor schließt
+    â†’ activeStep behält _multiIngredients-Array für spätere Bearbeitung
 
 Step 10: Probability Area - Template akzeptieren
     â†’ User klickt Template-Card
     â†’ getMergedVars(masterId) wird aufgerufen
     â†’ Liest den gemeinsamen Probability-Draft fuer `masterId`
     â†’ Formatiert mit formatSelectedIngredientList()
-    â†’ ALLE Multi-Ingredients werden korrekt in akzeptierten Step Ã¼bertragen
+    â†’ ALLE Multi-Ingredients werden korrekt in akzeptierten Step übertragen
 ```
 
 **Storage-Unterschiede:**
@@ -2346,7 +2346,7 @@ Step 10: Probability Area - Template akzeptieren
 
 **Chip-Deaktivierung:**
 ```javascript
-// Bereits hinzugefÃ¼gte Zutaten werden ausgegraut
+// Bereits hinzugefügte Zutaten werden ausgegraut
 multiIngredients.forEach(item => {
     if (getIngredientName(item) === value) {
         disabledCls = " ingredient-chip-disabled";
@@ -2356,7 +2356,7 @@ multiIngredients.forEach(item => {
 
 **CSS:**
 - `.ingredient-chip-disabled` â†’ opacity 0.4, grayscale(0.8), line-through, pointer-events none
-- `.ingredient-plus-btn` â†’ Runder grÃ¼ner Button, 26Ã—26px, hover: scale(1.1)
+- `.ingredient-plus-btn` â†’ Runder grüner Button, 26Ã—26px, hover: scale(1.1)
 
 ### Zutat-Chip-Filterung nach Variable-Typ
 
@@ -2370,10 +2370,10 @@ Wenn User einen Platzhalter anklickt (z.B. {{liquid}}, {{fat}}, {{seasonings}}):
    â†’ Mapping:
       {{liquid}}    â†’ item.isLiquid === true
       {{fat}}       â†’ item.isFat === true
-      {{seasonings}}â†’ item.groupId === "5" (GewÃ¼rze)
+      {{seasonings}}â†’ item.groupId === "5" (Gewürze)
       {{base}} / {{dough}} / {{thickener}} â†’ item.groupId === "8" (Grundnahrungsmittel)
       {{ingredient}} / {{ingredients}} â†’ kein Filter (alle)
-   â†’ RÃ¼ckgabe: { filtered: [...passend], rest: [...nicht passend] }
+   â†’ Rückgabe: { filtered: [...passend], rest: [...nicht passend] }
 
 4. Passende Chips: normal dargestellt
 5. Restliche Chips: nach Trennlinie (.ingredient-chip-divider), gedimmt (.ingredient-chip-dimmed)
@@ -2386,9 +2386,9 @@ Datenquelle (data-* Attribute auf .ingredient-db-row):
   data-is-soft="true/false"     â† DB: is_soft (bool)
   data-group-id="1-9"           â† DB: GroupId (FK â†’ Group)
 
-Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
-             5=GewÃ¼rze, 6=Fisch, 7=Sonstiges, 8=Grundnahrungsmittel,
-             9=NÃ¼sse/Samen/HÃ¼lsenfrÃ¼chte
+Gruppen-IDs: 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst,
+             5=Gewürze, 6=Fisch, 7=Sonstiges, 8=Grundnahrungsmittel,
+             9=Nüsse/Samen/Hülsenfrüchte
 ```
 
 ---
@@ -2397,12 +2397,12 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 
 ```
 1. Seite laden â†’ Synchrone Scripts laden
-   â”œâ†’ window.CreatePostingUtils       verfÃ¼gbar
-   â”œâ†’ window.CreatePostingDataUrls    verfÃ¼gbar
-   â”œâ†’ window.CreatePostingDataStore   verfÃ¼gbar
-   â”œâ†’ window.CreatePostingFeedback    verfÃ¼gbar
-   â”œâ†’ window.CreatePostingPageData    verfÃ¼gbar
-   â””â†’ window.CreatePostingTemplateBuilder verfÃ¼gbar
+   â”œâ†’ window.CreatePostingUtils       verfügbar
+   â”œâ†’ window.CreatePostingDataUrls    verfügbar
+   â”œâ†’ window.CreatePostingDataStore   verfügbar
+   â”œâ†’ window.CreatePostingFeedback    verfügbar
+   â”œâ†’ window.CreatePostingPageData    verfügbar
+   â””â†’ window.CreatePostingTemplateBuilder verfügbar
 
 2. DOMContentLoaded â†’ Async-Scripts starten
    â”œâ†’ CreatePostingSmartStepCreator.js: init()
@@ -2443,9 +2443,9 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 
 ---
 
-> **Externe AbhÃ¤ngigkeiten:** jQuery, Bootstrap 5, Bootstrap Icons
-> **UnterstÃ¼tzte Sprachen:** DE, EN, ESP, PRT, ID, NL, SV, DA, NO, MS (10 Sprachen)
-> **Tech-Stack:** ASP.NET Core 8.0 MVC Â· C# Â· JavaScript (Vanilla + jQuery) Â· CSS3
+> **Externe Abhängigkeiten:** jQuery, Bootstrap 5, Bootstrap Icons
+> **Unterstützte Sprachen:** DE, EN, ESP, PRT, ID, NL, SV, DA, NO, MS (10 Sprachen)
+> **Tech-Stack:** ASP.NET Core 8.0 MVC · C# · JavaScript (Vanilla + jQuery) · CSS3
 
 ---
 
@@ -2459,47 +2459,47 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 - ðŸ› **Problem:** Funktion entfernte Artikel selbst bei gleicher Sprache (DEâ†’DE)
   - Beispiel: "die Tomaten, der Knoblauch" wurde zu "Tomaten und Knoblauch"
   - Betraf Step-Akzeptierung: Zutaten kamen OHNE Artikel im Rezept an
-- âœ… **Fix:** Wenn Quell- und Zielsprache identisch sind, wird Originalwert zurÃ¼ckgegeben
-  - Neue PrÃ¼fung: `if (resolveLangKey(sourceLang) === resolveLangKey(targetLang)) return value;`
+- ✅ **Fix:** Wenn Quell- und Zielsprache identisch sind, wird Originalwert zurückgegeben
+  - Neue Prüfung: `if (resolveLangKey(sourceLang) === resolveLangKey(targetLang)) return value;`
   - Artikel bleiben erhalten: "die Tomaten" â†’ "die Tomaten"
 - **Betroffene Variablen:** `{{ingredient}}`, `{{ingredient2}}`, `{{ingredients}}`, `{{liquid}}`, `{{fat}}`
 - **Impact:** Alle Steps die Zutaten verwenden, jetzt mit korrekten Artikeln
 
 **2. CreatePostingSmartStepCreator.js â€” Overlay Close Handler (Zeile 2332-2349):**
-- ðŸ› **Problem:** Wenn Nutzer Zutaten auswÃ¤hlt aber Overlay OHNE "Einsetzen" schlieÃŸt, gehen Werte verloren
-  - Workflow: Overlay Ã¶ffnen â†’ Chips klicken â†’ "SchlieÃŸen" â†’ Step akzeptieren â†’ LEER
-  - Grund: "SchlieÃŸen"-Button speicherte nicht vor dem SchlieÃŸen
-- âœ… **Fix:** Auto-Save beim Overlay-SchlieÃŸen implementiert
+- ðŸ› **Problem:** Wenn Nutzer Zutaten auswählt aber Overlay OHNE "Einsetzen" schließt, gehen Werte verloren
+  - Workflow: Overlay öffnen â†’ Chips klicken â†’ "Schließen" â†’ Step akzeptieren â†’ LEER
+  - Grund: "Schließen"-Button speicherte nicht vor dem Schließen
+- ✅ **Fix:** Auto-Save beim Overlay-Schließen implementiert
   - Liest aktuellen Editor-Wert via `applyEditorValue(currentEditorEl)`
   - Speichert automatisch via `updateContextValue()` wenn Wert vorhanden
   - Nur wenn `value !== null && value !== ''` (vermeidet leere Speicherungen)
-- **Impact:** Nutzer kÃ¶nnen Overlay schlieÃŸen ohne explizit "Einsetzen" zu klicken
+- **Impact:** Nutzer können Overlay schließen ohne explizit "Einsetzen" zu klicken
 
 **3. CreatePostingSmartStepCreator.js â€” Genus-zu-Artikel Konvertierung (Zeile 98-109, 2148-2159):**
 - ðŸ› **Problem:** Falsche Artikel bei Multi-Ingredient-Auswahl
   - Beispiel: "das Pasta und das Zucker" statt "die Pasta und der Zucker"
   - Beispiel 2: "n mehl" statt "das Mehl" (Genus-Buchstabe direkt als Artikel)
   - Grund: Genus (m/f/n) wurde nicht zu Artikel (der/die/das) konvertiert
-- âœ… **Fix:** Neue Funktion `genusToArticle(genus, lang)` hinzugefÃ¼gt
+- ✅ **Fix:** Neue Funktion `genusToArticle(genus, lang)` hinzugefügt
   - Konvertiert Genus â†’ Artikel: mâ†’der, fâ†’die, nâ†’das
   - Automatischer Artikel-Lookup beim Ingredient-Chip-Klick
   - `const autoArticle = genusToArticle(genusFromCatalog, currentLang)`
-- **Impact:** Jede Zutat erhÃ¤lt automatisch ihren korrekten Artikel basierend auf Genus
+- **Impact:** Jede Zutat erhält automatisch ihren korrekten Artikel basierend auf Genus
 
 **4. CreatePostingSmartStepCreator.js â€” Existing Multi-Ingredients nutzen (Zeile 3828-3844):**
-- ðŸ› **Problem:** Variable wird gelÃ¶scht wenn "Step akzeptieren" im Overlay geklickt wird
-  - Workflow: Overlay Ã¶ffnen â†’ Zutaten auswÃ¤hlen â†’ "Step akzeptieren" â†’ Variable leer
-  - Grund: selectedValues war leer (bereits in multiIngredients gespeichert), null wurde Ã¼berschrieben
-- âœ… **Fix:** Existierende multiIngredients verwenden wenn selectedValues leer ist
-  - PrÃ¼ft `activeStep?._multiIngredients?.[varName]` bevor null zurÃ¼ckgegeben wird
-  - Verhindert null-Ãœberschreibung in `saveCurrentEditorValueBeforeAccept()`
+- ðŸ› **Problem:** Variable wird gelöscht wenn "Step akzeptieren" im Overlay geklickt wird
+  - Workflow: Overlay öffnen â†’ Zutaten auswählen â†’ "Step akzeptieren" â†’ Variable leer
+  - Grund: selectedValues war leer (bereits in multiIngredients gespeichert), null wurde überschrieben
+- ✅ **Fix:** Existierende multiIngredients verwenden wenn selectedValues leer ist
+  - Prüft `activeStep?._multiIngredients?.[varName]` bevor null zurückgegeben wird
+  - Verhindert null-Überschreibung in `saveCurrentEditorValueBeforeAccept()`
 - **Impact:** Zutaten bleiben erhalten beim Akzeptieren von Steps im Overlay
 
 **5. ingredient_transforms.json â€” Genus-basierte Adjektiv-Deklination:**
 - ðŸ› **Problem:** Grammatikfehler bei transformierten Zutaten
   - Beispiel: "geschnittene Salat" statt "geschnittener Salat" (maskulin)
   - Grund: Statische Adjektiv-Strings ohne Genus-Varianten
-- âœ… **Fix:** 6 Transform-Patterns mit m/f/n-Varianten erweitert
+- ✅ **Fix:** 6 Transform-Patterns mit m/f/n-Varianten erweitert
   - `piece`: "geschnittener (m) / geschnittene (f) / geschnittenes (n) {{noun}}"`
   - `slice`: "geschnittener (m) / geschnittene (f) / geschnittenes (n) {{noun}}"`
   - `strip`: "gestreifter (m) / gestreifte (f) / gestreiftes (n) {{noun}}"`
@@ -2508,84 +2508,84 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
   - `julienne`: "juliennierter (m) / juliennierte (f) / julienniertes (n) {{noun}}"`
 - **Impact:** Grammatikalisch korrekte Adjektive basierend auf Genus der Zutat
 
-**6. CreatePostingSmartStepCreator.js â€” Duplikat-PrÃ¤vention (Zeile 2593-2612):**
+**6. CreatePostingSmartStepCreator.js â€” Duplikat-Prävention (Zeile 2593-2612):**
 - ðŸ› **Problem:** Doppelte Zutaten mit verschiedenen Fraktionen
-  - Beispiel: "die Garnelen" UND "die HÃ¤lfte der Garnelen" gleichzeitig in Liste
-  - Grund: Neue Zutaten wurden einfach zu existierenden hinzugefÃ¼gt
-- âœ… **Fix:** Filter entfernt existierende Zutaten mit gleichem Namen vor Kombination
+  - Beispiel: "die Garnelen" UND "die Hälfte der Garnelen" gleichzeitig in Liste
+  - Grund: Neue Zutaten wurden einfach zu existierenden hinzugefügt
+- ✅ **Fix:** Filter entfernt existierende Zutaten mit gleichem Namen vor Kombination
   - `filteredExisting = filteredExisting.filter(existing => getIngredientName(existing) !== getIngredientName(newItem))`
-  - Neueste Version ersetzt alte (Fraktion kann geÃ¤ndert werden)
-- **Impact:** Keine Duplikate mehr, Fraktionen kÃ¶nnen Ã¼berschrieben werden
+  - Neueste Version ersetzt alte (Fraktion kann geändert werden)
+- **Impact:** Keine Duplikate mehr, Fraktionen können überschrieben werden
 
 **7. CreatePostingSmartStepCreator.js â€” Genus-basierter Genitiv (Zeile 116-148):**
 - ðŸ› **Problem:** Falscher Genitiv bei Fraktionen mit "der"-Artikel
-  - Beispiel: "die HÃ¤lfte der Zitronensaft" statt "des Zitronensafts"
+  - Beispiel: "die Hälfte der Zitronensaft" statt "des Zitronensafts"
   - Grund: "der" kann maskulin-nominativ ODER feminin-genitiv sein
-- âœ… **Fix:** Genus-Parameter in `composeFractionText()` hinzugefÃ¼gt
+- ✅ **Fix:** Genus-Parameter in `composeFractionText()` hinzugefügt
   - Maskulin (m): "der" â†’ "des" (Zitronensaft)
   - Feminin (f): "der" â†’ "der" (Zitrone)
 - **Impact:** Grammatikalisch korrekter Genitiv basierend auf Geschlecht
 
 **8. CreatePostingSmartStepCreator.js â€” Multi-Section immer sichtbar (Zeile 1954-1959):**
 - ðŸ› **Problem:** Multi-Ingredient-Sektion erst sichtbar nach erster Zutat
-  - UX: Nutzer wussten nicht, dass Multi-Auswahl mÃ¶glich ist
-- âœ… **Fix:** Sektion immer anzeigen mit Platzhalter-Text
-  - "Noch keine Zutaten ausgewÃ¤hlt. WÃ¤hle unten mehrere Zutaten aus."
+  - UX: Nutzer wussten nicht, dass Multi-Auswahl möglich ist
+- ✅ **Fix:** Sektion immer anzeigen mit Platzhalter-Text
+  - "Noch keine Zutaten ausgewählt. Wähle unten mehrere Zutaten aus."
 - **Impact:** Klarere UX, Multi-Modus von Anfang an erkennbar
 
 **9. CreatePostingSmartStepCreator.js â€” Auto-Artikel bei Chip-Klick (Zeile 2148-2159):**
 - ðŸ› **Problem:** Multi-Ingredients bekamen alle denselben Artikel (globalArticle)
-- âœ… **Fix:** Artikel automatisch aus Katalog-Genus konvertieren beim Chip-Klick
+- ✅ **Fix:** Artikel automatisch aus Katalog-Genus konvertieren beim Chip-Klick
   - `const genusFromCatalog = catalogItem?.genusByLang?.[currentLang] || ''`
   - `const autoArticle = genusToArticle(genusFromCatalog, currentLang)`
   - Jede Zutat bekommt ihren eigenen genusspezifischen Artikel
-- **Impact:** Korrekte Artikel fÃ¼r jede Zutat, auch bei Multi-Auswahl (die Pasta, der Zucker, das Mehl)
+- **Impact:** Korrekte Artikel für jede Zutat, auch bei Multi-Auswahl (die Pasta, der Zucker, das Mehl)
 
 **10. CreatePostingSmartStepCreator.js â€” Editor-Reload nach erstem Einsetzen (Zeile 2654-2675):**
 - ðŸ› **Problem:** Nach erster Zutat keine Badges und Chips bleiben markiert
   - Workflow: "Garnelen" klicken â†’ "Einsetzen" â†’ Chip bleibt aktiv, kein Badge zum Entfernen
-  - Erst nach ZWEITER Zutat erscheinen Badges fÃ¼r beide
+  - Erst nach ZWEITER Zutat erscheinen Badges für beide
   - Grund: UI wurde nicht aktualisiert nach erster Speicherung
-- âœ… **Fix:** `switchEditorVariable()` nach erstem Ingredient-Add aufrufen
-  - LÃ¤dt Editor neu mit aktuellem State
+- ✅ **Fix:** `switchEditorVariable()` nach erstem Ingredient-Add aufrufen
+  - Lädt Editor neu mit aktuellem State
   - Badges erscheinen, Chips werden deselektiert
-  - Overlay bleibt offen fÃ¼r weitere Zutaten
-- **Impact:** Konsistente UX ab erster Zutat, keine manuelle Deselektierung nÃ¶tig
+  - Overlay bleibt offen für weitere Zutaten
+- **Impact:** Konsistente UX ab erster Zutat, keine manuelle Deselektierung nötig
 
 **11. CreatePostingPage.js â€” Optionale Variablen leer lassen (Zeile 2604-2614):**
 - ðŸ› **Problem:** Optionale Variablen im Probability-Bereich falsch gerendert
   - Beispiel: "Wasche die Garnelen unter kaltem Wasserremoval..." (ohne Leerzeichen)
   - `[, entferne {{removal}}]` wurde zu "removal" ohne ", entferne"
   - Grund: `removal` bekam Key-Name als Default statt leer zu bleiben
-- âœ… **Fix:** Optionale Variablen bleiben leer wenn kein Wert vorhanden
+- ✅ **Fix:** Optionale Variablen bleiben leer wenn kein Wert vorhanden
   - `const isOptional = template?.optional_variables.includes(key)`
   - `if (isOptional) vars[key] = '';`
   - Optional-Section wird korrekt als Plus-Button gerendert
-- **Impact:** Probability-Bereich zeigt Plus-Button fÃ¼r optionale Sections (wie Step Creator)
+- **Impact:** Probability-Bereich zeigt Plus-Button für optionale Sections (wie Step Creator)
 
-#### VerhaltensÃ¤nderungen
+#### Verhaltensänderungen
 
 **Smart Step Creator â€” Overlay Workflow:**
 - **ALT:**
-  1. Zutat auswÃ¤hlen
+  1. Zutat auswählen
   2. "Einsetzen" klicken (ERFORDERLICH!)
-  3. Overlay schlieÃŸen
+  3. Overlay schließen
   4. Step akzeptieren
 - **NEU:**
-  1. Zutat auswÃ¤hlen (Artikel wird automatisch aus Katalog geholt)
-  2. Optional: Weitere Zutaten hinzufÃ¼gen (Badges erscheinen sofort)
-  3. Overlay schlieÃŸen (Auto-Save!) ODER "Step akzeptieren" im Overlay
-- **"Einsetzen"-Button:** Bleibt verfÃ¼gbar fÃ¼r explizites Speichern + Overlay-offen-halten
+  1. Zutat auswählen (Artikel wird automatisch aus Katalog geholt)
+  2. Optional: Weitere Zutaten hinzufügen (Badges erscheinen sofort)
+  3. Overlay schließen (Auto-Save!) ODER "Step akzeptieren" im Overlay
+- **"Einsetzen"-Button:** Bleibt verfügbar für explizites Speichern + Overlay-offen-halten
 
 **Multi-Ingredient-Auswahl â€” UX-Verbesserungen:**
-- **ALT:** Erste Zutat â†’ kein Badge, Chip bleibt markiert â†’ manuelle Deselektierung nÃ¶tig
+- **ALT:** Erste Zutat â†’ kein Badge, Chip bleibt markiert â†’ manuelle Deselektierung nötig
 - **NEU:** Erste Zutat â†’ Badge erscheint sofort, Chip wird automatisch deselektiert
-- Multi-Ingredient-Sektion immer sichtbar (auch ohne ausgewÃ¤hlte Zutaten)
-- Platzhalter-Text: "Noch keine Zutaten ausgewÃ¤hlt. WÃ¤hle unten mehrere Zutaten aus."
+- Multi-Ingredient-Sektion immer sichtbar (auch ohne ausgewählte Zutaten)
+- Platzhalter-Text: "Noch keine Zutaten ausgewählt. Wähle unten mehrere Zutaten aus."
 
 **Step-Akzeptierung â€” Artikel-Grammatik:**
-- **ALT:** "Schneide Tomaten in groÃŸe WÃ¼rfel" (ohne Artikel)
-- **NEU:** "Schneide die Tomaten in groÃŸe WÃ¼rfel" (mit Artikel)
+- **ALT:** "Schneide Tomaten in große Würfel" (ohne Artikel)
+- **NEU:** "Schneide die Tomaten in große Würfel" (mit Artikel)
 - **Multi-Ingredients:** "das Pasta und das Zucker" â†’ "die Pasta und der Zucker" (genusspezifisch)
 - Betrifft: Alle Sprachen (DE/EN/ESP/PRT/ID/NL/SV/DA/NO/MS)
 
@@ -2595,13 +2595,13 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 - Betrifft: piece, slice, strip, wedge, ring, julienne
 
 **Fraktionen â€” Genitiv-Kasus:**
-- **ALT:** "die HÃ¤lfte der Zitronensaft" (falscher Genitiv)
-- **NEU:** "die HÃ¤lfte des Zitronensafts" (maskulin-genitiv korrekt)
+- **ALT:** "die Hälfte der Zitronensaft" (falscher Genitiv)
+- **NEU:** "die Hälfte des Zitronensafts" (maskulin-genitiv korrekt)
 - Genus-basierte Genitiv-Konversion: "der" (m) â†’ "des", "der" (f) â†’ "der"
 
-**Duplikat-PrÃ¤vention:**
+**Duplikat-Prävention:**
 - Zutaten mit gleichem Namen werden ersetzt (nicht doppelt gelistet)
-- Beispiel: "die Garnelen" â†’ "die HÃ¤lfte der Garnelen" (alte Version wird entfernt)
+- Beispiel: "die Garnelen" â†’ "die Hälfte der Garnelen" (alte Version wird entfernt)
 
 #### Betroffene Funktionen
 
@@ -2612,8 +2612,8 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 **CreatePostingSmartStepCreator.js:**
 - `genusToArticle()` (Zeile 98-109) â€” **NEU:** Genusâ†’Artikel Konvertierung (mâ†’der, fâ†’die, nâ†’das)
 - `bindUnifiedOverlayEventHandlers()` (Zeile 2332-2349) â€” Close-Handler mit Auto-Save
-- `applyEditorValue()` (Zeile 3918-3931) â€” GlobalArticle-Anwendung (User-Auswahl hat PrioritÃ¤t)
-- `saveCurrentEditorValueBeforeAccept()` (Zeile 3411-3420) â€” Null-Ãœberschreibung verhindert
+- `applyEditorValue()` (Zeile 3918-3931) â€” GlobalArticle-Anwendung (User-Auswahl hat Priorität)
+- `saveCurrentEditorValueBeforeAccept()` (Zeile 3411-3420) â€” Null-Überschreibung verhindert
 - `switchEditorVariable()` (Zeile 1954-1959) â€” Multi-Section immer sichtbar
 - `applyUnifiedEditorValue()` (Zeile 2593-2612, 2654-2675) â€” Duplikat-Filter & Editor-Reload
 - `composeFractionText()` (Zeile 116-148) â€” Genus-basierter Genitiv
@@ -2622,80 +2622,80 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 **ingredient_transforms.json:**
 - 6 Transform-Patterns erweitert mit m/f/n-Varianten:
   - `piece`, `slice`, `strip`, `wedge`, `ring`, `julienne`
-- Betrifft alle 10 Sprachen (DE primÃ¤r, EN/ESP/PRT/ID/NL/SV/DA/NO/MS teilweise)
+- Betrifft alle 10 Sprachen (DE primär, EN/ESP/PRT/ID/NL/SV/DA/NO/MS teilweise)
 
 ### 2026-03-27 â€” Ingredient-Filter & Variable-Updates
 
-#### JavaScript-Ã„nderungen
+#### JavaScript-Änderungen
 
 **CreatePostingSmartStepCreator.js & CreatePostingPage.js:**
-- âœ… **Neue Ingredient-Filter hinzugefÃ¼gt:**
+- ✅ **Neue Ingredient-Filter hinzugefügt:**
   - `{{liquid}}` â†’ filtert nur Zutaten mit `is_liquid = true`
   - `{{fat}}` â†’ filtert nur Zutaten mit `is_fat = true`
   - `{{hard}}` â†’ filtert nur Zutaten mit `is_hard = true`
   - `{{soft}}` â†’ filtert nur Zutaten mit `is_soft = true`
 
-- âœ… **Step-spezifischer Filter:**
+- ✅ **Step-spezifischer Filter:**
   - `{{ingredient}}` bei `PREP_TENDERIZE_01` (Klopfen/Plattieren) â†’ nur `is_hard = true`
-  - Betrifft: Fleisch, Schnitzel, etc. die geklopft werden kÃ¶nnen
+  - Betrifft: Fleisch, Schnitzel, etc. die geklopft werden können
 
-- âœ… **Fallback entfernt:**
+- ✅ **Fallback entfernt:**
   - Zeigt nun leere Liste bei 0 Filter-Treffern (statt alle Zutaten anzuzeigen)
-  - Verhindert irrelevante Zutaten-VorschlÃ¤ge
+  - Verhindert irrelevante Zutaten-Vorschläge
 
 **CreatePostingPage.js â€” Pronomen+State UI:**
-- âœ… **Kombiniertes Pop-up fÃ¼r Pronomen & State:**
+- ✅ **Kombiniertes Pop-up für Pronomen & State:**
   - Neue Funktion: Zeigt Pronomen UND State in einem Pop-up (wie Artikel+Ingredient)
   - **Layout:** OBEN = Pronomen-Chips | UNTEN = State-Chips
   - Event-Handler: `.js-prob-pronoun-chip` und `.js-prob-state-chip`
   - Logik in `openProbVarEditor()` erweitert (Zeile ~416-458)
 
-#### JSON-Daten-Ã„nderungen
+#### JSON-Daten-Änderungen
 
 **master_steps.json:**
-- âœ… **PREP_TENDERIZE_01** (Klopfen/Plattieren):
-  - Variable geÃ¤ndert: `{{base}}` â†’ `{{ingredient}}`
+- ✅ **PREP_TENDERIZE_01** (Klopfen/Plattieren):
+  - Variable geändert: `{{base}}` â†’ `{{ingredient}}`
   - Betrifft alle 10 Sprachen (DE, EN, ESP, PRT, ID, NL, SV, DA, NO, MS)
 
-- âœ… **PREP_WRAP_01** (Einwickeln/Einrollen):
-  - Variable geÃ¤ndert: `{{filling}}` â†’ `{{basis}}`
+- ✅ **PREP_WRAP_01** (Einwickeln/Einrollen):
+  - Variable geändert: `{{filling}}` â†’ `{{basis}}`
   - Betrifft alle 10 Sprachen
 
-- âœ… **COOK_CARAMELIZE_01** (Karamellisieren):
+- ✅ **COOK_CARAMELIZE_01** (Karamellisieren):
   - Variable **entfernt:** `{{heat}}`
   - Template vereinfacht: "bei {heat}er Hitze" â†’ entfernt
   - Betrifft alle 10 Sprachen
 
-- âœ… **COOK_FLAMBE_01** (Flambieren):
-  - Variable geÃ¤ndert: `{{spirit}}` â†’ `{{liquid}}`
+- ✅ **COOK_FLAMBE_01** (Flambieren):
+  - Variable geändert: `{{spirit}}` â†’ `{{liquid}}`
   - Betrifft alle 10 Sprachen
 
-- âœ… **PREP_KNEAD_DOUGH_01** (Teig kneten):
+- ✅ **PREP_KNEAD_DOUGH_01** (Teig kneten):
   - Variablen-Reihenfolge korrigiert: `pronoun` nun VOR `state` (grammatikalisch korrekt)
 
 **master_step_variables.json:**
-- âœ… **Tool-Variable erweitert:**
+- ✅ **Tool-Variable erweitert:**
   - Neue Option: `fleischklopfer` (ðŸ”¨ Fleischklopfer)
   - Labels in 10 Sprachen:
     - DE: Fleischklopfer | EN: meat tenderizer | ESP: mazo de carne
     - PRT: batedor de carne | ID: pemukul daging | NL: vleeshamer
-    - SV: kÃ¶ttklubba | DA: kÃ¸dbanker | NO: kjÃ¸ttbanker | MS: pengetuk daging
+    - SV: köttklubba | DA: kÃ¸dbanker | NO: kjÃ¸ttbanker | MS: pengetuk daging
   - Tags: `tool:tenderizer`, `technique:tenderize`, `pound`, `klopfen`
 
-- âœ… **Liquid-Variable NEU erstellt (Hybrid-Modus):**
+- ✅ **Liquid-Variable NEU erstellt (Hybrid-Modus):**
   - 6 Optionen mit Icons in 10 Sprachen:
     - ðŸ’§ Wasser (water, agua, Ã¡gua, air, vatten, vand, vann)
-    - ðŸ² BrÃ¼he (broth, caldo, kaldu, bouillon, buljong, sup pekat)
-    - ðŸ¥› Milch (milk, leche, leite, susu, mjÃ¶lk, mÃ¦lk, melk)
-    - ðŸ¥› Sahne (cream, nata, creme, krim, grÃ¤dde, flÃ¸de, flÃ¸te)
+    - ðŸ² Brühe (broth, caldo, kaldu, bouillon, buljong, sup pekat)
+    - ðŸ¥› Milch (milk, leche, leite, susu, mjölk, mÃ¦lk, melk)
+    - ðŸ¥› Sahne (cream, nata, creme, krim, grädde, flÃ¸de, flÃ¸te)
     - ðŸ· Wein (wine, vino, vinho, anggur, vin, wain)
-    - ðŸ«’ Ã–l (oil, aceite, Ã³leo, minyak, olje, olie)
-  - Hybrid-Logik: Zeigt ausgewÃ¤hlte Zutaten mit `is_liquid=true` PLUS diese 6 Preset-Optionen
+    - ðŸ«’ Öl (oil, aceite, Ã³leo, minyak, olje, olie)
+  - Hybrid-Logik: Zeigt ausgewählte Zutaten mit `is_liquid=true` PLUS diese 6 Preset-Optionen
 
-#### HTML-Struktur-Ã„nderungen
+#### HTML-Struktur-Änderungen
 
 **CreatePosting.cshtml:**
-- âœ… **Neuer Pop-up-Bereich hinzugefÃ¼gt:**
+- ✅ **Neuer Pop-up-Bereich hinzugefügt:**
   ```html
   <div id="probVarPronounStateArea" class="d-none">
       <div class="small text-white-50 mb-2">Pronomen</div>
@@ -2704,8 +2704,8 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
       <div id="probVarStateChips" class="d-flex flex-wrap gap-2"></div>
   </div>
   ```
-  - ErmÃ¶glicht getrennte Anzeige von Pronomen (oben) und State (unten)
-  - Ã„hnlich dem Artikel+Ingredient-Layout
+  - Ermöglicht getrennte Anzeige von Pronomen (oben) und State (unten)
+  - Ähnlich dem Artikel+Ingredient-Layout
 
 #### Betroffene Funktionen
 
@@ -2717,7 +2717,7 @@ Gruppen-IDs: 1=Fleisch, 2=GemÃ¼se, 3=Milchprodukte, 4=Obst,
 - `openProbVarEditor()` â€” Pronomen+State-Erkennung & UI-Rendering
 - `getBaseSandboxIngredients()` â€” Liest `data-is-fat`, `data-is-hard`, `data-is-soft` korrekt
 - `getSelectedIngredientsForSandbox()` â€” Mappt Boolean-Flags (`isFat`, `isHard`, `isSoft`)
-- Event-Handler hinzugefÃ¼gt: `.js-prob-pronoun-chip`, `.js-prob-state-chip`
+- Event-Handler hinzugefügt: `.js-prob-pronoun-chip`, `.js-prob-state-chip`
 
 #### Datenfluss: Ingredient-Flags
 
@@ -2740,12 +2740,12 @@ Filter: ings.filter(i => i.isFat) bei {{fat}}-Variable
 -- Beispiel: Fett-Zutaten markieren
 UPDATE IngredientsAndNutrients
 SET is_fat = 1
-WHERE Name_DE IN ('Butter', 'Ã–l', 'OlivenÃ¶l', 'Schmalz', 'Margarine');
+WHERE Name_DE IN ('Butter', 'Öl', 'Olivenöl', 'Schmalz', 'Margarine');
 
 -- Beispiel: Harte Zutaten markieren (zum Klopfen)
 UPDATE IngredientsAndNutrients
 SET is_hard = 1
-WHERE Name_DE IN ('HÃ¤hnchenbrust', 'Schweineschnitzel', 'Kalbsschnitzel');
+WHERE Name_DE IN ('Hähnchenbrust', 'Schweineschnitzel', 'Kalbsschnitzel');
 ```
 
 #### UI/UX-Verbesserungen
@@ -2753,17 +2753,17 @@ WHERE Name_DE IN ('HÃ¤hnchenbrust', 'Schweineschnitzel', 'Kalbsschnitzel');
 1. **Konsistente Filter-Logik:** Alle Ingredient-Variablen filtern nun korrekt
 2. **Klarere Zutat-Auswahl:** Keine irrelevanten Optionen mehr bei spezifischen Variablen
 3. **Verbessertes Pop-up-Layout:** Pronomen+State visuell getrennt (wie Artikel+Ingredient)
-4. **Erweiterte Tool-Auswahl:** Fleischklopfer fÃ¼r Klopf-Steps verfÃ¼gbar
-5. **Hybrid-Liquid-Variable:** Kombination aus ausgewÃ¤hlten Zutaten + Preset-Optionen
+4. **Erweiterte Tool-Auswahl:** Fleischklopfer für Klopf-Steps verfügbar
+5. **Hybrid-Liquid-Variable:** Kombination aus ausgewählten Zutaten + Preset-Optionen
 
 ---
 
-## Ã„nderungen 2026-03-28: Vereinheitlichtes Editor-System
+## Änderungen 2026-03-28: Vereinheitlichtes Editor-System
 
-### Ãœberblick
-Die Variable-Editoren fÃ¼r Pronomen und State wurden vereinheitlicht. Beide Bereiche (Wahrscheinlichkeits-Templates und Smart Step Creator) nutzen jetzt dasselbe Editor-System.
+### Überblick
+Die Variable-Editoren für Pronomen und State wurden vereinheitlicht. Beide Bereiche (Wahrscheinlichkeits-Templates und Smart Step Creator) nutzen jetzt dasselbe Editor-System.
 
-### HauptÃ¤nderungen
+### Hauptänderungen
 
 #### 1. Vereinheitlichtes Editor-System
 **Vorher:**
@@ -2777,7 +2777,7 @@ Die Variable-Editoren fÃ¼r Pronomen und State wurden vereinheitlicht. Beide Be
 
 **Betroffene Dateien:**
 - `CreatePostingPage.js` (Zeile ~588-704): Separater kombinierter Editor entfernt
-- `CreatePostingSmartStepCreator.js`: Logik fÃ¼r Pronomen/State-Speicherung erweitert
+- `CreatePostingSmartStepCreator.js`: Logik für Pronomen/State-Speicherung erweitert
 
 #### 2. Alle Pronomen direkt sichtbar
 **Vorher:** Nur 3 Pronomen sichtbar, Rest in "Weitere anzeigen"
@@ -2792,7 +2792,7 @@ const limit = isPronoun ? entries.length : VISIBLE_RANKED_OPTIONS;
 
 #### 3. Intelligente Pronomen/State-Speicherung
 
-**FÃ¼r {{pronoun}} Token:**
+**Für {{pronoun}} Token:**
 ```javascript
 // Fall 1: Template hat BEIDE Tokens ({{pronoun}} UND {{state}})
 if (hasSepState) {
@@ -2805,7 +2805,7 @@ else {
 }
 ```
 
-**FÃ¼r {{state}} Token:**
+**Für {{state}} Token:**
 ```javascript
 // Immer separate Speicherung
 activeStep.values["pronoun"] = pronoun;  // "sie" (falls {{pronoun}} existiert)
@@ -2838,7 +2838,7 @@ activeStep.values["state"] = composed;    // "sie geschmeidig" oder nur "geschme
 
   <!-- Fallback-Sektion (Weitere anzeigen) -->
   <div class="mt-2">
-    <button class="js-toggle-fallback-options">Weitere anzeigen â–¼</button>
+    <button class="js-toggle-fallback-options">Weitere anzeigen ▼</button>
     <div class="js-fallback-options-wrap">
       <!-- Weitere State-Optionen -->
     </div>
@@ -2882,22 +2882,22 @@ openInlineEditor(varName='pronoun', tokenId)
   â†“
 Erkennt isPronounOrState=true
   â†“
-LÃ¤dt Pronomen-Optionen: getVarOptions('pronoun') â†’ alle 4 Pronomen
-LÃ¤dt State-Optionen: getVarOptions('state') â†’ gefilterte States
+Lädt Pronomen-Optionen: getVarOptions('pronoun') â†’ alle 4 Pronomen
+Lädt State-Optionen: getVarOptions('state') â†’ gefilterte States
   â†“
 Rendert kombiniertes HTML mit beiden Sektionen
   â†“
-User wÃ¤hlt "sie" (Pronomen-Button)
+User wählt "sie" (Pronomen-Button)
   â†’ host.dataset.selectedPronoun = "sie"
   â†“
-User wÃ¤hlt "geschmeidig" (State-Button)
+User wählt "geschmeidig" (State-Button)
   â†’ host.dataset.selectedValue = "geschmeidig"
   â†“
 User klickt "Einsetzen"
   â†“
 applyCurrentEditorSelection()
   â†“
-PrÃ¼ft: hasSepState = /{{state}}/i.test(template)
+Prüft: hasSepState = /{{state}}/i.test(template)
   â†“
 Fall 1 (hasSepState=true):
   activeStep.values["pronoun"] = "sie"
@@ -2914,12 +2914,12 @@ rerenderAfterValueSet()
 
 **Separater kombinierter Editor (CreatePostingPage.js):**
 - âŒ Auto-Close beim Pronomen-Klick (varKey='pronoun')
-- âŒ Auto-Close beim State-Klick (beide ausgewÃ¤hlt)
+- âŒ Auto-Close beim State-Klick (beide ausgewählt)
 - âŒ Separate Event-Handler (`.js-prob-combined-pronoun`, `.js-prob-combined-state`)
 - âŒ Doppelte HTML-Generierung
 
 **Sequentielle Bearbeitung:**
-- âŒ Automatisches Ã–ffnen des State-Editors nach Pronomen-Auswahl
+- âŒ Automatisches Öffnen des State-Editors nach Pronomen-Auswahl
 - âŒ Code in `create-posting-probability.js` (Zeile 229-239, 250-257)
 - âŒ Code in `CreatePostingPage.js` (Zeile ~5099-5117)
 - âŒ Code in `CreatePostingSmartStepCreator.js` (Zeile ~1634-1654)
@@ -2927,53 +2927,53 @@ rerenderAfterValueSet()
 ### Verbesserungen
 
 1. **Konsistenz:** Gleiche UX in beiden Bereichen (Wahrscheinlichkeit & Smart Step Creator)
-2. **VollstÃ¤ndigkeit:** Alle Pronomen direkt sichtbar, kein "Weitere anzeigen" nÃ¶tig
+2. **Vollständigkeit:** Alle Pronomen direkt sichtbar, kein "Weitere anzeigen" nötig
 3. **Intelligenz:** Automatische Erkennung ob separate Tokens existieren
 4. **Wartbarkeit:** Ein Editor-System statt zwei parallele Implementierungen
-5. **FlexibilitÃ¤t:** Funktioniert mit Templates die {{pronoun}}, {{state}} oder beide haben
+5. **Flexibilität:** Funktioniert mit Templates die {{pronoun}}, {{state}} oder beide haben
 
 ### Betroffene Funktionen
 
 **CreatePostingSmartStepCreator.js:**
 - `getVarOptions()` - Zeile 511-517: Pronomen-Limit entfernt
-- `openInlineEditor()` - Zeile 1304-1380: Kombinierter Editor fÃ¼r isPronounOrState
+- `openInlineEditor()` - Zeile 1304-1380: Kombinierter Editor für isPronounOrState
 - `buildInlineEditorHtml()` - Zeile 2138-2216: Gleiche Logik wie openInlineEditor
 - `applyCurrentEditorSelection()` - Zeile 1529-1677: Intelligente Pronomen/State-Speicherung
-- `renderFallbackSection()` - Zeile 1379, 2216: Nutzt 'state' fÃ¼r isPronounOrState
+- `renderFallbackSection()` - Zeile 1379, 2216: Nutzt 'state' für isPronounOrState
 
 **CreatePostingPage.js:**
 - `openProbVarInlineEditor()` - dünner Wrapper auf den gemeinsamen `openStepDraftEditor()`-Pfad
-- `doApply()` - Zeile 618-643: Pronomen-Extras-Handling fÃ¼r beide Variablen
+- `doApply()` - Zeile 618-643: Pronomen-Extras-Handling für beide Variablen
 
 **create-posting-probability.js:**
 - `bindInlineEvents()` - Zeile 219-275: Sequentielle Logik deaktiviert (auskommentiert)
 
 ### Test-Szenarien
 
-âœ… **Template nur mit {{pronoun}}:**
+✅ **Template nur mit {{pronoun}}:**
 - Auswahl: "sie" + "geschmeidig" â†’ Ergebnis: {{pronoun}} = "sie geschmeidig"
 
-âœ… **Template mit {{pronoun}} UND {{state}}:**
+✅ **Template mit {{pronoun}} UND {{state}}:**
 - Auswahl: "sie" + "geschmeidig" â†’ Ergebnis: {{pronoun}} = "sie", {{state}} = "geschmeidig"
 
-âœ… **Template mit {{state}} (kein {{pronoun}}):**
+✅ **Template mit {{state}} (kein {{pronoun}}):**
 - Auswahl: "sie" + "geschmeidig" â†’ Ergebnis: {{state}} = "sie geschmeidig"
 
-âœ… **Nur Pronomen ausgewÃ¤hlt:**
+✅ **Nur Pronomen ausgewählt:**
 - {{pronoun}} Editor: Ergebnis: {{pronoun}} = "sie", {{state}} = leer
 - {{state}} Editor: Ergebnis: {{pronoun}} = "sie", {{state}} = leer
 
-âœ… **Nur State ausgewÃ¤hlt:**
+✅ **Nur State ausgewählt:**
 - Ergebnis: {{state}} = "geschmeidig", {{pronoun}} = leer
 
 ---
 
-## Ã„nderungen 2026-03-28: PREP_WASH_01 erweitert mit {{removal}} Variable
+## Änderungen 2026-03-28: PREP_WASH_01 erweitert mit {{removal}} Variable
 
-### Ãœberblick
-Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, GrÃ¤ten, HÃ¼lle etc. beim Waschen von Zutaten.
+### Überblick
+Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, Gräten, Hülle etc. beim Waschen von Zutaten.
 
-### HauptÃ¤nderungen
+### Hauptänderungen
 
 #### 1. Neue Variable {{removal}} erstellt
 
@@ -2982,13 +2982,13 @@ Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, GrÃ¤t
 | Key | DE | EN | ESP | PRT | ID | NL | SV | DA | NO | MS |
 |-----|----|----|-----|-----|----|----|----|----|----|----|
 | **schale** | die Schale | the peel | la cÃ¡scara | a casca | kulitnya | de schil | skalet | skallen | skallet | kulitnya |
-| **graeten** | die GrÃ¤ten | the bones | las espinas | as espinhas | durinya | de graten | benen | benene | beinene | tulangnya |
-| **huelle** | die HÃ¼lle | the hull | la vaina | a vagem | kulitnya | de schil | skalet | bÃ¦lgen | belgen | kulitnya |
-| **stiele** | die Stiele | the stems | los tallos | os talos | batangnya | de stelen | stjÃ¤lkarna | stilkene | stilkene | tangkainya |
-| **kerne** | die Kerne | the seeds | las semillas | as sementes | bijinya | de pitten | kÃ¤rnorna | kernerne | kjernene | bijinya |
-| **faeden** | die FÃ¤den | the strings | las hebras | os fios | seratnya | de draden | trÃ¥darna | trÃ¥dene | trÃ¥dene | seratnya |
+| **graeten** | die Gräten | the bones | las espinas | as espinhas | durinya | de graten | benen | benene | beinene | tulangnya |
+| **huelle** | die Hülle | the hull | la vaina | a vagem | kulitnya | de schil | skalet | bÃ¦lgen | belgen | kulitnya |
+| **stiele** | die Stiele | the stems | los tallos | os talos | batangnya | de stelen | stjälkarna | stilkene | stilkene | tangkainya |
+| **kerne** | die Kerne | the seeds | las semillas | as sementes | bijinya | de pitten | kärnorna | kernerne | kjernene | bijinya |
+| **faeden** | die Fäden | the strings | las hebras | os fios | seratnya | de draden | trÃ¥darna | trÃ¥dene | trÃ¥dene | seratnya |
 | **sand** | den Sand | the sand | la arena | a areia | pasirnya | het zand | sanden | sandet | sanden | pasirnya |
-| **innereien** | die Innereien | the innards | las vÃ­sceras | as vÃ­sceras | isi perutnya | de ingewanden | inÃ¤lvorna | indvoldene | innvollene | isi perutnya |
+| **innereien** | die Innereien | the innards | las vÃ­sceras | as vÃ­sceras | isi perutnya | de ingewanden | inälvorna | indvoldene | innvollene | isi perutnya |
 
 **Tags:** `variable:removal`, jeweiliger Value-Tag, `prep`, `wash`, `clean`, plus spezifische Tags wie `fish`, `seafood`, `beans`, `vegetable`, `mussels`
 
@@ -2996,13 +2996,13 @@ Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, GrÃ¤t
 
 #### 2. {{action}} Variable erweitert
 
-**Neu hinzugefÃ¼gte Wasch-Aktionen:**
+**Neu hinzugefügte Wasch-Aktionen:**
 
 | Key | DE | EN | ESP | PRT | ID | NL | SV | DA | NO | MS |
 |-----|----|----|-----|-----|----|----|----|----|----|----|
-| **wasche** | wasche | wash | lava | lave | cuci | was | tvÃ¤tta | vask | vask | basuh |
-| **spuele** | spÃ¼le | rinse | enjuaga | enxÃ¡gue | bilas | spoel | skÃ¶lj | skyl | skyll | bilas |
-| **reinige** | reinige | clean | limpia | limpe | bersihkan | reinig | rengÃ¶r | rens | rengjÃ¸r | bersihkan |
+| **wasche** | wasche | wash | lava | lave | cuci | was | tvätta | vask | vask | basuh |
+| **spuele** | spüle | rinse | enjuaga | enxÃ¡gue | bilas | spoel | skölj | skyl | skyll | bilas |
+| **reinige** | reinige | clean | limpia | limpe | bersihkan | reinig | rengör | rens | rengjÃ¸r | bersihkan |
 
 **Tags:** `variable:action`, jeweiliger Value-Tag, `prep`, `wash`, `clean`
 
@@ -3016,20 +3016,20 @@ Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, GrÃ¤t
 
 **Vorher:**
 ```json
-"de": "Wasche {{ingredient}} grÃ¼ndlich und {{action}} {{pronoun}} trocken."
+"de": "Wasche {{ingredient}} gründlich und {{action}} {{pronoun}} trocken."
 ```
 
 **Jetzt:**
 ```json
-"de": "{{action}} {{ingredient}} grÃ¼ndlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken."
+"de": "{{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken."
 ```
 
-**Ã„nderungen:**
-- âœ… **{{action}}** Variable am Anfang (flexibel: wasche/spÃ¼le/reinige/putze)
-- âœ… **"unter kaltem Wasser"** hinzugefÃ¼gt (Best Practice)
-- âœ… **[, entferne {{removal}}]** als optionales Segment
-- âœ… **"tupfe"** fest am Ende (spezifischer als {{action}})
-- âœ… Description erweitert: "Waschen, optionales Entfernen (Schale/GrÃ¤ten/etc.) und Trocknen von Zutaten"
+**Änderungen:**
+- ✅ **{{action}}** Variable am Anfang (flexibel: wasche/spüle/reinige/putze)
+- ✅ **"unter kaltem Wasser"** hinzugefügt (Best Practice)
+- ✅ **[, entferne {{removal}}]** als optionales Segment
+- ✅ **"tupfe"** fest am Ende (spezifischer als {{action}})
+- ✅ Description erweitert: "Waschen, optionales Entfernen (Schale/Gräten/etc.) und Trocknen von Zutaten"
 
 **Variables-Konfiguration:**
 ```json
@@ -3044,7 +3044,7 @@ Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, GrÃ¤t
 
 | Sprache | Template |
 |---------|----------|
-| **DE** | {{action}} {{ingredient}} grÃ¼ndlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken. |
+| **DE** | {{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken. |
 | **EN** | {{action}} {{ingredient}} thoroughly under cold water[, remove {{removal}}] and pat {{pronoun}} dry. |
 | **ESP** | {{action}} {{ingredient}} a fondo bajo agua frÃ­a[, quita {{removal}}] y seca bien. |
 | **PRT** | {{action}} {{ingredient}} bem sob Ã¡gua fria[, remova {{removal}}] e seque bem. |
@@ -3057,7 +3057,7 @@ Der PREP_WASH_01 Step wurde erweitert um flexibles Entfernen von Schale, GrÃ¤t
 
 ### Beispiel-Outputs
 
-**Szenario 1: Kartoffeln schÃ¤len**
+**Szenario 1: Kartoffeln schälen**
 ```
 Input:
 - action: "Wasche"
@@ -3065,19 +3065,19 @@ Input:
 - removal: "die Schale"
 - pronoun: "sie"
 
-Output (DE): "Wasche die Kartoffeln grÃ¼ndlich unter kaltem Wasser, entferne die Schale und tupfe sie trocken."
+Output (DE): "Wasche die Kartoffeln gründlich unter kaltem Wasser, entferne die Schale und tupfe sie trocken."
 Output (EN): "Wash the potatoes thoroughly under cold water, remove the peel and pat them dry."
 ```
 
-**Szenario 2: Fisch entgrÃ¤ten**
+**Szenario 2: Fisch entgräten**
 ```
 Input:
-- action: "SpÃ¼le"
+- action: "Spüle"
 - ingredient: "den Fisch"
-- removal: "die GrÃ¤ten"
+- removal: "die Gräten"
 - pronoun: "ihn"
 
-Output (DE): "SpÃ¼le den Fisch grÃ¼ndlich unter kaltem Wasser, entferne die GrÃ¤ten und tupfe ihn trocken."
+Output (DE): "Spüle den Fisch gründlich unter kaltem Wasser, entferne die Gräten und tupfe ihn trocken."
 Output (EN): "Rinse the fish thoroughly under cold water, remove the bones and pat it dry."
 ```
 
@@ -3089,31 +3089,31 @@ Input:
 - removal: null (leer)
 - pronoun: "ihn"
 
-Output (DE): "Wasche den Salat grÃ¼ndlich unter kaltem Wasser und tupfe ihn trocken."
+Output (DE): "Wasche den Salat gründlich unter kaltem Wasser und tupfe ihn trocken."
 Output (EN): "Wash the lettuce thoroughly under cold water and pat it dry."
 ```
 
-**Szenario 4: Bohnen mit FÃ¤den**
+**Szenario 4: Bohnen mit Fäden**
 ```
 Input:
 - action: "Reinige"
 - ingredient: "die Bohnen"
-- removal: "die FÃ¤den"
+- removal: "die Fäden"
 - pronoun: "sie"
 
-Output (DE): "Reinige die Bohnen grÃ¼ndlich unter kaltem Wasser, entferne die FÃ¤den und tupfe sie trocken."
+Output (DE): "Reinige die Bohnen gründlich unter kaltem Wasser, entferne die Fäden und tupfe sie trocken."
 Output (EN): "Clean the beans thoroughly under cold water, remove the strings and pat them dry."
 ```
 
-### AnwendungsfÃ¤lle
+### Anwendungsfälle
 
 **{{removal}} Optionen nach Zutat:**
 
 | Zutat | Empfohlene {{removal}} Option |
 |-------|------------------------------|
 | Kartoffeln, Karotten | **schale** (die Schale) |
-| Fisch (Filet) | **graeten** (die GrÃ¤ten) |
-| Erbsen, Bohnen | **huelle** (die HÃ¼lle) oder **faeden** (die FÃ¤den) |
+| Fisch (Filet) | **graeten** (die Gräten) |
+| Erbsen, Bohnen | **huelle** (die Hülle) oder **faeden** (die Fäden) |
 | Spinat, Mangold | **stiele** (die Stiele) |
 | Paprika, Tomaten | **kerne** (die Kerne) |
 | Muscheln | **sand** (den Sand) |
@@ -3134,24 +3134,24 @@ Output (EN): "Clean the beans thoroughly under cold water, remove the strings an
 "variables": ["action", "ingredient", "removal", "pronoun"]
 ```
 - Reihenfolge bestimmt Display-Reihenfolge im Smart Step Creator
-- `action` zuerst â†’ User wÃ¤hlt erst die Wasch-Aktion
+- `action` zuerst â†’ User wählt erst die Wasch-Aktion
 - `ingredient` zweitens â†’ dann die Zutat
 - `removal` drittens â†’ optional: was entfernen
-- `pronoun` letztes â†’ Pronomen fÃ¼r "tupfe {{pronoun}}"
+- `pronoun` letztes â†’ Pronomen für "tupfe {{pronoun}}"
 
 ### Verbesserungen
 
-1. **FlexibilitÃ¤t:** User kann Wasch-Aktion wÃ¤hlen (wasche/spÃ¼le/reinige)
-2. **PrÃ¤zision:** "unter kaltem Wasser" statt nur "grÃ¼ndlich"
-3. **OptionalitÃ¤t:** {{removal}} nur wenn nÃ¶tig
+1. **Flexibilität:** User kann Wasch-Aktion wählen (wasche/spüle/reinige)
+2. **Präzision:** "unter kaltem Wasser" statt nur "gründlich"
+3. **Optionalität:** {{removal}} nur wenn nötig
 4. **Konsistenz:** "tupfe" statt generisches {{action}} am Ende
-5. **VollstÃ¤ndigkeit:** 8 hÃ¤ufige Entfernungs-Szenarien abgedeckt
-6. **Mehrsprachigkeit:** Alle Optionen in 10 Sprachen verfÃ¼gbar
+5. **Vollständigkeit:** 8 häufige Entfernungs-Szenarien abgedeckt
+6. **Mehrsprachigkeit:** Alle Optionen in 10 Sprachen verfügbar
 
 ### Betroffene Dateien
 
 1. **master_step_variables.json**
-   - {{action}} erweitert: +3 Optionen (wasche, spÃ¼le, reinige)
+   - {{action}} erweitert: +3 Optionen (wasche, spüle, reinige)
    - {{removal}} neu: +8 Optionen (schale, graeten, huelle, stiele, kerne, faeden, sand, innereien)
 
 2. **master_steps.json**
@@ -3162,13 +3162,13 @@ Output (EN): "Clean the beans thoroughly under cold water, remove the strings an
 
 ---
 
-## Ã„nderungen 2026-03-28: Entfernung des PREP_SEPARATE_01 Steps
+## Änderungen 2026-03-28: Entfernung des PREP_SEPARATE_01 Steps
 
-### Ãœbersicht
+### Übersicht
 
-Der Step **PREP_SEPARATE_01** ("Trenne {{ingredient}} vorsichtig von {{ingredient2}}") wurde vollstÃ¤ndig entfernt.
+Der Step **PREP_SEPARATE_01** ("Trenne {{ingredient}} vorsichtig von {{ingredient2}}") wurde vollständig entfernt.
 
-**Grund:** Fragliche NÃ¼tzlichkeit - das Trennen von Zutaten (z.B. Eigelb von EiweiÃŸ) wird selten benÃ¶tigt und kann durch andere Steps oder manuelle Beschreibung abgebildet werden.
+**Grund:** Fragliche Nützlichkeit - das Trennen von Zutaten (z.B. Eigelb von Eiweiß) wird selten benötigt und kann durch andere Steps oder manuelle Beschreibung abgebildet werden.
 
 ---
 
@@ -3183,7 +3183,7 @@ Der Step **PREP_SEPARATE_01** ("Trenne {{ingredient}} vorsichtig von {{ingredien
   "sub_group": "ingredient_prep",
   "action": "separate",
   "equipment": 0,
-  "description": "Trennen von Zutaten (z.B. Eier in Eigelb und EiweiÃŸ)",
+  "description": "Trennen von Zutaten (z.B. Eier in Eigelb und Eiweiß)",
   "templates": {
     "de": "Trenne {{ingredient}} vorsichtig von {{ingredient2}}.",
     "en": "Carefully separate {{ingredient}} from {{ingredient2}}.",
@@ -3191,7 +3191,7 @@ Der Step **PREP_SEPARATE_01** ("Trenne {{ingredient}} vorsichtig von {{ingredien
     "prt": "Separe {{ingredient}} de {{ingredient2}} com cuidado.",
     "id": "Pisahkan {{ingredient}} dari {{ingredient2}} dengan hati-hati.",
     "nl": "Scheid {{ingredient}} voorzichtig van {{ingredient2}}.",
-    "sv": "Separera {{ingredient}} fÃ¶rsiktigt frÃ¥n {{ingredient2}}.",
+    "sv": "Separera {{ingredient}} försiktigt frÃ¥n {{ingredient2}}.",
     "da": "Adskil {{ingredient}} forsigtigt fra {{ingredient2}}.",
     "no": "Skill {{ingredient}} forsiktig fra {{ingredient2}}.",
     "ms": "Asingkan {{ingredient}} daripada {{ingredient2}} dengan berhati-hati."
@@ -3202,13 +3202,13 @@ Der Step **PREP_SEPARATE_01** ("Trenne {{ingredient}} vorsichtig von {{ingredien
 }
 ```
 
-**GelÃ¶scht:** Zeilen 2149-2198 (50 Zeilen)
+**Gelöscht:** Zeilen 2149-2198 (50 Zeilen)
 
 ---
 
 ### Betroffene Dateien
 
-| Datei | Ã„nderungen |
+| Datei | Änderungen |
 |-------|------------|
 | **master_steps.json** | PREP_SEPARATE_01 Step entfernt (50 Zeilen) |
 | **CreatePosting-Dokumentation.md** | Dokumentation aktualisiert |
@@ -3224,11 +3224,11 @@ Falls das Trennen von Zutaten beschrieben werden soll, kann der User:
 
 ---
 
-## Ã„nderungen 2026-03-27: Duration-Editor CSS-Klassen-Bug behoben
+## Änderungen 2026-03-27: Duration-Editor CSS-Klassen-Bug behoben
 
-### Ãœberblick
+### Überblick
 
-Ein kritischer Bug verhinderte das Ã–ffnen von Special Editoren (duration/temp/count) im Probability Area. Der Editor konnte nicht gefunden werden, weil die CSS-Klasse `.prob-inline-editor` fehlte.
+Ein kritischer Bug verhinderte das Öffnen von Special Editoren (duration/temp/count) im Probability Area. Der Editor konnte nicht gefunden werden, weil die CSS-Klasse `.prob-inline-editor` fehlte.
 
 ### Symptome:
 
@@ -3245,7 +3245,7 @@ Ein kritischer Bug verhinderte das Ã–ffnen von Special Editoren (duration/tem
 ```javascript
 const html = `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" ...>
 ```
-âœ… FÃ¼gt `.prob-inline-editor` hinzu wenn `useClassBasedIds: true`
+✅ Fügt `.prob-inline-editor` hinzu wenn `useClassBasedIds: true`
 
 **Special Editor (Zeile 1760 - VORHER):**
 ```javascript
@@ -3257,13 +3257,13 @@ html: `<div class="duration-editor mt-2" data-editor-for="${escapeHtml(varName)}
 ```javascript
 html: `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" data-editor-for="${escapeHtml(varName)}">
 ```
-âœ… Konsistent mit Regular Editor
+✅ Konsistent mit Regular Editor
 
 ### Fix:
 
 **CreatePostingSmartStepCreator.js (Zeile 1760):**
 
-HinzugefÃ¼gt: `${useClassBasedIds ? ' prob-inline-editor' : ''}` zur CSS-Klasse des Special Editor Wrappers.
+Hinzugefügt: `${useClassBasedIds ? ' prob-inline-editor' : ''}` zur CSS-Klasse des Special Editor Wrappers.
 
 **Warum war das wichtig?**
 
@@ -3273,29 +3273,29 @@ HinzugefÃ¼gt: `${useClassBasedIds ? ' prob-inline-editor' : ''}` zur CSS-Klass
 
 ### Betroffene Dateien:
 
-| Datei | Zeilen | Ã„nderungen |
+| Datei | Zeilen | Änderungen |
 |-------|--------|------------|
-| **CreatePostingSmartStepCreator.js** | 1760 | `.prob-inline-editor` Klasse hinzugefÃ¼gt bei `useClassBasedIds: true` |
-| **CreatePosting-Dokumentation.md** | 1255 | Bugfix #9 in Liste hinzugefÃ¼gt |
+| **CreatePostingSmartStepCreator.js** | 1760 | `.prob-inline-editor` Klasse hinzugefügt bei `useClassBasedIds: true` |
+| **CreatePosting-Dokumentation.md** | 1255 | Bugfix #9 in Liste hinzugefügt |
 
 ### Teste:
 
-1. Ã–ffne Probability Area
+1. Öffne Probability Area
 2. Klicke auf ein `{{duration}}` Token
-3. Editor sollte sich Ã¶ffnen mit neuer 3-Row-Struktur (Inputs â†’ Chips â†’ Actions)
+3. Editor sollte sich öffnen mit neuer 3-Row-Struktur (Inputs â†’ Chips â†’ Actions)
 4. Console sollte keine Fehler zeigen
 
 ---
 
-## Ã„nderungen 2026-03-27: Duration-Editor Layout optimiert
+## Änderungen 2026-03-27: Duration-Editor Layout optimiert
 
-### Ãœberblick
+### Überblick
 
-Das Duration-Editor-Overlay wurde umstrukturiert fÃ¼r eine klarere visuelle Hierarchie und bessere BenutzerfÃ¼hrung.
+Das Duration-Editor-Overlay wurde umstrukturiert für eine klarere visuelle Hierarchie und bessere Benutzerführung.
 
 ### Vorher (alte Struktur):
 ```
-Row 1: [Input Von] [â€“] [Input Bis] [Einsetzen] [SchlieÃŸen]  â† Inputs und Actions gemischt
+Row 1: [Input Von] [â€“] [Input Bis] [Einsetzen] [Schließen]  â† Inputs und Actions gemischt
 Row 2: [Minute] [Stunde]                                      â† Unit-Chips separat
 Row 3: [Pro Packung]                                          â† Per-Package separat
 ```
@@ -3304,21 +3304,21 @@ Row 3: [Pro Packung]                                          â† Per-Packag
 ```
 Row 1: [Input Von] [â€“] [Input Bis]                           â† Nur Inputs
 Row 2: [Minute] [Stunde] [Pro Packung]                       â† Alle Unit-Chips zusammen
-Row 3: [Einsetzen] [SchlieÃŸen]                               â† Action-Buttons separat
+Row 3: [Einsetzen] [Schließen]                               â† Action-Buttons separat
 ```
 
 ### Vorteile:
 - **Klarere visuelle Trennung** zwischen Eingabe, Auswahl und Aktionen
-- **Alle Unit-Chips zusammen** fÃ¼r einfacheren Vergleich und Auswahl
-- **Action-Buttons am Ende** folgen dem natÃ¼rlichen Lese- und Interaktionsfluss
+- **Alle Unit-Chips zusammen** für einfacheren Vergleich und Auswahl
+- **Action-Buttons am Ende** folgen dem natürlichen Lese- und Interaktionsfluss
 
 ### Betroffene Dateien:
 
-| Datei | Zeilen | Ã„nderungen |
+| Datei | Zeilen | Änderungen |
 |-------|--------|------------|
 | **CreatePostingSmartStepCreator.js** | 2223-2248 | `renderSpecialEditor()` - Duration-Editor HTML-Struktur umstrukturiert: Input-Row, Chips-Row (inkl. Pro Packung), Action-Row. Alle Action-Rows erhalten `.js-editor-action-row` Klasse (duration/temp/count Zeile 2245/2267/2277, regular editor Zeile 1930) |
 | **CreatePostingPage.js** | 617 | Selector-Fix: `.js-editor-action-row` statt `.d-flex.gap-2.align-items-center` (verhindert, dass Input-Row als Button-Row extrahiert wird) |
-| **CreatePosting-Dokumentation.md** | - | Dokumentation dieser Ã„nderung hinzugefÃ¼gt |
+| **CreatePosting-Dokumentation.md** | - | Dokumentation dieser Änderung hinzugefügt |
 
 ### Technische Details:
 
@@ -3341,13 +3341,13 @@ Row 3: [Einsetzen] [SchlieÃŸen]                               â† Action-B
 // Row 3: Action-Buttons (mit .js-editor-action-row Marker)
 <div class="d-flex gap-2 align-items-center mt-2 js-editor-action-row">
   <button id="BtnPickDurationQuick">Einsetzen</button>
-  <button id="BtnCloseVarTop">SchlieÃŸen</button>
+  <button id="BtnCloseVarTop">Schließen</button>
 </div>
 ```
 
-**Ã„nderungen:**
+**Änderungen:**
 - Per-Package-Button ist jetzt inline mit den anderen Unit-Chips statt in separatem Block
-- `.js-editor-action-row` Klasse hinzugefÃ¼gt zur Action-Button-Row (auch bei temp/count/regular editors)
+- `.js-editor-action-row` Klasse hinzugefügt zur Action-Button-Row (auch bei temp/count/regular editors)
 - **Probability Area Fix:** Zeile 617 in CreatePostingPage.js nutzt jetzt `.js-editor-action-row` Selector statt `.d-flex.gap-2.align-items-center` (verhindert, dass Input-Row als Button-Row extrahiert wird)
 
 ---
@@ -3355,10 +3355,10 @@ Row 3: [Einsetzen] [SchlieÃŸen]                               â† Action-B
 ## 2026-03-28: Ingredient-Transformationen nach Step-Accept aktualisieren
 
 ### Problem:
-Nach dem Akzeptieren eines Steps wurden Ingredient-Transformationen nicht angewendet. Die Ei-Aufteilung (Ei â†’ Eiklar/Eigelb) funktionierte beim HinzufÃ¼gen von Eiern, aber wenn ein Step akzeptiert wurde, wurde `applyDerivedIngredientRowVisuals()` nicht aufgerufen.
+Nach dem Akzeptieren eines Steps wurden Ingredient-Transformationen nicht angewendet. Die Ei-Aufteilung (Ei â†’ Eiklar/Eigelb) funktionierte beim Hinzufügen von Eiern, aber wenn ein Step akzeptiert wurde, wurde `applyDerivedIngredientRowVisuals()` nicht aufgerufen.
 
-### LÃ¶sung:
-In `acceptActiveStep()` wird jetzt `refreshMasterTemplateBuilder()` aufgerufen, was wiederum `applyDerivedIngredientRowVisuals()` ausfÃ¼hrt.
+### Lösung:
+In `acceptActiveStep()` wird jetzt `refreshMasterTemplateBuilder()` aufgerufen, was wiederum `applyDerivedIngredientRowVisuals()` ausführt.
 
 **CreatePostingSmartStepCreator.js (Zeile 3376-3381):**
 ```javascript
@@ -3368,7 +3368,7 @@ if (typeof window.updateStepIndices === "function") {
     window.updateStoryProgress();
 }
 
-// âœ… NEU (2026-03-28): Transformationen nach Step-Accept anwenden
+// ✅ NEU (2026-03-28): Transformationen nach Step-Accept anwenden
 if (typeof window.refreshMasterTemplateBuilder === "function") {
     window.refreshMasterTemplateBuilder();
 }
@@ -3381,7 +3381,7 @@ if (typeof window.refreshMasterTemplateBuilder === "function") {
 
 ### Betroffene Dateien:
 
-| Datei | Zeilen | Ã„nderungen |
+| Datei | Zeilen | Änderungen |
 |-------|--------|------------|
 | **CreatePostingSmartStepCreator.js** | 3381-3384 | `acceptActiveStep()` - Ruft `refreshMasterTemplateBuilder()` nach Step-Accept auf, um Transformationen anzuwenden |
 | **CreatePosting-Dokumentation.md** | - | Dokumentation aktualisiert |
@@ -3389,5 +3389,5 @@ if (typeof window.refreshMasterTemplateBuilder === "function") {
 ---
 
 > **Letzte Aktualisierung:** 2026-03-28
-> **GeÃ¤nderte Dateien:** 1 (CreatePostingSmartStepCreator.js)
+> **Geänderte Dateien:** 1 (CreatePostingSmartStepCreator.js)
 

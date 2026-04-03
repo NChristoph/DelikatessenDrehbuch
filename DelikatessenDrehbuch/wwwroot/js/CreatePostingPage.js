@@ -2962,7 +2962,10 @@
             const template = MasterStepRenderer.findTemplate(templateId);
             if (!template) return;
 
-            const rawVars = (varsOverride && typeof varsOverride === 'object') ? varsOverride : collectMasterVariables();
+            const defaultVars = buildVariablesForTemplate(templateId, creatorState?.activeRecipeType || '');
+            const rawVars = (varsOverride && typeof varsOverride === 'object')
+                ? { ...(defaultVars || {}), ...varsOverride }
+                : collectMasterVariables();
             const vars = normalizeVariablesForPersist(template, rawVars);
             const rendered = buildRenderedPayloadFromTemplate(template, vars);
             let ingredientName = (vars.ingredient || vars.ingredients || vars.liquid || vars.fat || '').toString().trim();
