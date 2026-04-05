@@ -72,6 +72,7 @@
         marinade:    { de: "Marinade",     en: "marinade",     esp: "marinada",     prt: "marinada",     nl: "marinade",     sv: "marinad",      da: "marinade",     no: "marinade",     id: "bumbu rendam", ms: "perapan" },
         method:      { de: "Methode",      en: "method",       esp: "método",       prt: "método",       nl: "methode",      sv: "metod",        da: "metode",       no: "metode",       id: "metode",     ms: "kaedah"    },
         finish:      { de: "Abschluss",    en: "finish",       esp: "acabado",      prt: "acabamento",   nl: "afwerking",    sv: "finish",       da: "finish",       no: "finish",       id: "akhiran",    ms: "kemasan"   },
+        seasoning:   { de: "Gewürz/Öl",    en: "seasoning",    esp: "condimento",   prt: "tempero",      nl: "kruiden",      sv: "krydda",       da: "krydderi",     no: "krydder",      id: "bumbu",      ms: "perisa"    },
         seasonings:  { de: "Gewürze",      en: "seasonings",   esp: "condimentos",  prt: "temperos",     nl: "kruiden",      sv: "kryddor",      da: "krydderier",   no: "krydder",      id: "bumbu",      ms: "perisa"    },
         thickener:   { de: "Bindemittel",  en: "thickener",    esp: "espesante",    prt: "espessante",   nl: "bindmiddel",   sv: "förtjockningsmedel", da: "fortykningsmiddel", no: "fortykningsmiddel", id: "pengental", ms: "pemekat" },
         count:       { de: "Anzahl",       en: "count",        esp: "cantidad",     prt: "quantidade",   nl: "aantal",       sv: "antal",        da: "antal",        no: "antall",       id: "jumlah",     ms: "bilangan"  },
@@ -1376,7 +1377,7 @@
 
     function isIngredientVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase();
-        return key === "ingredient" || key === "ingredient2" || key === "ingredients" || key === "liquid" || key === "fat" || key === "seasonings" || key === "marinade" || key === "thickener" || key === "components" || key === "extra";
+        return key === "ingredient" || key === "ingredient2" || key === "ingredients" || key === "base" || key === "seasoning" || key === "liquid" || key === "fat" || key === "seasonings" || key === "marinade" || key === "thickener" || key === "components" || key === "extra";
     }
 
     function isHybridIngredientVariable(varName) {
@@ -1404,12 +1405,15 @@
             filterFn = item => item.groupId === "5"; // Gewürze
         } else if (key === "thickener") {
             filterFn = item => item.groupId === "8"; // Grundnahrungsmittel
+        } else if (key === "base") {
+            // Basis: Fleisch und Gemüse (harte + weiche Zutaten)
+            filterFn = item => item.isHard || item.isSoft;
         } else if (key === "ingredient" || key === "ingredients") {
             // Step-spezifische Filter für generische ingredient-Variable
             if (step === "PREP_CUT_01" || step === "PREP_GRATE_01" || step === "PREP_MINCE_01" || step === "PREP_PEEL_01") {
                 filterFn = item => item.isHard || item.isSoft;
-            } else if (step === "PREP_TENDERIZE_01") {
-                // Klopfen/Plattieren: nur harte Zutaten (Fleisch, Schnitzel)
+            } else if (step === "PREP_SCORE_01" || step === "PREP_TENDERIZE_01") {
+                // Einschneiden/Klopfen: nur harte Zutaten (Fleisch)
                 filterFn = item => item.isHard;
             }
         }
@@ -2540,7 +2544,8 @@
 
                     const newNormalized = normalizeIngredientValues(selectedValues);
                     newNormalized.forEach(item => {
-                        if (!item.article) item.article = article;
+                        if (article) item.article = article;
+                        else if (!item.article) item.article = '';
                         if (!item.fraction) item.fraction = fraction;
                     });
 
@@ -2602,7 +2607,8 @@
 
                     const normalized = normalizeIngredientValues(selectedValues);
                     normalized.forEach(item => {
-                        if (!item.article || item.article === '') item.article = article;
+                        if (article) item.article = article;
+                        else if (!item.article || item.article === '') item.article = '';
                         if (!item.fraction || item.fraction === '') item.fraction = fraction;
                     });
 
@@ -2672,7 +2678,8 @@
 
         const normalized = normalizeIngredientValues(selectedValues);
         normalized.forEach(item => {
-            if (!item.article || item.article === '') item.article = article;
+            if (article) item.article = article;
+            else if (!item.article || item.article === '') item.article = '';
             if (!item.fraction || item.fraction === '') item.fraction = fraction;
         });
 
@@ -3042,7 +3049,8 @@
 
                     const newNormalized = normalizeIngredientValues(selectedValues);
                     newNormalized.forEach(item => {
-                        if (!item.article) item.article = article;
+                        if (article) item.article = article;
+                        else if (!item.article) item.article = '';
                         if (!item.fraction) item.fraction = fraction;
                     });
 
@@ -3127,9 +3135,11 @@
                 // fall through to normal value handling below
             } else {
                 // Single ingredient with article/fraction
+                // Manual article selection (from article buttons) overrides auto-detected article
                 const normalized = normalizeIngredientValues(selectedValues);
                 normalized.forEach(item => {
-                    if (!item.article) item.article = article;
+                    if (article) item.article = article;
+                    else if (!item.article) item.article = '';
                     if (!item.fraction) item.fraction = fraction;
                 });
 
@@ -3887,12 +3897,10 @@
                 console.log("[applyEditorValue] Global values:", { globalArticle, globalFraction });
                 console.log("[applyEditorValue] Before applying global:", JSON.parse(JSON.stringify(normalized)));
 
-                // ✅ FIX (2026-04-02): Nutze globalArticle (vom User aus Chip gewählt) mit Priorität
+                // ✅ FIX (2026-04-04): Manueller Artikel-Button überschreibt Auto-Artikel
                 normalized.forEach(item => {
-                    // Wenn kein Artikel gesetzt, nutze globalArticle (User-Auswahl hat Priorität!)
-                    if (!item.article || item.article === '') {
-                        item.article = globalArticle;
-                    }
+                    if (globalArticle) item.article = globalArticle;
+                    else if (!item.article || item.article === '') item.article = '';
                     if (!item.fraction || item.fraction === '') item.fraction = globalFraction;
                 });
 

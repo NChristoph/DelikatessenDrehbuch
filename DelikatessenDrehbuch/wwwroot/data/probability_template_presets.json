@@ -346,6 +346,8 @@
     ],
     "braten": [
       "PREP_HEAT_01",
+      "PREP_SCORE_01",
+      "PREP_RUB_01",
       "PREP_TENDERIZE_01",
       "PREP_MARINATE_01",
       "COOK_SEAR_01",

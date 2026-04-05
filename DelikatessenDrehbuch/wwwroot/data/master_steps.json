@@ -36,6 +36,7 @@
       "ms": "Simpan hanya kunci semantik stabil daripada JSON ini, jangan sekali-kali simpan id pangkalan data atau input bebas pengguna sebagai rujukan."
     },
     "changes": [
+      "Added PREP_SCORE_01 (Einschneiden/Einritzen) as separate step for scoring meat surfaces (e.g. rautenförmig). Added PREP_RUB_01 (Einreiben) for rubbing meat/vegetables with seasonings/oil. Fixed PREP_CUT_01: removed trailing 'ein' from German template (was incorrectly making all cuts into 'einschneiden').",
       "Added new steps: COOK_BASTE_01 (begießen), COOK_GRILL_FINISH_01 (Kruste unter Grill), PREP_FORM_DUMPLINGS_01 (Knödel formen), COOK_SIMMER_DUMPLINGS_01 (Knödel garen).",
       "Modified PREP_CUT_01: made grind_size optional, added 'rautenförmig' shape option.",
       "Added 'rautenförmig' (diamond pattern) to shape variable options in master_step_variables.json.",
@@ -1390,7 +1391,7 @@
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
       "templates": {
-        "de": "Schneide {{ingredient}}[ in {{grind_size}}] {{shape}} ein.",
+        "de": "Schneide {{ingredient}}[ in {{grind_size}}] {{shape}}.",
         "en": "Cut {{ingredient}}[ into {{grind_size}}] {{shape}}.",
         "esp": "Corta {{ingredient}}[ en {{grind_size}}] {{shape}}.",
         "prt": "Corte {{ingredient}}[ em {{grind_size}}] {{shape}}.",
@@ -1433,6 +1434,58 @@
         "variable:shape",
         "category:main",
         "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_SCORE_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "score",
+      "equipment": 0,
+      "description": "Einschneiden/Einritzen der Oberfläche (z.B. rautenförmig bei Braten)",
+      "templates": {
+        "de": "Schneide {{ingredient}} {{shape}} ein.",
+        "en": "Score {{ingredient}} in a {{shape}}.",
+        "esp": "Haz cortes {{shape}} en {{ingredient}}.",
+        "prt": "Faça cortes {{shape}} em {{ingredient}}.",
+        "id": "Buat sayatan {{shape}} pada {{ingredient}}.",
+        "nl": "Snijd {{ingredient}} {{shape}} in.",
+        "sv": "Skär in {{ingredient}} {{shape}}.",
+        "da": "Skær {{ingredient}} {{shape}} ind.",
+        "no": "Skjær inn {{ingredient}} {{shape}}.",
+        "ms": "Hiris {{ingredient}} dengan corak {{shape}}."
+      },
+      "variables": [
+        "ingredient",
+        "shape"
+      ],
+      "required_variables": [
+        "ingredient",
+        "shape"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "meat"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:score",
+        "technique:cut",
+        "einschneiden",
+        "einritzen",
+        "score",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:shape",
+        "category:main",
+        "family:meat",
         "sub_group:ingredient_prep"
       ]
     },
@@ -1589,6 +1642,58 @@
         "variable:pronoun",
         "variable:duration",
         "category:main",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "PREP_RUB_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "rub",
+      "equipment": 0,
+      "description": "Einreiben von Fleisch oder Gemüse mit Gewürzen/Öl",
+      "templates": {
+        "de": "Reibe {{ingredient}} gleichmäßig mit {{seasoning}} ein.",
+        "en": "Rub {{ingredient}} evenly with {{seasoning}}.",
+        "esp": "Frota {{ingredient}} uniformemente con {{seasoning}}.",
+        "prt": "Esfregue {{ingredient}} uniformemente com {{seasoning}}.",
+        "id": "Gosokkan {{seasoning}} secara merata pada {{ingredient}}.",
+        "nl": "Wrijf {{ingredient}} gelijkmatig in met {{seasoning}}.",
+        "sv": "Gnid in {{ingredient}} jämnt med {{seasoning}}.",
+        "da": "Gnid {{ingredient}} jævnt ind med {{seasoning}}.",
+        "no": "Gni {{ingredient}} jevnt inn med {{seasoning}}.",
+        "ms": "Gosokkan {{seasoning}} secara sekata pada {{ingredient}}."
+      },
+      "variables": [
+        "ingredient",
+        "seasoning"
+      ],
+      "required_variables": [
+        "ingredient",
+        "seasoning"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "meat"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:rub",
+        "technique:rub",
+        "einreiben",
+        "rub",
+        "würzen",
+        "season",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:seasoning",
+        "category:main",
+        "family:meat",
         "sub_group:marinating"
       ]
     },
@@ -5161,18 +5266,19 @@
       "equipment": 3,
       "description": "Scharf Anbraten bei höchster Hitze",
       "templates": {
-        "de": "Erhitze {{equipment}} auf höchster Stufe und brate {{base}} {{duration}} scharf an, bis {{pronoun}} {{state}} {{copula}}.",
-        "en": "Heat {{equipment}} on highest setting and sear {{base}} for {{duration}} until {{state}}.",
-        "esp": "Calienta {{equipment}} al máximo y sella {{base}} durante {{duration}} hasta que {{state}}.",
-        "prt": "Aqueça {{equipment}} na potência máxima e sele {{base}} por {{duration}} até {{state}}.",
-        "id": "Panaskan {{equipment}} pada suhu tertinggi dan sear {{base}} selama {{duration}} hingga {{state}}.",
-        "nl": "Verhit {{equipment}} op het hoogste niveau en schroei {{base}} {{duration}} aan tot {{state}}.",
-        "sv": "Hetta upp {{equipment}} på högsta värme och bryn {{base}} i {{duration}} tills {{state}}.",
-        "da": "Opvarm {{equipment}} på højeste trin og brun {{base}} i {{duration}}, indtil {{state}}.",
-        "no": "Varm opp {{equipment}} på høyeste trinn og brun {{base}} i {{duration}} til {{state}}.",
-        "ms": "Panaskan {{equipment}} pada suhu tertinggi dan sear {{base}} selama {{duration}} sehingga {{state}}."
+        "de": "Erhitze[ {{fat}} in] {{equipment}} auf höchster Stufe und brate {{base}}[ {{duration}}] scharf an[, bis {{pronoun}} {{state}} {{copula}}].",
+        "en": "Heat[ {{fat}} in] {{equipment}} on highest setting and sear {{base}}[ for {{duration}}][, until {{state}}].",
+        "esp": "Calienta[ {{fat}} en] {{equipment}} al máximo y sella {{base}}[ durante {{duration}}][, hasta que {{state}}].",
+        "prt": "Aqueça[ {{fat}} em] {{equipment}} na potência máxima e sele {{base}}[ por {{duration}}][, até {{state}}].",
+        "id": "Panaskan[ {{fat}} di] {{equipment}} pada suhu tertinggi dan sear {{base}}[ selama {{duration}}][, hingga {{state}}].",
+        "nl": "Verhit[ {{fat}} in] {{equipment}} op het hoogste niveau en schroei {{base}}[ {{duration}}] aan[, tot {{state}}].",
+        "sv": "Hetta upp[ {{fat}} i] {{equipment}} på högsta värme och bryn {{base}}[ i {{duration}}][, tills {{state}}].",
+        "da": "Opvarm[ {{fat}} i] {{equipment}} på højeste trin og brun {{base}}[ i {{duration}}][, indtil {{state}}].",
+        "no": "Varm opp[ {{fat}} i] {{equipment}} på høyeste trinn og brun {{base}}[ i {{duration}}][, til {{state}}].",
+        "ms": "Panaskan[ {{fat}} di] {{equipment}} pada suhu tertinggi dan sear {{base}}[ selama {{duration}}][, sehingga {{state}}]."
       },
       "variables": [
+        "fat",
         "equipment",
         "base",
         "duration",
@@ -5182,13 +5288,9 @@
       ],
       "required_variables": [
         "equipment",
-        "base",
-        "duration",
-        "pronoun",
-        "state",
-        "copula"
+        "base"
       ],
-      "optional_variables": null,
+      "optional_variables": ["fat", "duration", "pronoun", "state", "copula"],
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [
@@ -5202,6 +5304,7 @@
         "equipment_id:3",
         "pfanne",
         "pan",
+        "variable:fat",
         "variable:equipment",
         "variable:base",
         "variable:duration",

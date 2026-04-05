@@ -888,7 +888,7 @@
             if (ingredientTransforms) {
                 const patterns = ingredientTransforms.adjective_patterns || {};
                 for (const [key, def] of Object.entries(patterns)) {
-                    if (!def.trigger_steps?.includes('PREP_CUT_01') || !def.shape_match) continue;
+                    if (!(def.trigger_steps?.includes('PREP_CUT_01') || def.trigger_steps?.includes('PREP_SCORE_01')) || !def.shape_match) continue;
                     if (def.shape_match.some(term => shape.includes(normalizeSearchText(term)))) return key;
                 }
             }
@@ -1024,7 +1024,7 @@
                     .find(function (entry) {
                         var def = entry[1];
                         if (!def.trigger_steps || !def.trigger_steps.includes(masterId)) return false;
-                        if (masterId === 'PREP_CUT_01' && def.shape_match) {
+                        if ((masterId === 'PREP_CUT_01' || masterId === 'PREP_SCORE_01') && def.shape_match) {
                             var shape = resolveCutTransformationType(descriptor?.stableReference || {});
                             return entry[0] === shape;
                         }
@@ -1572,7 +1572,7 @@
             if (lang === 'de') {
                 const known = {
                     m: ['basilikum', 'reis', 'zucker', 'knoblauch', 'ingwer', 'kohl'],
-                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'soÃƒÅ¸e', 'sauce'],
+                    f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'schulter', 'brust', 'keule', 'soÃƒÅ¸e', 'sauce'],
                     n: ['salz', 'ÃƒÂ¶l', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
                 };
                 if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };

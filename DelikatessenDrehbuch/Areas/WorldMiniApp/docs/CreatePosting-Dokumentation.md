@@ -2,14 +2,16 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-03 · **REFACTORING:** Unified System + Draft-Engine Integration
+> **Stand:** 2026-04-04 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
 > **Letzte Änderungen:**
-> - ✅ Probability Area auf Unified Overlay System umgestellt
-> - ✅ Draft-Engine für Probability-Steps integriert
-> - ✅ Alter Code entfernt (rerenderInlineText, bindInlineEvents, state.inlineOverrides)
-> - ✅ Template-String aus window.MasterSteps statt DOM-Extraktion
-> - ✅ Einheitliches Rendering mit renderEditableStepPreview
+> - ✅ Neuer Step PREP_SCORE_01 (Einschneiden/Einritzen, z.B. rautenförmig)
+> - ✅ Neuer Step PREP_RUB_01 (Einreiben mit Gewürzen/Öl)
+> - ✅ PREP_CUT_01 gefixt: "ein" entfernt (war fälschlich "einschneiden" statt "schneiden")
+> - ✅ COOK_SEAR_01: `{{fat}}` optional hinzugefügt, `{{base}}` als Ingredient-Variable (Fleisch+Gemüse Chips)
+> - ✅ Neue Variable `seasoning` (Gewürz/Öl) — als Ingredient-Variable registriert
+> - ✅ `base`-Variable: Filter erweitert auf Fleisch + Gemüse (isHard || isSoft)
+> - ✅ Artikel-Bug gefixt: Manueller Artikel-Button überschreibt jetzt Auto-Artikel
 
 ---
 
@@ -50,24 +52,24 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                     CreatePosting.cshtml                      │
-│  ┌─────────┐ ┌────────┐ ┌──────────┐ ┌──────┐ ┌──────────┐ │
-│  │ Basics  │ │ Media  │ │Zutaten   │ │Steps │ │Keywords  │ │
-│  │card-    │ │card-   │ │card-     │ │card- │ │card-     │ │
-│  │basics   │ │media   │ │ingredien.│ │steps │ │keywords  │ │
-│  └─────────┘ └────────┘ └──────────┘ └──┬───┘ └──────────┘ │
-│                                          │                    │
-│                    _SmartStepCreatorPartial.cshtml             │
+│                     CreatePosting.cshtml                     │
+│  ┌─────────┐ ┌────────┐ ┌──────────┐ ┌──────┐ ┌──────────┐   │
+│  │ Basics  │ │ Media  │ │Zutaten   │ │Steps │ │Keywords  │   │
+│  │card-    │ │card-   │ │card-     │ │card- │ │card-     │   │
+│  │basics   │ │media   │ │ingredien.│ │steps │ │keywords  │   │
+│  └─────────┘ └────────┘ └──────────┘ └──┬───┘ └──────────┘   │
+│                                         │                    │
+│                    _SmartStepCreatorPartial.cshtml           │
 └──────────────────────────────────────────────────────────────┘
-         │                    │                    │
+         │                   │                   │
     ┌────▼────┐         ┌────▼────┐         ┌────▼────┐
     │ Create  │         │ Smart   │         │ Publish │
     │ Posting │         │ Step    │         │ Check-  │
     │ Page.js │         │Creator.js│        │ list.js │
     └────┬────┘         └────┬────┘         └─────────┘
          │                   │
-    ┌────▼───────────────────▼────────────────────────────┐
-    │              Infrastruktur-Layer                      │
+    ┌────▼───────────────────▼─────────────────────────────┐
+    │              Infrastruktur-Layer                     │
     │  utils · data-urls · data-store · feedback           │
     │  page-data · template-builder · renderer             │
     │  recipe-step-suggest · probability · ingredientmgr   │
@@ -590,11 +592,20 @@ Enthält Master-Step-Templates mit Variablen-Platzhaltern.
 1. PREP_HEAT_01 (Vorheizen) — equipment_prep
 2. PREP_WASH_01 (Waschen) — ingredient_prep
 3. PREP_PEEL_01 (Schälen) — ingredient_prep, `[mit einem {{tool}}]` optional
-4. PREP_CUT_01, PREP_GRATE_01, PREP_MINCE_01 — ingredient_prep
-5. PREP_MARINATE_01, PREP_SOAK_01 — marinating
-6. Mixing, Dough, Coating Steps...
+4. PREP_CUT_01 (Schneiden), PREP_GRATE_01, PREP_MINCE_01 — ingredient_prep
+5. PREP_SCORE_01 (Einschneiden/Einritzen) — ingredient_prep, family:meat **NEU**
+6. PREP_RUB_01 (Einreiben mit Gewürzen/Öl) — marinating, family:meat **NEU**
+7. PREP_MARINATE_01, PREP_SOAK_01 — marinating
+8. Mixing, Dough, Coating Steps...
+
+**Braten-Preset** (`probability_template_presets.json`):
+`PREP_HEAT → PREP_SCORE → PREP_RUB → PREP_TENDERIZE → PREP_MARINATE → COOK_SEAR → COOK_ROAST → COOK_BRAISE → COOK_DEGLAZE → COOK_REDUCE → SERVE_SAUCE → FINISH_REST → FINISH_SERVE`
 
 **Wichtige Template-Änderungen:**
+- PREP_CUT_01: "ein" entfernt — `Schneide {{ingredient}}[ in {{grind_size}}] {{shape}}.` (war fälschlich "einschneiden")
+- PREP_SCORE_01 **NEU**: `Schneide {{ingredient}} {{shape}} ein.` — Eigener Step für Einschneiden (z.B. rautenförmig)
+- PREP_RUB_01 **NEU**: `Reibe {{ingredient}} gleichmäßig mit {{seasoning}} ein.` — Einreiben mit Gewürzen/Öl
+- COOK_SEAR_01: `{{fat}}` optional — `Erhitze[ {{fat}} in] {{equipment}} auf höchster Stufe und brate {{base}} {{duration}} scharf an, bis {{pronoun}} {{state}} {{copula}}.`
 - PREP_PEEL_01: Tool-Teil optional — `Schäle {{ingredient}}[ mit einem {{tool}}].`
 - PREP_STUFF_01: Variablen getauscht — `Fülle {{ingredient}} gleichmäßig mit {{base}} und setze {{pronoun}} in {{equipment}}.`
 
@@ -633,7 +644,7 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 {
   "adjective_patterns": {
     "diced": {
-      "trigger_steps": ["PREP_CUT_01"],
+      "trigger_steps": ["PREP_CUT_01", "PREP_SCORE_01"],
       "shape_match": ["würfel", "diced"],
       "patterns": {
         "de": { "m": "gewürfelter {{noun}}", "f": "gewürfelte {{noun}}" }
@@ -971,7 +982,7 @@ let activeToken = null;              // { varName, tokenId }
 
 Unterstützte Variablen-Typen (10 Sprachen: de, en, esp, prt, id, nl, sv, da, no, ms):
 
-`ingredient`, `ingredient2`, `ingredients`, `state`, `equipment`, `tool`, `duration`, `temp`, `shape`, `grind_size`, `pronoun`, `pronoun2`, `action`, `liquid`, `fat`, `base`, `marinade`, `method`, `finish`, `seasonings`, `thickener`, `count`, `mode`, `components`, `dough`, `surface`, `heat`, `extra`, `item`, `position`, `reason`, `goal`, `balance`, `keep`
+`ingredient`, `ingredient2`, `ingredients`, `state`, `equipment`, `tool`, `duration`, `temp`, `shape`, `grind_size`, `pronoun`, `pronoun2`, `action`, `liquid`, `fat`, `base`, `seasoning`, `marinade`, `method`, `finish`, `seasonings`, `thickener`, `count`, `mode`, `components`, `dough`, `surface`, `heat`, `extra`, `item`, `position`, `reason`, `goal`, `balance`, `keep`
 
 #### Fraction-Helpers (Zeile 95–189)
 
@@ -1320,9 +1331,9 @@ if (mode === "article") {
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** base, dough (zeigen Options-Chips). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
+| `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, base, seasoning, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** dough (zeigt Options-Chips). base zeigt Zutat-Chips gefiltert auf Fleisch+Gemüse (isHard\|\|isSoft). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
 | `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
-| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft. Fallback auf alle Items wenn keine Matches |
+| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, PREP_SCORE_01/PREP_TENDERIZE_01→isHard (nur Fleisch). Fallback auf alle Items wenn keine Matches |
 | `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
 | `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
 | `isStateVariable(varName)` | 1064 | Prüft: state |
@@ -1337,7 +1348,7 @@ if (mode === "article") {
 | `openInlineEditor(varName, tokenId)` | 1229 | Editor öffnen (Haupt-Funktion!) |
 | `renderPillButtons(list, mode, currentVal)` | 1344 | Pill-Buttons rendern |
 | `renderFallbackSection(varName, options, ...)` | 1327 | "Weitere anzeigen"-Bereich |
-| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). Duration-Editor hat Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`). Layout: Row 1 = Inputs, Row 2 = Unit-Chips (Minute/Stunde/Pro Packung), Row 3 = Actions (Einsetzen/Schließen). Parst Range-Werte wie "8-10" beim Öffnen. Output: "8-10 Minuten" wenn Bis-Feld gefüllt, sonst "10 Minuten". State-Editor zeigt Pronomen immer oben (wie Artikel), auch bei separatem `{{pronoun}}`-Token |
+| `renderSpecialEditor(varName, currentVal)` | 1418 | Spezial-Editor (duration/temp/count). **Duration-Editor:** Von-Bis-Range-Felder (`DurationValueInput` + `DurationValueToInput`), Unit-Chips (Minute/Stunde/Pro Packung), Output: "8-10 Minuten". **Temp-Editor:** Zahlenwert + C/F. **Count-Editor:** Einfacher Zahlenwert |
 
 #### Wert-Anwendung
 
@@ -1645,7 +1656,7 @@ window.setCreatePostingTheme(theme)   // Zeile 1284
 
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
-| `resolveGrammarForIngredient(ingredientName)` | 1382 | Genus/Artikel für Zutat bestimmen |
+| `resolveGrammarForIngredient(ingredientName)` | 1382 | Genus/Artikel für Zutat bestimmen. Fallback-Liste wenn kein Genus in DB: f=[tomate, zwiebel, paprika, karotte, kartoffel, **schulter, brust, keule**, soße, sauce], n=[salz, öl, wasser, ei, mehl, fleisch, brot], m=Standard-Fallback |
 | `getPlaceholderKeysFromTemplate(template)` | 1423 | `{{variable}}`-Namen extrahieren |
 | `getSelectedIngredientNames()` | 1434 | Namen ausgewählter Zutaten |
 | `getSelectedIngredientNamesWithArticle()` | 1443 | Namen mit Artikeln |
@@ -1989,7 +2000,7 @@ window.MasterStepCreatorHelpers = {
 **Multi-Ingredient Helpers:**
 - `normalizeIngredientValues(values)` - **NEU (2026-03-27)** Normalisiert Zutat-Array zu `{name, fraction, article}` Format
 - `formatSelectedIngredientList(names, langKey)` - **NEU (2026-03-27)** Formatiert Multi-Ingredient-Liste mit individuellen Artikeln/Fraktionen
-- `isIngredientVariable(varName)` - **NEU (2026-03-27)** Prüft ob Variable eine Zutat ist
+- `isIngredientVariable(varName)` - **NEU (2026-03-27)** Prüft ob Variable eine Zutat ist (inkl. seasoning seit 2026-04-04)
 
 **Siehe Section 19 für vollständige Dokumentation aller exportierten Funktionen.**
 
@@ -2106,7 +2117,7 @@ window.MasterStepCreatorHelpers = {
 **Workflow-Logik:**
 - **activeStep._multiIngredients**: Array `[{name, fraction, article}, ...]` speichert hinzugefügte Zutaten
 - **dataset.selectedIngredientValues**: Aktuell ausgewählte Chips (für nächstes Hinzufügen)
-- **dataset.selectedArticle**: Aktuell ausgewählter Artikel (z.B. "des", "der")
+- **dataset.selectedArticle**: Aktuell ausgewählter Artikel (z.B. "des", "der"). **FIX (2026-04-04):** Manuell gewählter Artikel überschreibt jetzt immer den Auto-Artikel aus Genus (vorher wurde Auto-Artikel nie überschrieben weil `if (!item.article)` den bereits gesetzten Auto-Wert beibehielt)
 - **dataset.selectedFraction**: Aktuell ausgewählte Fraktion (z.B. "1/2")
 - **Plus-Button Anzeige**: `isIngredient && val.trim().length > 0` (wenn Ingredient-Variable Wert hat)
 - **Chip-Deaktivierung**: Chips in `_multiIngredients` bekommen `.ingredient-chip-disabled` Klasse
@@ -2404,13 +2415,17 @@ Wenn User einen Platzhalter anklickt (z.B. {{liquid}}, {{fat}}, {{seasonings}}):
 1. openInlineEditor() oder buildInlineEditorHtml()
 2. → getSelectedIngredientsFromPage()
    → alle Zutaten mit isLiquid, isFat, isHard, isSoft, groupId
-3. → filterIngredientsByVarType(items, varName)
-   → Mapping:
+3. → filterIngredientsByVarType(items, varName, masterId)
+   → Variable-Filter:
       {{liquid}}    → item.isLiquid === true
       {{fat}}       → item.isFat === true
+      {{base}}      → item.isHard || item.isSoft (Fleisch + Gemüse)
       {{seasonings}}→ item.groupId === "5" (Gewürze)
-      {{base}} / {{dough}} / {{thickener}} → item.groupId === "8" (Grundnahrungsmittel)
+      {{thickener}} → item.groupId === "8" (Grundnahrungsmittel)
       {{ingredient}} / {{ingredients}} → kein Filter (alle)
+   → Step-spezifische Filter (bei ingredient/ingredients):
+      PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 → isHard || isSoft
+      PREP_SCORE_01/PREP_TENDERIZE_01        → isHard (nur Fleisch)
    → Rückgabe: { filtered: [...passend], rest: [...nicht passend] }
 
 4. Passende Chips: normal dargestellt

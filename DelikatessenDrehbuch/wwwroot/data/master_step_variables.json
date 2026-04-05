@@ -3255,6 +3255,61 @@
             "auflauf",
             "casserole"
           ]
+        },
+        {
+          "key": "fleisch",
+          "labels": {
+            "de": "Fleisch",
+            "en": "meat",
+            "esp": "carne",
+            "prt": "carne",
+            "id": "daging",
+            "nl": "vlees",
+            "sv": "kött",
+            "da": "kød",
+            "no": "kjøtt",
+            "ms": "daging"
+          },
+          "tags": [
+            "variable:base",
+            "value:fleisch",
+            "fleisch",
+            "meat",
+            "technique:sear",
+            "technique:roast",
+            "technique:braise",
+            "heat:dry",
+            "heat:wet",
+            "family:meat"
+          ]
+        },
+        {
+          "key": "gemuese",
+          "labels": {
+            "de": "Gemüse",
+            "en": "vegetables",
+            "esp": "verduras",
+            "prt": "legumes",
+            "id": "sayuran",
+            "nl": "groenten",
+            "sv": "grönsaker",
+            "da": "grøntsager",
+            "no": "grønnsaker",
+            "ms": "sayuran"
+          },
+          "tags": [
+            "variable:base",
+            "value:gemuese",
+            "gemüse",
+            "gemuese",
+            "vegetables",
+            "technique:sear",
+            "technique:saute",
+            "technique:blanch",
+            "heat:dry",
+            "heat:wet",
+            "family:vegetable"
+          ]
         }
       ]
     },
