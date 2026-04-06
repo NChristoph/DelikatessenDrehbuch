@@ -1075,10 +1075,13 @@
     function matchesSearch(step, query) {
         if (!query) return true;
         const q = query.toLowerCase();
+        const lang = currentLang || 'de';
         const searchText = [
             step.description || '',
             step.master_id || '',
             step.action || '',
+            step.templates?.[lang] || '',
+            step.templates?.de || '',
             ...(step.selection_tags || [])
         ].join(' ').toLowerCase();
         return searchText.includes(q);
@@ -1382,7 +1385,7 @@
 
     function isHybridIngredientVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase();
-        return key === "extra";
+        return key === "extra" || key === "base";
     }
 
     // Filters ingredient items based on the variable type (e.g. {{liquid}} → only liquids)
@@ -1896,7 +1899,7 @@
             </div>
             ` : ""}
 
-            ${ingredientVar && !hybridVar ? "" : (!ingredientVar && !showOnlyPronoun ? renderFallbackSection(showCombinedEditor ? 'state' : varName, hybridVar ? hybridOptions : options, masterId, scoringContext) : "")}
+            ${ingredientVar && !hybridVar ? "" : (hybridVar ? renderFallbackSection(varName, hybridOptions, masterId, scoringContext) : (!ingredientVar && !showOnlyPronoun ? renderFallbackSection(showCombinedEditor ? 'state' : varName, options, masterId, scoringContext) : ""))}
 
             <div class="d-flex gap-2 align-items-center mt-3 js-editor-action-row">
               <button type="button" class="btn btn-sm creator-cta-primary ${applyBtnClass}" ${applyBtnId}>Einsetzen</button>
@@ -2836,7 +2839,7 @@
 
 
     function renderFallbackSection(varName, filteredOptions, contextMasterId, context) {
-        if (isIngredientVariable(varName) || isCompactSpecialVariable(varName)) return "";
+        if ((isIngredientVariable(varName) && !isHybridIngredientVariable(varName)) || isCompactSpecialVariable(varName)) return "";
         const optionsMasterId = (contextMasterId || activeStep?.master_id || "").toString();
         const allOptions = getRawVarOptions(varName, optionsMasterId, context);
         const filteredSet = new Set((filteredOptions || []).map(normalizeOptionValue));

@@ -8,9 +8,13 @@
 > - ✅ Neuer Step PREP_SCORE_01 (Einschneiden/Einritzen, z.B. rautenförmig)
 > - ✅ Neuer Step PREP_RUB_01 (Einreiben mit Gewürzen/Öl)
 > - ✅ PREP_CUT_01 gefixt: "ein" entfernt (war fälschlich "einschneiden" statt "schneiden")
-> - ✅ COOK_SEAR_01: `{{fat}}` optional hinzugefügt, `{{base}}` als Ingredient-Variable (Fleisch+Gemüse Chips)
+> - ✅ COOK_SEAR_01: `{{fat}}` optional, `{{duration}}` + Zustandsklausel optional, `{{base}}` als Ingredient-Variable
+> - ✅ Neuer Step COOK_TRANSFER_OVEN_01 (Bräter/Auflaufform in vorgeheizten Backofen schieben)
+> - ✅ Neuer Step COOK_ARRANGE_01 (Zutaten verteilen/anordnen, z.B. Gemüse um Fleisch im Bräter)
 > - ✅ Neue Variable `seasoning` (Gewürz/Öl) — als Ingredient-Variable registriert
 > - ✅ `base`-Variable: Filter erweitert auf Fleisch + Gemüse (isHard || isSoft)
+> - ✅ `base`-Variable als Hybrid registriert: zeigt Options-Chips (Gericht, Lasagne, Fleisch, Gemüse etc.) UND Ingredient-Chips
+> - ✅ `optional_variables` Bug gefixt: String-Werte → Array konvertiert (11 Steps betroffen), Code akzeptiert jetzt beides
 > - ✅ Artikel-Bug gefixt: Manueller Artikel-Button überschreibt jetzt Auto-Artikel
 
 ---
@@ -599,13 +603,15 @@ Enthält Master-Step-Templates mit Variablen-Platzhaltern.
 8. Mixing, Dough, Coating Steps...
 
 **Braten-Preset** (`probability_template_presets.json`):
-`PREP_HEAT → PREP_SCORE → PREP_RUB → PREP_TENDERIZE → PREP_MARINATE → COOK_SEAR → COOK_ROAST → COOK_BRAISE → COOK_DEGLAZE → COOK_REDUCE → SERVE_SAUCE → FINISH_REST → FINISH_SERVE`
+`PREP_HEAT → PREP_SCORE → PREP_RUB → PREP_TENDERIZE → PREP_MARINATE → COOK_SEAR → COOK_ARRANGE → COOK_TRANSFER_OVEN → COOK_ROAST → COOK_BRAISE → COOK_DEGLAZE → COOK_REDUCE → SERVE_SAUCE → FINISH_REST → FINISH_SERVE`
 
 **Wichtige Template-Änderungen:**
 - PREP_CUT_01: "ein" entfernt — `Schneide {{ingredient}}[ in {{grind_size}}] {{shape}}.` (war fälschlich "einschneiden")
 - PREP_SCORE_01 **NEU**: `Schneide {{ingredient}} {{shape}} ein.` — Eigener Step für Einschneiden (z.B. rautenförmig)
 - PREP_RUB_01 **NEU**: `Reibe {{ingredient}} gleichmäßig mit {{seasoning}} ein.` — Einreiben mit Gewürzen/Öl
-- COOK_SEAR_01: `{{fat}}` optional — `Erhitze[ {{fat}} in] {{equipment}} auf höchster Stufe und brate {{base}} {{duration}} scharf an, bis {{pronoun}} {{state}} {{copula}}.`
+- COOK_SEAR_01: `{{fat}}`, `{{duration}}`, Zustandsklausel optional — `Erhitze[ {{fat}} in] {{equipment}} auf höchster Stufe und brate {{base}}[ {{duration}}] scharf an[, bis {{pronoun}} {{state}} {{copula}}].`
+- COOK_ARRANGE_01 **NEU**: `Verteile {{ingredient}}[ gleichmäßig] in {{equipment}}[ um {{base}} herum].` — Zutaten verteilen/anordnen
+- COOK_TRANSFER_OVEN_01 **NEU**: `Schiebe {{equipment}}[ mit {{base}}] in den auf {{temp}} vorgeheizten Backofen[ und gare {{duration}}].` — Bräter/Auflaufform in Ofen
 - PREP_PEEL_01: Tool-Teil optional — `Schäle {{ingredient}}[ mit einem {{tool}}].`
 - PREP_STUFF_01: Variablen getauscht — `Fülle {{ingredient}} gleichmäßig mit {{base}} und setze {{pronoun}} in {{equipment}}.`
 

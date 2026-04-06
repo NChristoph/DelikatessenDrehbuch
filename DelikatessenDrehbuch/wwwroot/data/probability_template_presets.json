@@ -351,6 +351,8 @@
       "PREP_TENDERIZE_01",
       "PREP_MARINATE_01",
       "COOK_SEAR_01",
+      "COOK_ARRANGE_01",
+      "COOK_TRANSFER_OVEN_01",
       "COOK_ROAST_01",
       "COOK_BRAISE_01",
       "COOK_DEGLAZE_01",

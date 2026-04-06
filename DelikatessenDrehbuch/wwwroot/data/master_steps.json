@@ -36,6 +36,8 @@
       "ms": "Simpan hanya kunci semantik stabil daripada JSON ini, jangan sekali-kali simpan id pangkalan data atau input bebas pengguna sebagai rujukan."
     },
     "changes": [
+      "Added COOK_ARRANGE_01: Arrange/distribute ingredients in equipment, optionally around a base (e.g. vegetables around meat in roasting pan). Added to braten preset.",
+      "Added COOK_TRANSFER_OVEN_01: Transfer equipment (Bräter/Auflaufform) into preheated oven. Optional base and duration variables. Added to braten preset.",
       "Added PREP_SCORE_01 (Einschneiden/Einritzen) as separate step for scoring meat surfaces (e.g. rautenförmig). Added PREP_RUB_01 (Einreiben) for rubbing meat/vegetables with seasonings/oil. Fixed PREP_CUT_01: removed trailing 'ein' from German template (was incorrectly making all cuts into 'einschneiden').",
       "Added new steps: COOK_BASTE_01 (begießen), COOK_GRILL_FINISH_01 (Kruste unter Grill), PREP_FORM_DUMPLINGS_01 (Knödel formen), COOK_SIMMER_DUMPLINGS_01 (Knödel garen).",
       "Modified PREP_CUT_01: made grind_size optional, added 'rautenförmig' shape option.",
@@ -1252,7 +1254,7 @@
         "equipment",
         "temp"
       ],
-      "optional_variables": "mode",
+      "optional_variables": ["mode"],
       "stable_taxonomy_keys": {
         "category_keys": "main"
       },
@@ -1411,7 +1413,7 @@
         "ingredient",
         "shape"
       ],
-      "optional_variables": "grind_size",
+      "optional_variables": ["grind_size"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
@@ -1518,7 +1520,7 @@
         "ingredient",
         "grind_size"
       ],
-      "optional_variables": "tool",
+      "optional_variables": ["tool"],
       "stable_taxonomy_keys": {
         "category_keys": "main"
       },
@@ -1940,7 +1942,7 @@
         "duration",
         "copula"
       ],
-      "optional_variables": "state",
+      "optional_variables": ["state"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
@@ -2281,7 +2283,7 @@
         "ingredient",
         "base"
       ],
-      "optional_variables": "goal",
+      "optional_variables": ["goal"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main"
@@ -2806,7 +2808,7 @@
         "state",
         "copula"
       ],
-      "optional_variables": "mode",
+      "optional_variables": ["mode"],
       "stable_taxonomy_keys": {
         "category_keys": "baked"
       },
@@ -3224,7 +3226,7 @@
         "ingredient",
         "base"
       ],
-      "optional_variables": "method",
+      "optional_variables": ["method"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "pan",
@@ -3746,7 +3748,7 @@
         "seasonings",
         "balance"
       ],
-      "optional_variables": "seasonings",
+      "optional_variables": ["seasonings"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "seasoning"
@@ -4090,7 +4092,7 @@
         "ingredient",
         "tool"
       ],
-      "optional_variables": "pronoun",
+      "optional_variables": ["pronoun"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "fish"
@@ -4140,7 +4142,7 @@
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": "tool",
+      "optional_variables": ["tool"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "seafood"
@@ -4255,7 +4257,7 @@
       "required_variables": [
         "ingredient"
       ],
-      "optional_variables": "action",
+      "optional_variables": ["action"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "ingredient_family_keys": "seafood"
@@ -5315,6 +5317,108 @@
       ]
     },
     {
+      "master_id": "COOK_TRANSFER_OVEN_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "transfer_oven",
+      "equipment": 4,
+      "description": "Bräter/Auflaufform in den vorgeheizten Backofen schieben",
+      "templates": {
+        "de": "Schiebe {{equipment}}[ mit {{base}}] in den auf {{temp}} vorgeheizten Backofen[ und gare {{duration}}].",
+        "en": "Place {{equipment}}[ with {{base}}] in the oven preheated to {{temp}}[ and cook for {{duration}}].",
+        "esp": "Coloca {{equipment}}[ con {{base}}] en el horno precalentado a {{temp}}[ y cocina durante {{duration}}].",
+        "prt": "Coloque {{equipment}}[ com {{base}}] no forno pré-aquecido a {{temp}}[ e cozinhe por {{duration}}].",
+        "id": "Masukkan {{equipment}}[ dengan {{base}}] ke dalam oven yang sudah dipanaskan hingga {{temp}}[ dan masak selama {{duration}}].",
+        "nl": "Schuif {{equipment}}[ met {{base}}] in de op {{temp}} voorverwarmde oven[ en gaar {{duration}}].",
+        "sv": "Skjut in {{equipment}}[ med {{base}}] i ugnen som är förvärmd till {{temp}}[ och tillaga i {{duration}}].",
+        "da": "Skub {{equipment}}[ med {{base}}] ind i ovnen, der er forvarmet til {{temp}}[, og tilbered i {{duration}}].",
+        "no": "Skyv {{equipment}}[ med {{base}}] inn i ovnen som er forvarmet til {{temp}}[ og tilbered i {{duration}}].",
+        "ms": "Masukkan {{equipment}}[ dengan {{base}}] ke dalam ketuhar yang telah dipanaskan pada {{temp}}[ dan masak selama {{duration}}]."
+      },
+      "variables": [
+        "equipment",
+        "base",
+        "temp",
+        "duration"
+      ],
+      "required_variables": [
+        "equipment",
+        "temp"
+      ],
+      "optional_variables": ["base", "duration"],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "meat"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:transfer_oven",
+        "technique:oven_roast",
+        "backofen",
+        "oven",
+        "bräter",
+        "braeter",
+        "auflaufform",
+        "casserole",
+        "einschieben",
+        "transfer",
+        "equipment_id:4",
+        "variable:equipment",
+        "variable:base",
+        "variable:temp",
+        "variable:duration",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_ARRANGE_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "arrange",
+      "equipment": 0,
+      "description": "Zutaten verteilen/anordnen (z.B. Gemüse um Fleisch im Bräter)",
+      "templates": {
+        "de": "Verteile {{ingredient}} gleichmäßig in {{equipment}}[ um {{base}} herum].",
+        "en": "Arrange {{ingredient}} evenly in {{equipment}}[ around {{base}}].",
+        "esp": "Distribuye {{ingredient}} uniformemente en {{equipment}}[ alrededor de {{base}}].",
+        "prt": "Distribua {{ingredient}} uniformemente em {{equipment}}[ ao redor de {{base}}].",
+        "id": "Tata {{ingredient}} secara merata di {{equipment}}[ mengelilingi {{base}}].",
+        "nl": "Verdeel {{ingredient}} gelijkmatig in {{equipment}}[ rondom {{base}}].",
+        "sv": "Fördela {{ingredient}} jämnt i {{equipment}}[ runt {{base}}].",
+        "da": "Fordel {{ingredient}} jævnt i {{equipment}}[ rundt om {{base}}].",
+        "no": "Fordel {{ingredient}} jevnt i {{equipment}}[ rundt {{base}}].",
+        "ms": "Susun {{ingredient}} secara rata dalam {{equipment}}[ mengelilingi {{base}}]."
+      },
+      "variables": [
+        "ingredient",
+        "equipment",
+        "base"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment"
+      ],
+      "optional_variables": ["base"],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:arrange",
+        "technique:arrange",
+        "verteilen",
+        "anordnen",
+        "arrange",
+        "distribute",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:base",
+        "sub_group:processing"
+      ]
+    },
+    {
       "master_id": "COOK_TOAST_01",
       "phase": 2,
       "sub_group": "dry_heat",
@@ -5758,7 +5862,7 @@
         "duration",
         "state"
       ],
-      "optional_variables": "coating",
+      "optional_variables": ["coating"],
       "variable_types": {},
       "stable_taxonomy_keys": {},
       "selection_tags": [

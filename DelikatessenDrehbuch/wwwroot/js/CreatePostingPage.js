@@ -868,7 +868,17 @@
             if (typeof pattern === 'string') {
                 template = pattern;
             } else {
-                const genusKey = { 'masc': 'm', 'fem': 'f', 'neut': 'n' }[normalizeGenusKey(genusRaw)] || 'm';
+                let normalizedGenus = normalizeGenusKey(genusRaw);
+                // Fallback: Genus aus bekannten Wortendungen ableiten wenn nicht gesetzt
+                if (!normalizedGenus && lang === 'de') {
+                    const lower = noun.toLowerCase();
+                    const femWords = ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'schulter', 'brust', 'keule', 'zehe', 'soße', 'sauce', 'butter', 'sahne', 'milch', 'gurke', 'birne', 'kirsche', 'pflaume', 'bohne', 'erbse', 'linse', 'nudel', 'nuss'];
+                    const neutWords = ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot', 'gemüse', 'kraut', 'pulver'];
+                    if (femWords.some(w => lower.includes(w))) normalizedGenus = 'fem';
+                    else if (neutWords.some(w => lower.includes(w))) normalizedGenus = 'neut';
+                    else normalizedGenus = 'masc';
+                }
+                const genusKey = { 'masc': 'm', 'fem': 'f', 'neut': 'n' }[normalizedGenus] || 'm';
                 template = pattern[genusKey] || pattern.m || Object.values(pattern)[0];
             }
 
@@ -2691,7 +2701,8 @@
                 }
 
                 // âœ… FIX (2026-04-02): Optionale Variablen IMMER leer lassen
-                const isOptional = Array.isArray(template?.optional_variables) && template.optional_variables.includes(key);
+                const optVars = template?.optional_variables;
+                const isOptional = optVars != null && (Array.isArray(optVars) ? optVars.includes(key) : optVars === key);
                 if (isOptional) {
                     // Optionale Variablen: IMMER leer setzen (ignoriere Defaults)
                     vars[key] = '';
