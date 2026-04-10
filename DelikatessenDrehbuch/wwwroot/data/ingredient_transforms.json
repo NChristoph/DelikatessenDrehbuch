@@ -1,5 +1,15 @@
 {
-  "version": 1,
+  "version": 2,
+  "german_adjective_endings": {
+    "_doc": "Adjektiv-Endungen nach Artikel für deutsche Adjektiv-Deklination. Wird von buildDerivedIngredientName genutzt.",
+    "die": "e",
+    "der": "en",
+    "den": "en",
+    "das": "e",
+    "dem": "en",
+    "des": "en",
+    "ohne": "er/e/es"
+  },
   "adjective_patterns": {
     "mince": {
       "trigger_steps": ["PREP_MINCE_01"],

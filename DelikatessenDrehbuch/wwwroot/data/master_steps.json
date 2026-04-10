@@ -5324,20 +5324,21 @@
       "equipment": 4,
       "description": "Bräter/Auflaufform in den vorgeheizten Backofen schieben",
       "templates": {
-        "de": "Schiebe {{equipment}}[ mit {{base}}] in den auf {{temp}} vorgeheizten Backofen[ und gare {{duration}}].",
-        "en": "Place {{equipment}}[ with {{base}}] in the oven preheated to {{temp}}[ and cook for {{duration}}].",
-        "esp": "Coloca {{equipment}}[ con {{base}}] en el horno precalentado a {{temp}}[ y cocina durante {{duration}}].",
-        "prt": "Coloque {{equipment}}[ com {{base}}] no forno pré-aquecido a {{temp}}[ e cozinhe por {{duration}}].",
-        "id": "Masukkan {{equipment}}[ dengan {{base}}] ke dalam oven yang sudah dipanaskan hingga {{temp}}[ dan masak selama {{duration}}].",
-        "nl": "Schuif {{equipment}}[ met {{base}}] in de op {{temp}} voorverwarmde oven[ en gaar {{duration}}].",
-        "sv": "Skjut in {{equipment}}[ med {{base}}] i ugnen som är förvärmd till {{temp}}[ och tillaga i {{duration}}].",
-        "da": "Skub {{equipment}}[ med {{base}}] ind i ovnen, der er forvarmet til {{temp}}[, og tilbered i {{duration}}].",
-        "no": "Skyv {{equipment}}[ med {{base}}] inn i ovnen som er forvarmet til {{temp}}[ og tilbered i {{duration}}].",
-        "ms": "Masukkan {{equipment}}[ dengan {{base}}] ke dalam ketuhar yang telah dipanaskan pada {{temp}}[ dan masak selama {{duration}}]."
+        "de": "Schiebe {{equipment}}[ mit {{base}}][ {{state}}] in den auf {{temp}} vorgeheizten Backofen[ und gare {{duration}}].",
+        "en": "Place {{equipment}}[ with {{base}}][ {{state}}] in the oven preheated to {{temp}}[ and cook for {{duration}}].",
+        "esp": "Coloca {{equipment}}[ con {{base}}][ {{state}}] en el horno precalentado a {{temp}}[ y cocina durante {{duration}}].",
+        "prt": "Coloque {{equipment}}[ com {{base}}][ {{state}}] no forno pré-aquecido a {{temp}}[ e cozinhe por {{duration}}].",
+        "id": "Masukkan {{equipment}}[ dengan {{base}}][ {{state}}] ke dalam oven yang sudah dipanaskan hingga {{temp}}[ dan masak selama {{duration}}].",
+        "nl": "Schuif {{equipment}}[ met {{base}}][ {{state}}] in de op {{temp}} voorverwarmde oven[ en gaar {{duration}}].",
+        "sv": "Skjut in {{equipment}}[ med {{base}}][ {{state}}] i ugnen som är förvärmd till {{temp}}[ och tillaga i {{duration}}].",
+        "da": "Skub {{equipment}}[ med {{base}}][ {{state}}] ind i ovnen, der er forvarmet til {{temp}}[, og tilbered i {{duration}}].",
+        "no": "Skyv {{equipment}}[ med {{base}}][ {{state}}] inn i ovnen som er forvarmet til {{temp}}[ og tilbered i {{duration}}].",
+        "ms": "Masukkan {{equipment}}[ dengan {{base}}][ {{state}}] ke dalam ketuhar yang telah dipanaskan pada {{temp}}[ dan masak selama {{duration}}]."
       },
       "variables": [
         "equipment",
         "base",
+        "state",
         "temp",
         "duration"
       ],
@@ -5345,7 +5346,7 @@
         "equipment",
         "temp"
       ],
-      "optional_variables": ["base", "duration"],
+      "optional_variables": ["base", "state", "duration"],
       "variable_types": {},
       "stable_taxonomy_keys": {
         "category_keys": "main",
@@ -5367,6 +5368,7 @@
         "equipment_id:4",
         "variable:equipment",
         "variable:base",
+        "variable:state",
         "variable:temp",
         "variable:duration",
         "sub_group:dry_heat"

@@ -856,7 +856,7 @@
             }).get().filter(x => x.id || x.name);
         }
 
-        function buildDerivedIngredientName(baseName, transformType, langKey, genusRaw) {
+        function buildDerivedIngredientName(baseName, transformType, langKey, genusRaw, article) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const noun = (baseName || '').toString().trim();
             if (!noun || !ingredientTransforms) return noun;
@@ -868,22 +868,83 @@
             if (typeof pattern === 'string') {
                 template = pattern;
             } else {
-                let normalizedGenus = normalizeGenusKey(genusRaw);
-                // Fallback: Genus aus bekannten Wortendungen ableiten wenn nicht gesetzt
-                if (!normalizedGenus && lang === 'de') {
-                    const lower = noun.toLowerCase();
-                    const femWords = ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'schulter', 'brust', 'keule', 'zehe', 'soße', 'sauce', 'butter', 'sahne', 'milch', 'gurke', 'birne', 'kirsche', 'pflaume', 'bohne', 'erbse', 'linse', 'nudel', 'nuss'];
-                    const neutWords = ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot', 'gemüse', 'kraut', 'pulver'];
-                    if (femWords.some(w => lower.includes(w))) normalizedGenus = 'fem';
-                    else if (neutWords.some(w => lower.includes(w))) normalizedGenus = 'neut';
-                    else normalizedGenus = 'masc';
+                // Wenn ein Artikel übergeben wird und Sprache Deutsch: Endung vom Artikel ableiten
+                const art = (article || '').toString().trim().toLowerCase();
+                if (lang === 'de' && art && art !== 'ohne' && pattern.m) {
+                    // Deutsche Adjektiv-Deklination mit bestimmtem Artikel:
+                    // die/das → -e, der/den/dem/des → -en
+                    const ending = (art === 'die' || art === 'das') ? 'e' : 'en';
+                    // Basis-Adjektiv aus maskulin-Form extrahieren (z.B. "geschnittener" → "geschnitten")
+                    const mTemplate = pattern.m; // z.B. "geschnittener {{noun}}"
+                    const adjMatch = mTemplate.match(/^(.*?)(er)\s*\{\{noun\}\}$/);
+                    if (adjMatch) {
+                        template = adjMatch[1] + ending + ' {{noun}}';
+                    } else {
+                        // Komplexere Muster wie "in Scheiben geschnittener {{noun}}"
+                        const complexMatch = mTemplate.match(/^(.*?)(er)\s+(\{\{noun\}\})$/);
+                        if (complexMatch) {
+                            template = complexMatch[1] + ending + ' ' + complexMatch[3];
+                        } else {
+                            // Fallback auf Genus-basiert
+                            const genusKey = getGenusKey(noun, genusRaw, lang);
+                            template = pattern[genusKey] || pattern.m || Object.values(pattern)[0];
+                        }
+                    }
+                } else {
+                    const genusKey = getGenusKey(noun, genusRaw, lang);
+                    template = pattern[genusKey] || pattern.m || Object.values(pattern)[0];
                 }
-                const genusKey = { 'masc': 'm', 'fem': 'f', 'neut': 'n' }[normalizedGenus] || 'm';
-                template = pattern[genusKey] || pattern.m || Object.values(pattern)[0];
             }
 
             return template.replace('{{noun}}', noun);
         }
+
+        function getGenusKey(noun, genusRaw, lang) {
+            let normalizedGenus = normalizeGenusKey(genusRaw);
+            if (!normalizedGenus && lang === 'de') {
+                const lower = (noun || '').toLowerCase();
+                const femWords = ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'schulter', 'brust', 'keule', 'zehe', 'soße', 'sauce', 'butter', 'sahne', 'milch', 'gurke', 'birne', 'kirsche', 'pflaume', 'bohne', 'erbse', 'linse', 'nudel', 'nuss'];
+                const neutWords = ['salz', 'öl', 'wasser', 'ei', 'mehl', 'fleisch', 'brot', 'gemüse', 'kraut', 'pulver'];
+                if (femWords.some(w => lower.includes(w))) normalizedGenus = 'fem';
+                else if (neutWords.some(w => lower.includes(w))) normalizedGenus = 'neut';
+                else normalizedGenus = 'masc';
+            }
+            return { 'masc': 'm', 'fem': 'f', 'neut': 'n' }[normalizedGenus] || 'm';
+        }
+
+        // Passt die Adjektiv-Endung eines abgeleiteten Zutatennamen an den gewählten Artikel an.
+        // z.B. "geschnittene Zwiebel" + "den" → "geschnittenen Zwiebel"
+        //      "gewürfelter Knoblauch" + "den" → "gewürfelten Knoblauch"
+        //      "in Scheiben geschnittener Lauch" + "den" → "in Scheiben geschnittenen Lauch"
+        function adjustAdjectiveEndingForArticle(derivedName, article, lang) {
+            if (!derivedName || !article || lang !== 'de') return derivedName;
+            const art = article.toLowerCase().trim();
+            if (!art || art === 'ohne') return derivedName;
+
+            // Bestimmte Artikel → schwache Deklination: die/das → -e, der/den/dem/des → -en
+            const ending = (art === 'die' || art === 'das') ? 'e' : 'en';
+
+            // Finde das letzte Adjektiv vor dem Nomen (= letztes Wort mit -er/-e/-es/-en Endung vor einem Großbuchstaben-Wort)
+            // z.B. "in Scheiben geschnittener Lauch" → "geschnittener" ist das Adjektiv
+            // z.B. "gehackte Zwiebel" → "gehackte" ist das Adjektiv
+            const words = derivedName.split(' ');
+            for (let i = words.length - 2; i >= 0; i--) {
+                const word = words[i];
+                // Adjektiv erkennen: kleingeschrieben, endet auf -er/-e/-es/-en, nächstes Wort ist Nomen (großgeschrieben)
+                const nextWord = words[i + 1];
+                if (word && nextWord && /^[a-zäöüß]/.test(word) && /^[A-ZÄÖÜ]/.test(nextWord)) {
+                    const adjMatch = word.match(/^(.+?)(er|es|en|e)$/);
+                    if (adjMatch) {
+                        words[i] = adjMatch[1] + ending;
+                        return words.join(' ');
+                    }
+                }
+            }
+            return derivedName;
+        }
+
+        // Export für SmartStepCreator
+        window.adjustAdjectiveEndingForArticle = adjustAdjectiveEndingForArticle;
 
         function getStepVariableDisplayValue(stableReference, key) {
             const vars = stableReference && stableReference.variables ? stableReference.variables : {};
@@ -1350,10 +1411,10 @@
         const profileThemeStorageKey = 'profile_theme';
         const availableCreatePostingThemes = ['color', 'black', 'white', 'rose', 'lavender'];
         const createPostingThemeMap = {
-            color: 'gold',
+            color: 'navy',
             black: 'navy',
-            white: 'gold',
-            rose: 'rosa',
+            white: 'navy',
+            rose: 'navy',
             lavender: 'navy'
         };
         const currentThema = (() => {
@@ -1425,7 +1486,7 @@
         };
 
         window.getThemeMutedTextClass = function () {
-            return window.getCreatePostingVisualTheme() === 'rosa' ? 'text-dark' : 'text-white-50';
+            return 'text-white-50';
         };
 
         function syncCreatePostingThemeToggleState() {
@@ -3801,7 +3862,10 @@
         function prepareBinding() {
             prefillUneditedStepPlaceholders();
             updateStepIndices();
-            $('.ingredient-row').each(function (i) {
+            // Remove derived/transformed rows before binding to avoid phantom entries
+            $('#selectedIngredients .ingredient-row[data-derived-row="true"]').remove();
+            $('#selectedIngredients .ingredient-transformed-display').remove();
+            $('#selectedIngredients .ingredient-row').each(function (i) {
                 $(this).find('input, select').each(function () {
                     if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
                 });
@@ -4159,10 +4223,6 @@
             window.setCreatePostingTheme(readStoredCreatePostingTheme(), { persist: false, refresh: false });
             showDraftRestoreBannerIfNeeded();
 
-            $('.creator-topbar').on('click', '[data-create-posting-theme]', function () {
-                const nextTheme = ($(this).data('create-posting-theme') || '').toString();
-                window.setCreatePostingTheme(nextTheme);
-            });
             var _ingredientSearchTimer;
             $('#ingredientSearch').on('input', function () {
                 clearTimeout(_ingredientSearchTimer);

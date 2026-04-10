@@ -18,6 +18,7 @@
                            class="step-search-input"
                            placeholder="🔍 Step suchen (z.B. 'anbraten', 'schneiden')..."
                            autocomplete="off">
+                    <button type="button" class="step-search-clear d-none" aria-label="Suche leeren">&times;</button>
                 </div>
                 <div class="phase-tabs">
                     <button type="button" class="phase-tab active" data-phase="all">Alle</button>
@@ -36,9 +37,16 @@
         // Search input handler
         $(document).on('input', '.step-search-input', function () {
             const query = $(this).val().trim();
+            $(this).siblings('.step-search-clear').toggleClass('d-none', !query);
             if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.setSearchQuery === 'function') {
                 window.MasterStepCreatorHelpers.setSearchQuery(query);
             }
+        });
+
+        // Clear search button
+        $(document).on('click', '.step-search-clear', function () {
+            const input = $(this).siblings('.step-search-input');
+            input.val('').trigger('input').focus();
         });
 
         // Phase tab click handler

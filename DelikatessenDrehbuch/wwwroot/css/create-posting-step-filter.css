@@ -13,12 +13,38 @@
 
 /* ===== Search Input ===== */
 .step-search-wrapper {
+    position: relative;
     width: 100%;
+}
+
+.step-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #f8f9ff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.2s ease;
+}
+
+.step-search-clear:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .step-search-input {
     width: 100%;
-    padding: 10px 14px;
+    padding: 10px 38px 10px 14px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.08);
@@ -107,87 +133,6 @@
 .step-filter-controls[data-theme="light"] .phase-tab.active {
     background: linear-gradient(135deg, #5b6df9 0%, #4758e8 100%);
     color: #ffffff;
-}
-
-/* ===== Theme: Rosa ===== */
-.step-filter-controls[data-theme="rosa"] {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 170, 220, 0.22);
-}
-
-.step-filter-controls[data-theme="rosa"] .step-search-input {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 170, 220, 0.3);
-    color: #ffffff;
-    text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-}
-
-.step-filter-controls[data-theme="rosa"] .step-search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-    text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-}
-
-.step-filter-controls[data-theme="rosa"] .step-search-input:focus {
-    border-color: #ff7fcf;
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 0 3px rgba(255, 127, 207, 0.25);
-}
-
-.step-filter-controls[data-theme="rosa"] .phase-tab {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 170, 220, 0.3);
-    color: #ffffff;
-    text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-}
-
-.step-filter-controls[data-theme="rosa"] .phase-tab:hover {
-    background: rgba(255, 255, 255, 0.22);
-    border-color: rgba(255, 170, 220, 0.4);
-}
-
-.step-filter-controls[data-theme="rosa"] .phase-tab.active {
-    background: linear-gradient(135deg, #ff7fcf 0%, #ff5fb8 100%);
-    border-color: rgba(255, 127, 207, 0.8);
-    box-shadow: 0 2px 8px rgba(255, 127, 207, 0.4);
-}
-
-/* ===== Theme: Gold ===== */
-.step-filter-controls[data-theme="gold"] {
-    background: rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 220, 140, 0.25);
-}
-
-.step-filter-controls[data-theme="gold"] .step-search-input {
-    background: rgba(42, 55, 86, 0.6);
-    border-color: rgba(255, 220, 140, 0.3);
-    color: #ffffff;
-}
-
-.step-filter-controls[data-theme="gold"] .step-search-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.step-filter-controls[data-theme="gold"] .step-search-input:focus {
-    border-color: #e7b95a;
-    background: rgba(42, 55, 86, 0.8);
-    box-shadow: 0 0 0 3px rgba(231, 185, 90, 0.2);
-}
-
-.step-filter-controls[data-theme="gold"] .phase-tab {
-    background: rgba(42, 55, 86, 0.6);
-    border-color: rgba(255, 220, 140, 0.3);
-    color: #ffffff;
-}
-
-.step-filter-controls[data-theme="gold"] .phase-tab:hover {
-    background: rgba(42, 55, 86, 0.8);
-    border-color: rgba(255, 220, 140, 0.4);
-}
-
-.step-filter-controls[data-theme="gold"] .phase-tab.active {
-    background: linear-gradient(135deg, #e7b95a 0%, #d39903 100%);
-    border-color: rgba(231, 185, 90, 0.8);
-    box-shadow: 0 2px 8px rgba(231, 185, 90, 0.4);
 }
 
 /* ===== Theme: Navy ===== */

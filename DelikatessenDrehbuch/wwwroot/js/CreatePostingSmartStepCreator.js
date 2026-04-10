@@ -1416,8 +1416,8 @@
             if (step === "PREP_CUT_01" || step === "PREP_GRATE_01" || step === "PREP_MINCE_01" || step === "PREP_PEEL_01") {
                 filterFn = item => item.isHard || item.isSoft;
             } else if (step === "PREP_SCORE_01" || step === "PREP_TENDERIZE_01") {
-                // Einschneiden/Klopfen: nur harte Zutaten (Fleisch)
-                filterFn = item => item.isHard;
+                // Einschneiden/Klopfen: feste Zutaten (kein Gewürz, keine Flüssigkeit, kein Fett)
+                filterFn = item => !item.isLiquid && !item.isFat && item.groupId !== "5";
             }
         }
 
@@ -1650,10 +1650,14 @@
 
                 // If no fraction, return with article if present
                 if (!itemFraction) {
+                    // Adjektiv-Endung an Artikel anpassen (z.B. "geschnittene Zwiebel" + "den" → "geschnittenen Zwiebel")
+                    const adjustedName = (typeof window.adjustAdjectiveEndingForArticle === 'function')
+                        ? window.adjustAdjectiveEndingForArticle(itemName, article, lang)
+                        : itemName;
                     if (article && article !== "ohne") {
-                        return `${article} ${itemName}`;
+                        return `${article} ${adjustedName}`;
                     }
-                    return itemName;
+                    return adjustedName;
                 }
 
                 // Find fraction definition
@@ -3516,6 +3520,13 @@
                 window.refreshMasterTemplateBuilder();
             }
 
+            // Reset current step preview after accept
+            activeStep = null;
+            if (draftEngine && typeof draftEngine.setActiveStepDraft === 'function') {
+                draftEngine.setActiveStepDraft(null);
+            }
+            renderMasterText();
+
             return;
         }
 
@@ -3525,6 +3536,13 @@
             "beforeend",
             `<div class="dynamic-item d-flex align-items-center step-row"><div class="small flex-grow-1"><span class="step-text-content">${escapeHtml(textCurrent || "Schritt")}</span></div></div>`
         );
+
+        // Reset current step preview after accept
+        activeStep = null;
+        if (draftEngine && typeof draftEngine.setActiveStepDraft === 'function') {
+            draftEngine.setActiveStepDraft(null);
+        }
+        renderMasterText();
     }
 
     // -----------------------------

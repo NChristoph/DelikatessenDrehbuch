@@ -9,7 +9,7 @@
         --creator-accent: #7c8cff;
         --creator-bg: radial-gradient(120% 120% at 10% 0%, #38418a 0%, #1a2247 45%, #0e1429 100%);
         border-radius: 24px;
-        overflow: hidden;
+        overflow: clip;
         border: 1px solid rgba(255,255,255,0.12);
         background: var(--creator-bg);
         color: var(--creator-text);
@@ -27,146 +27,6 @@
         --creator-accent: #5b6df9;
     }
 
-    /* ===== Theme: Rosa ===== */
-    .smart-step-creator[data-theme="rosa"] {
-        --creator-sheet: rgba(68, 22, 56, 0.62);
-        --creator-border: rgba(255, 170, 220, 0.22);
-        --creator-text: #111111;
-        --creator-sub: rgba(17, 17, 17, 0.72);
-        --creator-accent: #ff7fcf;
-        --creator-bg: radial-gradient(120% 120% at 10% 0%, #ff9adf 0%, #8a3f75 45%, #ff9adf 100%);
-        border-radius: 24px;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: var(--creator-bg);
-        color: var(--creator-text);
-        min-height: 76vh;
-        position: relative;
-        box-shadow: 0 18px 40px rgba(40,10,30,0.30);
-    }
-
-    .smart-step-creator[data-theme="rosa"] {
-        --creator-text: #ffffff;
-        --creator-sub: rgba(255, 255, 255, 0.92);
-    }
-
-    .smart-step-creator[data-theme="rosa"] .sheet-head *,
-    .smart-step-creator[data-theme="rosa"] .creator-preview-canvas *,
-    .smart-step-creator[data-theme="rosa"] .template-selection-wrap *,
-    .smart-step-creator[data-theme="rosa"] .ingredient-top-strip *,
-    .smart-step-creator[data-theme="rosa"] .display-name,
-    .smart-step-creator[data-theme="rosa"] .display-name-selected,
-    .smart-step-creator[data-theme="rosa"] .ingredient-row-meta,
-    .smart-step-creator[data-theme="rosa"] .template-title,
-    .smart-step-creator[data-theme="rosa"] .probability-template-card,
-    .smart-step-creator[data-theme="rosa"] .probability-template-card *,
-    .smart-step-creator[data-theme="rosa"] .ingredient-db-row .display-name,
-    .smart-step-creator[data-theme="rosa"] .ingredient-card-head .display-name,
-    .smart-step-creator[data-theme="rosa"] #sc2StoryStepCount,
-    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges,
-    .smart-step-creator[data-theme="rosa"] #insertContainer,
-    .smart-step-creator[data-theme="rosa"] #MasterText,
-    .smart-step-creator[data-theme="rosa"] #acceptedStepsRecipeText {
-        color: #fff !important;
-        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-    }
-
-    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges,
-    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityBadges *,
-    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityTemplates,
-    .smart-step-creator[data-theme="rosa"] #ingredientProbabilityTemplates *,
-    .smart-step-creator[data-theme="rosa"] #probVarIngredientChips,
-    .smart-step-creator[data-theme="rosa"] #probVarIngredientChips *,
-    .smart-step-creator[data-theme="rosa"] #masterTemplateCards,
-    .smart-step-creator[data-theme="rosa"] #masterTemplateCards *,
-    .smart-step-creator[data-theme="rosa"] #sc2MasterTemplateCards,
-    .smart-step-creator[data-theme="rosa"] #sc2MasterTemplateCards *,
-    .smart-step-creator[data-theme="rosa"] #currentStepIngredientButtons,
-    .smart-step-creator[data-theme="rosa"] #currentStepIngredientButtons *,
-    .smart-step-creator[data-theme="rosa"] #stepsIngredientButtons,
-    .smart-step-creator[data-theme="rosa"] #stepsIngredientButtons * {
-        color: #fff !important;
-        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
-    }
-
-    .smart-step-creator[data-theme="rosa"] .token-highlight,
-    .smart-step-creator[data-theme="rosa"] .placeholder-token {
-        color: #ffe08a !important;
-        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000, 0 0 16px rgba(255,208,95,.35) !important;
-        border-bottom: 1px dashed rgba(255,224,138,.75);
-    }
-
-    .smart-step-creator[data-theme="rosa"] .placeholder-token.token-active {
-        background: rgba(255,224,138,.2) !important;
-        border-radius: 8px;
-        padding: 0 4px;
-    }
-
-    .smart-step-creator[data-theme="rosa"] .placeholder-reset {
-        border: 0;
-        background: rgba(255,255,255,0.18) !important;
-        color: #fff !important;
-        text-shadow: none !important;
-        border-radius: 999px;
-        width: 16px;
-        height: 16px;
-        line-height: 16px;
-        font-size: .62rem;
-        padding: 0;
-        cursor: pointer;
-        box-shadow: 0 1px 4px rgba(0,0,0,.25);
-    }
-
-    .smart-step-creator[data-theme="rosa"] .placeholder-reset:hover {
-        background: rgba(255,255,255,0.28) !important;
-    }
-
-    .smart-step-creator[data-theme="rosa"] option {
-        color: #111 !important;
-        text-shadow: none !important;
-    }
-
-    .preview-step-card[data-theme="rosa"] {
-        background: rgba(255, 235, 245, 0.88);
-        border-color: rgba(122, 36, 96, 0.25);
-        color: #111 !important;
-    }
-
-    /* ===== Theme: Gold ===== */
-    .smart-step-creator[data-theme="gold"] {
-        --creator-sheet: linear-gradient(to right, #FDEB9E, #C68F18, #D39903);
-        --creator-border: white;
-        --creator-text: white;
-        --creator-sub: white;
-        --creator-accent: #e7b95a;
-        --creator-bg: radial-gradient(120% 120% at 10% 0%, #f0c97a 0%, #9a6b24 45%, #FDE383 100%);
-        border-radius: 24px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 220, 140, 0.25);
-        background: var(--creator-bg);
-        color: var(--creator-text);
-        position: relative;
-        box-shadow: 0 18px 40px rgba(30,20,0,0.35);
-    }
-
-    .smart-step-creator[data-theme="gold"]::before {
-        content: "";
-        position: absolute;
-        inset: -20%;
-        background: radial-gradient(circle at 20% 20%, rgba(255,215,120,0.35), transparent 60%);
-        filter: blur(40px);
-        pointer-events: none;
-        min-height: 76vh;
-    }
-
-    .preview-step-card[data-theme="gold"] {
-        background: #2a3756;
-    }
-
-    .template-card[data-theme="gold"] {
-        background: #2a3756;
-    }
-
     /* ===== Theme: Navy ===== */
     .smart-step-creator[data-theme="navy"] {
         --creator-sheet: linear-gradient(to right, #0f234d, #18366f, #1f4d92);
@@ -176,7 +36,7 @@
         --creator-accent: #79aaff;
         --creator-bg: radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);
         border-radius: 24px;
-        overflow: hidden;
+        overflow: clip;
         border: 1px solid rgba(163, 199, 255, 0.20);
         background: var(--creator-bg);
         color: var(--creator-text);
@@ -491,7 +351,7 @@
     }
 </style>
 
-<section class="smart-step-creator mt-3 mb-4" data-theme="rosa" id="card-steps" style="min-height:auto">
+<section class="smart-step-creator mt-3 mb-4" data-theme="navy" id="card-steps" style="min-height:auto">
     <div class="sheet-head creator-top-head">
         <div>
             <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps">Arbeitsschritte</div>
@@ -510,7 +370,7 @@
                 </div>
             </div>
 
-            <div id="sc2MasterPreviewCard" class="preview-step-card" data-theme="gold">
+            <div id="sc2MasterPreviewCard" class="preview-step-card" data-theme="navy">
                 <div id="MasterText" class="preview-step-text">Template auswählen.</div>
             </div>
 

@@ -76,6 +76,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     Name = posting.Title,
                     Category = posting.Recipe.Category,
                     RecipePersonCount = posting.Recipe.PersonCount,
+                    PreparationTime = posting.Recipe.PreparationTime,
                     ImagePath = uploadResult.SourceUrl
                 },
                 Querys = posting.Recipe.Preferences,
@@ -93,7 +94,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (recipe != null)
             {
                 posting.Recipe = recipe;
-                posting.Recipe.PreparationTime = 0;
             }
 
             await _context.WorldUserPosting.AddAsync(posting);
