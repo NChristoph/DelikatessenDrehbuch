@@ -2,9 +2,16 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-04 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
+> **Stand:** 2026-04-10 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
-> **Letzte Änderungen:**
+> **Letzte Änderungen (2026-04-10):**
+> - ✅ **BUGFIX: prepareBinding()** — Derived/transformed Ingredient-Rows werden vor Submit entfernt, Selektor auf `#selectedIngredients` eingeschränkt → verhindert fehlende Zutaten in DB
+> - ✅ **Theme Navy-only:** Theme-Switcher entfernt, alle Themes auf Navy vereinheitlicht
+> - ✅ **Adjektiv-Deklination:** Neue Funktion `adjustAdjectiveEndingForArticle()` — Endungen passen sich automatisch an Artikel an (z.B. "geschnittene Zwiebel" + "den" → "geschnittenen Zwiebel")
+> - ✅ **SmartStepCreator Reset:** `activeStep = null` + `renderMasterText()` nach Accept
+> - ✅ **Filter PREP_SCORE_01/TENDERIZE_01:** Geändert von `isHard` auf `!isLiquid && !isFat && groupId !== "5"`
+>
+> **Vorherige Änderungen (2026-04-04):**
 > - ✅ Neuer Step PREP_SCORE_01 (Einschneiden/Einritzen, z.B. rautenförmig)
 > - ✅ Neuer Step PREP_RUB_01 (Einreiben mit Gewürzen/Öl)
 > - ✅ PREP_CUT_01 gefixt: "ein" entfernt (war fälschlich "einschneiden" statt "schneiden")
@@ -323,7 +330,7 @@ SelectedKeywordIds[i] → int
     <input type="hidden" name="userHash" value="..." />
 
     <!-- ══════ SECTION 1: Basics (card-basics) ══════ -->
-    <section class="creator-card" data-theme="gold" id="card-basics">
+    <section class="creator-card" data-theme="navy" id="card-basics">
       <!-- Titel Input:        asp-for="Title" -->
       <!-- Kategorie Select:   asp-for="Recipe.Category" -->
       <!--   Options: Appetizer, Main, Dessert -->
@@ -334,7 +341,7 @@ SelectedKeywordIds[i] → int
     </section>
 
     <!-- ══════ SECTION 2: Media (card-media) ══════ -->
-    <section class="creator-card" data-theme="gold" id="card-media">
+    <section class="creator-card" data-theme="navy" id="card-media">
       <!-- Video/Bild Vorschau: #videoPreviewContainer -->
       <!-- Image Preview:       #imagePreview -->
       <!-- Video Preview:       #videoPreview -->
@@ -379,7 +386,7 @@ SelectedKeywordIds[i] → int
     -->
 
     <!-- ══════ SECTION 6: Keywords (card-keywords) ══════ -->
-    <section class="creator-card" data-theme="gold" id="card-keywords">
+    <section class="creator-card" data-theme="navy" id="card-keywords">
       <!-- Keyword-Buttons:     .keyword-btn (Mehrfachauswahl) -->
       <!-- Ausgewählt:          #selectedKeywords -->
     </section>
@@ -404,7 +411,7 @@ SelectedKeywordIds[i] → int
 
   <!-- Vorschau-Canvas -->
   <div class="creator-preview-canvas" id="sc2MasterPreviewCanvas">
-    <div class="preview-step-card" data-theme="gold" id="sc2MasterPreviewCard">
+    <div class="preview-step-card" data-theme="navy" id="sc2MasterPreviewCard">
       <div class="preview-step-text" id="MasterText">Template auswählen.</div>
     </div>
     <div id="InlineVarEditorHost"></div>     <!-- Inline-Editor Container -->
@@ -1339,7 +1346,7 @@ if (mode === "article") {
 |----------|-------|-------------|
 | `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, base, seasoning, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** dough (zeigt Options-Chips). base zeigt Zutat-Chips gefiltert auf Fleisch+Gemüse (isHard\|\|isSoft). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
 | `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
-| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, PREP_SCORE_01/PREP_TENDERIZE_01→isHard (nur Fleisch). Fallback auf alle Items wenn keine Matches |
+| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, **PREP_SCORE_01/PREP_TENDERIZE_01→!isLiquid && !isFat && groupId !== "5" (2026-04-10)**. Fallback auf alle Items wenn keine Matches |
 | `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
 | `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
 | `isStateVariable(varName)` | 1064 | Prüft: state |
@@ -1621,7 +1628,9 @@ openProbVarInlineEditor(masterId, varName, composed, onApply, token);
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `getBaseSandboxIngredients()` | 767 | Basis-Zutaten (nicht abgeleitet). Liefert `namesByLang`, `genusByLang`, `groupId`, `isLiquid`, `isFat`, `isHard`, `isSoft` |
-| `buildDerivedIngredientName(base, adjective)` | 810 | Abgeleitete Adjektiv-Form erstellen |
+| `buildDerivedIngredientName(base, transformType, langKey, genusRaw, article)` | 810 | **UPDATED (2026-04-10):** Abgeleitete Adjektiv-Form erstellen. Neuer `article`-Parameter: wenn Artikel übergeben wird (DE), leitet Adjektiv-Endung direkt vom Artikel ab (die/das→-e, der/den/dem/des→-en) statt Genus-basiert |
+| `getGenusKey(noun, genusRaw, lang)` | ~880 | **NEU (2026-04-10):** Extrahierte Hilfsfunktion für Genus-Bestimmung (masc/fem/neut→m/f/n) mit Fallback-Listen |
+| `adjustAdjectiveEndingForArticle(derivedName, article, lang)` | ~900 | **NEU (2026-04-10):** Passt Adjektiv-Endung eines abgeleiteten Namens an den gewählten Artikel an. Findet letztes Adjektiv vor Nomen und ersetzt Endung. Export via `window.adjustAdjectiveEndingForArticle` |
 | `getStepVariableDisplayValue(step, varName)` | 829 | Variablenwert aus Step-Metadaten |
 | `resolveCutTransformationType(step)` | 835 | Schnitt-Form aus Step-Variablen erkennen |
 | `matchesWholeWord(name, term)` | ~926 | Wortgrenzen-Match per Regex. Verhindert false-positives z.B. "ei" in "Rindfleisch" |
@@ -1941,11 +1950,11 @@ window.MasterStepCreatorHelpers = {
 
 | Theme | data-theme | Beschreibung |
 |-------|-----------|-------------|
-| Dark (Default) | `data-theme="dark"` | Dunkler Hintergrund, weiße Schrift |
-| Light | `data-theme="light"` | Heller Hintergrund, dunkle Schrift |
-| Rosa | `data-theme="rosa"` | Rosa Gradient, text-shadow für Kontrast |
-| Gold | `data-theme="gold"` | Gold Gradient mit Navy-Blue Inputs |
-| Navy | `data-theme="navy"` | Navy Blue mit hellblauem Accent |
+| Navy (Default) | `data-theme="navy"` | Navy Blue mit hellblauem Accent — **einziges Theme seit 2026-04-10** |
+| Dark | `data-theme="dark"` | Dunkler Hintergrund, weiße Schrift (CSS vorhanden, nicht mehr wählbar) |
+| Light | `data-theme="light"` | Heller Hintergrund, dunkle Schrift (CSS vorhanden, nicht mehr wählbar) |
+| Rosa | `data-theme="rosa"` | Rosa Gradient (CSS vorhanden, nicht mehr wählbar) |
+| Gold | `data-theme="gold"` | Gold Gradient (CSS vorhanden, nicht mehr wählbar) |
 
 **Responsive Breakpoints:**
 - `@media (max-width: 576px)` - Mobile: kleinere Tabs, kleineres Suchfeld
@@ -2027,7 +2036,8 @@ window.MasterStepCreatorHelpers = {
 |----------|--------|-------------|
 | `window.getCreatePostingTheme()` | CreatePostingPage.js:1235 | Theme-Name |
 | `window.getCreatePostingVisualTheme()` | CreatePostingPage.js:1239 | Visuelles Theme |
-| `window.getThemeMutedTextClass()` | CreatePostingPage.js:1243 | CSS-Klasse für gedämpften Text |
+| `window.getThemeMutedTextClass()` | CreatePostingPage.js:1243 | CSS-Klasse für gedämpften Text — **gibt immer `text-white-50` zurück (seit Navy-only)** |
+| `window.adjustAdjectiveEndingForArticle(name, article, lang)` | CreatePostingPage.js | **NEU (2026-04-10):** Passt Adjektiv-Endung an Artikel an (z.B. "geschnittene Zwiebel" + "den" → "geschnittenen Zwiebel") |
 | `window.setCreatePostingTheme(theme)` | CreatePostingPage.js:1284 | Theme setzen + persistieren |
 | `window.addStep(id, btn, text, options)` | CreatePostingPage.js:3390 | Step hinzufügen |
 | `window.removeStep(btn)` | CreatePostingPage.js:3472 | Step entfernen |
@@ -2045,7 +2055,7 @@ window.MasterStepCreatorHelpers = {
 
 | Event | Selektor | Zeile (Page.js) | Beschreibung |
 |-------|----------|-----------------|-------------|
-| click | `[data-create-posting-theme]` | ~3938 | Theme wechseln |
+| ~~click~~ | ~~`[data-create-posting-theme]`~~ | ~~~3938~~ | ~~Theme wechseln~~ — **ENTFERNT (2026-04-10):** Theme-Switcher-Buttons entfernt |
 
 ### Zutat-Suche
 
@@ -2431,7 +2441,7 @@ Wenn User einen Platzhalter anklickt (z.B. {{liquid}}, {{fat}}, {{seasonings}}):
       {{ingredient}} / {{ingredients}} → kein Filter (alle)
    → Step-spezifische Filter (bei ingredient/ingredients):
       PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 → isHard || isSoft
-      PREP_SCORE_01/PREP_TENDERIZE_01        → isHard (nur Fleisch)
+      PREP_SCORE_01/PREP_TENDERIZE_01        → !isLiquid && !isFat && groupId !== "5" (feste Zutaten, kein Gewürz/Flüssigkeit/Fett)
    → Rückgabe: { filtered: [...passend], rest: [...nicht passend] }
 
 4. Passende Chips: normal dargestellt
@@ -2521,9 +2531,9 @@ Gruppen-IDs: 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst,
   - `{{hard}}` → filtert nur Zutaten mit `is_hard = true`
   - `{{soft}}` → filtert nur Zutaten mit `is_soft = true`
 
-- ✅ **Step-spezifischer Filter:**
-  - `{{ingredient}}` bei `PREP_TENDERIZE_01` (Klopfen/Plattieren) → nur `is_hard = true`
-  - Betrifft: Fleisch, Schnitzel, etc. die geklopft werden können
+- ✅ **Step-spezifischer Filter (UPDATED 2026-04-10):**
+  - `{{ingredient}}` bei `PREP_SCORE_01/PREP_TENDERIZE_01` → `!isLiquid && !isFat && groupId !== "5"` (feste Zutaten, keine Gewürze/Flüssigkeiten/Fette)
+  - Betrifft: Fleisch, Gemüse, etc. die eingeschnitten/geklopft werden können
 
 - ✅ **Fallback entfernt:**
   - Zeigt nun leere Liste bei 0 Filter-Treffern (statt alle Zutaten anzuzeigen)
@@ -3274,5 +3284,111 @@ if (typeof window.refreshMasterTemplateBuilder === "function") {
 
 ---
 
-> **Letzte Aktualisierung:** 2026-03-28
-> **Geänderte Dateien:** 1 (CreatePostingSmartStepCreator.js)
+---
+
+## 2026-04-10: Theme Navy-only, Adjektiv-Deklination, prepareBinding-Bugfix, SmartStepCreator Fixes
+
+### 1. BUGFIX: prepareBinding() — Fehlende Zutaten beim Speichern
+
+**Problem:**
+Beim Submit des CreatePosting-Formulars kamen nicht alle Zutaten in der Datenbank an. Ursache:
+- **Derived Rows** (`data-derived-row="true"`) und **transformed-display Rows** (`.ingredient-transformed-display`) wurden beim Re-Indexing mitgezählt
+- Der Selektor `$('.ingredient-row')` fand ALLE `.ingredient-row`-Elemente auf der Seite, nicht nur die im `#selectedIngredients`-Container
+- Dadurch wurde die Index-Nummerierung der Form-Felder durcheinander gebracht
+
+**Lösung (CreatePostingPage.js, Zeile 3862-3872):**
+```javascript
+function prepareBinding() {
+    prefillUneditedStepPlaceholders();
+    updateStepIndices();
+    // ✅ NEU: Derived/transformed Rows vor Binding entfernen
+    $('#selectedIngredients .ingredient-row[data-derived-row="true"]').remove();
+    $('#selectedIngredients .ingredient-transformed-display').remove();
+    // ✅ NEU: Selektor auf #selectedIngredients eingeschränkt
+    $('#selectedIngredients .ingredient-row').each(function (i) {
+        $(this).find('input, select').each(function () {
+            if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+        });
+    });
+    // ... Steps + Quantities wie bisher
+}
+```
+
+### 2. Theme Navy-only
+
+**Änderungen:**
+- Theme-Switcher-Buttons (Navy/Rosa/Gold) aus `CreatePosting.cshtml` **entfernt**
+- Alle `data-theme="gold"` auf `data-theme="navy"` geändert
+- `createPostingThemeMap`: Alle Profile-Themes mappen jetzt auf `navy`
+- `getThemeMutedTextClass()`: Gibt immer `text-white-50` zurück (kein Rosa-Sonderfall mehr)
+- Event-Listener `[data-create-posting-theme]` entfernt
+
+**Betroffene Dateien:**
+| Datei | Änderungen |
+|-------|------------|
+| CreatePosting.cshtml | Theme-Switcher entfernt, alle data-theme="navy" |
+| CreatePostingPage.js | ThemeMap vereinfacht, getThemeMutedTextClass() |
+
+### 3. Adjektiv-Deklination mit Artikel
+
+**Neue Funktionen in CreatePostingPage.js:**
+
+| Funktion | Beschreibung |
+|----------|-------------|
+| `getGenusKey(noun, genusRaw, lang)` | Genus-Bestimmung extrahiert aus `buildDerivedIngredientName` |
+| `adjustAdjectiveEndingForArticle(derivedName, article, lang)` | Passt Adjektiv-Endung an Artikel an |
+
+**Logik:**
+- Deutsche Adjektiv-Deklination mit bestimmtem Artikel (schwache Deklination)
+- `die`/`das` → Endung `-e` (z.B. "geschnittene Zwiebel")
+- `der`/`den`/`dem`/`des` → Endung `-en` (z.B. "geschnittenen Knoblauch")
+- Findet letztes Adjektiv vor Nomen (kleingeschrieben vor Großbuchstabe)
+- Ersetzt Endung `-er`/`-es`/`-en`/`-e` durch korrekte Form
+
+**Export:** `window.adjustAdjectiveEndingForArticle` — wird auch in SmartStepCreator verwendet
+
+**Integration in SmartStepCreator (Zeile 1650-1660):**
+```javascript
+// In buildIngredientDisplay(): Adjektiv-Endung an Artikel anpassen
+const adjustedName = (typeof window.adjustAdjectiveEndingForArticle === 'function')
+    ? window.adjustAdjectiveEndingForArticle(itemName, article, lang)
+    : itemName;
+```
+
+### 4. SmartStepCreator: Reset nach Accept
+
+**Problem:** Nach dem Akzeptieren eines Steps blieb `activeStep` gesetzt, was zu unerwartetem Verhalten führen konnte.
+
+**Lösung (CreatePostingSmartStepCreator.js, an 2 Stellen in acceptActiveStep()):**
+```javascript
+// Reset current step preview after accept
+activeStep = null;
+if (draftEngine && typeof draftEngine.setActiveStepDraft === 'function') {
+    draftEngine.setActiveStepDraft(null);
+}
+renderMasterText();
+```
+
+### 5. Filter PREP_SCORE_01/PREP_TENDERIZE_01 geändert
+
+**Vorher:** `item => item.isHard` (nur Fleisch)
+**Nachher:** `item => !item.isLiquid && !item.isFat && item.groupId !== "5"` (feste Zutaten, kein Gewürz/Flüssigkeit/Fett)
+
+### Betroffene Dateien (gesamt):
+
+| Datei | Änderungen |
+|-------|------------|
+| **CreatePosting.cshtml** | Theme-Switcher entfernt, data-theme="navy", ~560 Zeilen weniger |
+| **_SmartStepCreatorPartial.cshtml** | Aufgeräumt, ~148 Zeilen weniger |
+| **create-posting-step-filter.css** | Aufgeräumt, ~109 Zeilen weniger |
+| **CreatePostingPage.js** | prepareBinding-Fix, Adjektiv-Deklination, Theme-Umbau, ~102 Zeilen mehr |
+| **CreatePostingSmartStepCreator.js** | Reset nach Accept, Filter geändert, Adjektiv-Integration |
+| **ingredient_transforms.json** | Anpassungen |
+| **master_steps.json** | Anpassungen |
+| **create-posting-step-filter-ui.js** | Erweiterungen |
+| **RecipeController.cs** | Minor Fix |
+
+---
+
+> **Letzte Aktualisierung:** 2026-04-10
+> **Geänderte Dateien:** 9
