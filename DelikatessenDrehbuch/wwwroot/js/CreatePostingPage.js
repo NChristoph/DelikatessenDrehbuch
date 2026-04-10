@@ -4215,13 +4215,106 @@
             }
         }
 
+        // =========================================================
+        // Edit-Mode: pre-populate form with existing recipe data
+        // =========================================================
+        function initEditMode(data) {
+            if (!data || !data.editData) return;
+            var ed = data.editData;
+
+            // 1. Basic fields
+            if (ed.title) $('[name="Title"]').val(ed.title);
+            if (ed.category) $('[name="Recipe.Category"]').val(ed.category);
+            if (ed.preferences) $('[name="Recipe.Preferences"]').val(ed.preferences);
+            if (ed.personCount) $('[name="Recipe.PersonCount"]').val(ed.personCount);
+            if (ed.preparationTime) $('[name="Recipe.PreparationTime"]').val(ed.preparationTime);
+
+            // 2. Current media preview
+            if (ed.currentImageUrl) {
+                var imgEl = document.getElementById('editCurrentImage');
+                if (imgEl) imgEl.src = ed.currentImageUrl;
+            }
+
+            // 3. Ingredients: find catalog row, set qty/unit, call addIngredient
+            if (data.ingredients && data.ingredients.length) {
+                data.ingredients.forEach(function (ing) {
+                    var row = $('#ingredientsCatalog .ingredient-db-row[data-ingredient-id="' + ing.id + '"]');
+                    if (!row.length) return;
+
+                    // Set quantity on the catalog row
+                    if (ing.quantity) {
+                        row.attr('data-selected-qty', ing.quantity);
+                        row.find('.js-db-qty').val(ing.quantity);
+                    }
+
+                    // Set measure unit on the catalog row
+                    if (ing.measureDe) {
+                        row.attr('data-selected-unit', ing.measureDe);
+                        row.find('.js-db-unit').val(ing.measureDe);
+                    }
+
+                    addIngredient(ing.id.toString(), row[0]);
+                });
+            }
+
+            // 4. Keywords: find button, call toggleKeyword
+            if (data.keywordIds && data.keywordIds.length) {
+                data.keywordIds.forEach(function (kwId) {
+                    var btn = $('.keyword-btn[data-keyword-id="' + kwId + '"]');
+                    if (btn.length) {
+                        toggleKeyword(kwId.toString(), btn[0]);
+                    }
+                });
+            }
+
+            // 5. Steps: add each step to selectedSteps
+            if (data.steps && data.steps.length) {
+                data.steps.forEach(function (step) {
+                    var stepData = {
+                        de: step.stepDe || '',
+                        en: step.stepEn || '',
+                        esp: step.stepEsp || '',
+                        prt: step.stepPrt || '',
+                        phase: step.phase || 0,
+                        equipment: step.equipment || 0
+                    };
+                    var stepId = step.preparationStepId || ('edit_' + step.stepIndex);
+                    addStep(stepId, null, null, { stepData: stepData });
+                });
+            }
+
+            // 6. Smart steps: restore probability states + add step rows
+            if (data.smartSteps && data.smartSteps.length) {
+                data.smartSteps.forEach(function (ss) {
+                    var masterId = ss.masterStepKey;
+                    if (!masterId) return;
+
+                    // Parse variables and restore into probability state
+                    try {
+                        var vars = typeof ss.variablesJson === 'string' ? JSON.parse(ss.variablesJson) : (ss.variablesJson || {});
+                        var draft = ensureProbabilityDraftState(masterId);
+                        if (draft && vars) {
+                            Object.keys(vars).forEach(function (k) {
+                                draft.values[k] = vars[k];
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('[initEditMode] Could not parse smart step variables for', masterId, e);
+                    }
+                });
+            }
+        }
+
         $(document).ready(function () {
             const token = sessionStorage.getItem('UserToken') || localStorage.getItem('UserToken');
             if (token) $('#hiddenUserTokenField').val(token);
 
+            var isEditMode = !!window.CreatePostingEditData;
 
             window.setCreatePostingTheme(readStoredCreatePostingTheme(), { persist: false, refresh: false });
-            showDraftRestoreBannerIfNeeded();
+            if (!isEditMode) {
+                showDraftRestoreBannerIfNeeded();
+            }
 
             var _ingredientSearchTimer;
             $('#ingredientSearch').on('input', function () {
@@ -4243,19 +4336,21 @@
                 clearCreatePostingDraft();
                 $('#draftRestoreBanner').addClass('d-none');
             });
-            $('#recipeForm').on('input change', 'input, textarea, select', function () {
-                scheduleCreatePostingDraftSave();
-            });
-            $('#recipeForm').on('submit', function () {
-                persistCreatePostingDraftNow();
-            });
-            $(window).on('pagehide beforeunload', function () {
-                persistCreatePostingDraftNow();
-            });
-            if (!createPostingDraftAutosaveHandle) {
-                createPostingDraftAutosaveHandle = window.setInterval(function () {
+            if (!isEditMode) {
+                $('#recipeForm').on('input change', 'input, textarea, select', function () {
+                    scheduleCreatePostingDraftSave();
+                });
+                $('#recipeForm').on('submit', function () {
                     persistCreatePostingDraftNow();
-                }, 8000);
+                });
+                $(window).on('pagehide beforeunload', function () {
+                    persistCreatePostingDraftNow();
+                });
+                if (!createPostingDraftAutosaveHandle) {
+                    createPostingDraftAutosaveHandle = window.setInterval(function () {
+                        persistCreatePostingDraftNow();
+                    }, 8000);
+                }
             }
             refreshIngredientProbabilityHints();
 
@@ -5551,6 +5646,11 @@
             });
 
             // Page fully ready Ã¢â€ â€™ hide overlay, show content
+            // Edit-mode: pre-populate form with existing data
+            if (window.CreatePostingEditData) {
+                initEditMode(window.CreatePostingEditData);
+            }
+
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
         });

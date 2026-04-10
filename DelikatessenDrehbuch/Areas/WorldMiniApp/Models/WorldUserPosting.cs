@@ -12,6 +12,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string ThumbnailUrl { get; set; }
         public string Title { get; set; }
         
+        public bool IsOffline { get; set; }
         public DateTime CreationTime { get; set; } = DateTime.Now;
 
         [NotMapped]

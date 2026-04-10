@@ -7,6 +7,7 @@
 
     bool isOrb = Model.User.IsVerified == "orb"
         || Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+    bool isAdmin = Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
 
     var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
     string T(string de, string en, string es, string pt) => language switch
@@ -383,6 +384,55 @@
             background: rgba(0, 0, 0, 0.75);
         }
 
+    .grid-action-bar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 2;
+    }
+
+    .grid-action-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .grid-action-btn.edit { background: rgba(0, 0, 0, 0.55); }
+    .grid-action-btn.edit:hover { background: rgba(0, 0, 0, 0.75); }
+    .grid-action-btn.offline { background: rgba(255, 165, 0, 0.75); }
+    .grid-action-btn.offline:hover { background: rgba(255, 140, 0, 0.9); }
+    .grid-action-btn.delete { background: rgba(220, 53, 69, 0.75); }
+    .grid-action-btn.delete:hover { background: rgba(200, 35, 51, 0.9); }
+
+    .grid-item.is-offline {
+        opacity: 0.45;
+    }
+
+    .grid-offline-badge {
+        position: absolute;
+        bottom: 30px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.65rem;
+        font-weight: 900;
+        color: #fff;
+        background: rgba(255, 165, 0, 0.8);
+        padding: 3px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
     /* --- Buttons & Utilities --- */
     .btn-action {
         background: var(--deli-primary);
@@ -710,14 +760,45 @@
                 <div class="video-grid">
                     @foreach (var posting in Model.MyVideos)
                     {
-                        <div class="grid-item shadow-sm" onclick="openFeed('myvideos', @posting.Recipe.Id)">
-                            <a class="grid-edit-link"
-                               href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = posting.Id })"
-                               onclick="event.stopPropagation();"
-                               title="@T("Rezept bearbeiten", "Edit recipe", "Editar receta", "Editar receita")">
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
+                        <div class="grid-item shadow-sm @(posting.IsOffline ? "is-offline" : "")" onclick="openFeed('myvideos', @posting.Recipe.Id)">
+                            <div class="grid-action-bar" onclick="event.stopPropagation();">
+                                <a class="grid-action-btn edit"
+                                   href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = posting.Id })"
+                                   title="@T("Bearbeiten", "Edit", "Editar", "Editar")">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                @if (!posting.IsOffline)
+                                {
+                                    <form method="post" action="@Url.Action("SetPostingOffline", "Feed", new { area = "WorldMiniApp" })"
+                                          onsubmit="return confirm('@T("Posting offline nehmen?", "Take posting offline?", "¿Desconectar publicación?", "Colocar publicação offline?").Replace("'", "\\'")') ;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="postingId" value="@posting.Id" />
+                                        <input type="hidden" name="userHash" value="@Model.User.UserHash" />
+                                        <button type="submit" class="grid-action-btn offline"
+                                                title="@T("Offline nehmen", "Take offline", "Desconectar", "Colocar offline")">
+                                            <i class="bi bi-eye-slash-fill"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (isAdmin)
+                                {
+                                    <form method="post" action="@Url.Action("DeletePosting", "Home", new { area = "WorldMiniApp" })"
+                                          onsubmit="return confirm('@T("Posting ENDGÜLTIG löschen? Alle Daten werden entfernt!", "Permanently DELETE this posting? All data will be removed!", "¿Eliminar publicación PERMANENTEMENTE?", "Apagar publicação PERMANENTEMENTE?").Replace("'", "\\'")') ;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="postingId" value="@posting.Id" />
+                                        <input type="hidden" name="userHash" value="@Model.User.UserHash" />
+                                        <button type="submit" class="grid-action-btn delete"
+                                                title="@T("Endgültig löschen", "Delete permanently", "Eliminar", "Apagar")">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
                             <img src="@(string.IsNullOrEmpty(posting.ThumbnailUrl) ? posting.Source : posting.ThumbnailUrl)" class="grid-img">
+                            @if (posting.IsOffline)
+                            {
+                                <div class="grid-offline-badge">OFFLINE</div>
+                            }
                             <div class="grid-overlay"><i class="bi bi-camera-reels"></i></div>
                         </div>
                     }

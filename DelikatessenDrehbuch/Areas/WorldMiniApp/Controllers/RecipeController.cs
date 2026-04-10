@@ -148,57 +148,74 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Forbid();
             }
 
-            var model = new EditPostingRecipeViewModel
+            // Same model as Upload() action
+            var model = new WorldUserPosting()
             {
-                PostingId = posting.Id,
-                RecipeId = posting.Recipe.Id,
-                Title = posting.Title,
-                Category = posting.Recipe.Category,
-                Preferences = posting.Recipe.Preferences,
-                PersonCount = posting.Recipe.PersonCount,
-                PreparationTime = posting.Recipe.PreparationTime,
-                CurrentImageUrl = posting.ThumbnailUrl ?? posting.Source,
-                Ingredients = posting.Recipe.Ingredients?
-                    .Where(x => x.Ingredient?.IngredientsAndNutrients != null && x.Ingredient?.Measure != null)
-                    .Select(x => new EditPostingIngredientRowViewModel
-                    {
-                        IngredientId = x.Ingredient.IngredientsAndNutrients.Id,
-                        MeasureId = x.Ingredient.Measure.Id,
-                        Quantity = x.Ingredient.Quantity?.Quantitys ?? 0
-                    })
-                    .ToList() ?? new List<EditPostingIngredientRowViewModel>(),
-                Steps = posting.Recipe.Steps?
-                    .OrderBy(s => s.StepIndex)
-                    .Where(s => s.RecipePreparationStep != null)
-                    .Select(s => new EditPostingStepRowViewModel
-                    {
-                        PreparationStepId = s.RecipePreparationStep.Id,
-                        StepIndex = s.StepIndex
-                    })
-                    .ToList() ?? new List<EditPostingStepRowViewModel>(),
-                ExistingSmartSteps = posting.Recipe.SmartSteps?
-                    .OrderBy(ss => ss.StepIndex)
-                    .Select(ss => new EditPostingSmartStepViewModel
-                    {
-                        MasterStepKey = ss.SmartRecipeStep.MasterStepKey,
-                        VariablesJson = ss.SmartRecipeStep.VariablesJson,
-                        StepIndex = ss.StepIndex
-                    })
-                    .ToList() ?? new List<EditPostingSmartStepViewModel>(),
-                SelectedKeywordIds = posting.Recipe.RecipeKeywords?
-                    .Select(k => k.KeywordId)
-                    .ToList() ?? new List<int>(),
-                AvailableIngredients = await _context.IngredientsAndNutrients.OrderBy(x => x.Name_DE).ToListAsync(),
-                AvailableMeasures = await _context.Metrics.OrderBy(x => x.Metrics_DE).ToListAsync(),
-                AvailableSteps = await _context.RecipePreparationSteps.ToListAsync(),
-                AvailableKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync(),
-                IngredientStepJoins = await _context.JoinIngredientPreparationStep
-                    .Include(x => x.Preparation)
-                    .Include(x => x.Ingredient)
-                    .ToListAsync()
+                ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.Include(x => x.Group).ToListAsync(),
+                Measure = await _context.Metrics.ToListAsync(),
+                ToSelectKeywords = await _context.Keywords.OrderBy(k => k.Word_DE).ToListAsync()
             };
 
-            return View("~/Areas/WorldMiniApp/Views/Home/EditRecipe.cshtml", model);
+            ViewData["IsEditMode"] = true;
+            ViewData["PostingId"] = posting.Id;
+            ViewData["RecipeId"] = posting.Recipe.Id;
+
+            var editData = new
+            {
+                title = posting.Title ?? "",
+                category = posting.Recipe.Category ?? "",
+                preferences = posting.Recipe.Preferences ?? "",
+                personCount = posting.Recipe.PersonCount,
+                preparationTime = posting.Recipe.PreparationTime,
+                currentImageUrl = posting.ThumbnailUrl ?? posting.Source ?? ""
+            };
+            ViewData["EditData"] = JsonSerializer.Serialize(editData);
+
+            var editIngredients = (posting.Recipe.Ingredients ?? Enumerable.Empty<RecipeJoinIngredientMeasureQuantity>())
+                .Where(x => x.Ingredient?.IngredientsAndNutrients != null && x.Ingredient?.Measure != null)
+                .Select(x => new
+                {
+                    id = x.Ingredient.IngredientsAndNutrients.Id,
+                    quantity = x.Ingredient.Quantity?.Quantitys ?? 0,
+                    measureDe = x.Ingredient.Measure.Metrics_DE ?? ""
+                })
+                .ToList();
+            ViewData["EditIngredients"] = JsonSerializer.Serialize(editIngredients);
+
+            var editKeywordIds = (posting.Recipe.RecipeKeywords ?? Enumerable.Empty<RecipeBaseKeyword>())
+                .Select(k => k.KeywordId)
+                .ToList();
+            ViewData["EditKeywordIds"] = JsonSerializer.Serialize(editKeywordIds);
+
+            var editSteps = (posting.Recipe.Steps ?? Enumerable.Empty<RecipeJoinPreparationSteps>())
+                .OrderBy(s => s.StepIndex)
+                .Where(s => s.RecipePreparationStep != null)
+                .Select(s => new
+                {
+                    preparationStepId = s.RecipePreparationStep.Id,
+                    stepIndex = s.StepIndex,
+                    stepDe = s.RecipePreparationStep.Step_DE ?? "",
+                    stepEn = s.RecipePreparationStep.Step_EN ?? "",
+                    stepEsp = s.RecipePreparationStep.Step_ESP ?? "",
+                    stepPrt = s.RecipePreparationStep.Step_PRT ?? "",
+                    phase = s.RecipePreparationStep.Phase,
+                    equipment = s.RecipePreparationStep.Equipment
+                })
+                .ToList();
+            ViewData["EditSteps"] = JsonSerializer.Serialize(editSteps);
+
+            var editSmartSteps = (posting.Recipe.SmartSteps ?? Enumerable.Empty<RecipeJoinSmartStep>())
+                .OrderBy(ss => ss.StepIndex)
+                .Select(ss => new
+                {
+                    masterStepKey = ss.SmartRecipeStep.MasterStepKey ?? "",
+                    variablesJson = ss.SmartRecipeStep.VariablesJson ?? "{}",
+                    stepIndex = ss.StepIndex
+                })
+                .ToList();
+            ViewData["EditSmartSteps"] = JsonSerializer.Serialize(editSmartSteps);
+
+            return View("~/Areas/WorldMiniApp/Views/Home/CreatePosting.cshtml", model);
         }
 
         [HttpPost]
@@ -250,255 +267,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { id = step.Id, reused = false });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateRecipe(EditPostingRecipeViewModel model, string userHash)
-        {
-            userHash = ResolveUserHash(userHash);
-            if (string.IsNullOrWhiteSpace(userHash))
-            {
-                return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
-            }
-
-            var postingToEdit = await _context.WorldUserPosting
-                .Include(x => x.Recipe)
-                    .ThenInclude(r => r.Ingredients)
-                        .ThenInclude(link => link.Ingredient)
-                            .ThenInclude(i => i.Quantity)
-                .Include(x => x.Recipe)
-                    .ThenInclude(r => r.Images)
-                .FirstOrDefaultAsync(x => x.Id == model.PostingId);
-
-            if (postingToEdit == null || postingToEdit.Recipe == null)
-            {
-                return NotFound();
-            }
-
-            if (!string.Equals(postingToEdit.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
-            {
-                return Forbid();
-            }
-
-            postingToEdit.Title = string.IsNullOrWhiteSpace(model.Title) ? postingToEdit.Title : model.Title.Trim();
-            postingToEdit.Recipe.Title = postingToEdit.Title;
-            postingToEdit.Recipe.Category = model.Category ?? postingToEdit.Recipe.Category;
-            postingToEdit.Recipe.Preferences = model.Preferences ?? postingToEdit.Recipe.Preferences;
-            postingToEdit.Recipe.PersonCount = model.PersonCount;
-            postingToEdit.Recipe.PreparationTime = model.PreparationTime;
-
-            var existingJoinEntries = postingToEdit.Recipe.Ingredients?.ToList() ?? new List<RecipeJoinIngredientMeasureQuantity>();
-
-            if (existingJoinEntries.Any())
-            {
-                _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
-                await _context.SaveChangesAsync();
-            }
-
-            var parsedRows = ExtractIngredientRowsFromRequest(model, Request.Form);
-            var cleanedRows = parsedRows
-                .Where(x => x.IngredientId > 0 && x.MeasureId > 0 && x.Quantity > 0)
-                .ToList();
-
-            var ingredientIds = cleanedRows.Select(x => x.IngredientId).Distinct().ToList();
-            var measureIds = cleanedRows.Select(x => x.MeasureId).Distinct().ToList();
-
-            var ingredientsById = await _context.IngredientsAndNutrients
-                .Where(x => ingredientIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id);
-
-            var measuresById = await _context.Metrics
-                .Where(x => measureIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id);
-
-            foreach (var row in cleanedRows)
-            {
-                if (!ingredientsById.TryGetValue(row.IngredientId, out var ingredient))
-                {
-                    continue;
-                }
-
-                if (!measuresById.TryGetValue(row.MeasureId, out var measure))
-                {
-                    continue;
-                }
-
-                var quantity = new Quantity { Quantitys = row.Quantity };
-                var ingredientMeasureQuantity = new IngredientMeasureQuantity
-                {
-                    IngredientsAndNutrients = ingredient,
-                    Measure = measure,
-                    Quantity = quantity
-                };
-
-                var join = new RecipeJoinIngredientMeasureQuantity
-                {
-                    Recipe = postingToEdit.Recipe,
-                    Ingredient = ingredientMeasureQuantity
-                };
-
-                await _context.Quantities.AddAsync(quantity);
-                await _context.IngredientMeasureQuantity.AddAsync(ingredientMeasureQuantity);
-                await _context.RecipeJoinIngredientMeasureQuantity.AddAsync(join);
-            }
-
-            if (model.NewContent != null && model.NewContent.Length > 0)
-            {
-                var uploadResult = await _blobUpload.UploadContentToBlob(model.NewContent);
-                postingToEdit.Source = uploadResult.SourceUrl;
-                postingToEdit.ThumbnailUrl = uploadResult.ThumbnailUrl;
-
-                var recipeImage = postingToEdit.Recipe.Images?.FirstOrDefault(x => x.WorldAppImage)
-                                 ?? postingToEdit.Recipe.Images?.FirstOrDefault();
-
-                if (recipeImage == null)
-                {
-                    recipeImage = new RecipeBaseDataImage
-                    {
-                        Recipe = postingToEdit.Recipe,
-                        Image = uploadResult.SourceUrl,
-                        WorldAppImage = true
-                    };
-                    await _context.RecipeBaseDataImage.AddAsync(recipeImage);
-                }
-                else
-                {
-                    recipeImage.Image = uploadResult.SourceUrl;
-                    recipeImage.WorldAppImage = true;
-                }
-            }
-
-            // Update steps — only if step form fields are present
-            var parsedSteps = ExtractStepRowsFromRequest(Request.Form);
-            if (Request.Form.Keys.Any(k => k.StartsWith("Steps[", StringComparison.OrdinalIgnoreCase)))
-            {
-                var existingSteps = await _context.RecipeJoinPreparationSteps
-                    .Where(s => s.Recipe.Id == postingToEdit.Recipe.Id)
-                    .ToListAsync();
-                _context.RecipeJoinPreparationSteps.RemoveRange(existingSteps);
-
-                var stepIds = parsedSteps.Where(s => s.PreparationStepId > 0).Select(s => s.PreparationStepId).ToList();
-                var stepEntities = await _context.RecipePreparationSteps
-                    .Where(s => stepIds.Contains(s.Id))
-                    .ToDictionaryAsync(s => s.Id);
-
-                foreach (var stepRow in parsedSteps.Where(s => s.PreparationStepId > 0))
-                {
-                    if (!stepEntities.TryGetValue(stepRow.PreparationStepId, out var stepEntity)) continue;
-
-                    var stepJoin = new RecipeJoinPreparationSteps
-                    {
-                        Recipe = postingToEdit.Recipe,
-                        RecipePreparationStep = stepEntity,
-                        StepIndex = stepRow.StepIndex
-                    };
-                    await _context.RecipeJoinPreparationSteps.AddAsync(stepJoin);
-                }
-            }
-
-            // Update keywords — only if keyword form fields are present
-            var parsedKeywordIds = ExtractKeywordIdsFromRequest(Request.Form);
-            if (parsedKeywordIds.Any())
-            {
-                var existingKeywords = await _context.RecipeBaseKeywords
-                    .Where(k => k.RecipeBaseDataId == postingToEdit.Recipe.Id)
-                    .ToListAsync();
-                _context.RecipeBaseKeywords.RemoveRange(existingKeywords);
-
-                var keywordLinks = parsedKeywordIds
-                    .Distinct()
-                    .Select(keywordId => new RecipeBaseKeyword
-                    {
-                        RecipeBaseDataId = postingToEdit.Recipe.Id,
-                        KeywordId = keywordId
-                    })
-                    .ToList();
-                await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
-            }
-
-            // Update smart steps — only if smart step form fields are present
-            if (Request.Form.Keys.Any(k => k.StartsWith("SmartStepReferences[", StringComparison.OrdinalIgnoreCase)))
-            {
-                var existingSmartSteps = await _context.RecipeJoinSmartStep
-                    .Where(ss => ss.RecipeId == postingToEdit.Recipe.Id)
-                    .ToListAsync();
-                _context.RecipeJoinSmartStep.RemoveRange(existingSmartSteps);
-
-                var parsedSmartSteps = ExtractCreatePostingSmartStepsFromRequest(Request.Form);
-                foreach (var stepRef in parsedSmartSteps)
-                {
-                    var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
-
-                    var existingSmartStep = await _context.SmartRecipeStep
-                        .FirstOrDefaultAsync(x =>
-                            x.MasterStepKey == stepRef.MasterStepKey &&
-                            x.VariablesJson == parsed.variablesJson &&
-                            x.Phase == parsed.phase &&
-                            x.Equipment == parsed.equipment);
-
-                    var smartStep = existingSmartStep;
-                    if (smartStep == null)
-                    {
-                        smartStep = new SmartRecipeStep
-                        {
-                            MasterStepKey = stepRef.MasterStepKey,
-                            VariablesJson = parsed.variablesJson,
-                            Phase = parsed.phase,
-                            Equipment = parsed.equipment
-                        };
-                        await _context.SmartRecipeStep.AddAsync(smartStep);
-                    }
-
-                    var join = new RecipeJoinSmartStep
-                    {
-                        Recipe = postingToEdit.Recipe,
-                        SmartRecipeStep = smartStep,
-                        StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
-                    };
-                    await _context.RecipeJoinSmartStep.AddAsync(join);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
-        }
-
-        private static List<EditPostingIngredientRowViewModel> ExtractIngredientRowsFromRequest(EditPostingRecipeViewModel model, IFormCollection form)
-        {
-            var fallback = model.Ingredients ?? new List<EditPostingIngredientRowViewModel>();
-            var result = new List<EditPostingIngredientRowViewModel>();
-
-            for (var i = 0; ; i++)
-            {
-                var ingredientKey = $"Ingredients[{i}].IngredientId";
-                var measureKey = $"Ingredients[{i}].MeasureId";
-                var quantityKey = $"Ingredients[{i}].Quantity";
-
-                if (!form.ContainsKey(ingredientKey) && !form.ContainsKey(measureKey) && !form.ContainsKey(quantityKey))
-                {
-                    break;
-                }
-
-                _ = int.TryParse(form[ingredientKey].FirstOrDefault(), out var ingredientId);
-                _ = int.TryParse(form[measureKey].FirstOrDefault(), out var measureId);
-
-                var rawQuantity = (form[quantityKey].FirstOrDefault() ?? string.Empty).Trim();
-                var normalizedQuantity = rawQuantity.Replace(" ", string.Empty).Replace(",", ".");
-
-                var quantityParsed = double.TryParse(normalizedQuantity, NumberStyles.Any, CultureInfo.InvariantCulture, out var quantity)
-                                     || double.TryParse(rawQuantity, NumberStyles.Any, CultureInfo.CurrentCulture, out quantity);
-
-                result.Add(new EditPostingIngredientRowViewModel
-                {
-                    IngredientId = ingredientId,
-                    MeasureId = measureId,
-                    Quantity = quantityParsed ? quantity : 0
-                });
-            }
-
-            return result.Any() ? result : fallback;
         }
 
         private static List<RecipeJoinPreparationSteps> ExtractCreatePostingStepsFromRequest(IFormCollection form)
@@ -597,32 +365,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return result;
         }
 
-        private static List<EditPostingStepRowViewModel> ExtractStepRowsFromRequest(IFormCollection form)
-        {
-            var result = new List<EditPostingStepRowViewModel>();
-            for (var i = 0; ; i++)
-            {
-                var stepIdKey = $"Steps[{i}].PreparationStepId";
-                var indexKey = $"Steps[{i}].StepIndex";
-
-                if (!form.ContainsKey(stepIdKey))
-                    break;
-
-                _ = int.TryParse(form[stepIdKey].FirstOrDefault(), out var stepId);
-                _ = int.TryParse(form[indexKey].FirstOrDefault(), out var stepIndex);
-
-                if (stepId > 0)
-                {
-                    result.Add(new EditPostingStepRowViewModel
-                    {
-                        PreparationStepId = stepId,
-                        StepIndex = stepIndex > 0 ? stepIndex : i + 1
-                    });
-                }
-            }
-            return result;
-        }
-
         private static List<int> ExtractKeywordIdsFromRequest(IFormCollection form)
         {
             var result = new List<int>();
@@ -676,6 +418,308 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 return ("{}", null, null);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRecipeFromCreateForm(WorldUserPosting posting, string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
+            }
+
+            if (!int.TryParse(Request.Form["EditPostingId"].FirstOrDefault(), out var postingId) || postingId <= 0)
+            {
+                return BadRequest("Missing PostingId.");
+            }
+            _ = int.TryParse(Request.Form["EditRecipeId"].FirstOrDefault(), out var recipeId);
+
+            var postingToEdit = await _context.WorldUserPosting
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Ingredients)
+                        .ThenInclude(link => link.Ingredient)
+                            .ThenInclude(i => i.Quantity)
+                .Include(x => x.Recipe)
+                    .ThenInclude(r => r.Images)
+                .FirstOrDefaultAsync(x => x.Id == postingId);
+
+            if (postingToEdit == null || postingToEdit.Recipe == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(postingToEdit.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            // Update basic recipe properties
+            var newTitle = (posting.Title ?? "").Trim();
+            postingToEdit.Title = string.IsNullOrWhiteSpace(newTitle) ? postingToEdit.Title : newTitle;
+            postingToEdit.Recipe.Title = postingToEdit.Title;
+            postingToEdit.Recipe.Category = posting.Recipe?.Category ?? postingToEdit.Recipe.Category;
+            postingToEdit.Recipe.Preferences = posting.Recipe?.Preferences ?? postingToEdit.Recipe.Preferences;
+            postingToEdit.Recipe.PersonCount = posting.Recipe?.PersonCount ?? postingToEdit.Recipe.PersonCount;
+            postingToEdit.Recipe.PreparationTime = posting.Recipe?.PreparationTime ?? postingToEdit.Recipe.PreparationTime;
+
+            // Remove existing ingredients
+            var existingJoinEntries = postingToEdit.Recipe.Ingredients?.ToList() ?? new List<RecipeJoinIngredientMeasureQuantity>();
+            if (existingJoinEntries.Any())
+            {
+                _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
+                await _context.SaveChangesAsync();
+            }
+
+            // Extract ingredients from CreatePosting format: IngredientMeasureQuantity[i]
+            var form = Request.Form;
+            for (var i = 0; ; i++)
+            {
+                var ingredientIdKey = $"IngredientMeasureQuantity[{i}].IngredientsAndNutrients.Id";
+                var quantityKey = $"IngredientMeasureQuantity[{i}].Quantity.Quantitys";
+                var measureDeKey = $"IngredientMeasureQuantity[{i}].Measure.Metrics_DE";
+
+                if (!form.ContainsKey(ingredientIdKey))
+                    break;
+
+                _ = int.TryParse(form[ingredientIdKey].FirstOrDefault(), out var ingredientId);
+                if (ingredientId <= 0) continue;
+
+                var rawQty = (form[quantityKey].FirstOrDefault() ?? "0").Trim().Replace(",", ".");
+                _ = double.TryParse(rawQty, NumberStyles.Any, CultureInfo.InvariantCulture, out var qty);
+                if (qty <= 0) continue;
+
+                var measureDe = (form[measureDeKey].FirstOrDefault() ?? "").Trim();
+
+                var ingredient = await _context.IngredientsAndNutrients.FindAsync(ingredientId);
+                if (ingredient == null) continue;
+
+                var measure = await _context.Metrics.FirstOrDefaultAsync(m => m.Metrics_DE == measureDe);
+                if (measure == null) continue;
+
+                var quantity = new Quantity { Quantitys = qty };
+                var imq = new IngredientMeasureQuantity
+                {
+                    IngredientsAndNutrients = ingredient,
+                    Measure = measure,
+                    Quantity = quantity
+                };
+                var join = new RecipeJoinIngredientMeasureQuantity
+                {
+                    Recipe = postingToEdit.Recipe,
+                    Ingredient = imq
+                };
+
+                await _context.Quantities.AddAsync(quantity);
+                await _context.IngredientMeasureQuantity.AddAsync(imq);
+                await _context.RecipeJoinIngredientMeasureQuantity.AddAsync(join);
+            }
+
+            // Handle new content (image/video upload) - optional in edit mode
+            if (posting.Content != null && posting.Content.Length > 0)
+            {
+                var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
+                postingToEdit.Source = uploadResult.SourceUrl;
+                postingToEdit.ThumbnailUrl = uploadResult.ThumbnailUrl;
+
+                var recipeImage = postingToEdit.Recipe.Images?.FirstOrDefault(x => x.WorldAppImage)
+                                 ?? postingToEdit.Recipe.Images?.FirstOrDefault();
+                if (recipeImage == null)
+                {
+                    recipeImage = new RecipeBaseDataImage
+                    {
+                        Recipe = postingToEdit.Recipe,
+                        Image = uploadResult.SourceUrl,
+                        WorldAppImage = true
+                    };
+                    await _context.RecipeBaseDataImage.AddAsync(recipeImage);
+                }
+                else
+                {
+                    recipeImage.Image = uploadResult.SourceUrl;
+                    recipeImage.WorldAppImage = true;
+                }
+            }
+
+            // Update steps (CreatePosting format: RecipePreperationSteps[i])
+            var parsedSteps = ExtractCreatePostingStepsFromRequest(form);
+            if (parsedSteps.Any())
+            {
+                var existingSteps = await _context.RecipeJoinPreparationSteps
+                    .Where(s => s.Recipe.Id == postingToEdit.Recipe.Id)
+                    .ToListAsync();
+                _context.RecipeJoinPreparationSteps.RemoveRange(existingSteps);
+
+                foreach (var stepJoin in parsedSteps)
+                {
+                    RecipePreparationSteps stepEntity;
+                    if (stepJoin.PreparationStepId > 0)
+                    {
+                        stepEntity = await _context.RecipePreparationSteps.FindAsync(stepJoin.PreparationStepId);
+                        if (stepEntity == null) continue;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(stepJoin.RecipePreparationStep?.Step_DE)
+                          || !string.IsNullOrWhiteSpace(stepJoin.RecipePreparationStep?.Step_EN))
+                    {
+                        stepEntity = stepJoin.RecipePreparationStep;
+                        await _context.RecipePreparationSteps.AddAsync(stepEntity);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    var newJoin = new RecipeJoinPreparationSteps
+                    {
+                        Recipe = postingToEdit.Recipe,
+                        RecipePreparationStep = stepEntity,
+                        StepIndex = stepJoin.StepIndex > 0 ? stepJoin.StepIndex : 1
+                    };
+                    await _context.RecipeJoinPreparationSteps.AddAsync(newJoin);
+                }
+            }
+
+            // Update keywords
+            var parsedKeywordIds = ExtractKeywordIdsFromRequest(form);
+            {
+                var existingKeywords = await _context.RecipeBaseKeywords
+                    .Where(k => k.RecipeBaseDataId == postingToEdit.Recipe.Id)
+                    .ToListAsync();
+                _context.RecipeBaseKeywords.RemoveRange(existingKeywords);
+
+                if (parsedKeywordIds.Any())
+                {
+                    var keywordLinks = parsedKeywordIds
+                        .Distinct()
+                        .Select(keywordId => new RecipeBaseKeyword
+                        {
+                            RecipeBaseDataId = postingToEdit.Recipe.Id,
+                            KeywordId = keywordId
+                        })
+                        .ToList();
+                    await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+                }
+            }
+
+            // Update smart steps (same format as CreatePosting)
+            var parsedSmartSteps = ExtractCreatePostingSmartStepsFromRequest(form);
+            if (parsedSmartSteps.Any() || form.Keys.Any(k => k.StartsWith("SmartStepReferences[", StringComparison.OrdinalIgnoreCase)))
+            {
+                var existingSmartSteps = await _context.RecipeJoinSmartStep
+                    .Where(ss => ss.RecipeId == postingToEdit.Recipe.Id)
+                    .ToListAsync();
+                _context.RecipeJoinSmartStep.RemoveRange(existingSmartSteps);
+
+                foreach (var stepRef in parsedSmartSteps)
+                {
+                    var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
+
+                    var existingSmartStep = await _context.SmartRecipeStep
+                        .FirstOrDefaultAsync(x =>
+                            x.MasterStepKey == stepRef.MasterStepKey &&
+                            x.VariablesJson == parsed.variablesJson &&
+                            x.Phase == parsed.phase &&
+                            x.Equipment == parsed.equipment);
+
+                    var smartStep = existingSmartStep;
+                    if (smartStep == null)
+                    {
+                        smartStep = new SmartRecipeStep
+                        {
+                            MasterStepKey = stepRef.MasterStepKey,
+                            VariablesJson = parsed.variablesJson,
+                            Phase = parsed.phase,
+                            Equipment = parsed.equipment
+                        };
+                        await _context.SmartRecipeStep.AddAsync(smartStep);
+                    }
+
+                    var smartJoin = new RecipeJoinSmartStep
+                    {
+                        Recipe = postingToEdit.Recipe,
+                        SmartRecipeStep = smartStep,
+                        StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
+                    };
+                    await _context.RecipeJoinSmartStep.AddAsync(smartJoin);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePosting([FromForm] int postingId, [FromForm] string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (userHash != SuperUserHash)
+            {
+                return Forbid();
+            }
+
+            var posting = await _context.WorldUserPosting
+                .Include(p => p.Recipe)
+                    .ThenInclude(r => r.Ingredients)
+                        .ThenInclude(j => j.Ingredient)
+                            .ThenInclude(i => i.Quantity)
+                .Include(p => p.Recipe)
+                    .ThenInclude(r => r.Steps)
+                .Include(p => p.Recipe)
+                    .ThenInclude(r => r.SmartSteps)
+                .Include(p => p.Recipe)
+                    .ThenInclude(r => r.RecipeKeywords)
+                .Include(p => p.Recipe)
+                    .ThenInclude(r => r.Images)
+                .FirstOrDefaultAsync(p => p.Id == postingId);
+
+            if (posting == null)
+            {
+                return NotFound();
+            }
+
+            if (posting.Recipe != null)
+            {
+                var likes = await _context.WorldUserLike
+                    .Where(l => l.Recipe.Id == posting.Recipe.Id)
+                    .ToListAsync();
+                _context.WorldUserLike.RemoveRange(likes);
+
+                if (posting.Recipe.RecipeKeywords != null)
+                    _context.RecipeBaseKeywords.RemoveRange(posting.Recipe.RecipeKeywords);
+
+                if (posting.Recipe.SmartSteps != null)
+                    _context.RecipeJoinSmartStep.RemoveRange(posting.Recipe.SmartSteps);
+
+                if (posting.Recipe.Steps != null)
+                    _context.RecipeJoinPreparationSteps.RemoveRange(posting.Recipe.Steps);
+
+                if (posting.Recipe.Images != null)
+                    _context.RecipeBaseDataImage.RemoveRange(posting.Recipe.Images);
+
+                if (posting.Recipe.Ingredients != null)
+                {
+                    foreach (var join in posting.Recipe.Ingredients)
+                    {
+                        if (join.Ingredient?.Quantity != null)
+                            _context.Quantities.Remove(join.Ingredient.Quantity);
+                        if (join.Ingredient != null)
+                            _context.IngredientMeasureQuantity.Remove(join.Ingredient);
+                    }
+                    _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(posting.Recipe.Ingredients);
+                }
+
+                _context.RecipeBaseData.Remove(posting.Recipe);
+            }
+
+            _context.WorldUserPosting.Remove(posting);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Admin deleted posting {PostingId} by creator {CreatorId}.", postingId, posting.CreatorId);
+
+            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
         }
 
         private bool TryConsumeUploadSlot(string userHash, out TimeSpan? retryAfter)

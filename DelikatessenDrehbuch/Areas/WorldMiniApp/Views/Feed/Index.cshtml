@@ -57,20 +57,27 @@
             height: 100vh;
             width: 100vw;
             overflow-y: scroll;
-            overflow-x: hidden;
+            overflow-x: clip;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
         }
 
         .feed-sections {
-            width: 200vw;
+            width: 300vw;
             height: 100vh;
             display: flex;
+            transform: translateX(-100vw);
             transition: transform 0.35s ease;
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+
+        .feed-sections.section-creator {
+            transform: translateX(0);
         }
 
         .feed-sections.section-marketplace {
-            transform: translateX(-100vw);
+            transform: translateX(-200vw);
         }
 
         .feed-section {
@@ -999,10 +1006,46 @@
 
         .section-pill {
             opacity: 0.55;
+            cursor: pointer;
         }
 
         .section-pill.active {
             opacity: 1;
+        }
+
+        .creator-feed-panel {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            background: #000;
+            color: #fff;
+        }
+
+        .creator-feed-header {
+            position: absolute;
+            top: 60px;
+            left: 16px;
+            z-index: 6;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.15);
+            pointer-events: none;
+        }
+
+        .creator-feed-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            opacity: 0.6;
+            font-size: 0.95rem;
+            gap: 8px;
         }
 
     </style>
@@ -1011,13 +1054,25 @@
     @Html.AntiForgeryToken()
 
     <div class="section-switch-hint" id="sectionSwitchHint">
-        <span class="section-pill active" data-section-pill="feed">Feed</span>
+        <span class="section-pill" data-section-pill="creator" onclick="setSection('creator')">Creator</span>
         <i class="bi bi-arrow-left-right"></i>
-        <span class="section-pill" data-section-pill="marketplace">Marktplatz</span>
+        <span class="section-pill active" data-section-pill="feed" onclick="setSection('feed')">Feed</span>
+        <i class="bi bi-arrow-left-right"></i>
+        <span class="section-pill" data-section-pill="marketplace" onclick="setSection('marketplace')">Marktplatz</span>
     </div>
 
     <div class="feed-container" id="feedContainer">
         <div class="feed-sections" id="feedSections">
+            <section class="feed-section" id="creatorFeedSection">
+                <div class="creator-feed-panel" id="creatorFeedPanel">
+                    <div class="creator-feed-header" id="creatorFeedHeader">@T("Rezepte von", "Recipes by", "Recetas de", "Receitas de") <span id="creatorFeedName">Creator</span></div>
+                    <div id="creatorFeedItems"></div>
+                    <div class="creator-feed-empty" id="creatorFeedEmpty" style="display:none;">
+                        <i class="bi bi-camera-video fs-2"></i>
+                        <div>@T("Keine Rezepte gefunden", "No recipes found", "No se encontraron recetas", "Nenhuma receita encontrada")</div>
+                    </div>
+                </div>
+            </section>
             <section class="feed-section" id="feedSection">
         @foreach (var item in Model)
         {
@@ -1411,19 +1466,60 @@
             });
         }
 
+        let savedFeedScrollTop = 0;
+
         function setSection(section) {
             const sections = document.getElementById('feedSections');
             if (!sections) return;
-            activeSection = section === 'marketplace' ? 'marketplace' : 'feed';
-            sections.classList.toggle('section-marketplace', activeSection === 'marketplace');
-            if (activeSection === 'marketplace') {
-                syncMarketplaceToCurrentFeedItem();
+
+            const feedContainer = document.getElementById('feedContainer');
+
+            // Capture creator context BEFORE transform changes (elementFromPoint needs items on-screen)
+            const feedCreatorContext = (activeSection === 'feed') ? getCurrentFeedCreatorContext() : null;
+
+            // Save feed scroll position when leaving feed
+            if (activeSection === 'feed' && section !== 'feed' && feedContainer) {
+                savedFeedScrollTop = feedContainer.scrollTop;
             }
+
+            // Pause creator feed videos when leaving creator section
+            if (activeSection === 'creator' && section !== 'creator') {
+                document.querySelectorAll('#creatorFeedItems .feed-item video').forEach(v => v.pause());
+            }
+
+            activeSection = (section === 'marketplace' || section === 'creator') ? section : 'feed';
+
+            // Disable scroll-snap temporarily so the browser doesn't fight our scrollTop change
+            if (feedContainer) {
+                feedContainer.style.scrollSnapType = 'none';
+                feedContainer.style.scrollBehavior = 'auto';
+                feedContainer.scrollTop = (activeSection === 'feed') ? savedFeedScrollTop : 0;
+            }
+
+            sections.classList.remove('section-creator', 'section-marketplace');
+
+            if (activeSection === 'creator') {
+                sections.classList.add('section-creator');
+                loadCreatorFeedForCurrentItem(feedCreatorContext);
+            } else if (activeSection === 'marketplace') {
+                sections.classList.add('section-marketplace');
+                if (feedCreatorContext) updateMarketplaceForCreator(feedCreatorContext);
+            }
+
+            // Re-enable scroll-snap after transition completes
+            if (feedContainer) {
+                setTimeout(() => {
+                    feedContainer.style.scrollBehavior = '';
+                    feedContainer.style.scrollSnapType = '';
+                }, 400);
+            }
+
             updateSectionPills();
         }
 
         function switchSection() {
-            setSection(activeSection === 'feed' ? 'marketplace' : 'feed');
+            if (activeSection === 'feed') setSection('marketplace');
+            else setSection('feed');
         }
 
         function openSearchModal() {
@@ -2459,11 +2555,14 @@
 
                 if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
-                if (deltaX < 0) {
-                    syncMarketplaceToCurrentFeedItem();
-                    setSection('marketplace');
+                if (deltaX > 0) {
+                    // Finger nach rechts
+                    if (activeSection === 'marketplace') setSection('feed');
+                    else if (activeSection === 'feed') setSection('creator');
                 } else {
-                    setSection('feed');
+                    // Finger nach links
+                    if (activeSection === 'creator') setSection('feed');
+                    else if (activeSection === 'feed') setSection('marketplace');
                 }
             }, { passive: true });
         })();
@@ -2589,6 +2688,148 @@
                 bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfügbar.</p>';
             } catch (e) {
                 bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
+            }
+        }
+
+        // ----------------- Creator Feed -----------------
+        let creatorFeedCache = { creatorHash: null, loaded: false };
+
+        const creatorObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const container = entry.target;
+                const video = container.querySelector('video');
+                if (entry.isIntersecting) {
+                    if (video) {
+                        video.muted = isGlobalMuted;
+                        updateSoundIcon(container, isGlobalMuted);
+                        video.play().catch(() => {});
+                        container.classList.remove('paused');
+                    }
+                } else {
+                    if (video) video.pause();
+                }
+            });
+        }, { threshold: 0.6 });
+
+        function buildCreatorFeedItemHtml(item) {
+            const isVideo = item.source && item.source.endsWith('.mp4');
+            const thumbOrSource = item.thumbnailUrl || item.source;
+            const prepLabel = item.prepTime ? `${item.prepTime} min` : '';
+            const safeTitle = escapeHtml(item.title || '');
+            const safeCreatorName = escapeHtml(item.creatorName || '');
+
+            let mediaHtml;
+            if (isVideo) {
+                mediaHtml = `
+                    <video class="feed-media" playsinline loop muted preload="metadata" poster="${thumbOrSource}">
+                        <source src="${item.source}" type="video/mp4">
+                    </video>
+                    <i class="bi bi-play-fill play-icon-overlay"></i>
+                    <div class="sound-toggle" onclick="toggleGlobalSound(this)">
+                        <i class="bi bi-volume-mute-fill"></i>
+                    </div>`;
+            } else {
+                mediaHtml = `<img class="feed-media" src="${item.source}" alt="${safeTitle}" loading="lazy" />`;
+            }
+
+            return `
+                <div class="feed-item" data-id="${item.recipeId}" data-posting-id="${item.postingId}" data-creator-id="${item.creatorId}" data-creator-name="${safeCreatorName}">
+                    ${mediaHtml}
+                    <div class="overlay-gradient"></div>
+                    <i class="bi bi-heart-fill double-tap-heart"></i>
+                    <div class="info-container">
+                        <div class="chef-badge">
+                            <span class="chef-name">${safeCreatorName}</span>
+                        </div>
+                        <div class="recipe-title">${safeTitle}</div>
+                        <div class="recipe-meta">${prepLabel}</div>
+                    </div>
+                    <div class="action-bar">
+                        <div class="action-btn heart-btn" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
+                            <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
+                        </div>
+                        <div class="action-btn" onclick="openPlanModal('${item.recipeId}', '${safeTitle}', '${thumbOrSource}')">
+                            <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
+                            <span class="action-label">Plan</span>
+                        </div>
+                        <div class="action-btn">
+                            <a href="/WorldMiniApp/Home/ShowRecipe/${item.recipeId}" class="add-btn text-decoration-none">
+                                <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function attachCreatorFeedHandlers() {
+            const container = document.getElementById('creatorFeedItems');
+            if (!container) return;
+
+            container.querySelectorAll('.feed-item').forEach(item => {
+                creatorObserver.observe(item);
+
+                let lastTap = 0;
+                let tapTimeout = null;
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('.action-btn') || e.target.closest('.sound-toggle') || e.target.closest('.chef-badge')) return;
+                    const now = Date.now();
+                    const tapLen = now - lastTap;
+                    if (tapLen < 300 && tapLen > 0) {
+                        clearTimeout(tapTimeout);
+                        triggerLike(this);
+                        lastTap = 0;
+                    } else {
+                        lastTap = now;
+                        tapTimeout = setTimeout(() => togglePlayPause(this), 300);
+                    }
+                });
+            });
+        }
+
+        async function loadCreatorFeedForCurrentItem(preContext) {
+            const context = preContext || getCurrentFeedCreatorContext();
+            if (!context) return;
+
+            const { creatorHash, creatorName } = context;
+
+            // Update header
+            const nameEl = document.getElementById('creatorFeedName');
+            if (nameEl) nameEl.textContent = creatorName || 'Creator';
+
+            // Cache check: skip reload if same creator
+            if (creatorFeedCache.creatorHash === creatorHash && creatorFeedCache.loaded) return;
+
+            const itemsEl = document.getElementById('creatorFeedItems');
+            const emptyEl = document.getElementById('creatorFeedEmpty');
+            if (!itemsEl) return;
+
+            // Pause any existing creator feed videos
+            itemsEl.querySelectorAll('.feed-item').forEach(item => {
+                creatorObserver.unobserve(item);
+                const video = item.querySelector('video');
+                if (video) video.pause();
+            });
+
+            try {
+                const resp = await fetch(`/WorldMiniApp/Feed/CreatorPostings?creatorHash=${encodeURIComponent(creatorHash)}`);
+                if (!resp.ok) throw new Error('Fetch failed');
+                const postings = await resp.json();
+
+                if (!postings.length) {
+                    itemsEl.innerHTML = '';
+                    if (emptyEl) emptyEl.style.display = '';
+                    creatorFeedCache = { creatorHash, loaded: true };
+                    return;
+                }
+
+                if (emptyEl) emptyEl.style.display = 'none';
+                itemsEl.innerHTML = postings.map(buildCreatorFeedItemHtml).join('');
+                attachCreatorFeedHandlers();
+                creatorFeedCache = { creatorHash, loaded: true };
+            } catch (e) {
+                console.error('Creator feed load error:', e);
+                itemsEl.innerHTML = '';
+                if (emptyEl) emptyEl.style.display = '';
             }
         }
 

@@ -54,7 +54,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ThenInclude(r => r.RecipeKeywords)
                 .ThenInclude(link => link.Keyword);
 
-            IQueryable<WorldUserPosting> query = baseQuery;
+            IQueryable<WorldUserPosting> query = baseQuery.Where(p => !p.IsOffline);
 
             switch (filter)
             {
@@ -564,6 +564,79 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return RedirectToAction(nameof(MyProfile), new { userHash });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPostingOffline([FromForm] int postingId, [FromForm] string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Forbid();
+            }
+
+            var posting = await _context.WorldUserPosting.FirstOrDefaultAsync(p => p.Id == postingId);
+            if (posting == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(posting.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            posting.IsOffline = true;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserHash} set posting {PostingId} offline.", userHash, postingId);
+
+            return RedirectToAction(nameof(MyProfile), new { userHash });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreatorPostings(string creatorHash)
+        {
+            if (string.IsNullOrWhiteSpace(creatorHash))
+                return BadRequest("creatorHash is required");
+
+            var postings = await _context.WorldUserPosting
+                .AsNoTracking()
+                .Include(p => p.Recipe)
+                .Where(p => p.CreatorId == creatorHash && !p.IsOffline)
+                .OrderByDescending(p => p.Id)
+                .Take(20)
+                .Select(p => new
+                {
+                    id = p.Id,
+                    postingId = p.Id,
+                    title = p.Recipe.Title,
+                    source = p.Source,
+                    thumbnailUrl = p.ThumbnailUrl,
+                    creatorName = p.CreatorName,
+                    creatorId = p.CreatorId,
+                    prepTime = p.Recipe.PreparationTime,
+                    recipeId = p.Recipe.Id,
+                    category = p.Recipe.Category
+                })
+                .ToListAsync();
+
+            var result = postings.Select(p => new
+            {
+                p.id,
+                p.postingId,
+                p.title,
+                source = ChangePath(p.source),
+                thumbnailUrl = ChangePath(p.thumbnailUrl),
+                p.creatorName,
+                p.creatorId,
+                p.prepTime,
+                p.recipeId,
+                p.category
+            });
+
+            return Json(result);
         }
 
         private string ResolveUserHash(string userHash)

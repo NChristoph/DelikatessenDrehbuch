@@ -4,7 +4,8 @@
 @using Newtonsoft.Json
 
 @{
-    ViewData["Title"] = "Rezept Erstellen";
+    var isEditMode = ViewData["IsEditMode"] as bool? ?? false;
+    ViewData["Title"] = isEditMode ? "Rezept Bearbeiten" : "Rezept Erstellen";
     Layout = "_MiniAppLayout";
 }
 
@@ -28,19 +29,25 @@
 
         <div class="topbar-title">
             <div class="fw-bold text-truncate" id="creatorTopbarProgress" style="color:#172033 !important; text-shadow:none;">0/5 bereit</div>
-            <div class="small text-muted text-truncate">Create Posting</div>
+            <div class="small text-muted text-truncate">@(isEditMode ? "Edit Posting" : "Create Posting")</div>
         </div>
 
 
-        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="Veröffentlichen">
-            <i class="bi bi-send-fill"></i>
+        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="@(isEditMode ? "Speichern" : "Veröffentlichen")">
+            <i class="bi bi-@(isEditMode ? "check-lg" : "send-fill")"></i>
         </button>
     </div>
 
     <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="navy">
-        <form asp-action="UploadNewVideo" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
+        <form asp-action="@(isEditMode ? "UpdateRecipeFromCreateForm" : "UploadNewVideo")" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="return prepareBinding()">
+            @if (isEditMode)
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="EditPostingId" value="@ViewData["PostingId"]" />
+                <input type="hidden" name="EditRecipeId" value="@ViewData["RecipeId"]" />
+            }
             <input type="hidden" name="userHash" id="hiddenUserTokenField" />
-            <div id="draftRestoreBanner" class="draft-restore-banner d-none">
+            <div id="draftRestoreBanner" class="draft-restore-banner d-none" @(isEditMode ? "style=display:none !important" : "")>
                 <div class="draft-restore-content">
                     <span class="draft-restore-text">
                         <i class="bi bi-clock-history me-1"></i>
@@ -234,6 +241,15 @@
                             </button>
                         </div>
                     </div>
+
+                    @if (isEditMode)
+                    {
+                        <div id="editCurrentMediaPreview" class="mb-3">
+                            <div class="small text-muted mb-2 label-lang" data-de="Aktuelles Bild/Video" data-en="Current image/video">Aktuelles Bild/Video</div>
+                            <img id="editCurrentImage" class="w-100 rounded" style="max-height: 200px; object-fit: cover;" alt="Current media" />
+                            <div class="small text-muted mt-2 label-lang" data-de="Optional: neues Bild/Video hochladen" data-en="Optional: upload new image/video">Optional: neues Bild/Video hochladen</div>
+                        </div>
+                    }
 
                     <label id="uploadLabel" class="upload-drop" data-theme="navy" for="videoInput">
                         <div class="upload-icon">
@@ -441,8 +457,16 @@
                         </div>
 
                         <button type="submit" class="btn publish-btn w-100">
-                            <span class="label-lang" data-de="Veröffentlichen" data-en="Publish">Veröffentlichen</span>
-                            <i class="bi bi-send-fill ms-2"></i>
+                            @if (isEditMode)
+                            {
+                                <span class="label-lang" data-de="Änderungen speichern" data-en="Save changes">Änderungen speichern</span>
+                                <i class="bi bi-check-lg ms-2"></i>
+                            }
+                            else
+                            {
+                                <span class="label-lang" data-de="Veröffentlichen" data-en="Publish">Veröffentlichen</span>
+                                <i class="bi bi-send-fill ms-2"></i>
+                            }
                         </button>
                     </div>
                 </div>
@@ -2280,6 +2304,19 @@
     #card-steps,
     #card-keywords { content-visibility: auto; }
 </style>
+
+@if (isEditMode)
+{
+    <script>
+        window.CreatePostingEditData = {
+            editData: @Html.Raw(ViewData["EditData"] ?? "null"),
+            ingredients: @Html.Raw(ViewData["EditIngredients"] ?? "[]"),
+            keywordIds: @Html.Raw(ViewData["EditKeywordIds"] ?? "[]"),
+            steps: @Html.Raw(ViewData["EditSteps"] ?? "[]"),
+            smartSteps: @Html.Raw(ViewData["EditSmartSteps"] ?? "[]")
+        };
+    </script>
+}
 
 @section Scripts {
     <script src="~/js/create-posting-utils.js" asp-append-version="true"></script>

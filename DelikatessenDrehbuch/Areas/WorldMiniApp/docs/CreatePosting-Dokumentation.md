@@ -5,6 +5,13 @@
 > **Stand:** 2026-04-10 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
 > **Letzte Änderungen (2026-04-10):**
+> - ✅ **Posting löschen (Admin):** Neuer Endpoint `RecipeController.DeletePosting` — nur SuperUserHash darf Postings komplett aus DB entfernen (inkl. Rezept, Zutaten, Steps, Keywords, Likes)
+> - ✅ **Posting offline nehmen:** Neuer Endpoint `FeedController.SetPostingOffline` — jeder User kann eigene Postings offline nehmen (IsOffline=true, Daten bleiben erhalten)
+> - ✅ **Feed-Filter:** Offline-Postings werden im Feed nicht mehr angezeigt (`!p.IsOffline`)
+> - ✅ **MyProfile UI:** Neue Action-Buttons pro Video (Edit, Offline, Delete). Offline-Postings werden mit Badge + reduzierter Opacity angezeigt
+> - ✅ **DB-Migration:** `IsOffline` (bit, default false) auf `WorldUserPosting`
+>
+> **Vorherige Änderungen (2026-04-10):**
 > - ✅ **BUGFIX: prepareBinding()** — Derived/transformed Ingredient-Rows werden vor Submit entfernt, Selektor auf `#selectedIngredients` eingeschränkt → verhindert fehlende Zutaten in DB
 > - ✅ **Theme Navy-only:** Theme-Switcher entfernt, alle Themes auf Navy vereinheitlicht
 > - ✅ **Adjektiv-Deklination:** Neue Funktion `adjustAdjectiveEndingForArticle()` — Endungen passen sich automatisch an Artikel an (z.B. "geschnittene Zwiebel" + "den" → "geschnittenen Zwiebel")
@@ -93,8 +100,8 @@
                                │
                     ┌──────────▼──────────┐
                     │ RecipeController.cs  │
-                    │ UploadNewVideoAsync  │
-                    │ UpdateRecipe         │
+                    │ UploadNewVideoAsync           │
+                    │ UpdateRecipeFromCreateForm    │
                     └─────────────────────┘
 ```
 
@@ -121,12 +128,11 @@
 | 13 | `CreatePostingPage.js` | `wwwroot/js/` | 5.590 | Haupt-Page-Controller |
 | 14 | `create-posting-publish-checklist.js` | `wwwroot/js/` | 307 | Fortschritts-Checkliste (5-Schritte-Tracker) |
 
-### Views (3 Dateien)
+### Views (2 Dateien)
 
 | Datei | Pfad (unter `Areas/WorldMiniApp/Views/Home/`) | Zweck |
 |-------|-----------------------------------------------|-------|
-| `CreatePosting.cshtml` | `Views/Home/` | Haupt-View: Rezept-Erstellung |
-| `EditRecipe.cshtml` | `Views/Home/` | Rezept-Bearbeitung |
+| `CreatePosting.cshtml` | `Views/Home/` | Haupt-View: Rezept-Erstellung UND -Bearbeitung (Edit-Mode via `ViewData["IsEditMode"]`) |
 | `_SmartStepCreatorPartial.cshtml` | `Views/Home/` | Shared Partial: CSS + HTML für Step-Creator |
 
 ### Controller (1 Datei)
@@ -237,23 +243,22 @@ window.IngredientManager           ← unabhängig, DOMContentLoaded
 
 #### Öffentliche Actions
 
-| Action | HTTP | Zeile | Parameter | Rückgabe | Beschreibung |
-|--------|------|-------|-----------|----------|-------------|
-| `Upload` | GET | 40 | `userHash` | View | Lädt CreatePosting.cshtml mit Zutaten, Maßeinheiten, Keywords |
-| `UploadNewVideoAsync` | POST | 55 | `WorldUserPosting posting, userHash` | IActionResult | Rezept speichern (Rate-Limit: 5/10min) |
-| `EditRecipe` | GET | 129 | `postingId, userHash` | View | Lädt EditRecipe.cshtml mit vollem Rezept |
-| `UpsertStep` | POST | 205 | `[FromBody] UpsertStepRequest, userHash` | JSON | Neuen Step anlegen → `{ id, reused }` |
-| `UpdateRecipe` | POST | 257 | `EditPostingRecipeViewModel, userHash` | IActionResult | Rezept aktualisieren |
+| Action | HTTP | Parameter | Rückgabe | Beschreibung |
+|--------|------|-----------|----------|-------------|
+| `Upload` | GET | `userHash` | View | Lädt CreatePosting.cshtml mit Zutaten, Maßeinheiten, Keywords |
+| `UploadNewVideoAsync` | POST | `WorldUserPosting posting, userHash` | IActionResult | Rezept speichern (Rate-Limit: 5/10min) |
+| `EditRecipe` | GET | `postingId, userHash` | View | Lädt CreatePosting.cshtml im Edit-Mode (ViewData: IsEditMode, EditData JSON, EditIngredients, EditKeywordIds, EditSteps, EditSmartSteps) |
+| `UpsertStep` | POST | `[FromBody] UpsertStepRequest, userHash` | JSON | Neuen Step anlegen → `{ id, reused }` |
+| `UpdateRecipeFromCreateForm` | POST | `WorldUserPosting posting, userHash` + Hidden Fields: `EditPostingId`, `EditRecipeId` | IActionResult | Rezept aktualisieren (verwendet CreatePosting-Formularformat) |
+| `DeletePosting` | POST | `[FromForm] postingId, userHash` | Redirect | **Nur Admin (SuperUserHash):** Löscht Posting + Rezept + alle verknüpften Daten komplett aus der DB |
 
 #### Private Helfer-Methoden
 
-| Methode | Zeile | Rückgabe | Beschreibung |
-|---------|-------|----------|-------------|
-| `ExtractIngredientRowsFromRequest()` | 459 | `List<IngredientRow>` | Parst Zutatzeilen aus Form |
-| `ExtractCreatePostingStepsFromRequest()` | 495 | `List<RecipeJoinPreparationSteps>` | Parst Zubereitungsschritte (DE/EN/ESP/PRT) |
-| `ExtractCreatePostingSmartStepsFromRequest()` | 556 | `List<SmartStepReferenceInput>` | Parst Smart-Step-Referenzen mit Metadaten |
-| `ExtractStepRowsFromRequest()` | 591 | `List<StepRow>` | Parst Step-Rows für EditRecipe |
-| `ExtractKeywordIdsFromRequest()` | 617 | `List<int>` | Parst ausgewählte Keyword-IDs |
+| Methode | Rückgabe | Beschreibung |
+|---------|----------|-------------|
+| `ExtractCreatePostingStepsFromRequest()` | `List<RecipeJoinPreparationSteps>` | Parst Zubereitungsschritte (DE/EN/ESP/PRT) |
+| `ExtractCreatePostingSmartStepsFromRequest()` | `List<SmartStepReferenceInput>` | Parst Smart-Step-Referenzen mit Metadaten |
+| `ExtractKeywordIdsFromRequest()` | `List<int>` | Parst ausgewählte Keyword-IDs |
 
 #### UploadNewVideoAsync — Ablauf (Zeile 55–127)
 
