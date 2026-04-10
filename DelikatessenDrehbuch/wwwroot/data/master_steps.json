@@ -5324,16 +5324,16 @@
       "equipment": 4,
       "description": "Bräter/Auflaufform in den vorgeheizten Backofen schieben",
       "templates": {
-        "de": "Schiebe {{equipment}}[ mit {{base}}][ {{state}}] in den auf {{temp}} vorgeheizten Backofen[ und gare {{duration}}].",
-        "en": "Place {{equipment}}[ with {{base}}][ {{state}}] in the oven preheated to {{temp}}[ and cook for {{duration}}].",
-        "esp": "Coloca {{equipment}}[ con {{base}}][ {{state}}] en el horno precalentado a {{temp}}[ y cocina durante {{duration}}].",
-        "prt": "Coloque {{equipment}}[ com {{base}}][ {{state}}] no forno pré-aquecido a {{temp}}[ e cozinhe por {{duration}}].",
-        "id": "Masukkan {{equipment}}[ dengan {{base}}][ {{state}}] ke dalam oven yang sudah dipanaskan hingga {{temp}}[ dan masak selama {{duration}}].",
-        "nl": "Schuif {{equipment}}[ met {{base}}][ {{state}}] in de op {{temp}} voorverwarmde oven[ en gaar {{duration}}].",
-        "sv": "Skjut in {{equipment}}[ med {{base}}][ {{state}}] i ugnen som är förvärmd till {{temp}}[ och tillaga i {{duration}}].",
-        "da": "Skub {{equipment}}[ med {{base}}][ {{state}}] ind i ovnen, der er forvarmet til {{temp}}[, og tilbered i {{duration}}].",
-        "no": "Skyv {{equipment}}[ med {{base}}][ {{state}}] inn i ovnen som er forvarmet til {{temp}}[ og tilbered i {{duration}}].",
-        "ms": "Masukkan {{equipment}}[ dengan {{base}}][ {{state}}] ke dalam ketuhar yang telah dipanaskan pada {{temp}}[ dan masak selama {{duration}}]."
+        "de": "Schiebe {{equipment}}[ mit {{base}}] in den auf {{temp}} vorgeheizten Backofen[, gare {{duration}}][, bis {{state}}].",
+        "en": "Place {{equipment}}[ with {{base}}] in the oven preheated to {{temp}}[, cook for {{duration}}][, until {{state}}].",
+        "esp": "Coloca {{equipment}}[ con {{base}}] en el horno precalentado a {{temp}}[, cocina {{duration}}][, hasta que {{state}}].",
+        "prt": "Coloque {{equipment}}[ com {{base}}] no forno pré-aquecido a {{temp}}[, cozinhe por {{duration}}][, até {{state}}].",
+        "id": "Masukkan {{equipment}}[ dengan {{base}}] ke dalam oven yang sudah dipanaskan hingga {{temp}}[, masak selama {{duration}}][, hingga {{state}}].",
+        "nl": "Schuif {{equipment}}[ met {{base}}] in de op {{temp}} voorverwarmde oven[, gaar {{duration}}][, tot {{state}}].",
+        "sv": "Skjut in {{equipment}}[ med {{base}}] i ugnen som är förvärmd till {{temp}}[, tillaga i {{duration}}][, tills {{state}}].",
+        "da": "Skub {{equipment}}[ med {{base}}] ind i ovnen, der er forvarmet til {{temp}}[, tilbered i {{duration}}][, indtil {{state}}].",
+        "no": "Skyv {{equipment}}[ med {{base}}] inn i ovnen som er forvarmet til {{temp}}[, tilbered i {{duration}}][, til {{state}}].",
+        "ms": "Masukkan {{equipment}}[ dengan {{base}}] ke dalam ketuhar yang telah dipanaskan pada {{temp}}[, masak selama {{duration}}][, sehingga {{state}}]."
       },
       "variables": [
         "equipment",
@@ -5787,25 +5787,25 @@
       "equipment": 0,
       "description": "Fleisch/Braten mit Flüssigkeit begießen",
       "templates": {
-        "de": "Begieße {{ingredient}} alle {{interval}} mit {{liquid}}.",
-        "en": "Baste {{ingredient}} every {{interval}} with {{liquid}}.",
-        "esp": "Baña {{ingredient}} cada {{interval}} con {{liquid}}.",
-        "prt": "Regue {{ingredient}} a cada {{interval}} com {{liquid}}.",
-        "id": "Siram {{ingredient}} setiap {{interval}} dengan {{liquid}}.",
-        "nl": "Begie {{ingredient}} elke {{interval}} met {{liquid}}.",
-        "sv": "Ösa över {{ingredient}} var {{interval}} med {{liquid}}.",
-        "da": "Øs {{ingredient}} hver {{interval}} med {{liquid}}.",
-        "no": "Øs {{ingredient}} hver {{interval}} med {{liquid}}.",
-        "ms": "Siram {{ingredient}} setiap {{interval}} dengan {{liquid}}."
+        "de": "Begieße {{ingredient}} alle {{duration}} mit {{liquid}}.",
+        "en": "Baste {{ingredient}} every {{duration}} with {{liquid}}.",
+        "esp": "Baña {{ingredient}} cada {{duration}} con {{liquid}}.",
+        "prt": "Regue {{ingredient}} a cada {{duration}} com {{liquid}}.",
+        "id": "Siram {{ingredient}} setiap {{duration}} dengan {{liquid}}.",
+        "nl": "Begie {{ingredient}} elke {{duration}} met {{liquid}}.",
+        "sv": "Ösa över {{ingredient}} var {{duration}} med {{liquid}}.",
+        "da": "Øs {{ingredient}} hver {{duration}} med {{liquid}}.",
+        "no": "Øs {{ingredient}} hver {{duration}} med {{liquid}}.",
+        "ms": "Siram {{ingredient}} setiap {{duration}} dengan {{liquid}}."
       },
       "variables": [
         "ingredient",
-        "interval",
+        "duration",
         "liquid"
       ],
       "required_variables": [
         "ingredient",
-        "interval",
+        "duration",
         "liquid"
       ],
       "optional_variables": null,
@@ -5825,7 +5825,7 @@
         "keins",
         "none",
         "variable:ingredient",
-        "variable:interval",
+        "variable:duration",
         "variable:liquid",
         "sub_group:wet_heat"
       ]

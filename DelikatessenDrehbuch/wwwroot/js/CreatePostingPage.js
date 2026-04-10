@@ -1595,6 +1595,8 @@
             activeEquipmentTokenId: '',
             equipmentValue: '',
             equipmentArticleValue: '',
+            lastEquipmentValue: '',
+            lastEquipmentArticleValue: '',
             activeStateTokenId: '',
             stateValue: '',
             activeToolTokenId: '',
@@ -1712,7 +1714,8 @@
                 name: selected.name || '',
                 genusDe: selected.genusDe || '',
                 genusLocalized: selected.genusLocalized || '',
-                genusByLang: selected.genusByLang || {}
+                genusByLang: selected.genusByLang || {},
+                groupId: selected.groupId || ''
             };
         }
 
@@ -2748,7 +2751,8 @@
             const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
                 ingredientName: ingredientNameWithArticle || ingredientName,
                 recipeCategory: $('#Recipe_Category').val(),
-                recipeType: recipeType || ''
+                recipeType: recipeType || '',
+                ingredientGroupId: selectedIngredient?.groupId || ''
             }) || {};
 
             const keys = new Set([...(template?.variables || []), ...getPlaceholderKeysFromTemplate(template)]);
@@ -3881,6 +3885,28 @@
             return true;
         }
 
+        async function publishAsync() {
+            if (!prepareBinding()) return;
+            const form = document.getElementById('recipeForm');
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const resp = await fetch(form.action, { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.success) {
+                    window.location.href = '/WorldMiniApp/Home/Index?toast=published';
+                } else {
+                    alert(data.error || 'Fehler beim Hochladen');
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            } catch (e) {
+                alert('Netzwerkfehler beim Hochladen');
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
         function moveStepRow(btn, direction) {
             const row = $(btn).closest('.step-row');
             if (direction < 0) {
@@ -4975,6 +5001,13 @@
                 composeOnApply: false
             });
 
+            // Equipment-Wert merken für Auto-Prefill in Folge-Steps
+            $('#btnApplyEquipment').on('click', function () {
+                creatorState.lastEquipmentValue = creatorState.equipmentValue;
+                creatorState.lastEquipmentArticleValue = creatorState.equipmentArticleValue;
+                window._lastEquipmentValue = creatorState.equipmentValue;
+            });
+
             bindArticleChoiceEditorHandlers({
                 articleContainer: '#inlineToolArticleOptions',
                 optionsContainer: '#inlineToolOptions',
@@ -5248,6 +5281,19 @@
                 ghost.addClass('fly');
                 updatePreviewText();
                 showSc2CreatorToast('Template gewÃƒÂ¤hlt');
+
+                // Equipment Auto-Prefill aus letzter Auswahl
+                setTimeout(function () {
+                    if (!creatorState.lastEquipmentValue) return;
+                    var eqToken = document.querySelector('#sc2MasterPreviewText .placeholder-token[data-placeholder-key="equipment"]');
+                    if (!eqToken) return;
+                    var tokenId = eqToken.getAttribute('data-placeholder-token-id');
+                    if (!tokenId) return;
+                    creatorState.placeholderAssignments[tokenId] = creatorState.lastEquipmentValue;
+                    creatorState.equipmentValue = creatorState.lastEquipmentValue;
+                    creatorState.equipmentArticleValue = creatorState.lastEquipmentArticleValue;
+                    updateSc2PreviewText();
+                }, 0);
             });
 
             $('#sc2MasterIngredientButtons').on('click', '.ingredient-chip', function () {
@@ -5442,6 +5488,13 @@
                 toastFn: showSc2CreatorToast,
                 composeDuringSelection: false,
                 composeOnApply: true
+            });
+
+            // SC2 Equipment-Wert merken für Auto-Prefill in Folge-Steps
+            $('#sc2BtnApplyEquipment').on('click', function () {
+                creatorState.lastEquipmentValue = creatorState.equipmentValue;
+                creatorState.lastEquipmentArticleValue = creatorState.equipmentArticleValue;
+                window._lastEquipmentValue = creatorState.equipmentValue;
             });
 
             // SC2 State

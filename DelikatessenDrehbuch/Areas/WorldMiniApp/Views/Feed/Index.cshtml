@@ -1494,6 +1494,8 @@
                 feedContainer.style.scrollSnapType = 'none';
                 feedContainer.style.scrollBehavior = 'auto';
                 feedContainer.scrollTop = (activeSection === 'feed') ? savedFeedScrollTop : 0;
+                // Block feedContainer vertical scroll when not in feed (creator/marketplace have own scroll)
+                feedContainer.style.overflowY = (activeSection === 'feed') ? 'scroll' : 'hidden';
             }
 
             sections.classList.remove('section-creator', 'section-marketplace');
@@ -1506,11 +1508,11 @@
                 if (feedCreatorContext) updateMarketplaceForCreator(feedCreatorContext);
             }
 
-            // Re-enable scroll-snap after transition completes
+            // Re-enable scroll-snap after transition completes (only relevant for feed)
             if (feedContainer) {
                 setTimeout(() => {
                     feedContainer.style.scrollBehavior = '';
-                    feedContainer.style.scrollSnapType = '';
+                    if (activeSection === 'feed') feedContainer.style.scrollSnapType = '';
                 }, 400);
             }
 

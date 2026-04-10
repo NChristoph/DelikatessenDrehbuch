@@ -4,7 +4,21 @@
 > **Basispfad:** `DelikatessenDrehbuch/`
 > **Stand:** 2026-04-10 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
-> **Letzte Änderungen (2026-04-10):**
+> **Letzte Änderungen (2026-04-10, Batch 4):**
+> - ✅ **Ingredient Cooking Profiles:** Neues JSON `ingredient_cooking_profiles.json` — Zutat-Gruppen-basierte Variable-Defaults (Duration, State, Shape etc.) mit höherer Priorität als Rezepttyp-Defaults. Default-Hierarchie: Generic → Parent-Type → Subtype → **Ingredient-Group** → User Override. Wirkt in SC2 (`buildVariablesForTemplate`) und SmartStepCreator (`onStepCardClick`).
+>
+> **Vorherige Änderungen (2026-04-10, Batch 3):**
+> - ✅ **Equipment Auto-Prefill:** Gewähltes Equipment (z.B. "den Bräter") wird in `creatorState.lastEquipmentValue` + `window._lastEquipmentValue` gespeichert und in allen Folge-Steps automatisch vorbelegt — SC2 (Template-Click → `setTimeout` Prefill) und SmartStepCreator (`onStepCardClick` → `activeStep.values.equipment`). User kann Equipment jederzeit manuell ändern.
+>
+> **Vorherige Änderungen (2026-04-10, Batch 2):**
+> - ✅ **COOK_TRANSFER_OVEN_01:** Template-Umstellung — `{{state}}` nach `{{duration}}` verschoben, ", bis {{state}}" als optionaler Suffix (alle 10 Sprachen)
+> - ✅ **COOK_BASTE_01:** `{{interval}}` → `{{duration}}` in Templates, variables, required_variables und selection_tags
+> - ✅ **COOK_ARRANGE_01:** `filterIngredientsByVarType()` — Ingredient-Filter (isHard || isSoft) für "Verteile"-Step, Gewürze/Fett gedimmt
+> - ✅ **AJAX-Publish:** `RecipeController.UploadNewVideoAsync` gibt JSON statt Redirect zurück; neue `publishAsync()` in CreatePostingPage.js; Form-Submit per AJAX mit Redirect+Toast
+> - ✅ **Toast auf Index:** `showToastBottomRight()` Funktion + Toast bei `?toast=published` Query-Parameter
+> - ✅ **Posting Online nehmen:** Neuer Endpoint `FeedController.SetPostingOnline` + "Online nehmen"-Button (bi-eye-fill) in MyProfile für offline Postings
+>
+> **Vorherige Änderungen (2026-04-10):**
 > - ✅ **Posting löschen (Admin):** Neuer Endpoint `RecipeController.DeletePosting` — nur SuperUserHash darf Postings komplett aus DB entfernen (inkl. Rezept, Zutaten, Steps, Keywords, Likes)
 > - ✅ **Posting offline nehmen:** Neuer Endpoint `FeedController.SetPostingOffline` — jeder User kann eigene Postings offline nehmen (IsOffline=true, Daten bleiben erhalten)
 > - ✅ **Feed-Filter:** Offline-Postings werden im Feed nicht mehr angezeigt (`!p.IsOffline`)
@@ -153,6 +167,7 @@
 | `recipe_category_scoring.json` | `data/` | Scoring für Rezepttyp-Erkennung |
 | `ingredient_article_rules.json` | `data/` | Grammatische Artikel-Zuordnung |
 | `ingredient_transforms.json` | `data/` | Zutaten-Transformation (adjektivisch) |
+| `ingredient_cooking_profiles.json` | `data/` | Zutat-Gruppen-basierte Variable-Defaults (Duration, State, etc.) |
 | `probability_template_presets.json` | `data/` | Presets für Probability-Engine |
 
 ### CSS-Dateien (1 Datei)
@@ -246,7 +261,7 @@ window.IngredientManager           ← unabhängig, DOMContentLoaded
 | Action | HTTP | Parameter | Rückgabe | Beschreibung |
 |--------|------|-----------|----------|-------------|
 | `Upload` | GET | `userHash` | View | Lädt CreatePosting.cshtml mit Zutaten, Maßeinheiten, Keywords |
-| `UploadNewVideoAsync` | POST | `WorldUserPosting posting, userHash` | IActionResult | Rezept speichern (Rate-Limit: 5/10min) |
+| `UploadNewVideoAsync` | POST | `WorldUserPosting posting, userHash` | JSON | Rezept speichern (Rate-Limit: 5/10min). Gibt `{ success: true }` bzw. `{ success: false, error: "..." }` zurück (AJAX) |
 | `EditRecipe` | GET | `postingId, userHash` | View | Lädt CreatePosting.cshtml im Edit-Mode (ViewData: IsEditMode, EditData JSON, EditIngredients, EditKeywordIds, EditSteps, EditSmartSteps) |
 | `UpsertStep` | POST | `[FromBody] UpsertStepRequest, userHash` | JSON | Neuen Step anlegen → `{ id, reused }` |
 | `UpdateRecipeFromCreateForm` | POST | `WorldUserPosting posting, userHash` + Hidden Fields: `EditPostingId`, `EditRecipeId` | IActionResult | Rezept aktualisieren (verwendet CreatePosting-Formularformat) |
@@ -272,7 +287,7 @@ window.IngredientManager           ← unabhängig, DOMContentLoaded
 6. Smart Steps extrahieren: ExtractCreatePostingSmartStepsFromRequest(Request.Form)
 7. Keywords verknüpfen: RecipeBaseKeyword-Einträge erstellen
 8. Cookie setzen: createPostingDraftReset=1 (für Draft-Löschung)
-9. Redirect → Home/Index
+9. JSON-Response: { success: true } (AJAX-Upload, kein Redirect mehr)
 ```
 
 #### Form-Felder (Form → Server Binding)
@@ -331,7 +346,8 @@ SelectedKeywordIds[i] → int
 
   <!-- Haupt-Formular -->
   <form asp-action="UploadNewVideo" method="post" id="recipeForm"
-        enctype="multipart/form-data" onsubmit="prepareBinding()">
+        enctype="multipart/form-data" onsubmit="event.preventDefault(); publishAsync()">
+  <!-- Edit-Mode: onsubmit="return prepareBinding()" (normaler Submit) -->
     <input type="hidden" name="userHash" value="..." />
 
     <!-- ══════ SECTION 1: Basics (card-basics) ══════ -->
@@ -623,7 +639,7 @@ Enthält Master-Step-Templates mit Variablen-Platzhaltern.
 - PREP_RUB_01 **NEU**: `Reibe {{ingredient}} gleichmäßig mit {{seasoning}} ein.` — Einreiben mit Gewürzen/Öl
 - COOK_SEAR_01: `{{fat}}`, `{{duration}}`, Zustandsklausel optional — `Erhitze[ {{fat}} in] {{equipment}} auf höchster Stufe und brate {{base}}[ {{duration}}] scharf an[, bis {{pronoun}} {{state}} {{copula}}].`
 - COOK_ARRANGE_01 **NEU**: `Verteile {{ingredient}}[ gleichmäßig] in {{equipment}}[ um {{base}} herum].` — Zutaten verteilen/anordnen
-- COOK_TRANSFER_OVEN_01 **NEU**: `Schiebe {{equipment}}[ mit {{base}}] in den auf {{temp}} vorgeheizten Backofen[ und gare {{duration}}].` — Bräter/Auflaufform in Ofen
+- COOK_TRANSFER_OVEN_01 **NEU**: `Schiebe {{equipment}}[ mit {{base}}] in den auf {{temp}} vorgeheizten Backofen[, gare {{duration}}][, bis {{state}}].` — Bräter/Auflaufform in Ofen, Zustand optional nach Dauer
 - PREP_PEEL_01: Tool-Teil optional — `Schäle {{ingredient}}[ mit einem {{tool}}].`
 - PREP_STUFF_01: Variablen getauscht — `Fülle {{ingredient}} gleichmäßig mit {{base}} und setze {{pronoun}} in {{equipment}}.`
 
@@ -679,6 +695,32 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 }
 ```
 
+### ingredient_cooking_profiles.json
+Zutat-Gruppen-basierte Variable-Defaults. Überschreiben Rezepttyp-Defaults (Level 4 in der Default-Hierarchie).
+
+```json
+{
+  "by_group": {
+    "1": {
+      "_label": "Fleisch",
+      "COOK_SAUTE_01": { "duration": "6-8 Minuten", "state": "braun" },
+      "COOK_FRY_01":   { "duration": "4-6 Minuten", "state": "goldbraun" }
+    }
+  }
+}
+```
+
+**Struktur:** `by_group[groupId][stepMasterId]` → Object mit Variable-Overrides (duration, state, shape, etc.)
+**Gruppen:** 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst, 5=Getreide/Stärke, 6=Gewürze, 7=Fisch/Meeresfrüchte, 8=Nüsse/Kerne, 9=Sonstige
+**`_label`-Felder** sind nur für Lesbarkeit, werden im Code ignoriert.
+
+**Default-Hierarchie in `getSmartDefaults()`:**
+1. Generic defaults (`recipe_type_step_variables.json` → `defaults`)
+2. Parent-Type overrides (z.B. "Nudel" → Parent "Pasta")
+3. Subtype/direct overrides (z.B. "Bolognese")
+4. **Ingredient-Group overrides** ← NEU, höchste Daten-Priorität
+5. User Override (manuell im Editor)
+
 ### Weitere JSON-Dateien
 
 | Datei | Inhalt |
@@ -724,6 +766,7 @@ Definiert wie Zutaten nach bestimmten Steps transformiert werden.
 | `recipeStepMapping` | `/data/recipe_step_mapping.json` |
 | `recipeTypeStepVariables` | `/data/recipe_type_step_variables.json` |
 | `ingredientTransforms` | `/data/ingredient_transforms.json` |
+| `ingredientCookingProfiles` | `/data/ingredient_cooking_profiles.json` |
 
 ---
 
@@ -1351,7 +1394,7 @@ if (mode === "article") {
 |----------|-------|-------------|
 | `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, base, seasoning, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** dough (zeigt Options-Chips). base zeigt Zutat-Chips gefiltert auf Fleisch+Gemüse (isHard\|\|isSoft). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
 | `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
-| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, **PREP_SCORE_01/PREP_TENDERIZE_01→!isLiquid && !isFat && groupId !== "5" (2026-04-10)**. Fallback auf alle Items wenn keine Matches |
+| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: **COOK_ARRANGE_01→isHard\|\|isSoft (Fleisch+Gemüse prominent, Rest gedimmt)**, PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, PREP_SCORE_01/PREP_TENDERIZE_01→!isLiquid && !isFat && groupId !== "5". Fallback auf alle Items wenn keine Matches |
 | `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
 | `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
 | `isStateVariable(varName)` | 1064 | Prüft: state |
@@ -2294,8 +2337,9 @@ User öffnet CreatePosting
     │   └→ toggleKeyword() → .keyword-pill in #selectedKeywords
     │
     └─6. Veröffentlichen
-        └→ <form> submit → prepareBinding()
-            └→ POST /WorldMiniApp/Home/UploadNewVideoAsync
+        └→ <form> submit → publishAsync() (AJAX)
+            └→ POST /WorldMiniApp/Home/UploadNewVideoAsync → JSON { success }
+            └→ Redirect zu Home/Index?toast=published → Toast anzeigen
                 ├→ Rate-Limit prüfen
                 ├→ Blob-Upload
                 ├→ Rezept erstellen
@@ -2445,6 +2489,7 @@ Wenn User einen Platzhalter anklickt (z.B. {{liquid}}, {{fat}}, {{seasonings}}):
       {{thickener}} → item.groupId === "8" (Grundnahrungsmittel)
       {{ingredient}} / {{ingredients}} → kein Filter (alle)
    → Step-spezifische Filter (bei ingredient/ingredients):
+      COOK_ARRANGE_01                        → isHard || isSoft (Fleisch+Gemüse prominent)
       PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 → isHard || isSoft
       PREP_SCORE_01/PREP_TENDERIZE_01        → !isLiquid && !isFat && groupId !== "5" (feste Zutaten, kein Gewürz/Flüssigkeit/Fett)
    → Rückgabe: { filtered: [...passend], rest: [...nicht passend] }

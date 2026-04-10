@@ -1413,7 +1413,9 @@
             filterFn = item => item.isHard || item.isSoft;
         } else if (key === "ingredient" || key === "ingredients") {
             // Step-spezifische Filter für generische ingredient-Variable
-            if (step === "PREP_CUT_01" || step === "PREP_GRATE_01" || step === "PREP_MINCE_01" || step === "PREP_PEEL_01") {
+            if (step === "COOK_ARRANGE_01") {
+                filterFn = item => item.isHard || item.isSoft;
+            } else if (step === "PREP_CUT_01" || step === "PREP_GRATE_01" || step === "PREP_MINCE_01" || step === "PREP_PEEL_01") {
                 filterFn = item => item.isHard || item.isSoft;
             } else if (step === "PREP_SCORE_01" || step === "PREP_TENDERIZE_01") {
                 // Einschneiden/Klopfen: feste Zutaten (kein Gewürz, keine Flüssigkeit, kein Fett)
@@ -3561,6 +3563,29 @@
             templateRaw,
             values: {}
         };
+
+        // Equipment Auto-Prefill aus letzter Auswahl
+        if (window._lastEquipmentValue && /\{\{\s*equipment\s*\}\}/.test(templateRaw)) {
+            activeStep.values.equipment = window._lastEquipmentValue;
+        }
+
+        // Ingredient-Group-basierte Defaults anwenden
+        var ingredients = getSelectedIngredientsFromPage();
+        var primaryIngredient = ingredients.length ? ingredients[0] : null;
+        if (primaryIngredient && window.MasterStepRenderer) {
+            var groupDefaults = MasterStepRenderer.getSmartDefaults(stepId, {
+                ingredientGroupId: primaryIngredient.groupId || ''
+            });
+            if (groupDefaults) {
+                Object.keys(groupDefaults).forEach(function (key) {
+                    if (key === 'ingredient' || key === 'ingredients') return;
+                    if (groupDefaults[key] && !activeStep.values[key]) {
+                        activeStep.values[key] = groupDefaults[key];
+                    }
+                });
+            }
+        }
+
         if (draftEngine && typeof draftEngine.setActiveStepDraft === 'function') {
             draftEngine.setActiveStepDraft(activeStep);
         }

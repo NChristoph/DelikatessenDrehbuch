@@ -595,6 +595,35 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return RedirectToAction(nameof(MyProfile), new { userHash });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPostingOnline([FromForm] int postingId, [FromForm] string userHash)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Forbid();
+            }
+
+            var posting = await _context.WorldUserPosting.FirstOrDefaultAsync(p => p.Id == postingId);
+            if (posting == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(posting.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            posting.IsOffline = false;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserHash} set posting {PostingId} online.", userHash, postingId);
+
+            return RedirectToAction(nameof(MyProfile), new { userHash });
+        }
+
         [HttpGet]
         public async Task<IActionResult> CreatorPostings(string creatorHash)
         {

@@ -5,6 +5,7 @@
     let variableCatalogData = null;
     let recipeTypeStepVarsData = null;
     let optionRulesData = null;
+    let ingredientCookingProfilesData = null;
     let loadingPromise = null;
     let lastLoadError = '';
 
@@ -19,19 +20,22 @@
                 'masterSteps',
                 'masterStepVariables',
                 'recipeTypeStepVariables',
-                'masterStepOptionRules'
+                'masterStepOptionRules',
+                'ingredientCookingProfiles'
             ]).then(function (results) {
                 data = results.masterSteps;
                 variableCatalogData = results.masterStepVariables || null;
                 recipeTypeStepVarsData = results.recipeTypeStepVariables || null;
                 optionRulesData = results.masterStepOptionRules || null;
+                ingredientCookingProfilesData = results.ingredientCookingProfiles || null;
                 lastLoadError = '';
                 console.log('[MasterStepRenderer] Geladen:', {
                     masterSteps: data && data.master_steps ? data.master_steps.length : 0,
                     variableCatalog: variableCatalogData && variableCatalogData.variables ? Object.keys(variableCatalogData.variables).length : 0,
                     stepVarsDefaults: recipeTypeStepVarsData && recipeTypeStepVarsData.defaults ? Object.keys(recipeTypeStepVarsData.defaults).length : 0,
                     stepVarsTypes: recipeTypeStepVarsData && recipeTypeStepVarsData.types ? Object.keys(recipeTypeStepVarsData.types).length : 0,
-                    optionRules: optionRulesData ? 'loaded' : 'not available'
+                    optionRules: optionRulesData ? 'loaded' : 'not available',
+                    cookingProfiles: ingredientCookingProfilesData && ingredientCookingProfilesData.by_group ? Object.keys(ingredientCookingProfilesData.by_group).length + ' groups' : 'not available'
                 });
                 return data;
             }).catch(function (error) {
@@ -59,6 +63,9 @@
                 .catch(function () { return null; }),
             fetch(window.CreatePostingUtils.getDataUrl('masterStepOptionRules') || '/data/master_step_option_rules.json')
                 .then(function (r) { return r.ok ? r.json() : null; })
+                .catch(function () { return null; }),
+            fetch(window.CreatePostingUtils.getDataUrl('ingredientCookingProfiles') || '/data/ingredient_cooking_profiles.json')
+                .then(function (r) { return r.ok ? r.json() : null; })
                 .catch(function () { return null; })
         ])
             .then(function (results) {
@@ -66,6 +73,7 @@
                 var variableJson = results[1];
                 var stepVarsJson = results[2];
                 var optionRulesJson = results[3];
+                var cookingProfilesJson = results[4];
                 if (!json || !Array.isArray(json.master_steps)) {
                     throw new Error('master_steps.json hat ein ungültiges Format.');
                 }
@@ -73,13 +81,15 @@
                 variableCatalogData = variableJson;
                 recipeTypeStepVarsData = stepVarsJson;
                 optionRulesData = optionRulesJson;
+                ingredientCookingProfilesData = cookingProfilesJson;
                 lastLoadError = '';
                 console.log('[MasterStepRenderer] Geladen:', {
                     masterSteps: json.master_steps ? json.master_steps.length : 0,
                     variableCatalog: variableJson && variableJson.variables ? Object.keys(variableJson.variables).length : 0,
                     stepVarsDefaults: stepVarsJson && stepVarsJson.defaults ? Object.keys(stepVarsJson.defaults).length : 0,
                     stepVarsTypes: stepVarsJson && stepVarsJson.types ? Object.keys(stepVarsJson.types).length : 0,
-                    optionRules: optionRulesJson ? 'loaded' : 'not available'
+                    optionRules: optionRulesJson ? 'loaded' : 'not available',
+                    cookingProfiles: cookingProfilesJson && cookingProfilesJson.by_group ? Object.keys(cookingProfilesJson.by_group).length + ' groups' : 'not available'
                 });
                 return json;
             })
@@ -319,6 +329,13 @@
         return (typeData && typeData.parent) ? typeData.parent : null;
     }
 
+    function getIngredientGroupDefaults(groupId, masterId) {
+        if (!ingredientCookingProfilesData || !ingredientCookingProfilesData.by_group) return null;
+        var group = ingredientCookingProfilesData.by_group[groupId];
+        if (!group) return null;
+        return group[masterId] || null;
+    }
+
     function getSmartDefaults(masterId, context) {
         context = context || {};
         const ingredientName = context.ingredientName || 'die Zutat';
@@ -363,7 +380,20 @@
             }
         }
 
-        // Level 4: ingredient/ingredients: always leave empty — user must set these
+        // Level 4: Ingredient-Group overrides (höchste Daten-Priorität)
+        var ingredientGroupId = (context.ingredientGroupId || '').toString();
+        if (ingredientGroupId) {
+            var groupVars = getIngredientGroupDefaults(ingredientGroupId, masterId);
+            if (groupVars) {
+                template.variables.forEach(function (key) {
+                    if (groupVars[key] != null && groupVars[key] !== '') {
+                        scoped[key] = groupVars[key];
+                    }
+                });
+            }
+        }
+
+        // Level 5: ingredient/ingredients: always leave empty — user must set these
         if (template.variables.includes('ingredient')) {
             scoped.ingredient = '';
         }

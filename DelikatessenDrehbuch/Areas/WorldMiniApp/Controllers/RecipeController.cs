@@ -57,7 +57,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             userHash = ResolveUserHash(userHash);
             if (!await IsCreatorAllowedAsync(_context, userHash))
             {
-                return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
+                return Json(new { success = false, error = "Nicht berechtigt." });
             }
             if (!TryConsumeUploadSlot(userHash, out var retryAfter))
             {
@@ -65,7 +65,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
                 }
-                return StatusCode(StatusCodes.Status429TooManyRequests, "Upload-Limit erreicht. Bitte später erneut versuchen.");
+                return Json(new { success = false, error = "Upload-Limit erreicht. Bitte später erneut versuchen." });
             }
 
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -123,7 +123,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 Expires = DateTimeOffset.UtcNow.AddHours(1)
             });
 
-            return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
+            return Json(new { success = true });
         }
 
         public async Task<IActionResult> EditRecipe(int postingId, string userHash)
