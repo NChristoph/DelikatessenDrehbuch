@@ -369,86 +369,95 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
 
-            // Update steps
-            var existingSteps = await _context.RecipeJoinPreparationSteps
-                .Where(s => s.Recipe.Id == postingToEdit.Recipe.Id)
-                .ToListAsync();
-            _context.RecipeJoinPreparationSteps.RemoveRange(existingSteps);
-
+            // Update steps — only if step form fields are present
             var parsedSteps = ExtractStepRowsFromRequest(Request.Form);
-            var stepIds = parsedSteps.Where(s => s.PreparationStepId > 0).Select(s => s.PreparationStepId).ToList();
-            var stepEntities = await _context.RecipePreparationSteps
-                .Where(s => stepIds.Contains(s.Id))
-                .ToDictionaryAsync(s => s.Id);
-
-            foreach (var stepRow in parsedSteps.Where(s => s.PreparationStepId > 0))
+            if (Request.Form.Keys.Any(k => k.StartsWith("Steps[", StringComparison.OrdinalIgnoreCase)))
             {
-                if (!stepEntities.TryGetValue(stepRow.PreparationStepId, out var stepEntity)) continue;
+                var existingSteps = await _context.RecipeJoinPreparationSteps
+                    .Where(s => s.Recipe.Id == postingToEdit.Recipe.Id)
+                    .ToListAsync();
+                _context.RecipeJoinPreparationSteps.RemoveRange(existingSteps);
 
-                var stepJoin = new RecipeJoinPreparationSteps
+                var stepIds = parsedSteps.Where(s => s.PreparationStepId > 0).Select(s => s.PreparationStepId).ToList();
+                var stepEntities = await _context.RecipePreparationSteps
+                    .Where(s => stepIds.Contains(s.Id))
+                    .ToDictionaryAsync(s => s.Id);
+
+                foreach (var stepRow in parsedSteps.Where(s => s.PreparationStepId > 0))
                 {
-                    Recipe = postingToEdit.Recipe,
-                    RecipePreparationStep = stepEntity,
-                    StepIndex = stepRow.StepIndex
-                };
-                await _context.RecipeJoinPreparationSteps.AddAsync(stepJoin);
+                    if (!stepEntities.TryGetValue(stepRow.PreparationStepId, out var stepEntity)) continue;
+
+                    var stepJoin = new RecipeJoinPreparationSteps
+                    {
+                        Recipe = postingToEdit.Recipe,
+                        RecipePreparationStep = stepEntity,
+                        StepIndex = stepRow.StepIndex
+                    };
+                    await _context.RecipeJoinPreparationSteps.AddAsync(stepJoin);
+                }
             }
 
-            // Update keywords
-            var existingKeywords = await _context.RecipeBaseKeywords
-                .Where(k => k.RecipeBaseDataId == postingToEdit.Recipe.Id)
-                .ToListAsync();
-            _context.RecipeBaseKeywords.RemoveRange(existingKeywords);
-
+            // Update keywords — only if keyword form fields are present
             var parsedKeywordIds = ExtractKeywordIdsFromRequest(Request.Form);
-            var keywordLinks = parsedKeywordIds
-                .Distinct()
-                .Select(keywordId => new RecipeBaseKeyword
-                {
-                    RecipeBaseDataId = postingToEdit.Recipe.Id,
-                    KeywordId = keywordId
-                })
-                .ToList();
-            await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
-
-            // Update smart steps
-            var existingSmartSteps = await _context.RecipeJoinSmartStep
-                .Where(ss => ss.RecipeId == postingToEdit.Recipe.Id)
-                .ToListAsync();
-            _context.RecipeJoinSmartStep.RemoveRange(existingSmartSteps);
-
-            var parsedSmartSteps = ExtractCreatePostingSmartStepsFromRequest(Request.Form);
-            foreach (var stepRef in parsedSmartSteps)
+            if (parsedKeywordIds.Any())
             {
-                var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
+                var existingKeywords = await _context.RecipeBaseKeywords
+                    .Where(k => k.RecipeBaseDataId == postingToEdit.Recipe.Id)
+                    .ToListAsync();
+                _context.RecipeBaseKeywords.RemoveRange(existingKeywords);
 
-                var existingSmartStep = await _context.SmartRecipeStep
-                    .FirstOrDefaultAsync(x =>
-                        x.MasterStepKey == stepRef.MasterStepKey &&
-                        x.VariablesJson == parsed.variablesJson &&
-                        x.Phase == parsed.phase &&
-                        x.Equipment == parsed.equipment);
-
-                var smartStep = existingSmartStep;
-                if (smartStep == null)
-                {
-                    smartStep = new SmartRecipeStep
+                var keywordLinks = parsedKeywordIds
+                    .Distinct()
+                    .Select(keywordId => new RecipeBaseKeyword
                     {
-                        MasterStepKey = stepRef.MasterStepKey,
-                        VariablesJson = parsed.variablesJson,
-                        Phase = parsed.phase,
-                        Equipment = parsed.equipment
-                    };
-                    await _context.SmartRecipeStep.AddAsync(smartStep);
-                }
+                        RecipeBaseDataId = postingToEdit.Recipe.Id,
+                        KeywordId = keywordId
+                    })
+                    .ToList();
+                await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+            }
 
-                var join = new RecipeJoinSmartStep
+            // Update smart steps — only if smart step form fields are present
+            if (Request.Form.Keys.Any(k => k.StartsWith("SmartStepReferences[", StringComparison.OrdinalIgnoreCase)))
+            {
+                var existingSmartSteps = await _context.RecipeJoinSmartStep
+                    .Where(ss => ss.RecipeId == postingToEdit.Recipe.Id)
+                    .ToListAsync();
+                _context.RecipeJoinSmartStep.RemoveRange(existingSmartSteps);
+
+                var parsedSmartSteps = ExtractCreatePostingSmartStepsFromRequest(Request.Form);
+                foreach (var stepRef in parsedSmartSteps)
                 {
-                    Recipe = postingToEdit.Recipe,
-                    SmartRecipeStep = smartStep,
-                    StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
-                };
-                await _context.RecipeJoinSmartStep.AddAsync(join);
+                    var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
+
+                    var existingSmartStep = await _context.SmartRecipeStep
+                        .FirstOrDefaultAsync(x =>
+                            x.MasterStepKey == stepRef.MasterStepKey &&
+                            x.VariablesJson == parsed.variablesJson &&
+                            x.Phase == parsed.phase &&
+                            x.Equipment == parsed.equipment);
+
+                    var smartStep = existingSmartStep;
+                    if (smartStep == null)
+                    {
+                        smartStep = new SmartRecipeStep
+                        {
+                            MasterStepKey = stepRef.MasterStepKey,
+                            VariablesJson = parsed.variablesJson,
+                            Phase = parsed.phase,
+                            Equipment = parsed.equipment
+                        };
+                        await _context.SmartRecipeStep.AddAsync(smartStep);
+                    }
+
+                    var join = new RecipeJoinSmartStep
+                    {
+                        Recipe = postingToEdit.Recipe,
+                        SmartRecipeStep = smartStep,
+                        StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
+                    };
+                    await _context.RecipeJoinSmartStep.AddAsync(join);
+                }
             }
 
             await _context.SaveChangesAsync();
