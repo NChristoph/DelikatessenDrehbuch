@@ -6,6 +6,7 @@
     let recipeTypeStepVarsData = null;
     let optionRulesData = null;
     let ingredientCookingProfilesData = null;
+    let stepGroupAffinitiesData = null;
     let loadingPromise = null;
     let lastLoadError = '';
 
@@ -21,13 +22,15 @@
                 'masterStepVariables',
                 'recipeTypeStepVariables',
                 'masterStepOptionRules',
-                'ingredientCookingProfiles'
+                'ingredientCookingProfiles',
+                'stepGroupAffinities'
             ]).then(function (results) {
                 data = results.masterSteps;
                 variableCatalogData = results.masterStepVariables || null;
                 recipeTypeStepVarsData = results.recipeTypeStepVariables || null;
                 optionRulesData = results.masterStepOptionRules || null;
                 ingredientCookingProfilesData = results.ingredientCookingProfiles || null;
+                stepGroupAffinitiesData = results.stepGroupAffinities || null;
                 lastLoadError = '';
                 console.log('[MasterStepRenderer] Geladen:', {
                     masterSteps: data && data.master_steps ? data.master_steps.length : 0,
@@ -35,7 +38,8 @@
                     stepVarsDefaults: recipeTypeStepVarsData && recipeTypeStepVarsData.defaults ? Object.keys(recipeTypeStepVarsData.defaults).length : 0,
                     stepVarsTypes: recipeTypeStepVarsData && recipeTypeStepVarsData.types ? Object.keys(recipeTypeStepVarsData.types).length : 0,
                     optionRules: optionRulesData ? 'loaded' : 'not available',
-                    cookingProfiles: ingredientCookingProfilesData && ingredientCookingProfilesData.by_group ? Object.keys(ingredientCookingProfilesData.by_group).length + ' groups' : 'not available'
+                    cookingProfiles: ingredientCookingProfilesData && ingredientCookingProfilesData.by_group ? Object.keys(ingredientCookingProfilesData.by_group).length + ' groups' : 'not available',
+                    groupAffinities: stepGroupAffinitiesData && stepGroupAffinitiesData.by_group ? Object.keys(stepGroupAffinitiesData.by_group).length + ' groups' : 'not available'
                 });
                 return data;
             }).catch(function (error) {
@@ -66,6 +70,9 @@
                 .catch(function () { return null; }),
             fetch(window.CreatePostingUtils.getDataUrl('ingredientCookingProfiles') || '/data/ingredient_cooking_profiles.json')
                 .then(function (r) { return r.ok ? r.json() : null; })
+                .catch(function () { return null; }),
+            fetch(window.CreatePostingUtils.getDataUrl('stepGroupAffinities') || '/data/step_group_affinities.json')
+                .then(function (r) { return r.ok ? r.json() : null; })
                 .catch(function () { return null; })
         ])
             .then(function (results) {
@@ -74,6 +81,7 @@
                 var stepVarsJson = results[2];
                 var optionRulesJson = results[3];
                 var cookingProfilesJson = results[4];
+                var groupAffinitiesJson = results[5];
                 if (!json || !Array.isArray(json.master_steps)) {
                     throw new Error('master_steps.json hat ein ungültiges Format.');
                 }
@@ -82,6 +90,7 @@
                 recipeTypeStepVarsData = stepVarsJson;
                 optionRulesData = optionRulesJson;
                 ingredientCookingProfilesData = cookingProfilesJson;
+                stepGroupAffinitiesData = groupAffinitiesJson;
                 lastLoadError = '';
                 console.log('[MasterStepRenderer] Geladen:', {
                     masterSteps: json.master_steps ? json.master_steps.length : 0,
@@ -89,7 +98,8 @@
                     stepVarsDefaults: stepVarsJson && stepVarsJson.defaults ? Object.keys(stepVarsJson.defaults).length : 0,
                     stepVarsTypes: stepVarsJson && stepVarsJson.types ? Object.keys(stepVarsJson.types).length : 0,
                     optionRules: optionRulesJson ? 'loaded' : 'not available',
-                    cookingProfiles: cookingProfilesJson && cookingProfilesJson.by_group ? Object.keys(cookingProfilesJson.by_group).length + ' groups' : 'not available'
+                    cookingProfiles: cookingProfilesJson && cookingProfilesJson.by_group ? Object.keys(cookingProfilesJson.by_group).length + ' groups' : 'not available',
+                    groupAffinities: groupAffinitiesJson && groupAffinitiesJson.by_group ? Object.keys(groupAffinitiesJson.by_group).length + ' groups' : 'not available'
                 });
                 return json;
             })
@@ -450,6 +460,19 @@
         });
     }
 
+    function getStepGroupScore(masterId, groupIds) {
+        if (!stepGroupAffinitiesData || !stepGroupAffinitiesData.by_group) return 0;
+        if (!Array.isArray(groupIds) || !groupIds.length) return 0;
+        var maxScore = 0;
+        groupIds.forEach(function (gid) {
+            var group = stepGroupAffinitiesData.by_group[gid.toString()];
+            if (group && typeof group[masterId] === 'number') {
+                maxScore = Math.max(maxScore, group[masterId]);
+            }
+        });
+        return maxScore;
+    }
+
     function getOptionRulesData() {
         return optionRulesData || null;
     }
@@ -504,6 +527,7 @@
         getOptionRulesData: getOptionRulesData,
         getOptionRulesForAction: getOptionRulesForAction,
         getOptionRulesForFamily: getOptionRulesForFamily,
-        getOptionRulesForStep: getOptionRulesForStep
+        getOptionRulesForStep: getOptionRulesForStep,
+        getStepGroupScore: getStepGroupScore
     };
 })(window);

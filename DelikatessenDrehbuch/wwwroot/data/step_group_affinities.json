@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "description": "Zutat-Gruppen-basierte Step-Affinität. Score 1-3 (3=höchste Relevanz).",
+  "by_group": {
+    "1": {
+      "_label": "Fleisch",
+      "PREP_CUT_01": 3, "PREP_MARINATE_01": 3, "PREP_TENDERIZE_01": 3, "PREP_RUB_01": 2,
+      "COOK_SEAR_01": 3, "COOK_FRY_01": 3, "COOK_ROAST_01": 3, "COOK_GRILL_01": 3,
+      "COOK_BRAISE_01": 3, "COOK_SAUTE_01": 2, "COOK_SOUS_VIDE_01": 2, "COOK_CONFIT_01": 1,
+      "COOK_BASTE_01": 2, "COOK_TRANSFER_OVEN_01": 2, "COOK_ARRANGE_01": 2,
+      "FINISH_REST_01": 3, "PREP_SCORE_01": 2, "COOK_SMOKE_01": 2, "COOK_GRILL_FINISH_01": 2
+    },
+    "2": {
+      "_label": "Gemüse",
+      "PREP_WASH_01": 3, "PREP_PEEL_01": 3, "PREP_CUT_01": 3, "PREP_GRATE_01": 2,
+      "COOK_SAUTE_01": 3, "COOK_STEAM_01": 3, "COOK_BOIL_01": 2, "COOK_ROAST_01": 2,
+      "COOK_GRILL_01": 2, "COOK_BLANCH_01": 2, "COOK_CARAMELIZE_01": 1, "COOK_STIR_01": 2,
+      "COOK_ARRANGE_01": 2, "COOK_ADD_01": 2
+    },
+    "3": {
+      "_label": "Milchprodukte",
+      "COOK_MELT_01": 3, "COOK_GRATINATE_01": 3, "PREP_GRATE_01": 3,
+      "COOK_SAUTE_01": 1, "COOK_ADD_01": 2, "COOK_EMULSIFY_01": 2, "COOK_THICKEN_01": 2,
+      "FINISH_SPRINKLE_01": 2
+    },
+    "4": {
+      "_label": "Obst",
+      "PREP_WASH_01": 3, "PREP_PEEL_01": 2, "PREP_CUT_01": 3,
+      "COOK_CARAMELIZE_01": 3, "COOK_SAUTE_01": 2, "COOK_FLAMBE_01": 2,
+      "COOK_BAKE_01": 2, "FINISH_DECORATE_01": 2
+    },
+    "5": {
+      "_label": "Getreide/Stärke",
+      "COOK_BOIL_01": 3, "COOK_RICE_01": 3, "COOK_DRAIN_01": 3, "COOK_TOAST_01": 2,
+      "COOK_BAKE_01": 2, "PREP_KNEAD_01": 2, "PREP_DOUGH_RISE_01": 2,
+      "COOK_STEAM_01": 2, "COOK_SIMMER_01": 1, "COOK_FRY_01": 1
+    },
+    "6": {
+      "_label": "Gewürze",
+      "COOK_SAUTE_01": 2, "COOK_TOAST_01": 2, "COOK_BLOOM_01": 2,
+      "SEASON_ADJUST_01": 3, "COOK_ADD_01": 3,
+      "FINISH_SPRINKLE_01": 3, "FINISH_DRIZZLE_01": 2
+    },
+    "7": {
+      "_label": "Fisch/Meeresfrüchte",
+      "PREP_FILLET_01": 3, "PREP_DESCALE_01": 3, "PREP_DEVEIN_01": 3, "PREP_CLEAN_SEAFOOD_01": 3,
+      "PREP_CUT_01": 2, "PREP_MARINATE_01": 2,
+      "COOK_POACH_01": 3, "COOK_STEAM_01": 3, "COOK_SAUTE_01": 2, "COOK_FRY_01": 2,
+      "COOK_GRILL_01": 2, "COOK_SEAR_01": 2, "COOK_ROAST_01": 2, "COOK_SOUS_VIDE_01": 2,
+      "FINISH_REST_01": 1
+    },
+    "8": {
+      "_label": "Nüsse/Kerne",
+      "COOK_TOAST_01": 3, "COOK_SAUTE_01": 2, "PREP_MINCE_01": 2,
+      "FINISH_SPRINKLE_01": 3, "COOK_CARAMELIZE_01": 2, "COOK_BLEND_01": 2
+    },
+    "9": {
+      "_label": "Sonstige",
+      "COOK_ADD_01": 2, "COOK_SAUTE_01": 1, "COOK_STIR_01": 1
+    }
+  }
+}

@@ -8,5 +8,6 @@ window.CreatePostingDataUrls = Object.freeze({
     recipeStepMapping: "/data/recipe_step_mapping.json",
     recipeTypeStepVariables: "/data/recipe_type_step_variables.json",
     ingredientTransforms: "/data/ingredient_transforms.json",
-    ingredientCookingProfiles: "/data/ingredient_cooking_profiles.json"
+    ingredientCookingProfiles: "/data/ingredient_cooking_profiles.json",
+    stepGroupAffinities: "/data/step_group_affinities.json"
 });

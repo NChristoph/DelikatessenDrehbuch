@@ -1120,6 +1120,10 @@
 
         container.innerHTML = "";
 
+        // Collect unique ingredient groupIds for affinity scoring
+        const _pageIngredients = getSelectedIngredientsFromPage();
+        const _ingredientGroupIds = [...new Set(_pageIngredients.map(i => (i.groupId || '').toString()).filter(Boolean))];
+
         // Apply filters first
         const filteredSteps = filterSteps(steps);
 
@@ -1188,6 +1192,15 @@
                     const title = step.description ?? "";
                     const templateRaw = step.templates?.[currentLang] ?? "";
 
+                    // Affinity-Score Badge
+                    const affScore = window.MasterStepRenderer?.getStepGroupScore
+                        ? MasterStepRenderer.getStepGroupScore(step.master_id, _ingredientGroupIds)
+                        : 0;
+                    const scoreBadge = affScore >= 3 ? '<span class="step-affinity-badge high" title="Sehr relevant">\u2605\u2605\u2605</span>'
+                        : affScore === 2 ? '<span class="step-affinity-badge medium" title="Relevant">\u2605\u2605</span>'
+                        : affScore === 1 ? '<span class="step-affinity-badge low" title="M\u00f6glich">\u2605</span>'
+                        : '';
+
                     container.insertAdjacentHTML("beforeend", `
                       <button type="button"
                               class="template-card w-100 mb-2"
@@ -1196,7 +1209,7 @@
                               data-title="${escapeHtml(title)}"
                               data-template-raw="${encodeAttr(templateRaw)}">
                         <div class="template-title">
-                          ${escapeHtml(title)}
+                          ${escapeHtml(title)} ${scoreBadge}
                         </div>
                         <div class="template-snippet">
                           ${snippetPreview(templateRaw)}

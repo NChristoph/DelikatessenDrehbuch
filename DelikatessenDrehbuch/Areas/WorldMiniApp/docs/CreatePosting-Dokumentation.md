@@ -4,7 +4,10 @@
 > **Basispfad:** `DelikatessenDrehbuch/`
 > **Stand:** 2026-04-10 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
-> **Letzte Änderungen (2026-04-10, Batch 4):**
+> **Letzte Änderungen (2026-04-11):**
+> - ✅ **Step Group Affinities:** Neues JSON `step_group_affinities.json` — Score-Badges (★/★★/★★★) auf Step-Cards zeigen, wie relevant ein Step für die gewählten Zutaten ist. Score 1-3 basierend auf Zutat-Gruppen (groupId 1-9). Wirkt in SC2 (`create-posting-template-builder.js`) und SmartStepCreator (`renderStepButtons()`). Neue Funktion `MasterStepRenderer.getStepGroupScore(masterId, groupIds)`.
+>
+> **Vorherige Änderungen (2026-04-10, Batch 4):**
 > - ✅ **Ingredient Cooking Profiles:** Neues JSON `ingredient_cooking_profiles.json` — Zutat-Gruppen-basierte Variable-Defaults (Duration, State, Shape etc.) mit höherer Priorität als Rezepttyp-Defaults. Default-Hierarchie: Generic → Parent-Type → Subtype → **Ingredient-Group** → User Override. Wirkt in SC2 (`buildVariablesForTemplate`) und SmartStepCreator (`onStepCardClick`).
 >
 > **Vorherige Änderungen (2026-04-10, Batch 3):**
@@ -168,6 +171,7 @@
 | `ingredient_article_rules.json` | `data/` | Grammatische Artikel-Zuordnung |
 | `ingredient_transforms.json` | `data/` | Zutaten-Transformation (adjektivisch) |
 | `ingredient_cooking_profiles.json` | `data/` | Zutat-Gruppen-basierte Variable-Defaults (Duration, State, etc.) |
+| `step_group_affinities.json` | `data/` | Zutat-Gruppen-basierte Step-Affinität, Score 1-3 für Badge-Anzeige |
 | `probability_template_presets.json` | `data/` | Presets für Probability-Engine |
 
 ### CSS-Dateien (1 Datei)
@@ -721,6 +725,30 @@ Zutat-Gruppen-basierte Variable-Defaults. Überschreiben Rezepttyp-Defaults (Lev
 4. **Ingredient-Group overrides** ← NEU, höchste Daten-Priorität
 5. User Override (manuell im Editor)
 
+### step_group_affinities.json
+Zutat-Gruppen-basierte Step-Affinität. Score-Badges (★/★★/★★★) zeigen Relevanz eines Steps für gewählte Zutaten.
+
+```json
+{
+  "by_group": {
+    "1": {
+      "_label": "Fleisch",
+      "COOK_SEAR_01": 3, "COOK_SAUTE_01": 2, "COOK_CONFIT_01": 1
+    }
+  }
+}
+```
+
+**Struktur:** `by_group[groupId][stepMasterId]` → Score (1-3, wobei 3 = höchste Relevanz)
+**Gruppen:** 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst, 5=Getreide/Stärke, 6=Gewürze, 7=Fisch/Meeresfrüchte, 8=Nüsse/Kerne, 9=Sonstige
+
+**Score-Logik in `MasterStepRenderer.getStepGroupScore(masterId, groupIds)`:**
+- Nimmt Array aller groupIds der gewählten Zutaten
+- Gibt den **höchsten** Score über alle Gruppen zurück
+- Score 3 → ★★★ (Gold), Score 2 → ★★ (Silber), Score 1 → ★ (Grau), Score 0 → kein Badge
+
+**Anzeige:** Badges erscheinen in `template-title` neben dem Step-Namen, sowohl in SC2 (`create-posting-template-builder.js`) als auch SmartStepCreator (`renderStepButtons()`).
+
 ### Weitere JSON-Dateien
 
 | Datei | Inhalt |
@@ -767,6 +795,7 @@ Zutat-Gruppen-basierte Variable-Defaults. Überschreiben Rezepttyp-Defaults (Lev
 | `recipeTypeStepVariables` | `/data/recipe_type_step_variables.json` |
 | `ingredientTransforms` | `/data/ingredient_transforms.json` |
 | `ingredientCookingProfiles` | `/data/ingredient_cooking_profiles.json` |
+| `stepGroupAffinities` | `/data/step_group_affinities.json` |
 
 ---
 
