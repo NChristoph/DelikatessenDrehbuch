@@ -851,6 +851,19 @@
                     isFat: row.data('is-fat') === true || row.data('is-fat') === 'true',
                     isHard: row.data('is-hard') === true || row.data('is-hard') === 'true',
                     isSoft: row.data('is-soft') === true || row.data('is-soft') === 'true',
+                    isPeelable: row.data('is-peelable') === true || row.data('is-peelable') === 'true',
+                    isCuttable: row.data('is-cuttable') === true || row.data('is-cuttable') === 'true',
+                    isGrateable: row.data('is-grateable') === true || row.data('is-grateable') === 'true',
+                    isFryable: row.data('is-fryable') === true || row.data('is-fryable') === 'true',
+                    isRoastable: row.data('is-roastable') === true || row.data('is-roastable') === 'true',
+                    isGrillable: row.data('is-grillable') === true || row.data('is-grillable') === 'true',
+                    isSteamable: row.data('is-steamable') === true || row.data('is-steamable') === 'true',
+                    isBoilable: row.data('is-boilable') === true || row.data('is-boilable') === 'true',
+                    isSearable: row.data('is-searable') === true || row.data('is-searable') === 'true',
+                    isPoachable: row.data('is-poachable') === true || row.data('is-poachable') === 'true',
+                    isSmokable: row.data('is-smokable') === true || row.data('is-smokable') === 'true',
+                    isFlambeable: row.data('is-flambeable') === true || row.data('is-flambeable') === 'true',
+                    isBlendable: row.data('is-blendable') === true || row.data('is-blendable') === 'true',
                     sourceBaseId: id
                 };
             }).get().filter(x => x.id || x.name);
@@ -1181,6 +1194,19 @@
                 isFat: !!item.isFat,
                 isHard: !!item.isHard,
                 isSoft: !!item.isSoft,
+                isPeelable: !!item.isPeelable,
+                isCuttable: !!item.isCuttable,
+                isGrateable: !!item.isGrateable,
+                isFryable: !!item.isFryable,
+                isRoastable: !!item.isRoastable,
+                isGrillable: !!item.isGrillable,
+                isSteamable: !!item.isSteamable,
+                isBoilable: !!item.isBoilable,
+                isSearable: !!item.isSearable,
+                isPoachable: !!item.isPoachable,
+                isSmokable: !!item.isSmokable,
+                isFlambeable: !!item.isFlambeable,
+                isBlendable: !!item.isBlendable,
                 sourceBaseId: item.sourceBaseId || item.id || ''
             }));
         }
@@ -1682,23 +1708,6 @@
             if (!selectedIds.length) return [];
             const byId = new Map(ingredients.map(x => [(x.id || '').toString(), x]));
             return selectedIds.map(id => byId.get(id)?.name || '').filter(Boolean);
-        }
-
-        function getSelectedIngredientNamesWithArticle(langKey = currentLang) {
-            const lang = resolveLangKey(langKey || currentLang || 'de');
-            const ingredients = getSelectedIngredientsForSandbox();
-            if (!ingredients.length) return [];
-
-            const selectedIds = (creatorState.selectedIngredientIds || []).map(x => (x || '').toString()).filter(Boolean);
-            if (!selectedIds.length) return [];
-
-            const byId = new Map(ingredients.map(x => [(x.id || '').toString(), x]));
-            return selectedIds.map(id => {
-                const ingredient = byId.get(id);
-                if (!ingredient) return '';
-                const grammar = resolveGrammarForIngredient(ingredient.name, ingredient.genusByLang || {}, lang);
-                return applyArticleToName(ingredient.name, grammar.article, lang) || ingredient.name;
-            }).filter(Boolean);
         }
 
         function getSelectedIngredientForCreator() {
@@ -2646,25 +2655,11 @@
             return '';
         }
 
-        function getSelectedIngredientValueForLanguage(langKey) {
-            const names = getSelectedIngredientNames();
-            if (window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.resolveIngredientInsertValue === 'function') {
-                return window.MasterStepCreatorHelpers.resolveIngredientInsertValue(names, langKey, '');
-            }
-            const list = (names || []).map(x => (x || '').toString().trim()).filter(Boolean);
-            if (!list.length) return '';
-            if (list.length === 1) return list[0];
-            if (list.length === 2) return `${list[0]} und ${list[1]}`;
-            const head = list.slice(0, -1).join(', ');
-            const tail = list[list.length - 1];
-            return `${head}, und ${tail}`;
-        }
-
         function resolveDefaultVariableValueForLanguage(key, langKey) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
             const placeholderType = getPlaceholderType(key);
-            if (key === 'ingredient' || key === 'ingredients') {
-                return key; // always placeholder Ã¢â‚¬â€ user must choose
+            if (key === 'ingredient' || key === 'ingredients' || key === 'ingredient2') {
+                return '';
             }
             if (key === 'pronoun' || key === 'pronoun2') {
                 const selectedIngredient = getSelectedIngredientForCreator();
@@ -2692,7 +2687,7 @@
             if (placeholderType === 'shape' || key.includes('shape')) return getLocalizedFallbackForVariable('shape', lang);
             if (placeholderType === 'base') return creatorState.baseValue || getLocalizedFallbackForVariable('base', lang) || '';
             const localizedFallback = getLocalizedFallbackForVariable(key, lang);
-            return localizedFallback || key;
+            return localizedFallback || '';
         }
 
         function resolveDefaultVariableValue(key) {
@@ -2735,52 +2730,104 @@
             });
         }
 
-        function buildVariablesForTemplate(templateId, recipeType) {
-            const template = MasterStepRenderer.findTemplate(templateId);
-            console.log(`[buildVariablesForTemplate] Template "${templateId}":`, template?.optional_variables);
+        // Ingredient-Variable-Typen die automatisch gematcht werden können
+        const _ingredientVarNames = new Set([
+            'ingredient','ingredient2','ingredients','fat','liquid',
+            'seasoning','seasonings','base','marinade','thickener','components','extra'
+        ]);
 
-            const selectedIngredient = getSelectedIngredientForCreator();
-            const selectedNames = getSelectedIngredientNames();
-            const ingredientName = selectedIngredient?.name || (selectedNames.length ? selectedNames.join(', ') : '');
-            const grammar = resolveGrammarForIngredient(ingredientName, selectedIngredient?.genusByLang || {}, currentLang);
-            const ingredientNameWithArticle = applyArticleToName(ingredientName, grammar.article, currentLang);
+        /**
+         * Matcht Seitenzutaten automatisch auf eine Ingredient-Variable.
+         * Nutzt filterIngredientsByVarType aus SC2 + required_ingredient_tags.
+         * Gibt { text, ingredients } zurück — text ist formatiert ("die Kartoffeln und die Zwiebeln"),
+         * ingredients ist Array von { name, fraction, article } für Multi-Ingredient-Chips im Overlay.
+         */
+        function matchIngredientsToVariable(varName, masterId, allIngredients, lang) {
+            var empty = { text: '', ingredients: [] };
+            var helpers = window.MasterStepCreatorHelpers;
+            if (!helpers?.filterIngredientsByVarType || !allIngredients.length) return empty;
+
+            var matched;
+
+            // 1. Bei ingredient/ingredients mit required_ingredient_tags: Tags als PRIMÄRER Filter
+            //    (zB isPeelable für PREP_PEEL_01 — matcht alle peelable Zutaten, nicht nur isHard/isSoft)
+            if (varName === 'ingredient' || varName === 'ingredients') {
+                var template = MasterStepRenderer.findTemplate(masterId);
+                var tags = template?.required_ingredient_tags;
+                if (tags?.length) {
+                    var tagMatched = allIngredients.filter(function (ing) {
+                        return tags.some(function (tag) {
+                            return !!ing['is' + tag.charAt(0).toUpperCase() + tag.slice(1)];
+                        });
+                    });
+                    if (tagMatched.length) {
+                        matched = tagMatched;
+                    }
+                }
+            }
+
+            // 2. Fallback: Basis-Filter via SC2 (fat→isFat, liquid→isLiquid etc.)
+            if (!matched) {
+                var result = helpers.filterIngredientsByVarType(allIngredients, varName, masterId);
+                if (!result.filtered.length) return empty;
+                matched = result.filtered;
+            }
+
+            // 3. Ingredient-Objekte für Overlay-Chips aufbauen + Text formatieren
+            var ingredientObjects = [];
+            var parts = matched.map(function (ing) {
+                var g = resolveGrammarForIngredient(ing.name, ing.genusByLang || {}, lang);
+                ingredientObjects.push({ name: ing.name, fraction: '', article: g.article || '' });
+                return applyArticleToName(ing.name, g.article, lang) || ing.name;
+            });
+
+            var text;
+            if (parts.length === 1) text = parts[0];
+            else if (parts.length === 2) text = parts[0] + ' und ' + parts[1];
+            else text = parts.slice(0, -1).join(', ') + ' und ' + parts[parts.length - 1];
+
+            return { text: text, ingredients: ingredientObjects };
+        }
+
+        function buildVariablesForTemplate(templateId, recipeType) {
+            var template = MasterStepRenderer.findTemplate(templateId);
+            var allIngredients = getSelectedIngredientsForSandbox();
+            var lang = currentLang || 'de';
+
+            var requiredVars = new Set(template?.required_variables || []);
+            var keys = new Set([...(template?.variables || []), ...getPlaceholderKeysFromTemplate(template)]);
+            var vars = {};
+
+            // Required ingredient-Variablen automatisch vorausfüllen,
+            // alles andere leer → renderTemplateWithConfig zeigt Display-Namen als klickbare Tokens
+            keys.forEach(function (key) {
+                if (requiredVars.has(key) && _ingredientVarNames.has(key)) {
+                    var match = matchIngredientsToVariable(key, templateId, allIngredients, lang);
+                    vars[key] = match.text;
+
+                    // Gematchte Zutaten in einfachem Global speichern → Overlay nutzt als Fallback
+                    if (match.ingredients.length) {
+                        if (!window._autoMatchedIngredients) window._autoMatchedIngredients = {};
+                        if (!window._autoMatchedIngredients[templateId]) window._autoMatchedIngredients[templateId] = {};
+                        window._autoMatchedIngredients[templateId][key] = match.ingredients;
+                    }
+                } else {
+                    vars[key] = '';
+                }
+            });
+
+            // Pronoun/Article aus erster gematchter oder ausgewählter Zutat
+            var selectedIngredient = getSelectedIngredientForCreator();
+            var fallbackIng = selectedIngredient || allIngredients[0];
+            var grammar = resolveGrammarForIngredient(
+                fallbackIng?.name || '',
+                fallbackIng?.genusByLang || {},
+                lang
+            );
 
             creatorState.computedPronoun = creatorState.advancedPronounOverride || grammar.pronoun;
             creatorState.computedArticle = creatorState.advancedArticleOverride || grammar.article;
 
-            const defaults = MasterStepRenderer.getSmartDefaults(templateId, {
-                ingredientName: ingredientNameWithArticle || ingredientName,
-                recipeCategory: $('#Recipe_Category').val(),
-                recipeType: recipeType || '',
-                ingredientGroupId: selectedIngredient?.groupId || ''
-            }) || {};
-
-            const keys = new Set([...(template?.variables || []), ...getPlaceholderKeysFromTemplate(template)]);
-            const vars = { ...defaults };
-
-            keys.forEach(key => {
-                if (key === 'ingredient' || key === 'ingredients') {
-                    // ingredient/ingredients: always placeholder Ã¢â‚¬" user must choose
-                    vars[key] = key;
-                    return;
-                }
-
-                // âœ… FIX (2026-04-02): Optionale Variablen IMMER leer lassen
-                const optVars = template?.optional_variables;
-                const isOptional = optVars != null && (Array.isArray(optVars) ? optVars.includes(key) : optVars === key);
-                if (isOptional) {
-                    // Optionale Variablen: IMMER leer setzen (ignoriere Defaults)
-                    vars[key] = '';
-                    console.log(`[buildVariablesForTemplate] Optional variable "${key}" set to empty`);
-                    return;
-                }
-
-                if (vars[key] == null || String(vars[key]).trim() === '') {
-                    vars[key] = resolveDefaultVariableValue(key);
-                }
-            });
-
-            if (!vars.ingredient || vars.ingredient === 'ingredient') vars.ingredient = vars.ingredient || 'ingredient';
             if (!vars.pronoun) vars.pronoun = creatorState.computedPronoun;
             if (!vars.article) vars.article = creatorState.computedArticle;
             return applyTokenAssignmentsToVariables(vars);
@@ -3368,7 +3415,20 @@
                 isLiquid: (row.data('is-liquid') === true || row.data('is-liquid') === 'true') ? 'true' : 'false',
                 isFat: (row.data('is-fat') === true || row.data('is-fat') === 'true') ? 'true' : 'false',
                 isHard: (row.data('is-hard') === true || row.data('is-hard') === 'true') ? 'true' : 'false',
-                isSoft: (row.data('is-soft') === true || row.data('is-soft') === 'true') ? 'true' : 'false'
+                isSoft: (row.data('is-soft') === true || row.data('is-soft') === 'true') ? 'true' : 'false',
+                isPeelable: (row.data('is-peelable') === true || row.data('is-peelable') === 'true') ? 'true' : 'false',
+                isCuttable: (row.data('is-cuttable') === true || row.data('is-cuttable') === 'true') ? 'true' : 'false',
+                isGrateable: (row.data('is-grateable') === true || row.data('is-grateable') === 'true') ? 'true' : 'false',
+                isFryable: (row.data('is-fryable') === true || row.data('is-fryable') === 'true') ? 'true' : 'false',
+                isRoastable: (row.data('is-roastable') === true || row.data('is-roastable') === 'true') ? 'true' : 'false',
+                isGrillable: (row.data('is-grillable') === true || row.data('is-grillable') === 'true') ? 'true' : 'false',
+                isSteamable: (row.data('is-steamable') === true || row.data('is-steamable') === 'true') ? 'true' : 'false',
+                isBoilable: (row.data('is-boilable') === true || row.data('is-boilable') === 'true') ? 'true' : 'false',
+                isSearable: (row.data('is-searable') === true || row.data('is-searable') === 'true') ? 'true' : 'false',
+                isPoachable: (row.data('is-poachable') === true || row.data('is-poachable') === 'true') ? 'true' : 'false',
+                isSmokable: (row.data('is-smokable') === true || row.data('is-smokable') === 'true') ? 'true' : 'false',
+                isFlambeable: (row.data('is-flambeable') === true || row.data('is-flambeable') === 'true') ? 'true' : 'false',
+                isBlendable: (row.data('is-blendable') === true || row.data('is-blendable') === 'true') ? 'true' : 'false'
             };
         }
 
@@ -3376,7 +3436,24 @@
             const langAttrs = supportedLanguages.map(lang =>
                 `data-name-${lang}="${escapeAttr(localizedData.names[lang])}" data-genus-${lang}="${escapeAttr(localizedData.genus[lang])}"`
             ).join(' ');
-            return `${langAttrs} data-group-id="${escapeAttr(localizedData.groupId || '')}" data-is-liquid="${localizedData.isLiquid || 'false'}" data-is-fat="${localizedData.isFat || 'false'}" data-is-hard="${localizedData.isHard || 'false'}" data-is-soft="${localizedData.isSoft || 'false'}"`;
+            var tagAttrs = ' data-is-liquid="' + (localizedData.isLiquid || 'false') + '"'
+                + ' data-is-fat="' + (localizedData.isFat || 'false') + '"'
+                + ' data-is-hard="' + (localizedData.isHard || 'false') + '"'
+                + ' data-is-soft="' + (localizedData.isSoft || 'false') + '"'
+                + ' data-is-peelable="' + (localizedData.isPeelable || 'false') + '"'
+                + ' data-is-cuttable="' + (localizedData.isCuttable || 'false') + '"'
+                + ' data-is-grateable="' + (localizedData.isGrateable || 'false') + '"'
+                + ' data-is-fryable="' + (localizedData.isFryable || 'false') + '"'
+                + ' data-is-roastable="' + (localizedData.isRoastable || 'false') + '"'
+                + ' data-is-grillable="' + (localizedData.isGrillable || 'false') + '"'
+                + ' data-is-steamable="' + (localizedData.isSteamable || 'false') + '"'
+                + ' data-is-boilable="' + (localizedData.isBoilable || 'false') + '"'
+                + ' data-is-searable="' + (localizedData.isSearable || 'false') + '"'
+                + ' data-is-poachable="' + (localizedData.isPoachable || 'false') + '"'
+                + ' data-is-smokable="' + (localizedData.isSmokable || 'false') + '"'
+                + ' data-is-flambeable="' + (localizedData.isFlambeable || 'false') + '"'
+                + ' data-is-blendable="' + (localizedData.isBlendable || 'false') + '"';
+            return `${langAttrs} data-group-id="${escapeAttr(localizedData.groupId || '')}"${tagAttrs}`;
         }
 
         function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName, iconHtml }) {
@@ -3440,6 +3517,7 @@
                 syncIngredientSourceVisibility();
             }
             refreshIngredientProbabilityHints();
+            window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
         }
 
@@ -3593,6 +3671,7 @@
             refreshMasterTemplateBuilder();
             syncIngredientSourceVisibility();
             refreshIngredientProbabilityHints();
+            window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
         }
 

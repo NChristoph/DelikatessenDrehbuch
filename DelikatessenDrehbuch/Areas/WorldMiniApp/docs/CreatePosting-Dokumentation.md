@@ -2,9 +2,29 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-10 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
+> **Stand:** 2026-04-12 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
-> **Letzte Änderungen (2026-04-11):**
+> **Letzte Änderungen (2026-04-12):**
+> - ✅ **Dynamisches Ingredient-Matching für Probability Steps:** `buildVariablesForTemplate()` füllt jetzt `required_variables` vom Typ Ingredient automatisch mit passenden Seitenzutaten vor. Neue Funktion `matchIngredientsToVariable()` nutzt `filterIngredientsByVarType` (via `MasterStepCreatorHelpers`-Export) + `required_ingredient_tags` für präzises Matching. Ergebnis: PREP_PEEL_01 zeigt "die Kartoffeln und die Zwiebeln" (nur peelable), COOK_SAUTE_01 füllt "das Olivenöl" (isFat) vor. Optionale Variablen (duration, state, equipment) bleiben als Display-Name-Tokens. User kann vorausgefüllte Tokens weiterhin anklicken und ändern.
+>   - `filterIngredientsByVarType` in `MasterStepCreatorHelpers` exportiert
+>   - `_ingredientVarNames`: Set mit allen automatisch matchbaren Variable-Typen (ingredient, fat, liquid, seasonings, base, thickener, etc.)
+>   - `matchIngredientsToVariable()` gibt `{ text, ingredients }` zurück — `ingredients` ist Array von `{ name, fraction, article }` Objekten
+>   - Gematchte Zutaten werden in `window._autoMatchedIngredients[masterId][varName]` zwischengespeichert
+>   - `openUniversalVariableEditor` (CreatePostingSmartStepCreator.js): Fallback-Logik — wenn `getMultiIngredientsForContext` leer UND kein User-Edit (Key nicht im Draft), werden Auto-Match-Daten via `saveMultiIngredientsForContext` übernommen. Nach User-Edit (`varName in _multiIngredients`) greift der Fallback nicht mehr
+>   - Pronoun/Article Fallback auf erste verfügbare Zutat wenn keine explizit ausgewählt
+>
+> **Vorherige Änderungen (2026-04-11, Batch 3):**
+> - ✅ **Alle Variablen zeigen Display-Namen:** `buildVariablesForTemplate()` setzt nicht-ingredient Variablen auf `''` — `renderTemplateWithConfig` zeigt dann für jede Variable den deutschen Display-Namen aus `VAR_DISPLAY_NAMES` als klickbaren Token (z.B. "Zustand", "Dauer", "Gerät"). `pronoun`/`article` werden weiterhin aus Grammatik-Kontext gesetzt.
+>   - `resolveDefaultVariableValueForLanguage`: Catch-all gibt `''` statt englischem Key zurück
+>   - `base`-Variable: Neue erste Option "das Gericht" in `master_step_variables.json` (für Auswahl-Liste)
+>
+> **Vorherige Änderungen (2026-04-11, Batch 2):**
+> - ✅ **Affinity-Sterne Live-Update:** `addIngredient()` und `removeIngredientRow()` rufen jetzt `MasterStepCreatorHelpers.renderStepButtons()` auf — Sterne aktualisieren sich sofort bei Zutat-Änderungen.
+> - ✅ **"Beste" Filter-Chip:** Neuer Phase-Tab `⭐ Beste` in `create-posting-step-filter-ui.js` — filtert Steps auf Score ≥ 2 (★★/★★★). `filterSteps()` akzeptiert jetzt `ingredientGroupIds` als dritten Parameter. Spezieller Hinweistext wenn keine Matches.
+>
+> **Vorherige Änderungen (2026-04-11):**
+> - ✅ **Option Rules dicht befüllt (Prio 3):** `master_step_option_rules.json` V2 — Von 19 auf 55+ step-spezifische Rules erweitert, 13 neue action-Rules (roast, grill, braise, poach, sear, deep_fry, simmer, steam, boil, bake, blend, caramelize, smoke), 6 neue ingredient_family-Rules (cheese, pasta, rice, nut, fruit, seafood), neue defaults für `heat` und `mode`. Keine Code-Änderungen nötig — bestehendes Scoring in `getRankedVarOptionEntries()` konsumiert die neuen Einträge automatisch.
+> - ✅ **Liquid als Hybrid-Variable:** `liquid` in `isHybridIngredientVariable()` aufgenommen — zeigt jetzt sowohl Text-Optionen (Wasser, Brühe, Milch, Sahne, Wein, Öl) als auch Zutaten-Chips mit `is_liquid=true`.
 > - ✅ **Step Group Affinities:** Neues JSON `step_group_affinities.json` — Score-Badges (★/★★/★★★) auf Step-Cards zeigen, wie relevant ein Step für die gewählten Zutaten ist. Score 1-3 basierend auf Zutat-Gruppen (groupId 1-9). Wirkt in SC2 (`create-posting-template-builder.js`) und SmartStepCreator (`renderStepButtons()`). Neue Funktion `MasterStepRenderer.getStepGroupScore(masterId, groupIds)`.
 >
 > **Vorherige Änderungen (2026-04-10, Batch 4):**
@@ -60,6 +80,7 @@
 6. [Views & HTML-Struktur](#6-views--html-struktur)
 7. [CSS-Klassen & Themes](#7-css-klassen--themes)
 8. [JSON-Datendateien](#8-json-datendateien)
+8b. [Ingredient-Tags für Step-Filterung](#8b-ingredient-tags-für-step-filterung) **NEU**
 9. [JS-Datei: create-posting-utils.js](#9-js-datei-create-posting-utilsjs)
 10. [JS-Datei: create-posting-data-urls.js](#10-js-datei-create-posting-data-urlsjs)
 11. [JS-Datei: create-posting-data-store.js](#11-js-datei-create-posting-data-storejs)
@@ -753,12 +774,51 @@ Zutat-Gruppen-basierte Step-Affinität. Score-Badges (★/★★/★★★) zeig
 
 | Datei | Inhalt |
 |-------|--------|
-| `master_step_option_rules.json` | Konditionale Regeln: welche Optionen bei welchem Step/Zutat erscheinen |
+| `master_step_option_rules.json` | Konditionale Regeln: welche Optionen bei welchem Step/Zutat erscheinen. V2: 55+ step-Rules, 20 action-Rules, 14 ingredient_family-Rules, defaults für heat/mode. Scoring: Step +60/-120, Action +50/-100, Family +40/-80 |
 | `recipe_step_mapping.json` | Welche Steps zu welchem Rezepttyp gehören |
 | `recipe_type_step_variables.json` | Variablen-Standardwerte pro Rezepttyp |
 | `recipe_category_scoring.json` | Scoring-Regeln für Rezepttyp-Erkennung anhand Zutaten |
 | `ingredient_article_rules.json` | Grammatik: welcher Artikel zu welcher Zutat (der/die/das) |
 | `probability_template_presets.json` | Vorgefertigte Step-Kombinationen pro Rezepttyp |
+
+---
+
+## 8b. Ingredient-Tags für Step-Filterung
+
+### Übersicht
+
+13 neue bool-Spalten auf der DB-Tabelle `IngredientsAndNutrients` ermöglichen tag-basierte Step-Filterung:
+
+`is_peelable`, `is_cuttable`, `is_grateable`, `is_fryable`, `is_roastable`, `is_grillable`, `is_steamable`, `is_boilable`, `is_searable`, `is_poachable`, `is_smokable`, `is_flambeable`, `is_blendable`
+
+- Tags werden manuell in der DB befüllt
+- Steps in `master_steps.json` haben ein optionales Feld `required_ingredient_tags` (Array von Tag-Namen ohne `is_`-Prefix, z.B. `["peelable", "cuttable"]`)
+- Steps **mit** `required_ingredient_tags` werden nur angezeigt, wenn mindestens eine gewählte Zutat mindestens einen der geforderten Tags hat
+- Steps **ohne** das Feld sind immer sichtbar (keine Einschränkung)
+
+### Datenfluss
+
+1. **DB → View:** `CreatePosting.cshtml` rendert 13 `data-is-*` Attribute auf jeder `.ingredient-db-row` (z.B. `data-is-peelable="true"`)
+2. **View → JS:** `CreatePostingPage.js` liest die Tags in `getBaseSandboxIngredients()` und gibt sie über `getSelectedIngredientsForSandbox()` weiter
+3. **Tag-Sammlung:** `MasterStepRenderer.collectIngredientTags(ingredients)` sammelt alle aktiven Tags der gewählten Zutaten als `Set`
+4. **Filterung:** `MasterStepRenderer.shouldShowStep(masterId, tagSet)` prüft ob ein Step sichtbar sein soll — gibt `true` zurück wenn der Step kein `required_ingredient_tags` hat oder mindestens ein Tag im `tagSet` vorkommt
+
+### Sortierung
+
+In allen 3 Bereichen (SmartStepCreator, Probability Area, SC2 Template-Builder) werden die gefilterten Steps zusätzlich nach Affinity-Score (aus `step_group_affinities.json`) absteigend sortiert: ★★★ oben, ★ unten.
+
+### Betroffene Dateien
+
+| Datei | Änderung |
+|-------|----------|
+| `Models/IngredientsAndNutrients.cs` | 13 neue bool Properties |
+| `CreatePosting.cshtml` | 13 neue `data-is-*` Attribute auf `.ingredient-db-row` |
+| `CreatePostingPage.js` | Tags lesen in `getBaseSandboxIngredients()`, `getSelectedIngredientsForSandbox()`, `getLocalizedIngredientData()`, `buildIngredientDataAttributes()` |
+| `master_steps.json` | `required_ingredient_tags` auf 37 Steps |
+| `master-step-renderer.js` | `collectIngredientTags()`, `shouldShowStep()` |
+| `CreatePostingSmartStepCreator.js` | `filterSteps()` nutzt Tags, `renderStepButtons()` sortiert nach Affinity |
+| `create-posting-probability.js` | `buildPreferredCards()`, `buildFallbackCards()` filtern + sortieren |
+| `create-posting-template-builder.js` | `renderTemplateCards()` filtert + sortiert |
 
 ---
 
@@ -1422,7 +1482,7 @@ if (mode === "article") {
 | Funktion | Zeile | Beschreibung |
 |----------|-------|-------------|
 | `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, base, seasoning, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** dough (zeigt Options-Chips). base zeigt Zutat-Chips gefiltert auf Fleisch+Gemüse (isHard\|\|isSoft). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
-| `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
+| `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra, base, liquid. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
 | `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: **COOK_ARRANGE_01→isHard\|\|isSoft (Fleisch+Gemüse prominent, Rest gedimmt)**, PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, PREP_SCORE_01/PREP_TENDERIZE_01→!isLiquid && !isFat && groupId !== "5". Fallback auf alle Items wenn keine Matches |
 | `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
 | `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |

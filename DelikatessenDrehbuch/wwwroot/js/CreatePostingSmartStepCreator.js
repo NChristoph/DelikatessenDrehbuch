@@ -1087,10 +1087,15 @@
         return searchText.includes(q);
     }
 
-    function filterSteps(stepsToFilter) {
+    function filterSteps(stepsToFilter, ingredientTagSet, ingredientGroupIds) {
         return stepsToFilter.filter(step => {
             // Phase filter
-            if (currentPhaseFilter !== 'all') {
+            if (currentPhaseFilter === 'best') {
+                const score = window.MasterStepRenderer?.getStepGroupScore
+                    ? window.MasterStepRenderer.getStepGroupScore(step.master_id, ingredientGroupIds || [])
+                    : 0;
+                if (score < 2) return false;
+            } else if (currentPhaseFilter !== 'all') {
                 const phaseNum = parseInt(currentPhaseFilter, 10);
                 if ((step.phase ?? 0) !== phaseNum) {
                     return false;
@@ -1099,6 +1104,12 @@
             // Search filter
             if (!matchesSearch(step, currentSearchQuery)) {
                 return false;
+            }
+            // Ingredient tag filter
+            if (ingredientTagSet && ingredientTagSet.size && window.MasterStepRenderer?.shouldShowStep) {
+                if (!window.MasterStepRenderer.shouldShowStep(step.master_id, ingredientTagSet)) {
+                    return false;
+                }
             }
             return true;
         });
@@ -1120,24 +1131,35 @@
 
         container.innerHTML = "";
 
-        // Collect unique ingredient groupIds for affinity scoring
+        // Collect unique ingredient groupIds for affinity scoring + tags for filtering
         const _pageIngredients = getSelectedIngredientsFromPage();
         const _ingredientGroupIds = [...new Set(_pageIngredients.map(i => (i.groupId || '').toString()).filter(Boolean))];
+        const _ingredientTags = window.MasterStepRenderer?.collectIngredientTags
+            ? window.MasterStepRenderer.collectIngredientTags(_pageIngredients)
+            : new Set();
 
-        // Apply filters first
-        const filteredSteps = filterSteps(steps);
+        // Apply filters first (including ingredient tag filter)
+        const filteredSteps = filterSteps(steps, _ingredientTags, _ingredientGroupIds);
 
         // Show message if no results after filtering
         if (!filteredSteps.length && steps.length > 0) {
-            container.innerHTML = '<div class="small text-white-50 text-center py-4">Keine Steps für diesen Filter gefunden.</div>';
+            if (currentPhaseFilter === 'best') {
+                container.innerHTML = '<div class="small text-white-50 text-center py-4">Keine passenden Steps — zuerst Zutaten hinzufügen oder mehr Zutaten wählen.</div>';
+            } else {
+                container.innerHTML = '<div class="small text-white-50 text-center py-4">Keine Steps für diesen Filter gefunden.</div>';
+            }
             return;
         }
 
-        // sortieren: phase -> sub_group -> master_id
+        // sortieren: phase -> affinity score (desc) -> sub_group -> master_id
         const sorted = [...filteredSteps].sort((a, b) => {
             const pa = a.phase ?? 0;
             const pb = b.phase ?? 0;
             if (pa !== pb) return pa - pb;
+            // Higher affinity score first within same phase
+            const scoreA = window.MasterStepRenderer?.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(a.master_id, _ingredientGroupIds) : 0;
+            const scoreB = window.MasterStepRenderer?.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(b.master_id, _ingredientGroupIds) : 0;
+            if (scoreA !== scoreB) return scoreB - scoreA;
             const sga = a.sub_group ?? "";
             const sgb = b.sub_group ?? "";
             if (sga !== sgb) return sga.localeCompare(sgb);
@@ -1398,7 +1420,7 @@
 
     function isHybridIngredientVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase();
-        return key === "extra" || key === "base";
+        return key === "extra" || key === "base" || key === "liquid";
     }
 
     // Filters ingredient items based on the variable type (e.g. {{liquid}} → only liquids)
@@ -2139,7 +2161,21 @@
         }
 
         // Get multi-ingredients for this context
-        const multiIngredients = getMultiIngredientsForContext(context, varName);
+        let multiIngredients = getMultiIngredientsForContext(context, varName);
+
+        // Fallback: Auto-matched ingredients aus buildVariablesForTemplate übernehmen
+        // Nur beim allerersten Öffnen — wenn User schon editiert hat (Key existiert im Draft), nicht mehr
+        if (!multiIngredients.length && isIngredientVariable(varName) && context.type === 'probability') {
+            const existingDraft = draftEngine?.getProbabilityDraft?.(masterId);
+            const hasUserEdited = existingDraft?._multiIngredients && (varName in existingDraft._multiIngredients);
+            if (!hasUserEdited) {
+                const autoMatched = window._autoMatchedIngredients?.[masterId]?.[varName];
+                if (autoMatched?.length) {
+                    multiIngredients = autoMatched;
+                    saveMultiIngredientsForContext(context, varName, autoMatched);
+                }
+            }
+        }
 
         // Generate editor HTML (unified for both areas)
         const { html, dataAttributes } = _generateEditorHtml(varName, currentVal, {
@@ -4039,7 +4075,9 @@
         // Filter functions (Phase 1)
         setSearchQuery,
         setPhaseFilter,
-        renderStepButtons
+        renderStepButtons,
+        // Ingredient matching (Phase 5)
+        filterIngredientsByVarType
     });
 
 

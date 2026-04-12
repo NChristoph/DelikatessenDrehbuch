@@ -512,6 +512,28 @@
         return resolveRulesForLang(varRules, lang);
     }
 
+    var _ingredientTagProps = ['peelable','cuttable','grateable','fryable','roastable','grillable',
+        'steamable','boilable','searable','poachable','smokable','flambeable','blendable'];
+
+    function collectIngredientTags(ingredients) {
+        var tags = new Set();
+        (ingredients || []).forEach(function(ing) {
+            _ingredientTagProps.forEach(function(prop) {
+                if (ing['is' + prop.charAt(0).toUpperCase() + prop.slice(1)]) tags.add(prop);
+            });
+        });
+        return tags;
+    }
+
+    function shouldShowStep(masterId, ingredientTagSet) {
+        var template = findTemplate(masterId);
+        if (!template) return false;
+        var required = template.required_ingredient_tags;
+        if (!required || !required.length) return true;
+        if (!ingredientTagSet || !ingredientTagSet.size) return true;
+        return required.some(function(tag) { return ingredientTagSet.has(tag); });
+    }
+
     window.MasterStepRenderer = {
         load: load,
         getAllTemplates: getAllTemplates,
@@ -528,6 +550,8 @@
         getOptionRulesForAction: getOptionRulesForAction,
         getOptionRulesForFamily: getOptionRulesForFamily,
         getOptionRulesForStep: getOptionRulesForStep,
-        getStepGroupScore: getStepGroupScore
+        getStepGroupScore: getStepGroupScore,
+        collectIngredientTags: collectIngredientTags,
+        shouldShowStep: shouldShowStep
     };
 })(window);

@@ -24,20 +24,17 @@
             return;
         }
 
-        const templates = window.MasterStepRenderer.getAllTemplates();
-        if (!templates.length) {
+        var allTemplates = window.MasterStepRenderer.getAllTemplates();
+        if (!allTemplates.length) {
             setMasterTemplateError('Keine Templates gefunden. Prüfe /data/master_steps.json.');
             deps.creatorState.selectedTemplateId = '';
             deps.updatePreviewText();
             return;
         }
 
-        if (!deps.creatorState.selectedTemplateId || !templates.some(x => x.master_id === deps.creatorState.selectedTemplateId)) {
-            deps.creatorState.selectedTemplateId = templates[0].master_id;
-        }
-
-        // Collect ingredient groupIds for affinity scoring
+        // Collect ingredient data for tag filtering + affinity scoring
         var ingredientGroupIds = [];
+        var ingredientTags = new Set();
         if (window.CreatePostingIngredientHelpers && typeof window.CreatePostingIngredientHelpers.getSelectedIngredientsForSandbox === 'function') {
             var ings = window.CreatePostingIngredientHelpers.getSelectedIngredientsForSandbox(deps.currentLang());
             var seen = {};
@@ -45,6 +42,31 @@
                 var gid = (item && item.groupId || '').toString();
                 if (gid && !seen[gid]) { seen[gid] = true; ingredientGroupIds.push(gid); }
             });
+            if (window.MasterStepRenderer.collectIngredientTags) {
+                ingredientTags = window.MasterStepRenderer.collectIngredientTags(ings);
+            }
+        }
+
+        // Filter by ingredient tags
+        var templates = allTemplates;
+        if (ingredientTags.size && window.MasterStepRenderer.shouldShowStep) {
+            templates = allTemplates.filter(function(step) {
+                return window.MasterStepRenderer.shouldShowStep(step.master_id, ingredientTags);
+            });
+        }
+
+        // Sort by affinity score (desc) within same phase
+        templates = [...templates].sort(function(a, b) {
+            var pa = a.phase ?? 0, pb = b.phase ?? 0;
+            if (pa !== pb) return pa - pb;
+            var sa = window.MasterStepRenderer.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(a.master_id, ingredientGroupIds) : 0;
+            var sb = window.MasterStepRenderer.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(b.master_id, ingredientGroupIds) : 0;
+            if (sa !== sb) return sb - sa;
+            return (a.master_id || '').localeCompare(b.master_id || '');
+        });
+
+        if (!deps.creatorState.selectedTemplateId || !templates.some(x => x.master_id === deps.creatorState.selectedTemplateId)) {
+            deps.creatorState.selectedTemplateId = templates.length ? templates[0].master_id : '';
         }
 
         templates.forEach((step, index) => {

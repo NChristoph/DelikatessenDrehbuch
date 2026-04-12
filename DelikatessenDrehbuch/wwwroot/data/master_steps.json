@@ -1337,6 +1337,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "peel",
+      "required_ingredient_tags": ["peelable"],
       "equipment": 0,
       "description": "Schälen von Obst, Gemüse oder Knollen",
       "templates": {
@@ -1390,6 +1391,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "cut",
+      "required_ingredient_tags": ["cuttable"],
       "equipment": 0,
       "description": "Schneiden/Zerkleinern in bestimmte Formen",
       "templates": {
@@ -1444,6 +1446,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "score",
+      "required_ingredient_tags": ["roastable", "fryable"],
       "equipment": 0,
       "description": "Einschneiden/Einritzen der Oberfläche (z.B. rautenförmig bei Braten)",
       "templates": {
@@ -1496,6 +1499,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "grate",
+      "required_ingredient_tags": ["grateable"],
       "Tag": "grate",
       "equipment": 0,
       "description": "Reiben oder Zesten ziehen",
@@ -1549,6 +1553,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "mince",
+      "required_ingredient_tags": ["cuttable"],
       "equipment": 0,
       "description": "Fein hacken von Kräutern, Knoblauch etc.",
       "templates": {
@@ -1596,6 +1601,7 @@
       "phase": 1,
       "sub_group": "marinating",
       "action": "marinate",
+      "required_ingredient_tags": ["fryable", "roastable", "grillable"],
       "equipment": 9,
       "description": "Marinieren von Fleisch, Tofu, Gemüse",
       "templates": {
@@ -1652,6 +1658,7 @@
       "phase": 1,
       "sub_group": "marinating",
       "action": "rub",
+      "required_ingredient_tags": ["roastable", "grillable", "smokable"],
       "equipment": 0,
       "description": "Einreiben von Fleisch oder Gemüse mit Gewürzen/Öl",
       "templates": {
@@ -1801,6 +1808,7 @@
       "phase": 1,
       "sub_group": "dough",
       "action": "knead",
+      "required_ingredient_tags": ["boilable"],
       "equipment": 9,
       "description": "Teig kneten, bis glatt/elastisch",
       "templates": {
@@ -1862,6 +1870,7 @@
       "phase": 1,
       "sub_group": "dough",
       "action": "rise",
+      "required_ingredient_tags": ["boilable"],
       "equipment": 9,
       "description": "Teig gehen lassen",
       "templates": {
@@ -2020,6 +2029,7 @@
       "phase": 1,
       "sub_group": "dough",
       "action": "roll_out",
+      "required_ingredient_tags": ["boilable"],
       "equipment": 0,
       "description": "Teig ausrollen (Pizza, Naan, Mürbteig)",
       "templates": {
@@ -2385,6 +2395,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "fry",
+      "required_ingredient_tags": ["fryable"],
       "equipment": 2,
       "description": "Braten bei starker Hitze (Schnitzel, Steak, Bratkartoffeln)",
       "templates": {
@@ -2452,6 +2463,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "deep_fry",
+      "required_ingredient_tags": ["fryable"],
       "equipment": 3,
       "description": "Frittieren in heißem Öl",
       "templates": {
@@ -2521,6 +2533,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "boil",
+      "required_ingredient_tags": ["boilable"],
       "equipment": 3,
       "description": "Kochen in sprudelndem Wasser (Nudeln, Kartoffeln, Eier)",
       "templates": {
@@ -2713,6 +2726,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "steam",
+      "required_ingredient_tags": ["steamable"],
       "equipment": 8,
       "description": "Dämpfen von Gemüse, Fisch, Dim Sum",
       "templates": {
@@ -2839,6 +2853,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "roast",
+      "required_ingredient_tags": ["roastable"],
       "equipment": 1,
       "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
       "templates": {
@@ -2906,6 +2921,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "grill",
+      "required_ingredient_tags": ["grillable"],
       "equipment": 7,
       "description": "Grillen auf dem Rost oder in der Grillpfanne",
       "templates": {
@@ -3261,6 +3277,7 @@
       "phase": 2,
       "sub_group": "processing",
       "action": "drain",
+      "required_ingredient_tags": ["boilable"],
       "equipment": 10,
       "description": "Abgießen durch ein Sieb",
       "templates": {
@@ -3421,6 +3438,7 @@
       "phase": 2,
       "sub_group": "processing",
       "action": "blend",
+      "required_ingredient_tags": ["blendable"],
       "equipment": 6,
       "description": "Pürieren/Mixen (Suppen, Saucen, Smoothies)",
       "templates": {
@@ -3542,6 +3560,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "braise",
+      "required_ingredient_tags": ["roastable", "searable"],
       "equipment": 4,
       "description": "Schmoren im Bräter (Braten, Ragouts)",
       "templates": {
@@ -3660,6 +3679,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "broil",
+      "required_ingredient_tags": ["grateable"],
       "equipment": 1,
       "description": "Kurz unter starker Oberhitze gratinieren/überbacken",
       "templates": {
@@ -3832,6 +3852,7 @@
       "phase": 3,
       "sub_group": "resting",
       "action": "rest",
+      "required_ingredient_tags": ["searable", "roastable", "grillable"],
       "equipment": 0,
       "description": "Ruhen lassen nach dem Garen (Fleisch, Aufläufe)",
       "templates": {
@@ -4019,6 +4040,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "fillet",
+      "required_ingredient_tags": ["poachable"],
       "equipment": 0,
       "description": "Filetieren von Fisch, Gräten entfernen",
       "templates": {
@@ -4069,6 +4091,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "descale",
+      "required_ingredient_tags": ["poachable"],
       "equipment": 0,
       "description": "Entschuppen von ganzem Fisch",
       "templates": {
@@ -4121,6 +4144,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "devein",
+      "required_ingredient_tags": ["poachable"],
       "equipment": 0,
       "description": "Schälen und Entdarmen von Garnelen/Shrimps",
       "templates": {
@@ -4170,6 +4194,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "poach",
+      "required_ingredient_tags": ["poachable"],
       "equipment": 3,
       "description": "Pochieren/Garziehen von Fisch oder Meeresfrüchten in Flüssigkeit",
       "templates": {
@@ -4236,6 +4261,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "clean_seafood",
+      "required_ingredient_tags": ["poachable"],
       "equipment": 0,
       "description": "Putzen und Vorbereiten von Meeresfrüchten (Muscheln, Tintenfisch etc.)",
       "templates": {
@@ -4500,6 +4526,7 @@
       "phase": 1,
       "sub_group": "ingredient_prep",
       "action": "tenderize",
+      "required_ingredient_tags": ["fryable", "roastable"],
       "equipment": 0,
       "description": "Klopfen/Plattieren (Schnitzel, Roulade)",
       "templates": {
@@ -4718,6 +4745,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "cook_rice",
+      "required_ingredient_tags": ["boilable"],
       "equipment": 2,
       "description": "Reis/Getreide nach Quellmethode kochen",
       "templates": {
@@ -4824,6 +4852,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "caramelize",
+      "required_ingredient_tags": ["fryable", "flambeable"],
       "equipment": 3,
       "description": "Karamellisieren (Zucker, Zwiebeln, Gemüse)",
       "templates": {
@@ -4881,6 +4910,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "flambe",
+      "required_ingredient_tags": ["flambeable"],
       "equipment": 3,
       "description": "Flambieren (Crêpe Suzette, Steak Diane)",
       "templates": {
@@ -4932,6 +4962,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "smoke",
+      "required_ingredient_tags": ["smokable"],
       "equipment": 7,
       "description": "Räuchern (Lachs, Fleisch, Käse)",
       "templates": {
@@ -4993,6 +5024,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "sous_vide",
+      "required_ingredient_tags": ["searable", "poachable"],
       "equipment": 0,
       "description": "Sous-Vide-Garen (vakuumiert im Wasserbad)",
       "templates": {
@@ -5051,6 +5083,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "confit",
+      "required_ingredient_tags": ["fryable"],
       "equipment": 2,
       "description": "Konfieren (Entenkeule, Knoblauch, Zitrone)",
       "templates": {
@@ -5215,6 +5248,7 @@
       "phase": 2,
       "sub_group": "wet_heat",
       "action": "blanch",
+      "required_ingredient_tags": ["boilable", "steamable"],
       "equipment": 2,
       "description": "Blanchieren in kochendem Wasser mit Eiswasser-Abschreckung",
       "templates": {
@@ -5265,6 +5299,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "sear",
+      "required_ingredient_tags": ["searable"],
       "equipment": 3,
       "description": "Scharf Anbraten bei höchster Hitze",
       "templates": {
@@ -5425,6 +5460,7 @@
       "phase": 2,
       "sub_group": "dry_heat",
       "action": "toast",
+      "required_ingredient_tags": ["boilable", "fryable"],
       "equipment": 3,
       "description": "Toasten/Rösten ohne Fett",
       "templates": {
@@ -5488,6 +5524,7 @@
       "phase": 2,
       "sub_group": "sauce_work",
       "action": "melt",
+      "required_ingredient_tags": ["grateable"],
       "equipment": 2,
       "description": "Schmelzen (Butter, Schokolade, Käse)",
       "templates": {

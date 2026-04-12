@@ -22,6 +22,7 @@
                 </div>
                 <div class="phase-tabs">
                     <button type="button" class="phase-tab active" data-phase="all">Alle</button>
+                    <button type="button" class="phase-tab" data-phase="best">⭐ Beste</button>
                     <button type="button" class="phase-tab" data-phase="1">🔪 Vorbereitung</button>
                     <button type="button" class="phase-tab" data-phase="2">🔥 Kochen</button>
                     <button type="button" class="phase-tab" data-phase="3">✨ Finishing</button>

@@ -48,9 +48,6 @@
             ? draftEngine.getProbabilityMultiIngredients(masterId)
             : {};
 
-        console.log(`[buildInlineTemplateText] "${masterId}" - vars.removal:`, vars?.removal);
-        console.log(`[buildInlineTemplateText] "${masterId}" - overrideVars:`, overrideVars);
-
         return helpers.renderTemplateWithConfig(templateText, (masterId || 'template').toString(), vars || {}, {
             optionalValues: overrideVars || {},
             tokenWrapClass: 'probability-var-inline-wrap',
@@ -158,9 +155,31 @@
             return state.presetsPromise;
         }
 
+        function _getIngredientContext() {
+            var ings = window.CreatePostingIngredientHelpers?.getSelectedIngredientsForSandbox
+                ? window.CreatePostingIngredientHelpers.getSelectedIngredientsForSandbox()
+                : [];
+            var tags = window.MasterStepRenderer?.collectIngredientTags
+                ? window.MasterStepRenderer.collectIngredientTags(ings)
+                : new Set();
+            var groupIds = [...new Set(ings.map(i => (i.groupId || '').toString()).filter(Boolean))];
+            return { tags, groupIds };
+        }
+
         function buildPreferredCards(preferredTemplateIds) {
+            const ctx = _getIngredientContext();
             const cards = [];
-            (preferredTemplateIds || []).forEach(masterId => {
+            // Filter by ingredient tags + sort by affinity score
+            var filtered = (preferredTemplateIds || []).filter(masterId => {
+                if (!ctx.tags.size || !window.MasterStepRenderer?.shouldShowStep) return true;
+                return window.MasterStepRenderer.shouldShowStep(masterId, ctx.tags);
+            });
+            filtered.sort((a, b) => {
+                var sa = window.MasterStepRenderer?.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(a, ctx.groupIds) : 0;
+                var sb = window.MasterStepRenderer?.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(b, ctx.groupIds) : 0;
+                return sb - sa;
+            });
+            filtered.forEach(masterId => {
                 const template = deps.findTemplate(masterId);
                 if (!template) return;
                 const vars = deps.buildVariablesForTemplate(masterId, state.currentTypeId);
@@ -174,15 +193,30 @@
             const preview = deps.getMasterStepPreview(ingredientNames, { lang: getLang(), recipeType: state.currentTypeId }) || [];
             if (!preview.length) return [];
 
+            const ctx = _getIngredientContext();
             const cards = [];
             const seen = new Set();
+            // Filter + collect
+            var items = [];
             preview.forEach(item => {
                 const masterId = (item.masterId || '').toString();
                 if (!masterId || seen.has(masterId)) return;
                 seen.add(masterId);
-                const template = deps.findTemplate(masterId);
-                const vars = deps.buildVariablesForTemplate(masterId, state.currentTypeId);
-                cards.push(buildTemplateCardHtml(masterId, item.text || masterId, template, vars, getLang()));
+                if (ctx.tags.size && window.MasterStepRenderer?.shouldShowStep) {
+                    if (!window.MasterStepRenderer.shouldShowStep(masterId, ctx.tags)) return;
+                }
+                items.push(item);
+            });
+            // Sort by affinity score
+            items.sort((a, b) => {
+                var sa = window.MasterStepRenderer?.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(a.masterId, ctx.groupIds) : 0;
+                var sb = window.MasterStepRenderer?.getStepGroupScore ? window.MasterStepRenderer.getStepGroupScore(b.masterId, ctx.groupIds) : 0;
+                return sb - sa;
+            });
+            items.forEach(item => {
+                const template = deps.findTemplate(item.masterId);
+                const vars = deps.buildVariablesForTemplate(item.masterId, state.currentTypeId);
+                cards.push(buildTemplateCardHtml(item.masterId, item.text || item.masterId, template, vars, getLang()));
             });
             return cards;
         }

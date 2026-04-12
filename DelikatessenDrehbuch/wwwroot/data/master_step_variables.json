@@ -1462,6 +1462,28 @@
           ]
         },
         {
+          "key": "salzwasser",
+          "labels": {
+            "de": "🧂 Salzwasser",
+            "en": "🧂 salted water",
+            "esp": "🧂 agua con sal",
+            "prt": "🧂 água salgada",
+            "id": "🧂 air garam",
+            "nl": "🧂 zout water",
+            "sv": "🧂 saltvatten",
+            "da": "🧂 saltvand",
+            "no": "🧂 saltvann",
+            "ms": "🧂 air garam"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:salzwasser",
+            "liquid",
+            "salted water",
+            "boiling"
+          ]
+        },
+        {
           "key": "brühe",
           "labels": {
             "de": "🍲 Brühe",
@@ -2826,6 +2848,26 @@
     "base": {
       "description": "Ausgelagerte Optionen für Variable \u0027base\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
       "options": [
+        {
+          "key": "das_gericht",
+          "labels": {
+            "de": "das Gericht",
+            "en": "the dish",
+            "esp": "el plato",
+            "prt": "o prato",
+            "id": "hidangan",
+            "nl": "het gerecht",
+            "sv": "rätten",
+            "da": "retten",
+            "no": "retten",
+            "ms": "hidangan"
+          },
+          "tags": [
+            "variable:base",
+            "value:das_gericht",
+            "default"
+          ]
+        },
         {
           "key": "eischnee",
           "labels": {

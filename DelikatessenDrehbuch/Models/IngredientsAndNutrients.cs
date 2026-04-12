@@ -50,5 +50,20 @@ namespace DelikatessenDrehbuch.Models
         public bool is_hard { get; set; }
         public bool is_soft { get; set; }
         public bool is_fat { get; set; }
+
+        // Zubereitungs-Tags für Step-Filterung
+        public bool is_peelable { get; set; }
+        public bool is_cuttable { get; set; }
+        public bool is_grateable { get; set; }
+        public bool is_fryable { get; set; }
+        public bool is_roastable { get; set; }
+        public bool is_grillable { get; set; }
+        public bool is_steamable { get; set; }
+        public bool is_boilable { get; set; }
+        public bool is_searable { get; set; }
+        public bool is_poachable { get; set; }
+        public bool is_smokable { get; set; }
+        public bool is_flambeable { get; set; }
+        public bool is_blendable { get; set; }
     }
 }

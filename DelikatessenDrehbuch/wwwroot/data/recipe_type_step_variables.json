@@ -43,9 +43,9 @@
     },
     "PREP_REST_01": {
       "item": "🍞 Teig",
-      "pronoun": "es",
+      "pronoun": "er",
       "duration": "10 Minuten",
-      "state": "entspannt",
+      "state": "fest",
       "copula": "ist"
     },
     "PREP_PORTION_01": {
@@ -165,7 +165,7 @@
       "equipment": "🔥 Grill",
       "heat": "hoher",
       "duration": "3-4 Minuten pro Seite",
-      "state": "gegrillt",
+      "state": "gar",
       "copula": "ist"
     },
     "COOK_DEGLAZE_01": {
@@ -234,7 +234,7 @@
       "liquid": "Fond",
       "heat": "niedriger",
       "duration": "8-12 Minuten",
-      "state": "glasig",
+      "state": "gar",
       "pronoun": "ihn",
       "copula": "ist"
     },
@@ -855,7 +855,7 @@
         },
         "PREP_PORTION_01": {
           "item": "🍞 Teig",
-          "count": "in gleich große Stücke"
+          "count": "8"
         },
         "COOK_BAKE_01": {
           "base": "Gebäck",
@@ -876,7 +876,7 @@
         },
         "PREP_PORTION_01": {
           "item": "🍞 Teig",
-          "count": "in 12 Muffinförmchen"
+          "count": "12"
         },
         "COOK_BAKE_01": {
           "base": "Muffins",
@@ -974,7 +974,7 @@
       "parent": "auflauf",
       "step_variables": {
         "PREP_CUT_01": {
-          "grind_size": "feine",
+          "grind_size": "fein",
           "shape": "Würfel"
         },
         "PREP_MINCE_01": {},
@@ -1487,7 +1487,7 @@
           "fat": "Butter",
           "temp": "200°C",
           "duration": "5-8 Minuten",
-          "state": "medium rare",
+          "state": "medium-rare",
           "pronoun": "es"
         },
         "SEASON_ADJUST_01": {
@@ -1526,7 +1526,7 @@
         "COOK_STEAM_01": {
           "equipment": "♨️ Dampfgarer",
           "duration": "8-12 Minuten",
-          "state": "glasig"
+          "state": "gar"
         },
         "SEASON_ADJUST_01": {
           "base": "Fisch",
