@@ -12,6 +12,7 @@ Der Fokus dieser Session lag auf:
 - hybride Variablen wie `base`
 - dem oberen Probability-/Vorschlagsbereich "Was koennte es sein?"
 - der Trennung zwischen "was darf matchen?" und "was soll im Satz sichtbar sein?"
+- einem neuen Prep-Step `PREP_SMASH_01` fuer "flachdruecken" / smashed potatoes
 
 ---
 
@@ -85,6 +86,37 @@ Display-Regeln:
 - `ingredient` zeigt standardmaessig maximal `2`
 - `ingredients` zeigt standardmaessig maximal `3`
 - `COOK_SAUTE_01` bevorzugt fuer die Anzeige vor allem Gruppen `2`, `1`, `6`, `3`
+- `PREP_SMASH_01` ist absichtlich eng gemappt:
+  - bevorzugt kartoffelartige Zutaten ueber `allow_name_contains`
+  - erlaubt alternativ harte, boilable Gemuese aus Gruppe `2`
+  - schliesst `liquid`, `fat`, `powder`, Gewuerze und Sonstiges aus
+
+### 1b. Neuer Step `PREP_SMASH_01`
+
+Neu spaeter in der Session ergaenzt.
+
+Zweck:
+
+- Schritt fuer "flachdruecken" / "leicht zerdruecken"
+- gedacht fuer Faelle wie smashed potatoes
+- Template auf Deutsch:
+  - `Druecke {{ingredient}}[ mit einem {{tool}}] flach, bis {{pronoun}} {{state}} {{copula}}.`
+
+Wichtige Begleitregeln:
+
+- `wwwroot/data/master_step_option_rules.json`
+  - neue Action `smash`
+  - bevorzugte Tools: `Kartoffelstampfer`, `Glas`
+  - bevorzugte States: `flachgedrueckt`, `leicht aufgebrochen`
+- `wwwroot/data/ingredient_match_rules.json`
+  - `PREP_SMASH_01` ist bewusst nicht offen fuer Pasta/Reis/Mehl
+  - Kartoffel-Matching laeuft ueber `allow_name_contains`
+  - Gemuese darf alternativ ueber Gruppe `2` + `isHard` + `isBoilable` matchen
+
+Wichtig fuer spaetere KIs:
+
+- Wenn `PREP_SMASH_01` kuenftig zu oft vorgeschlagen wird, zuerst die Ingredient-Regel schaerfen, nicht das Template.
+- Wenn der Step fuer weitere smashed-Rezepte genutzt werden soll, danach eher `probability_template_presets.json` erweitern als die Matching-Regel wieder breit zu machen.
 
 ### 2. `wwwroot/js/create-posting-data-urls.js`
 
@@ -317,4 +349,3 @@ Wenn du nur 30 Sekunden hast, merke dir:
 - optionale Plus-Pills oben haengen jetzt an `_explicitValues`
 - `COOK_SAUTE_01` wurde eingeschraenkt
 - Anzeige-Logik ist jetzt getrennt von Match-Logik
-

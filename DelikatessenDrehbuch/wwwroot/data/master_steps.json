@@ -36,6 +36,7 @@
       "ms": "Simpan hanya kunci semantik stabil daripada JSON ini, jangan sekali-kali simpan id pangkalan data atau input bebas pengguna sebagai rujukan."
     },
     "changes": [
+      "Added PREP_SMASH_01: Flachdrücken/Zerdrücken von weich gegarten Zutaten mit optionalem Tool und Zustand (z.B. smashed potatoes). Added matching option and ingredient rules.",
       "Added COOK_ARRANGE_01: Arrange/distribute ingredients in equipment, optionally around a base (e.g. vegetables around meat in roasting pan). Added to braten preset.",
       "Added COOK_TRANSFER_OVEN_01: Transfer equipment (Bräter/Auflaufform) into preheated oven. Optional base and duration variables. Added to braten preset.",
       "Added PREP_SCORE_01 (Einschneiden/Einritzen) as separate step for scoring meat surfaces (e.g. rautenförmig). Added PREP_RUB_01 (Einreiben) for rubbing meat/vegetables with seasonings/oil. Fixed PREP_CUT_01: removed trailing 'ein' from German template (was incorrectly making all cuts into 'einschneiden').",
@@ -1495,6 +1496,70 @@
       ]
     },
     {
+      "master_id": "PREP_SMASH_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "smash",
+      "required_ingredient_tags": ["boilable"],
+      "equipment": 0,
+      "description": "Flachdrücken oder leichtes Zerdrücken von gegarten Zutaten (z.B. Kartoffeln) vor dem weiteren Garen",
+      "templates": {
+        "de": "Drücke {{ingredient}}[ mit einem {{tool}}] flach, bis {{pronoun}} {{state}} {{copula}}.",
+        "en": "Smash {{ingredient}}[ with a {{tool}}] until it is {{state}}.",
+        "esp": "Aplasta {{ingredient}}[ con un {{tool}}] hasta que {{pronoun}} {{state}} {{copula}}.",
+        "prt": "Achate {{ingredient}}[ com um {{tool}}] ate que {{pronoun}} {{state}} {{copula}}.",
+        "id": "Pipihkan {{ingredient}}[ dengan {{tool}}] hingga {{state}}.",
+        "nl": "Druk {{ingredient}}[ met een {{tool}}] plat, tot {{pronoun}} {{state}} {{copula}}.",
+        "sv": "Platta till {{ingredient}}[ med en {{tool}}] tills {{pronoun}} {{state}} {{copula}}.",
+        "da": "Tryk {{ingredient}}[ flad med en {{tool}}], indtil {{pronoun}} {{state}} {{copula}}.",
+        "no": "Trykk {{ingredient}}[ flatt med en {{tool}}] til {{pronoun}} {{state}} {{copula}}.",
+        "ms": "Leperkan {{ingredient}}[ dengan {{tool}}] sehingga {{state}}."
+      },
+      "variables": [
+        "ingredient",
+        "tool",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": ["tool"],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "best_with_visible_result",
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:smash",
+        "technique:flatten",
+        "flachdruecken",
+        "zerdruecken",
+        "andruecken",
+        "smashed",
+        "smash",
+        "flatten",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "category:main",
+        "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
       "master_id": "PREP_GRATE_01",
       "phase": 1,
       "sub_group": "ingredient_prep",
@@ -2326,7 +2391,7 @@
       "equipment": 2,
       "description": "Anbraten/Dünsten von Basis-Zutaten",
       "templates": {
-        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}]{~ am Schluss~state~}[, bis {{pronoun}} {{state}} {{copula}}].",
+        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}]{~ an~duration|state~}[, bis {{pronoun}} {{state}} {{copula}}].",
         "en": "Heat {{fat}} in {{equipment}} and {{action}} {{ingredient}}[ for {{duration}}][ until {{state}}].",
         "esp": "Calienta {{fat}} en {{equipment}} y {{action}} {{ingredient}}[ durante {{duration}}][ hasta que {{state}}].",
         "prt": "Aqueça {{fat}} em {{equipment}} e {{action}} {{ingredient}}[ por {{duration}}][ até que {{state}}].",

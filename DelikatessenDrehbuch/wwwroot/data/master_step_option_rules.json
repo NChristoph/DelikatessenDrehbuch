@@ -33,6 +33,8 @@
           "goldbraun",
           "weich",
           "glasig",
+          "flachgedrückt",
+          "leicht aufgebrochen",
           "gar",
           "knusprig",
           "cremig",
@@ -73,7 +75,7 @@
     },
     "tool": {
       "allowed": {
-        "de": ["Messer", "Sparschäler", "Reibe", "feine Reibe", "grobe Reibe", "Schneebesen", "Nudelholz", "Fleischklopfer"]
+        "de": ["Messer", "Sparschäler", "Reibe", "feine Reibe", "grobe Reibe", "Schneebesen", "Nudelholz", "Fleischklopfer", "Kartoffelstampfer", "Glas"]
       }
     },
     "heat": {
@@ -110,6 +112,17 @@
       "tool": {
         "preferred": { "de": ["Messer"] },
         "blocked": { "de": ["Schneebesen", "Sparschäler", "Reibe", "feine Reibe", "grobe Reibe"] }
+      }
+    },
+    "smash": {
+      "tool": {
+        "preferred": { "de": ["Kartoffelstampfer", "Glas"] },
+        "allowed": { "de": ["Kartoffelstampfer", "Glas", "Nudelholz"] },
+        "blocked": { "de": ["Schneebesen", "Sparschäler", "feine Reibe", "grobe Reibe"] }
+      },
+      "state": {
+        "preferred": { "de": ["flachgedrückt", "leicht aufgebrochen"] },
+        "allowed": { "de": ["flachgedrückt", "leicht aufgebrochen"] }
       }
     },
     "whisk": {
@@ -359,6 +372,19 @@
       "tool": {
         "preferred": { "de": ["Messer"] },
         "blocked": { "de": ["Schneebesen", "Sparschäler", "Reibe"] }
+      }
+    },
+    "PREP_SMASH_01": {
+      "tool": {
+        "preferred": { "de": ["Kartoffelstampfer", "Glas"] },
+        "allowed": { "de": ["Kartoffelstampfer", "Glas", "Nudelholz"] }
+      },
+      "state": {
+        "preferred": { "de": ["flachgedrückt", "leicht aufgebrochen"] },
+        "allowed": { "de": ["flachgedrückt", "leicht aufgebrochen"] }
+      },
+      "pronoun": {
+        "preferred": { "de": ["sie", "ihn", "es"] }
       }
     },
     "PREP_MINCE_01": {

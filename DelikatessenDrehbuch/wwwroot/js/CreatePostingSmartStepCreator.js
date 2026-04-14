@@ -705,8 +705,12 @@
 
         // Fallback text: {~text~varName~} → show text only when varName is empty
         output = output.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
-            const val = (values?.[varName.trim()] ?? "").toString().trim();
-            return val.length > 0 ? "" : fallback;
+            const hasAnyValue = (varName || "")
+                .split("|")
+                .map(x => x.trim())
+                .filter(Boolean)
+                .some(name => ((values?.[name] ?? "").toString().trim().length > 0));
+            return hasAnyValue ? "" : fallback;
         });
 
         return output;
@@ -822,8 +826,12 @@
 
         // Pass 1b: Fallback text {~text~varName~} → show text only when varName is empty
         processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
-            const val = (values?.[varName.trim()] ?? "").toString().trim();
-            return val.length > 0 ? "" : fallback;
+            const hasAnyValue = (varName || "")
+                .split("|")
+                .map(x => x.trim())
+                .filter(Boolean)
+                .some(name => ((values?.[name] ?? "").toString().trim().length > 0));
+            return hasAnyValue ? "" : fallback;
         });
 
         // Pass 2: render regular {{var}} tokens
@@ -905,8 +913,12 @@
 
         // Fallback text: {~text~varName~} → show text only when varName is empty
         processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
-            const val = (optionalValues?.[varName.trim()] ?? "").toString().trim();
-            return val.length > 0 ? "" : fallback;
+            const hasAnyValue = (varName || "")
+                .split("|")
+                .map(x => x.trim())
+                .filter(Boolean)
+                .some(name => ((optionalValues?.[name] ?? "").toString().trim().length > 0));
+            return hasAnyValue ? "" : fallback;
         });
 
         let tokenIndex = 0;

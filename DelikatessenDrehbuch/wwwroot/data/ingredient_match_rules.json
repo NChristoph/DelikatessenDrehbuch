@@ -125,6 +125,38 @@
         "allow_groups": ["1", "2", "6"]
       }
     },
+    "PREP_SMASH_01": {
+      "ingredient": {
+        "all_of": [
+          {
+            "any_of": [
+              { "allow_name_contains": ["kartoffel", "potato", "batata"] },
+              { "allow_groups": ["2"] }
+            ]
+          }
+        ],
+        "require_all": ["isHard", "isBoilable"],
+        "exclude_any": ["isLiquid", "isFat", "isPowder"],
+        "exclude_groups": ["5", "7"],
+        "display_limit": 1,
+        "display_prefer_groups": ["2", "8"]
+      },
+      "ingredients": {
+        "all_of": [
+          {
+            "any_of": [
+              { "allow_name_contains": ["kartoffel", "potato", "batata"] },
+              { "allow_groups": ["2"] }
+            ]
+          }
+        ],
+        "require_all": ["isHard", "isBoilable"],
+        "exclude_any": ["isLiquid", "isFat", "isPowder"],
+        "exclude_groups": ["5", "7"],
+        "display_limit": 2,
+        "display_prefer_groups": ["2", "8"]
+      }
+    },
     "PREP_TENDERIZE_01": {
       "ingredient": {
         "require_any": ["isHard", "isSoft"],
