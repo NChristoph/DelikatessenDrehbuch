@@ -512,6 +512,16 @@
         return resolveRulesForLang(varRules, lang);
     }
 
+    function getStepDefaultValue(masterId, varName, lang) {
+        if (!optionRulesData || !masterId || !varName) return '';
+        var stepRules = optionRulesData.steps && optionRulesData.steps[masterId];
+        if (!stepRules) return '';
+        var varRules = stepRules[varName];
+        if (!varRules || !varRules['default']) return '';
+        var defaults = varRules['default'];
+        return defaults[lang] || defaults['de'] || '';
+    }
+
     var _ingredientTagProps = ['peelable','cuttable','grateable','fryable','roastable','grillable',
         'steamable','boilable','searable','poachable','smokable','flambeable','blendable'];
 
@@ -550,6 +560,7 @@
         getOptionRulesForAction: getOptionRulesForAction,
         getOptionRulesForFamily: getOptionRulesForFamily,
         getOptionRulesForStep: getOptionRulesForStep,
+        getStepDefaultValue: getStepDefaultValue,
         getStepGroupScore: getStepGroupScore,
         collectIngredientTags: collectIngredientTags,
         shouldShowStep: shouldShowStep

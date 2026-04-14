@@ -1,5 +1,5 @@
 {
-  "version": "6.0",
+  "version": "7.0",
   "generated_from": "ingredients_and_nutrients IDs — recipe_schema_export_20260217_194918.json (1570 Rezepte, korrigiertes Fuzzy-Matching v3)",
   "scoring": {
     "description": "Score pro Kategorie anhand gematchter ingredient_id aus der neuen ingredients_and_nutrients Liste. Gewichte basieren auf realen Vorkommenshäufigkeiten.",
@@ -20,6 +20,10 @@
       "required_ingredient_ids": [2],
       "min_match": 2,
       "typical_ingredients": [198, 10, 11, 40, 2, 7, 33, 51, 27, 182, 17, 86, 113],
+      "group_weights": [
+        { "group_id": "8", "weight": 0.2 },
+        { "group_id": "2", "weight": 0.1 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 2,   "weight": 1.0 },
         { "ingredient_id": 198, "weight": 0.55 },
@@ -40,6 +44,7 @@
           "display_name": { "de": "Spaghetti", "en": "Spaghetti", "esp": "Espagueti", "prt": "Espaguete", "id": "Spaghetti", "nl": "Spaghetti", "sv": "Spaghetti", "da": "Spaghetti", "no": "Spaghetti", "ms": "Spaghetti" },
           "required_ingredient_ids": [2, 40],
           "boost_weights": [
+            { "ingredient_id": 346, "weight": 15 },
             { "ingredient_id": 82, "weight": 10 },
             { "ingredient_id": 51, "weight": 8 },
             { "ingredient_id": 14, "weight": 8 }
@@ -89,6 +94,9 @@
       "required_ingredient_ids": [117],
       "min_match": 2,
       "typical_ingredients": [11, 198, 117, 10, 15, 33, 20, 27, 51, 113, 17, 67, 216, 161],
+      "group_weights": [
+        { "group_id": "2", "weight": 0.15 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 117, "weight": 1.0 },
         { "ingredient_id": 11,  "weight": 0.7 },
@@ -135,6 +143,10 @@
       "required_ingredient_ids": [161, 20],
       "min_match": 2,
       "typical_ingredients": [11, 10, 15, 198, 161, 51, 216, 20, 71, 65, 79, 17, 117, 115],
+      "group_weights": [
+        { "group_id": "2", "weight": 0.15 },
+        { "group_id": "1", "weight": 0.15 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 11,  "weight": 0.7 },
         { "ingredient_id": 10,  "weight": 0.6 },
@@ -182,6 +194,10 @@
       "required_ingredient_ids": [67, 68],
       "min_match": 2,
       "typical_ingredients": [11, 198, 67, 70, 63, 69, 71, 68, 118, 10, 117, 51, 15, 3],
+      "group_weights": [
+        { "group_id": "5", "weight": 0.25 },
+        { "group_id": "2", "weight": 0.15 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 67,  "weight": 1.0 },
         { "ingredient_id": 68,  "weight": 0.85 },
@@ -205,6 +221,7 @@
             { "ingredient_id": 67,  "weight": 15 },
             { "ingredient_id": 55,  "weight": 12 },
             { "ingredient_id": 87,  "weight": 10 },
+            { "ingredient_id": 335, "weight": 10 },
             { "ingredient_id": 70,  "weight": 8 },
             { "ingredient_id": 195, "weight": 8 }
           ],
@@ -231,6 +248,10 @@
       "required_ingredient_ids": [5],
       "min_match": 2,
       "typical_ingredients": [5, 176, 85, 75, 10, 164, 74, 33, 11],
+      "group_weights": [
+        { "group_id": "8", "weight": 0.15 },
+        { "group_id": "3", "weight": 0.1 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 5,   "weight": 0.85 },
         { "ingredient_id": 176, "weight": 0.7 },
@@ -274,6 +295,10 @@
       "required_ingredient_ids": [5, 85],
       "min_match": 2,
       "typical_ingredients": [5, 85, 1, 27, 57, 33, 34, 32],
+      "group_weights": [
+        { "group_id": "8", "weight": 0.15 },
+        { "group_id": "4", "weight": 0.1 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 5,   "weight": 0.8 },
         { "ingredient_id": 85,  "weight": 0.75 },
@@ -294,6 +319,7 @@
           "required_ingredient_ids": [176, 5],
           "boost_weights": [
             { "ingredient_id": 176, "weight": 15 },
+            { "ingredient_id": 354, "weight": 15 },
             { "ingredient_id": 74,  "weight": 12 },
             { "ingredient_id": 225, "weight": 5 }
           ],
@@ -347,6 +373,7 @@
           "display_name": { "de": "Lasagne", "en": "Lasagna", "esp": "Lasaña", "prt": "Lasanha", "id": "Lasagna", "nl": "Lasagne", "sv": "Lasagne", "da": "Lasagne", "no": "Lasagne", "ms": "Lasagna" },
           "required_ingredient_ids": [114, 39],
           "boost_weights": [
+            { "ingredient_id": 349, "weight": 18 },
             { "ingredient_id": 114, "weight": 15 },
             { "ingredient_id": 39,  "weight": 12 },
             { "ingredient_id": 200, "weight": 8 },
@@ -372,6 +399,7 @@
         { "ingredient_id": 10,  "weight": 0.35 },
         { "ingredient_id": 218, "weight": 0.6 },
         { "ingredient_id": 142, "weight": 0.6 },
+        { "ingredient_id": 361, "weight": 0.55 },
         { "ingredient_id": 254, "weight": 0.3 }
       ],
       "subtypes": [
@@ -383,6 +411,7 @@
             { "ingredient_id": 218, "weight": 15 },
             { "ingredient_id": 220, "weight": 12 },
             { "ingredient_id": 4,   "weight": 10 },
+            { "ingredient_id": 337, "weight": 8 },
             { "ingredient_id": 84,  "weight": 5 }
           ],
           "blocked_ingredient_ids": []
@@ -392,6 +421,7 @@
           "display_name": { "de": "Wrap / Burrito", "en": "Wrap / Burrito", "esp": "Wrap / Burrito", "prt": "Wrap / Burrito", "id": "Wrap / Burrito", "nl": "Wrap / Burrito", "sv": "Wrap / Burrito", "da": "Wrap / Burrito", "no": "Wrap / Burrito", "ms": "Wrap / Burrito" },
           "required_ingredient_ids": [142],
           "boost_weights": [
+            { "ingredient_id": 361, "weight": 15 },
             { "ingredient_id": 142, "weight": 15 },
             { "ingredient_id": 209, "weight": 10 },
             { "ingredient_id": 14,  "weight": 8 }
@@ -418,6 +448,9 @@
       "required_ingredient_ids": [161, 81],
       "min_match": 2,
       "typical_ingredients": [11, 198, 161, 15, 81, 20, 10, 13, 27, 115, 5, 79, 113, 14],
+      "group_weights": [
+        { "group_id": "1", "weight": 0.3 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 104, "weight": 0.9 },
         { "ingredient_id": 105, "weight": 0.9 },
@@ -462,6 +495,9 @@
       "required_ingredient_ids": [4, 10],
       "min_match": 2,
       "typical_ingredients": [10, 84, 9, 51, 65, 19, 88, 2, 11, 4, 82, 52, 254, 16, 96],
+      "group_weights": [
+        { "group_id": "2", "weight": 0.2 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 10,  "weight": 0.7 },
         { "ingredient_id": 4,   "weight": 0.8 },
@@ -542,6 +578,7 @@
         { "ingredient_id": 126, "weight": 0.35 },
         { "ingredient_id": 84,  "weight": 0.3 },
         { "ingredient_id": 86,  "weight": 0.3 },
+        { "ingredient_id": 339, "weight": 0.3 },
         { "ingredient_id": 326, "weight": 0.25 }
       ]
     },
@@ -559,6 +596,9 @@
         { "ingredient_id": 65,  "weight": 0.55 },
         { "ingredient_id": 15,  "weight": 0.5 },
         { "ingredient_id": 186, "weight": 0.45 },
+        { "ingredient_id": 334, "weight": 0.45 },
+        { "ingredient_id": 335, "weight": 0.45 },
+        { "ingredient_id": 336, "weight": 0.4 },
         { "ingredient_id": 326, "weight": 0.4 },
         { "ingredient_id": 70,  "weight": 0.4 },
         { "ingredient_id": 77,  "weight": 0.35 },
@@ -576,6 +616,9 @@
       "required_ingredient_ids": [89],
       "min_match": 1,
       "typical_ingredients": [11, 10, 198, 27, 161, 5, 17, 33, 216, 89, 102, 119, 44],
+      "group_weights": [
+        { "group_id": "1", "weight": 0.3 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 89,  "weight": 1.0 },
         { "ingredient_id": 91,  "weight": 0.95 },
@@ -597,6 +640,9 @@
       "required_ingredient_ids": [100, 6],
       "min_match": 1,
       "typical_ingredients": [10, 100, 9, 198, 6, 101, 11, 27, 5, 55, 33, 230, 70, 126],
+      "group_weights": [
+        { "group_id": "6", "weight": 0.3 }
+      ],
       "ingredient_weights": [
         { "ingredient_id": 100, "weight": 1.0 },
         { "ingredient_id": 6,   "weight": 0.9 },

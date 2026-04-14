@@ -60,7 +60,8 @@
                         masterId: safeMasterId,
                         templateRaw: templateRaw,
                         values: defaultVars,
-                        _multiIngredients: {}
+                        _multiIngredients: {},
+                        _explicitValues: {}
                     };
                 });
                 probabilityStates[safeMasterId] = draft;
@@ -77,7 +78,8 @@
                     masterId: safeMasterId,
                     templateRaw: templateRaw,
                     values: defaultVars,
-                    _multiIngredients: {}
+                    _multiIngredients: {},
+                    _explicitValues: {}
                 };
             }
 
@@ -864,6 +866,7 @@
                     isSmokable: row.data('is-smokable') === true || row.data('is-smokable') === 'true',
                     isFlambeable: row.data('is-flambeable') === true || row.data('is-flambeable') === 'true',
                     isBlendable: row.data('is-blendable') === true || row.data('is-blendable') === 'true',
+                    isPowder: row.data('is-powder') === true || row.data('is-powder') === 'true',
                     sourceBaseId: id
                 };
             }).get().filter(x => x.id || x.name);
@@ -1207,6 +1210,7 @@
                 isSmokable: !!item.isSmokable,
                 isFlambeable: !!item.isFlambeable,
                 isBlendable: !!item.isBlendable,
+                isPowder: !!item.isPowder,
                 sourceBaseId: item.sourceBaseId || item.id || ''
             }));
         }
@@ -2686,6 +2690,8 @@
             if (placeholderType === 'seasonings') return creatorState.seasoningsValue || getSeasoningsOptions()[0] || getLocalizedFallbackForVariable('seasonings', lang);
             if (placeholderType === 'shape' || key.includes('shape')) return getLocalizedFallbackForVariable('shape', lang);
             if (placeholderType === 'base') return creatorState.baseValue || getLocalizedFallbackForVariable('base', lang) || '';
+            if (key === 'extra') return getFirstJsonVariableOption('extra', lang);
+            if (key === 'liquid') return (getFirstJsonVariableOption('liquid', lang) || '').replace(/[\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}]\s*/gu, '').trim();
             const localizedFallback = getLocalizedFallbackForVariable(key, lang);
             return localizedFallback || '';
         }
@@ -2747,35 +2753,23 @@
             var helpers = window.MasterStepCreatorHelpers;
             if (!helpers?.filterIngredientsByVarType || !allIngredients.length) return empty;
 
-            var matched;
+            // Einziger Filter: JSON-Regelwerk via ingredient_match_rules.json
+            // (variable_rules + step_variable_rules decken Tags, GroupId-Ausschlüsse und
+            //  step-spezifische Sonderfälle wie PREP_MINCE_01, FINISH_SPRINKLE_01 ab)
+            var result = helpers.filterIngredientsByVarType(allIngredients, varName, masterId);
+            if (!result.filtered.length) return empty;
+            var matched = result.filtered;
 
-            // 1. Bei ingredient/ingredients mit required_ingredient_tags: Tags als PRIMÄRER Filter
-            //    (zB isPeelable für PREP_PEEL_01 — matcht alle peelable Zutaten, nicht nur isHard/isSoft)
-            if (varName === 'ingredient' || varName === 'ingredients') {
-                var template = MasterStepRenderer.findTemplate(masterId);
-                var tags = template?.required_ingredient_tags;
-                if (tags?.length) {
-                    var tagMatched = allIngredients.filter(function (ing) {
-                        return tags.some(function (tag) {
-                            return !!ing['is' + tag.charAt(0).toUpperCase() + tag.slice(1)];
-                        });
-                    });
-                    if (tagMatched.length) {
-                        matched = tagMatched;
-                    }
-                }
+            var displayItems = typeof helpers.selectIngredientsForDisplay === 'function'
+                ? helpers.selectIngredientsForDisplay(matched, varName, masterId)
+                : matched;
+            if (!displayItems.length) {
+                displayItems = matched;
             }
 
-            // 2. Fallback: Basis-Filter via SC2 (fat→isFat, liquid→isLiquid etc.)
-            if (!matched) {
-                var result = helpers.filterIngredientsByVarType(allIngredients, varName, masterId);
-                if (!result.filtered.length) return empty;
-                matched = result.filtered;
-            }
-
-            // 3. Ingredient-Objekte für Overlay-Chips aufbauen + Text formatieren
+            // Ingredient-Objekte für Overlay-Chips aufbauen + Text formatieren
             var ingredientObjects = [];
-            var parts = matched.map(function (ing) {
+            var parts = displayItems.map(function (ing) {
                 var g = resolveGrammarForIngredient(ing.name, ing.genusByLang || {}, lang);
                 ingredientObjects.push({ name: ing.name, fraction: '', article: g.article || '' });
                 return applyArticleToName(ing.name, g.article, lang) || ing.name;
@@ -2801,7 +2795,18 @@
             // Required ingredient-Variablen automatisch vorausfüllen,
             // alles andere leer → renderTemplateWithConfig zeigt Display-Namen als klickbare Tokens
             keys.forEach(function (key) {
-                if (requiredVars.has(key) && _ingredientVarNames.has(key)) {
+                // Hybrid-Variablen (base, extra) → Options-Default statt Ingredient-Matching
+                // (z.B. FINISH_SERVE_01: extra → "sofort heiß" statt alle Zutaten aufzulisten)
+                // Auch step-spezifisch: prefer_option_default in ingredient_match_rules.json
+                // (z.B. COOK_BOIL_01: liquid → "Salzwasser" statt gematchte Flüssig-Zutaten)
+                var stepRule = window.MasterStepCreatorHelpers?.getIngredientMatchRule?.(key, templateId);
+                var prefersOptionDefault = stepRule?.stepRule?.prefer_option_default === true;
+                if (requiredVars.has(key) && (key === 'base' || key === 'extra' || prefersOptionDefault)) {
+                    vars[key] = resolveDefaultVariableValueForLanguage(key, lang);
+                    if (window._autoMatchedIngredients?.[templateId]) {
+                        delete window._autoMatchedIngredients[templateId][key];
+                    }
+                } else if (requiredVars.has(key) && _ingredientVarNames.has(key)) {
                     var match = matchIngredientsToVariable(key, templateId, allIngredients, lang);
                     vars[key] = match.text;
 
@@ -2812,7 +2817,9 @@
                         window._autoMatchedIngredients[templateId][key] = match.ingredients;
                     }
                 } else {
-                    vars[key] = '';
+                    // Check for step-specific default from option rules
+                    var stepDefault = window.MasterStepRenderer?.getStepDefaultValue?.(templateId, key, lang);
+                    vars[key] = stepDefault || '';
                 }
             });
 
@@ -3228,7 +3235,16 @@
             findTemplate: (masterId) => MasterStepRenderer.findTemplate(masterId),
             renderTemplate: (masterId, vars, lang) => MasterStepRenderer.render(masterId, vars, lang),
             buildVariablesForTemplate,
-            detectRecipeTypes: (ingredientIds) => window.RecipeStepSuggest.detectRecipeTypes(ingredientIds) || [],
+            detectRecipeTypes: (ingredientIds) => {
+                // Enrich plain IDs with groupId from sandbox ingredients for hybrid group_weights scoring
+                const sandboxIngs = getSelectedIngredientsForSandbox();
+                const byId = new Map(sandboxIngs.map(i => [i.id.toString(), i]));
+                const enriched = ingredientIds.map(id => {
+                    const s = byId.get(id.toString());
+                    return s ? { id: parseInt(s.id, 10), groupId: s.groupId || '' } : { id: parseInt(id, 10), groupId: '' };
+                });
+                return window.RecipeStepSuggest.detectRecipeTypes(enriched) || [];
+            },
             loadMapping: () => window.RecipeStepSuggest.loadMapping(),
             getMasterStepPreview: (ingredients, options) => window.RecipeStepSuggest.getMasterStepPreview(ingredients, options) || [],
             /**
@@ -3428,7 +3444,8 @@
                 isPoachable: (row.data('is-poachable') === true || row.data('is-poachable') === 'true') ? 'true' : 'false',
                 isSmokable: (row.data('is-smokable') === true || row.data('is-smokable') === 'true') ? 'true' : 'false',
                 isFlambeable: (row.data('is-flambeable') === true || row.data('is-flambeable') === 'true') ? 'true' : 'false',
-                isBlendable: (row.data('is-blendable') === true || row.data('is-blendable') === 'true') ? 'true' : 'false'
+                isBlendable: (row.data('is-blendable') === true || row.data('is-blendable') === 'true') ? 'true' : 'false',
+                isPowder: (row.data('is-powder') === true || row.data('is-powder') === 'true') ? 'true' : 'false'
             };
         }
 
@@ -3452,7 +3469,8 @@
                 + ' data-is-poachable="' + (localizedData.isPoachable || 'false') + '"'
                 + ' data-is-smokable="' + (localizedData.isSmokable || 'false') + '"'
                 + ' data-is-flambeable="' + (localizedData.isFlambeable || 'false') + '"'
-                + ' data-is-blendable="' + (localizedData.isBlendable || 'false') + '"';
+                + ' data-is-blendable="' + (localizedData.isBlendable || 'false') + '"'
+                + ' data-is-powder="' + (localizedData.isPowder || 'false') + '"';
             return `${langAttrs} data-group-id="${escapeAttr(localizedData.groupId || '')}"${tagAttrs}`;
         }
 
@@ -4399,8 +4417,12 @@
                         var vars = typeof ss.variablesJson === 'string' ? JSON.parse(ss.variablesJson) : (ss.variablesJson || {});
                         var draft = ensureProbabilityDraftState(masterId);
                         if (draft && vars) {
+                            if (!draft._explicitValues || typeof draft._explicitValues !== 'object') {
+                                draft._explicitValues = {};
+                            }
                             Object.keys(vars).forEach(function (k) {
                                 draft.values[k] = vars[k];
+                                draft._explicitValues[k] = vars[k];
                             });
                         }
                     } catch (e) {
@@ -4538,12 +4560,13 @@
                     ...(defaultVars || {}),
                     ...(prob.values || {})
                 };
+                const explicitValues = prob._explicitValues || {};
 
                 console.log('[renderProbabilityTemplate] Calling renderEditableStepPreview with:');
                 console.log('  - masterId:', masterId);
                 console.log('  - lang:', currentLang);
                 console.log('  - vars (merged):', mergedVars);
-                console.log('  - optionalValues (user-set):', prob.values);
+                console.log('  - optionalValues (user-set):', explicitValues);
                 console.log('  - draft:', prob);
 
                 const rendered = rendererHelpers.renderEditableStepPreview({
@@ -4551,10 +4574,12 @@
                     templateRaw: prob.templateRaw || '',
                     values: mergedVars
                 }, {
-                    mode: 'step',
+                    mode: 'probability',
                     title: 'Erkannter Step',
                     bodyClasses: 'probability-template-text preview-step-text mt-2',
                     wrapperClass: 'current-step-wrap probability-preview-wrap',
+                    varsOverride: mergedVars,
+                    optionalValues: explicitValues,
                     actionHtml: `<div class="probability-template-actions d-flex gap-2 align-items-center">
           <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${masterId}">Akzeptieren</button>
           <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${masterId}">LÃ¶schen</button>

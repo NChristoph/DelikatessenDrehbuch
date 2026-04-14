@@ -2,10 +2,51 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-12 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
+> **Stand:** 2026-04-14 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
 >
-> **Letzte Änderungen (2026-04-12):**
-> - ✅ **Dynamisches Ingredient-Matching für Probability Steps:** `buildVariablesForTemplate()` füllt jetzt `required_variables` vom Typ Ingredient automatisch mit passenden Seitenzutaten vor. Neue Funktion `matchIngredientsToVariable()` nutzt `filterIngredientsByVarType` (via `MasterStepCreatorHelpers`-Export) + `required_ingredient_tags` für präzises Matching. Ergebnis: PREP_PEEL_01 zeigt "die Kartoffeln und die Zwiebeln" (nur peelable), COOK_SAUTE_01 füllt "das Olivenöl" (isFat) vor. Optionale Variablen (duration, state, equipment) bleiben als Display-Name-Tokens. User kann vorausgefüllte Tokens weiterhin anklicken und ändern.
+> **Letzte Änderungen (2026-04-14):**
+> - ✅ **Matching-Systeme vereinheitlicht + Dead Code entfernt:**
+>   - **`recipe_step_mapping.json` gelöscht** (15.350 Zeilen): `ingredient_to_steps`-Mapping war nicht mehr in Verwendung (`suggestStepsForIngredients()` nirgends aufgerufen). Schnellerer Page Load.
+>   - **Dead Code in `recipe-step-suggest.js` entfernt:** `suggestStepsForIngredients()`, `buildConflictMap()`, `hasConflictingIngredient()`, `getStepFromCatalog()`, `getStepText()` — alle nur von der unbenutzten Funktion referenziert. `mappingData`-Variable + `recipeStepMapping` aus `loadMany()` entfernt.
+>   - **`recipeStepMapping` aus `create-posting-data-urls.js` entfernt.**
+> - ✅ **Hybrid GroupId-Scoring in `detectRecipeTypes()`:**
+>   - **Neue Signatur:** Akzeptiert jetzt sowohl plain ID-Arrays als auch `{id, groupId}`-Objekte. Abwärtskompatibel.
+>   - **Neues JSON-Feld `group_weights`** in `recipe_category_scoring.json` (Version 7.0): Optionales Array von `{ group_id, weight }` pro Kategorie. Neue Zutaten mit passendem GroupId tragen automatisch zum Score bei, ohne manuell IDs eintragen zu müssen.
+>   - **Double-Counting-Schutz:** Zutaten die bereits via `ingredient_weights` gematcht wurden, zählen nicht nochmal über `group_weights`.
+>   - **9 Kategorien mit group_weights:** pasta_gericht (8+2), suppe (2), eintopf (2+1), curry (5+2), backware_herzhaft (8+3), backware_suess (8+4), salat (2), braten (1), steakgericht (1), fischgericht (6).
+>   - **Caller-Update:** `CreatePostingPage.js` reichert IDs mit `groupId` aus Sandbox-Ingredents an bevor `detectRecipeTypes()` aufgerufen wird.
+> - ✅ **Neue Alias-Gruppen:** Nudeln (2, 346-349) und Reis (3, 135, 355-359) als Alias-Gruppen in `INGREDIENT_ALIAS_GROUPS` — spezifische Varianten matchen jetzt die generische ID.
+> - ✅ **Neue Zutaten (IDs 328-361) in Subtypes integriert:** Spaghetti(346)→spaghetti, Lasagneplatten(349)→lasagne, Wraps(361)→wrap_burrito+burger_wrap, BBQ-Sauce(337)→burger, Fischsauce(335)→thai_curry+wok_gericht, Teriyaki(334)/Austernsauce(336)→wok_gericht, Tahini(339)→bowl, Hefe frisch(354)→hefeteig.
+>
+> **Vorherige Änderungen (2026-04-13):**
+> - ✅ **Template-Fallback-Text + Overlay-Entfernen + Variable-Fixes:**
+>   - **Fallback-Text-Syntax `{~text~var~}`:** Neues Template-Feature — zeigt `text` nur wenn `var` keinen Wert hat. Verarbeitet in `resolveOptionalTemplateSegments`, `renderTemplate`, `renderTemplateWithConfig`. Anwendung: COOK_SAUTE_01 DE zeigt "am Schluss" als Default-Ending; verschwindet wenn state-Bracket aktiviert wird.
+>   - **"Entfernen"-Button im Overlay:** Optionale Variablen (in Brackets `[...]` im Template) zeigen jetzt einen roten "Entfernen"-Button im Overlay. Leert den Wert und macht die Variable zurück zum optionalen Pill. Sichtbarkeit wird via Regex-Check auf Template-Brackets bestimmt. Aktualisiert sich bei Variable-Switch (`switchEditorVariable`).
+>   - **`base`-Variable "das Gericht" → "Gericht":** Artikel aus allen 10 Sprachen entfernt (de: Gericht, en: dish, esp: plato, etc.) — Artikel wird separat im Article-Overlay gewählt.
+>   - **"Pasta" als neue `base`-Option:** In `master_step_variables.json` ergänzt mit Tags `family:pasta`, `technique:boil`.
+>   - **"kleines Messer" entfernt:** Aus `tool`-Optionen in `master_step_variables.json` gelöscht.
+>   - **COOK_BOIL_01:** `isLiquid` + `isFat` zu `exclude_any` für ingredient/ingredients hinzugefügt — Weißwein, Öl etc. werden nicht mehr als Kochzutat vorgeschlagen.
+>   - **COOK_DRAIN_01 Equipment-Default "Sieb":** Neues `default`-Feld in `master_step_option_rules.json`. `MasterStepRenderer.getStepDefaultValue()` liest Step-spezifische Defaults. `buildVariablesForTemplate()` nutzt Step-Defaults für Variablen die sonst leer wären.
+>   - **"al dente" als state-Option:** Neue Option neben "bissfest" mit Tags `family:pasta`, `technique:boil`.
+>   - **"hebe" als action-Option:** Neue Option neben "hebe unter" (lift vs fold in).
+> - ✅ **Filter-Optimierungen + Hybrid-Override + Konsolidierung:**
+>   - **JSON-Regelwerk `ingredient_match_rules.json` v1.2 — Verfeinerung:** Variable-Namen korrigiert (COOK_SMOKE_01/FLAMBE_01/BLEND_01 → `base` statt `ingredient`; SERVE_ASSEMBLE_01 → `components`/`finish` statt `ingredient`/`ingredients`). Fehlende Steps ergänzt (COOK_BLANCH_01, COOK_SOUS_VIDE_01, COOK_CONFIT_01, COOK_CARAMELIZE_01, COOK_EMULSIFY_01, COOK_BAKE_01, COOK_TRANSFER_OVEN_01, FINISH_GLAZE_01). Spezifischere `is_*`-Flags statt nur Group-Excludes (DEEPFRY→isFryable, BRAISE→isRoastable/isSearable, BASTE→isRoastable/isGrillable, SIMMER_02→isBoilable/isSteamable, BREAD_3STEP→isFryable, RUB→isRoastable/isGrillable/isSmokable). Gruppen-Ausschlüsse verfeinert (BEAT/WHISK/FOLD_IN: exclude Fleisch+Fisch; TENDERIZE: nur Fleisch; SPRINKLE: +Sonstiges; ARRANGE: -Nüsse erlaubt). Globale `base`-Regel: Gruppe 8+9 nicht mehr pauschal ausgeschlossen → Step-Level Override für BAKE_01. PREP_CURE/BLOOM/MARINADE_MAKE/MIX_DRY: echte Filter-Regeln statt nur display_limit.
+>   - **`matchIngredientsToVariable()` konsolidiert:** Nutzt jetzt ausschließlich `filterIngredientsByVarType()` (JSON-Regeln). Alte Tag-basierte Primärfilter + JS-Hardcoded-Nachfilter (PREP_CUT, PREP_MINCE, FINISH_SPRINKLE) entfernt — JSON `step_variable_rules` deckt alle Fälle ab.
+>   - **Match/Display-Trennung:** `filterIngredientsByVarType()` bestimmt was fachlich passt; `selectIngredientsForDisplay()` bestimmt was im Satz sichtbar wird (Ranking mit Score-System, display_limit).
+>   - **PREP_CUT_01 / PREP_GRATE_01:** Gewürze (GroupId 5) ausgeschlossen via JSON `exclude_groups`.
+>   - **PREP_MINCE_01:** Nur Gewürze (GroupId 5) + Knoblauch via JSON `any_of`-Regel.
+>   - **FINISH_SPRINKLE_01:** Nur GroupId 3, 5, 9 via JSON `allow_groups`.
+>   - **COOK_SAUTE_01:** Display auf 2-3 Zutaten begrenzt, bevorzugt Gemüse/Fleisch/Fisch/Milchprodukte.
+>   - **COOK_DRAIN_01:** Neue JSON-Regel — `require_all: ["isBoilable"]`, `exclude_any: ["isPowder"]`, `exclude_groups: ["5"]`. Zucker, Mehl und Gewürze werden nicht mehr zum Abgießen vorgeschlagen.
+>   - **COOK_BOIL_01 `liquid` Default:** Neues JSON-Feld `prefer_option_default: true` in `ingredient_match_rules.json`. Wenn gesetzt, nutzt `buildVariablesForTemplate()` den Options-Default statt Ingredient-Matching. Für COOK_BOIL_01 → "Salzwasser" (via `getFirstJsonVariableOption`). Reihenfolge in `master_step_variables.json` angepasst: Salzwasser an Position 1. `getIngredientMatchRule` neu exportiert in `MasterStepCreatorHelpers`.
+>   - **FINISH_SERVE_01 `extra` Default:** Hybrid-Variablen (`base`, `extra`) nutzen in `buildVariablesForTemplate()` jetzt Options-Default statt Ingredient-Matching. `extra` zeigt "sofort heiß" (erste Option in `master_step_variables.json`) statt alle Zutaten aufzulisten. Reihenfolge der `extra`-Optionen angepasst: "sofort heiß" an Position 1.
+>   - **Hybrid-Override in `applyUnifiedEditorValue`:** Wenn User eine Hybrid-Option (z.B. "Salzwasser") wählt während Multi-Ingredients existieren, wird die Multi-Liste gelöscht und der Hybrid-Wert übernommen. Prüfung via `editorEl.dataset.hybrid === "1"`.
+>   - **`_explicitValues` in Draft-Engine:** Trennt User-gesetzte Werte von Defaults. Probability-Bereich nutzt `_explicitValues` für optionale Pills — Defaults dürfen sichtbar sein, gelten aber nicht als "gesetzt".
+>   - **`isPowder` bis Frontend durchgezogen:** `data-is-powder` als data-Attribut auf Ingredient-Rows.
+>   - **GroupId-Mapping in JSONs korrigiert:** `ingredient_cooking_profiles.json` und `step_group_affinities.json` hatten ab GroupId 5 falsche Labels+Daten-Zuordnung (um eins verschoben). Korrigiert: 5=Gewürze, 6=Fisch, 7=Sonstiges, 8=Grundnahrungsmittel, 9=Nüsse/Samen/Hülsenfrüchte.
+>
+> **Vorherige Änderungen (2026-04-12):**
+> - ✅ **Dynamisches Ingredient-Matching für Probability Steps:** `buildVariablesForTemplate()` füllt jetzt `required_variables` vom Typ Ingredient automatisch mit passenden Seitenzutaten vor. `matchIngredientsToVariable()` nutzt ausschließlich `filterIngredientsByVarType` (JSON-Regelwerk via `ingredient_match_rules.json`) + `selectIngredientsForDisplay()` für Match/Display-Trennung. Ergebnis: PREP_PEEL_01 zeigt "die Kartoffeln und die Zwiebeln" (nur peelable), COOK_SAUTE_01 zeigt max. 2 schneidbare Zutaten. Optionale Variablen (duration, state, equipment) bleiben als Display-Name-Tokens. User kann vorausgefüllte Tokens weiterhin anklicken und ändern.
 >   - `filterIngredientsByVarType` in `MasterStepCreatorHelpers` exportiert
 >   - `_ingredientVarNames`: Set mit allen automatisch matchbaren Variable-Typen (ingredient, fat, liquid, seasonings, base, thickener, etc.)
 >   - `matchIngredientsToVariable()` gibt `{ text, ingredients }` zurück — `ingredients` ist Array von `{ name, fraction, article }` Objekten
@@ -1483,9 +1524,9 @@ if (mode === "article") {
 |----------|-------|-------------|
 | `isIngredientVariable(varName)` | 1051 | Prüft: ingredient, ingredient2, ingredients, base, seasoning, liquid, fat, seasonings, marinade, thickener, components, extra. **Nicht:** dough (zeigt Options-Chips). base zeigt Zutat-Chips gefiltert auf Fleisch+Gemüse (isHard\|\|isSoft). **Hybrid:** extra zeigt Ingredient-Chips UND Options-Chips |
 | `isHybridIngredientVariable(varName)` | 1056 | Prüft: extra, base, liquid. Hybrid-Variablen zeigen sowohl Zutaten-Chips als auch Options-Chips aus master_step_variables.json. Klick auf Option deselektiert Zutaten und umgekehrt |
-| `filterIngredientsByVarType(items, varName, masterId)` | ~1058 | Filtert Zutaten nach Variable-Typ und Step-Kontext. Variable-Filter: liquid→isLiquid, fat→isFat, base→isHard\|\|isSoft (Fleisch+Gemüse), seasonings→GroupId 5, thickener→GroupId 8. Step-Filter: **COOK_ARRANGE_01→isHard\|\|isSoft (Fleisch+Gemüse prominent, Rest gedimmt)**, PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 + ingredient→isHard\|\|isSoft, PREP_SCORE_01/PREP_TENDERIZE_01→!isLiquid && !isFat && groupId !== "5". Fallback auf alle Items wenn keine Matches |
+| `filterIngredientsByVarType(items, varName, masterId)` | ~1630 | Filtert Zutaten deklarativ via `ingredient_match_rules.json`. Lädt `variable_rules` (pro Variablentyp) + `step_variable_rules` (pro Step×Variable). Regelfelder: `require_all`, `require_any`, `exclude_any`, `allow_groups`, `exclude_groups`, `any_of`, `allow_names_exact`. Beide Regelebenen werden per AND verknüpft. Rückgabe: `{ filtered, rest }` |
 | `isGrindSizeVariable(varName)` | 1055 | Prüft: grind_size |
-| `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, grindsize |
+| `isNoArticleVariable(varName)` | 1060 | Prüft: state, duration, count, mode, component, pronoun, pronoun2, pronomen, shape, finish, marinade, method, thickener, action, copula, grindsize |
 | `isStateVariable(varName)` | 1064 | Prüft: state |
 | `isCompactSpecialVariable(varName)` | 1071 | Prüft: duration, temp, count |
 
@@ -2568,30 +2609,56 @@ Wenn User einen Platzhalter anklickt (z.B. {{liquid}}, {{fat}}, {{seasonings}}):
 
 1. openInlineEditor() oder buildInlineEditorHtml()
 2. → getSelectedIngredientsFromPage()
-   → alle Zutaten mit isLiquid, isFat, isHard, isSoft, groupId
+   → alle Zutaten mit isLiquid, isFat, isHard, isSoft, isPowder, groupId
 3. → filterIngredientsByVarType(items, varName, masterId)
-   → Variable-Filter:
-      {{liquid}}    → item.isLiquid === true
-      {{fat}}       → item.isFat === true
-      {{base}}      → item.isHard || item.isSoft (Fleisch + Gemüse)
-      {{seasonings}}→ item.groupId === "5" (Gewürze)
-      {{thickener}} → item.groupId === "8" (Grundnahrungsmittel)
-      {{ingredient}} / {{ingredients}} → kein Filter (alle)
-   → Step-spezifische Filter (bei ingredient/ingredients):
-      COOK_ARRANGE_01                        → isHard || isSoft (Fleisch+Gemüse prominent)
-      PREP_CUT_01/GRATE_01/MINCE_01/PEEL_01 → isHard || isSoft
-      PREP_SCORE_01/PREP_TENDERIZE_01        → !isLiquid && !isFat && groupId !== "5" (feste Zutaten, kein Gewürz/Flüssigkeit/Fett)
+   → Deklaratives Regelwerk aus ingredient_match_rules.json:
+
+   ARCHITEKTUR: Zwei Regelebenen werden per AND verknüpft:
+   a) variable_rules[varName]    — generische Regel pro Variablentyp
+   b) step_variable_rules[step][varName] — step-spezifische Override/Ergänzung
+
+   REGELFELDER:
+      require_all: ["isCuttable"]      → ALLE Flags müssen true sein
+      require_any: ["isHard", "isSoft"] → MINDESTENS eines muss true sein
+      exclude_any: ["isLiquid", "isFat"] → KEINES darf true sein
+      allow_groups: ["5"]               → NUR diese GroupIds
+      exclude_groups: ["5", "7"]        → diese GroupIds ausschließen
+      any_of: [{...}, {...}]            → MINDESTENS eine Sub-Regel muss matchen
+      allow_names_exact: ["knoblauch"]  → exakte Name-Matches
+
+   BEISPIELE AUS JSON:
+      {{liquid}}      → variable_rules.liquid:      require_all: ["isLiquid"]
+      {{fat}}         → variable_rules.fat:         require_all: ["isFat"]
+      {{thickener}}   → variable_rules.thickener:   require_all: ["isPowder"], allow_groups: ["8"]
+      {{base}}        → variable_rules.base:        require_any: ["isHard","isSoft"], exclude: Liquid/Fat/Powder/Gruppen 5,7
+      PREP_CUT_01     → step_variable_rules:        require_all: ["isCuttable"], exclude_groups: ["5","7","8"]
+      PREP_MINCE_01   → step_variable_rules:        any_of: [Gewürze(5)+isCuttable, Knoblauch+isCuttable]
+      COOK_SAUTE_01   → step_variable_rules:        require_all: ["isCuttable"], exclude: Liquid/Fat/Powder/Gewürze+Grundnahrung
+      COOK_SMOKE_01   → step_variable_rules:        base: require_all: ["isSmokable"] (Variable=base, NICHT ingredient!)
+      COOK_BAKE_01    → step_variable_rules:        base: exclude_groups: ["5"] (überschreibt globale base-Regel für Gruppe 8)
+      FINISH_SPRINKLE  → step_variable_rules:       allow_groups: ["3","5","7","9"]
+
    → Rückgabe: { filtered: [...passend], rest: [...nicht passend] }
 
-4. Passende Chips: normal dargestellt
-5. Restliche Chips: nach Trennlinie (.ingredient-chip-divider), gedimmt (.ingredient-chip-dimmed)
-6. Wenn KEINE passende Zutat gefunden → Fallback: alle Zutaten normal anzeigen
+4. → selectIngredientsForDisplay(matched, varName, masterId)
+   → DISPLAY-TRENNUNG: Nicht alles was matcht wird im Satz angezeigt!
+   → Ranking-System mit Scores:
+      Base Source:       +40 (wenn itemId === sourceBaseId)
+      Preferred Groups:  +100 bis +90 (aus display_prefer_groups)
+      Deprioritized:     -40 bis -55 (aus display_deprioritize_groups)
+      Preferred Flags:   +8 pro Flag (z.B. isHard, isSoft)
+   → display_limit begrenzt Ausgabe (ingredient: max 2, ingredients: max 3, step-spezifisch überschreibbar)
+
+5. Passende Chips: normal dargestellt
+6. Restliche Chips: nach Trennlinie (.ingredient-chip-divider), gedimmt (.ingredient-chip-dimmed)
+7. Wenn KEINE passende Zutat gefunden → Fallback: alle Zutaten normal anzeigen
 
 Datenquelle (data-* Attribute auf .ingredient-db-row):
   data-is-liquid="true/false"   ← DB: is_liquid (bool)
   data-is-fat="true/false"      ← DB: is_fat (bool)
   data-is-hard="true/false"     ← DB: is_hard (bool)
   data-is-soft="true/false"     ← DB: is_soft (bool)
+  data-is-powder="true/false"   ← DB: is_powder (bool)
   data-group-id="1-9"           ← DB: GroupId (FK → Group)
 
 Gruppen-IDs: 1=Fleisch, 2=Gemüse, 3=Milchprodukte, 4=Obst,

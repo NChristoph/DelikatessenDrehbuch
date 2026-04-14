@@ -65,5 +65,6 @@ namespace DelikatessenDrehbuch.Models
         public bool is_smokable { get; set; }
         public bool is_flambeable { get; set; }
         public bool is_blendable { get; set; }
+        public bool is_powder { get; set; }
     }
 }

@@ -641,6 +641,25 @@
           ]
         },
         {
+          "key": "hebe",
+          "labels": {
+            "de": "hebe",
+            "en": "lift",
+            "esp": "levanta",
+            "prt": "levante",
+            "id": "angkat",
+            "nl": "til op",
+            "sv": "lyft",
+            "da": "løft",
+            "no": "løft",
+            "ms": "angkat"
+          },
+          "tags": [
+            "variable:action",
+            "value:hebe"
+          ]
+        },
+        {
           "key": "p_riere",
           "labels": {
             "de": "püriere",
@@ -1388,27 +1407,6 @@
           ]
         },
         {
-          "key": "kleines_messer",
-          "labels": {
-            "de": "kleines Messer",
-            "en": "small knife",
-            "esp": "cuchillo pequeño",
-            "prt": "faca pequena",
-            "id": "pisau kecil",
-            "nl": "klein mes",
-            "sv": "liten kniv",
-            "da": "lille kniv",
-            "no": "liten kniv",
-            "ms": "pisau kecil"
-          },
-          "tags": [
-            "variable:tool",
-            "value:kleines_messer",
-            "technique:devein",
-            "devein"
-          ]
-        },
-        {
           "key": "fleischklopfer",
           "labels": {
             "de": "🔨 Fleischklopfer",
@@ -1441,27 +1439,6 @@
       "description": "Ausgelagerte Optionen für Variable 'liquid' mit Tag-Metadaten für die Creator-Auswahl. Hybrid: Zutaten mit is_liquid=true PLUS diese Optionen.",
       "options": [
         {
-          "key": "wasser",
-          "labels": {
-            "de": "💧 Wasser",
-            "en": "💧 water",
-            "esp": "💧 agua",
-            "prt": "💧 água",
-            "id": "💧 air",
-            "nl": "💧 water",
-            "sv": "💧 vatten",
-            "da": "💧 vand",
-            "no": "💧 vann",
-            "ms": "💧 air"
-          },
-          "tags": [
-            "variable:liquid",
-            "value:wasser",
-            "liquid",
-            "water"
-          ]
-        },
-        {
           "key": "salzwasser",
           "labels": {
             "de": "🧂 Salzwasser",
@@ -1481,6 +1458,27 @@
             "liquid",
             "salted water",
             "boiling"
+          ]
+        },
+        {
+          "key": "wasser",
+          "labels": {
+            "de": "💧 Wasser",
+            "en": "💧 water",
+            "esp": "💧 agua",
+            "prt": "💧 água",
+            "id": "💧 air",
+            "nl": "💧 water",
+            "sv": "💧 vatten",
+            "da": "💧 vand",
+            "no": "💧 vann",
+            "ms": "💧 air"
+          },
+          "tags": [
+            "variable:liquid",
+            "value:wasser",
+            "liquid",
+            "water"
           ]
         },
         {
@@ -2061,18 +2059,43 @@
           ]
         },
         {
-          "key": "bissfest",
+          "key": "al_dente",
           "labels": {
-            "de": "bissfest",
+            "de": "al dente",
             "en": "al dente",
             "esp": "al dente",
             "prt": "al dente",
             "id": "al dente",
-            "nl": "beetgaar",
+            "nl": "al dente",
             "sv": "al dente",
             "da": "al dente",
             "no": "al dente",
             "ms": "al dente"
+          },
+          "tags": [
+            "variable:state",
+            "value:al_dente",
+            "heat:wet",
+            "technique:boil",
+            "technique:simmer",
+            "family:pasta",
+            "kochen",
+            "boil"
+          ]
+        },
+        {
+          "key": "bissfest",
+          "labels": {
+            "de": "bissfest",
+            "en": "firm to the bite",
+            "esp": "al punto",
+            "prt": "ao ponto",
+            "id": "kenyal",
+            "nl": "beetgaar",
+            "sv": "lagom fast",
+            "da": "fast i biddet",
+            "no": "fast i bittet",
+            "ms": "kenyal"
           },
           "tags": [
             "variable:state",
@@ -2851,12 +2874,12 @@
         {
           "key": "das_gericht",
           "labels": {
-            "de": "das Gericht",
-            "en": "the dish",
-            "esp": "el plato",
-            "prt": "o prato",
+            "de": "Gericht",
+            "en": "dish",
+            "esp": "plato",
+            "prt": "prato",
             "id": "hidangan",
-            "nl": "het gerecht",
+            "nl": "gerecht",
             "sv": "rätten",
             "da": "retten",
             "no": "retten",
@@ -2866,6 +2889,27 @@
             "variable:base",
             "value:das_gericht",
             "default"
+          ]
+        },
+        {
+          "key": "pasta",
+          "labels": {
+            "de": "Pasta",
+            "en": "pasta",
+            "esp": "pasta",
+            "prt": "massa",
+            "id": "pasta",
+            "nl": "pasta",
+            "sv": "pasta",
+            "da": "pasta",
+            "no": "pasta",
+            "ms": "pasta"
+          },
+          "tags": [
+            "variable:base",
+            "value:pasta",
+            "family:pasta",
+            "technique:boil"
           ]
         },
         {
@@ -5538,6 +5582,25 @@
       "description": "Ausgelagerte Optionen für Variable \u0027extra\u0027 mit Tag-Metadaten für die Creator-Auswahl.",
       "options": [
         {
+          "key": "sofort_hei",
+          "labels": {
+            "de": "sofort heiß",
+            "en": "serve immediately while hot",
+            "esp": "servir caliente de inmediato",
+            "prt": "servir de imediato bem quente",
+            "id": "sajikan segera saat panas",
+            "nl": "meteen heet serveren",
+            "sv": "servera direkt varm",
+            "da": "servér straks varm",
+            "no": "server straks varm",
+            "ms": "hidang segera semasa panas"
+          },
+          "tags": [
+            "variable:extra",
+            "value:sofort_hei"
+          ]
+        },
+        {
           "key": "mit_frischen_kr_utern",
           "labels": {
             "de": "mit frischen Kräutern",
@@ -5592,25 +5655,6 @@
           "tags": [
             "variable:extra",
             "value:mit_zitronenspalten"
-          ]
-        },
-        {
-          "key": "sofort_hei",
-          "labels": {
-            "de": "sofort heiß",
-            "en": "serve immediately while hot",
-            "esp": "servir caliente de inmediato",
-            "prt": "servir de imediato bem quente",
-            "id": "sajikan segera saat panas",
-            "nl": "meteen heet serveren",
-            "sv": "servera direkt varm",
-            "da": "servér straks varm",
-            "no": "server straks varm",
-            "ms": "hidang segera semasa panas"
-          },
-          "tags": [
-            "variable:extra",
-            "value:sofort_hei"
           ]
         }
       ]

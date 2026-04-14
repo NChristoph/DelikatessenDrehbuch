@@ -33,17 +33,11 @@
       "PREP_CUT_01":   { "shape": "Scheiben" }
     },
     "5": {
-      "_label": "Getreide/Stärke",
-      "COOK_BOIL_01":  { "duration": "laut Packungsangabe", "state": "al dente" },
-      "COOK_RICE_01":  { "duration": "12-15 Minuten", "state": "locker" },
-      "COOK_TOAST_01": { "duration": "2-3 Minuten", "state": "goldbraun" }
-    },
-    "6": {
       "_label": "Gewürze",
       "COOK_SAUTE_01": { "duration": "30-60 Sekunden", "state": "duftend" },
       "COOK_TOAST_01": { "duration": "1-2 Minuten", "state": "duftend" }
     },
-    "7": {
+    "6": {
       "_label": "Fisch/Meeresfrüchte",
       "COOK_SAUTE_01": { "duration": "3-4 Minuten", "state": "goldbraun" },
       "COOK_FRY_01":   { "duration": "3-4 Minuten", "state": "knusprig" },
@@ -54,14 +48,20 @@
       "COOK_SEAR_01":  { "duration": "2-3 Minuten", "state": "angebraten" },
       "PREP_CUT_01":   { "shape": "Stücke" }
     },
+    "7": {
+      "_label": "Sonstiges",
+      "COOK_SAUTE_01": { "duration": "3-5 Minuten" }
+    },
     "8": {
-      "_label": "Nüsse/Kerne",
-      "COOK_TOAST_01": { "duration": "3-5 Minuten", "state": "goldbraun" },
-      "COOK_SAUTE_01": { "duration": "2-3 Minuten", "state": "geröstet" }
+      "_label": "Grundnahrungsmittel",
+      "COOK_BOIL_01":  { "duration": "laut Packungsangabe", "state": "al dente" },
+      "COOK_RICE_01":  { "duration": "12-15 Minuten", "state": "locker" },
+      "COOK_TOAST_01": { "duration": "2-3 Minuten", "state": "goldbraun" }
     },
     "9": {
-      "_label": "Sonstige",
-      "COOK_SAUTE_01": { "duration": "3-5 Minuten" }
+      "_label": "Nüsse, Samen & Hülsenfrüchte",
+      "COOK_TOAST_01": { "duration": "3-5 Minuten", "state": "goldbraun" },
+      "COOK_SAUTE_01": { "duration": "2-3 Minuten", "state": "geröstet" }
     }
   }
 }

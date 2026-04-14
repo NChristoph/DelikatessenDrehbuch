@@ -16,6 +16,7 @@
     // -----------------------------
     let doc = null;
     let variableCatalog = { variables: {} };
+    let ingredientMatchRules = { variable_rules: {}, step_variable_rules: {} };
     let steps = [];
     let currentLang = DEFAULT_LANG;
 
@@ -272,6 +273,17 @@
             return data && typeof data === "object" ? data : { variables: {} };
         } catch {
             return { variables: {} };
+        }
+    }
+
+    async function loadIngredientMatchRules() {
+        try {
+            const data = await window.CreatePostingDataStore.load("ingredientMatchRules");
+            return data && typeof data === "object"
+                ? data
+                : { variable_rules: {}, step_variable_rules: {} };
+        } catch {
+            return { variable_rules: {}, step_variable_rules: {} };
         }
     }
 
@@ -691,6 +703,12 @@
             });
         }
 
+        // Fallback text: {~text~varName~} → show text only when varName is empty
+        output = output.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
+            const val = (values?.[varName.trim()] ?? "").toString().trim();
+            return val.length > 0 ? "" : fallback;
+        });
+
         return output;
     }
 
@@ -802,6 +820,12 @@
             return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
         });
 
+        // Pass 1b: Fallback text {~text~varName~} → show text only when varName is empty
+        processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
+            const val = (values?.[varName.trim()] ?? "").toString().trim();
+            return val.length > 0 ? "" : fallback;
+        });
+
         // Pass 2: render regular {{var}} tokens
         let tokenIndex = 0;
         processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw, offset) => {
@@ -877,6 +901,12 @@
             const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
             const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
             return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
+        });
+
+        // Fallback text: {~text~varName~} → show text only when varName is empty
+        processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
+            const val = (optionalValues?.[varName.trim()] ?? "").toString().trim();
+            return val.length > 0 ? "" : fallback;
         });
 
         let tokenIndex = 0;
@@ -1423,45 +1453,205 @@
         return key === "extra" || key === "base" || key === "liquid";
     }
 
-    // Filters ingredient items based on the variable type (e.g. {{liquid}} → only liquids)
-    // and optionally by step context (e.g. PREP_CUT_01 → only isHard).
-    // Returns { filtered, rest } where filtered are primary matches and rest are remaining items.
-    function filterIngredientsByVarType(items, varName, masterId) {
+    function getEditorSelectionLabel(varName, hybridVar) {
+        const key = (varName || "").toString().trim().toLowerCase();
+        if (hybridVar && key === "base") {
+            return "Zutat oder Basis";
+        }
+        return getVarDisplayName(varName);
+    }
+
+    function normalizeRuleArray(value) {
+        if (!Array.isArray(value)) return [];
+        return value
+            .map(x => (x ?? "").toString().trim())
+            .filter(Boolean);
+    }
+
+    function mergeRuleArrays(primary, fallback) {
+        return [...new Set([
+            ...normalizeRuleArray(primary),
+            ...normalizeRuleArray(fallback)
+        ])];
+    }
+
+    function getIngredientRuleValue(item, ruleKey) {
+        const raw = (ruleKey || "").toString().trim();
+        if (!raw) return false;
+        if (Object.prototype.hasOwnProperty.call(item || {}, raw)) {
+            return !!item[raw];
+        }
+        if (/^is[A-Z]/.test(raw)) {
+            return !!item?.[raw];
+        }
+        const normalized = "is" + raw.charAt(0).toUpperCase() + raw.slice(1);
+        return !!item?.[normalized];
+    }
+
+    function getIngredientCandidateNames(item) {
+        const names = [
+            (item?.name || "").toString().trim(),
+            ...Object.values(item?.namesByLang || {}).map(x => (x || "").toString().trim())
+        ]
+            .map(x => x.toLowerCase())
+            .filter(Boolean);
+        return [...new Set(names)];
+    }
+
+    function matchesIngredientRule(item, rule) {
+        if (!rule || typeof rule !== "object") return true;
+
+        const anyOf = Array.isArray(rule.any_of) ? rule.any_of : [];
+        if (anyOf.length && !anyOf.some(child => matchesIngredientRule(item, child))) {
+            return false;
+        }
+
+        const allOf = Array.isArray(rule.all_of) ? rule.all_of : [];
+        if (allOf.length && !allOf.every(child => matchesIngredientRule(item, child))) {
+            return false;
+        }
+
+        const requireAll = normalizeRuleArray(rule.require_all);
+        if (requireAll.length && !requireAll.every(key => getIngredientRuleValue(item, key))) {
+            return false;
+        }
+
+        const requireAny = normalizeRuleArray(rule.require_any);
+        if (requireAny.length && !requireAny.some(key => getIngredientRuleValue(item, key))) {
+            return false;
+        }
+
+        const excludeAny = normalizeRuleArray(rule.exclude_any || rule.exclude_tags);
+        if (excludeAny.some(key => getIngredientRuleValue(item, key))) {
+            return false;
+        }
+
+        const allowGroups = normalizeRuleArray(rule.allow_groups);
+        const itemGroup = (item?.groupId || "").toString();
+        if (allowGroups.length && !allowGroups.includes(itemGroup)) {
+            return false;
+        }
+
+        const excludeGroups = normalizeRuleArray(rule.exclude_groups);
+        if (excludeGroups.includes(itemGroup)) {
+            return false;
+        }
+
+        const candidateNames = getIngredientCandidateNames(item);
+        const allowNamesExact = normalizeRuleArray(rule.allow_names_exact).map(x => x.toLowerCase());
+        if (allowNamesExact.length && !candidateNames.some(name => allowNamesExact.includes(name))) {
+            return false;
+        }
+
+        const excludeNamesExact = normalizeRuleArray(rule.exclude_names_exact).map(x => x.toLowerCase());
+        if (candidateNames.some(name => excludeNamesExact.includes(name))) {
+            return false;
+        }
+
+        const allowNameContains = normalizeRuleArray(rule.allow_name_contains).map(x => x.toLowerCase());
+        if (allowNameContains.length && !allowNameContains.some(part => candidateNames.some(name => name.includes(part)))) {
+            return false;
+        }
+
+        const excludeNameContains = normalizeRuleArray(rule.exclude_name_contains).map(x => x.toLowerCase());
+        if (excludeNameContains.some(part => candidateNames.some(name => name.includes(part)))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function getIngredientMatchRule(varName, masterId) {
         const key = (varName || "").toString().trim().toLowerCase();
         const step = (masterId || "").toString().trim().toUpperCase();
-        let filterFn = null;
+        const variableRule = ingredientMatchRules?.variable_rules?.[key] || null;
+        const stepRule = ingredientMatchRules?.step_variable_rules?.[step]?.[key] || null;
+        return { variableRule, stepRule };
+    }
 
-        if (key === "liquid") {
-            filterFn = item => item.isLiquid;
-        } else if (key === "fat") {
-            filterFn = item => item.isFat;
-        } else if (key === "hard") {
-            filterFn = item => item.isHard;
-        } else if (key === "soft") {
-            filterFn = item => item.isSoft;
-        } else if (key === "seasonings") {
-            filterFn = item => item.groupId === "5"; // Gewürze
-        } else if (key === "thickener") {
-            filterFn = item => item.groupId === "8"; // Grundnahrungsmittel
-        } else if (key === "base") {
-            // Basis: Fleisch und Gemüse (harte + weiche Zutaten)
-            filterFn = item => item.isHard || item.isSoft;
-        } else if (key === "ingredient" || key === "ingredients") {
-            // Step-spezifische Filter für generische ingredient-Variable
-            if (step === "COOK_ARRANGE_01") {
-                filterFn = item => item.isHard || item.isSoft;
-            } else if (step === "PREP_CUT_01" || step === "PREP_GRATE_01" || step === "PREP_MINCE_01" || step === "PREP_PEEL_01") {
-                filterFn = item => item.isHard || item.isSoft;
-            } else if (step === "PREP_SCORE_01" || step === "PREP_TENDERIZE_01") {
-                // Einschneiden/Klopfen: feste Zutaten (kein Gewürz, keine Flüssigkeit, kein Fett)
-                filterFn = item => !item.isLiquid && !item.isFat && item.groupId !== "5";
+    function getIngredientDisplayConfig(varName, masterId) {
+        const key = (varName || "").toString().trim().toLowerCase();
+        const { variableRule, stepRule } = getIngredientMatchRule(varName, masterId);
+
+        const limitRaw = stepRule?.display_limit ?? variableRule?.display_limit;
+        const parsedLimit = Number(limitRaw);
+        const defaultLimit = key === "ingredient" ? 2 : (key === "ingredients" ? 3 : null);
+
+        return {
+            limit: Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : defaultLimit,
+            preferGroups: mergeRuleArrays(stepRule?.display_prefer_groups, variableRule?.display_prefer_groups),
+            deprioritizeGroups: mergeRuleArrays(stepRule?.display_deprioritize_groups, variableRule?.display_deprioritize_groups),
+            preferFlags: mergeRuleArrays(stepRule?.display_prefer_flags, variableRule?.display_prefer_flags),
+            excludeDerived: (stepRule?.display_exclude_derived ?? variableRule?.display_exclude_derived) === true,
+            preferBaseSources: (stepRule?.display_prefer_base_sources ?? variableRule?.display_prefer_base_sources) !== false
+        };
+    }
+
+    function selectIngredientsForDisplay(items, varName, masterId) {
+        const list = Array.isArray(items) ? items.slice() : [];
+        if (!list.length) return [];
+
+        const config = getIngredientDisplayConfig(varName, masterId);
+        let candidates = list;
+
+        if (config.excludeDerived) {
+            const baseOnly = candidates.filter(item => {
+                const itemId = (item?.id || "").toString();
+                const sourceId = (item?.sourceBaseId || itemId).toString();
+                return !itemId || !sourceId || itemId === sourceId;
+            });
+            if (baseOnly.length) {
+                candidates = baseOnly;
             }
         }
 
-        if (!filterFn) return { filtered: items, rest: [] };
+        const ranked = candidates
+            .map((item, index) => {
+                let score = 0;
+                const groupId = (item?.groupId || "").toString();
+                const itemId = (item?.id || "").toString();
+                const sourceId = (item?.sourceBaseId || itemId).toString();
 
-        const filtered = items.filter(filterFn);
-        const rest = items.filter(item => !filterFn(item));
+                if (config.preferBaseSources && itemId && sourceId && itemId === sourceId) {
+                    score += 40;
+                }
+
+                const preferredGroupIndex = config.preferGroups.indexOf(groupId);
+                if (preferredGroupIndex >= 0) {
+                    score += 100 - preferredGroupIndex * 10;
+                }
+
+                const deprioritizedGroupIndex = config.deprioritizeGroups.indexOf(groupId);
+                if (deprioritizedGroupIndex >= 0) {
+                    score -= 40 + deprioritizedGroupIndex * 5;
+                }
+
+                config.preferFlags.forEach(flag => {
+                    if (getIngredientRuleValue(item, flag)) score += 8;
+                });
+
+                return { item, index, score };
+            })
+            .sort((a, b) => (b.score - a.score) || (a.index - b.index))
+            .map(entry => entry.item);
+
+        if (!config.limit || ranked.length <= config.limit) {
+            return ranked;
+        }
+
+        return ranked.slice(0, config.limit);
+    }
+
+    // Filters ingredient items based on the variable type (e.g. {{liquid}} → only liquids)
+    // and optionally by step context via declarative JSON rules.
+    // Returns { filtered, rest } where filtered are primary matches and rest are remaining items.
+    function filterIngredientsByVarType(items, varName, masterId) {
+        const { variableRule, stepRule } = getIngredientMatchRule(varName, masterId);
+        if (!variableRule && !stepRule) return { filtered: items, rest: [] };
+
+        const filterFn = item => matchesIngredientRule(item, variableRule) && matchesIngredientRule(item, stepRule);
+        const filtered = (items || []).filter(filterFn);
+        const rest = (items || []).filter(item => !filterFn(item));
         // Return filtered items (empty if no matches)
         return { filtered, rest };
     }
@@ -1473,7 +1663,7 @@
 
     function isNoArticleVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
-        return key === "state" || key === "duration" || key === "count" || key === "mode" || key === "component" || key === "pronoun" || key === "pronoun2" || key === "pronomen" || key === "shape" || key === "finish" || key === "marinade" || key === "method" || key === "thickener" || key === "action" || isGrindSizeVariable(varName);
+        return key === "state" || key === "duration" || key === "count" || key === "mode" || key === "component" || key === "pronoun" || key === "pronoun2" || key === "pronomen" || key === "shape" || key === "finish" || key === "marinade" || key === "method" || key === "thickener" || key === "action" || key === "copula" || isGrindSizeVariable(varName);
     }
     function isStateVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase().replace(/_/g, "");
@@ -1562,7 +1752,21 @@
                 isLiquid: !!item?.isLiquid,
                 isFat: !!item?.isFat,
                 isHard: !!item?.isHard,
-                isSoft: !!item?.isSoft
+                isSoft: !!item?.isSoft,
+                isPeelable: !!item?.isPeelable,
+                isCuttable: !!item?.isCuttable,
+                isGrateable: !!item?.isGrateable,
+                isFryable: !!item?.isFryable,
+                isRoastable: !!item?.isRoastable,
+                isGrillable: !!item?.isGrillable,
+                isSteamable: !!item?.isSteamable,
+                isBoilable: !!item?.isBoilable,
+                isSearable: !!item?.isSearable,
+                isPoachable: !!item?.isPoachable,
+                isSmokable: !!item?.isSmokable,
+                isFlambeable: !!item?.isFlambeable,
+                isBlendable: !!item?.isBlendable,
+                isPowder: !!item?.isPowder
             })).filter(x => x.name);
         }
 
@@ -1844,6 +2048,7 @@
 
         // Hybrid variable support
         const hybridVar = isHybridIngredientVariable(varName);
+        const selectionLabel = getEditorSelectionLabel(varName, hybridVar);
         const hybridOptions = hybridVar ? getVarOptions(varName, masterId, scoringContext) : [];
         const hybridButtons = hybridVar ? renderPillButtons(hybridOptions, "value", currentVal) : "";
 
@@ -1904,7 +2109,7 @@
 
         // Build HTML
         const html = `<div class="duration-editor mt-2${useClassBasedIds ? ' prob-inline-editor' : ''}" data-editor-for="${escapeHtml(varName)}" data-hybrid="${hybridVar ? "1" : "0"}">
-            <div class="small text-muted mb-1"><strong>${escapeHtml(getVarDisplayName(varName))}</strong> auswählen</div>
+            <div class="small text-muted mb-1"><strong>${escapeHtml(selectionLabel)}</strong> auswählen</div>
 
             ${multiIngredientsSection}
 
@@ -1926,7 +2131,7 @@
             </div>
             ` : ""}
 
-            ${showCombinedEditor ? `<div class="small text-muted mb-1">Zustand</div>` : (showOnlyPronoun ? "" : `<div class="small text-muted mb-1">${escapeHtml(getVarDisplayName(varName))} einsetzen</div>`)}
+            ${showCombinedEditor ? `<div class="small text-muted mb-1">Zustand</div>` : (showOnlyPronoun ? "" : `<div class="small text-muted mb-1">${escapeHtml(selectionLabel)} einsetzen</div>`)}
             <div ${valueRowId}>
               ${valueButtons || (ingredientVar
                 ? `<div class="text-muted small">Keine Zutaten ausgewählt.</div>`
@@ -1944,6 +2149,7 @@
 
             <div class="d-flex gap-2 align-items-center mt-3 js-editor-action-row">
               <button type="button" class="btn btn-sm creator-cta-primary ${applyBtnClass}" ${applyBtnId}>Einsetzen</button>
+              <button type="button" class="btn btn-sm btn-outline-danger js-editor-remove-optional" style="display:none;" data-var="${escapeHtml(varName)}">Entfernen</button>
               <button type="button" class="btn btn-sm btn-outline-secondary ${closeBtnClass}" ${closeBtnId}>Schließen</button>
             </div>
           </div>`;
@@ -2091,11 +2297,11 @@
         // Toggle active style for article/pronoun/value modes
         let row;
         if (mode === "article") {
-            row = useClassBasedIds ? host.querySelector(".js-article-btn-row") : $("#ArticleBtnRow");
+            row = useClassBasedIds ? host.querySelector(".js-article-btn-row") : document.getElementById("ArticleBtnRow");
         } else if (mode === "pronoun") {
-            row = useClassBasedIds ? host.querySelector(".js-pronoun-btn-row") : $("#PronounBtnRow");
+            row = useClassBasedIds ? host.querySelector(".js-pronoun-btn-row") : document.getElementById("PronounBtnRow");
         } else if (mode === "value") {
-            row = useClassBasedIds ? host.querySelector(".js-value-btn-row") : $("#ValueBtnRow");
+            row = useClassBasedIds ? host.querySelector(".js-value-btn-row") : document.getElementById("ValueBtnRow");
         }
 
         if (row) {
@@ -2214,6 +2420,14 @@
         Object.keys(dataAttributes).forEach(key => {
             editorEl.dataset[key] = dataAttributes[key];
         });
+
+        // Show "Entfernen" button if variable is optional (appears inside brackets in template)
+        const templateForOptionalCheck = context.templateRaw || activeStep?.templateRaw || "";
+        const isVarInBrackets = new RegExp(`\\[[^\\]]*\\{\\{\\s*${varName}\\s*\\}\\}[^\\]]*\\]`).test(templateForOptionalCheck);
+        if (isVarInBrackets) {
+            const removeBtn = overlayEl.querySelector('.js-editor-remove-optional');
+            if (removeBtn) removeBtn.style.display = '';
+        }
 
         // Bind unified event handlers
         bindUnifiedOverlayEventHandlers(overlayEl, editorEl, {
@@ -2452,6 +2666,19 @@
             switchEditorVariable(newVarName, config);
         });
 
+        // Remove optional variable (clear value)
+        $overlay.on('click.universal', '.js-editor-remove-optional', function(e) {
+            e.stopPropagation();
+            const removeVarName = config.varName;
+            // Clear the value in context
+            updateContextValue(context, removeVarName, '', {});
+            // Clear multi-ingredients if any
+            saveMultiIngredientsForContext(context, removeVarName, []);
+            // Close overlay
+            closeUnifiedOverlay();
+            if (typeof onClose === 'function') onClose();
+        });
+
         // Close overlay when clicking outside
         $overlay.on('click.universal', function(e) {
             if (e.target === overlayEl) {
@@ -2651,11 +2878,22 @@
                     switchEditorVariable(varName, config);
                     return;  // ← Important: Overlay bleibt offen!
                 } else {
-                    // No new selection - just use existing list and CLOSE
-                    console.log('[Unified Apply] No new selection, closing with existing list');
-                    const normalized = normalizeIngredientValues(existingMulti);
-                    value = formatSelectedIngredientList(normalized, currentLang || 'de');
-                    // Continue to normal context update + close below
+                    // No new selection — check if user picked a Hybrid option (e.g. "Salzwasser")
+                    const hybridValue = editorEl.dataset.selectedValue || '';
+                    if (hybridValue && editorEl.dataset.hybrid === "1") {
+                        // User hat Hybrid-Option gewählt → Multi-Ingredients löschen
+                        console.log('[Unified Apply] Hybrid override:', hybridValue);
+                        saveMultiIngredientsForContext(context, varName, []);
+                        const article = editorEl.dataset.selectedArticle || '';
+                        value = composeArticleAndNoun(article, hybridValue);
+                        // Continue to normal context update + close below
+                    } else {
+                        // Keine Auswahl — existierende Liste beibehalten und CLOSE
+                        console.log('[Unified Apply] No new selection, closing with existing list');
+                        const normalized = normalizeIngredientValues(existingMulti);
+                        value = formatSelectedIngredientList(normalized, currentLang || 'de');
+                        // Continue to normal context update + close below
+                    }
                 }
             } else {
                 // First time - store initial selection
@@ -2824,6 +3062,15 @@
             Object.keys(dataAttributes).forEach(key => {
                 newEditorEl.dataset[key] = dataAttributes[key];
             });
+        }
+
+        // Update "Entfernen" button visibility based on whether new variable is optional
+        const removeBtn = overlayEl.querySelector('.js-editor-remove-optional');
+        if (removeBtn) {
+            const templateForCheck = context.templateRaw || activeStep?.templateRaw || "";
+            const isInBrackets = new RegExp(`\\[[^\\]]*\\{\\{\\s*${newVarName}\\s*\\}\\}[^\\]]*\\]`).test(templateForCheck);
+            removeBtn.style.display = isInBrackets ? '' : 'none';
+            removeBtn.dataset.var = newVarName;
         }
 
         // Update config
@@ -3894,9 +4141,10 @@
     // -----------------------------
     async function init() {
         try {
-            const loaded = await Promise.all([loadJson(), loadVariableCatalog()]);
+            const loaded = await Promise.all([loadJson(), loadVariableCatalog(), loadIngredientMatchRules()]);
             doc = loaded[0];
             variableCatalog = loaded[1] || { variables: {} };
+            ingredientMatchRules = loaded[2] || { variable_rules: {}, step_variable_rules: {} };
             steps = doc.master_steps || [];
 
             renderStepButtons();
@@ -4046,6 +4294,7 @@
 
     // Merge into MasterStepCreatorHelpers (second IIFE adds formatIngredientList etc.)
     window.MasterStepCreatorHelpers = Object.assign(window.MasterStepCreatorHelpers || {}, {
+        getIngredientMatchRule, // ← Export für prefer_option_default Prüfung in buildVariablesForTemplate
         renderTemplate,  // ← Export für renderProbabilityTemplate
         renderTemplateDraftHtml,
         renderEditableStepPreview,
@@ -4077,7 +4326,8 @@
         setPhaseFilter,
         renderStepButtons,
         // Ingredient matching (Phase 5)
-        filterIngredientsByVarType
+        filterIngredientsByVarType,
+        selectIngredientsForDisplay
     });
 
 

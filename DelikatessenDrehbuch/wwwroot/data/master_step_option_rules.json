@@ -549,7 +549,8 @@
     },
     "COOK_DRAIN_01": {
       "equipment": {
-        "preferred": { "de": ["Sieb"] }
+        "preferred": { "de": ["Sieb"] },
+        "default": { "de": "Sieb", "en": "strainer", "esp": "colador", "prt": "peneira", "id": "saringan", "nl": "zeef", "sv": "durkslag", "da": "si", "no": "sil", "ms": "penapis" }
       }
     },
     "COOK_ADD_01": {

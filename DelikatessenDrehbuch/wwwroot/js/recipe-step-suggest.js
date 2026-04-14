@@ -11,7 +11,6 @@
 (function (window) {
     'use strict';
 
-    let mappingData = null;
     let categoryScoringData = null;
     let masterStepsData = null;
     let templatePresetsData = null;
@@ -24,26 +23,23 @@
         if (loadingPromise) return loadingPromise;
 
         loadingPromise = window.CreatePostingDataStore.loadMany([
-            'recipeStepMapping',
             'recipeCategoryScoring',
             'masterSteps',
             'probabilityTemplatePresets',
             'recipeTypeStepVariables'
         ]).then((results) => {
-            mappingData = results.recipeStepMapping;
             categoryScoringData = results.recipeCategoryScoring;
             masterStepsData = results.masterSteps;
             templatePresetsData = results.probabilityTemplatePresets;
             recipeTypeStepVarsData = results.recipeTypeStepVariables;
             mappingLoaded = true;
             console.log('[RecipeStepSuggest] Daten geladen:', {
-                mapping: !!mappingData,
                 scoring: !!categoryScoringData,
                 masterSteps: !!masterStepsData,
                 presets: !!templatePresetsData,
                 stepVars: !!recipeTypeStepVarsData
             });
-            return { stepData: mappingData, categoryData: categoryScoringData, masterData: masterStepsData };
+            return { categoryData: categoryScoringData, masterData: masterStepsData };
         }).catch(err => {
             console.error('[RecipeStepSuggest] Fehler beim Laden:', err);
             mappingLoaded = false;
@@ -60,7 +56,9 @@
     const INGREDIENT_ALIAS_GROUPS = [
         [11, 12, 83, 248],       // Zwiebeln: normal(11), rot(12), Rote(83), Perl(248)
         [218, 219, 220],          // Hackfleisch: Rind(218), Schwein(219), Gemischt(220)
-        [85, 227, 231]            // Eier: ganz(85), Eigelb(227), Eiweiß(231)
+        [85, 227, 231],           // Eier: ganz(85), Eigelb(227), Eiweiß(231)
+        [2, 346, 347, 348, 349],  // Nudeln: generisch(2), Spaghetti(346), Penne(347), Tagliatelle(348), Lasagneplatten(349)
+        [3, 135, 355, 356, 357, 358, 359]  // Reis: generisch(3), Risotto(135), Jasmin(355), Wild(356), Milch(357), Langkorn(358), Rundkorn(359)
     ];
 
     /** Expand a set of ingredient IDs with alias group members */
@@ -78,14 +76,25 @@
     /**
      * Detect which recipe types match the selected ingredients.
      * Uses recipe_category_scoring.json (weighted scoring with false-positive penalty).
+     * Accepts either plain ID array or array of {id, groupId} objects.
      * Returns sorted array: [{ type, name, score, matchedSignatureCount, totalSignature }]
      */
-    function detectRecipeTypes(selectedIngredientIds) {
+    function detectRecipeTypes(selectedIngredients) {
         if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return [];
 
-        const rawSet = new Set(selectedIngredientIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+        // Support both plain IDs and {id, groupId} objects
+        const ingredientObjects = selectedIngredients.map(item => {
+            if (typeof item === 'object' && item !== null) {
+                return { id: parseInt(item.id, 10), groupId: (item.groupId || '').toString() };
+            }
+            return { id: parseInt(item, 10), groupId: '' };
+        }).filter(o => !isNaN(o.id));
+
+        const rawSet = new Set(ingredientObjects.map(o => o.id));
         const selectedSet = expandWithAliases(rawSet);
         const selectedCount = rawSet.size;
+        // Build groupId set for group_weights scoring
+        const selectedGroupIds = new Set(ingredientObjects.map(o => o.groupId).filter(Boolean));
         const results = [];
 
         categoryScoringData.categories.forEach(cat => {
@@ -117,6 +126,28 @@
                     matchedCount += 1;
                 }
             });
+
+            // group_weights: bonus for ingredient groups (no double-counting with ingredient_weights)
+            const groupWeights = Array.isArray(cat.group_weights) ? cat.group_weights : [];
+            if (groupWeights.length > 0) {
+                const matchedIngredientIds = new Set();
+                weights.forEach(item => {
+                    if (selectedSet.has(parseInt(item.ingredient_id, 10))) matchedIngredientIds.add(parseInt(item.ingredient_id, 10));
+                });
+                // Count ingredients per groupId that were NOT already matched via ingredient_weights
+                groupWeights.forEach(gw => {
+                    const gid = (gw.group_id || '').toString();
+                    if (!gid || !selectedGroupIds.has(gid)) return;
+                    const unmatchedGroupCount = ingredientObjects.filter(o =>
+                        o.groupId === gid && !matchedIngredientIds.has(o.id)
+                    ).length;
+                    if (unmatchedGroupCount > 0) {
+                        weightedMatched += (gw.weight || 0) * unmatchedGroupCount;
+                        weightedTotal += (gw.weight || 0) * unmatchedGroupCount;
+                        matchedCount += unmatchedGroupCount;
+                    }
+                });
+            }
 
             if (matchedCount === 0 || weightedTotal <= 0) return;
 
@@ -196,20 +227,23 @@
                 let subScore = result.score;
 
                 // Boost for matched boost_weights
+                // Use rawSet (not alias-expanded) — subtype boosts should only fire
+                // for actually selected ingredients, not alias-expanded ones
                 (sub.boost_weights || []).forEach(bw => {
-                    if (selectedSet.has(parseInt(bw.ingredient_id, 10))) {
+                    if (rawSet.has(parseInt(bw.ingredient_id, 10))) {
                         subScore += bw.weight;
                     }
                 });
 
-                // Penalty for blocked ingredients
+                // Penalty for blocked ingredients (use rawSet for same reason)
                 (sub.blocked_ingredient_ids || []).forEach(bid => {
-                    if (selectedSet.has(parseInt(bid, 10))) {
+                    if (rawSet.has(parseInt(bid, 10))) {
                         subScore -= 30;
                     }
                 });
 
-                // Required ingredients check
+                // Required ingredients check (use selectedSet — aliases are valid here,
+                // e.g. selecting Rinderhackfleisch should satisfy required Hackfleisch gemischt)
                 const reqIds = sub.required_ingredient_ids || [];
                 if (reqIds.length > 0) {
                     const reqMatched = reqIds.filter(id => selectedSet.has(parseInt(id, 10))).length;
@@ -247,150 +281,6 @@
     function getCategoryById(typeId) {
         if (!categoryScoringData || !Array.isArray(categoryScoringData.categories)) return null;
         return categoryScoringData.categories.find(cat => cat.id === typeId) || null;
-    }
-
-    /**
-     * Get suggested step IDs for the selected ingredients.
-     * Only returns steps where the step text is relevant to the actual selected ingredients.
-     *
-     * @param {number[]} selectedIngredientIds - IDs of selected ingredients
-     * @param {Object} stepCatalogById - Map/object of stepId -> step data (from the page's existing catalog)
-     * @param {Object} options
-     * @param {string[]} [options.selectedIngredientNames] - Names of selected ingredients for text validation
-     * @param {number} [options.maxSteps=20] - Maximum steps to return
-     * @returns {{ steps: Array, recipeTypes: Array, topType: Object|null }}
-     */
-    function suggestStepsForIngredients(selectedIngredientIds, stepCatalogById, options) {
-        options = options || {};
-        const maxSteps = options.maxSteps || 20;
-        const selectedNames = (options.selectedIngredientNames || []).map(n => n.toLowerCase().trim());
-        const selectedSet = new Set(selectedIngredientIds.map(id => id.toString()));
-
-        if (!mappingData) return { steps: [], recipeTypes: [], topType: null };
-
-        const ingredientToSteps = mappingData.ingredient_to_steps || {};
-        const recipeTypes = detectRecipeTypes(selectedIngredientIds);
-        const topType = recipeTypes.length ? recipeTypes[0] : null;
-
-        // Collect candidate step IDs with scores
-        const stepScores = new Map();
-
-        // Direct ingredient->step mapping
-        selectedIngredientIds.forEach(ingId => {
-            const stepIds = ingredientToSteps[ingId.toString()] || [];
-            stepIds.forEach(sid => {
-                const sidStr = sid.toString();
-                if (!stepScores.has(sidStr)) {
-                    stepScores.set(sidStr, { score: 0, phase: 0, triggeredBy: [] });
-                }
-                const entry = stepScores.get(sidStr);
-                entry.score += 2;
-                entry.triggeredBy.push(parseInt(ingId, 10));
-            });
-        });
-
-        // Filter: step must exist in the page's step catalog
-        // Filter: validate step text against selected ingredient names
-        const conflictIngredients = buildConflictMap();
-        const results = [];
-
-        stepScores.forEach((data, sidStr) => {
-            const catalogStep = getStepFromCatalog(sidStr, stepCatalogById);
-            if (!catalogStep) return;
-
-            const stepText = getStepText(catalogStep);
-            if (!stepText) return;
-
-            if (hasConflictingIngredient(stepText, selectedNames, conflictIngredients)) {
-                return;
-            }
-
-            const phase = parseInt(catalogStep.phase || catalogStep.Phase || 0, 10);
-            results.push({
-                stepId: parseInt(sidStr, 10),
-                score: data.score,
-                phase: phase,
-                triggeredBy: data.triggeredBy,
-                text: stepText
-            });
-        });
-
-        // Sort: phase order first, then score desc
-        const phaseOrder = { 1: 0, 2: 1, 3: 2, 4: 3, 0: 4 };
-        results.sort((a, b) => {
-            const pa = phaseOrder[a.phase] ?? 4;
-            const pb = phaseOrder[b.phase] ?? 4;
-            if (pa !== pb) return pa - pb;
-            return b.score - a.score;
-        });
-
-        // Deduplicate by phase: max 4 per phase
-        const phaseCounts = {};
-        const filtered = results.filter(r => {
-            phaseCounts[r.phase] = (phaseCounts[r.phase] || 0) + 1;
-            return phaseCounts[r.phase] <= 4;
-        });
-
-        return {
-            steps: filtered.slice(0, maxSteps),
-            recipeTypes: recipeTypes,
-            topType: topType
-        };
-    }
-
-    /**
-     * Build a map of ingredient names that are "alternatives" to each other.
-     * E.g., Gouda/Cheddar/Emmentaler are cheese alternatives.
-     */
-    function buildConflictMap() {
-        return [
-            ['gouda', 'cheddar', 'emmentaler', 'gruyère', 'edamer', 'bergkäse', 'raclette'],
-            ['mozzarella', 'burrata'],
-            ['parmesan', 'pecorino', 'grana padano'],
-            ['feta', 'ziegenkäse', 'schafskäse', 'halloumi'],
-            ['lachs', 'forelle', 'kabeljau', 'thunfisch', 'zander', 'dorade', 'seelachs', 'pangasius'],
-            ['hähnchen', 'pute', 'truthahn', 'ente', 'gans'],
-            ['rindfleisch', 'schweinefleisch', 'lammfleisch', 'kalbfleisch', 'wildfleisch'],
-            ['spaghetti', 'penne', 'rigatoni', 'tagliatelle', 'fusilli', 'farfalle', 'linguine', 'fettuccine', 'makkaroni'],
-            ['basmati', 'jasminreis', 'risotto-reis', 'langkornreis', 'wildreis'],
-            ['kokosmilch', 'pflanzenmilch', 'hafermilch', 'sojamilch', 'mandelmilch'],
-        ];
-    }
-
-    function hasConflictingIngredient(stepText, selectedNames, conflictGroups) {
-        const textLower = stepText.toLowerCase();
-
-        for (const group of conflictGroups) {
-            const mentionedInStep = group.filter(item => textLower.includes(item));
-            if (!mentionedInStep.length) continue;
-
-            const selectedFromGroup = group.filter(item =>
-                selectedNames.some(name => name.includes(item) || item.includes(name))
-            );
-
-            if (selectedFromGroup.length > 0) {
-                const mentionedAndSelected = mentionedInStep.filter(m =>
-                    selectedFromGroup.some(s => s.includes(m) || m.includes(s))
-                );
-                if (mentionedAndSelected.length === 0) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    function getStepFromCatalog(stepId, catalog) {
-        const sid = stepId.toString();
-        if (catalog instanceof Map) {
-            return catalog.get(sid) || catalog.get(parseInt(sid, 10));
-        }
-        return catalog[sid] || catalog[parseInt(sid, 10)];
-    }
-
-    function getStepText(step) {
-        return step.step_DE || step.de || step.Step_DE || step.StepDe || '';
     }
 
     /**
@@ -502,7 +392,6 @@
     window.RecipeStepSuggest = {
         loadMapping: loadMapping,
         detectRecipeTypes: detectRecipeTypes,
-        suggestStepsForIngredients: suggestStepsForIngredients,
         renderRecipeTypeBadges: renderRecipeTypeBadges,
         getMasterStepPreview: getMasterStepPreview,
         getCategoryById: getCategoryById,

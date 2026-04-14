@@ -1284,16 +1284,16 @@
       "equipment": 0,
       "description": "Waschen, optionales Entfernen (Schale/Gräten/etc.) und Trocknen von Zutaten",
       "templates": {
-        "de": "{{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}] und tupfe {{pronoun}} trocken.",
-        "en": "{{action}} {{ingredient}} thoroughly under cold water[, remove {{removal}}] and pat {{pronoun}} dry.",
-        "esp": "{{action}} {{ingredient}} a fondo bajo agua fría[, quita {{removal}}] y seca bien.",
-        "prt": "{{action}} {{ingredient}} bem sob água fria[, remova {{removal}}] e seque bem.",
-        "id": "{{action}} {{ingredient}} hingga bersih di bawah air dingin[, buang {{removal}}] lalu tepuk hingga kering.",
-        "nl": "{{action}} {{ingredient}} grondig onder koud water[, verwijder {{removal}}] en dep {{pronoun}} droog.",
-        "sv": "{{action}} {{ingredient}} noggrant under kallt vatten[, ta bort {{removal}}] och torka {{pronoun}} torr.",
-        "da": "{{action}} {{ingredient}} grundigt under koldt vand[, fjern {{removal}}] og dup {{pronoun}} tør.",
-        "no": "{{action}} {{ingredient}} grundig under kaldt vann[, fjern {{removal}}] og tork {{pronoun}} tørr.",
-        "ms": "{{action}} {{ingredient}} hingga bersih di bawah air sejuk[, buang {{removal}}] dan lap sehingga kering."
+        "de": "{{action}} {{ingredient}} gründlich unter kaltem Wasser[, entferne {{removal}}][ und tupfe {{pronoun}} trocken].",
+        "en": "{{action}} {{ingredient}} thoroughly under cold water[, remove {{removal}}][ and pat {{pronoun}} dry].",
+        "esp": "{{action}} {{ingredient}} a fondo bajo agua fría[, quita {{removal}}][ y seca {{pronoun}} bien].",
+        "prt": "{{action}} {{ingredient}} bem sob água fria[, remova {{removal}}][ e seque {{pronoun}} bem].",
+        "id": "{{action}} {{ingredient}} hingga bersih di bawah air dingin[, buang {{removal}}][ lalu keringkan {{pronoun}}].",
+        "nl": "{{action}} {{ingredient}} grondig onder koud water[, verwijder {{removal}}][ en dep {{pronoun}} droog].",
+        "sv": "{{action}} {{ingredient}} noggrant under kallt vatten[, ta bort {{removal}}][ och torka {{pronoun}} torr].",
+        "da": "{{action}} {{ingredient}} grundigt under koldt vand[, fjern {{removal}}][ og dup {{pronoun}} tør].",
+        "no": "{{action}} {{ingredient}} grundig under kaldt vann[, fjern {{removal}}][ og tork {{pronoun}} tørr].",
+        "ms": "{{action}} {{ingredient}} hingga bersih di bawah air sejuk[, buang {{removal}}][ dan keringkan {{pronoun}}]."
       },
       "variables": [
         "action",
@@ -1303,11 +1303,11 @@
       ],
       "required_variables": [
         "action",
-        "ingredient",
-        "pronoun"
+        "ingredient"
       ],
       "optional_variables": [
-        "removal"
+        "removal",
+        "pronoun"
       ],
       "variable_types": {},
       "stable_taxonomy_keys": {
@@ -2326,7 +2326,7 @@
       "equipment": 2,
       "description": "Anbraten/Dünsten von Basis-Zutaten",
       "templates": {
-        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}][, bis {{pronoun}} {{state}} {{copula}}].",
+        "de": "Erhitze {{fat}} in {{equipment}} und {{action}} {{ingredient}} darin[ {{duration}}]{~ am Schluss~state~}[, bis {{pronoun}} {{state}} {{copula}}].",
         "en": "Heat {{fat}} in {{equipment}} and {{action}} {{ingredient}}[ for {{duration}}][ until {{state}}].",
         "esp": "Calienta {{fat}} en {{equipment}} y {{action}} {{ingredient}}[ durante {{duration}}][ hasta que {{state}}].",
         "prt": "Aqueça {{fat}} em {{equipment}} e {{action}} {{ingredient}}[ por {{duration}}][ até que {{state}}].",

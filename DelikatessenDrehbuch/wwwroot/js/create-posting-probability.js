@@ -65,6 +65,10 @@
         const safeText = escapeHtml(displayText || masterId || '');
         const helpers = window.MasterStepCreatorHelpers || {};
         const buildProbabilityPreviewDraft = window.buildCreatePostingProbabilityPreviewDraft;
+        const probabilityDraft = draftEngine && typeof draftEngine.getProbabilityDraft === 'function'
+            ? draftEngine.getProbabilityDraft(masterId)
+            : window.probabilityStates?.[masterId];
+        const explicitValues = probabilityDraft?._explicitValues || {};
         const previewDraft = typeof buildProbabilityPreviewDraft === 'function'
             ? buildProbabilityPreviewDraft(masterId)
             : null;
@@ -80,11 +84,13 @@
         };
         const previewHtml = typeof helpers.renderEditableStepPreview === 'function'
             ? helpers.renderEditableStepPreview(draft, {
-                mode: 'step',
+                mode: 'probability',
                 title: 'Erkannter Step',
                 bodyClasses: 'probability-template-text preview-step-text mt-2',
                 wrapperClass: 'current-step-wrap probability-preview-wrap',
-                actionHtml
+                actionHtml,
+                varsOverride: draft.values || {},
+                optionalValues: explicitValues
             })
             : `<div class="current-step-wrap probability-preview-wrap"><div class="current-step-header d-flex justify-content-between align-items-center"><div class="preview-step-title mb-0">Erkannter Step</div>${actionHtml}</div><div class="probability-template-text preview-step-text mt-2">${typeof helpers.renderTemplate === 'function' ? helpers.renderTemplate(templateText, masterId, vars || {}) : (buildInlineTemplateText(masterId, template, lang, vars, {}) || safeText)}</div></div>`;
 
