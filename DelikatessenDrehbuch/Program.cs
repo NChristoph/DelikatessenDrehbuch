@@ -78,6 +78,10 @@ builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<IWildCoinService, WildCoinService>();
 builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 builder.Services.AddScoped<IWorldAdPreferenceService, WorldAdPreferenceService>();
+builder.Services.AddHttpClient<IMissingIngredientAiService, MissingIngredientAiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(45);
+});
 
 
 builder.Services.AddHttpContextAccessor();

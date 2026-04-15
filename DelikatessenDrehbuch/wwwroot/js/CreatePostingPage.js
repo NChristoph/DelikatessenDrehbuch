@@ -773,9 +773,10 @@
         function normalizeGenusKey(genusRaw = '') {
             const value = (genusRaw || '').toString().trim().toLowerCase();
             if (!value) return '';
-            if (['m', 'masc', 'mask', 'masculine', 'masculin', 'der', 'el', 'o', 'de'].some(x => value === x || value.includes(x))) return 'masc';
-            if (['f', 'fem', 'feminine', 'femin', 'die', 'la', 'a'].some(x => value === x || value.includes(x))) return 'fem';
-            if (['n', 'neut', 'neuter', 'das', 'het', 'det'].some(x => value === x || value.includes(x))) return 'neut';
+            if (['pl', 'plural', 'die(pl)', 'die plur', 'pluralis'].some(x => value === x || value.includes(x))) return 'plural';
+            if (['m', 'masc', 'mask', 'masculine', 'masculin', 'der', 'el', 'o', 'de', 'en', 'common'].some(x => value === x || value.includes(x))) return 'masc';
+            if (['f', 'fem', 'feminine', 'femin', 'die', 'la', 'a', 'ei'].some(x => value === x || value.includes(x))) return 'fem';
+            if (['n', 'neut', 'neuter', 'das', 'het', 'det', 'ett', 'et'].some(x => value === x || value.includes(x))) return 'neut';
             return '';
         }
 
@@ -1726,6 +1727,9 @@
         };
 
         const upsertStepUrl = window.CreatePostingPageConfig?.upsertStepUrl || '/WorldMiniApp/Home/UpsertStep';
+        const suggestMissingIngredientUrl = window.CreatePostingPageConfig?.suggestMissingIngredientUrl || '/WorldMiniApp/Home/SuggestMissingIngredient';
+        const saveSuggestedIngredientUrl = window.CreatePostingPageConfig?.saveSuggestedIngredientUrl || '/WorldMiniApp/Home/SaveSuggestedIngredient';
+        let missingIngredientCurrentSuggestion = null;
 
 
 
@@ -1754,6 +1758,7 @@
                     f: ['tomate', 'zwiebel', 'paprika', 'karotte', 'kartoffel', 'schulter', 'brust', 'keule', 'soÃƒÅ¸e', 'sauce'],
                     n: ['salz', 'ÃƒÂ¶l', 'wasser', 'ei', 'mehl', 'fleisch', 'brot']
                 };
+                if (hasAny(['pl', 'plural'])) return { pronoun: 'sie', article: 'die' };
                 if (hasAny(['f', 'fem', 'femin', 'die'])) return { pronoun: 'sie', article: 'die' };
                 if (hasAny(['n', 'neu', 'neut', 'das'])) return { pronoun: 'es', article: 'das' };
                 if (hasAny(['m', 'mas', 'mask', 'der'])) return { pronoun: 'ihn', article: 'den' };
@@ -3598,6 +3603,329 @@
             </div>`;
         }
 
+        function getAntiForgeryToken() {
+            return ($('input[name="__RequestVerificationToken"]').first().val() || '').toString();
+        }
+
+        function getMissingIngredientUserHash() {
+            return ($('#hiddenUserTokenField').val() || '').toString();
+        }
+
+        function normalizeMissingIngredientInputValue(value) {
+            const raw = (value || '').toString().trim();
+            if (!raw) return '';
+            return raw
+                .replace(/\s+/g, ' ')
+                .split(' ')
+                .map(function (part) {
+                    if (!part) return '';
+                    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+                })
+                .join(' ');
+        }
+
+        function getCatalogUnitOptionsHtml() {
+            const existingSelect = $('#ingredientsCatalog .js-db-unit').first();
+            return existingSelect.length ? existingSelect.html() : '<option value="g.">g.</option><option value="ml.">ml.</option><option value="Stk.">Stk.</option>';
+        }
+
+        function buildLocalizedDataFromCatalogItem(item) {
+            return {
+                names: {
+                    de: (item?.name_DE || '').toString(),
+                    en: (item?.name_EN || '').toString(),
+                    esp: (item?.name_ESP || '').toString(),
+                    prt: (item?.name_PRT || '').toString(),
+                    id: (item?.name_ID || '').toString(),
+                    nl: (item?.name_NL || '').toString(),
+                    sv: (item?.name_SE || '').toString(),
+                    da: (item?.name_DK || '').toString(),
+                    no: (item?.name_NO || '').toString(),
+                    ms: (item?.name_MS || '').toString()
+                },
+                genus: {
+                    de: (item?.genus_DE || '').toString(),
+                    en: (item?.genus_EN || '').toString(),
+                    esp: (item?.genus_ESP || '').toString(),
+                    prt: (item?.genus_PRT || '').toString(),
+                    id: (item?.genus_ID || '').toString(),
+                    nl: (item?.genus_NL || '').toString(),
+                    sv: (item?.genus_SE || '').toString(),
+                    da: (item?.genus_DK || '').toString(),
+                    no: (item?.genus_NO || '').toString(),
+                    ms: (item?.genus_MS || '').toString()
+                },
+                groupId: item?.groupId || '',
+                isLiquid: item?.is_liquid ? 'true' : 'false',
+                isFat: item?.is_fat ? 'true' : 'false',
+                isHard: item?.is_hard ? 'true' : 'false',
+                isSoft: item?.is_soft ? 'true' : 'false',
+                isPeelable: item?.is_peelable ? 'true' : 'false',
+                isCuttable: item?.is_cuttable ? 'true' : 'false',
+                isGrateable: item?.is_grateable ? 'true' : 'false',
+                isFryable: item?.is_fryable ? 'true' : 'false',
+                isRoastable: item?.is_roastable ? 'true' : 'false',
+                isGrillable: item?.is_grillable ? 'true' : 'false',
+                isSteamable: item?.is_steamable ? 'true' : 'false',
+                isBoilable: item?.is_boilable ? 'true' : 'false',
+                isSearable: item?.is_searable ? 'true' : 'false',
+                isPoachable: item?.is_poachable ? 'true' : 'false',
+                isSmokable: item?.is_smokable ? 'true' : 'false',
+                isFlambeable: item?.is_flambeable ? 'true' : 'false',
+                isBlendable: item?.is_blendable ? 'true' : 'false',
+                isPowder: item?.is_powder ? 'true' : 'false'
+            };
+        }
+
+        function buildIngredientCatalogRowHtml(item) {
+            const localizedData = buildLocalizedDataFromCatalogItem(item);
+            const displayName = localizedData.names[currentLang] || localizedData.names.de || localizedData.names.en || item?.id || '';
+            const groupIcon = (item?.icon || item?.groupIcon || '').toString();
+            return `
+                <div class="preview-step-card mb-1 ingredient-db-row"
+                     data-ingredient-id="${escapeAttr(item?.id || '')}"
+                     data-group-icon="${escapeAttr(groupIcon)}"
+                     data-selected-qty="1"
+                     data-selected-unit="g."
+                     data-theme="navy"
+                     ${buildIngredientDataAttributes(localizedData)}>
+                    <div class="d-flex align-items-center gap-2 mb-1 ingredient-card-head" style="min-height:max-content">
+                        <div class="preview-step-text display-name mb-0 flex-grow-1 d-flex align-items-center gap-2" style="min-height:max-content">
+                            <span class="ingredient-group-icon">${groupIcon}</span>
+                            <span class="ingredient-name-text">${escapeAttr(displayName)}</span>
+                        </div>
+                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('${escapeAttr(item?.id || '')}', this)" title="Zutat hinzufügen" aria-label="Zutat hinzufügen">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div class="duration-editor mt-2 ingredient-db-details d-none">
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" inputmode="decimal"
+                                   class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
+                                   style="max-width:85px; border-radius: 12px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;" placeholder="1"
+                                   oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
+                            <select class="form-select form-select-sm js-db-unit candy-purple-input"
+                                    style="max-width:140px; border-radius: 12px; cursor: pointer; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;"
+                                    onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
+                                ${getCatalogUnitOptionsHtml()}
+                            </select>
+                        </div>
+                        <div class="common-unit-chips mt-2" role="group" aria-label="Schnelle Einheiten">
+                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g">g.</button>
+                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml">ml.</button>
+                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece">Stk.</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function reloadIngredientCatalogRow(item) {
+            const safeId = (item?.id || '').toString();
+            if (!safeId) return $();
+            $(`#ingredientsCatalog .ingredient-db-row[data-ingredient-id="${safeId}"]`).remove();
+            $('#ingredientsCatalog').prepend(buildIngredientCatalogRowHtml(item));
+            const row = $(`#ingredientsCatalog .ingredient-db-row[data-ingredient-id="${safeId}"]`).first();
+            return row;
+        }
+
+        function renderMissingIngredientResult(html) {
+            const wrap = $('#missingIngredientResult');
+            wrap.html(html || '').toggleClass('d-none', !(html || '').toString().trim());
+        }
+
+        function setMissingIngredientBusy(isBusy) {
+            $('#btnAnalyzeMissingIngredient, #missingIngredientResult .js-save-ai-ingredient, #missingIngredientResult .js-use-existing-ingredient')
+                .prop('disabled', !!isBusy);
+            $('#btnAnalyzeMissingIngredient').toggleClass('opacity-75', !!isBusy);
+            $('#missingIngredientButtonSpinner').toggleClass('d-none', !isBusy);
+        }
+
+        function renderExistingIngredientMatches(matches) {
+            const html = `
+                <div class="fw-bold text-white mb-2">Schon im Katalog gefunden</div>
+                <div class="small ingredient-ai-meta mb-3">Wähle einen Treffer aus und füge ihn direkt hinzu.</div>
+                <div class="d-flex flex-wrap gap-2">
+                    ${(matches || []).map(match => `
+                        <button type="button"
+                                class="btn btn-sm ingredient-ai-chip js-use-existing-ingredient"
+                                data-id="${escapeAttr(match.id)}">
+                            ${escapeAttr(match.icon || '')} ${escapeAttr(match.nameDe || match.nameEn || '')}${match.exactMatch ? ' • exakt' : ''}
+                        </button>`).join('')}
+                </div>`;
+            renderMissingIngredientResult(html);
+        }
+
+        function renderAiIngredientSuggestion(response) {
+            const suggestion = response?.suggestion || null;
+            if (!suggestion) {
+                renderMissingIngredientResult('<div class="text-white">Kein KI-Vorschlag verfügbar.</div>');
+                return;
+            }
+
+            missingIngredientCurrentSuggestion = suggestion;
+            const confidencePercent = Math.round(Math.max(0, Math.min(1, Number(suggestion.confidence || 0))) * 100);
+            const isDebugFallback = !!suggestion.isDebugFallback || (response?.model || '') === 'debug-fallback';
+            const html = `
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <div class="fw-bold text-white mb-1">${escapeAttr(suggestion.confirmationPrompt || 'Meintest du diese Zutat?')}</div>
+                        <div class="ingredient-ai-meta">${escapeAttr(response.model || '')}</div>
+                    </div>
+                    <div class="ingredient-ai-chip">${confidencePercent}% Treffer</div>
+                </div>
+                <div class="mt-3">
+                    <div class="fw-bold text-white">${escapeAttr((suggestion.icon || '').toString())} ${escapeAttr(suggestion.name_DE || suggestion.canonicalName || '')}</div>
+                    <div class="ingredient-ai-meta mt-1">
+                        EN: ${escapeAttr(suggestion.name_EN || '')} • Gruppe: ${escapeAttr((suggestion.groupId ?? '').toString())}
+                    </div>
+                    <div class="ingredient-ai-meta mt-1">
+                        Flags: ${[
+                            suggestion.is_liquid ? 'liquid' : '',
+                            suggestion.is_hard ? 'hard' : '',
+                            suggestion.is_soft ? 'soft' : '',
+                            suggestion.is_cuttable ? 'cuttable' : '',
+                            suggestion.is_boilable ? 'boilable' : '',
+                            suggestion.is_fryable ? 'fryable' : '',
+                            suggestion.is_powder ? 'powder' : ''
+                        ].filter(Boolean).join(', ') || 'keine'}
+                    </div>
+                    ${(suggestion.notes || '').toString().trim()
+                        ? `<div class="ingredient-ai-meta mt-2">${escapeAttr(suggestion.notes || '')}</div>`
+                        : ''}
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    ${isDebugFallback
+                        ? `<div class="small text-warning">Debug-Fallback aktiv: ohne SecretKeyOpenAi wird nichts gespeichert.</div>`
+                        : `<button type="button" class="btn creator-cta-primary js-save-ai-ingredient">
+                            <i class="bi bi-database-add me-1"></i>Speichern und hinzufügen
+                        </button>`}
+                </div>`;
+            renderMissingIngredientResult(html);
+        }
+
+        async function requestMissingIngredientSuggestion() {
+            const ingredientName = normalizeMissingIngredientInputValue($('#missingIngredientInput').val());
+            if (!ingredientName) {
+                showCreatorToast('Bitte zuerst eine Zutat eingeben');
+                return;
+            }
+            $('#missingIngredientInput').val(ingredientName);
+
+            missingIngredientCurrentSuggestion = null;
+            renderMissingIngredientResult(`
+                <div class="d-flex align-items-center gap-2 text-white-50">
+                    <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                    <div class="small">Prüfe Katalog und KI-Vorschlag …</div>
+                </div>`);
+            setMissingIngredientBusy(true);
+
+            try {
+                const token = getAntiForgeryToken();
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['RequestVerificationToken'] = token;
+                }
+
+                const resp = await fetch(suggestMissingIngredientUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        ingredientName,
+                        userHash: getMissingIngredientUserHash()
+                    })
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    throw new Error(data?.message || 'Fehler beim Prüfen der Zutat.');
+                }
+
+                if (!data?.success) {
+                    renderMissingIngredientResult(`<div class="text-warning">${escapeAttr(data?.message || 'Kein Ergebnis erhalten.')}</div>`);
+                    return;
+                }
+
+                if (data.mode === 'existing_match') {
+                    renderExistingIngredientMatches(data.matches || []);
+                    return;
+                }
+
+                if (data.mode === 'ai_suggestion') {
+                    renderAiIngredientSuggestion(data);
+                    return;
+                }
+
+                renderMissingIngredientResult(`<div class="text-white">${escapeAttr(data?.message || 'Keine Ausgabe vorhanden.')}</div>`);
+            } catch (error) {
+                window.CreatePostingFeedback.reportError('Fehler beim Prüfen der fehlenden Zutat', error, {
+                    prefix: 'CreatePostingPage',
+                    selector: '#creatorToast'
+                });
+                renderMissingIngredientResult(`<div class="text-warning">${escapeAttr(error?.message || 'Fehler beim Prüfen der Zutat.')}</div>`);
+            } finally {
+                setMissingIngredientBusy(false);
+            }
+        }
+
+        async function saveAiSuggestedIngredient() {
+            if (!missingIngredientCurrentSuggestion) {
+                showCreatorToast('Kein KI-Vorschlag zum Speichern vorhanden');
+                return;
+            }
+
+            setMissingIngredientBusy(true);
+            try {
+                renderMissingIngredientResult(`
+                    <div class="d-flex align-items-center gap-2 text-white-50">
+                        <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                        <div class="small">Speichere neue Zutat …</div>
+                    </div>`);
+                const token = getAntiForgeryToken();
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['RequestVerificationToken'] = token;
+                }
+
+                const resp = await fetch(saveSuggestedIngredientUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        userHash: getMissingIngredientUserHash(),
+                        suggestion: missingIngredientCurrentSuggestion
+                    })
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    throw new Error(data?.message || 'Zutat konnte nicht gespeichert werden.');
+                }
+                if (!data?.success || !data?.ingredient) {
+                    throw new Error(data?.message || 'Zutat konnte nicht gespeichert werden.');
+                }
+
+                const row = reloadIngredientCatalogRow(data.ingredient);
+                if (!row.length) {
+                    throw new Error('Gespeicherte Zutat konnte nicht in den Katalog eingefügt werden.');
+                }
+
+                const localizedName = data.ingredient?.name_DE || data.ingredient?.name_EN || '';
+                $('#ingredientSearch').val(localizedName);
+                addIngredient(data.ingredient.id, row[0]);
+                syncIngredientSourceVisibility();
+                renderMissingIngredientResult(`<div class="text-success">${escapeAttr(data.message || 'Zutat gespeichert und hinzugefügt.')}</div>`);
+                showCreatorToast(data.reusedExisting ? 'Vorhandene Zutat verwendet' : 'Neue Zutat gespeichert');
+                row[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (error) {
+                window.CreatePostingFeedback.reportError('Fehler beim Speichern der KI-Zutat', error, {
+                    prefix: 'CreatePostingPage',
+                    selector: '#creatorToast'
+                });
+                renderMissingIngredientResult(`<div class="text-warning">${escapeAttr(error?.message || 'Zutat konnte nicht gespeichert werden.')}</div>`);
+            } finally {
+                setMissingIngredientBusy(false);
+            }
+        }
+
         function addIngredient(id, rowElement) {
             const existing = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').filter(function () {
                 return $(this).val()?.toString() === id.toString();
@@ -4553,6 +4881,9 @@
                 clearTimeout(_ingredientSearchTimer);
                 _ingredientSearchTimer = setTimeout(syncIngredientSourceVisibility, 200);
                 $('#clearIngredientSearch').toggleClass('d-none', !($(this).val() || '').toString().trim());
+                if (!($('#missingIngredientInput').val() || '').toString().trim()) {
+                    $('#missingIngredientInput').val(($(this).val() || '').toString().trim());
+                }
                 scheduleCreatePostingDraftSave();
             });
             $('#clearIngredientSearch').toggleClass('d-none', !(($('#ingredientSearch').val() || '').toString().trim()));
@@ -4562,6 +4893,39 @@
                 $('#clearIngredientSearch').addClass('d-none');
                 syncIngredientSourceVisibility();
                 scheduleCreatePostingDraftSave();
+            });
+            $('#btnToggleMissingIngredientPanel').on('click', function () {
+                const panel = $('#missingIngredientPanel');
+                panel.toggleClass('d-none');
+                if (!panel.hasClass('d-none') && !($('#missingIngredientInput').val() || '').toString().trim()) {
+                    $('#missingIngredientInput').val(($('#ingredientSearch').val() || '').toString().trim()).trigger('focus');
+                }
+            });
+            $('#btnAnalyzeMissingIngredient').on('click', function () {
+                requestMissingIngredientSuggestion();
+            });
+            $('#missingIngredientInput').on('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    requestMissingIngredientSuggestion();
+                }
+            });
+            $('#missingIngredientInput').on('blur', function () {
+                $(this).val(normalizeMissingIngredientInputValue($(this).val()));
+            });
+            $('#recipeForm').on('click', '.js-use-existing-ingredient', function () {
+                const ingId = ($(this).data('id') || '').toString();
+                if (!ingId) return;
+                const catalogRow = $(`#ingredientsCatalog .ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
+                if (!catalogRow.length) {
+                    showCreatorToast('Zutat nicht im Katalog gefunden');
+                    return;
+                }
+                addIngredient(ingId, catalogRow[0]);
+                showCreatorToast('Vorhandene Zutat hinzugefügt');
+            });
+            $('#recipeForm').on('click', '.js-save-ai-ingredient', function () {
+                saveAiSuggestedIngredient();
             });
             $('#restoreDraftBtn').on('click', function () {
                 restoreCreatePostingDraft();
@@ -4690,7 +5054,7 @@
                     optionalValues: explicitValues,
                     actionHtml: `<div class="probability-template-actions d-flex gap-2 align-items-center">
           <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${masterId}">Akzeptieren</button>
-          <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${masterId}">LÃ¶schen</button>
+          <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${masterId}">Löschen</button>
         </div>`
                 });
 

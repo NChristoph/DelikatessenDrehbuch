@@ -1,4 +1,4 @@
-using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
+﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -18,21 +19,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IBlobUploadService _blobUpload;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
+        private readonly IMissingIngredientAiService _missingIngredientAiService;
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<RecipeController> _logger;
         private const int UploadRateLimit = 5;
         private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
+        private const int MissingIngredientSaveRateLimit = 10;
+        private static readonly TimeSpan MissingIngredientSaveRateWindow = TimeSpan.FromMinutes(30);
 
         public RecipeController(
             ApplicationDbContext context,
             IBlobUploadService blobUpload,
             ISaveNewRecipeService saveNewRecipeService,
+            IMissingIngredientAiService missingIngredientAiService,
             IMemoryCache memoryCache,
             ILogger<RecipeController> logger)
         {
             _context = context;
             _blobUpload = blobUpload;
             _saveNewRecipeService = saveNewRecipeService;
+            _missingIngredientAiService = missingIngredientAiService;
             _memoryCache = memoryCache;
             _logger = logger;
         }
@@ -65,7 +71,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
                 }
-                return Json(new { success = false, error = "Upload-Limit erreicht. Bitte später erneut versuchen." });
+                return Json(new { success = false, error = "Upload-Limit erreicht. Bitte spÃ¤ter erneut versuchen." });
             }
 
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -230,7 +236,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (request == null || string.IsNullOrWhiteSpace(request.De) || string.IsNullOrWhiteSpace(request.En))
             {
-                return BadRequest(new { message = "Ungültige Step-Daten." });
+                return BadRequest(new { message = "UngÃ¼ltige Step-Daten." });
             }
 
             var de = request.De.Trim();
@@ -267,6 +273,151 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { id = step.Id, reused = false });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SuggestMissingIngredient([FromBody] MissingIngredientLookupRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.IngredientName))
+            {
+                return BadRequest(new { message = "Bitte gib eine Zutat ein." });
+            }
+
+            var userHash = ResolveUserHash(request.UserHash);
+            if (!await IsCreatorAllowedAsync(_context, userHash))
+            {
+                return Json(new MissingIngredientLookupResponse
+                {
+                    Success = false,
+                    Mode = "forbidden",
+                    Message = "Nicht berechtigt."
+                });
+            }
+
+            var trimmedIngredientName = request.IngredientName.Trim();
+            var existingMatches = await FindMatchingIngredientsAsync(trimmedIngredientName, 6, cancellationToken);
+            if (existingMatches.Count > 0)
+            {
+                return Json(new MissingIngredientLookupResponse
+                {
+                    Success = true,
+                    Mode = "existing_match",
+                    Message = "Es wurden passende Zutaten im Katalog gefunden.",
+                    Matches = existingMatches.Select(x => MapExistingMatchDto(x, trimmedIngredientName)).ToList()
+                });
+            }
+
+            try
+            {
+                var suggestion = await _missingIngredientAiService.SuggestIngredientAsync(trimmedIngredientName, cancellationToken);
+                return Json(new MissingIngredientLookupResponse
+                {
+                    Success = true,
+                    Mode = "ai_suggestion",
+                    Message = "Die Zutat wurde von der KI vorgeschlagen.",
+                    Model = suggestion.Model,
+                    Suggestion = suggestion.Proposal
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim KI-Vorschlag fÃ¼r fehlende Zutat {IngredientName}.", trimmedIngredientName);
+                return Json(new MissingIngredientLookupResponse
+                {
+                    Success = false,
+                    Mode = "error",
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveSuggestedIngredient([FromBody] MissingIngredientSaveRequest request, CancellationToken cancellationToken)
+        {
+            if (request?.Suggestion == null)
+            {
+                return BadRequest(new { message = "Kein Zutat-Vorschlag vorhanden." });
+            }
+
+            if (request.Suggestion.IsDebugFallback)
+            {
+                return Json(new MissingIngredientSaveResponse
+                {
+                    Success = false,
+                    Message = "Im Debug-Fallback werden keine neuen Zutaten gespeichert. Setze SecretKeyOpenAi fÃ¼r echte Ãœbersetzungen."
+                });
+            }
+
+            if (LooksSuspiciouslyUntranslated(request.Suggestion))
+            {
+                return Json(new MissingIngredientSaveResponse
+                {
+                    Success = false,
+                    Message = "Die Sprachfelder sehen noch nicht sauber Ã¼bersetzt aus. Bitte Vorschlag prÃ¼fen oder echten OpenAI-Key setzen."
+                });
+            }
+
+            if (LooksMissingGenusData(request.Suggestion))
+            {
+                return Json(new MissingIngredientSaveResponse
+                {
+                    Success = false,
+                    Message = "Die Genus-Felder sind noch nicht sauber gef?llt. Erwartet werden kurze Sprach-Codes wie DE: m/f/n/pl, NL: de/het und SE/DK/NO: en/ett oder et."
+                });
+            }
+
+            var userHash = ResolveUserHash(request.UserHash);
+            if (!await IsCreatorAllowedAsync(_context, userHash))
+            {
+                return Json(new MissingIngredientSaveResponse
+                {
+                    Success = false,
+                    Message = "Nicht berechtigt."
+                });
+            }
+
+            var duplicate = await FindExactIngredientAsync(request.Suggestion, cancellationToken);
+            if (duplicate != null)
+            {
+                return Json(new MissingIngredientSaveResponse
+                {
+                    Success = true,
+                    ReusedExisting = true,
+                    Message = "Die Zutat existiert bereits und wurde wiederverwendet.",
+                    Ingredient = MapCatalogItemDto(duplicate)
+                });
+            }
+
+            if (!TryConsumeMissingIngredientSaveSlot(userHash, out var retryAfter))
+            {
+                if (retryAfter.HasValue)
+                {
+                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                }
+
+                return Json(new MissingIngredientSaveResponse
+                {
+                    Success = false,
+                    Message = "Limit erreicht: maximal 10 neue Zutaten pro 30 Minuten."
+                });
+            }
+
+            var entity = BuildIngredientEntity(request.Suggestion);
+            await _context.IngredientsAndNutrients.AddAsync(entity, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var saved = await _context.IngredientsAndNutrients
+                .AsNoTracking()
+                .Include(x => x.Group)
+                .FirstAsync(x => x.Id == entity.Id, cancellationToken);
+
+            return Json(new MissingIngredientSaveResponse
+            {
+                Success = true,
+                ReusedExisting = false,
+                Message = "Neue Zutat gespeichert.",
+                Ingredient = MapCatalogItemDto(saved)
+            });
         }
 
         private static List<RecipeJoinPreparationSteps> ExtractCreatePostingStepsFromRequest(IFormCollection form)
@@ -759,10 +910,360 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return true;
         }
 
+        private bool TryConsumeMissingIngredientSaveSlot(string userHash, out TimeSpan? retryAfter)
+        {
+            retryAfter = null;
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            var cacheKey = $"worldminiapp:missing-ingredient-save:{userHash}";
+            var now = DateTimeOffset.UtcNow;
+            var state = _memoryCache.Get<UploadRateState>(cacheKey);
+
+            if (state == null)
+            {
+                state = new UploadRateState { Count = 1, WindowStart = now };
+                _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = MissingIngredientSaveRateWindow
+                });
+                return true;
+            }
+
+            if (state.Count >= MissingIngredientSaveRateLimit)
+            {
+                retryAfter = (state.WindowStart + MissingIngredientSaveRateWindow) - now;
+                _logger.LogWarning("Missing-ingredient save limit exceeded for user {UserHash}.", userHash);
+                return false;
+            }
+
+            state.Count += 1;
+            _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = MissingIngredientSaveRateWindow
+            });
+            return true;
+        }
+
         private sealed class UploadRateState
         {
             public int Count { get; set; }
             public DateTimeOffset WindowStart { get; set; }
+        }
+
+        private async Task<List<IngredientsAndNutrients>> FindMatchingIngredientsAsync(string ingredientName, int take, CancellationToken cancellationToken)
+        {
+            var normalizedNeedle = NormalizeIngredientSearchValue(ingredientName);
+            if (string.IsNullOrWhiteSpace(normalizedNeedle))
+            {
+                return new List<IngredientsAndNutrients>();
+            }
+
+            var allIngredients = await _context.IngredientsAndNutrients
+                .AsNoTracking()
+                .Include(x => x.Group)
+                .ToListAsync(cancellationToken);
+
+            return allIngredients
+                .Select(item => new
+                {
+                    Item = item,
+                    Score = GetIngredientMatchScore(item, normalizedNeedle)
+                })
+                .Where(x => x.Score >= 0)
+                .OrderBy(x => x.Score)
+                .ThenBy(x => x.Item.Name_DE)
+                .Take(Math.Max(1, take))
+                .Select(x => x.Item)
+                .ToList();
+        }
+
+        private async Task<IngredientsAndNutrients?> FindExactIngredientAsync(MissingIngredientAiProposal suggestion, CancellationToken cancellationToken)
+        {
+            var candidates = await FindMatchingIngredientsAsync(suggestion.CanonicalName, 12, cancellationToken);
+            var normalizedNames = GetIngredientNames(suggestion)
+                .Select(NormalizeIngredientSearchValue)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return candidates.FirstOrDefault(item =>
+                GetIngredientNames(item)
+                    .Select(NormalizeIngredientSearchValue)
+                    .Any(name => normalizedNames.Contains(name)));
+        }
+
+        private static MissingIngredientExistingMatchDto MapExistingMatchDto(IngredientsAndNutrients ingredient, string query)
+        {
+            var normalizedQuery = NormalizeIngredientSearchValue(query);
+            var exactMatch = GetIngredientNames(ingredient)
+                .Select(NormalizeIngredientSearchValue)
+                .Any(name => string.Equals(name, normalizedQuery, StringComparison.OrdinalIgnoreCase));
+
+            return new MissingIngredientExistingMatchDto
+            {
+                Id = ingredient.Id,
+                NameDe = ingredient.Name_DE ?? string.Empty,
+                NameEn = ingredient.Name_EN ?? string.Empty,
+                Icon = ingredient.Icon ?? ingredient.Group?.Icon ?? string.Empty,
+                GroupId = ingredient.GroupId,
+                GroupName = ingredient.Group?.Name ?? string.Empty,
+                ExactMatch = exactMatch
+            };
+        }
+
+        private static IngredientCatalogItemDto MapCatalogItemDto(IngredientsAndNutrients ingredient)
+        {
+            return new IngredientCatalogItemDto
+            {
+                Id = ingredient.Id,
+                Icon = ingredient.Icon ?? ingredient.Group?.Icon ?? string.Empty,
+                GroupId = ingredient.GroupId,
+                GroupName = ingredient.Group?.Name ?? string.Empty,
+                GroupIcon = ingredient.Group?.Icon ?? string.Empty,
+                Name_DE = ingredient.Name_DE ?? string.Empty,
+                Name_EN = ingredient.Name_EN ?? string.Empty,
+                Name_PRT = ingredient.Name_PRT ?? string.Empty,
+                Name_ESP = ingredient.Name_ESP ?? string.Empty,
+                Name_ID = ingredient.Name_ID ?? string.Empty,
+                Name_NL = ingredient.Name_NL ?? string.Empty,
+                Name_SE = ingredient.Name_SE ?? string.Empty,
+                Name_DK = ingredient.Name_DK ?? string.Empty,
+                Name_NO = ingredient.Name_NO ?? string.Empty,
+                Name_MS = ingredient.Name_MS ?? string.Empty,
+                Genus_DE = ingredient.Genus_DE ?? string.Empty,
+                Genus_EN = ingredient.Genus_EN ?? string.Empty,
+                Genus_ESP = ingredient.Genus_ESP ?? string.Empty,
+                Genus_PRT = ingredient.Genus_PRT ?? string.Empty,
+                Genus_ID = ingredient.Genus_ID ?? string.Empty,
+                Genus_MS = ingredient.Genus_MS ?? string.Empty,
+                Genus_NL = ingredient.Genus_NL ?? string.Empty,
+                Genus_SE = ingredient.Genus_SE ?? string.Empty,
+                Genus_DK = ingredient.Genus_DK ?? string.Empty,
+                Genus_NO = ingredient.Genus_NO ?? string.Empty,
+                is_liquid = ingredient.is_liquid,
+                is_hard = ingredient.is_hard,
+                is_soft = ingredient.is_soft,
+                is_fat = ingredient.is_fat,
+                is_peelable = ingredient.is_peelable,
+                is_cuttable = ingredient.is_cuttable,
+                is_grateable = ingredient.is_grateable,
+                is_fryable = ingredient.is_fryable,
+                is_roastable = ingredient.is_roastable,
+                is_grillable = ingredient.is_grillable,
+                is_steamable = ingredient.is_steamable,
+                is_boilable = ingredient.is_boilable,
+                is_searable = ingredient.is_searable,
+                is_poachable = ingredient.is_poachable,
+                is_smokable = ingredient.is_smokable,
+                is_flambeable = ingredient.is_flambeable,
+                is_blendable = ingredient.is_blendable,
+                is_powder = ingredient.is_powder
+            };
+        }
+
+        private static IngredientsAndNutrients BuildIngredientEntity(MissingIngredientAiProposal suggestion)
+        {
+            return new IngredientsAndNutrients
+            {
+                Icon = NormalizeIngredientText(suggestion.Icon, "ðŸ¥£"),
+                Name_DE = NormalizeIngredientText(suggestion.Name_DE, suggestion.CanonicalName),
+                Name_EN = NormalizeIngredientText(suggestion.Name_EN, suggestion.CanonicalName),
+                Name_PRT = NormalizeIngredientText(suggestion.Name_PRT, suggestion.Name_EN, suggestion.Name_DE),
+                Name_ESP = NormalizeIngredientText(suggestion.Name_ESP, suggestion.Name_EN, suggestion.Name_DE),
+                Name_ID = NormalizeIngredientText(suggestion.Name_ID, suggestion.Name_EN, suggestion.Name_DE),
+                Name_NL = NormalizeIngredientText(suggestion.Name_NL, suggestion.Name_EN, suggestion.Name_DE),
+                Name_SE = NormalizeIngredientText(suggestion.Name_SE, suggestion.Name_EN, suggestion.Name_DE),
+                Name_DK = NormalizeIngredientText(suggestion.Name_DK, suggestion.Name_EN, suggestion.Name_DE),
+                Name_NO = NormalizeIngredientText(suggestion.Name_NO, suggestion.Name_EN, suggestion.Name_DE),
+                Name_MS = NormalizeIngredientText(suggestion.Name_MS, suggestion.Name_EN, suggestion.Name_DE),
+                Genus_DE = NormalizeIngredientText(suggestion.Genus_DE, "-"),
+                Genus_EN = NormalizeIngredientText(suggestion.Genus_EN, "-"),
+                Genus_ESP = NormalizeIngredientText(suggestion.Genus_ESP, "-"),
+                Genus_PRT = NormalizeIngredientText(suggestion.Genus_PRT, "-"),
+                Genus_ID = NormalizeIngredientText(suggestion.Genus_ID, "-"),
+                Genus_MS = NormalizeIngredientText(suggestion.Genus_MS, "-"),
+                Genus_NL = NormalizeIngredientText(suggestion.Genus_NL, "-"),
+                Genus_SE = NormalizeIngredientText(suggestion.Genus_SE, "-"),
+                Genus_DK = NormalizeIngredientText(suggestion.Genus_DK, "-"),
+                Genus_NO = NormalizeIngredientText(suggestion.Genus_NO, "-"),
+                GroupId = suggestion.GroupId,
+                Calories_a_100g = Math.Max(0, suggestion.Calories_a_100g),
+                Weight_per_piece = Math.Max(0, suggestion.Weight_per_piece),
+                Fat_a_100g = suggestion.Fat_a_100g,
+                Saturated_fat_a_100g = suggestion.Saturated_fat_a_100g,
+                Carbohydrates_a_100g = suggestion.Carbohydrates_a_100g,
+                Sugar_a_100g = suggestion.Sugar_a_100g,
+                Salt_a_100g = suggestion.Salt_a_100g,
+                Protein_a_100g = suggestion.Protein_a_100g,
+                Fiber_a_100g = suggestion.Fiber_a_100g,
+                is_liquid = suggestion.is_liquid,
+                is_hard = suggestion.is_hard,
+                is_soft = suggestion.is_soft,
+                is_fat = suggestion.is_fat,
+                is_peelable = suggestion.is_peelable,
+                is_cuttable = suggestion.is_cuttable,
+                is_grateable = suggestion.is_grateable,
+                is_fryable = suggestion.is_fryable,
+                is_roastable = suggestion.is_roastable,
+                is_grillable = suggestion.is_grillable,
+                is_steamable = suggestion.is_steamable,
+                is_boilable = suggestion.is_boilable,
+                is_searable = suggestion.is_searable,
+                is_poachable = suggestion.is_poachable,
+                is_smokable = suggestion.is_smokable,
+                is_flambeable = suggestion.is_flambeable,
+                is_blendable = suggestion.is_blendable,
+                is_powder = suggestion.is_powder
+            };
+        }
+
+        private static int GetIngredientMatchScore(IngredientsAndNutrients ingredient, string normalizedQuery)
+        {
+            var names = GetIngredientNames(ingredient)
+                .Select(NormalizeIngredientSearchValue)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            if (names.Count == 0)
+            {
+                return -1;
+            }
+
+            if (names.Any(name => string.Equals(name, normalizedQuery, StringComparison.OrdinalIgnoreCase)))
+            {
+                return 0;
+            }
+
+            if (names.Any(name => name.StartsWith(normalizedQuery, StringComparison.OrdinalIgnoreCase)))
+            {
+                return 1;
+            }
+
+            if (names.Any(name => name.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase)))
+            {
+                return 2;
+            }
+
+            return -1;
+        }
+
+        private static IEnumerable<string> GetIngredientNames(IngredientsAndNutrients ingredient)
+        {
+            yield return ingredient.Name_DE ?? string.Empty;
+            yield return ingredient.Name_EN ?? string.Empty;
+            yield return ingredient.Name_PRT ?? string.Empty;
+            yield return ingredient.Name_ESP ?? string.Empty;
+            yield return ingredient.Name_ID ?? string.Empty;
+            yield return ingredient.Name_NL ?? string.Empty;
+            yield return ingredient.Name_SE ?? string.Empty;
+            yield return ingredient.Name_DK ?? string.Empty;
+            yield return ingredient.Name_NO ?? string.Empty;
+            yield return ingredient.Name_MS ?? string.Empty;
+        }
+
+        private static IEnumerable<string> GetIngredientNames(MissingIngredientAiProposal suggestion)
+        {
+            yield return suggestion.Name_DE ?? string.Empty;
+            yield return suggestion.Name_EN ?? string.Empty;
+            yield return suggestion.Name_PRT ?? string.Empty;
+            yield return suggestion.Name_ESP ?? string.Empty;
+            yield return suggestion.Name_ID ?? string.Empty;
+            yield return suggestion.Name_NL ?? string.Empty;
+            yield return suggestion.Name_SE ?? string.Empty;
+            yield return suggestion.Name_DK ?? string.Empty;
+            yield return suggestion.Name_NO ?? string.Empty;
+            yield return suggestion.Name_MS ?? string.Empty;
+            yield return suggestion.CanonicalName ?? string.Empty;
+        }
+
+        private static string NormalizeIngredientSearchValue(string? value)
+        {
+            var normalized = (value ?? string.Empty).Trim().ToLowerInvariant();
+            normalized = Regex.Replace(normalized, "\\s+", " ");
+            return normalized;
+        }
+
+        private static string NormalizeIngredientText(params string?[] values)
+        {
+            foreach (var value in values)
+            {
+                var trimmed = (value ?? string.Empty).Trim();
+                if (!string.IsNullOrWhiteSpace(trimmed))
+                {
+                    return trimmed;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static bool LooksSuspiciouslyUntranslated(MissingIngredientAiProposal suggestion)
+        {
+            var names = GetIngredientNames(suggestion)
+                .Select(NormalizeIngredientSearchValue)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (names.Count < 3)
+            {
+                return true;
+            }
+
+            var distinctCount = names.Distinct(StringComparer.OrdinalIgnoreCase).Count();
+            return distinctCount <= 2;
+        }
+
+        private static bool LooksMissingGenusData(MissingIngredientAiProposal suggestion)
+        {
+            var normalized = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["de"] = NormalizeGenusValue(suggestion.Genus_DE),
+                ["en"] = NormalizeGenusValue(suggestion.Genus_EN),
+                ["esp"] = NormalizeGenusValue(suggestion.Genus_ESP),
+                ["prt"] = NormalizeGenusValue(suggestion.Genus_PRT),
+                ["id"] = NormalizeGenusValue(suggestion.Genus_ID),
+                ["ms"] = NormalizeGenusValue(suggestion.Genus_MS),
+                ["nl"] = NormalizeGenusValue(suggestion.Genus_NL),
+                ["se"] = NormalizeGenusValue(suggestion.Genus_SE),
+                ["dk"] = NormalizeGenusValue(suggestion.Genus_DK),
+                ["no"] = NormalizeGenusValue(suggestion.Genus_NO)
+            };
+            if (!IsAllowedGenusValue("de", normalized["de"])) return true;
+            if (!IsAllowedGenusValue("en", normalized["en"])) return true;
+            if (!IsAllowedGenusValue("esp", normalized["esp"])) return true;
+            if (!IsAllowedGenusValue("prt", normalized["prt"])) return true;
+            if (!IsAllowedGenusValue("id", normalized["id"])) return true;
+            if (!IsAllowedGenusValue("ms", normalized["ms"])) return true;
+            if (!IsAllowedGenusValue("nl", normalized["nl"])) return true;
+            if (!IsAllowedGenusValue("se", normalized["se"])) return true;
+            if (!IsAllowedGenusValue("dk", normalized["dk"])) return true;
+            if (!IsAllowedGenusValue("no", normalized["no"])) return true;
+            var requiredLanguages = new[] { "de", "esp", "prt", "nl", "se", "dk", "no" };
+            return requiredLanguages.Any(lang => normalized[lang] == "-");
+        }
+        private static string NormalizeGenusValue(string? value)
+        {
+            return (value ?? string.Empty).Trim().ToLowerInvariant();
+        }
+        private static bool IsAllowedGenusValue(string lang, string value)
+        {
+            return lang switch
+            {
+                "de" => value is "m" or "f" or "n" or "pl" or "-",
+                "en" => value is "-",
+                "esp" => value is "m" or "f" or "pl" or "-",
+                "prt" => value is "m" or "f" or "pl" or "-",
+                "id" => value is "-",
+                "ms" => value is "-",
+                "nl" => value is "de" or "het" or "pl" or "-",
+                "se" => value is "en" or "ett" or "pl" or "-",
+                "dk" => value is "en" or "et" or "pl" or "-",
+                "no" => value is "en" or "ei" or "et" or "pl" or "-",
+                _ => false
+            };
         }
     }
 }

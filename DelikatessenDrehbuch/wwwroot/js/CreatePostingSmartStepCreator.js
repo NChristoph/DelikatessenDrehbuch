@@ -104,6 +104,7 @@
     function genusToArticle(genus, lang = 'de') {
         const g = (genus || '').toString().trim().toLowerCase();
         if (lang === 'de') {
+            if (g === 'pl' || g === 'plural') return 'die';
             if (g === 'f' || g === 'fem' || g === 'feminine') return 'die';
             if (g === 'n' || g === 'neut' || g === 'neuter') return 'das';
             if (g === 'm' || g === 'masc' || g === 'masculine') return 'der';

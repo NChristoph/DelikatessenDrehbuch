@@ -457,6 +457,38 @@
       "FINISH_DRIZZLE_01",
       "FINISH_SERVE_01"
     ],
+    "smoothie": [
+      "PREP_PEEL_01",
+      "PREP_WASH_01",
+      "PREP_CUT_01",
+      "COOK_BLEND_01",
+      "COOK_ADD_01",
+      "FINISH_DECORATE_01"
+    ],
+    "frucht_smoothie": [
+      "PREP_PEEL_01",
+      "PREP_WASH_01",
+      "PREP_CUT_01",
+      "COOK_BLEND_01",
+      "COOK_ADD_01",
+      "FINISH_DECORATE_01"
+    ],
+    "green_smoothie": [
+      "PREP_PEEL_01",
+      "PREP_WASH_01",
+      "PREP_CUT_01",
+      "COOK_BLEND_01",
+      "COOK_ADD_01",
+      "FINISH_DECORATE_01"
+    ],
+    "protein_smoothie": [
+      "PREP_PEEL_01",
+      "PREP_WASH_01",
+      "PREP_CUT_01",
+      "COOK_BLEND_01",
+      "COOK_ADD_01",
+      "FINISH_DECORATE_01"
+    ],
     "steakgericht": [
       "PREP_HEAT_01",
       "PREP_TENDERIZE_01",

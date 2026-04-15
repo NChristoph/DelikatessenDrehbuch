@@ -67,7 +67,7 @@
     "PREP_WASH_01": {
       "ingredient": {
         "exclude_any": ["isLiquid", "isFat", "isPowder"],
-        "exclude_groups": ["5", "8"]
+        "exclude_groups": ["3", "5", "8"]
       }
     },
     "PREP_PEEL_01": {

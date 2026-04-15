@@ -303,6 +303,41 @@
                         <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
                     </div>
 
+                    <div class="ingredient-ai-assist mb-4" data-theme="navy">
+                        <button type="button" id="btnToggleMissingIngredientPanel" class="btn btn-sm btn-outline-light rounded-pill ingredient-ai-toggle">
+                            <i class="bi bi-stars me-1"></i>
+                            <span class="label-lang"
+                                  data-de="Deine Zutat ist nicht dabei?"
+                                  data-en="Your ingredient is missing?"
+                                  data-esp="¿Falta tu ingrediente?"
+                                  data-prt="Seu ingrediente não está aqui?">Deine Zutat ist nicht dabei?</span>
+                        </button>
+
+                        <div id="missingIngredientPanel" class="ingredient-ai-panel d-none mt-3">
+                            <div class="small text-white-50 mb-2 label-lang"
+                                 data-de="Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen."
+                                 data-en="For testing: enter an ingredient, search the catalog first, otherwise get an AI suggestion.">
+                                Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen.
+                            </div>
+
+                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                                <input type="text"
+                                       id="missingIngredientInput"
+                                       class="form-control border-0 shadow-none"
+                                       placeholder="z.B. Kochbanane grün"
+                                       spellcheck="true"
+                                       autocapitalize="words"
+                                       autocomplete="off" />
+                                <button type="button" id="btnAnalyzeMissingIngredient" class="btn creator-cta-primary px-3">
+                                    <span class="spinner-border spinner-border-sm me-2 d-none" id="missingIngredientButtonSpinner" role="status" aria-hidden="true"></span>
+                                    <i class="bi bi-magic me-1"></i>Prüfen
+                                </button>
+                            </div>
+
+                            <div id="missingIngredientResult" class="ingredient-ai-result d-none mt-3"></div>
+                        </div>
+                    </div>
+
                     <div class="template-library ingredient-catalog-scroll" id="ingredientsCatalog">
                         @if (Model.ToSelectIngredientsAndNutrients != null)
                         {
@@ -713,6 +748,56 @@
 
     .ingredient-search-pill {
         gap: 10px;
+    }
+
+    .ingredient-ai-assist {
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 18px;
+        background: rgba(9, 20, 48, 0.56);
+        padding: 14px;
+    }
+
+    .ingredient-ai-toggle {
+        border-color: rgba(255,255,255,0.28);
+    }
+
+    .ingredient-ai-panel {
+        border-top: 1px solid rgba(255,255,255,0.10);
+        padding-top: 14px;
+    }
+
+    .ingredient-ai-panel input {
+        border-radius: 14px;
+        min-height: 44px;
+        background: #ffffff !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        caret-color: #111827 !important;
+    }
+
+    .ingredient-ai-panel input::placeholder {
+        color: #6b7280 !important;
+        opacity: 1;
+    }
+
+    .ingredient-ai-result {
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.04);
+        padding: 14px;
+    }
+
+    .ingredient-ai-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.16);
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+        padding: 6px 12px;
+    }
+
+    .ingredient-ai-meta {
+        font-size: 0.88rem;
+        color: rgba(255,255,255,0.72);
     }
 
     .ingredient-search-pill #ingredientSearch {
@@ -2346,7 +2431,9 @@
     <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
     <script>
         window.CreatePostingPageConfig = {
-            upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })"
+            upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })",
+            suggestMissingIngredientUrl: "@Url.Action("SuggestMissingIngredient", "Home", new { area = "WorldMiniApp" })",
+            saveSuggestedIngredientUrl: "@Url.Action("SaveSuggestedIngredient", "Home", new { area = "WorldMiniApp" })"
         };
     </script>
     <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script>

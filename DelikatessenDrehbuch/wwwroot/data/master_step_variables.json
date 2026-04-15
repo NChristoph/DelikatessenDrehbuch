@@ -3206,6 +3206,28 @@
           ]
         },
         {
+          "key": "smoothie",
+          "labels": {
+            "de": "Smoothie",
+            "en": "smoothie",
+            "esp": "batido",
+            "prt": "smoothie",
+            "id": "smoothie",
+            "nl": "smoothie",
+            "sv": "smoothie",
+            "da": "smoothie",
+            "no": "smoothie",
+            "ms": "smoothie"
+          },
+          "tags": [
+            "variable:base",
+            "value:smoothie",
+            "component:mix",
+            "technique:blend",
+            "blend"
+          ]
+        },
+        {
           "key": "b_chamel",
           "labels": {
             "de": "Béchamel",

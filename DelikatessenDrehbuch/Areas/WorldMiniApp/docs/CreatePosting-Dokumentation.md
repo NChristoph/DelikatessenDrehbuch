@@ -2,9 +2,57 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-14 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps
+> **Stand:** 2026-04-15 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps + Performance-Optimierung
 >
-> **Letzte Änderungen (2026-04-14):**
+> **Letzte Änderungen (2026-04-15):**
+> - ✅ **Neue Kategorie `smoothie` (20. Kategorie) in `recipe_category_scoring.json` v8.0:**
+>   - 3 Subtypes: `frucht_smoothie`, `green_smoothie`, `protein_smoothie`
+>   - 39 `ingredient_weights` (Obst, Milchbasis, Pflanzenmilch, Booster, Süßung/Extras)
+>   - 2 `group_weights`: GroupId 4 (Obst) = 0.3, GroupId 3 (Milchprodukte) = 0.15
+>   - `min_match: 2`, keine `required_ingredient_ids` (Smoothies sehr variabel)
+>   - Subtypes: `frucht_smoothie` (20 Boost-IDs, blocked: Protein+Matcha), `green_smoothie` (Matcha+Banane+Kiwi+Chia+Leinsamen, blocked: Protein), `protein_smoothie` (required: Proteinpulver 512, Boost: Erdnussbutter+Haferflocken+Joghurt/Skyr+Cashew)
+>   - Step-Presets in `probability_template_presets.json`: smoothie (6 Steps), frucht_smoothie (5), green_smoothie (5), protein_smoothie (3) — alle mit `COOK_BLEND_01`
+>   - Neue `base`-Option "Smoothie" in `master_step_variables.json` (key: `smoothie`, tags: `component:mix`, `technique:blend`, `blend`)
+>   - `ingredient_match_rules.json`: PREP_WASH_01 `exclude_groups` um GroupId 3 (Milchprodukte) erweitert → Joghurt/Milch/Skyr werden nicht mehr zum Waschen vorgeschlagen
+> - ✅ **Neuer Step `PREP_SMASH_01` (Flachdrücken/Zerdrücken):**
+>   - Template: `Drücke {{ingredient}}[ mit einem {{tool}}] flach, bis {{pronoun}} {{state}} {{copula}}.` (alle 10 Sprachen)
+>   - `required_ingredient_tags: ["boilable"]`, Phase 1, action: `smash`
+>   - `ingredient_match_rules.json`: `PREP_SMASH_01` — `allow_name_contains: ["kartoffel", "potato", "batata"]` oder Gruppe 2, `require_all: ["isHard", "isBoilable"]`, `exclude_any: ["isLiquid", "isFat", "isPowder"]`
+>   - `master_step_option_rules.json`: Neue action `smash` — Tool: Kartoffelstampfer/Glas, State: flachgedrückt/leicht aufgebrochen. Step-Rule `PREP_SMASH_01` mit pronoun-preferred.
+>   - Neue globale State-Optionen: "flachgedrückt", "leicht aufgebrochen". Neue Tool-Optionen: "Kartoffelstampfer", "Glas".
+> - ✅ **Fallback-Text Multi-Variable `{~text~var1|var2~}`:**
+>   - Pipe-Syntax erlaubt mehrere Variable-Namen im Fallback-Check. Fallback-Text wird nur gezeigt wenn **keiner** der genannten Variablen einen Wert hat.
+>   - Implementiert in 3 Stellen in `CreatePostingSmartStepCreator.js`: `renderTemplate()`, `renderTemplateWithConfig()`, `renderProbabilityTemplate()`.
+> - ✅ **Quantity-Mode-System für Ingredient-Display:**
+>   - Neues JSON-Feld `quantity_mode` in `ingredient_match_rules.json` (pro Step-Variable-Rule). Modi: `prefer_smallest`, `prefer_largest`, `exclude_largest`, `exclude_smallest`.
+>   - `CreatePostingSmartStepCreator.js`: Komplettes Mengenvergleichs-System implementiert:
+>     - `getIngredientQuantityMode()` — liest Mode aus JSON-Regeln
+>     - `normalizeDisplayQuantityMode()` — kanonisiert Aliase (z.B. "smaller" → "prefer_smallest")
+>     - `parseComparableIngredientQuantity()` — parsed Menge+Einheit zu normalisierten Werten (kg→g, l→ml)
+>     - `pickComparableQuantityFamily()` — bestimmt dominante Einheitenfamilie (weight/volume/piece)
+>     - `applyQuantityModeToItems()` — wendet Mode auf gefilterte Items an
+>     - `applyDisplayQuantityMode()` — wendet Mode auf gerankte Display-Entries an
+>   - `selectIngredientsForDisplay()`: Nutzt jetzt `comparableQuantity` im Scoring + `applyDisplayQuantityMode()` nach Ranking.
+>   - `filterIngredientsByVarType()`: Wendet `applyQuantityModeToItems()` nach Filter an.
+>   - Einheitenfamilien: weight (g, kg), volume (ml, l), piece (Stk, piece, pcs).
+>   - Anwendung: `PREP_FOLD_IN_01.ingredient` mit `quantity_mode: "exclude_largest"` → bei 200g Pasta + 100g Garnelen wird Garnelen bevorzugt.
+> - ✅ **Quantity/UnitDe bis in Sandbox-Objekte durchgereicht:**
+>   - `getBaseSandboxIngredients()`: `quantity` und `unitDe` aus Hidden-Inputs gelesen
+>   - `getSelectedIngredientsForSandbox()`: `quantity` und `unitDe` im Mapping
+>   - `CreatePostingSmartStepCreator.js`: `buildSandboxIngredientsFromPage()` + `buildSortedIngredientChips()` liefern `quantity`/`unitDe`
+> - ✅ **Performance-Optimierung für DOM-Interaktion:**
+>   - **Sandbox-Cache mit Generation-Counter:** `getSelectedIngredientsForSandbox()` wird jetzt gecacht und nur bei Änderung der Zutatenliste neu berechnet (`invalidateSandboxCache()`). Reduziert 4-6 DOM-Reads pro Update-Zyklus auf 1.
+>   - **DocumentFragment-Batching:** `renderIngredientChips()` und `renderSc2IngredientChips()` bauen HTML-String zusammen und setzen einmal `.html()` statt `.append()` in forEach-Loop. 2×N DOM-Inserts → 2.
+>   - **Map-Index für `findTemplate()`:** `master-step-renderer.js` nutzt jetzt `Map<master_id, step>` für O(1) statt O(n) Array-Scan. Index wird lazy gebaut und bei Reload invalidiert.
+>   - **Dirty-Flag-System mit `requestAnimationFrame`:** 8 Re-render-Funktionen werden über Dirty-Flags gesteuert (`markDirty()`). Bei schnellen User-Aktionen (Rapid-Click) nur ein Render-Pass pro Frame. `flushUIRefresh()` vor Form-Submit erzwingt synchrone Ausführung.
+>   - **Preview-Animation unterdrückt bei Batch-Ops:** `_suppressPreviewAnimation`-Flag verhindert CSS-Reflows während Draft-Restore und Sprachwechsel.
+>   - **Preview-Berechnung dedupliziert:** `updatePreviewText()` reicht berechnete `vars` an `updateSc2PreviewText()` durch statt `buildVariablesForTemplate()` doppelt aufzurufen.
+>   - **Native DOM in `syncIngredientSourceVisibility()`:** `document.querySelectorAll` + `el.dataset` statt jQuery für 300+ DB-Rows (3-5× schneller pro Element). SelectedIds-Set nutzt Generation-Counter-Cache.
+>   - **Call-Sites migriert:** `removeIngredientRow()`, `addIngredientFromCatalog()`, Draft-Restore nutzen `markDirty()` statt direkte Funktionsaufrufe. Clear-Search-Button triggert nicht mehr doppelt.
+>   - **Neue globale Variablen:** `_sandboxGeneration`, `_sandboxCache`, `_syncVisibilityTimer`, `_suppressPreviewAnimation`, `_dirtyFlags`, `_rafScheduled`, `_selectedIdsCache`
+>   - **Neue Funktionen:** `invalidateSandboxCache()`, `markDirty()`, `_executeUIRefresh()`, `flushUIRefresh()`, `_getSelectedIdsSet()`
+>
+> **Vorherige Änderungen (2026-04-14):**
 > - ✅ **Matching-Systeme vereinheitlicht + Dead Code entfernt:**
 >   - **`recipe_step_mapping.json` gelöscht** (15.350 Zeilen): `ingredient_to_steps`-Mapping war nicht mehr in Verwendung (`suggestStepsForIngredients()` nirgends aufgerufen). Schnellerer Page Load.
 >   - **Dead Code in `recipe-step-suggest.js` entfernt:** `suggestStepsForIngredients()`, `buildConflictMap()`, `hasConflictingIngredient()`, `getStepFromCatalog()`, `getStepText()` — alle nur von der unbenutzten Funktion referenziert. `mappingData`-Variable + `recipeStepMapping` aus `loadMany()` entfernt.
@@ -3596,5 +3644,5 @@ renderMasterText();
 
 ---
 
-> **Letzte Aktualisierung:** 2026-04-10
-> **Geänderte Dateien:** 9
+> **Letzte Aktualisierung:** 2026-04-15
+> **Geänderte Dateien:** 2 (CreatePostingPage.js, master-step-renderer.js)

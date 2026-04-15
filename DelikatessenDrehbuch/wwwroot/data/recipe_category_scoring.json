@@ -1,5 +1,5 @@
 {
-  "version": "7.0",
+  "version": "8.0",
   "generated_from": "ingredients_and_nutrients IDs — recipe_schema_export_20260217_194918.json (1570 Rezepte, korrigiertes Fuzzy-Matching v3)",
   "scoring": {
     "description": "Score pro Kategorie anhand gematchter ingredient_id aus der neuen ingredients_and_nutrients Liste. Gewichte basieren auf realen Vorkommenshäufigkeiten.",
@@ -696,6 +696,115 @@
         { "ingredient_id": 32,  "weight": 0.3 },
         { "ingredient_id": 9,   "weight": 0.25 },
         { "ingredient_id": 75,  "weight": 0.2 }
+      ]
+    },
+    {
+      "id": "smoothie",
+      "display_name": { "de": "Smoothie", "en": "Smoothie", "esp": "Batido", "prt": "Smoothie", "id": "Smoothie", "nl": "Smoothie", "sv": "Smoothie", "da": "Smoothie", "no": "Smoothie", "ms": "Smoothie" },
+      "required_ingredient_ids": [],
+      "min_match": 2,
+      "typical_ingredients": [59, 129, 131, 36, 76, 148, 32, 244, 545],
+      "group_weights": [
+        { "group_id": "4", "weight": 0.3 },
+        { "group_id": "3", "weight": 0.15 }
+      ],
+      "ingredient_weights": [
+        { "ingredient_id": 59,  "weight": 0.9 },
+        { "ingredient_id": 129, "weight": 0.8 },
+        { "ingredient_id": 131, "weight": 0.75 },
+        { "ingredient_id": 148, "weight": 0.75 },
+        { "ingredient_id": 266, "weight": 0.7 },
+        { "ingredient_id": 36,  "weight": 0.7 },
+        { "ingredient_id": 545, "weight": 0.65 },
+        { "ingredient_id": 380, "weight": 0.65 },
+        { "ingredient_id": 76,  "weight": 0.6 },
+        { "ingredient_id": 539, "weight": 0.6 },
+        { "ingredient_id": 543, "weight": 0.6 },
+        { "ingredient_id": 541, "weight": 0.6 },
+        { "ingredient_id": 542, "weight": 0.6 },
+        { "ingredient_id": 293, "weight": 0.55 },
+        { "ingredient_id": 244, "weight": 0.55 },
+        { "ingredient_id": 384, "weight": 0.55 },
+        { "ingredient_id": 32,  "weight": 0.55 },
+        { "ingredient_id": 312, "weight": 0.5 },
+        { "ingredient_id": 67,  "weight": 0.5 },
+        { "ingredient_id": 471, "weight": 0.5 },
+        { "ingredient_id": 296, "weight": 0.5 },
+        { "ingredient_id": 512, "weight": 0.5 },
+        { "ingredient_id": 16,  "weight": 0.5 },
+        { "ingredient_id": 561, "weight": 0.5 },
+        { "ingredient_id": 383, "weight": 0.5 },
+        { "ingredient_id": 311, "weight": 0.45 },
+        { "ingredient_id": 472, "weight": 0.45 },
+        { "ingredient_id": 158, "weight": 0.45 },
+        { "ingredient_id": 180, "weight": 0.45 },
+        { "ingredient_id": 294, "weight": 0.45 },
+        { "ingredient_id": 573, "weight": 0.45 },
+        { "ingredient_id": 297, "weight": 0.45 },
+        { "ingredient_id": 572, "weight": 0.4 },
+        { "ingredient_id": 462, "weight": 0.4 },
+        { "ingredient_id": 325, "weight": 0.4 },
+        { "ingredient_id": 177, "weight": 0.35 },
+        { "ingredient_id": 178, "weight": 0.35 },
+        { "ingredient_id": 56,  "weight": 0.35 },
+        { "ingredient_id": 57,  "weight": 0.3 }
+      ],
+      "subtypes": [
+        {
+          "id": "frucht_smoothie",
+          "display_name": { "de": "Frucht-Smoothie", "en": "Fruit Smoothie", "esp": "Batido de Frutas", "prt": "Smoothie de Frutas", "id": "Smoothie Buah", "nl": "Fruit Smoothie", "sv": "Fruktsmoothie", "da": "Frugtsmoothie", "no": "Fruktsmoothie", "ms": "Smoothie Buah" },
+          "required_ingredient_ids": [],
+          "boost_weights": [
+            { "ingredient_id": 59,  "weight": 12 },
+            { "ingredient_id": 129, "weight": 12 },
+            { "ingredient_id": 131, "weight": 10 },
+            { "ingredient_id": 148, "weight": 10 },
+            { "ingredient_id": 266, "weight": 10 },
+            { "ingredient_id": 539, "weight": 10 },
+            { "ingredient_id": 293, "weight": 10 },
+            { "ingredient_id": 296, "weight": 10 },
+            { "ingredient_id": 545, "weight": 10 },
+            { "ingredient_id": 543, "weight": 10 },
+            { "ingredient_id": 541, "weight": 10 },
+            { "ingredient_id": 542, "weight": 10 },
+            { "ingredient_id": 380, "weight": 10 },
+            { "ingredient_id": 384, "weight": 10 },
+            { "ingredient_id": 383, "weight": 10 },
+            { "ingredient_id": 561, "weight": 10 },
+            { "ingredient_id": 294, "weight": 10 },
+            { "ingredient_id": 572, "weight": 10 },
+            { "ingredient_id": 573, "weight": 10 },
+            { "ingredient_id": 297, "weight": 10 }
+          ],
+          "blocked_ingredient_ids": [512, 462]
+        },
+        {
+          "id": "green_smoothie",
+          "display_name": { "de": "Green Smoothie", "en": "Green Smoothie", "esp": "Batido Verde", "prt": "Smoothie Verde", "id": "Smoothie Hijau", "nl": "Groene Smoothie", "sv": "Grön Smoothie", "da": "Grøn Smoothie", "no": "Grønn Smoothie", "ms": "Smoothie Hijau" },
+          "required_ingredient_ids": [],
+          "boost_weights": [
+            { "ingredient_id": 462, "weight": 15 },
+            { "ingredient_id": 59,  "weight": 8 },
+            { "ingredient_id": 293, "weight": 8 },
+            { "ingredient_id": 244, "weight": 8 },
+            { "ingredient_id": 325, "weight": 8 }
+          ],
+          "blocked_ingredient_ids": [512]
+        },
+        {
+          "id": "protein_smoothie",
+          "display_name": { "de": "Protein-Smoothie", "en": "Protein Smoothie", "esp": "Batido de Proteínas", "prt": "Smoothie de Proteína", "id": "Smoothie Protein", "nl": "Proteïne Smoothie", "sv": "Proteinsmoothie", "da": "Proteinsmoothie", "no": "Proteinsmoothie", "ms": "Smoothie Protein" },
+          "required_ingredient_ids": [512],
+          "boost_weights": [
+            { "ingredient_id": 512, "weight": 20 },
+            { "ingredient_id": 180, "weight": 12 },
+            { "ingredient_id": 76,  "weight": 10 },
+            { "ingredient_id": 36,  "weight": 8 },
+            { "ingredient_id": 312, "weight": 8 },
+            { "ingredient_id": 178, "weight": 8 }
+          ],
+          "blocked_ingredient_ids": []
+        }
       ]
     }
   ]
