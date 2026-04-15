@@ -36,6 +36,64 @@
         let createPostingDraftAutosaveHandle = null;
         const draftEngine = window.CreatePostingTemplateDrafts || null;
 
+        // ── Performance: Generation-Counter Cache für Sandbox-Ingredients ──
+        let _sandboxGeneration = 0;
+        const _sandboxCache = {};  // { generation, lang, result }
+
+        // ── Performance: Debounce für syncIngredientSourceVisibility ──
+        let _syncVisibilityTimer = null;
+
+        // ── Performance: Animation-Suppress für Batch-Operationen ──
+        let _suppressPreviewAnimation = false;
+
+        // ── Performance: Dirty-Flag-System mit requestAnimationFrame ──
+        const _dirtyFlags = {
+            stepIndices: false,
+            derivedVisuals: false,
+            ingredientChips: false,
+            sourceVisibility: false,
+            keywordStates: false,
+            languageLabels: false,
+            masterTemplateBuilder: false,
+            probabilityHints: false
+        };
+        let _rafScheduled = false;
+
+        function invalidateSandboxCache() {
+            _sandboxGeneration++;
+        }
+
+        function markDirty(/* ...flags */) {
+            for (let i = 0; i < arguments.length; i++) {
+                if (_dirtyFlags.hasOwnProperty(arguments[i])) {
+                    _dirtyFlags[arguments[i]] = true;
+                }
+            }
+            if (!_rafScheduled) {
+                _rafScheduled = true;
+                requestAnimationFrame(_executeUIRefresh);
+            }
+        }
+
+        function _executeUIRefresh() {
+            _rafScheduled = false;
+            if (_dirtyFlags.stepIndices)          { _dirtyFlags.stepIndices = false;          updateStepIndices(); }
+            if (_dirtyFlags.derivedVisuals)        { _dirtyFlags.derivedVisuals = false;       applyDerivedIngredientRowVisuals(); }
+            if (_dirtyFlags.ingredientChips)        { _dirtyFlags.ingredientChips = false;      renderIngredientChips(); }
+            if (_dirtyFlags.sourceVisibility)       { _dirtyFlags.sourceVisibility = false;     syncIngredientSourceVisibility(); }
+            if (_dirtyFlags.keywordStates)          { _dirtyFlags.keywordStates = false;        syncSelectedKeywordButtonStates(); }
+            if (_dirtyFlags.languageLabels)         { _dirtyFlags.languageLabels = false;       updateLanguageLabels(); }
+            if (_dirtyFlags.masterTemplateBuilder)  { _dirtyFlags.masterTemplateBuilder = false; refreshMasterTemplateBuilder(); }
+            if (_dirtyFlags.probabilityHints)       { _dirtyFlags.probabilityHints = false;     refreshIngredientProbabilityHints(); }
+        }
+
+        function flushUIRefresh() {
+            if (_rafScheduled) {
+                _rafScheduled = false;
+                _executeUIRefresh();
+            }
+        }
+
         // Probability States: Object-based data model (wie Smart Step Creator)
         const probabilityStates = {};  // Dictionary: masterId â†’ { masterId, templateRaw, values, _multiIngredients }
         window.probabilityStates = probabilityStates;  // Export for use in CreatePostingSmartStepCreator.js
@@ -243,14 +301,12 @@
                 $('#selectedSteps').html((draft.selectedStepsHtml || '').toString());
                 $('#selectedKeywords').html((draft.selectedKeywordsHtml || '').toString());
 
-                updateStepIndices();
-                applyDerivedIngredientRowVisuals();
-                renderIngredientChips();
-                syncIngredientSourceVisibility();
-                syncSelectedKeywordButtonStates();
-                updateLanguageLabels();
-                refreshMasterTemplateBuilder();
-                refreshIngredientProbabilityHints();
+                invalidateSandboxCache();
+                _suppressPreviewAnimation = true;
+                markDirty('stepIndices', 'derivedVisuals', 'ingredientChips', 'sourceVisibility',
+                          'keywordStates', 'languageLabels', 'masterTemplateBuilder', 'probabilityHints');
+                flushUIRefresh();
+                _suppressPreviewAnimation = false;
             } finally {
                 isRestoringCreatePostingDraft = false;
             }
@@ -864,12 +920,14 @@
                     isSearable: row.data('is-searable') === true || row.data('is-searable') === 'true',
                     isPoachable: row.data('is-poachable') === true || row.data('is-poachable') === 'true',
                     isSmokable: row.data('is-smokable') === true || row.data('is-smokable') === 'true',
-                    isFlambeable: row.data('is-flambeable') === true || row.data('is-flambeable') === 'true',
-                    isBlendable: row.data('is-blendable') === true || row.data('is-blendable') === 'true',
-                    isPowder: row.data('is-powder') === true || row.data('is-powder') === 'true',
-                    sourceBaseId: id
-                };
-            }).get().filter(x => x.id || x.name);
+                isFlambeable: row.data('is-flambeable') === true || row.data('is-flambeable') === 'true',
+                isBlendable: row.data('is-blendable') === true || row.data('is-blendable') === 'true',
+                isPowder: row.data('is-powder') === true || row.data('is-powder') === 'true',
+                quantity: (row.find('.ingredient-qty-hidden').val() || '').toString().trim(),
+                unitDe: (row.find('.ingredient-unit-hidden').val() || '').toString().trim(),
+                sourceBaseId: id
+            };
+        }).get().filter(x => x.id || x.name);
         }
 
         function buildDerivedIngredientName(baseName, transformType, langKey, genusRaw, article) {
@@ -1021,6 +1079,8 @@
                     genusLocalized: genusByLang[resolveLangKey(currentLang)] || genusByLang.de || 'n',
                     genusByLang,
                     iconHtml: output.icon || item.iconHtml || '',
+                    quantity: item.quantity || '',
+                    unitDe: item.unitDe || '',
                     sourceBaseId: item.sourceBaseId || item.id || ''
                 };
             });
@@ -1153,6 +1213,8 @@
                         genusLocalized: item.genusByLang?.[lang] || item.genusLocalized || item.genusDe || '',
                         genusByLang: item.genusByLang || {},
                         iconHtml: item.iconHtml || '',
+                        quantity: item.quantity || '',
+                        unitDe: item.unitDe || '',
                         sourceBaseId: item.sourceBaseId || item.id || ''
                     };
                 });
@@ -1183,8 +1245,14 @@
 
         function getSelectedIngredientsForSandbox(langKey = currentLang) {
             const lang = resolveLangKey(langKey || currentLang || 'de');
+
+            // Performance: Return cached result if generation hasn't changed
+            if (_sandboxCache.generation === _sandboxGeneration && _sandboxCache.lang === lang && _sandboxCache.result) {
+                return _sandboxCache.result;
+            }
+
             const derived = deriveSandboxIngredients(getBaseSandboxIngredients());
-            return derived.map(item => ({
+            const result = derived.map(item => ({
                 id: (item.id || '').toString(),
                 name: item.namesByLang?.[lang] || item.namesByLang?.de || item.name || 'Zutat',
                 namesByLang: item.namesByLang || {},
@@ -1211,8 +1279,16 @@
                 isFlambeable: !!item.isFlambeable,
                 isBlendable: !!item.isBlendable,
                 isPowder: !!item.isPowder,
+                quantity: (item.quantity || '').toString().trim(),
+                unitDe: (item.unitDe || '').toString().trim(),
                 sourceBaseId: item.sourceBaseId || item.id || ''
             }));
+
+            // Performance: Cache the result
+            _sandboxCache.generation = _sandboxGeneration;
+            _sandboxCache.lang = lang;
+            _sandboxCache.result = result;
+            return result;
         }
 
         function localizeIngredientValueForSandbox(rawValue, targetLang, sourceLang = currentLang) {
@@ -2843,6 +2919,7 @@
         window.createPostingBuildVariablesForTemplate = buildVariablesForTemplate;
 
         function animatePreview() {
+            if (_suppressPreviewAnimation) return;
             const card = $('#masterPreviewCard');
             card.addClass('preview-animate');
             setTimeout(() => card.removeClass('preview-animate'), 250);
@@ -2859,6 +2936,7 @@
             const template = MasterStepRenderer.findTemplate(templateId);
             const langKey = (currentLang || 'de').toLowerCase();
             const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
+            // Performance: Compute vars once, reuse for SC2 preview
             const vars = buildVariablesForTemplate(templateId);
             const previewHtml = window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate === 'function'
                 ? window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate(tpl, vars, creatorState.placeholderAssignments, {
@@ -2871,7 +2949,7 @@
 
             if (!creatorState.ingredientReplaceArmed) { $('#masterPreviewCard').removeClass('token-replace-active'); }
             animatePreview();
-            updateSc2PreviewText();
+            updateSc2PreviewText(templateId, tpl, vars);
         }
 
         function clearSelectedIngredientChips() {
@@ -2907,12 +2985,10 @@
             const mutedTextClass = window.getThemeMutedTextClass();
             const ingredients = getSelectedIngredientsForSandbox();
 
-            wrap.empty();
-            stepsWrap.empty();
-
             if (!ingredients.length) {
-                wrap.append(`<div class="small ${mutedTextClass}">Keine Zutaten vorhanden.</div>`);
-                stepsWrap.append(`<div class="small ${mutedTextClass}">Keine Zutaten vorhanden.</div>`);
+                const emptyHtml = `<div class="small ${mutedTextClass}">Keine Zutaten vorhanden.</div>`;
+                wrap.html(emptyHtml);
+                stepsWrap.html(emptyHtml);
                 creatorState.selectedIngredientIds = [];
                 updatePreviewText();
                 return;
@@ -2925,15 +3001,18 @@
                 }
             }
 
+            // Performance: Build HTML string once, insert with single .html() call
+            const htmlParts = [];
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const displayName = (item.name || '').toString();
                 const iconHtml = (item.iconHtml || '').toString();
                 const chipLabel = `${iconHtml ? `${iconHtml} ` : ''}${displayName}`;
-                const chipHtml = `<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`;
-                wrap.append(chipHtml);
-                stepsWrap.append(chipHtml);
+                htmlParts.push(`<button type="button" class="ingredient-chip ${active}" draggable="true" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`);
             });
+            const chipsHtml = htmlParts.join('');
+            wrap.html(chipsHtml);
+            stepsWrap.html(chipsHtml);
             updatePreviewText();
             renderSc2IngredientChips();
         }
@@ -3163,20 +3242,40 @@
                 .replace(/[\u0300-\u036f]/g, '');
         }
 
+        // Performance: Cached selectedIds Set using generation counter
+        let _selectedIdsCache = { generation: -1, ids: null };
+
+        function _getSelectedIdsSet() {
+            if (_selectedIdsCache.generation === _sandboxGeneration && _selectedIdsCache.ids) {
+                return _selectedIdsCache.ids;
+            }
+            const ids = new Set();
+            const inputs = document.querySelectorAll('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]');
+            for (let i = 0; i < inputs.length; i++) {
+                const v = inputs[i].value;
+                if (v) ids.add(v.toString());
+            }
+            _selectedIdsCache.generation = _sandboxGeneration;
+            _selectedIdsCache.ids = ids;
+            return ids;
+        }
+
         function syncIngredientSourceVisibility() {
             const query = normalizeSearchText((($('#ingredientSearch').val() || '').toString().trim()));
-            const selectedIds = new Set($('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').map(function () {
-                return $(this).val()?.toString();
-            }).get());
+            const selectedIds = _getSelectedIdsSet();
+            // data-name-de → dataset.nameDe, data-name-esp → dataset.nameEsp, etc.
+            const langKey = 'name' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
 
-            $('.ingredient-db-row').each(function () {
-                const el = this;
-                const id = ($(el).data('ingredient-id') || '').toString();
-                const text = normalizeSearchText(($(el).data('name-' + currentLang) || $(el).data('name-de') || '') + '');
+            // Performance: Native DOM instead of jQuery in inner loop (3-5× faster per element)
+            const rows = document.querySelectorAll('.ingredient-db-row');
+            for (let i = 0; i < rows.length; i++) {
+                const el = rows[i];
+                const id = (el.dataset.ingredientId || '').toString();
+                const text = normalizeSearchText((el.dataset[langKey] || el.dataset.nameDe || '') + '');
                 const isSelected = !!id && selectedIds.has(id);
                 const matchesSearch = !query || text.includes(query);
                 el.classList.toggle('d-none', isSelected || !matchesSearch);
-            });
+            }
         }
 
         // PrÃƒÂ¼ft ob ein Step bereits in der Auswahl ist
@@ -3341,6 +3440,8 @@
                 const unitLabel = getUnitLabel(unitObj, langKey) || unitDe;
                 row.find('.ingredient-row-meta').text(`${qty} ${unitLabel}`.trim());
             });
+            invalidateSandboxCache();
+            _suppressPreviewAnimation = true;
             applyDerivedIngredientRowVisuals();
             syncIngredientSourceVisibility();
             $('.keyword-btn').each(function () { $(this).text($(this).data('word-' + langKey)); });
@@ -3350,6 +3451,7 @@
             renderAcceptedRecipeTextCard();
             refreshMasterTemplateBuilder();
             refreshIngredientProbabilityHints();
+            _suppressPreviewAnimation = false;
         }
 
         var _currentPreviewBlobUrl = null;
@@ -3527,14 +3629,9 @@
 
             $('#selectedIngredients').append(newIngredient);
 
-            // âœ… FIX (2026-03-28): Alte System-Funktion aufrufen fÃ¼r Sub-Zutaten (Ei â†’ Eiklar/Eigelb)
-            applyDerivedIngredientRowVisuals();
-
-            refreshMasterTemplateBuilder();
-            if (typeof syncIngredientSourceVisibility === "function") {
-                syncIngredientSourceVisibility();
-            }
-            refreshIngredientProbabilityHints();
+            // âœ… FIX (2026-03-28): Alte System-Funktion aufrufen fÃ¼r Sub-Zutaten (Ei â†' Eiklar/Eigelb)
+            invalidateSandboxCache();
+            markDirty('derivedVisuals', 'masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
             window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
         }
@@ -3686,9 +3783,8 @@
         function removeIngredientRow(btn) {
             closeIngredientConfigPopup();
             $(btn).closest('.ingredient-row').remove();
-            refreshMasterTemplateBuilder();
-            syncIngredientSourceVisibility();
-            refreshIngredientProbabilityHints();
+            invalidateSandboxCache();
+            markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
             window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
         }
@@ -3961,6 +4057,7 @@
         }
 
         function prepareBinding() {
+            flushUIRefresh();
             prefillUneditedStepPlaceholders();
             updateStepIndices();
             // Remove derived/transformed rows before binding to avoid phantom entries
@@ -4025,16 +4122,20 @@
         // Shares creatorState with the main creator; separate DOM
         // =========================================================
 
-        function updateSc2PreviewText() {
-            const templateId = getEffectiveTemplateId();
+        function updateSc2PreviewText(cachedTemplateId, cachedTpl, cachedVars) {
+            // Performance: Accept pre-computed values from updatePreviewText() to avoid double computation
+            const templateId = cachedTemplateId || getEffectiveTemplateId();
             if (!templateId || !window.MasterStepRenderer) {
                 $('#sc2MasterPreviewText').text('WÃƒÂ¤hle eine Zutat und ein Template.');
                 return;
             }
-            const template = MasterStepRenderer.findTemplate(templateId);
-            const langKey = (currentLang || 'de').toLowerCase();
-            const tpl = template?.templates?.[langKey] || template?.templates?.de || '';
-            const vars = buildVariablesForTemplate(templateId);
+            let tpl = cachedTpl;
+            if (!tpl) {
+                const template = MasterStepRenderer.findTemplate(templateId);
+                const langKey = (currentLang || 'de').toLowerCase();
+                tpl = template?.templates?.[langKey] || template?.templates?.de || '';
+            }
+            const vars = cachedVars || buildVariablesForTemplate(templateId);
             const previewHtml = window.MasterStepCreatorHelpers && typeof window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate === 'function'
                 ? window.MasterStepCreatorHelpers.renderAssignedPlaceholderTemplate(tpl, vars, creatorState.placeholderAssignments, {
                     activeTokenId: creatorState.activePlaceholderTokenId
@@ -4042,28 +4143,32 @@
                 : (tpl || '');
             $('#sc2MasterPreviewText').html(previewHtml || 'Keine Vorschau verfÃƒÂ¼gbar.');
             if (!creatorState.ingredientReplaceArmed) { $('#sc2MasterPreviewCard').removeClass('token-replace-active'); }
-            const sc2Card = $('#sc2MasterPreviewCard');
-            sc2Card.addClass('preview-animate');
-            setTimeout(() => sc2Card.removeClass('preview-animate'), 250);
+            if (!_suppressPreviewAnimation) {
+                const sc2Card = $('#sc2MasterPreviewCard');
+                sc2Card.addClass('preview-animate');
+                setTimeout(() => sc2Card.removeClass('preview-animate'), 250);
+            }
         }
 
         function renderSc2IngredientChips() {
             const wrap = $('#sc2MasterIngredientButtons');
             if (!wrap.length) return;
             const ingredients = getSelectedIngredientsForSandbox();
-            wrap.empty();
             if (!ingredients.length) {
-                wrap.append('<div class="small text-white-50">WÃƒÂ¤hle zuerst Zutaten aus.</div>');
+                wrap.html('<div class="small text-white-50">WÃƒÂ¤hle zuerst Zutaten aus.</div>');
                 return;
             }
             creatorState.selectedIngredientIds = (creatorState.selectedIngredientIds || []).filter(id => ingredients.some(x => x.id === id));
+            // Performance: Build HTML string once, insert with single .html() call
+            const htmlParts = [];
             ingredients.forEach(item => {
                 const active = creatorState.selectedIngredientIds.includes(item.id) ? 'active' : '';
                 const displayName = (item.name || '').toString();
                 const iconHtml = (item.iconHtml || '').toString();
                 const chipLabel = `${iconHtml ? `${iconHtml} ` : ''}${displayName}`;
-                wrap.append(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`);
+                htmlParts.push(`<button type="button" class="ingredient-chip ${active}" data-id="${item.id}" data-name="${displayName}">${chipLabel}</button>`);
             });
+            wrap.html(htmlParts.join(''));
         }
         function showSc2CreatorToast(message) {
             window.CreatePostingFeedback.showToast(message, {
@@ -4452,8 +4557,11 @@
             });
             $('#clearIngredientSearch').toggleClass('d-none', !(($('#ingredientSearch').val() || '').toString().trim()));
             $('#clearIngredientSearch').on('click', function () {
-                $('#ingredientSearch').val('').trigger('input').trigger('focus');
+                clearTimeout(_ingredientSearchTimer);
+                $('#ingredientSearch').val('').trigger('focus');
+                $('#clearIngredientSearch').addClass('d-none');
                 syncIngredientSourceVisibility();
+                scheduleCreatePostingDraftSave();
             });
             $('#restoreDraftBtn').on('click', function () {
                 restoreCreatePostingDraft();

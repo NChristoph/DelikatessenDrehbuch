@@ -86,6 +86,9 @@ Display-Regeln:
 - `ingredient` zeigt standardmaessig maximal `2`
 - `ingredients` zeigt standardmaessig maximal `3`
 - `COOK_SAUTE_01` bevorzugt fuer die Anzeige vor allem Gruppen `2`, `1`, `6`, `3`
+- Mengenlogik ist jetzt auch deklarativ moeglich ueber `quantity_mode`
+  - erlaubte Modi: `prefer_smallest`, `prefer_largest`, `exclude_smallest`, `exclude_largest`
+  - gedacht fuer Faelle wie `PREP_FOLD_IN_01`, wo nicht die Hauptzutat, sondern die kleinere Beigabe gezeigt werden soll
 - `PREP_SMASH_01` ist absichtlich eng gemappt:
   - bevorzugt kartoffelartige Zutaten ueber `allow_name_contains`
   - erlaubt alternativ harte, boilable Gemuese aus Gruppe `2`
@@ -143,6 +146,7 @@ Sehr wichtige Datei dieser Session.
 Wesentliche Aenderungen:
 
 - `isPowder` bis in Sandbox-/Selected-Ingredient-Objekte durchgereicht
+- Mengen und Einheiten (`quantity`, `unitDe`) bis in Sandbox-/Display-Objekte durchgereicht
 - `matchIngredientsToVariable()` nutzt jetzt SC2-Regeln statt rein grober Logik
 - fuer sichtbare Texte wird jetzt `selectIngredientsForDisplay()` verwendet
 - `base` wird bei required-Hybrid-Faellen nicht mehr aus allen Zutaten zusammengesetzt, sondern startet mit Default
@@ -157,6 +161,26 @@ Wichtige Stellen:
 - Probability-Draft-Initialisierung
 
 ### 5. `wwwroot/js/CreatePostingSmartStepCreator.js`
+
+Wesentliche Aenderungen:
+
+- JSON-basiertes Ingredient-Matching und Display-Ranking
+- generische Mengenlogik fuer Ingredient-Anzeige:
+  - `quantity_mode: prefer_smallest`
+  - `quantity_mode: prefer_largest`
+  - `quantity_mode: exclude_smallest`
+  - `quantity_mode: exclude_largest`
+- Mengenvergleich passiert nur bei vergleichbaren Einheitenfamilien
+  - Gewicht (`g`, `kg`)
+  - Volumen (`ml`, `l`)
+  - Stueck (`Stk`, `piece`)
+
+Beispiel:
+
+- `PREP_FOLD_IN_01.ingredient`
+  - `quantity_mode: "exclude_largest"`
+  - `display_limit: 1`
+  - Ergebnis: Bei `200 g Pasta` und `100 g Garnelen` wird fuer die Anzeige eher `die Garnelen` genommen als die Pasta
 
 Hier sitzt der Kern der neuen Matching- und Editor-Logik.
 

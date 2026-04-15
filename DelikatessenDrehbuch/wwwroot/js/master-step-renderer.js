@@ -9,6 +9,7 @@
     let stepGroupAffinitiesData = null;
     let loadingPromise = null;
     let lastLoadError = '';
+    let _templateIndex = null;  // Performance: Map<master_id, step> for O(1) lookup
 
     function load() {
         if (loadingPromise) return loadingPromise;
@@ -26,6 +27,7 @@
                 'stepGroupAffinities'
             ]).then(function (results) {
                 data = results.masterSteps;
+                _templateIndex = null;  // Invalidate index on reload
                 variableCatalogData = results.masterStepVariables || null;
                 recipeTypeStepVarsData = results.recipeTypeStepVariables || null;
                 optionRulesData = results.masterStepOptionRules || null;
@@ -44,6 +46,7 @@
                 return data;
             }).catch(function (error) {
                 data = null;
+                _templateIndex = null;
                 lastLoadError = error && error.message ? error.message : 'Unbekannter Fehler beim Laden von master_steps.json';
                 console.error('MasterStepRenderer.load fehlgeschlagen:', error);
                 return null;
@@ -86,6 +89,7 @@
                     throw new Error('master_steps.json hat ein ungültiges Format.');
                 }
                 data = json;
+                _templateIndex = null;  // Invalidate index on reload
                 variableCatalogData = variableJson;
                 recipeTypeStepVarsData = stepVarsJson;
                 optionRulesData = optionRulesJson;
@@ -105,6 +109,7 @@
             })
             .catch(function (error) {
                 data = null;
+                _templateIndex = null;
                 lastLoadError = error && error.message ? error.message : 'Unbekannter Fehler beim Laden von master_steps.json';
                 console.error('MasterStepRenderer.load fehlgeschlagen:', error);
                 return null;
@@ -122,7 +127,12 @@
     }
 
     function findTemplate(masterId) {
-        return getMasterSteps().find(function (x) { return x && x.master_id === masterId; }) || null;
+        // Performance: O(1) Map lookup instead of O(n) Array.find()
+        if (!_templateIndex) {
+            _templateIndex = new Map();
+            getMasterSteps().forEach(function (s) { if (s && s.master_id) _templateIndex.set(s.master_id, s); });
+        }
+        return _templateIndex.get(masterId) || null;
     }
 
     function getAllTemplates() {

@@ -1594,9 +1594,185 @@
             preferGroups: mergeRuleArrays(stepRule?.display_prefer_groups, variableRule?.display_prefer_groups),
             deprioritizeGroups: mergeRuleArrays(stepRule?.display_deprioritize_groups, variableRule?.display_deprioritize_groups),
             preferFlags: mergeRuleArrays(stepRule?.display_prefer_flags, variableRule?.display_prefer_flags),
+            quantityMode: getIngredientQuantityMode(varName, masterId),
             excludeDerived: (stepRule?.display_exclude_derived ?? variableRule?.display_exclude_derived) === true,
             preferBaseSources: (stepRule?.display_prefer_base_sources ?? variableRule?.display_prefer_base_sources) !== false
         };
+    }
+
+    function getIngredientQuantityMode(varName, masterId) {
+        const { variableRule, stepRule } = getIngredientMatchRule(varName, masterId);
+        const legacyPreferSmaller = (stepRule?.display_prefer_smaller_quantity ?? variableRule?.display_prefer_smaller_quantity) === true
+            ? "prefer_smallest"
+            : "";
+        return normalizeDisplayQuantityMode(
+            stepRule?.quantity_mode
+            ?? variableRule?.quantity_mode
+            ?? stepRule?.display_quantity_mode
+            ?? variableRule?.display_quantity_mode
+            ?? legacyPreferSmaller
+        );
+    }
+
+    function normalizeDisplayQuantityMode(value) {
+        const raw = (value || "").toString().trim().toLowerCase();
+        const aliases = {
+            prefer_smallest: "prefer_smallest",
+            smaller: "prefer_smallest",
+            min: "prefer_smallest",
+            prefer_min: "prefer_smallest",
+            prefer_small: "prefer_smallest",
+            prefer_largest: "prefer_largest",
+            larger: "prefer_largest",
+            max: "prefer_largest",
+            prefer_max: "prefer_largest",
+            prefer_large: "prefer_largest",
+            exclude_largest: "exclude_largest",
+            ignore_largest: "exclude_largest",
+            exclude_max: "exclude_largest",
+            ignore_max: "exclude_largest",
+            exclude_biggest: "exclude_largest",
+            exclude_smallest: "exclude_smallest",
+            ignore_smallest: "exclude_smallest",
+            exclude_min: "exclude_smallest",
+            ignore_min: "exclude_smallest"
+        };
+        return aliases[raw] || "";
+    }
+
+    function parseComparableIngredientQuantity(item) {
+        const rawQuantity = (item?.quantity || "").toString().trim().replace(',', '.');
+        const value = Number(rawQuantity);
+        if (!Number.isFinite(value) || value <= 0) {
+            return null;
+        }
+
+        const normalizeUnit = (unit) => (unit || "").toString().toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+        const unit = normalizeUnit(item?.unitDe);
+        const aliases = {
+            weight: ["g", "gr", "gramm", "gram", "kg", "kilogramm"],
+            volume: ["ml", "milliliter", "millilitre", "l", "liter", "litre"],
+            piece: ["stk", "stueck", "stück", "piece", "pieces", "pcs", "unit", "units"]
+        };
+
+        let family = unit || "raw";
+        if (aliases.weight.includes(unit)) family = "weight";
+        else if (aliases.volume.includes(unit)) family = "volume";
+        else if (aliases.piece.includes(unit)) family = "piece";
+
+        let normalizedValue = value;
+        if (unit === "kg" || unit === "kilogramm") normalizedValue = value * 1000;
+        if (unit === "l" || unit === "liter" || unit === "litre") normalizedValue = value * 1000;
+
+        return { family, value: normalizedValue };
+    }
+
+    function pickComparableQuantityFamily(entries) {
+        const counts = new Map();
+        (entries || []).forEach((entry, index) => {
+            const family = entry?.comparableQuantity?.family;
+            if (!family) return;
+            if (!counts.has(family)) {
+                counts.set(family, { family, count: 0, firstIndex: index });
+            }
+            counts.get(family).count += 1;
+        });
+
+        const rankedFamilies = [...counts.values()]
+            .sort((a, b) => (b.count - a.count) || (a.firstIndex - b.firstIndex));
+
+        return rankedFamilies[0]?.family || "";
+    }
+
+    function applyQuantityModeToItems(items, quantityMode) {
+        const mode = normalizeDisplayQuantityMode(quantityMode);
+        const list = Array.isArray(items) ? items.slice() : [];
+        if (!mode || list.length < 2) {
+            return { items: list, excluded: [] };
+        }
+
+        const entries = list.map((item, index) => ({
+            item,
+            index,
+            comparableQuantity: parseComparableIngredientQuantity(item)
+        }));
+
+        const comparableFamily = pickComparableQuantityFamily(entries);
+        if (!comparableFamily) {
+            return { items: list, excluded: [] };
+        }
+
+        const comparableEntries = entries.filter(entry => entry?.comparableQuantity?.family === comparableFamily);
+        if (comparableEntries.length < 2) {
+            return { items: list, excluded: [] };
+        }
+
+        const quantitySorted = comparableEntries.slice()
+            .sort((a, b) => (a.comparableQuantity.value - b.comparableQuantity.value) || (a.index - b.index));
+
+        if (mode === "exclude_largest" || mode === "exclude_smallest") {
+            const target = mode === "exclude_largest"
+                ? quantitySorted[quantitySorted.length - 1]
+                : quantitySorted[0];
+            return {
+                items: list.filter(item => item !== target.item),
+                excluded: [target.item]
+            };
+        }
+
+        const preferLargest = mode === "prefer_largest";
+        const preferredComparable = quantitySorted
+            .slice()
+            .sort((a, b) => preferLargest
+                ? ((b.comparableQuantity.value - a.comparableQuantity.value) || (a.index - b.index))
+                : ((a.comparableQuantity.value - b.comparableQuantity.value) || (a.index - b.index)))
+            .map(entry => entry.item);
+
+        const comparableSet = new Set(preferredComparable);
+        const rest = list.filter(item => !comparableSet.has(item));
+        return { items: preferredComparable.concat(rest), excluded: [] };
+    }
+
+    function applyDisplayQuantityMode(entries, quantityMode) {
+        const mode = normalizeDisplayQuantityMode(quantityMode);
+        if (!mode || !Array.isArray(entries) || entries.length < 2) {
+            return entries || [];
+        }
+
+        const comparableFamily = pickComparableQuantityFamily(entries);
+        if (!comparableFamily) {
+            return entries;
+        }
+
+        const comparableEntries = entries.filter(entry => entry?.comparableQuantity?.family === comparableFamily);
+        if (comparableEntries.length < 2) {
+            return entries;
+        }
+
+        const quantitySorted = comparableEntries.slice()
+            .sort((a, b) => (a.comparableQuantity.value - b.comparableQuantity.value) || (a.index - b.index));
+
+        if (mode === "exclude_largest" || mode === "exclude_smallest") {
+            const target = mode === "exclude_largest"
+                ? quantitySorted[quantitySorted.length - 1]
+                : quantitySorted[0];
+            return entries.filter(entry => entry !== target);
+        }
+
+        const direction = mode === "prefer_largest" ? -1 : 1;
+        return entries.slice().sort((a, b) => {
+            const aq = a?.comparableQuantity;
+            const bq = b?.comparableQuantity;
+            const aComparable = aq?.family === comparableFamily;
+            const bComparable = bq?.family === comparableFamily;
+
+            if (aComparable && bComparable && aq.value !== bq.value) {
+                return (aq.value - bq.value) * direction;
+            }
+            if (aComparable && !bComparable) return -1;
+            if (!aComparable && bComparable) return 1;
+            return 0;
+        });
     }
 
     function selectIngredientsForDisplay(items, varName, masterId) {
@@ -1617,7 +1793,7 @@
             }
         }
 
-        const ranked = candidates
+        const rankedEntries = candidates
             .map((item, index) => {
                 let score = 0;
                 const groupId = (item?.groupId || "").toString();
@@ -1642,10 +1818,32 @@
                     if (getIngredientRuleValue(item, flag)) score += 8;
                 });
 
-                return { item, index, score };
+                return {
+                    item,
+                    index,
+                    score,
+                    comparableQuantity: config.quantityMode ? parseComparableIngredientQuantity(item) : null
+                };
             })
-            .sort((a, b) => (b.score - a.score) || (a.index - b.index))
-            .map(entry => entry.item);
+            .sort((a, b) => {
+                const scoreDiff = (b.score - a.score);
+                if (scoreDiff) return scoreDiff;
+
+                if (config.quantityMode === "prefer_smallest") {
+                    const aq = a.comparableQuantity;
+                    const bq = b.comparableQuantity;
+                    if (aq && bq && aq.family === bq.family && aq.value !== bq.value) {
+                        return aq.value - bq.value;
+                    }
+                    if (aq && !bq) return -1;
+                    if (!aq && bq) return 1;
+                }
+
+                return a.index - b.index;
+            });
+
+        const quantityAdjusted = applyDisplayQuantityMode(rankedEntries, config.quantityMode);
+        const ranked = quantityAdjusted.map(entry => entry.item);
 
         if (!config.limit || ranked.length <= config.limit) {
             return ranked;
@@ -1662,7 +1860,9 @@
         if (!variableRule && !stepRule) return { filtered: items, rest: [] };
 
         const filterFn = item => matchesIngredientRule(item, variableRule) && matchesIngredientRule(item, stepRule);
-        const filtered = (items || []).filter(filterFn);
+        const filteredBase = (items || []).filter(filterFn);
+        const quantityAdjusted = applyQuantityModeToItems(filteredBase, getIngredientQuantityMode(varName, masterId));
+        const filtered = quantityAdjusted.items;
         const rest = (items || []).filter(item => !filterFn(item));
         // Return filtered items (empty if no matches)
         return { filtered, rest };
@@ -1778,7 +1978,9 @@
                 isSmokable: !!item?.isSmokable,
                 isFlambeable: !!item?.isFlambeable,
                 isBlendable: !!item?.isBlendable,
-                isPowder: !!item?.isPowder
+                isPowder: !!item?.isPowder,
+                quantity: (item?.quantity || "").toString().trim(),
+                unitDe: (item?.unitDe || "").toString().trim()
             })).filter(x => x.name);
         }
 
@@ -1786,7 +1988,9 @@
         let items = rows.map(row => {
             const name = (row.querySelector(".ingredient-name-text")?.textContent || "").trim();
             const icon = (row.dataset.groupIcon || row.querySelector(".ingredient-group-icon")?.innerHTML || "").trim();
-            return { name, icon };
+            const quantity = (row.querySelector(".ingredient-qty-hidden")?.value || "").toString().trim();
+            const unitDe = (row.querySelector(".ingredient-unit-hidden")?.value || "").toString().trim();
+            return { name, icon, quantity, unitDe };
         }).filter(x => x.name);
 
         const addActiveChips = activeStep && activeStep.master_id

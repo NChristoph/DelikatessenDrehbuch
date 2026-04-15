@@ -189,7 +189,9 @@
       "ingredient": {
         "require_any": ["isSoft", "isLiquid"],
         "exclude_any": ["isPowder"],
-        "exclude_groups": ["1", "6", "8"]
+        "exclude_groups": ["1", "6", "8"],
+        "quantity_mode": "exclude_largest",
+        "display_limit": 1
       }
     },
     "PREP_BREAD_3STEP_01": {
