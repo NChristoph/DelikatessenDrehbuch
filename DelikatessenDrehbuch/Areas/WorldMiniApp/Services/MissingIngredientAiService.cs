@@ -87,8 +87,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                                     "Übersetze die Bezeichnung natürlich in jede Zielsprache. " +
                                     "Wiederhole denselben Namen nur dann in mehreren Sprachen, wenn der Begriff dort wirklich üblich ist. " +
                                     "Kopiere nicht blind denselben Namen in alle Sprachfelder. " +
-                                    "Verwende für Genus nur kurze Sprach-Codes. " +
-                                    "Deutsch: m/f/n/pl, Englisch: -, Spanisch/Portugiesisch: m/f/pl, Niederländisch: de/het/pl, Schwedisch: en/ett/pl, Dänisch: en/et/pl, Norwegisch: en/ei/et/pl, Indonesisch/Malaiisch: -. " +
+                                    "GENUS = grammatisches Geschlecht des Wortes in der SINGULARFORM. Bestimme das Genus anhand des bestimmten Artikels in der jeweiligen Sprache. ALLE GENUS-WERTE IN GROSSBUCHSTABEN! " +
+                                    "Deutsch: M (der), F (die), N (das). Verwende 'PL' NUR wenn das Wort ausschließlich im Plural existiert (z.B. Haferflocken, Nudeln, Linsen). " +
+                                    "Beispiele DE: Banane→F, Apfel→M, Ei→N, Kochbanane→F, Joghurt→M, Mehl→N, Haferflocken→PL. " +
+                                    "Englisch: immer '-'. Spanisch/Portugiesisch: M/F/PL. Niederländisch: DE/HET/PL. Schwedisch: EN/ETT/PL. Dänisch: EN/ET/PL. Norwegisch: EN/EI/ET/PL. Indonesisch/Malaiisch: immer '-'. " +
+                                    "Beispiele NL: banaan→DE, ei→HET, aardappelen→PL. Beispiele SE: banan→EN, ägg→ETT. Beispiele NO: banan→EN, ost→EN, egg→ET, bønne→EI. " +
                                     "Nutze nur vorhandene Gruppen-IDs. Erfinde keine Gruppe. " +
                                     "Bool-Felder müssen vorsichtig gesetzt werden: lieber false als raten. " +
                                     "Bestimme Nährwerte möglichst pro 100g. Wenn du unsicher bist, gib konservative plausible Standardwerte an. " +
@@ -324,16 +327,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     name_DK = new { type = "string" },
                     name_NO = new { type = "string" },
                     name_MS = new { type = "string" },
-                    genus_DE = new { type = "string", @enum = new[] { "m", "f", "n", "pl", "-" } },
+                    genus_DE = new { type = "string", @enum = new[] { "M", "F", "N", "PL", "-" } },
                     genus_EN = new { type = "string", @enum = new[] { "-" } },
-                    genus_ESP = new { type = "string", @enum = new[] { "m", "f", "pl", "-" } },
-                    genus_PRT = new { type = "string", @enum = new[] { "m", "f", "pl", "-" } },
+                    genus_ESP = new { type = "string", @enum = new[] { "M", "F", "PL", "-" } },
+                    genus_PRT = new { type = "string", @enum = new[] { "M", "F", "PL", "-" } },
                     genus_ID = new { type = "string", @enum = new[] { "-" } },
                     genus_MS = new { type = "string", @enum = new[] { "-" } },
-                    genus_NL = new { type = "string", @enum = new[] { "de", "het", "pl", "-" } },
-                    genus_SE = new { type = "string", @enum = new[] { "en", "ett", "pl", "-" } },
-                    genus_DK = new { type = "string", @enum = new[] { "en", "et", "pl", "-" } },
-                    genus_NO = new { type = "string", @enum = new[] { "en", "ei", "et", "pl", "-" } },
+                    genus_NL = new { type = "string", @enum = new[] { "DE", "HET", "PL", "-" } },
+                    genus_SE = new { type = "string", @enum = new[] { "EN", "ETT", "PL", "-" } },
+                    genus_DK = new { type = "string", @enum = new[] { "EN", "ET", "PL", "-" } },
+                    genus_NO = new { type = "string", @enum = new[] { "EN", "EI", "ET", "PL", "-" } },
                     calories_a_100g = new { type = "integer" },
                     weight_per_piece = new { type = "integer" },
                     fat_a_100g = new { type = "number" },
@@ -465,22 +468,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var value = NormalizeGenusToken(genus);
             if (value is "m" or "masc" or "masculine" or "maskulin" or "male" or "der")
             {
-                return "m";
+                return "M";
             }
 
             if (value is "f" or "fem" or "feminine" or "feminin" or "female" or "die")
             {
-                return "f";
+                return "F";
             }
 
             if (value is "n" or "neut" or "neuter" or "neutral" or "das")
             {
-                return "n";
+                return "N";
             }
 
             if (value is "pl" or "plural" or "pluralis")
             {
-                return "pl";
+                return "PL";
             }
 
             return "-";
@@ -491,17 +494,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var value = NormalizeGenusToken(genus);
             if (value is "m" or "masc" or "masculine" or "masculino" or "el" or "o")
             {
-                return "m";
+                return "M";
             }
 
             if (value is "f" or "fem" or "feminine" or "feminino" or "la" or "a")
             {
-                return "f";
+                return "F";
             }
 
             if (value is "pl" or "plural" or "los" or "las" or "os" or "as")
             {
-                return "pl";
+                return "PL";
             }
 
             return "-";
@@ -512,17 +515,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var value = NormalizeGenusToken(genus);
             if (value is "de" or "common" or "c" or "m" or "f")
             {
-                return "de";
+                return "DE";
             }
 
             if (value is "het" or "n" or "neut" or "neuter")
             {
-                return "het";
+                return "HET";
             }
 
             if (value is "pl" or "plural")
             {
-                return "pl";
+                return "PL";
             }
 
             return "-";
@@ -533,17 +536,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var value = NormalizeGenusToken(genus);
             if (value is "en" or "common" or "c" or "m" or "f")
             {
-                return "en";
+                return "EN";
             }
 
             if (value is "pl" or "plural")
             {
-                return "pl";
+                return "PL";
             }
 
             if (value is "ett" or "et" or "n" or "neut" or "neuter")
             {
-                return neuterCode;
+                return neuterCode.ToUpperInvariant();
             }
 
             return "-";
@@ -554,22 +557,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var value = NormalizeGenusToken(genus);
             if (value is "ei" or "f" or "fem" or "feminine")
             {
-                return "ei";
+                return "EI";
             }
 
             if (value is "en" or "common" or "c" or "m" or "masc" or "masculine")
             {
-                return "en";
+                return "EN";
             }
 
             if (value is "et" or "n" or "neut" or "neuter")
             {
-                return "et";
+                return "ET";
             }
 
             if (value is "pl" or "plural")
             {
-                return "pl";
+                return "PL";
             }
 
             return "-";

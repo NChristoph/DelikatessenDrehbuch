@@ -1246,22 +1246,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
         private static string NormalizeGenusValue(string? value)
         {
-            return (value ?? string.Empty).Trim().ToLowerInvariant();
+            return (value ?? string.Empty).Trim().ToUpperInvariant();
         }
         private static bool IsAllowedGenusValue(string lang, string value)
         {
             return lang switch
             {
-                "de" => value is "m" or "f" or "n" or "pl" or "-",
+                "de" => value is "M" or "F" or "N" or "PL" or "-",
                 "en" => value is "-",
-                "esp" => value is "m" or "f" or "pl" or "-",
-                "prt" => value is "m" or "f" or "pl" or "-",
+                "esp" => value is "M" or "F" or "PL" or "-",
+                "prt" => value is "M" or "F" or "PL" or "-",
                 "id" => value is "-",
                 "ms" => value is "-",
-                "nl" => value is "de" or "het" or "pl" or "-",
-                "se" => value is "en" or "ett" or "pl" or "-",
-                "dk" => value is "en" or "et" or "pl" or "-",
-                "no" => value is "en" or "ei" or "et" or "pl" or "-",
+                "nl" => value is "DE" or "HET" or "PL" or "-",
+                "se" => value is "EN" or "ETT" or "PL" or "-",
+                "dk" => value is "EN" or "ET" or "PL" or "-",
+                "no" => value is "EN" or "EI" or "ET" or "PL" or "-",
                 _ => false
             };
         }

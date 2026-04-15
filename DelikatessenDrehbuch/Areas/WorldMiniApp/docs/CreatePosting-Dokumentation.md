@@ -11,9 +11,15 @@
 >   - 2 `group_weights`: GroupId 4 (Obst) = 0.3, GroupId 3 (Milchprodukte) = 0.15
 >   - `min_match: 2`, keine `required_ingredient_ids` (Smoothies sehr variabel)
 >   - Subtypes: `frucht_smoothie` (20 Boost-IDs, blocked: Protein+Matcha), `green_smoothie` (Matcha+Banane+Kiwi+Chia+Leinsamen, blocked: Protein), `protein_smoothie` (required: Proteinpulver 512, Boost: Erdnussbutter+Haferflocken+Joghurt/Skyr+Cashew)
->   - Step-Presets in `probability_template_presets.json`: smoothie (6 Steps), frucht_smoothie (5), green_smoothie (5), protein_smoothie (3) — alle mit `COOK_BLEND_01`
+>   - Step-Presets in `probability_template_presets.json`: Alle 4 Varianten identisch: PREP_PEEL_01 → PREP_WASH_01 → PREP_CUT_01 → COOK_BLEND_01 → COOK_ADD_01 → FINISH_DECORATE_01
 >   - Neue `base`-Option "Smoothie" in `master_step_variables.json` (key: `smoothie`, tags: `component:mix`, `technique:blend`, `blend`)
 >   - `ingredient_match_rules.json`: PREP_WASH_01 `exclude_groups` um GroupId 3 (Milchprodukte) erweitert → Joghurt/Milch/Skyr werden nicht mehr zum Waschen vorgeschlagen
+> - ✅ **MissingIngredientAiService — Genus-Prompt verbessert + Großbuchstaben:**
+>   - System-Prompt erklärt jetzt explizit: Genus = grammatisches Geschlecht der Singularform, bestimmt anhand des bestimmten Artikels
+>   - Konkrete Beispiele für DE (Banane→F, Apfel→M, Ei→N, Kochbanane→F, Haferflocken→PL), NL (banaan→DE, ei→HET), SE (banan→EN, ägg→ETT), NO (banan→EN, egg→ET, bønne→EI)
+>   - Klare Regel: 'PL' nur für Wörter die ausschließlich im Plural existieren (Haferflocken, Nudeln, Linsen)
+>   - **Genus-Werte durchgängig Großbuchstaben** (passend zur DB): Schema-Enums, alle 6 Normalize-Funktionen (`NormalizeGermanGenus`, `NormalizeRomanceGenus`, `NormalizeDutchGenus`, `NormalizeScandinavianGenus`, `NormalizeNorwegianGenus`), `IsAllowedGenusValue`-Validation im RecipeController
+> - ✅ **Encoding-Fix:** `CreatePostingPage.js` Zeile 4693: `LÃ¶schen` → `Löschen` (Probability-Dismiss-Button)
 > - ✅ **Neuer Step `PREP_SMASH_01` (Flachdrücken/Zerdrücken):**
 >   - Template: `Drücke {{ingredient}}[ mit einem {{tool}}] flach, bis {{pronoun}} {{state}} {{copula}}.` (alle 10 Sprachen)
 >   - `required_ingredient_tags: ["boilable"]`, Phase 1, action: `smash`

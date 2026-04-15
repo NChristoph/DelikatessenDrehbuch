@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="nul" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Views\Payment\Success.cshtml" />
     <None Include="wwwroot\ads.txt" />
     <None Include="wwwroot\css\Logo\DelikatessenDrehbuch_Logo.png" />
