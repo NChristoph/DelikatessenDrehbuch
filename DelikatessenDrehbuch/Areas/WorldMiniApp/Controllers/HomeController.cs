@@ -13,17 +13,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWorldClipWatchService _worldClipWatchService;
         private readonly IWorldAdPreferenceService _worldAdPreferenceService;
+        private readonly IRecipeAiTransformService _recipeAiTransformService;
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(
             ApplicationDbContext context,
             IWorldClipWatchService worldClipWatchService,
             IWorldAdPreferenceService worldAdPreferenceService,
+            IRecipeAiTransformService recipeAiTransformService,
             ILogger<HomeController> logger)
         {
             _context = context;
             _worldClipWatchService = worldClipWatchService;
             _worldAdPreferenceService = worldAdPreferenceService;
+            _recipeAiTransformService = recipeAiTransformService;
             _logger = logger;
         }
 
@@ -156,6 +159,50 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PreviewAiRecipeVariant([FromBody] RecipeAiTransformRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null || request.RecipeId <= 0)
+            {
+                return BadRequest(new { message = "Rezeptdaten fehlen." });
+            }
+
+            if (request.AppliedChangeCount > 2)
+            {
+                return BadRequest(new { message = "Maximal zwei AI-Änderungen sind erlaubt." });
+            }
+
+            var recipe = await _context.RecipeBaseData
+                .AsNoTracking()
+                .IncludeFullRecipeDetails()
+                .FirstOrDefaultAsync(r => r.Id == request.RecipeId, cancellationToken);
+
+            if (recipe == null)
+            {
+                return NotFound(new { message = "Rezept wurde nicht gefunden." });
+            }
+
+            try
+            {
+                var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+                var preview = await _recipeAiTransformService.BuildPreviewAsync(
+                    recipe,
+                    request.VariantType,
+                    language,
+                    request.UserNote,
+                    request.AppliedChangeCount,
+                    cancellationToken);
+
+                return Json(preview);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "AI recipe preview failed for RecipeId={RecipeId}", request.RecipeId);
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost]

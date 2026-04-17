@@ -310,6 +310,286 @@
         opacity: 0.7;
         letter-spacing: 1px;
     }
+
+    .ai-fan-section {
+        margin: 26px 20px 0;
+        background: linear-gradient(180deg, rgba(45,79,30,0.06) 0%, rgba(212,175,55,0.12) 100%);
+        border: 1px solid rgba(45,79,30,0.08);
+        border-radius: 26px;
+        padding: 18px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .ai-fan-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .ai-fan-kicker {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1.6px;
+        color: var(--deli-primary);
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .ai-fan-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--deli-dark);
+        margin: 0;
+    }
+
+    .ai-fan-sub {
+        font-size: 0.82rem;
+        color: #5f6657;
+        margin: 0;
+    }
+
+    .ai-fan-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .ai-fan-btn {
+        border: none;
+        border-radius: 18px;
+        padding: 14px 12px;
+        background: white;
+        color: var(--deli-dark);
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .ai-fan-btn:hover,
+    .ai-fan-btn:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        outline: none;
+    }
+
+    .ai-fan-btn i {
+        color: var(--deli-primary);
+    }
+
+    .ai-preview-modal .modal-content {
+        border: none;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.22);
+        max-height: min(88vh, 960px);
+    }
+
+    .ai-preview-modal .modal-dialog {
+        margin: 1rem auto;
+    }
+
+    .ai-preview-modal .modal-dialog-scrollable {
+        height: calc(100% - 2rem);
+    }
+
+    .ai-preview-modal .modal-dialog-scrollable .modal-content {
+        max-height: 100%;
+    }
+
+    .ai-preview-head {
+        padding: 22px 22px 18px;
+        background: linear-gradient(180deg, #24381d 0%, #304d24 100%);
+        color: white;
+    }
+
+    .ai-preview-mode {
+        font-size: 0.72rem;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        opacity: 0.78;
+        font-weight: 700;
+    }
+
+    .ai-preview-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        line-height: 1.15;
+        margin: 8px 0 10px;
+    }
+
+    .ai-preview-summary {
+        font-size: 0.94rem;
+        line-height: 1.55;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .ai-preview-body {
+        padding: 20px 22px 22px;
+        background: #f7f8f2;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ai-preview-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .ai-preview-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border-radius: 999px;
+        padding: 8px 12px;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #45503c;
+    }
+
+    .ai-preview-block {
+        background: white;
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 14px;
+    }
+
+    .ai-preview-block h6 {
+        font-size: 0.78rem;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: #67725d;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .ai-preview-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+    }
+
+    .ai-preview-ingredient,
+    .ai-preview-step {
+        border-radius: 16px;
+        background: #f6f7f2;
+        padding: 12px 14px;
+    }
+
+    .ai-preview-ingredient.is-modified {
+        background: #eef7e7;
+        border: 1px solid rgba(45,79,30,0.12);
+    }
+
+    .ai-preview-step-index {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: rgba(212,175,55,0.18);
+        color: var(--deli-primary);
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+
+    .ai-preview-highlight-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ai-preview-highlight {
+        background: rgba(45,79,30,0.08);
+        color: var(--deli-primary);
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .ai-preview-note {
+        border: 1px solid rgba(45,79,30,0.12);
+        border-radius: 18px;
+        padding: 14px 16px;
+        width: 100%;
+        min-height: 96px;
+        resize: vertical;
+        font-size: 0.94rem;
+        outline: none;
+    }
+
+    .ai-preview-note:focus {
+        border-color: rgba(45,79,30,0.35);
+        box-shadow: 0 0 0 4px rgba(45,79,30,0.08);
+    }
+
+    .ai-preview-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .ai-preview-loading {
+        display: none;
+        text-align: center;
+        padding: 26px 0;
+        color: #58624d;
+    }
+
+    .ai-preview-loading.is-visible {
+        display: block;
+    }
+
+    .ai-preview-error {
+        display: none;
+        margin-bottom: 14px;
+    }
+
+    .ai-preview-error.is-visible {
+        display: block;
+    }
+
+    .recipe-ai-badge {
+        display: none;
+        margin-top: 14px;
+    }
+
+    .recipe-ai-badge.is-visible {
+        display: inline-flex;
+    }
+
+    @@media (max-width: 576px) {
+        .ai-fan-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ai-preview-modal .modal-content {
+            border-radius: 22px;
+            max-height: 92vh;
+        }
+
+        .ai-preview-body {
+            padding: 18px 16px 18px;
+        }
+    }
 </style>
 
 <div class="min-vh-100 pb-5">
@@ -338,7 +618,7 @@
         <div class="drag-handle"></div>
 
         <div class="title-section text-center">
-            <h1 class="display-6 mb-3">@Model.Title</h1>
+            <h1 class="display-6 mb-3" id="recipeTitleValue">@Model.Title</h1>
 
             <div class="badge-row">
                 <div class="premium-badge">
@@ -375,6 +655,25 @@
             }
         </div>
 
+        <div class="ai-fan-section">
+            <div class="ai-fan-header">
+                <div>
+                    <div class="ai-fan-kicker">AI Fächer</div>
+                    <p class="ai-fan-title">Varianten aus diesem Rezept bauen</p>
+                    <p class="ai-fan-sub">Vorschau mit bis zu 2 Änderungswünschen, ohne den Originaleintrag direkt kaputt zu machen.</p>
+                </div>
+                <span class="premium-badge recipe-ai-badge" id="recipeAiAppliedBadge">
+                    <i class="bi bi-stars text-warning"></i> AI-Vorschau aktiv
+                </span>
+            </div>
+            <div class="ai-fan-grid">
+                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('vegan')"><i class="bi bi-flower1"></i> Vegan</button>
+                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('mealprep')"><i class="bi bi-box-seam"></i> Meal Prep</button>
+                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('lowcarb')"><i class="bi bi-lightning-charge"></i> Low Carb</button>
+                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('highprotein')"><i class="bi bi-battery-charging"></i> Mehr Protein</button>
+            </div>
+        </div>
+
         <nav class="nav nav-pills-custom" id="recipeTab" role="tablist">
             <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#ingredients" type="button">@T("Einkauf", "Ingredients", "Compra", "Compras")</button>
             <button class="nav-link" data-bs-toggle="pill" data-bs-target="#preparation" type="button">@T("Schritte", "Steps", "Pasos", "Passos")</button>
@@ -392,30 +691,32 @@
                     </div>
                 </div>
 
-                @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "General"))
-                {
-                    <h6 class="text-uppercase fw-bold opacity-50 mb-3 px-4" style="font-size: 0.7rem; letter-spacing: 2px;">@group.Key</h6>
-                    @foreach (var item in group)
+                <div id="ingredientListContainer">
+                    @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "General"))
                     {
-                        <div class="ingredient-card shadow-sm" onclick="toggleCheck(this)">
-                            <div class="check-box">
-                                <i class="bi bi-check-lg text-white d-none"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
-                                    <span class="text-muted small">
-                                        <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.Metrics_DE
-                                    </span>
+                        <h6 class="text-uppercase fw-bold opacity-50 mb-3 px-4" style="font-size: 0.7rem; letter-spacing: 2px;">@group.Key</h6>
+                        @foreach (var item in group)
+                        {
+                            <div class="ingredient-card shadow-sm" onclick="toggleCheck(this)">
+                                <div class="check-box">
+                                    <i class="bi bi-check-lg text-white d-none"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
+                                        <span class="text-muted small">
+                                            <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.Metrics_DE
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
-                }
+                </div>
             </div>
 
             <div class="tab-pane fade" id="preparation" role="tabpanel">
-                <div class="step-container">
+                <div class="step-container" id="preparationListContainer">
                     @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
                     {
                         <div class="step-card">
@@ -459,8 +760,81 @@
     </div>
 </div>
 
+@Html.AntiForgeryToken()
+
+<div class="modal fade ai-preview-modal" id="aiTransformModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="ai-preview-head">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <div class="ai-preview-mode" id="aiPreviewModeLabel">AI Vorschau</div>
+                        <div class="ai-preview-title" id="aiPreviewTitle">Neue Rezeptidee wird geladen...</div>
+                        <p class="ai-preview-summary" id="aiPreviewSummary">Wir bauen gerade eine stimmige Variante aus deinem Rezept.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Schließen</button>
+                </div>
+            </div>
+            <div class="ai-preview-body">
+                <div class="alert alert-danger ai-preview-error" id="aiPreviewError"></div>
+
+                <div class="ai-preview-loading is-visible" id="aiPreviewLoading">
+                    <div class="spinner-border text-success mb-3" role="status"></div>
+                    <div>AI transformiert gerade dein Rezept...</div>
+                </div>
+
+                <div id="aiPreviewContent" style="display:none;">
+                    <div class="ai-preview-meta" id="aiPreviewMeta"></div>
+
+                    <div class="ai-preview-block">
+                        <h6>Highlights</h6>
+                        <div class="ai-preview-highlight-list" id="aiPreviewHighlights"></div>
+                    </div>
+
+                    <div class="ai-preview-block">
+                        <h6>Zutaten</h6>
+                        <ul class="ai-preview-list" id="aiPreviewIngredients"></ul>
+                    </div>
+
+                    <div class="ai-preview-block">
+                        <h6>Schritte</h6>
+                        <ul class="ai-preview-list" id="aiPreviewSteps"></ul>
+                    </div>
+
+                    <div class="ai-preview-block">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                            <h6 class="mb-0">Noch feiner anpassen</h6>
+                            <span class="small text-muted" id="aiPreviewChangesLeft">Noch 2 Änderungen</span>
+                        </div>
+                        <textarea class="ai-preview-note" id="aiPreviewUserNote" placeholder="z. B. Ersetze die Beilage durch Kartoffeln"></textarea>
+                        <div class="small text-muted mt-2">Maximal 2 Änderungswünsche pro Vorschau. Das hält den Flow schnell und kontrollierbar.</div>
+                    </div>
+
+                    <div class="ai-preview-actions">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="aiPreviewRegenerateBtn">Änderung anwenden</button>
+                        <button type="button" class="btn btn-success rounded-pill px-4" id="aiPreviewApplyBtn">Vorschau übernehmen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const basePortionCount = @basePortions;
+    const recipeId = @Model.Id;
+    const originalRecipeState = {
+        title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Title)),
+        ingredientMarkup: document.getElementById('ingredientListContainer')?.innerHTML || '',
+        stepMarkup: document.getElementById('preparationListContainer')?.innerHTML || ''
+    };
+    const aiPreviewState = {
+        variantType: '',
+        appliedChangeCount: 0,
+        preview: null
+    };
+
+    let aiTransformModalInstance = null;
 
     function toggleCheck(element) {
         element.classList.toggle('checked');
@@ -497,4 +871,181 @@
             }
         });
     }
+
+    function getAiTransformModal() {
+        if (!aiTransformModalInstance) {
+            const modalElement = document.getElementById('aiTransformModal');
+            aiTransformModalInstance = new bootstrap.Modal(modalElement);
+        }
+
+        return aiTransformModalInstance;
+    }
+
+    function openAiTransformModal(variantType) {
+        aiPreviewState.variantType = variantType;
+        aiPreviewState.appliedChangeCount = 0;
+        aiPreviewState.preview = null;
+
+        const noteInput = document.getElementById('aiPreviewUserNote');
+        if (noteInput) noteInput.value = '';
+
+        getAiTransformModal().show();
+        requestAiPreview().catch(error => {
+            setAiPreviewError(error.message || 'AI-Vorschau konnte nicht geladen werden.');
+        });
+    }
+
+    async function requestAiPreview(userNote = '') {
+        setAiPreviewLoading(true);
+        setAiPreviewError('');
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const response = await fetch('@Url.Action("PreviewAiRecipeVariant", "Home", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({
+                recipeId,
+                variantType: aiPreviewState.variantType,
+                userNote,
+                appliedChangeCount: aiPreviewState.appliedChangeCount
+            })
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(payload?.message || 'AI-Vorschau konnte nicht geladen werden.');
+        }
+
+        aiPreviewState.preview = payload;
+        renderAiPreview(payload);
+        setAiPreviewLoading(false);
+    }
+
+    function setAiPreviewLoading(isLoading) {
+        document.getElementById('aiPreviewLoading')?.classList.toggle('is-visible', isLoading);
+        const content = document.getElementById('aiPreviewContent');
+        if (content) content.style.display = isLoading ? 'none' : '';
+    }
+
+    function setAiPreviewError(message) {
+        const errorEl = document.getElementById('aiPreviewError');
+        if (!errorEl) return;
+
+        errorEl.textContent = message || '';
+        errorEl.classList.toggle('is-visible', !!message);
+        if (message) {
+            setAiPreviewLoading(false);
+            const content = document.getElementById('aiPreviewContent');
+            if (content) content.style.display = 'none';
+        }
+    }
+
+    function renderAiPreview(preview) {
+        document.getElementById('aiPreviewModeLabel').textContent = preview.variantLabel || 'AI Vorschau';
+        document.getElementById('aiPreviewTitle').textContent = preview.title || originalRecipeState.title;
+        document.getElementById('aiPreviewSummary').textContent = preview.summary || 'Neue Variante bereit.';
+
+        const meta = [];
+        meta.push(`<span class="ai-preview-pill"><i class="bi bi-stars"></i>${escapeHtml(preview.variantLabel || 'AI')}</span>`);
+        meta.push(`<span class="ai-preview-pill"><i class="bi bi-arrow-repeat"></i>${preview.remainingChanges} Änderungen übrig</span>`);
+        if (preview.userNoteApplied) {
+            meta.push('<span class="ai-preview-pill"><i class="bi bi-chat-left-text"></i>User-Wunsch drin</span>');
+        }
+        if (preview.usedFallback) {
+            meta.push('<span class="ai-preview-pill"><i class="bi bi-cpu"></i>Lokaler Fallback</span>');
+        }
+        document.getElementById('aiPreviewMeta').innerHTML = meta.join('');
+
+        document.getElementById('aiPreviewHighlights').innerHTML = (preview.highlights || [])
+            .map(item => `<span class="ai-preview-highlight">${escapeHtml(item)}</span>`)
+            .join('');
+
+        document.getElementById('aiPreviewIngredients').innerHTML = (preview.ingredients || [])
+            .map(item => `
+                <li class="ai-preview-ingredient${item.isModified ? ' is-modified' : ''}">
+                    <div class="fw-bold">${escapeHtml(item.name || '')}</div>
+                    <div class="small text-muted">${escapeHtml(item.quantity || '')}</div>
+                    ${item.changeHint ? `<div class="small mt-1 text-success-emphasis">${escapeHtml(item.changeHint)}</div>` : ''}
+                </li>`)
+            .join('');
+
+        document.getElementById('aiPreviewSteps').innerHTML = (preview.steps || [])
+            .map(item => `
+                <li class="ai-preview-step d-flex align-items-start">
+                    <span class="ai-preview-step-index">${item.index}</span>
+                    <span>${escapeHtml(item.text || '')}</span>
+                </li>`)
+            .join('');
+
+        const changesText = preview.remainingChanges === 1
+            ? 'Noch 1 Änderung'
+            : `Noch ${preview.remainingChanges} Änderungen`;
+        document.getElementById('aiPreviewChangesLeft').textContent = changesText;
+        document.getElementById('aiPreviewRegenerateBtn').disabled = preview.remainingChanges <= 0;
+    }
+
+    function applyAiPreviewToPage() {
+        if (!aiPreviewState.preview) return;
+
+        document.getElementById('recipeTitleValue').textContent = aiPreviewState.preview.title || originalRecipeState.title;
+        document.getElementById('ingredientListContainer').innerHTML = (aiPreviewState.preview.ingredients || [])
+            .map(item => `
+                <div class="ingredient-card shadow-sm">
+                    <div class="check-box">${item.isModified ? '<i class="bi bi-stars text-success"></i>' : ''}</div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold fs-6">${escapeHtml(item.name || '')}</span>
+                            <span class="text-muted small">${escapeHtml(item.quantity || '')}</span>
+                        </div>
+                        ${item.changeHint ? `<div class="small text-success mt-1">${escapeHtml(item.changeHint)}</div>` : ''}
+                    </div>
+                </div>`)
+            .join('');
+
+        document.getElementById('preparationListContainer').innerHTML = (aiPreviewState.preview.steps || [])
+            .map(step => `
+                <div class="step-card">
+                    <span class="step-badge">@T("Schritt", "Step", "Paso", "Passo") ${step.index}</span>
+                    <p class="mb-0 lh-lg" style="font-size: 1.05rem; color: #444;">${escapeHtml(step.text || '')}</p>
+                </div>`)
+            .join('');
+
+        document.getElementById('recipeAiAppliedBadge')?.classList.add('is-visible');
+        getAiTransformModal().hide();
+    }
+
+    function escapeHtml(value) {
+        return (value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('\"', '&quot;')
+            .replaceAll('\'', '&#39;');
+    }
+
+    document.getElementById('aiPreviewRegenerateBtn')?.addEventListener('click', async () => {
+        if (!aiPreviewState.preview || aiPreviewState.preview.remainingChanges <= 0) return;
+
+        const noteInput = document.getElementById('aiPreviewUserNote');
+        const userNote = (noteInput?.value || '').trim();
+        if (!userNote) {
+            setAiPreviewError('Schreib kurz, was noch angepasst werden soll.');
+            return;
+        }
+
+        aiPreviewState.appliedChangeCount += 1;
+
+        try {
+            await requestAiPreview(userNote);
+            if (noteInput) noteInput.value = '';
+        } catch (error) {
+            aiPreviewState.appliedChangeCount = Math.max(0, aiPreviewState.appliedChangeCount - 1);
+            setAiPreviewError(error.message || 'AI-Änderung konnte nicht angewendet werden.');
+        }
+    });
+
+    document.getElementById('aiPreviewApplyBtn')?.addEventListener('click', applyAiPreviewToPage);
 </script>

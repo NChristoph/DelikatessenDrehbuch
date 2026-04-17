@@ -82,6 +82,10 @@ builder.Services.AddHttpClient<IMissingIngredientAiService, MissingIngredientAiS
 {
     client.Timeout = TimeSpan.FromSeconds(45);
 });
+builder.Services.AddHttpClient<IRecipeAiTransformService, RecipeAiTransformService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(45);
+});
 
 
 builder.Services.AddHttpContextAccessor();

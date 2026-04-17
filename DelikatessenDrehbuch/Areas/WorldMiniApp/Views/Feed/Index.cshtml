@@ -1,4 +1,4 @@
-@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @model List<WorldUserPosting>
 @using System.Globalization
 @{
@@ -1620,32 +1620,36 @@
             position: fixed;
             left: 0; right: 0; bottom: 0;
             max-height: 55vh;
-            background: var(--plan-card, #1a1a2e);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.07) 100%),
+                linear-gradient(180deg, #242c3d 0%, #181d2a 100%);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 18px 18px 0 0;
-            box-shadow: 0 -4px 32px rgba(0,0,0,0.45);
+            box-shadow: 0 -10px 36px rgba(0,0,0,0.45);
             z-index: 2100;
             transform: translateY(100%);
             transition: transform 0.32s cubic-bezier(.4,0,.2,1);
             overflow-y: auto;
             overscroll-behavior: contain;
             padding: 0 16px 24px;
-            color: var(--plan-text, #fff);
+            color: #f6f8ff;
         }
         .quick-peek-sheet.is-open { transform: translateY(0); }
         .quick-peek-handle {
             width: 36px; height: 4px;
             border-radius: 2px;
-            background: rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.42);
             margin: 10px auto 12px;
         }
         .quick-peek-title {
             font-size: 1.05rem;
             font-weight: 700;
             margin-bottom: 4px;
+            color: #ffffff;
         }
         .quick-peek-meta {
             font-size: 0.78rem;
-            opacity: 0.6;
+            color: rgba(245,247,255,0.82);
             margin-bottom: 12px;
         }
         .quick-peek-section {
@@ -1653,7 +1657,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            opacity: 0.5;
+            color: rgba(255, 218, 163, 0.98);
             margin: 12px 0 6px;
         }
         .quick-peek-ingredients {
@@ -1662,16 +1666,19 @@
             gap: 6px;
         }
         .quick-peek-chip {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 8px;
-            padding: 4px 10px;
-            font-size: 0.78rem;
+            padding: 5px 10px;
+            font-size: 0.8rem;
             white-space: nowrap;
+            color: #ffffff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
         }
         .quick-peek-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.52);
             z-index: 2099;
             opacity: 0;
             transition: opacity 0.25s ease;
@@ -1858,7 +1865,12 @@
                 </div>
 
                 <div class="action-bar">
-                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="Gefällt mir" data-recipe-id="@item.Recipe.Id">
+                    <div class="action-btn" role="button" aria-label="Rezeptinfo" onclick="event.stopPropagation(); openQuickPeek('@item.Recipe.Id')">
+                        <div class="icon-circle"><i class="bi bi-info-lg"></i></div>
+                        <span class="action-label">Info</span>
+                    </div>
+
+                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="GefÃ¤llt mir" data-recipe-id="@item.Recipe.Id">
                         <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                         <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
                     </div>
@@ -1872,7 +1884,7 @@
                         <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                     </div>
 
-                    <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
+                    <div class="action-btn" role="button" aria-label="Zum Plan hinzufÃ¼gen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
                         <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                         <span class="action-label">Planen</span>
                     </div>
@@ -1900,14 +1912,14 @@
                     {
                         <div class="marketplace-empty">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "Aún no hay ofertas.", "Ainda sem ofertas.")</div>
+                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "AÃºn no hay ofertas.", "Ainda sem ofertas.")</div>
                         </div>
                     }
                     else
                     {
                         <div id="marketplaceFilteredEmpty" class="marketplace-empty" style="display:none;">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador não tem ofertas no momento.")</div>
+                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador nÃ£o tem ofertas no momento.")</div>
                         </div>
                         @foreach (var card in creatorShopCards)
                         {
@@ -1955,7 +1967,7 @@
                         <div id="pendingRecipeCard" class="pending-recipe">
                             <div class="pending-media" id="pendingRecipeMedia"></div>
                             <div class="pending-info">
-                                <div class="pending-label">Wird hinzugefügt</div>
+                                <div class="pending-label">Wird hinzugefÃ¼gt</div>
                                 <div class="pending-title" id="pendingRecipeTitle"></div>
                             </div>
                         </div>
@@ -1963,7 +1975,7 @@
                             <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>Nährwerte gesamt</span>
+                                    <span>NÃ¤hrwerte gesamt</span>
                                 </span>
                                 <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
                             </button>
@@ -1984,7 +1996,7 @@
                                             <circle class="macro-donut-ring macro-protein" id="macroRingProtein" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
                                             <circle class="macro-donut-ring macro-fat" id="macroRingFat" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
                                             <circle class="macro-donut-ring macro-carbs" id="macroRingCarbs" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <text x="60" y="55" class="macro-donut-kcal" id="macroDonutKcal">—</text>
+                                            <text x="60" y="55" class="macro-donut-kcal" id="macroDonutKcal">â€”</text>
                                             <text x="60" y="70" class="macro-donut-label">kcal</text>
                                         </svg>
                                         <div class="macro-donut-legend">
@@ -2001,84 +2013,84 @@
                                 <div class="plan-nutrition-grid" id="nutritionGridTotal">
                                     <div class="plan-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCalories">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionCalories">â€”</div>
                                         <div class="plan-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="plan-nutrition-value" id="planNutritionProtein">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionProtein">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFat">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCarbs">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionCarbs">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSugar">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionSugar">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFiber">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionFiber">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">—</div>
+                                        <span>GesÃ¤ttigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSalt">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionSalt">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                 </div>
                                 <div class="plan-nutrition-grid" id="nutritionGridPortion" style="display:none;">
                                     <div class="plan-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCalories">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCalories">â€”</div>
                                         <div class="plan-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionProtein">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionProtein">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFat">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCarbs">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCarbs">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSugar">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSugar">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFiber">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFiber">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSaturatedFat">—</div>
+                                        <span>GesÃ¤ttigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSaturatedFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSalt">—</div>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSalt">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                 </div>
@@ -2095,9 +2107,9 @@
                             <div class="col-5">
                                 <label class="form-label small mb-1">Personen</label>
                                 <div class="person-stepper">
-                                    <button type="button" class="person-stepper-btn" id="personStepperDec" aria-label="Personenzahl verringern">−</button>
+                                    <button type="button" class="person-stepper-btn" id="personStepperDec" aria-label="Personenzahl verringern">âˆ’</button>
                                     <input id="planPersonCount" type="number" min="1" max="99" step="1" value="1" class="person-stepper-input" inputmode="numeric" pattern="[0-9]*" />
-                                    <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhöhen">+</button>
+                                    <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhÃ¶hen">+</button>
                                 </div>
                                 <div class="person-presets" role="group" aria-label="Schnellauswahl Personen">
                                     <button type="button" class="person-preset" data-value="1">1</button>
@@ -2123,7 +2135,7 @@
                                 <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="exportPlanAsIcs()" aria-label="Kalender-Export">
                                     <i class="bi bi-calendar-event me-1"></i> .ics Export
                                 </button>
-                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shufflePlanFromLikes)" aria-label="Zufällig befüllen">
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shufflePlanFromLikes)" aria-label="ZufÃ¤llig befÃ¼llen">
                                     <i class="bi bi-shuffle me-1"></i> Shuffle
                                 </button>
                             </div>
@@ -2139,7 +2151,7 @@
                     </div>
 
                     <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
-                        Dein aktueller Plan für die Woche
+                        Dein aktueller Plan fÃ¼r die Woche
                     </div>
 
                     <div id="planContainer"></div>
@@ -2169,7 +2181,7 @@
     <div class="offcanvas offcanvas-bottom" tabindex="-1" id="feedPreviewOffcanvas" style="max-height:82vh; border-radius:1.2rem 1.2rem 0 0;">
         <div class="offcanvas-header">
             <h6 class="offcanvas-title fw-bold" id="feedPreviewTitle">Plan-Vorschau</h6>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Schließen"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="SchlieÃŸen"></button>
         </div>
         <div class="offcanvas-body" id="feedPreviewBody"></div>
     </div>
@@ -2187,15 +2199,15 @@
                         <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
                         <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
                         <div class="mb-3">
-                            <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
+                            <label class="form-label">@T("Suchbegriff", "Search term", "TÃ©rmino de bÃºsqueda", "Termo de pesquisa")</label>
                             <input type="text" name="searchTerm" class="form-control"
                                    placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
+                            <label class="form-label">@T("Kategorie", "Category", "CategorÃ­a", "Categoria")</label>
                             <select name="category" class="form-select">
-                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
+                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorÃ­as", "Todas as categorias")</option>
                                 <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
                                 <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
                                 <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
@@ -2376,7 +2388,7 @@
             } catch (error) {
                 if (error?.name === 'AbortError') return;
                 console.error('Share failed', error);
-                showToast('Teilen gerade nicht verfügbar.', 'warn');
+                showToast('Teilen gerade nicht verfÃ¼gbar.', 'warn');
             }
         }
 
@@ -2385,7 +2397,6 @@
 
             container.dataset.feedBound = 'true';
             bindVideoProgress(container);
-            bindQuickPeekSwipe(container);
         }
 
         function setupPullToRefresh() {
@@ -2829,7 +2840,7 @@
             if (duplicateSourceDayIndex === null) {
                 duplicateSourceDayIndex = dayIndex;
                 renderPlan();
-                showToast(`Quelle gewählt: ${days[dayIndex]}. Tippe jetzt auf den Zieltag.`, 'info', 2200);
+                showToast(`Quelle gewÃ¤hlt: ${days[dayIndex]}. Tippe jetzt auf den Zieltag.`, 'info', 2200);
                 return;
             }
 
@@ -2930,7 +2941,7 @@
 
                         dayHtml += `
                             <div class="filled-slot ${replaceMode}" data-slot-kind="filled" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-                                <div class="slot-swipe-delete-bg"><i class="bi bi-trash3-fill"></i><span>&nbsp;Löschen</span></div>
+                                <div class="slot-swipe-delete-bg"><i class="bi bi-trash3-fill"></i><span>&nbsp;LÃ¶schen</span></div>
                                 ${media}
                                 <div class="mini-content">
                                     <div class="mini-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
@@ -2960,7 +2971,7 @@
                             <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>Tages-Nährwerte</span>
+                                    <span>Tages-NÃ¤hrwerte</span>
                                 </span>
                                 <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
                             </button>
@@ -2976,7 +2987,7 @@
                                             <circle class="macro-donut-ring macro-protein" id="dayMacroRingProtein-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
                                             <circle class="macro-donut-ring macro-fat" id="dayMacroRingFat-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
                                             <circle class="macro-donut-ring macro-carbs" id="dayMacroRingCarbs-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <text x="60" y="55" class="macro-donut-kcal" id="dayMacroDonutKcal-${dayIndex}">—</text>
+                                            <text x="60" y="55" class="macro-donut-kcal" id="dayMacroDonutKcal-${dayIndex}">â€”</text>
                                             <text x="60" y="70" class="macro-donut-label">kcal</text>
                                         </svg>
                                         <div class="macro-donut-legend">
@@ -2989,84 +3000,84 @@
                                 <div class="day-nutrition-grid" id="dayNutritionGridTotal-${dayIndex}">
                                     <div class="day-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">—</div>
+                                        <span>GesÃ¤ttigt</span>
+                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                 </div>
                                 <div class="day-nutrition-grid" id="dayNutritionGridPortion-${dayIndex}" style="display:none;">
                                     <div class="day-nutrition-item">
                                         <span>Kalorien</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCalories-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCalories-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">kcal</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Protein</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionProtein-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionProtein-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Fett</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Kohlenhydrate</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCarbs-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCarbs-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Zucker</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSugar-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSugar-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Ballaststoffe</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFiber-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFiber-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSaturatedFat-${dayIndex}">—</div>
+                                        <span>GesÃ¤ttigt</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSaturatedFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
                                         <span>Salz</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSalt-${dayIndex}">—</div>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSalt-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                 </div>
@@ -3083,7 +3094,7 @@
             if (!pendingRecipe) return;
             setSlotItem(key, pendingRecipe, {
                 haptic: true,
-                toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefügt`
+                toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefÃ¼gt`
             });
         }
 
@@ -3096,7 +3107,7 @@
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) modalInstance.hide();
-            showToast('Wähle jetzt im Feed ein Rezept zum Ersetzen.', 'info');
+            showToast('WÃ¤hle jetzt im Feed ein Rezept zum Ersetzen.', 'info');
         }
 
         function buildMealPlanPayload() {
@@ -3132,7 +3143,7 @@
 
         function exportPlanAsIcs() {
             const payload = buildMealPlanPayload();
-            if (!payload.length) { showToast('Plan ist leer — nichts zu exportieren.', 'warn'); return; }
+            if (!payload.length) { showToast('Plan ist leer â€” nichts zu exportieren.', 'warn'); return; }
 
             // Start date = coming Monday
             const now = new Date();
@@ -3222,7 +3233,7 @@
             renderPlan();
             saveDraft();
             scheduleNutritionUpdate();
-            showToast(`${emptySlots.length} Slots zufällig befüllt!`, 'success');
+            showToast(`${emptySlots.length} Slots zufÃ¤llig befÃ¼llt!`, 'success');
             triggerHaptic();
         }
 
@@ -3500,7 +3511,7 @@
                 setSlotItem(filledSlot.dataset.slotKey, pendingRecipe, {
                     save: true,
                     haptic: true,
-                    toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefügt`
+                    toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefÃ¼gt`
                 });
             }
         }
@@ -3531,7 +3542,7 @@
             if (!userHash) { showToast("Bitte erst einloggen!", "warn"); return; }
 
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
+            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswÃ¤hlen.", "warn"); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -3546,7 +3557,7 @@
 
         async function shareWeeklyPlan() {
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
+            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswÃ¤hlen.", "warn"); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -3585,7 +3596,7 @@
                     if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
                     else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); showToast("Link kopiert!", "success"); }
                 } catch (shareError) {
-                    console.warn("Teilen nicht verfügbar:", shareError);
+                    console.warn("Teilen nicht verfÃ¼gbar:", shareError);
                 }
             } catch (error) {
                 console.error("Teilen fehlgeschlagen:", error);
@@ -3684,7 +3695,7 @@
         async function prepareShoppingList() {
             const payload = buildMealPlanPayload();
             const recipeIds = getPlanRecipeIds(payload);
-            if (recipeIds.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
+            if (recipeIds.length === 0) { showToast("Bitte mindestens ein Rezept auswÃ¤hlen.", "warn"); return; }
 
             const personCountInput = document.getElementById('planPersonCount');
             const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
@@ -3713,10 +3724,10 @@
             let idx = 0;
             for (const line of lines) {
                 const trimmed = line.trim();
-                if (!trimmed.startsWith('-') && !trimmed.startsWith('•') && !trimmed.match(/^\d/)) {
+                if (!trimmed.startsWith('-') && !trimmed.startsWith('â€¢') && !trimmed.match(/^\d/)) {
                     html += `<div class="shopping-check-group">${escapeHtml(trimmed.replace(/:$/, ''))}</div>`;
                 } else {
-                    const label = trimmed.replace(/^[-•]\s*/, '');
+                    const label = trimmed.replace(/^[-â€¢]\s*/, '');
                     html += `<label class="shopping-check-item" data-idx="${idx}">
                         <input type="checkbox" /><span>${escapeHtml(label)}</span>
                     </label>`;
@@ -3788,7 +3799,7 @@
         }
 
         function formatNutritionValue(value, decimals) {
-            if (!Number.isFinite(value)) return '—';
+            if (!Number.isFinite(value)) return 'â€”';
             return value.toLocaleString('de-DE', {
                 minimumFractionDigits: decimals,
                 maximumFractionDigits: decimals
@@ -3861,7 +3872,7 @@
             const el = (id) => document.getElementById(prefix ? prefix + id.charAt(0).toUpperCase() + id.slice(1) + suffix : id + suffix);
             const txt = (id, v) => { const e = el(id); if (e) e.textContent = v; };
 
-            // SVG donut rings — stacked segments with offsets
+            // SVG donut rings â€” stacked segments with offsets
             const pLen = C * pPct / 100;
             const fLen = C * fPct / 100;
             const cLen = C * cPct / 100;
@@ -3887,7 +3898,7 @@
             // kcal center text + traffic light
             const kcalEl = el('macroDonutKcal');
             if (kcalEl) {
-                kcalEl.textContent = Number.isFinite(calories) ? Math.round(calories) : '—';
+                kcalEl.textContent = Number.isFinite(calories) ? Math.round(calories) : 'â€”';
                 applyKcalTrafficLight(kcalEl, calories, prefix === 'day');
             }
 
@@ -3988,7 +3999,7 @@
                 return;
             }
 
-            if (titleEl) titleEl.textContent = 'Lädt...';
+            if (titleEl) titleEl.textContent = 'LÃ¤dt...';
             if (metaEl) metaEl.textContent = '';
             if (ingredientsEl) ingredientsEl.innerHTML = '';
 
@@ -4009,7 +4020,7 @@
             if (data.category) parts.push(data.category);
             if (data.prepTime) parts.push(`${data.prepTime} Min`);
             if (data.personCount) parts.push(`${data.personCount} Pers.`);
-            if (metaEl) metaEl.textContent = parts.join(' · ');
+            if (metaEl) metaEl.textContent = parts.join(' Â· ');
             if (ingredientsEl) {
                 ingredientsEl.innerHTML = (data.ingredients || []).map(ing => {
                     const qty = ing.quantity ? `${ing.quantity} ${ing.unit} `.trim() : '';
@@ -4025,29 +4036,6 @@
 
         // Backdrop click closes
         document.getElementById('quickPeekBackdrop')?.addEventListener('click', closeQuickPeek);
-
-        // Swipe-up detection on feed items
-        function bindQuickPeekSwipe(container) {
-            let startY = 0, startX = 0, swiping = false;
-            container.addEventListener('touchstart', e => {
-                if (e.target.closest('.action-btn, .sound-toggle, .chef-badge, .follow-btn')) return;
-                startY = e.touches[0].clientY;
-                startX = e.touches[0].clientX;
-                swiping = true;
-            }, { passive: true });
-
-            container.addEventListener('touchend', e => {
-                if (!swiping) return;
-                swiping = false;
-                const dy = startY - (e.changedTouches[0]?.clientY ?? startY);
-                const dx = Math.abs(startX - (e.changedTouches[0]?.clientX ?? startX));
-                // Swipe up: at least 80px vertical, mostly vertical (not horizontal scroll)
-                if (dy > 80 && dy > dx * 1.5) {
-                    const recipeId = container.dataset.id || container.querySelector('[data-recipe-id]')?.dataset.recipeId;
-                    if (recipeId) openQuickPeek(recipeId);
-                }
-            }, { passive: true });
-        }
 
         function setDayNutritionTotals(dayIndex, data) {
             const caloriesEl = document.getElementById(`dayNutritionCalories-${dayIndex}`);
@@ -4149,7 +4137,7 @@
                     return;
                 }
 
-                if (statusEl) statusEl.textContent = 'Lädt...';
+                if (statusEl) statusEl.textContent = 'LÃ¤dt...';
 
                 const params = new URLSearchParams(paramsBase);
                 recipeIds.forEach(id => params.append('recipeIds', id));
@@ -4162,7 +4150,7 @@
                     _dayKcalCache[dayIndex] = Number.isFinite(data?.calories) ? data.calories : 0;
                     if (statusEl) statusEl.textContent = 'Aktuell';
                 } catch (error) {
-                    console.error("Tagesnährwerte konnten nicht geladen werden.", error);
+                    console.error("TagesnÃ¤hrwerte konnten nicht geladen werden.", error);
                     setDayNutritionTotals(dayIndex, null);
                     _dayKcalCache[dayIndex] = 0;
                     if (statusEl) statusEl.textContent = 'Fehler';
@@ -4184,7 +4172,7 @@
                 return;
             }
 
-            if (statusEl) statusEl.textContent = 'Lädt...';
+            if (statusEl) statusEl.textContent = 'LÃ¤dt...';
 
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
@@ -4197,7 +4185,7 @@
                 setNutritionTotals(data);
                 if (statusEl) statusEl.textContent = 'Aktuell';
             } catch (error) {
-                console.error("Nährwerte konnten nicht geladen werden.", error);
+                console.error("NÃ¤hrwerte konnten nicht geladen werden.", error);
                 setNutritionTotals(null);
                 if (statusEl) statusEl.textContent = 'Fehler';
             }
@@ -4205,7 +4193,7 @@
 
         function generateShareLink() {
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
-            if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden oder einfügen.", "warn"); return; }
+            if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden oder einfÃ¼gen.", "warn"); return; }
 
             const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
             document.getElementById('shoppingShareLink').value = shareLink;
@@ -4406,7 +4394,7 @@
                 });
             }
 
-            // Kcal goal — load from localStorage & save on change
+            // Kcal goal â€” load from localStorage & save on change
             const kcalGoalInput = document.getElementById('kcalGoalInput');
             if (kcalGoalInput) {
                 const saved = localStorage.getItem('kcalGoal');
@@ -4746,7 +4734,7 @@
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
             if (!FEED_USER_HASH) { showToast('Bitte zuerst einloggen.', 'warn'); return; }
-            if (!sellerWallet) { showToast('Verkäufer-Wallet fehlt.', 'error'); return; }
+            if (!sellerWallet) { showToast('VerkÃ¤ufer-Wallet fehlt.', 'error'); return; }
             const token = feedSelectedPaymentToken;
             const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
             if (token === 'USDCE' && !feedWldPriceUsd) { showToast('WLD/USD Kurs fehlt.', 'error'); return; }
@@ -4765,7 +4753,7 @@
                     showToast(data.error || 'Kauf konnte nicht finalisiert werden.', 'error');
                     return;
                 }
-                showToast('Kein Zahlungsweg verfügbar.', 'error');
+                showToast('Kein Zahlungsweg verfÃ¼gbar.', 'error');
             } catch (e) {
                 showToast(e?.message || 'Kauf fehlgeschlagen.', 'error');
             }
@@ -4783,24 +4771,24 @@
             try {
                 const resp = await fetch(`/WorldMiniApp/Marketplace/GetListingPreview?listingId=${listingId}`);
                 const data = await resp.json();
-                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfügbar.</p>'; return; }
+                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfÃ¼gbar.</p>'; return; }
                 if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
                 let html = '';
                 if (data.description) {
                     html += `<p class="small mb-2">${data.description}</p>`;
                 }
                 if (data.nutrition) {
-                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} · Protein: ${data.nutrition.protein}g · Fett: ${data.nutrition.fat}g · KH: ${data.nutrition.carbs}g</p>`;
+                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} Â· Protein: ${data.nutrition.protein}g Â· Fett: ${data.nutrition.fat}g Â· KH: ${data.nutrition.carbs}g</p>`;
                 }
                 if (data.days?.length) {
                     data.days.forEach(day => {
                         html += `<div class="fw-bold mt-2">Tag ${day.day}</div>`;
                         (day.recipes || []).forEach(r => {
-                            html += `<div class="small opacity-75">• ${r.title}</div>`;
+                            html += `<div class="small opacity-75">â€¢ ${r.title}</div>`;
                         });
                     });
                 }
-                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfügbar.</p>';
+                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfÃ¼gbar.</p>';
             } catch (e) {
                 bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
             }
@@ -4863,7 +4851,11 @@
                         <div class="recipe-meta">${prepLabel}</div>
                     </div>
                     <div class="action-bar">
-                        <div class="action-btn heart-btn${isLikedCls}" role="button" aria-label="Gefällt mir" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
+                        <div class="action-btn" role="button" aria-label="Rezeptinfo" onclick="event.stopPropagation(); openQuickPeek('${item.recipeId}')">
+                            <div class="icon-circle"><i class="bi bi-info-lg"></i></div>
+                            <span class="action-label">Info</span>
+                        </div>
+                        <div class="action-btn heart-btn${isLikedCls}" role="button" aria-label="GefÃ¤llt mir" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
                             <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                             <span class="action-label like-count">${item.likeCount || 0}</span>
                         </div>
@@ -4874,7 +4866,7 @@
                             <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
                             <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                         </div>
-                        <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
+                        <div class="action-btn" role="button" aria-label="Zum Plan hinzufÃ¼gen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
                             <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
                             <span class="action-label">Plan</span>
                         </div>
@@ -4989,6 +4981,9 @@
 
 </body>
 </html>
+
+
+
 
 
 
