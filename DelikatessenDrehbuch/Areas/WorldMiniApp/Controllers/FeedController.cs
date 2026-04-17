@@ -162,7 +162,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 item.ThumbnailUrl=ChangePath(item.ThumbnailUrl);
             }
 
-           
+            // Gelikte Recipe-IDs des aktuellen Users laden (f�r initial roten Herz-Zustand)
+            var likedRecipeIds = new HashSet<int>();
+            if (!string.IsNullOrEmpty(userHash))
+            {
+                likedRecipeIds = (await _context.WorldUserLike
+                    .AsNoTracking()
+                    .Where(l => l.WorldAppUser.UserHash == userHash)
+                    .Select(l => l.Recipe.Id)
+                    .ToListAsync()).ToHashSet();
+            }
+            ViewData["LikedRecipeIds"] = likedRecipeIds;
+
+            // Gebookmarkte Recipe-IDs
+            var bookmarkedRecipeIds = new HashSet<int>();
+            if (!string.IsNullOrEmpty(userHash))
+            {
+                bookmarkedRecipeIds = (await _context.WorldUserBookmark
+                    .AsNoTracking()
+                    .Where(b => b.WorldAppUser.UserHash == userHash)
+                    .Select(b => b.Recipe.Id)
+                    .ToListAsync()).ToHashSet();
+            }
+            ViewData["BookmarkedRecipeIds"] = bookmarkedRecipeIds;
+
+            // Like-Counts für die geladenen Rezepte
+            var feedRecipeIds = model.Where(m => m.Recipe != null).Select(m => m.Recipe.Id).Distinct().ToList();
+            var likeCounts = feedRecipeIds.Count > 0
+                ? await _context.WorldUserLike
+                    .AsNoTracking()
+                    .Where(l => feedRecipeIds.Contains(l.Recipe.Id))
+                    .GroupBy(l => l.Recipe.Id)
+                    .Select(g => new { RecipeId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.RecipeId, x => x.Count)
+                : new Dictionary<int, int>();
+            ViewData["LikeCounts"] = likeCounts;
+
             ViewData["ScrollToId"] = scrollToId;
             ViewData["CurrentFilter"] = filter;
             ViewData["SearchTerm"] = searchTerm;
@@ -428,6 +463,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleBookmark([FromForm] string userHash, int recipeId)
+        {
+            userHash = ResolveUserHash(userHash);
+            try
+            {
+                var bookmark = await _context.WorldUserBookmark
+                    .FirstOrDefaultAsync(x => x.WorldAppUser.UserHash == userHash && x.Recipe.Id == recipeId);
+                if (bookmark != null)
+                {
+                    _context.WorldUserBookmark.Remove(bookmark);
+                }
+                else
+                {
+                    var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == userHash);
+                    var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(x => x.Id == recipeId);
+                    if (user != null && recipe != null)
+                    {
+                        await _context.WorldUserBookmark.AddAsync(new WorldUserBookmark
+                        {
+                            Recipe = recipe,
+                            WorldAppUser = user
+                        });
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to toggle bookmark for recipe {RecipeId}.", recipeId);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleFollow([FromForm] string userHash, [FromForm] string creatorId)
         {
             userHash = ResolveUserHash(userHash);
@@ -630,6 +701,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(creatorHash))
                 return BadRequest("creatorHash is required");
 
+            var currentUserHash = ResolveUserHash("");
+            var likedIds = new HashSet<int>();
+            var bookmarkedIds = new HashSet<int>();
+            if (!string.IsNullOrEmpty(currentUserHash))
+            {
+                likedIds = (await _context.WorldUserLike
+                    .AsNoTracking()
+                    .Where(l => l.WorldAppUser.UserHash == currentUserHash)
+                    .Select(l => l.Recipe.Id)
+                    .ToListAsync()).ToHashSet();
+                bookmarkedIds = (await _context.WorldUserBookmark
+                    .AsNoTracking()
+                    .Where(b => b.WorldAppUser.UserHash == currentUserHash)
+                    .Select(b => b.Recipe.Id)
+                    .ToListAsync()).ToHashSet();
+            }
+
             var postings = await _context.WorldUserPosting
                 .AsNoTracking()
                 .Include(p => p.Recipe)
@@ -651,6 +739,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 })
                 .ToListAsync();
 
+            // Like-Counts für Creator-Postings
+            var creatorRecipeIds = postings.Select(p => p.recipeId).Distinct().ToList();
+            var creatorLikeCounts = creatorRecipeIds.Count > 0
+                ? await _context.WorldUserLike
+                    .AsNoTracking()
+                    .Where(l => creatorRecipeIds.Contains(l.Recipe.Id))
+                    .GroupBy(l => l.Recipe.Id)
+                    .Select(g => new { RecipeId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.RecipeId, x => x.Count)
+                : new Dictionary<int, int>();
+
             var result = postings.Select(p => new
             {
                 p.id,
@@ -662,7 +761,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 p.creatorId,
                 p.prepTime,
                 p.recipeId,
-                p.category
+                p.category,
+                isLiked = likedIds.Contains(p.recipeId),
+                isBookmarked = bookmarkedIds.Contains(p.recipeId),
+                likeCount = creatorLikeCounts.TryGetValue(p.recipeId, out var clc) ? clc : 0
             });
 
             return Json(result);

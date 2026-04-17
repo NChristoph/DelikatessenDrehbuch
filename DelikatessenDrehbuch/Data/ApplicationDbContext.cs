@@ -44,6 +44,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
         public DbSet<WorldSharedMealPlan> WorldSharedMealPlan { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
+        public DbSet<WorldUserBookmark> WorldUserBookmark { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
         public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
         public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }

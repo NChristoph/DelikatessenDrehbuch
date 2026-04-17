@@ -18,6 +18,9 @@
     var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
     var creatorShopCards = ViewData["CreatorShopCards"] as List<PlanCardViewModel> ?? new List<PlanCardViewModel>();
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
+    var likedRecipeIds = ViewData["LikedRecipeIds"] as HashSet<int> ?? new HashSet<int>();
+    var likeCounts = ViewData["LikeCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var bookmarkedRecipeIds = ViewData["BookmarkedRecipeIds"] as HashSet<int> ?? new HashSet<int>();
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
     var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
@@ -276,6 +279,11 @@
             border: none;
             box-shadow: 0 4px 20px rgba(255, 94, 98, 0.5);
         }
+        .action-btn.bookmarked .icon-circle {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            border: none;
+            box-shadow: 0 4px 20px rgba(96, 165, 250, 0.5);
+        }
 
         .action-label {
             font-size: 0.75rem;
@@ -513,11 +521,112 @@
             font-weight: 700;
         }
 
+        .person-stepper {
+            display: grid;
+            grid-template-columns: 36px 1fr 36px;
+            align-items: stretch;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--plan-outline);
+            background: var(--plan-input-bg);
+            overflow: hidden;
+        }
+
+        .person-stepper-btn {
+            border: none;
+            background: transparent;
+            color: var(--plan-text);
+            font-weight: 900;
+            font-size: 1.3rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 120ms ease, transform 120ms ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .person-stepper-btn:hover,
+        .person-stepper-btn:focus-visible {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .person-stepper-btn:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .person-stepper-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .person-stepper-input {
+            border: none;
+            background: transparent;
+            color: var(--plan-text);
+            text-align: center;
+            font-weight: 900;
+            font-size: 1rem;
+            padding: 0 4px;
+            width: 100%;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .person-stepper-input::-webkit-outer-spin-button,
+        .person-stepper-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .person-stepper-input:focus {
+            outline: none;
+        }
+
+        .person-presets {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .person-preset {
+            border: 1px solid var(--plan-outline);
+            background: var(--plan-input-bg);
+            color: var(--plan-text);
+            border-radius: 8px;
+            padding: 4px 0;
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 140ms ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .person-preset:hover,
+        .person-preset:focus-visible {
+            border-color: var(--plan-accent-border);
+        }
+
+        .person-preset:active {
+            transform: scale(0.94);
+        }
+
+        .person-preset.is-active {
+            background: var(--plan-accent);
+            border-color: var(--plan-accent);
+            color: var(--plan-button-text);
+        }
+
         .plan-nutrition {
             border-radius: 14px;
             border: 1px solid var(--plan-outline);
             background: var(--plan-surface);
             box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+            margin-left: -12px;
+            margin-right: -12px;
+            padding: 12px 14px;
         }
 
         .plan-nutrition-toggle {
@@ -571,6 +680,7 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
         }
+
 
         .plan-nutrition-item {
             display: flex;
@@ -741,9 +851,6 @@
             overflow: hidden;
             box-shadow: 0 10px 26px rgba(0,0,0,0.35);
             position: relative;
-            display: grid;
-            grid-template-columns: 78px 1fr;
-            align-items: stretch;
         }
 
         .replace-slot {
@@ -752,37 +859,47 @@
         }
 
         .mini-img {
-            width: 78px;
-            height: 112px;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             display: block;
         }
 
         .mini-content {
-            padding: 10px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 8px 10px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            gap: 6px;
+            gap: 2px;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.92) 100%);
+            color: #fff;
+            z-index: 1;
         }
 
         .mini-title {
-            font-size: 0.92rem;
-            font-weight: 950;
+            font-size: 0.88rem;
+            font-weight: 900;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--plan-text);
+            color: #fff;
             line-height: 1.2;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.85);
         }
 
         .mini-type {
-            font-size: 0.62rem;
-            color: var(--plan-muted-text);
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.88);
             text-transform: uppercase;
             letter-spacing: 0.8px;
             font-weight: 800;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.85);
         }
 
         .slot-actions {
@@ -1048,9 +1165,204 @@
             gap: 8px;
         }
 
+        /* === Shopping Checklist === */
+        .shopping-checklist {
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid var(--plan-outline);
+            border-radius: 10px;
+            background: var(--plan-surface);
+            padding: 6px 0;
+        }
+        .shopping-check-group {
+            padding: 4px 12px 2px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--plan-accent);
+            opacity: 0.85;
+        }
+        .shopping-check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            font-size: 0.82rem;
+            color: var(--plan-text);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .shopping-check-item.is-checked {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+        .shopping-check-item input[type="checkbox"] {
+            accent-color: var(--plan-accent);
+            width: 16px; height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* === Skeleton Loader === */
+        .skeleton-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .skeleton-card {
+            height: 100vh;
+            background: #1a1a1a;
+            position: relative;
+            overflow: hidden;
+            scroll-snap-align: start;
+        }
+        .skeleton-shimmer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, #1a1a1a 30%, #2a2a2a 50%, #1a1a1a 70%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+        @@keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* === Button Loading Spinner === */
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .btn-loading .bi { display: none; }
+        .btn-spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: btnSpin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        @@keyframes btnSpin { to { transform: rotate(360deg); } }
+
+        /* === Macro Progress Bar === */
+        .macro-bar-wrap { margin-bottom: 10px; }
+        .macro-bar {
+            display: flex;
+            height: 10px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: var(--plan-outline);
+        }
+        .macro-bar-seg {
+            height: 100%;
+            transition: width 0.4s ease;
+            min-width: 0;
+        }
+        .macro-bar-seg.macro-protein { background: #34d399; }
+        .macro-bar-seg.macro-fat { background: #fbbf24; }
+        .macro-bar-seg.macro-carbs { background: #60a5fa; }
+        .macro-bar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--plan-text);
+            opacity: 0.85;
+        }
+        .macro-legend-item { display: flex; align-items: center; gap: 4px; }
+        .macro-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .macro-dot.macro-protein { background: #34d399; }
+        .macro-dot.macro-fat { background: #fbbf24; }
+        .macro-dot.macro-carbs { background: #60a5fa; }
+
+        /* === Nutrition Segment Toggle === */
+        .nutrition-segment {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: var(--plan-outline);
+            border-radius: 10px;
+            padding: 2px;
+            margin-bottom: 10px;
+        }
+        .nutrition-seg-btn {
+            border: none;
+            background: transparent;
+            color: var(--plan-text);
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            opacity: 0.6;
+        }
+        .nutrition-seg-btn.is-active {
+            background: var(--plan-accent);
+            color: var(--plan-button-text);
+            opacity: 1;
+        }
+
+        /* === Toast === */
+        .toast-container {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast-msg {
+            pointer-events: auto;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #fff;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            opacity: 0;
+            transform: translateY(12px) scale(0.95);
+            animation: toastIn 0.28s ease forwards;
+            max-width: 88vw;
+            text-align: center;
+            line-height: 1.35;
+        }
+        .toast-msg.toast-out {
+            animation: toastOut 0.22s ease forwards;
+        }
+        .toast-msg.toast-success { background: rgba(34,197,94,0.88); }
+        .toast-msg.toast-error   { background: rgba(239,68,68,0.88); }
+        .toast-msg.toast-info    { background: rgba(59,130,246,0.88); }
+        .toast-msg.toast-warn    { background: rgba(234,179,8,0.88); color: #1a1a1a; }
+        @@keyframes toastIn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @@keyframes toastOut {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+
     </style>
 </head>
 <body>
+    <div class="toast-container" id="toastContainer"></div>
     @Html.AntiForgeryToken()
 
     <div class="section-switch-hint" id="sectionSwitchHint">
@@ -1113,9 +1425,13 @@
                 </div>
 
                 <div class="action-bar">
-                    <div class="action-btn heart-btn">
+                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" data-recipe-id="@item.Recipe.Id">
                         <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
-                        <span class="action-label">124</span>
+                        <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
+                    </div>
+
+                    <div class="action-btn bookmark-btn@(bookmarkedRecipeIds.Contains(item.Recipe.Id) ? " bookmarked" : "")" data-recipe-id="@item.Recipe.Id" onclick="toggleBookmark(this)">
+                        <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
                     </div>
 
                     <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
@@ -1214,7 +1530,23 @@
                                 <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
                             </button>
                             <div class="plan-nutrition-body">
-                                <div class="plan-nutrition-grid">
+                                <div class="nutrition-segment" id="nutritionSegment">
+                                    <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
+                                    <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
+                                </div>
+                                <div class="macro-bar-wrap" id="macroBarWrap">
+                                    <div class="macro-bar">
+                                        <div class="macro-bar-seg macro-protein" id="macroBarProtein" style="width:0%"></div>
+                                        <div class="macro-bar-seg macro-fat" id="macroBarFat" style="width:0%"></div>
+                                        <div class="macro-bar-seg macro-carbs" id="macroBarCarbs" style="width:0%"></div>
+                                    </div>
+                                    <div class="macro-bar-legend">
+                                        <span class="macro-legend-item"><span class="macro-dot macro-protein"></span>Protein <b id="macroBarProteinPct">0</b>%</span>
+                                        <span class="macro-legend-item"><span class="macro-dot macro-fat"></span>Fett <b id="macroBarFatPct">0</b>%</span>
+                                        <span class="macro-legend-item"><span class="macro-dot macro-carbs"></span>KH <b id="macroBarCarbsPct">0</b>%</span>
+                                    </div>
+                                </div>
+                                <div class="plan-nutrition-grid" id="nutritionGridTotal">
                                     <div class="plan-nutrition-item">
                                         <span>Kalorien</span>
                                         <div class="plan-nutrition-value" id="planNutritionCalories">—</div>
@@ -1256,6 +1588,48 @@
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                 </div>
+                                <div class="plan-nutrition-grid" id="nutritionGridPortion" style="display:none;">
+                                    <div class="plan-nutrition-item">
+                                        <span>Kalorien</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCalories">—</div>
+                                        <div class="plan-nutrition-unit">kcal</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Protein</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionProtein">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Fett</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Kohlenhydrate</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCarbs">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Zucker</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSugar">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Ballaststoffe</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFiber">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Gesättigt</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSaturatedFat">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="plan-nutrition-item">
+                                        <span>Salz</span>
+                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSalt">—</div>
+                                        <div class="plan-nutrition-unit">g</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1268,14 +1642,24 @@
                             </div>
                             <div class="col-5">
                                 <label class="form-label small mb-1">Personen</label>
-                                <input id="planPersonCount" type="number" min="1" step="1" value="1" class="form-control form-control-sm" />
+                                <div class="person-stepper">
+                                    <button type="button" class="person-stepper-btn" id="personStepperDec" aria-label="Personenzahl verringern">−</button>
+                                    <input id="planPersonCount" type="number" min="1" max="99" step="1" value="1" class="person-stepper-input" inputmode="numeric" pattern="[0-9]*" />
+                                    <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhöhen">+</button>
+                                </div>
+                                <div class="person-presets" role="group" aria-label="Schnellauswahl Personen">
+                                    <button type="button" class="person-preset" data-value="1">1</button>
+                                    <button type="button" class="person-preset" data-value="2">2</button>
+                                    <button type="button" class="person-preset" data-value="4">4</button>
+                                    <button type="button" class="person-preset" data-value="6">6</button>
+                                </div>
                             </div>
 
                             <div class="d-flex gap-2 mt-2">
                                 <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
                                     <i class="bi bi-check2-circle me-1"></i> Plan speichern
                                 </button>
-                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="shareWeeklyPlan()">
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shareWeeklyPlan)">
                                     <i class="bi bi-share me-1"></i> Plan teilen
                                 </button>
                             </div>
@@ -1301,16 +1685,17 @@
                     <div id="planContainer"></div>
 
                     <div class="shopping-share mt-3">
-                        <label class="form-label small">Einkaufsliste bearbeiten & teilen</label>
-                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="prepareShoppingList()">
+                        <label class="form-label small">Einkaufsliste</label>
+                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="withButtonSpinner(this, prepareShoppingList)">
                             <i class="bi bi-basket3 me-1"></i> Einkaufsliste laden
                         </button>
-                        <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..."></textarea>
+                        <div id="shoppingChecklistWrap" class="shopping-checklist" style="display:none;"></div>
+                        <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..." style="display:none;"></textarea>
                         <div class="d-flex gap-2 mt-2">
                             <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="generateShareLink()">
                                 <i class="bi bi-link-45deg me-1"></i> Link erstellen
                             </button>
-                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="copyShareLink()">
+                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="withButtonSpinner(this, copyShareLink)">
                                 <i class="bi bi-clipboard-check me-1"></i> Link kopieren
                             </button>
                         </div>
@@ -1383,6 +1768,32 @@
         let feedWldPriceUsd = null;
         let feedWalletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
         const FEED_USER_HASH = '@userHash';
+        window.likedRecipeIds = new Set(@Html.Raw(Json.Serialize(likedRecipeIds)));
+        window.bookmarkedRecipeIds = new Set(@Html.Raw(Json.Serialize(bookmarkedRecipeIds)));
+
+        // ----------------- toast -----------------
+        function showToast(message, type = 'info', duration = 2800) {
+            const c = document.getElementById('toastContainer');
+            if (!c) return;
+            const el = document.createElement('div');
+            el.className = `toast-msg toast-${type}`;
+            el.textContent = message;
+            c.appendChild(el);
+            setTimeout(() => {
+                el.classList.add('toast-out');
+                el.addEventListener('animationend', () => el.remove(), { once: true });
+            }, duration);
+        }
+
+        async function withButtonSpinner(btn, asyncFn) {
+            if (!btn || btn.classList.contains('btn-loading')) return;
+            const origHtml = btn.innerHTML;
+            const label = btn.textContent.trim();
+            btn.classList.add('btn-loading');
+            btn.innerHTML = `<span class="btn-spinner"></span>${label}`;
+            try { await asyncFn(); }
+            finally { btn.classList.remove('btn-loading'); btn.innerHTML = origHtml; }
+        }
 
         // ----------------- helpers -----------------
         function escapeHtml(str) {
@@ -1533,7 +1944,7 @@
         function goToProfile() {
             const userHash = getUserHash();
             if (userHash) window.location.href = '/WorldMiniApp/Feed/MyProfile?userHash=' + encodeURIComponent(userHash);
-            else alert("Bitte erst einloggen!");
+            else showToast("Bitte erst einloggen!", "warn");
         }
 
         // ----------------- WEEKLY PLAN LOGIC (FULL) -----------------
@@ -1725,7 +2136,23 @@
                                 <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
                             </button>
                             <div class="day-nutrition-body">
-                                <div class="day-nutrition-grid">
+                                <div class="nutrition-segment day-nutrition-segment" data-day-index="${dayIndex}">
+                                    <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
+                                    <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
+                                </div>
+                                <div class="macro-bar-wrap">
+                                    <div class="macro-bar">
+                                        <div class="macro-bar-seg macro-protein" id="dayMacroBarProtein-${dayIndex}" style="width:0%"></div>
+                                        <div class="macro-bar-seg macro-fat" id="dayMacroBarFat-${dayIndex}" style="width:0%"></div>
+                                        <div class="macro-bar-seg macro-carbs" id="dayMacroBarCarbs-${dayIndex}" style="width:0%"></div>
+                                    </div>
+                                    <div class="macro-bar-legend">
+                                        <span class="macro-legend-item"><span class="macro-dot macro-protein"></span>Protein <b id="dayMacroBarProteinPct-${dayIndex}">0</b>%</span>
+                                        <span class="macro-legend-item"><span class="macro-dot macro-fat"></span>Fett <b id="dayMacroBarFatPct-${dayIndex}">0</b>%</span>
+                                        <span class="macro-legend-item"><span class="macro-dot macro-carbs"></span>KH <b id="dayMacroBarCarbsPct-${dayIndex}">0</b>%</span>
+                                    </div>
+                                </div>
+                                <div class="day-nutrition-grid" id="dayNutritionGridTotal-${dayIndex}">
                                     <div class="day-nutrition-item">
                                         <span>Kalorien</span>
                                         <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">—</div>
@@ -1767,6 +2194,48 @@
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                 </div>
+                                <div class="day-nutrition-grid" id="dayNutritionGridPortion-${dayIndex}" style="display:none;">
+                                    <div class="day-nutrition-item">
+                                        <span>Kalorien</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCalories-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">kcal</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Protein</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionProtein-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Fett</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Kohlenhydrate</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCarbs-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Zucker</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSugar-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Ballaststoffe</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFiber-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Gesättigt</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSaturatedFat-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                    <div class="day-nutrition-item">
+                                        <span>Salz</span>
+                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSalt-${dayIndex}">—</div>
+                                        <div class="day-nutrition-unit">g</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -1779,6 +2248,7 @@
         function addToSlot(key) {
             if (!pendingRecipe) return;
             weeklyPlanData[key] = pendingRecipe;
+            showToast(`"${pendingRecipe.title || 'Rezept'}" hinzugefügt`, "success", 1800);
             renderPlan();
             scheduleDraftSave();
         }
@@ -1794,7 +2264,7 @@
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) modalInstance.hide();
-            alert('Wähle jetzt im Feed ein Rezept zum Ersetzen.');
+            showToast('Wähle jetzt im Feed ein Rezept zum Ersetzen.', 'info');
         }
 
         function buildMealPlanPayload() {
@@ -1828,22 +2298,25 @@
 
         function saveWeeklyPlan() {
             const userHash = getUserHash();
-            if (!userHash) { alert("Bitte erst einloggen!"); return; }
+            if (!userHash) { showToast("Bitte erst einloggen!", "warn"); return; }
 
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
 
             const encodedData = encodeURIComponent(JSON.stringify(payload));
             clearWeeklyPlanState();
-            window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
+            showToast("Plan gespeichert!", "success");
+            setTimeout(() => {
+                window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
+            }, 600);
         }
 
         async function shareWeeklyPlan() {
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -1868,7 +2341,7 @@
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    alert(`Plan konnte nicht geteilt werden. ${errorText}`);
+                    showToast(`Plan konnte nicht geteilt werden. ${errorText}`, 'error');
                     return;
                 }
 
@@ -1876,17 +2349,17 @@
                 const linkInput = document.getElementById('planShareLink');
                 if (linkInput) linkInput.value = data.shareUrl || '';
 
-                if (!data.shareUrl) { alert("Teilen fehlgeschlagen: Kein Link erhalten."); return; }
+                if (!data.shareUrl) { showToast("Teilen fehlgeschlagen: Kein Link erhalten.", "error"); return; }
 
                 try {
                     if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
-                    else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); alert("Link kopiert!"); }
+                    else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); showToast("Link kopiert!", "success"); }
                 } catch (shareError) {
                     console.warn("Teilen nicht verfügbar:", shareError);
                 }
             } catch (error) {
                 console.error("Teilen fehlgeschlagen:", error);
-                alert("Plan konnte nicht geteilt werden.");
+                showToast("Plan konnte nicht geteilt werden.", "error");
             }
         }
 
@@ -1931,7 +2404,10 @@
 
         function applyDraftPayload(payload, personCount, title) {
             if (title) document.getElementById('planTitleInput').value = title;
-            if (personCount) document.getElementById('planPersonCount').value = personCount;
+            if (personCount) {
+                document.getElementById('planPersonCount').value = personCount;
+                if (typeof syncPersonPresets === 'function') syncPersonPresets();
+            }
 
             weeklyPlanData = {};
             (payload || []).forEach(item => {
@@ -1978,29 +2454,62 @@
         async function prepareShoppingList() {
             const payload = buildMealPlanPayload();
             const recipeIds = getPlanRecipeIds(payload);
-            if (recipeIds.length === 0) { alert("Bitte mindestens ein Rezept auswählen."); return; }
+            if (recipeIds.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
 
             const personCountInput = document.getElementById('planPersonCount');
             const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
             if (personCountInput) personCountInput.value = personCount;
+            if (typeof syncPersonPresets === 'function') syncPersonPresets();
 
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
             params.append('personCount', personCount);
 
             const response = await fetch(`/WorldMiniApp/Home/GetShoppingListText?${params.toString()}`);
-            if (!response.ok) { alert("Einkaufsliste konnte nicht geladen werden."); return; }
+            if (!response.ok) { showToast("Einkaufsliste konnte nicht geladen werden.", "error"); return; }
 
             const data = await response.json();
-            document.getElementById('shoppingListEditor').value = data.text || '';
+            const text = data.text || '';
+            document.getElementById('shoppingListEditor').value = text;
+            renderShoppingChecklist(text);
         }
 
-        function handlePlanPersonCountChange() {
+        function renderShoppingChecklist(text) {
+            const wrap = document.getElementById('shoppingChecklistWrap');
+            if (!wrap) return;
+            const lines = text.split('\n').filter(l => l.trim());
+            if (!lines.length) { wrap.style.display = 'none'; return; }
+            let html = '';
+            let idx = 0;
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith('-') && !trimmed.startsWith('•') && !trimmed.match(/^\d/)) {
+                    html += `<div class="shopping-check-group">${escapeHtml(trimmed.replace(/:$/, ''))}</div>`;
+                } else {
+                    const label = trimmed.replace(/^[-•]\s*/, '');
+                    html += `<label class="shopping-check-item" data-idx="${idx}">
+                        <input type="checkbox" /><span>${escapeHtml(label)}</span>
+                    </label>`;
+                    idx++;
+                }
+            }
+            wrap.innerHTML = html;
+            wrap.style.display = '';
+            wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    cb.closest('.shopping-check-item').classList.toggle('is-checked', cb.checked);
+                });
+            });
+        }
+
+        function handlePlanPersonCountChange(forceNormalize) {
             const personInput = document.getElementById('planPersonCount');
             if (!personInput) return;
 
-            const normalized = Math.max(1, parseInt(personInput.value || '1', 10) || 1);
-            personInput.value = normalized;
+            if (forceNormalize) {
+                const normalized = Math.max(1, parseInt(personInput.value || '1', 10) || 1);
+                personInput.value = normalized;
+            }
 
             scheduleNutritionUpdate();
             scheduleDraftSave();
@@ -2011,6 +2520,31 @@
                     // noop: Fehler wird bereits in prepareShoppingList angezeigt.
                 });
             }
+        }
+
+        function getCurrentPersonCount() {
+            const personInput = document.getElementById('planPersonCount');
+            if (!personInput) return 1;
+            return Math.max(1, parseInt(personInput.value || '1', 10) || 1);
+        }
+
+        function setPersonCount(value) {
+            const personInput = document.getElementById('planPersonCount');
+            if (!personInput) return;
+            const clamped = Math.max(1, Math.min(99, parseInt(value, 10) || 1));
+            personInput.value = clamped;
+            handlePlanPersonCountChange(true);
+            syncPersonPresets();
+        }
+
+        function syncPersonPresets() {
+            const current = getCurrentPersonCount();
+            document.querySelectorAll('.person-preset').forEach(btn => {
+                const v = parseInt(btn.getAttribute('data-value'), 10);
+                btn.classList.toggle('is-active', v === current);
+            });
+            const dec = document.getElementById('personStepperDec');
+            if (dec) dec.disabled = current <= 1;
         }
 
         let nutritionTimer = null;
@@ -2041,6 +2575,15 @@
             const saturatedEl = document.getElementById('planNutritionSaturatedFat');
             const saltEl = document.getElementById('planNutritionSalt');
 
+            const ppCaloriesEl = document.getElementById('planNutritionPerPortionCalories');
+            const ppProteinEl = document.getElementById('planNutritionPerPortionProtein');
+            const ppFatEl = document.getElementById('planNutritionPerPortionFat');
+            const ppCarbsEl = document.getElementById('planNutritionPerPortionCarbs');
+            const ppSugarEl = document.getElementById('planNutritionPerPortionSugar');
+            const ppFiberEl = document.getElementById('planNutritionPerPortionFiber');
+            const ppSaturatedEl = document.getElementById('planNutritionPerPortionSaturatedFat');
+            const ppSaltEl = document.getElementById('planNutritionPerPortionSalt');
+
             const calories = data?.calories;
             const protein = data?.protein;
             const fat = data?.fat;
@@ -2058,6 +2601,41 @@
             if (fiberEl) fiberEl.textContent = formatNutritionValue(fiber, 1);
             if (saturatedEl) saturatedEl.textContent = formatNutritionValue(saturatedFat, 1);
             if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
+
+            const personCount = Math.max(1, parseInt(document.getElementById('planPersonCount')?.value || '1', 10) || 1);
+            const perPortion = (v) => (Number.isFinite(v) ? v / personCount : v);
+
+            if (ppCaloriesEl) ppCaloriesEl.textContent = formatNutritionValue(perPortion(calories), 0);
+            if (ppProteinEl) ppProteinEl.textContent = formatNutritionValue(perPortion(protein), 1);
+            if (ppFatEl) ppFatEl.textContent = formatNutritionValue(perPortion(fat), 1);
+            if (ppCarbsEl) ppCarbsEl.textContent = formatNutritionValue(perPortion(carbs), 1);
+            if (ppSugarEl) ppSugarEl.textContent = formatNutritionValue(perPortion(sugar), 1);
+            if (ppFiberEl) ppFiberEl.textContent = formatNutritionValue(perPortion(fiber), 1);
+            if (ppSaturatedEl) ppSaturatedEl.textContent = formatNutritionValue(perPortion(saturatedFat), 1);
+            if (ppSaltEl) ppSaltEl.textContent = formatNutritionValue(perPortion(salt), 1);
+
+            updateMacroBar(protein, fat, carbs);
+        }
+
+        function updateMacroBar(protein, fat, carbs, prefix, suffix) {
+            prefix = prefix || '';
+            suffix = suffix || '';
+            const p = Number.isFinite(protein) ? protein : 0;
+            const f = Number.isFinite(fat) ? fat : 0;
+            const c = Number.isFinite(carbs) ? carbs : 0;
+            const total = p + f + c;
+            const pPct = total > 0 ? Math.round(p / total * 100) : 0;
+            const fPct = total > 0 ? Math.round(f / total * 100) : 0;
+            const cPct = total > 0 ? 100 - pPct - fPct : 0;
+            const el = (id) => document.getElementById(prefix + id + suffix);
+            const bar = (id, v) => { const e = el(id); if (e) e.style.width = v + '%'; };
+            const txt = (id, v) => { const e = el(id); if (e) e.textContent = v; };
+            bar('macroBarProtein', pPct);
+            bar('macroBarFat', fPct);
+            bar('macroBarCarbs', cPct);
+            txt('macroBarProteinPct', pPct);
+            txt('macroBarFatPct', fPct);
+            txt('macroBarCarbsPct', cPct);
         }
 
         function setDayNutritionTotals(dayIndex, data) {
@@ -2070,6 +2648,15 @@
             const saturatedEl = document.getElementById(`dayNutritionSaturatedFat-${dayIndex}`);
             const saltEl = document.getElementById(`dayNutritionSalt-${dayIndex}`);
 
+            const ppCaloriesEl = document.getElementById(`dayNutritionPerPortionCalories-${dayIndex}`);
+            const ppProteinEl = document.getElementById(`dayNutritionPerPortionProtein-${dayIndex}`);
+            const ppFatEl = document.getElementById(`dayNutritionPerPortionFat-${dayIndex}`);
+            const ppCarbsEl = document.getElementById(`dayNutritionPerPortionCarbs-${dayIndex}`);
+            const ppSugarEl = document.getElementById(`dayNutritionPerPortionSugar-${dayIndex}`);
+            const ppFiberEl = document.getElementById(`dayNutritionPerPortionFiber-${dayIndex}`);
+            const ppSaturatedEl = document.getElementById(`dayNutritionPerPortionSaturatedFat-${dayIndex}`);
+            const ppSaltEl = document.getElementById(`dayNutritionPerPortionSalt-${dayIndex}`);
+
             const calories = data?.calories;
             const protein = data?.protein;
             const fat = data?.fat;
@@ -2087,6 +2674,20 @@
             if (fiberEl) fiberEl.textContent = formatNutritionValue(fiber, 1);
             if (saturatedEl) saturatedEl.textContent = formatNutritionValue(saturatedFat, 1);
             if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
+
+            const personCount = Math.max(1, parseInt(document.getElementById('planPersonCount')?.value || '1', 10) || 1);
+            const perPortion = (v) => (Number.isFinite(v) ? v / personCount : v);
+
+            if (ppCaloriesEl) ppCaloriesEl.textContent = formatNutritionValue(perPortion(calories), 0);
+            if (ppProteinEl) ppProteinEl.textContent = formatNutritionValue(perPortion(protein), 1);
+            if (ppFatEl) ppFatEl.textContent = formatNutritionValue(perPortion(fat), 1);
+            if (ppCarbsEl) ppCarbsEl.textContent = formatNutritionValue(perPortion(carbs), 1);
+            if (ppSugarEl) ppSugarEl.textContent = formatNutritionValue(perPortion(sugar), 1);
+            if (ppFiberEl) ppFiberEl.textContent = formatNutritionValue(perPortion(fiber), 1);
+            if (ppSaturatedEl) ppSaturatedEl.textContent = formatNutritionValue(perPortion(saturatedFat), 1);
+            if (ppSaltEl) ppSaltEl.textContent = formatNutritionValue(perPortion(salt), 1);
+
+            updateMacroBar(protein, fat, carbs, 'day', `-${dayIndex}`);
         }
 
         function togglePlanNutrition() {
@@ -2188,7 +2789,7 @@
 
         function generateShareLink() {
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
-            if (!text) { alert("Bitte zuerst eine Einkaufsliste laden oder einfügen."); return; }
+            if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden oder einfügen.", "warn"); return; }
 
             const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
             document.getElementById('shoppingShareLink').value = shareLink;
@@ -2199,7 +2800,7 @@
             if (!linkInput.value) generateShareLink();
             if (linkInput.value) {
                 await navigator.clipboard.writeText(linkInput.value);
-                alert("Link kopiert!");
+                showToast("Link kopiert!", "success");
             }
         }
 
@@ -2350,9 +2951,24 @@
             applyPlanThemeFromProfile();
             const personInput = document.getElementById('planPersonCount');
             if (personInput) {
-                personInput.addEventListener('input', handlePlanPersonCountChange);
-                personInput.addEventListener('change', handlePlanPersonCountChange);
+                personInput.addEventListener('input', () => { handlePlanPersonCountChange(false); syncPersonPresets(); });
+                personInput.addEventListener('change', () => { handlePlanPersonCountChange(true); syncPersonPresets(); });
+                personInput.addEventListener('blur', () => { handlePlanPersonCountChange(true); syncPersonPresets(); });
             }
+
+            const stepperDec = document.getElementById('personStepperDec');
+            const stepperInc = document.getElementById('personStepperInc');
+            if (stepperDec) stepperDec.addEventListener('click', () => setPersonCount(getCurrentPersonCount() - 1));
+            if (stepperInc) stepperInc.addEventListener('click', () => setPersonCount(getCurrentPersonCount() + 1));
+
+            document.querySelectorAll('.person-preset').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const v = parseInt(btn.getAttribute('data-value'), 10);
+                    if (Number.isFinite(v)) setPersonCount(v);
+                });
+            });
+
+            syncPersonPresets();
             const nutritionToggle = document.getElementById('planNutritionToggle');
             if (nutritionToggle) {
                 nutritionToggle.addEventListener('click', togglePlanNutrition);
@@ -2365,6 +2981,34 @@
                     const dayIndex = toggle.dataset.dayIndex;
                     if (dayIndex === undefined) return;
                     toggleDayNutrition(Number(dayIndex));
+                });
+                planContainer.addEventListener('click', (event) => {
+                    const segBtn = event.target.closest('.day-nutrition-segment .nutrition-seg-btn');
+                    if (!segBtn) return;
+                    const seg = segBtn.closest('.day-nutrition-segment');
+                    const di = seg?.dataset.dayIndex;
+                    if (di === undefined) return;
+                    const mode = segBtn.dataset.mode;
+                    seg.querySelectorAll('.nutrition-seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
+                    const totalGrid = document.getElementById(`dayNutritionGridTotal-${di}`);
+                    const portionGrid = document.getElementById(`dayNutritionGridPortion-${di}`);
+                    if (totalGrid) totalGrid.style.display = mode === 'total' ? '' : 'none';
+                    if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
+                });
+            }
+
+            // Weekly nutrition segment toggle
+            const weeklySegment = document.getElementById('nutritionSegment');
+            if (weeklySegment) {
+                weeklySegment.addEventListener('click', (event) => {
+                    const segBtn = event.target.closest('.nutrition-seg-btn');
+                    if (!segBtn) return;
+                    const mode = segBtn.dataset.mode;
+                    weeklySegment.querySelectorAll('.nutrition-seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
+                    const totalGrid = document.getElementById('nutritionGridTotal');
+                    const portionGrid = document.getElementById('nutritionGridPortion');
+                    if (totalGrid) totalGrid.style.display = mode === 'total' ? '' : 'none';
+                    if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
                 });
             }
         });
@@ -2430,6 +3074,28 @@
             catch (e) { console.error(e); }
         }
 
+        async function toggleBookmark(btn) {
+            const recipeId = btn.dataset.recipeId;
+            const userHash = getUserHash();
+            if (!userHash) { showToast("Bitte erst einloggen!", "warn"); return; }
+
+            btn.classList.toggle('bookmarked');
+            const rid = parseInt(recipeId, 10);
+            if (window.bookmarkedRecipeIds) {
+                if (btn.classList.contains('bookmarked')) window.bookmarkedRecipeIds.add(rid);
+                else window.bookmarkedRecipeIds.delete(rid);
+            }
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+            const formData = new FormData();
+            formData.append('userHash', userHash);
+            formData.append('recipeId', recipeId);
+            if (token) formData.append('__RequestVerificationToken', token);
+            try { await fetch('/WorldMiniApp/Feed/ToggleBookmark', { method: 'POST', body: formData }); }
+            catch (e) { console.error(e); }
+        }
+
         function togglePlayPause(container) {
             const video = container.querySelector('video');
             if (!video) return;
@@ -2445,6 +3111,22 @@
             const bigHeart = container.querySelector('.double-tap-heart');
 
             if (heartBtn) heartBtn.classList.toggle('liked');
+
+            if (window.likedRecipeIds && recipeId) {
+                const rid = parseInt(recipeId, 10);
+                if (heartBtn?.classList.contains('liked')) window.likedRecipeIds.add(rid);
+                else window.likedRecipeIds.delete(rid);
+            }
+
+            // Update like count display
+            if (heartBtn) {
+                const countEl = heartBtn.querySelector('.like-count');
+                if (countEl) {
+                    let count = parseInt(countEl.textContent, 10) || 0;
+                    count += heartBtn.classList.contains('liked') ? 1 : -1;
+                    countEl.textContent = Math.max(0, count);
+                }
+            }
 
             if (bigHeart) {
                 bigHeart.style.display = 'block';
@@ -2499,6 +3181,17 @@
                     const recipeId = container?.dataset?.id;
                     if (recipeId) sendLikeToBackend(recipeId);
                     this.classList.toggle('liked');
+                    if (window.likedRecipeIds && recipeId) {
+                        const rid = parseInt(recipeId, 10);
+                        if (this.classList.contains('liked')) window.likedRecipeIds.add(rid);
+                        else window.likedRecipeIds.delete(rid);
+                    }
+                    const countEl = this.querySelector('.like-count');
+                    if (countEl) {
+                        let count = parseInt(countEl.textContent, 10) || 0;
+                        count += this.classList.contains('liked') ? 1 : -1;
+                        countEl.textContent = Math.max(0, count);
+                    }
                 });
             });
         }
@@ -2632,11 +3325,11 @@
         }
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
-            if (!FEED_USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
-            if (!sellerWallet) { alert('Verkäufer-Wallet fehlt.'); return; }
+            if (!FEED_USER_HASH) { showToast('Bitte zuerst einloggen.', 'warn'); return; }
+            if (!sellerWallet) { showToast('Verkäufer-Wallet fehlt.', 'error'); return; }
             const token = feedSelectedPaymentToken;
             const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
-            if (token === 'USDCE' && !feedWldPriceUsd) { alert('WLD/USD Kurs fehlt.'); return; }
+            if (token === 'USDCE' && !feedWldPriceUsd) { showToast('WLD/USD Kurs fehlt.', 'error'); return; }
 
             try {
                 await ensureFeedWalletConnected();
@@ -2649,12 +3342,12 @@
                     const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
                     const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
                     if (data.success) { return; }
-                    alert(data.error || 'Kauf konnte nicht finalisiert werden.');
+                    showToast(data.error || 'Kauf konnte nicht finalisiert werden.', 'error');
                     return;
                 }
-                alert('Kein Zahlungsweg verfügbar.');
+                showToast('Kein Zahlungsweg verfügbar.', 'error');
             } catch (e) {
-                alert(e?.message || 'Kauf fehlgeschlagen.');
+                showToast(e?.message || 'Kauf fehlgeschlagen.', 'error');
             }
         }
 
@@ -2719,6 +3412,8 @@
             const prepLabel = item.prepTime ? `${item.prepTime} min` : '';
             const safeTitle = escapeHtml(item.title || '');
             const safeCreatorName = escapeHtml(item.creatorName || '');
+            const isLikedCls = (item.isLiked || window.likedRecipeIds?.has(item.recipeId)) ? ' liked' : '';
+            const isBookmarkedCls = (item.isBookmarked || window.bookmarkedRecipeIds?.has(item.recipeId)) ? ' bookmarked' : '';
 
             let mediaHtml;
             if (isVideo) {
@@ -2747,8 +3442,12 @@
                         <div class="recipe-meta">${prepLabel}</div>
                     </div>
                     <div class="action-bar">
-                        <div class="action-btn heart-btn" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
+                        <div class="action-btn heart-btn${isLikedCls}" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
                             <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
+                            <span class="action-label like-count">${item.likeCount || 0}</span>
+                        </div>
+                        <div class="action-btn bookmark-btn${isBookmarkedCls}" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); toggleBookmark(this);">
+                            <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
                         </div>
                         <div class="action-btn" onclick="openPlanModal('${item.recipeId}', '${safeTitle}', '${thumbOrSource}')">
                             <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
@@ -2811,6 +3510,13 @@
                 const video = item.querySelector('video');
                 if (video) video.pause();
             });
+
+            // Show skeleton loader
+            itemsEl.innerHTML = `
+                <div class="skeleton-feed">
+                    ${[1,2,3].map(() => `<div class="skeleton-card"><div class="skeleton-shimmer"></div></div>`).join('')}
+                </div>`;
+            if (emptyEl) emptyEl.style.display = 'none';
 
             try {
                 const resp = await fetch(`/WorldMiniApp/Feed/CreatorPostings?creatorHash=${encodeURIComponent(creatorHash)}`);
