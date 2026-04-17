@@ -327,6 +327,45 @@
                 transform: scale(1.02);
             }
 
+    .likes-switcher {
+        display: inline-grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        padding: 6px;
+        margin-bottom: 16px;
+        width: 100%;
+        background: rgba(128,128,128,0.08);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+    }
+
+    .likes-switch-btn {
+        border: none;
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: transparent;
+        color: var(--text);
+        font-weight: 800;
+        font-size: 0.84rem;
+        opacity: 0.7;
+        transition: all 0.2s ease;
+    }
+
+    .likes-switch-btn.active {
+        background: var(--surface);
+        color: var(--accent);
+        opacity: 1;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .likes-panel {
+        display: none;
+    }
+
+    .likes-panel.active {
+        display: block;
+    }
+
     /* --- Content Grid (Hochformat 9:16) --- */
     .video-grid {
         display: grid;
@@ -416,6 +455,16 @@
 
     .grid-item.is-offline {
         opacity: 0.45;
+    }
+
+    .empty-grid-state {
+        text-align: center;
+        padding: 44px 18px;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        box-shadow: var(--shadow);
     }
 
     .grid-offline-badge {
@@ -642,12 +691,55 @@
     <div class="tab-content">
 
         <div class="tab-pane fade show active" id="tab-likes">
-            <div class="video-grid">
-                @foreach (var recipe in Model.LikedRecipes)
+            <div class="likes-switcher" role="tablist" aria-label="Likes and bookmarks switcher">
+                <button type="button" class="likes-switch-btn active" data-likes-panel-target="likes">
+                    <i class="bi bi-heart-fill me-1"></i>@T("Likes", "Likes", "Me gusta", "Curtidas")
+                </button>
+                <button type="button" class="likes-switch-btn" data-likes-panel-target="bookmarks">
+                    <i class="bi bi-bookmark-fill me-1"></i>@T("Bookmarks", "Bookmarks", "Guardados", "Guardados")
+                </button>
+            </div>
+
+            <div class="likes-panel active" data-likes-panel="likes">
+                @if (!Model.LikedRecipes.Any())
                 {
-                    <div class="grid-item shadow-sm" onclick="openFeed('likes', @recipe.Id)">
-                        <img src="@(string.IsNullOrEmpty(recipe.ThumbnailUrl) ? recipe.Source : recipe.ThumbnailUrl)" class="grid-img" loading="lazy">
-                        <div class="grid-overlay"><i class="bi bi-play-fill"></i></div>
+                    <div class="empty-grid-state">
+                        <i class="bi bi-heart fs-1"></i>
+                        <p class="mt-3 mb-0 fw-bold">@T("Noch keine Likes", "No likes yet", "Aún no hay likes", "Ainda sem curtidas")</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="video-grid">
+                        @foreach (var recipe in Model.LikedRecipes)
+                        {
+                            <div class="grid-item shadow-sm" onclick="openFeed('likes', @recipe.Id)">
+                                <img src="@(string.IsNullOrEmpty(recipe.ThumbnailUrl) ? recipe.Source : recipe.ThumbnailUrl)" class="grid-img" loading="lazy">
+                                <div class="grid-overlay"><i class="bi bi-play-fill"></i></div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="likes-panel" data-likes-panel="bookmarks">
+                @if (!Model.BookmarkedRecipes.Any())
+                {
+                    <div class="empty-grid-state">
+                        <i class="bi bi-bookmark fs-1"></i>
+                        <p class="mt-3 mb-0 fw-bold">@T("Noch keine Bookmarks", "No bookmarks yet", "Aún no hay guardados", "Ainda sem guardados")</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="video-grid">
+                        @foreach (var recipe in Model.BookmarkedRecipes)
+                        {
+                            <div class="grid-item shadow-sm" onclick="openFeed('feed', @recipe.Id)">
+                                <img src="@(string.IsNullOrEmpty(recipe.ThumbnailUrl) ? recipe.Source : recipe.ThumbnailUrl)" class="grid-img" loading="lazy">
+                                <div class="grid-overlay"><i class="bi bi-bookmark-fill"></i></div>
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -867,9 +959,24 @@
             window.location.href = url;
         }
 
+        function initLikesSwitcher() {
+            const buttons = document.querySelectorAll('[data-likes-panel-target]');
+            const panels = document.querySelectorAll('[data-likes-panel]');
+            if (!buttons.length || !panels.length) return;
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = button.getAttribute('data-likes-panel-target');
+                    buttons.forEach(btn => btn.classList.toggle('active', btn === button));
+                    panels.forEach(panel => panel.classList.toggle('active', panel.getAttribute('data-likes-panel') === target));
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             setTheme(localStorage.getItem('profile_theme') || 'color');
             animateCounters();
+            initLikesSwitcher();
         });
     </script>
 }

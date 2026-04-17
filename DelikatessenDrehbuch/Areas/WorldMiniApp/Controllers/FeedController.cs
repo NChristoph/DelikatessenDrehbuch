@@ -1,4 +1,4 @@
-using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.StaticScripts;
@@ -548,6 +548,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var likedRecipes = await _context.WorldUserPosting.Where(x => likes.Contains(x.Recipe.Id)).Include(x => x.Recipe).ToListAsync();
             
 
+            // 1b. Bookmarks laden
+            var bookmarks = _context.WorldUserBookmark.Where(x => x.WorldAppUser.UserHash == userHash).Select(x => x.Recipe.Id);
+
+            var bookmarkedRecipes = await _context.WorldUserPosting.Where(x => bookmarks.Contains(x.Recipe.Id)).Include(x => x.Recipe).ToListAsync();
+
             // 2. Abos laden (Wen verfolge ich?)
             var following = await _context.WorldUserAbo
                 .Where(a => a.WorldUser.Id == user.Id)
@@ -600,6 +605,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 User = user,
                 LikedRecipes = likedRecipes,
+                BookmarkedRecipes = bookmarkedRecipes,
                 Following = following,
                 MealPlans = mealPlans,
                 CreatedMealPlans = createdMealPlans,
@@ -778,6 +784,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
     }
 }
+
+
 
 
 

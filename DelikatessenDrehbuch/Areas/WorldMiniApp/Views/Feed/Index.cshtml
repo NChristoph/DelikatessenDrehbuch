@@ -160,6 +160,36 @@
             font-size: 1.2rem;
         }
 
+        .video-progress {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 90px;
+            z-index: 4;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.22);
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .feed-item.has-video .video-progress {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .video-progress-fill {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #ff9966 0%, #ff5e62 100%);
+            box-shadow: 0 0 12px rgba(255, 94, 98, 0.45);
+            transform-origin: left center;
+        }
+
         .info-container {
             position: absolute;
             bottom: 100px;
@@ -255,9 +285,14 @@
             transition: transform 0.1s;
         }
 
-            .action-btn:active {
-                transform: scale(0.9);
-            }
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .share-action-btn .icon-circle {
+            background: rgba(16, 185, 129, 0.26);
+            border-color: rgba(255, 255, 255, 0.26);
+        }
 
         .icon-circle {
             width: 52px;
@@ -356,6 +391,65 @@
                 transform: translate(-50%, -50%) scale(1.2);
                 opacity: 1;
             }
+
+        .pull-refresh-indicator {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translate(-50%, -18px) scale(0.92);
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(12, 12, 12, 0.86);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .pull-refresh-indicator.is-visible {
+            opacity: 1;
+        }
+
+        .pull-refresh-indicator.is-ready,
+        .pull-refresh-indicator.is-refreshing {
+            transform: translate(-50%, 0) scale(1);
+        }
+
+        .pull-refresh-indicator i {
+            font-size: 1rem;
+            transition: transform 0.18s ease;
+        }
+
+        .pull-refresh-indicator.is-ready i {
+            transform: rotate(180deg);
+        }
+
+        .pull-refresh-indicator.is-refreshing i {
+            animation: feed-spin 0.85s linear infinite;
+        }
+
+        .pull-refresh-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        @@keyframes feed-spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* ------------ PLAN MODAL (clean, social) ------------ */
         :root {
@@ -842,6 +936,9 @@
             overflow: hidden;
             opacity: 1;
         }
+        .meal-slot-btn:active {
+            transform: scale(0.97);
+        }
 
         .filled-slot {
             background: var(--plan-surface);
@@ -851,6 +948,10 @@
             overflow: hidden;
             box-shadow: 0 10px 26px rgba(0,0,0,0.35);
             position: relative;
+            transition: transform 0.15s ease;
+        }
+        .filled-slot:active {
+            transform: scale(0.97);
         }
 
         .replace-slot {
@@ -1165,6 +1266,17 @@
             gap: 8px;
         }
 
+        /* === Error Retry === */
+        .feed-error-retry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 50vh;
+            color: #fff;
+            text-align: center;
+        }
+
         /* === Shopping Checklist === */
         .shopping-checklist {
             max-height: 260px;
@@ -1247,42 +1359,152 @@
         }
         @@keyframes btnSpin { to { transform: rotate(360deg); } }
 
-        /* === Macro Progress Bar === */
-        .macro-bar-wrap { margin-bottom: 10px; }
-        .macro-bar {
+        /* === Macro Donut Chart === */
+        .macro-donut-wrap { margin-bottom: 10px; }
+        .macro-donut-row {
             display: flex;
-            height: 10px;
-            border-radius: 6px;
-            overflow: hidden;
-            background: var(--plan-outline);
+            align-items: center;
+            gap: 16px;
         }
-        .macro-bar-seg {
-            height: 100%;
-            transition: width 0.4s ease;
-            min-width: 0;
+        .macro-donut {
+            width: 100px; height: 100px;
+            flex-shrink: 0;
+            transform: rotate(-90deg);
         }
-        .macro-bar-seg.macro-protein { background: #34d399; }
-        .macro-bar-seg.macro-fat { background: #fbbf24; }
-        .macro-bar-seg.macro-carbs { background: #60a5fa; }
-        .macro-bar-legend {
+        .macro-donut-bg {
+            fill: none;
+            stroke: var(--plan-outline);
+            stroke-width: 12;
+        }
+        .macro-donut-ring {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
+        }
+        .macro-donut-ring.macro-protein { stroke: #34d399; }
+        .macro-donut-ring.macro-fat { stroke: #fbbf24; }
+        .macro-donut-ring.macro-carbs { stroke: #60a5fa; }
+        .macro-donut-kcal {
+            font-size: 18px;
+            font-weight: 800;
+            fill: var(--plan-text);
+            text-anchor: middle;
+            dominant-baseline: auto;
+            transform: rotate(90deg);
+            transform-origin: 60px 60px;
+        }
+        .macro-donut-label {
+            font-size: 10px;
+            font-weight: 600;
+            fill: var(--plan-text);
+            opacity: 0.5;
+            text-anchor: middle;
+            dominant-baseline: auto;
+            transform: rotate(90deg);
+            transform-origin: 60px 60px;
+        }
+        .macro-donut-legend {
             display: flex;
-            justify-content: center;
-            gap: 14px;
-            margin-top: 6px;
-            font-size: 0.72rem;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+        .macro-legend-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
             font-weight: 600;
             color: var(--plan-text);
             opacity: 0.85;
         }
-        .macro-legend-item { display: flex; align-items: center; gap: 4px; }
+        .macro-legend-row b { margin-left: auto; }
         .macro-dot {
-            width: 8px; height: 8px;
+            width: 10px; height: 10px;
             border-radius: 50%;
             display: inline-block;
+            flex-shrink: 0;
         }
         .macro-dot.macro-protein { background: #34d399; }
         .macro-dot.macro-fat { background: #fbbf24; }
         .macro-dot.macro-carbs { background: #60a5fa; }
+
+        /* === Kcal Goal / Traffic Light === */
+        .kcal-goal-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--plan-text);
+            opacity: 0.85;
+        }
+        .kcal-goal-row label { white-space: nowrap; }
+        .kcal-goal-input {
+            width: 72px;
+            text-align: center;
+            border: 1px solid var(--plan-outline);
+            border-radius: 8px;
+            background: var(--plan-card);
+            color: var(--plan-text);
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 3px 4px;
+        }
+        .kcal-goal-input:focus { outline: none; border-color: var(--plan-accent); }
+        .macro-donut-kcal.kcal-green { fill: #34d399; }
+        .macro-donut-kcal.kcal-yellow { fill: #fbbf24; }
+        .macro-donut-kcal.kcal-red { fill: #FF5E62; }
+
+        /* === 7-Day Sparkline === */
+        .sparkline-wrap {
+            margin: 4px 0 10px;
+            padding: 8px 0 0;
+            border-top: 1px solid var(--plan-outline);
+        }
+        .sparkline-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--plan-text);
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+        .sparkline-svg {
+            width: 100%;
+            height: 48px;
+            display: block;
+        }
+        .sparkline-line {
+            fill: none;
+            stroke: var(--plan-accent);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .sparkline-fill {
+            fill: var(--plan-accent);
+            opacity: 0.1;
+        }
+        .sparkline-dot {
+            fill: var(--plan-accent);
+        }
+        .sparkline-dot.kcal-green { fill: #34d399; }
+        .sparkline-dot.kcal-yellow { fill: #fbbf24; }
+        .sparkline-dot.kcal-red { fill: #FF5E62; }
+        .sparkline-label {
+            font-size: 7px;
+            fill: var(--plan-text);
+            opacity: 0.5;
+            text-anchor: middle;
+        }
+        .sparkline-goal {
+            stroke: var(--plan-text);
+            stroke-width: 1;
+            stroke-dasharray: 4 3;
+            opacity: 0.25;
+        }
 
         /* === Nutrition Segment Toggle === */
         .nutrition-segment {
@@ -1363,6 +1585,10 @@
 </head>
 <body>
     <div class="toast-container" id="toastContainer"></div>
+    <div class="pull-refresh-indicator" id="pullRefreshIndicator" aria-hidden="true">
+        <i class="bi bi-arrow-down"></i>
+        <span class="pull-refresh-label" id="pullRefreshLabel">@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")</span>
+    </div>
     @Html.AntiForgeryToken()
 
     <div class="section-switch-hint" id="sectionSwitchHint">
@@ -1380,8 +1606,12 @@
                     <div class="creator-feed-header" id="creatorFeedHeader">@T("Rezepte von", "Recipes by", "Recetas de", "Receitas de") <span id="creatorFeedName">Creator</span></div>
                     <div id="creatorFeedItems"></div>
                     <div class="creator-feed-empty" id="creatorFeedEmpty" style="display:none;">
-                        <i class="bi bi-camera-video fs-2"></i>
-                        <div>@T("Keine Rezepte gefunden", "No recipes found", "No se encontraron recetas", "Nenhuma receita encontrada")</div>
+                        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="12" y="18" width="56" height="44" rx="8" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-dasharray="5 4"/>
+                            <circle cx="40" cy="40" r="12" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+                            <polygon points="36,34 36,46 48,40" fill="rgba(255,255,255,0.22)"/>
+                        </svg>
+                        <div style="margin-top:8px;font-weight:600;opacity:0.7;">@T("Keine Rezepte gefunden", "No recipes found", "No se encontraron recetas", "Nenhuma receita encontrada")</div>
                     </div>
                 </div>
             </section>
@@ -1397,6 +1627,7 @@
                     <video class="feed-media" playsinline loop muted preload="metadata" poster="@thumbOrSource">
                         <source src="@item.Source" type="video/mp4">
                     </video>
+                    <div class="video-progress"><div class="video-progress-fill"></div></div>
                     <i class="bi bi-play-fill play-icon-overlay"></i>
                     <div class="sound-toggle" onclick="toggleGlobalSound(this)">
                         <i class="bi bi-volume-mute-fill"></i>
@@ -1432,6 +1663,11 @@
 
                     <div class="action-btn bookmark-btn@(bookmarkedRecipeIds.Contains(item.Recipe.Id) ? " bookmarked" : "")" data-recipe-id="@item.Recipe.Id" onclick="toggleBookmark(this)">
                         <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
+                    </div>
+
+                    <div class="action-btn share-action-btn" onclick="shareRecipeFromButton(this)">
+                        <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
+                        <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                     </div>
 
                     <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
@@ -1534,17 +1770,31 @@
                                     <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
                                     <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
                                 </div>
-                                <div class="macro-bar-wrap" id="macroBarWrap">
-                                    <div class="macro-bar">
-                                        <div class="macro-bar-seg macro-protein" id="macroBarProtein" style="width:0%"></div>
-                                        <div class="macro-bar-seg macro-fat" id="macroBarFat" style="width:0%"></div>
-                                        <div class="macro-bar-seg macro-carbs" id="macroBarCarbs" style="width:0%"></div>
+                                <div class="kcal-goal-row">
+                                    <label for="kcalGoalInput">Tagesziel</label>
+                                    <input type="number" class="kcal-goal-input" id="kcalGoalInput" min="500" max="10000" step="100" placeholder="2000">
+                                    <span>kcal</span>
+                                </div>
+                                <div class="macro-donut-wrap" id="macroBarWrap">
+                                    <div class="macro-donut-row">
+                                        <svg class="macro-donut" viewBox="0 0 120 120" id="macroDonut">
+                                            <circle class="macro-donut-bg" cx="60" cy="60" r="50" />
+                                            <circle class="macro-donut-ring macro-protein" id="macroRingProtein" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                            <circle class="macro-donut-ring macro-fat" id="macroRingFat" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                            <circle class="macro-donut-ring macro-carbs" id="macroRingCarbs" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                            <text x="60" y="55" class="macro-donut-kcal" id="macroDonutKcal">—</text>
+                                            <text x="60" y="70" class="macro-donut-label">kcal</text>
+                                        </svg>
+                                        <div class="macro-donut-legend">
+                                            <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="macroBarProteinPct">0</b>%</div>
+                                            <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="macroBarFatPct">0</b>%</div>
+                                            <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="macroBarCarbsPct">0</b>%</div>
+                                        </div>
                                     </div>
-                                    <div class="macro-bar-legend">
-                                        <span class="macro-legend-item"><span class="macro-dot macro-protein"></span>Protein <b id="macroBarProteinPct">0</b>%</span>
-                                        <span class="macro-legend-item"><span class="macro-dot macro-fat"></span>Fett <b id="macroBarFatPct">0</b>%</span>
-                                        <span class="macro-legend-item"><span class="macro-dot macro-carbs"></span>KH <b id="macroBarCarbsPct">0</b>%</span>
-                                    </div>
+                                </div>
+                                <div class="sparkline-wrap" id="sparklineWrap" style="display:none;">
+                                    <div class="sparkline-title">kcal pro Tag (7 Tage)</div>
+                                    <svg class="sparkline-svg" id="sparklineSvg" viewBox="0 0 200 56" preserveAspectRatio="none"></svg>
                                 </div>
                                 <div class="plan-nutrition-grid" id="nutritionGridTotal">
                                     <div class="plan-nutrition-item">
@@ -1768,6 +2018,7 @@
         let feedWldPriceUsd = null;
         let feedWalletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
         const FEED_USER_HASH = '@userHash';
+        const feedRefreshThresholdPx = 84;
         window.likedRecipeIds = new Set(@Html.Raw(Json.Serialize(likedRecipeIds)));
         window.bookmarkedRecipeIds = new Set(@Html.Raw(Json.Serialize(bookmarkedRecipeIds)));
 
@@ -1810,6 +2061,176 @@
             const stored = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
             const fallback = '@ViewData["UserHash"]';
             return stored || fallback;
+        }
+
+        function triggerHaptic(kind = 'light') {
+            if (!navigator.vibrate) return;
+
+            const pattern = kind === 'success'
+                ? [16, 24, 30]
+                : kind === 'medium'
+                    ? 18
+                    : 10;
+
+            try {
+                navigator.vibrate(pattern);
+            } catch (error) {
+                console.debug('Haptic feedback unavailable', error);
+            }
+        }
+
+        function setVideoProgress(container, progress) {
+            const fill = container?.querySelector('.video-progress-fill');
+            if (!fill) return;
+
+            const clamped = Math.max(0, Math.min(1, progress || 0));
+            fill.style.width = `${(clamped * 100).toFixed(2)}%`;
+        }
+
+        function updateVideoProgress(video) {
+            if (!video) return;
+
+            const container = video.closest('.feed-item');
+            if (!container) return;
+
+            container.classList.add('has-video');
+
+            const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+            const progress = duration > 0 ? video.currentTime / duration : 0;
+            setVideoProgress(container, progress);
+        }
+
+        function bindVideoProgress(container) {
+            const video = container?.querySelector('video');
+            if (!video || video.dataset.progressBound === 'true') return;
+
+            video.dataset.progressBound = 'true';
+            updateVideoProgress(video);
+
+            ['loadedmetadata', 'timeupdate', 'seeking', 'durationchange', 'play', 'pause'].forEach(eventName => {
+                video.addEventListener(eventName, () => updateVideoProgress(video));
+            });
+
+            video.addEventListener('ended', () => setVideoProgress(container, 1));
+        }
+
+        async function shareRecipeFromButton(btn) {
+            const container = btn?.closest('.feed-item');
+            if (!container) return;
+
+            const recipeId = container.dataset.id;
+            const title = container.querySelector('.recipe-title')?.textContent?.trim() || 'Rezept';
+            const creatorName = container.dataset.creatorName || '';
+            const url = `${window.location.origin}/WorldMiniApp/Home/ShowRecipe/${recipeId}`;
+            const shareData = {
+                title,
+                text: creatorName ? `${title} von ${creatorName}` : title,
+                url
+            };
+
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(url);
+                    showToast('Link kopiert!', 'success');
+                } else {
+                    window.prompt('Link teilen:', url);
+                }
+
+                triggerHaptic('medium');
+            } catch (error) {
+                if (error?.name === 'AbortError') return;
+                console.error('Share failed', error);
+                showToast('Teilen gerade nicht verfügbar.', 'warn');
+            }
+        }
+
+        function bindFeedItemState(container) {
+            if (!container || container.dataset.feedBound === 'true') return;
+
+            container.dataset.feedBound = 'true';
+            bindVideoProgress(container);
+        }
+
+        function setupPullToRefresh() {
+            const feedContainer = document.getElementById('feedContainer');
+            const indicator = document.getElementById('pullRefreshIndicator');
+            const label = document.getElementById('pullRefreshLabel');
+            if (!feedContainer || !indicator || !label) return;
+
+            let startY = 0;
+            let isTracking = false;
+            let isReady = false;
+            let isRefreshing = false;
+
+            const resetIndicator = () => {
+                indicator.classList.remove('is-visible', 'is-ready', 'is-refreshing');
+                label.textContent = '@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")';
+                indicator.style.transform = 'translate(-50%, -18px) scale(0.92)';
+                isReady = false;
+            };
+
+            feedContainer.addEventListener('touchstart', (event) => {
+                if (activeSection !== 'feed' || feedContainer.scrollTop > 0 || isRefreshing) return;
+
+                const touch = event.touches?.[0];
+                if (!touch) return;
+
+                startY = touch.clientY;
+                isTracking = true;
+            }, { passive: true });
+
+            feedContainer.addEventListener('touchmove', (event) => {
+                if (!isTracking || activeSection !== 'feed' || isRefreshing) return;
+
+                const touch = event.touches?.[0];
+                if (!touch) return;
+
+                const deltaY = touch.clientY - startY;
+                if (deltaY <= 0 || feedContainer.scrollTop > 0) {
+                    resetIndicator();
+                    return;
+                }
+
+                const pullDistance = Math.min(deltaY * 0.6, 110);
+                isReady = pullDistance >= feedRefreshThresholdPx;
+
+                indicator.classList.add('is-visible');
+                indicator.classList.toggle('is-ready', isReady);
+                indicator.style.transform = `translate(-50%, ${Math.min(pullDistance - 18, 20)}px) scale(${0.92 + Math.min(pullDistance / 220, 0.12)})`;
+                label.textContent = isReady
+                    ? '@T("Loslassen zum Aktualisieren", "Release to refresh", "Suelta para actualizar", "Solte para atualizar")'
+                    : '@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")';
+            }, { passive: true });
+
+            const finishPull = () => {
+                if (!isTracking || isRefreshing) {
+                    isTracking = false;
+                    return;
+                }
+
+                isTracking = false;
+
+                if (!isReady) {
+                    resetIndicator();
+                    return;
+                }
+
+                isRefreshing = true;
+                indicator.classList.add('is-visible', 'is-refreshing');
+                indicator.classList.remove('is-ready');
+                label.textContent = '@T("Aktualisiere Feed...", "Refreshing feed...", "Actualizando feed...", "Atualizando feed...")';
+                indicator.style.transform = 'translate(-50%, 0) scale(1)';
+                triggerHaptic('success');
+                window.location.reload();
+            };
+
+            feedContainer.addEventListener('touchend', finishPull, { passive: true });
+            feedContainer.addEventListener('touchcancel', () => {
+                isTracking = false;
+                if (!isRefreshing) resetIndicator();
+            }, { passive: true });
         }
 
 
@@ -2140,16 +2561,21 @@
                                     <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
                                     <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
                                 </div>
-                                <div class="macro-bar-wrap">
-                                    <div class="macro-bar">
-                                        <div class="macro-bar-seg macro-protein" id="dayMacroBarProtein-${dayIndex}" style="width:0%"></div>
-                                        <div class="macro-bar-seg macro-fat" id="dayMacroBarFat-${dayIndex}" style="width:0%"></div>
-                                        <div class="macro-bar-seg macro-carbs" id="dayMacroBarCarbs-${dayIndex}" style="width:0%"></div>
-                                    </div>
-                                    <div class="macro-bar-legend">
-                                        <span class="macro-legend-item"><span class="macro-dot macro-protein"></span>Protein <b id="dayMacroBarProteinPct-${dayIndex}">0</b>%</span>
-                                        <span class="macro-legend-item"><span class="macro-dot macro-fat"></span>Fett <b id="dayMacroBarFatPct-${dayIndex}">0</b>%</span>
-                                        <span class="macro-legend-item"><span class="macro-dot macro-carbs"></span>KH <b id="dayMacroBarCarbsPct-${dayIndex}">0</b>%</span>
+                                <div class="macro-donut-wrap">
+                                    <div class="macro-donut-row">
+                                        <svg class="macro-donut" viewBox="0 0 120 120" id="dayMacroDonut-${dayIndex}">
+                                            <circle class="macro-donut-bg" cx="60" cy="60" r="50" />
+                                            <circle class="macro-donut-ring macro-protein" id="dayMacroRingProtein-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                            <circle class="macro-donut-ring macro-fat" id="dayMacroRingFat-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                            <circle class="macro-donut-ring macro-carbs" id="dayMacroRingCarbs-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                            <text x="60" y="55" class="macro-donut-kcal" id="dayMacroDonutKcal-${dayIndex}">—</text>
+                                            <text x="60" y="70" class="macro-donut-label">kcal</text>
+                                        </svg>
+                                        <div class="macro-donut-legend">
+                                            <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="dayMacroBarProteinPct-${dayIndex}">0</b>%</div>
+                                            <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="dayMacroBarFatPct-${dayIndex}">0</b>%</div>
+                                            <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="dayMacroBarCarbsPct-${dayIndex}">0</b>%</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="day-nutrition-grid" id="dayNutritionGridTotal-${dayIndex}">
@@ -2248,6 +2674,7 @@
         function addToSlot(key) {
             if (!pendingRecipe) return;
             weeklyPlanData[key] = pendingRecipe;
+            triggerHaptic('medium');
             showToast(`"${pendingRecipe.title || 'Rezept'}" hinzugefügt`, "success", 1800);
             renderPlan();
             scheduleDraftSave();
@@ -2614,12 +3041,13 @@
             if (ppSaturatedEl) ppSaturatedEl.textContent = formatNutritionValue(perPortion(saturatedFat), 1);
             if (ppSaltEl) ppSaltEl.textContent = formatNutritionValue(perPortion(salt), 1);
 
-            updateMacroBar(protein, fat, carbs);
+            updateMacroBar(protein, fat, carbs, calories);
         }
 
-        function updateMacroBar(protein, fat, carbs, prefix, suffix) {
+        function updateMacroBar(protein, fat, carbs, calories, prefix, suffix) {
             prefix = prefix || '';
             suffix = suffix || '';
+            const C = 314.16; // 2 * Math.PI * 50
             const p = Number.isFinite(protein) ? protein : 0;
             const f = Number.isFinite(fat) ? fat : 0;
             const c = Number.isFinite(carbs) ? carbs : 0;
@@ -2627,15 +3055,114 @@
             const pPct = total > 0 ? Math.round(p / total * 100) : 0;
             const fPct = total > 0 ? Math.round(f / total * 100) : 0;
             const cPct = total > 0 ? 100 - pPct - fPct : 0;
-            const el = (id) => document.getElementById(prefix + id + suffix);
-            const bar = (id, v) => { const e = el(id); if (e) e.style.width = v + '%'; };
+            const el = (id) => document.getElementById(prefix ? prefix + id.charAt(0).toUpperCase() + id.slice(1) + suffix : id + suffix);
             const txt = (id, v) => { const e = el(id); if (e) e.textContent = v; };
-            bar('macroBarProtein', pPct);
-            bar('macroBarFat', fPct);
-            bar('macroBarCarbs', cPct);
+
+            // SVG donut rings — stacked segments with offsets
+            const pLen = C * pPct / 100;
+            const fLen = C * fPct / 100;
+            const cLen = C * cPct / 100;
+            const gap = total > 0 ? 4 : 0; // small gap between segments
+
+            const ringP = el('macroRingProtein');
+            const ringF = el('macroRingFat');
+            const ringC = el('macroRingCarbs');
+
+            if (ringP) {
+                ringP.setAttribute('stroke-dasharray', `${Math.max(0, pLen - gap)} ${C}`);
+                ringP.setAttribute('stroke-dashoffset', '0');
+            }
+            if (ringF) {
+                ringF.setAttribute('stroke-dasharray', `${Math.max(0, fLen - gap)} ${C}`);
+                ringF.setAttribute('stroke-dashoffset', `${-pLen}`);
+            }
+            if (ringC) {
+                ringC.setAttribute('stroke-dasharray', `${Math.max(0, cLen - gap)} ${C}`);
+                ringC.setAttribute('stroke-dashoffset', `${-(pLen + fLen)}`);
+            }
+
+            // kcal center text + traffic light
+            const kcalEl = el('macroDonutKcal');
+            if (kcalEl) {
+                kcalEl.textContent = Number.isFinite(calories) ? Math.round(calories) : '—';
+                applyKcalTrafficLight(kcalEl, calories, prefix === 'day');
+            }
+
+            // legend percentages
             txt('macroBarProteinPct', pPct);
             txt('macroBarFatPct', fPct);
             txt('macroBarCarbsPct', cPct);
+        }
+
+        function getKcalGoal() {
+            const v = parseInt(localStorage.getItem('kcalGoal') || '', 10);
+            return v > 0 ? v : 0;
+        }
+
+        function applyKcalTrafficLight(kcalEl, calories, isDay) {
+            kcalEl.classList.remove('kcal-green', 'kcal-yellow', 'kcal-red');
+            const goal = getKcalGoal();
+            if (!goal || !Number.isFinite(calories) || calories <= 0) return;
+            const compare = isDay ? calories : calories / 7;
+            const ratio = compare / goal;
+            if (ratio <= 0.9) kcalEl.classList.add('kcal-green');
+            else if (ratio <= 1.1) kcalEl.classList.add('kcal-yellow');
+            else kcalEl.classList.add('kcal-red');
+        }
+
+        function getTrafficClass(kcal) {
+            const goal = getKcalGoal();
+            if (!goal || kcal <= 0) return '';
+            const ratio = kcal / goal;
+            if (ratio <= 0.9) return 'kcal-green';
+            if (ratio <= 1.1) return 'kcal-yellow';
+            return 'kcal-red';
+        }
+
+        const dayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+        const _dayKcalCache = new Array(7).fill(0);
+
+        function renderSparkline() {
+            const wrap = document.getElementById('sparklineWrap');
+            const svg = document.getElementById('sparklineSvg');
+            if (!wrap || !svg) return;
+
+            const vals = _dayKcalCache;
+            const hasData = vals.some(v => v > 0);
+            wrap.style.display = hasData ? '' : 'none';
+            if (!hasData) return;
+
+            const goal = getKcalGoal();
+            const W = 200, H = 56, padX = 14, padTop = 6, padBot = 14;
+            const plotH = H - padTop - padBot;
+            const maxVal = Math.max(...vals, goal || 0, 100);
+            const stepX = vals.length > 1 ? (W - 2 * padX) / (vals.length - 1) : 0;
+
+            const pts = vals.map((v, i) => ({
+                x: padX + i * stepX,
+                y: padTop + plotH - (v / maxVal) * plotH
+            }));
+
+            const polyline = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+            const fillPoly = `${padX},${padTop + plotH} ${polyline} ${pts[pts.length - 1].x.toFixed(1)},${padTop + plotH}`;
+
+            let html = `<polygon class="sparkline-fill" points="${fillPoly}" />`;
+            html += `<polyline class="sparkline-line" points="${polyline}" />`;
+
+            // goal line
+            if (goal > 0) {
+                const gy = padTop + plotH - (goal / maxVal) * plotH;
+                html += `<line class="sparkline-goal" x1="${padX}" y1="${gy.toFixed(1)}" x2="${W - padX}" y2="${gy.toFixed(1)}" />`;
+            }
+
+            // dots + labels
+            pts.forEach((p, i) => {
+                const tc = getTrafficClass(vals[i]);
+                html += `<circle class="sparkline-dot${tc ? ' ' + tc : ''}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" />`;
+                html += `<text class="sparkline-label" x="${p.x.toFixed(1)}" y="${H - 2}">${dayLabels[i] || ''}</text>`;
+            });
+
+            svg.innerHTML = html;
         }
 
         function setDayNutritionTotals(dayIndex, data) {
@@ -2687,7 +3214,7 @@
             if (ppSaturatedEl) ppSaturatedEl.textContent = formatNutritionValue(perPortion(saturatedFat), 1);
             if (ppSaltEl) ppSaltEl.textContent = formatNutritionValue(perPortion(salt), 1);
 
-            updateMacroBar(protein, fat, carbs, 'day', `-${dayIndex}`);
+            updateMacroBar(protein, fat, carbs, calories, 'day', `-${dayIndex}`);
         }
 
         function togglePlanNutrition() {
@@ -2734,6 +3261,7 @@
                 if (recipeIds.length === 0) {
                     if (statusEl) statusEl.textContent = 'Keine Rezepte';
                     setDayNutritionTotals(dayIndex, null);
+                    _dayKcalCache[dayIndex] = 0;
                     return;
                 }
 
@@ -2747,13 +3275,17 @@
                     if (!response.ok) throw new Error('Day nutrition fetch failed');
                     const data = await response.json();
                     setDayNutritionTotals(dayIndex, data);
+                    _dayKcalCache[dayIndex] = Number.isFinite(data?.calories) ? data.calories : 0;
                     if (statusEl) statusEl.textContent = 'Aktuell';
                 } catch (error) {
                     console.error("Tagesnährwerte konnten nicht geladen werden.", error);
                     setDayNutritionTotals(dayIndex, null);
+                    _dayKcalCache[dayIndex] = 0;
                     if (statusEl) statusEl.textContent = 'Fehler';
                 }
             }));
+
+            renderSparkline();
         }
 
         async function updatePlanNutritionTotals() {
@@ -3011,6 +3543,25 @@
                     if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
                 });
             }
+
+            // Kcal goal — load from localStorage & save on change
+            const kcalGoalInput = document.getElementById('kcalGoalInput');
+            if (kcalGoalInput) {
+                const saved = localStorage.getItem('kcalGoal');
+                if (saved) kcalGoalInput.value = saved;
+                kcalGoalInput.addEventListener('change', () => {
+                    const v = parseInt(kcalGoalInput.value, 10);
+                    if (v > 0) localStorage.setItem('kcalGoal', v);
+                    else localStorage.removeItem('kcalGoal');
+                    // Re-apply traffic light on all visible donuts + sparkline
+                    document.querySelectorAll('.macro-donut-kcal').forEach(el => {
+                        const kcalVal = parseFloat(el.textContent);
+                        const isDay = el.id.startsWith('day');
+                        applyKcalTrafficLight(el, isNaN(kcalVal) ? null : kcalVal, isDay);
+                    });
+                    renderSparkline();
+                });
+            }
         });
 
         document.addEventListener('visibilitychange', () => {
@@ -3111,6 +3662,7 @@
             const bigHeart = container.querySelector('.double-tap-heart');
 
             if (heartBtn) heartBtn.classList.toggle('liked');
+            triggerHaptic('medium');
 
             if (window.likedRecipeIds && recipeId) {
                 const rid = parseInt(recipeId, 10);
@@ -3138,7 +3690,10 @@
         }
 
         function attachFeedHandlers() {
-            document.querySelectorAll('.feed-item').forEach(item => observer.observe(item));
+            document.querySelectorAll('.feed-item').forEach(item => {
+                bindFeedItemState(item);
+                observer.observe(item);
+            });
 
             document.querySelectorAll('.feed-item video').forEach(video => {
                 const container = video.closest('.feed-item');
@@ -3181,6 +3736,7 @@
                     const recipeId = container?.dataset?.id;
                     if (recipeId) sendLikeToBackend(recipeId);
                     this.classList.toggle('liked');
+                    triggerHaptic('medium');
                     if (window.likedRecipeIds && recipeId) {
                         const rid = parseInt(recipeId, 10);
                         if (this.classList.contains('liked')) window.likedRecipeIds.add(rid);
@@ -3224,6 +3780,8 @@
 
             try { await fetch('/WorldMiniApp/Feed/ToggleFollow', { method: 'POST', body: formData }); }
             catch (error) { console.error("Netzwerkfehler:", error); }
+
+            triggerHaptic('medium');
         }
 
 
@@ -3421,6 +3979,7 @@
                     <video class="feed-media" playsinline loop muted preload="metadata" poster="${thumbOrSource}">
                         <source src="${item.source}" type="video/mp4">
                     </video>
+                    <div class="video-progress"><div class="video-progress-fill"></div></div>
                     <i class="bi bi-play-fill play-icon-overlay"></i>
                     <div class="sound-toggle" onclick="toggleGlobalSound(this)">
                         <i class="bi bi-volume-mute-fill"></i>
@@ -3449,7 +4008,11 @@
                         <div class="action-btn bookmark-btn${isBookmarkedCls}" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); toggleBookmark(this);">
                             <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
                         </div>
-                        <div class="action-btn" onclick="openPlanModal('${item.recipeId}', '${safeTitle}', '${thumbOrSource}')">
+                        <div class="action-btn share-action-btn" onclick="event.stopPropagation(); shareRecipeFromButton(this);">
+                            <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
+                            <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
+                        </div>
+                        <div class="action-btn" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
                             <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
                             <span class="action-label">Plan</span>
                         </div>
@@ -3467,6 +4030,7 @@
             if (!container) return;
 
             container.querySelectorAll('.feed-item').forEach(item => {
+                bindFeedItemState(item);
                 creatorObserver.observe(item);
 
                 let lastTap = 0;
@@ -3536,8 +4100,13 @@
                 creatorFeedCache = { creatorHash, loaded: true };
             } catch (e) {
                 console.error('Creator feed load error:', e);
-                itemsEl.innerHTML = '';
-                if (emptyEl) emptyEl.style.display = '';
+                itemsEl.innerHTML = `<div class="feed-error-retry">
+                    <i class="bi bi-wifi-off" style="font-size:1.6rem;opacity:0.5;"></i>
+                    <div style="font-size:0.85rem;opacity:0.7;margin:6px 0;">Laden fehlgeschlagen</div>
+                    <button class="btn btn-sm btn-outline-light" onclick="creatorFeedCache.loaded=false; loadCreatorFeedForCurrentItem();">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Nochmal versuchen
+                    </button>
+                </div>`;
             }
         }
 
@@ -3545,6 +4114,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             attachFeedHandlers();
             attachPlanScrollBehavior();
+            setupPullToRefresh();
             loadDraft();
             renderPlan();
             updatePlanModeHeader();

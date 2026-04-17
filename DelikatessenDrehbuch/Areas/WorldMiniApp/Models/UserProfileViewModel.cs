@@ -8,6 +8,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
         // Immer sichtbar
         public List<WorldUserPosting> LikedRecipes { get; set; }
+        public List<WorldUserPosting> BookmarkedRecipes { get; set; } = new();
         public List<WorldAppUser> Following { get; set; }
         public List<WorldUserMealPlan> MealPlans { get; set; } = new();
         public List<WorldUserMealPlan> CreatedMealPlans { get; set; } = new();
@@ -19,5 +20,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public int FollowerCount { get; set; } // Wer folgt mir?
     }
 }
+
+
 
 
