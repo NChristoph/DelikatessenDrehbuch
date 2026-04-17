@@ -718,11 +718,36 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
         }
 
+        // Supermarkt-Bereich-Mapping: Zutat-Gruppen → Supermarkt-Abteilung + Sortierung
+        private static readonly Dictionary<string, (string Aisle, int Order)> AisleMap = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Gemüse"]        = ("🥬 Obst & Gemüse", 1),
+            ["Obst"]          = ("🥬 Obst & Gemüse", 1),
+            ["Milchprodukte"] = ("🧊 Kühlregal", 2),
+            ["Milch"]         = ("🧊 Kühlregal", 2),
+            ["Fleisch"]       = ("🥩 Frischetheke", 3),
+            ["Fisch"]         = ("🥩 Frischetheke", 3),
+            ["Getreide"]      = ("🌾 Trockenware", 4),
+            ["Nüsse"]         = ("🌾 Trockenware", 4),
+            ["Gewürze"]       = ("🧂 Gewürze & Extras", 5),
+            ["Extras"]        = ("🧂 Gewürze & Extras", 5),
+            ["Sonstige"]      = ("📦 Sonstiges", 6),
+            ["Sonstiges"]     = ("📦 Sonstiges", 6),
+        };
+
+        private static (string Aisle, int Order) GetAisle(string groupName)
+        {
+            if (!string.IsNullOrEmpty(groupName) && AisleMap.TryGetValue(groupName, out var mapped))
+                return mapped;
+            return ("📦 Sonstiges", 6);
+        }
+
         private static string BuildShoppingListText(List<ShoppingListItem> items)
         {
             var grouped = items
-                .GroupBy(x => x.GroupName ?? "Sonstiges")
-                .OrderBy(g => g.Key);
+                .GroupBy(x => GetAisle(x.GroupName ?? "Sonstiges").Aisle)
+                .OrderBy(g => GetAisle(g.First().GroupName ?? "Sonstiges").Order)
+                .ThenBy(g => g.Key);
 
             var builder = new System.Text.StringBuilder();
             foreach (var group in grouped)

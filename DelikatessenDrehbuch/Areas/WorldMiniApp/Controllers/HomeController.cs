@@ -88,6 +88,44 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetRecipePreview(int id)
+        {
+            var recipe = await _context.RecipeBaseData
+                .AsNoTracking()
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.IngredientsAndNutrients)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Quantity)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Measure)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null) return NotFound();
+
+            var ingredients = recipe.Ingredients?
+                .Select(ri => new
+                {
+                    name = ri.Ingredient?.IngredientsAndNutrients?.Name_DE ?? "",
+                    quantity = ri.Ingredient?.Quantity?.Quantitys,
+                    unit = ri.Ingredient?.Measure?.Metrics_DE ?? ""
+                })
+                .Where(x => !string.IsNullOrWhiteSpace(x.name))
+                .ToList() ?? new();
+
+            return Json(new
+            {
+                title = recipe.Title,
+                category = recipe.Category,
+                prepTime = recipe.PreparationTime,
+                personCount = recipe.PersonCount,
+                ingredients
+            });
+        }
+
         public async Task<IActionResult> ShowRecipe(int id)
         {
             var model = await _context.RecipeBaseData

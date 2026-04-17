@@ -896,14 +896,52 @@
             padding: 12px;
         }
 
+        .plan-day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .day-label {
             font-weight: 950;
             color: var(--plan-accent);
-            margin-bottom: 10px;
             display: block;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1.2px;
+        }
+
+        .day-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .day-duplicate-btn {
+            border: 1px solid var(--plan-outline);
+            background: var(--plan-input-bg);
+            color: var(--plan-text);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            transition: all 0.18s ease;
+        }
+
+        .day-duplicate-btn.is-source {
+            background: var(--plan-accent);
+            color: var(--plan-button-text);
+            border-color: var(--plan-accent);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+        }
+
+        .day-duplicate-btn.is-target {
+            border-color: var(--plan-accent-border);
+            box-shadow: 0 0 0 1px var(--plan-accent-border);
         }
 
         .slot-container {
@@ -936,6 +974,19 @@
             overflow: hidden;
             opacity: 1;
         }
+
+        .meal-slot-btn.slot-pending-highlight {
+            animation: pendingSlotPulse 1.45s ease-in-out infinite;
+            box-shadow: 0 0 0 1px var(--plan-accent-border), 0 0 24px rgba(255, 153, 102, 0.12);
+        }
+
+        .meal-slot-btn.drag-target,
+        .filled-slot.drag-target {
+            outline: 2px solid var(--plan-accent);
+            outline-offset: -2px;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.35), 0 0 0 4px rgba(255, 153, 102, 0.14);
+        }
+
         .meal-slot-btn:active {
             transform: scale(0.97);
         }
@@ -949,7 +1000,27 @@
             box-shadow: 0 10px 26px rgba(0,0,0,0.35);
             position: relative;
             transition: transform 0.15s ease;
+            touch-action: none;
+            user-select: none;
+            will-change: transform;
+            backface-visibility: hidden;
         }
+
+        .filled-slot.swiping {
+            transition: none;
+        }
+
+        .filled-slot.dragging-source {
+            z-index: 6;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.42);
+            cursor: grabbing;
+            transition: none !important;
+        }
+
+        .filled-slot.drag-placeholder {
+            opacity: 0.55;
+        }
+
         .filled-slot:active {
             transform: scale(0.97);
         }
@@ -966,6 +1037,9 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            -webkit-user-drag: none;
+            user-select: none;
+            pointer-events: none;
         }
 
         .mini-content {
@@ -1047,8 +1121,43 @@
             border: 1px solid rgba(255,255,255,0.10);
         }
 
+        .slot-swipe-delete-bg {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 14px;
+            background: linear-gradient(90deg, rgba(255,94,98,0) 0%, rgba(255,94,98,0.28) 45%, rgba(255,94,98,0.82) 100%);
+            color: #fff;
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease;
+            z-index: 0;
+        }
+
+        .filled-slot.swiping .slot-swipe-delete-bg {
+            opacity: 1;
+        }
+
         .plan-text-muted {
             color: var(--plan-muted-text);
+        }
+
+        @@keyframes pendingSlotPulse {
+            0%, 100% {
+                transform: scale(1);
+                border-color: var(--plan-accent-border);
+            }
+
+            50% {
+                transform: scale(1.015);
+                border-color: var(--plan-accent);
+            }
         }
 
         .shopping-share textarea {
@@ -1506,6 +1615,70 @@
             opacity: 0.25;
         }
 
+        /* === Quick-Peek Bottom Sheet === */
+        .quick-peek-sheet {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            max-height: 55vh;
+            background: var(--plan-card, #1a1a2e);
+            border-radius: 18px 18px 0 0;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.45);
+            z-index: 2100;
+            transform: translateY(100%);
+            transition: transform 0.32s cubic-bezier(.4,0,.2,1);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding: 0 16px 24px;
+            color: var(--plan-text, #fff);
+        }
+        .quick-peek-sheet.is-open { transform: translateY(0); }
+        .quick-peek-handle {
+            width: 36px; height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.25);
+            margin: 10px auto 12px;
+        }
+        .quick-peek-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .quick-peek-meta {
+            font-size: 0.78rem;
+            opacity: 0.6;
+            margin-bottom: 12px;
+        }
+        .quick-peek-section {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.5;
+            margin: 12px 0 6px;
+        }
+        .quick-peek-ingredients {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .quick-peek-chip {
+            background: rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+        .quick-peek-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 2099;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+        .quick-peek-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
         /* === Nutrition Segment Toggle === */
         .nutrition-segment {
             display: grid;
@@ -1566,6 +1739,27 @@
             text-align: center;
             line-height: 1.35;
         }
+        .toast-msg.has-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+        }
+        .toast-msg-content {
+            min-width: 0;
+        }
+        .toast-action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.18);
+            color: inherit;
+            font-weight: 900;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+        }
         .toast-msg.toast-out {
             animation: toastOut 0.22s ease forwards;
         }
@@ -1585,6 +1779,14 @@
 </head>
 <body>
     <div class="toast-container" id="toastContainer"></div>
+    <div class="quick-peek-backdrop" id="quickPeekBackdrop"></div>
+    <div class="quick-peek-sheet" id="quickPeekSheet">
+        <div class="quick-peek-handle"></div>
+        <div class="quick-peek-title" id="quickPeekTitle"></div>
+        <div class="quick-peek-meta" id="quickPeekMeta"></div>
+        <div class="quick-peek-section">Zutaten</div>
+        <div class="quick-peek-ingredients" id="quickPeekIngredients"></div>
+    </div>
     <div class="pull-refresh-indicator" id="pullRefreshIndicator" aria-hidden="true">
         <i class="bi bi-arrow-down"></i>
         <span class="pull-refresh-label" id="pullRefreshLabel">@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")</span>
@@ -1629,7 +1831,7 @@
                     </video>
                     <div class="video-progress"><div class="video-progress-fill"></div></div>
                     <i class="bi bi-play-fill play-icon-overlay"></i>
-                    <div class="sound-toggle" onclick="toggleGlobalSound(this)">
+                    <div class="sound-toggle" role="button" aria-label="Ton ein/aus" onclick="toggleGlobalSound(this)">
                         <i class="bi bi-volume-mute-fill"></i>
                     </div>
                 }
@@ -1646,7 +1848,7 @@
                         <span class="chef-icon">&#x1F951;</span>
                         <span class="chef-name">@(item?.CreatorName ?? "Delikatessen")</span>
                         <div class="separator"></div>
-                        <button class="follow-btn" onclick="toggleFollow(event, this, '@item?.CreatorId')">
+                        <button class="follow-btn" aria-label="Folgen" onclick="toggleFollow(event, this, '@item?.CreatorId')">
                             <i class="bi bi-person-plus-fill"></i>
                         </button>
                     </div>
@@ -1656,27 +1858,27 @@
                 </div>
 
                 <div class="action-bar">
-                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" data-recipe-id="@item.Recipe.Id">
+                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="Gefällt mir" data-recipe-id="@item.Recipe.Id">
                         <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                         <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
                     </div>
 
-                    <div class="action-btn bookmark-btn@(bookmarkedRecipeIds.Contains(item.Recipe.Id) ? " bookmarked" : "")" data-recipe-id="@item.Recipe.Id" onclick="toggleBookmark(this)">
+                    <div class="action-btn bookmark-btn@(bookmarkedRecipeIds.Contains(item.Recipe.Id) ? " bookmarked" : "")" role="button" aria-label="Merken" data-recipe-id="@item.Recipe.Id" onclick="toggleBookmark(this)">
                         <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
                     </div>
 
-                    <div class="action-btn share-action-btn" onclick="shareRecipeFromButton(this)">
+                    <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="shareRecipeFromButton(this)">
                         <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
                         <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                     </div>
 
-                    <div class="action-btn" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
+                    <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
                         <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                         <span class="action-label">Planen</span>
                     </div>
 
                     <div class="action-btn">
-                        <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none">
+                        <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none" aria-label="Rezept anzeigen">
                             <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
                         </a>
                     </div>
@@ -1719,22 +1921,22 @@
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="nav-item text-decoration-none">
+    <div class="bottom-nav" role="navigation" aria-label="Hauptnavigation">
+        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="nav-item text-decoration-none" aria-label="Startseite">
             <i class="bi bi-house-door-fill"></i>
         </a>
-        <div class="nav-item" onclick="openPlanModal(null, null, null)">
+        <div class="nav-item" role="button" aria-label="Wochenplan" onclick="openPlanModal(null, null, null)">
             <i class="bi bi-calendar-week"></i>
         </div>
         <div class="add-btn-wrapper">
-            <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none">
+            <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none" aria-label="Rezept hochladen">
                 <i class="bi bi-plus"></i>
             </a>
         </div>
-        <div class="nav-item" onclick="openSearchModal()" title="Suche">
+        <div class="nav-item" role="button" aria-label="Suche" onclick="openSearchModal()">
             <i class="bi bi-search"></i>
         </div>
-        <div class="nav-item" onclick="goToProfile()" style="cursor: pointer;">
+        <div class="nav-item" role="button" aria-label="Profil" onclick="goToProfile()" style="cursor: pointer;">
             <i class="bi bi-person-fill"></i>
         </div>
     </div>
@@ -1914,9 +2116,17 @@
                                 </button>
                             </div>
 
-                            <button type="button" class="btn plan-btn-secondary btn-sm w-100 mt-2" onclick="clearWeeklyPlanState(true)">
-                                <i class="bi bi-trash3 me-1"></i> Plan leeren
-                            </button>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn plan-btn-secondary btn-sm flex-grow-1" onclick="clearWeeklyPlanState(true)">
+                                    <i class="bi bi-trash3 me-1"></i> Plan leeren
+                                </button>
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="exportPlanAsIcs()" aria-label="Kalender-Export">
+                                    <i class="bi bi-calendar-event me-1"></i> .ics Export
+                                </button>
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shufflePlanFromLikes)" aria-label="Zufällig befüllen">
+                                    <i class="bi bi-shuffle me-1"></i> Shuffle
+                                </button>
+                            </div>
 
                             <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
 
@@ -1959,7 +2169,7 @@
     <div class="offcanvas offcanvas-bottom" tabindex="-1" id="feedPreviewOffcanvas" style="max-height:82vh; border-radius:1.2rem 1.2rem 0 0;">
         <div class="offcanvas-header">
             <h6 class="offcanvas-title fw-bold" id="feedPreviewTitle">Plan-Vorschau</h6>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Schließen"></button>
         </div>
         <div class="offcanvas-body" id="feedPreviewBody"></div>
     </div>
@@ -2023,17 +2233,49 @@
         window.bookmarkedRecipeIds = new Set(@Html.Raw(Json.Serialize(bookmarkedRecipeIds)));
 
         // ----------------- toast -----------------
-        function showToast(message, type = 'info', duration = 2800) {
+        function showToast(message, type = 'info', duration = 2800, action = null) {
             const c = document.getElementById('toastContainer');
             if (!c) return;
             const el = document.createElement('div');
             el.className = `toast-msg toast-${type}`;
-            el.textContent = message;
+
+            if (action?.label && typeof action.onClick === 'function') {
+                el.classList.add('has-action');
+
+                const content = document.createElement('div');
+                content.className = 'toast-msg-content';
+                content.textContent = message;
+                el.appendChild(content);
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'toast-action-btn';
+                button.textContent = action.label;
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    action.onClick();
+                    dismissToast(el);
+                });
+                el.appendChild(button);
+            } else {
+                el.textContent = message;
+            }
+
             c.appendChild(el);
-            setTimeout(() => {
-                el.classList.add('toast-out');
-                el.addEventListener('animationend', () => el.remove(), { once: true });
-            }, duration);
+            const timeoutId = window.setTimeout(() => dismissToast(el), duration);
+            el.dataset.toastTimeoutId = String(timeoutId);
+            return el;
+        }
+
+        function dismissToast(el) {
+            if (!el || el.dataset.dismissed === 'true') return;
+            el.dataset.dismissed = 'true';
+
+            const timeoutId = Number(el.dataset.toastTimeoutId || 0);
+            if (timeoutId) window.clearTimeout(timeoutId);
+
+            el.classList.add('toast-out');
+            el.addEventListener('animationend', () => el.remove(), { once: true });
         }
 
         async function withButtonSpinner(btn, asyncFn) {
@@ -2063,17 +2305,10 @@
             return stored || fallback;
         }
 
-        function triggerHaptic(kind = 'light') {
+        function triggerHaptic() {
             if (!navigator.vibrate) return;
-
-            const pattern = kind === 'success'
-                ? [16, 24, 30]
-                : kind === 'medium'
-                    ? 18
-                    : 10;
-
             try {
-                navigator.vibrate(pattern);
+                navigator.vibrate(20);
             } catch (error) {
                 console.debug('Haptic feedback unavailable', error);
             }
@@ -2138,7 +2373,6 @@
                     window.prompt('Link teilen:', url);
                 }
 
-                triggerHaptic('medium');
             } catch (error) {
                 if (error?.name === 'AbortError') return;
                 console.error('Share failed', error);
@@ -2151,6 +2385,7 @@
 
             container.dataset.feedBound = 'true';
             bindVideoProgress(container);
+            bindQuickPeekSwipe(container);
         }
 
         function setupPullToRefresh() {
@@ -2222,7 +2457,6 @@
                 indicator.classList.remove('is-ready');
                 label.textContent = '@T("Aktualisiere Feed...", "Refreshing feed...", "Actualizando feed...", "Atualizando feed...")';
                 indicator.style.transform = 'translate(-50%, 0) scale(1)';
-                triggerHaptic('success');
                 window.location.reload();
             };
 
@@ -2373,6 +2607,30 @@
         let pendingRecipe = null;
         let editingSlotKey = null;
         let saveTimer = null;
+        let duplicateSourceDayIndex = null;
+        let pendingDeleteUndoState = null;
+        let pendingDeleteUndoToast = null;
+        let suppressPlanClickUntil = 0;
+        const planSwipeDeleteThreshold = 72;
+        const planLongPressDelayMs = 280;
+        const planDeleteUndoDurationMs = 4000;
+        let planGlobalPointerHandlersBound = false;
+        const planPointerState = {
+            pointerId: null,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            renderDx: 0,
+            renderDy: 0,
+            dragFrameId: null,
+            swiping: false,
+            dragging: false,
+            sourceKey: null,
+            sourceElement: null,
+            targetKey: null,
+            longPressTimer: null
+        };
 
         function hexToRgb(hex) {
             const cleaned = hex.replace('#', '').trim();
@@ -2442,8 +2700,8 @@
             const safeTitle = pendingRecipe.title || '';
             const isVideo = pendingRecipe.img && pendingRecipe.img.endsWith('.mp4');
             media.innerHTML = isVideo
-                ? `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata"></video>`
-                : `<img src="${pendingRecipe.img}" alt="${escapeHtml(safeTitle)}" loading="lazy" />`;
+                ? `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata" draggable="false"></video>`
+                : `<img src="${pendingRecipe.img}" alt="${escapeHtml(safeTitle)}" loading="lazy" draggable="false" />`;
 
             titleEl.textContent = safeTitle;
             card.style.display = 'flex';
@@ -2451,6 +2709,138 @@
 
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
         const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
+
+        function clonePlanRecipe(recipe) {
+            if (!recipe) return null;
+            return {
+                title: recipe.title || '',
+                img: recipe.img || '',
+                recipeId: recipe.recipeId || ''
+            };
+        }
+
+        function getSlotKey(dayIndex, slotIndex) {
+            return `${dayIndex}-${slotIndex}`;
+        }
+
+        function getDaySlotKeys(dayIndex) {
+            return slots.map((_, slotIndex) => getSlotKey(dayIndex, slotIndex));
+        }
+
+        function commitPlanStateChange({ render = true, save = true, updateHeader = false } = {}) {
+            if (updateHeader) updatePlanModeHeader();
+            if (render) renderPlan();
+            else scheduleNutritionUpdate();
+            if (save) scheduleDraftSave();
+        }
+
+        function clearPendingDeleteUndoState({ dismissExistingToast = true } = {}) {
+            pendingDeleteUndoState = null;
+            if (dismissExistingToast && pendingDeleteUndoToast) dismissToast(pendingDeleteUndoToast);
+            pendingDeleteUndoToast = null;
+        }
+
+        function setSlotItem(key, recipe, options = {}) {
+            if (!key || !recipe) return;
+
+            const {
+                save = true,
+                updateHeader = false,
+                toastMessage = '',
+                toastType = 'success',
+                haptic = false
+            } = options;
+
+            weeklyPlanData[key] = clonePlanRecipe(recipe);
+
+            if (haptic) triggerHaptic();
+            if (toastMessage) showToast(toastMessage, toastType, 1800);
+
+            commitPlanStateChange({ render: true, save, updateHeader });
+        }
+
+        function deleteSlotItem(key, options = {}) {
+            if (!key || !weeklyPlanData[key]) return;
+
+            const { withUndo = false, save = true } = options;
+            const deletedItem = clonePlanRecipe(weeklyPlanData[key]);
+
+            delete weeklyPlanData[key];
+
+            if (withUndo) {
+                clearPendingDeleteUndoState();
+                pendingDeleteUndoState = { key, item: deletedItem };
+                pendingDeleteUndoToast = showToast(
+                    `"${deletedItem?.title || 'Rezept'}" entfernt`,
+                    'warn',
+                    planDeleteUndoDurationMs,
+                    {
+                        label: 'Undo',
+                        onClick: undoDeletedSlot
+                    });
+            }
+
+            commitPlanStateChange({ render: true, save });
+        }
+
+        function undoDeletedSlot() {
+            if (!pendingDeleteUndoState?.key || !pendingDeleteUndoState?.item) return;
+
+            weeklyPlanData[pendingDeleteUndoState.key] = clonePlanRecipe(pendingDeleteUndoState.item);
+            clearPendingDeleteUndoState({ dismissExistingToast: false });
+            commitPlanStateChange({ render: true, save: true });
+        }
+
+        function moveSlotItem(fromKey, toKey, options = {}) {
+            if (!fromKey || !toKey || fromKey === toKey) return;
+            if (!weeklyPlanData[fromKey]) return;
+
+            const sourceItem = clonePlanRecipe(weeklyPlanData[fromKey]);
+            const targetItem = clonePlanRecipe(weeklyPlanData[toKey]);
+
+            if (targetItem) weeklyPlanData[fromKey] = targetItem;
+            else delete weeklyPlanData[fromKey];
+
+            weeklyPlanData[toKey] = sourceItem;
+
+            commitPlanStateChange({
+                render: true,
+                save: options.save !== false
+            });
+        }
+
+        function duplicateDay(fromDayIndex, toDayIndex) {
+            if (fromDayIndex === null || toDayIndex === null || fromDayIndex === toDayIndex) return;
+
+            getDaySlotKeys(fromDayIndex).forEach((sourceKey, slotIndex) => {
+                const targetKey = getSlotKey(toDayIndex, slotIndex);
+                const sourceItem = weeklyPlanData[sourceKey];
+
+                if (sourceItem) weeklyPlanData[targetKey] = clonePlanRecipe(sourceItem);
+                else delete weeklyPlanData[targetKey];
+            });
+
+            duplicateSourceDayIndex = null;
+            showToast(`${days[fromDayIndex]} nach ${days[toDayIndex]} kopiert`, 'success', 1800);
+            commitPlanStateChange({ render: true, save: true });
+        }
+
+        function handleDuplicateDaySelection(dayIndex) {
+            if (duplicateSourceDayIndex === null) {
+                duplicateSourceDayIndex = dayIndex;
+                renderPlan();
+                showToast(`Quelle gewählt: ${days[dayIndex]}. Tippe jetzt auf den Zieltag.`, 'info', 2200);
+                return;
+            }
+
+            if (duplicateSourceDayIndex === dayIndex) {
+                duplicateSourceDayIndex = null;
+                renderPlan();
+                return;
+            }
+
+            duplicateDay(duplicateSourceDayIndex, dayIndex);
+        }
 
         function updatePlanModeHeader() {
             const adding = document.getElementById('addingModeHeader');
@@ -2477,13 +2867,13 @@
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
             if (title && url) {
-                pendingRecipe = { title: title, img: url, recipeId: recipeId };
+                pendingRecipe = clonePlanRecipe({ title: title, img: url, recipeId: recipeId });
 
                 if (editingSlotKey) {
-                    weeklyPlanData[editingSlotKey] = pendingRecipe;
+                    weeklyPlanData[editingSlotKey] = clonePlanRecipe(pendingRecipe);
                     editingSlotKey = null;
                     pendingRecipe = null;
-                    scheduleDraftSave();
+                    commitPlanStateChange({ render: false, save: true, updateHeader: true });
                 }
             } else {
                 pendingRecipe = null;
@@ -2503,26 +2893,44 @@
             container.innerHTML = '';
 
             days.forEach((day, dayIndex) => {
+                const isDuplicateSource = duplicateSourceDayIndex === dayIndex;
+                const isDuplicateTarget = duplicateSourceDayIndex !== null && duplicateSourceDayIndex !== dayIndex;
+                const duplicateLabel = isDuplicateSource
+                    ? 'Abbrechen'
+                    : duplicateSourceDayIndex === null
+                        ? 'Tag duplizieren'
+                        : 'Hierhin kopieren';
+
                 let dayHtml = `
-                    <div class="plan-day-row">
-                        <span class="day-label">${day}</span>
+                    <div class="plan-day-row" data-day-index="${dayIndex}">
+                        <div class="plan-day-header">
+                            <span class="day-label">${day}</span>
+                            <div class="day-actions">
+                                <button type="button"
+                                        class="day-duplicate-btn${isDuplicateSource ? ' is-source' : ''}${isDuplicateTarget ? ' is-target' : ''}"
+                                        data-action="duplicate-day"
+                                        data-day-index="${dayIndex}">
+                                    ${duplicateLabel}
+                                </button>
+                            </div>
+                        </div>
                         <div class="slot-container">`;
 
                 slots.forEach((slotName, slotIndex) => {
-                    const key = `${dayIndex}-${slotIndex}`;
+                    const key = getSlotKey(dayIndex, slotIndex);
                     const item = weeklyPlanData[key];
 
                     if (item) {
                         const replaceMode = pendingRecipe ? 'replace-slot' : '';
-                        const replaceAction = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
                         const replaceHint = pendingRecipe ? `<div class="replace-hint">Antippen zum Ersetzen</div>` : '';
 
                         const media = (item.img && item.img.endsWith('.mp4'))
-                            ? `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata"></video>`
-                            : `<img src="${item.img}" class="mini-img" loading="lazy" />`;
+                            ? `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata" draggable="false"></video>`
+                            : `<img src="${item.img}" class="mini-img" loading="lazy" draggable="false" />`;
 
                         dayHtml += `
-                            <div class="filled-slot ${replaceMode}" ${replaceAction}>
+                            <div class="filled-slot ${replaceMode}" data-slot-kind="filled" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+                                <div class="slot-swipe-delete-bg"><i class="bi bi-trash3-fill"></i><span>&nbsp;Löschen</span></div>
                                 ${media}
                                 <div class="mini-content">
                                     <div class="mini-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
@@ -2530,10 +2938,10 @@
                                 </div>
 
                                 <div class="slot-actions">
-                                    <button type="button" class="slot-btn edit-slot-btn" onclick="startEditSlot('${key}'); event.stopPropagation();">
+                                    <button type="button" class="slot-btn edit-slot-btn" aria-label="Slot bearbeiten" data-action="edit-slot" data-slot-key="${key}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button type="button" class="slot-btn delete-slot-btn" onclick="removeFromSlot('${key}'); event.stopPropagation();">
+                                    <button type="button" class="slot-btn delete-slot-btn" aria-label="Slot entfernen" data-action="delete-slot" data-slot-key="${key}">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -2541,9 +2949,9 @@
                                 ${replaceHint}
                             </div>`;
                     } else {
-                        const action = pendingRecipe ? `onclick="addToSlot('${key}')"` : '';
+                        const pulseClass = pendingRecipe ? ' slot-pending-highlight' : '';
                         const opacity = pendingRecipe ? '1' : '0.55';
-                        dayHtml += `<div class="meal-slot-btn" style="opacity:${opacity}" ${action}>${slotName}</div>`;
+                        dayHtml += `<div class="meal-slot-btn${pulseClass}" style="opacity:${opacity}" data-slot-kind="empty" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">${slotName}</div>`;
                     }
                 });
 
@@ -2673,17 +3081,14 @@
 
         function addToSlot(key) {
             if (!pendingRecipe) return;
-            weeklyPlanData[key] = pendingRecipe;
-            triggerHaptic('medium');
-            showToast(`"${pendingRecipe.title || 'Rezept'}" hinzugefügt`, "success", 1800);
-            renderPlan();
-            scheduleDraftSave();
+            setSlotItem(key, pendingRecipe, {
+                haptic: true,
+                toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefügt`
+            });
         }
 
         function removeFromSlot(key) {
-            delete weeklyPlanData[key];
-            renderPlan();
-            scheduleDraftSave();
+            deleteSlotItem(key, { withUndo: false, save: true });
         }
 
         function startEditSlot(key) {
@@ -2714,6 +3119,8 @@
 
         function clearWeeklyPlanState(keepPendingRecipe = false) {
             weeklyPlanData = {};
+            duplicateSourceDayIndex = null;
+            clearPendingDeleteUndoState();
             if (!keepPendingRecipe) { pendingRecipe = null; editingSlotKey = null; }
             localStorage.removeItem(getDraftStorageKey());
             const linkInput = document.getElementById('planShareLink');
@@ -2721,6 +3128,402 @@
             updatePlanModeHeader();
             renderPlan();
             scheduleNutritionUpdate();
+        }
+
+        function exportPlanAsIcs() {
+            const payload = buildMealPlanPayload();
+            if (!payload.length) { showToast('Plan ist leer — nichts zu exportieren.', 'warn'); return; }
+
+            // Start date = coming Monday
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 0=Sun
+            const diff = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+            const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const fmtDate = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+            const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+            let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//DelikatessenDrehbuch//Wochenplan//DE\r\nCALSCALE:GREGORIAN\r\n';
+
+            payload.forEach(item => {
+                const eventDate = new Date(monday);
+                eventDate.setDate(monday.getDate() + (item.DayIndex - 1));
+                const nextDay = new Date(eventDate);
+                nextDay.setDate(eventDate.getDate() + 1);
+                const slotName = slots[item.SlotIndex] || '';
+                const summary = item.Title.replace(/[\\;,]/g, '\\$&');
+
+                ics += 'BEGIN:VEVENT\r\n';
+                ics += `DTSTART;VALUE=DATE:${fmtDate(eventDate)}\r\n`;
+                ics += `DTEND;VALUE=DATE:${fmtDate(nextDay)}\r\n`;
+                ics += `SUMMARY:${slotName}: ${summary}\r\n`;
+                ics += `CATEGORIES:${slotName}\r\n`;
+                ics += `UID:${uid()}@@delikatessen\r\n`;
+                ics += `DTSTAMP:${fmtDate(now)}T${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}Z\r\n`;
+                ics += 'END:VEVENT\r\n';
+            });
+
+            ics += 'END:VCALENDAR\r\n';
+
+            const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wochenplan.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Kalender-Datei heruntergeladen!', 'success');
+        }
+
+        async function shufflePlanFromLikes() {
+            // Collect empty slots
+            const emptySlots = [];
+            days.forEach((_, di) => {
+                slots.forEach((_, si) => {
+                    const key = `${di}-${si}`;
+                    if (!weeklyPlanData[key] || !weeklyPlanData[key].recipeId || weeklyPlanData[key].recipeId === '0') {
+                        emptySlots.push(key);
+                    }
+                });
+            });
+
+            if (!emptySlots.length) {
+                showToast('Alle Slots sind bereits belegt.', 'info');
+                return;
+            }
+
+            const resp = await fetch('/WorldMiniApp/Feed/GetLikedRecipes');
+            if (!resp.ok) throw new Error('Fetch failed');
+            const liked = await resp.json();
+
+            if (!liked.length) {
+                showToast('Keine gelikten Rezepte vorhanden.', 'warn');
+                return;
+            }
+
+            // Fisher-Yates shuffle
+            const shuffled = [...liked];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            // Fill empty slots with shuffled recipes (cycle if more slots than likes)
+            emptySlots.forEach((key, idx) => {
+                const recipe = shuffled[idx % shuffled.length];
+                weeklyPlanData[key] = {
+                    recipeId: String(recipe.recipeId),
+                    title: recipe.title,
+                    img: recipe.img || ''
+                };
+            });
+
+            renderPlan();
+            saveDraft();
+            scheduleNutritionUpdate();
+            showToast(`${emptySlots.length} Slots zufällig befüllt!`, 'success');
+            triggerHaptic();
+        }
+
+        function clearPlanDragTarget() {
+            document.querySelectorAll('.drag-target').forEach(el => el.classList.remove('drag-target'));
+            planPointerState.targetKey = null;
+        }
+
+        function releasePlanPointerCapture() {
+            if (!planPointerState.sourceElement || planPointerState.pointerId === null) return;
+            try {
+                if (planPointerState.sourceElement.hasPointerCapture(planPointerState.pointerId)) {
+                    planPointerState.sourceElement.releasePointerCapture(planPointerState.pointerId);
+                }
+            } catch (_) {
+                // Ignore browsers with partial pointer capture support.
+            }
+        }
+
+        function resetPlanPointerState() {
+            if (planPointerState.longPressTimer) {
+                clearTimeout(planPointerState.longPressTimer);
+            }
+
+            if (planPointerState.dragFrameId) {
+                cancelAnimationFrame(planPointerState.dragFrameId);
+                planPointerState.dragFrameId = null;
+            }
+
+            if (planPointerState.sourceElement) {
+                planPointerState.sourceElement.style.transform = '';
+                planPointerState.sourceElement.style.pointerEvents = '';
+                planPointerState.sourceElement.classList.remove('swiping', 'dragging-source', 'drag-placeholder');
+            }
+
+            clearPlanDragTarget();
+            releasePlanPointerCapture();
+
+            planPointerState.pointerId = null;
+            planPointerState.startX = 0;
+            planPointerState.startY = 0;
+            planPointerState.currentX = 0;
+            planPointerState.currentY = 0;
+            planPointerState.renderDx = 0;
+            planPointerState.renderDy = 0;
+            planPointerState.swiping = false;
+            planPointerState.dragging = false;
+            planPointerState.sourceKey = null;
+            planPointerState.sourceElement = null;
+            planPointerState.longPressTimer = null;
+        }
+
+        function renderDraggedPlanSlot() {
+            planPointerState.dragFrameId = null;
+
+            if (!planPointerState.dragging || !planPointerState.sourceElement) {
+                return;
+            }
+
+            planPointerState.sourceElement.style.transform = `translate3d(${planPointerState.renderDx}px, ${planPointerState.renderDy}px, 0) scale(1.03)`;
+        }
+
+        function queueDraggedPlanSlotRender(dx, dy) {
+            planPointerState.renderDx = dx;
+            planPointerState.renderDy = dy;
+
+            if (planPointerState.dragFrameId) {
+                return;
+            }
+
+            planPointerState.dragFrameId = requestAnimationFrame(renderDraggedPlanSlot);
+        }
+
+        function findPlanDropTarget(x, y, sourceKey) {
+            const slotCandidates = Array.from(document.querySelectorAll('#planContainer .filled-slot[data-slot-key], #planContainer .meal-slot-btn[data-slot-key]'));
+            const validCandidates = slotCandidates.filter(slotEl => {
+                const targetKey = slotEl?.dataset?.slotKey;
+                return !!targetKey && targetKey !== sourceKey;
+            });
+
+            const directHit = validCandidates.find(slotEl => {
+                const rect = slotEl.getBoundingClientRect();
+                return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+            });
+
+            if (directHit) return directHit;
+
+            let nearestTarget = null;
+            let nearestDistance = Number.POSITIVE_INFINITY;
+
+            validCandidates.forEach(slotEl => {
+                const rect = slotEl.getBoundingClientRect();
+                const centerX = rect.left + (rect.width / 2);
+                const centerY = rect.top + (rect.height / 2);
+                const dx = centerX - x;
+                const dy = centerY - y;
+                const distance = Math.hypot(dx, dy);
+
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestTarget = slotEl;
+                }
+            });
+
+            return nearestDistance <= 96 ? nearestTarget : null;
+        }
+
+        function beginPlanDrag() {
+            if (!planPointerState.sourceElement || !planPointerState.sourceKey) return;
+            planPointerState.dragging = true;
+            planPointerState.swiping = false;
+            planPointerState.sourceElement.classList.remove('swiping');
+            planPointerState.sourceElement.classList.add('dragging-source', 'drag-placeholder');
+            suppressPlanClickUntil = Date.now() + 250;
+        }
+
+        function handlePlanPointerDown(event) {
+            if (event.pointerType === 'mouse' && event.button !== 0) return;
+            if (event.target.closest('.slot-btn')) return;
+
+            const slotEl = event.target.closest('.filled-slot[data-slot-key]');
+            if (!slotEl) return;
+
+            event.preventDefault();
+
+            resetPlanPointerState();
+
+            planPointerState.pointerId = event.pointerId;
+            planPointerState.startX = event.clientX;
+            planPointerState.startY = event.clientY;
+            planPointerState.currentX = event.clientX;
+            planPointerState.currentY = event.clientY;
+            planPointerState.sourceKey = slotEl.dataset.slotKey;
+            planPointerState.sourceElement = slotEl;
+
+            try {
+                slotEl.setPointerCapture(event.pointerId);
+            } catch (_) {
+                // Ignore if capture is unsupported.
+            }
+
+            planPointerState.longPressTimer = window.setTimeout(() => beginPlanDrag(), planLongPressDelayMs);
+        }
+
+        function handlePlanPointerMove(event) {
+            if (planPointerState.pointerId !== event.pointerId || !planPointerState.sourceElement) return;
+
+            const dx = event.clientX - planPointerState.startX;
+            const dy = event.clientY - planPointerState.startY;
+            planPointerState.currentX = event.clientX;
+            planPointerState.currentY = event.clientY;
+
+            if (planPointerState.dragging) {
+                event.preventDefault();
+                queueDraggedPlanSlotRender(dx, dy);
+
+                const target = findPlanDropTarget(event.clientX, event.clientY, planPointerState.sourceKey);
+                clearPlanDragTarget();
+                if (target) {
+                    target.classList.add('drag-target');
+                    planPointerState.targetKey = target.dataset.slotKey;
+                }
+                return;
+            }
+
+            if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+                if (planPointerState.longPressTimer) {
+                    clearTimeout(planPointerState.longPressTimer);
+                    planPointerState.longPressTimer = null;
+                }
+                return;
+            }
+
+            if (!planPointerState.swiping && Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy)) {
+                if (planPointerState.longPressTimer) {
+                    clearTimeout(planPointerState.longPressTimer);
+                    planPointerState.longPressTimer = null;
+                }
+                planPointerState.swiping = true;
+                planPointerState.sourceElement.classList.add('swiping');
+            }
+
+            if (planPointerState.swiping) {
+                event.preventDefault();
+                const clampedX = Math.max(-132, Math.min(132, dx));
+                planPointerState.sourceElement.style.transform = `translateX(${clampedX}px)`;
+            }
+        }
+
+        function handlePlanPointerUp(event) {
+            if (planPointerState.pointerId !== event.pointerId || !planPointerState.sourceElement) return;
+
+            const dx = event.clientX - planPointerState.startX;
+            const sourceKey = planPointerState.sourceKey;
+            const targetKey = planPointerState.dragging
+                ? (findPlanDropTarget(event.clientX, event.clientY, sourceKey)?.dataset?.slotKey || planPointerState.targetKey)
+                : planPointerState.targetKey;
+            const wasDragging = planPointerState.dragging;
+            const wasSwiping = planPointerState.swiping;
+
+            if (wasDragging && sourceKey && targetKey) {
+                moveSlotItem(sourceKey, targetKey, { save: true });
+                suppressPlanClickUntil = Date.now() + 350;
+            } else if (wasSwiping && sourceKey && Math.abs(dx) >= planSwipeDeleteThreshold) {
+                deleteSlotItem(sourceKey, { withUndo: true, save: true });
+                suppressPlanClickUntil = Date.now() + 350;
+            }
+
+            resetPlanPointerState();
+        }
+
+        function handlePlanPointerCancel(event) {
+            if (planPointerState.pointerId !== event.pointerId) return;
+            resetPlanPointerState();
+        }
+
+        function handlePlanContainerClick(event) {
+            if (Date.now() < suppressPlanClickUntil) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
+            const toggle = event.target.closest('.day-nutrition-toggle');
+            if (toggle) {
+                const dayIndex = toggle.dataset.dayIndex;
+                if (dayIndex !== undefined) toggleDayNutrition(Number(dayIndex));
+                return;
+            }
+
+            const segBtn = event.target.closest('.day-nutrition-segment .nutrition-seg-btn');
+            if (segBtn) {
+                const seg = segBtn.closest('.day-nutrition-segment');
+                const di = seg?.dataset.dayIndex;
+                if (di === undefined) return;
+                const mode = segBtn.dataset.mode;
+                seg.querySelectorAll('.nutrition-seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
+                const totalGrid = document.getElementById(`dayNutritionGridTotal-${di}`);
+                const portionGrid = document.getElementById(`dayNutritionGridPortion-${di}`);
+                if (totalGrid) totalGrid.style.display = mode === 'total' ? '' : 'none';
+                if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
+                return;
+            }
+
+            const actionButton = event.target.closest('[data-action]');
+            if (actionButton) {
+                const action = actionButton.dataset.action;
+                const slotKey = actionButton.dataset.slotKey;
+                const dayIndex = actionButton.dataset.dayIndex;
+
+                if (action === 'edit-slot' && slotKey) {
+                    startEditSlot(slotKey);
+                    return;
+                }
+
+                if (action === 'delete-slot' && slotKey) {
+                    deleteSlotItem(slotKey, { withUndo: false, save: true });
+                    return;
+                }
+
+                if (action === 'duplicate-day' && dayIndex !== undefined) {
+                    handleDuplicateDaySelection(Number(dayIndex));
+                    return;
+                }
+            }
+
+            const emptySlot = event.target.closest('.meal-slot-btn[data-slot-key]');
+            if (emptySlot?.dataset.slotKey && pendingRecipe) {
+                addToSlot(emptySlot.dataset.slotKey);
+                return;
+            }
+
+            const filledSlot = event.target.closest('.filled-slot[data-slot-key]');
+            if (filledSlot?.dataset.slotKey && pendingRecipe && !event.target.closest('.slot-btn')) {
+                setSlotItem(filledSlot.dataset.slotKey, pendingRecipe, {
+                    save: true,
+                    haptic: true,
+                    toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefügt`
+                });
+            }
+        }
+
+        function initPlanInteractionHandlers() {
+            const planContainer = document.getElementById('planContainer');
+            if (!planContainer || planContainer.dataset.handlersBound === 'true') return;
+
+            planContainer.dataset.handlersBound = 'true';
+            planContainer.addEventListener('click', handlePlanContainerClick);
+            planContainer.addEventListener('pointerdown', handlePlanPointerDown);
+            planContainer.addEventListener('dragstart', event => {
+                if (event.target.closest('.filled-slot[data-slot-key]')) {
+                    event.preventDefault();
+                }
+            });
+
+            if (!planGlobalPointerHandlersBound) {
+                document.addEventListener('pointermove', handlePlanPointerMove);
+                document.addEventListener('pointerup', handlePlanPointerUp);
+                document.addEventListener('pointercancel', handlePlanPointerCancel);
+                planGlobalPointerHandlersBound = true;
+            }
         }
 
         function saveWeeklyPlan() {
@@ -3165,6 +3968,87 @@
             svg.innerHTML = html;
         }
 
+        // === Quick-Peek Bottom Sheet ===
+        let quickPeekCache = {};
+
+        function openQuickPeek(recipeId) {
+            const sheet = document.getElementById('quickPeekSheet');
+            const backdrop = document.getElementById('quickPeekBackdrop');
+            if (!sheet || !backdrop || !recipeId) return;
+
+            sheet.classList.add('is-open');
+            backdrop.classList.add('is-open');
+
+            const titleEl = document.getElementById('quickPeekTitle');
+            const metaEl = document.getElementById('quickPeekMeta');
+            const ingredientsEl = document.getElementById('quickPeekIngredients');
+
+            if (quickPeekCache[recipeId]) {
+                renderQuickPeekData(quickPeekCache[recipeId], titleEl, metaEl, ingredientsEl);
+                return;
+            }
+
+            if (titleEl) titleEl.textContent = 'Lädt...';
+            if (metaEl) metaEl.textContent = '';
+            if (ingredientsEl) ingredientsEl.innerHTML = '';
+
+            fetch(`/WorldMiniApp/Home/GetRecipePreview?id=${recipeId}`)
+                .then(r => r.ok ? r.json() : Promise.reject())
+                .then(data => {
+                    quickPeekCache[recipeId] = data;
+                    renderQuickPeekData(data, titleEl, metaEl, ingredientsEl);
+                })
+                .catch(() => {
+                    if (titleEl) titleEl.textContent = 'Fehler beim Laden';
+                });
+        }
+
+        function renderQuickPeekData(data, titleEl, metaEl, ingredientsEl) {
+            if (titleEl) titleEl.textContent = data.title || '';
+            const parts = [];
+            if (data.category) parts.push(data.category);
+            if (data.prepTime) parts.push(`${data.prepTime} Min`);
+            if (data.personCount) parts.push(`${data.personCount} Pers.`);
+            if (metaEl) metaEl.textContent = parts.join(' · ');
+            if (ingredientsEl) {
+                ingredientsEl.innerHTML = (data.ingredients || []).map(ing => {
+                    const qty = ing.quantity ? `${ing.quantity} ${ing.unit} `.trim() : '';
+                    return `<span class="quick-peek-chip">${escapeHtml(qty + ing.name)}</span>`;
+                }).join('');
+            }
+        }
+
+        function closeQuickPeek() {
+            document.getElementById('quickPeekSheet')?.classList.remove('is-open');
+            document.getElementById('quickPeekBackdrop')?.classList.remove('is-open');
+        }
+
+        // Backdrop click closes
+        document.getElementById('quickPeekBackdrop')?.addEventListener('click', closeQuickPeek);
+
+        // Swipe-up detection on feed items
+        function bindQuickPeekSwipe(container) {
+            let startY = 0, startX = 0, swiping = false;
+            container.addEventListener('touchstart', e => {
+                if (e.target.closest('.action-btn, .sound-toggle, .chef-badge, .follow-btn')) return;
+                startY = e.touches[0].clientY;
+                startX = e.touches[0].clientX;
+                swiping = true;
+            }, { passive: true });
+
+            container.addEventListener('touchend', e => {
+                if (!swiping) return;
+                swiping = false;
+                const dy = startY - (e.changedTouches[0]?.clientY ?? startY);
+                const dx = Math.abs(startX - (e.changedTouches[0]?.clientX ?? startX));
+                // Swipe up: at least 80px vertical, mostly vertical (not horizontal scroll)
+                if (dy > 80 && dy > dx * 1.5) {
+                    const recipeId = container.dataset.id || container.querySelector('[data-recipe-id]')?.dataset.recipeId;
+                    if (recipeId) openQuickPeek(recipeId);
+                }
+            }, { passive: true });
+        }
+
         function setDayNutritionTotals(dayIndex, data) {
             const caloriesEl = document.getElementById(`dayNutritionCalories-${dayIndex}`);
             const proteinEl = document.getElementById(`dayNutritionProtein-${dayIndex}`);
@@ -3505,29 +4389,7 @@
             if (nutritionToggle) {
                 nutritionToggle.addEventListener('click', togglePlanNutrition);
             }
-            const planContainer = document.getElementById('planContainer');
-            if (planContainer) {
-                planContainer.addEventListener('click', (event) => {
-                    const toggle = event.target.closest('.day-nutrition-toggle');
-                    if (!toggle) return;
-                    const dayIndex = toggle.dataset.dayIndex;
-                    if (dayIndex === undefined) return;
-                    toggleDayNutrition(Number(dayIndex));
-                });
-                planContainer.addEventListener('click', (event) => {
-                    const segBtn = event.target.closest('.day-nutrition-segment .nutrition-seg-btn');
-                    if (!segBtn) return;
-                    const seg = segBtn.closest('.day-nutrition-segment');
-                    const di = seg?.dataset.dayIndex;
-                    if (di === undefined) return;
-                    const mode = segBtn.dataset.mode;
-                    seg.querySelectorAll('.nutrition-seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
-                    const totalGrid = document.getElementById(`dayNutritionGridTotal-${di}`);
-                    const portionGrid = document.getElementById(`dayNutritionGridPortion-${di}`);
-                    if (totalGrid) totalGrid.style.display = mode === 'total' ? '' : 'none';
-                    if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
-                });
-            }
+            initPlanInteractionHandlers();
 
             // Weekly nutrition segment toggle
             const weeklySegment = document.getElementById('nutritionSegment');
@@ -3662,7 +4524,7 @@
             const bigHeart = container.querySelector('.double-tap-heart');
 
             if (heartBtn) heartBtn.classList.toggle('liked');
-            triggerHaptic('medium');
+            triggerHaptic();
 
             if (window.likedRecipeIds && recipeId) {
                 const rid = parseInt(recipeId, 10);
@@ -3736,7 +4598,7 @@
                     const recipeId = container?.dataset?.id;
                     if (recipeId) sendLikeToBackend(recipeId);
                     this.classList.toggle('liked');
-                    triggerHaptic('medium');
+                    triggerHaptic();
                     if (window.likedRecipeIds && recipeId) {
                         const rid = parseInt(recipeId, 10);
                         if (this.classList.contains('liked')) window.likedRecipeIds.add(rid);
@@ -3781,7 +4643,7 @@
             try { await fetch('/WorldMiniApp/Feed/ToggleFollow', { method: 'POST', body: formData }); }
             catch (error) { console.error("Netzwerkfehler:", error); }
 
-            triggerHaptic('medium');
+            triggerHaptic();
         }
 
 
@@ -3981,7 +4843,7 @@
                     </video>
                     <div class="video-progress"><div class="video-progress-fill"></div></div>
                     <i class="bi bi-play-fill play-icon-overlay"></i>
-                    <div class="sound-toggle" onclick="toggleGlobalSound(this)">
+                    <div class="sound-toggle" role="button" aria-label="Ton ein/aus" onclick="toggleGlobalSound(this)">
                         <i class="bi bi-volume-mute-fill"></i>
                     </div>`;
             } else {
@@ -4001,23 +4863,23 @@
                         <div class="recipe-meta">${prepLabel}</div>
                     </div>
                     <div class="action-bar">
-                        <div class="action-btn heart-btn${isLikedCls}" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
+                        <div class="action-btn heart-btn${isLikedCls}" role="button" aria-label="Gefällt mir" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
                             <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                             <span class="action-label like-count">${item.likeCount || 0}</span>
                         </div>
-                        <div class="action-btn bookmark-btn${isBookmarkedCls}" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); toggleBookmark(this);">
+                        <div class="action-btn bookmark-btn${isBookmarkedCls}" role="button" aria-label="Merken" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); toggleBookmark(this);">
                             <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
                         </div>
-                        <div class="action-btn share-action-btn" onclick="event.stopPropagation(); shareRecipeFromButton(this);">
+                        <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="event.stopPropagation(); shareRecipeFromButton(this);">
                             <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
                             <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                         </div>
-                        <div class="action-btn" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
+                        <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
                             <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
                             <span class="action-label">Plan</span>
                         </div>
                         <div class="action-btn">
-                            <a href="/WorldMiniApp/Home/ShowRecipe/${item.recipeId}" class="add-btn text-decoration-none">
+                            <a href="/WorldMiniApp/Home/ShowRecipe/${item.recipeId}" class="add-btn text-decoration-none" aria-label="Rezept anzeigen">
                                 <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
                             </a>
                         </div>

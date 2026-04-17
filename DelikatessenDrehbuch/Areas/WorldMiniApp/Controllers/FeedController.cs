@@ -702,6 +702,39 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetLikedRecipes()
+        {
+            var userHash = ResolveUserHash("");
+            if (string.IsNullOrEmpty(userHash))
+                return Json(Array.Empty<object>());
+
+            var liked = await _context.WorldUserLike
+                .AsNoTracking()
+                .Where(l => l.WorldAppUser.UserHash == userHash)
+                .Select(l => new
+                {
+                    recipeId = l.Recipe.Id,
+                    title = l.Recipe.Title
+                })
+                .ToListAsync();
+
+            if (!liked.Any())
+                return Json(Array.Empty<object>());
+
+            var recipeIds = liked.Select(l => l.recipeId).ToList();
+            var mediaMap = await BuildRecipeMediaMapAsync(recipeIds);
+
+            var result = liked.Select(l => new
+            {
+                l.recipeId,
+                l.title,
+                img = mediaMap.TryGetValue(l.recipeId, out var m) ? m.ImageUrl : ""
+            });
+
+            return Json(result);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> CreatorPostings(string creatorHash)
         {
             if (string.IsNullOrWhiteSpace(creatorHash))
